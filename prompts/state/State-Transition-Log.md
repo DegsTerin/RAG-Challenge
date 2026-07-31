@@ -1233,6 +1233,9 @@ contém somente fatos cronológicos.
   `STATE-02-Canonical-Contracts.md`, `security/STATE-02-Threat-Model.md` e
   `STATE-02-Architecture-Report.md`; ADR-0002 recebeu somente links e estado de
   revisão, sem mudança de decisão.
+- Baseline do pacote: commit
+  `979677fa1f4d7324340b8be15d88eb8b5b802a1a`
+  (`docs(architecture): prepare state 02 decision package`).
 - Decisões: ADR-0002 e ADR-0004 a ADR-0006 permanecem `proposed`. Nenhum
   provider, corpus, fonte, package, persistência, egress, risco residual ou
   infraestrutura foi aceito por implicação.

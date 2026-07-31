@@ -19,6 +19,7 @@ DB-Notifier changes.
 | Entry date | `2026-07-31` |
 | Entry baseline | `47435930727fc344298d84658b1ad9b2da9b5b62` |
 | Entry registration commit | `e9175b193b98bd0d8f464be7ed129da5af2de6aa` |
+| Architecture decision-package commit | `979677fa1f4d7324340b8be15d88eb8b5b802a1a` |
 | Branch | `main` |
 | Instruction corpus | `4.1.0` |
 | Entry working tree | Clean |

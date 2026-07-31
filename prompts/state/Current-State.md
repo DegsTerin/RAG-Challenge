@@ -38,10 +38,11 @@ proprietários.
   A autorização não aceita ADR por implicação nem concede rede, instalação,
   serviço pago, GitHub, OCI, publicação, deploy ou mudança no DB-Notifier.
 - Execução de `STATE-02`: pacote documental sequencial de `S02-A` e `S02-B`
-  preparado em 2026-07-31, com ADR-0002 e ADR-0004 a ADR-0006 ainda
-  `proposed`, contratos canônicos, threat model e relatório factual. Fatos de
-  fonte oficial, package/parser, provider/model e OCI dependentes de rede não
-  foram verificados e nenhuma escolha foi aceita por implicação.
+  preparado no commit `979677fa1f4d7324340b8be15d88eb8b5b802a1a` em
+  2026-07-31, com ADR-0002 e ADR-0004 a ADR-0006 ainda `proposed`, contratos
+  canônicos, threat model e relatório factual. Fatos de fonte oficial,
+  package/parser, provider/model e OCI dependentes de rede não foram
+  verificados e nenhuma escolha foi aceita por implicação.
 - Automatic Quality Gate de `STATE-02`: `BLOQUEADO` até verificação externa
   autorizada, decisões humanas explícitas de cada ADR e nova auditoria da
   baseline resultante. Human Gate de `STATE-02`: `PENDENTE` e ainda não pode
