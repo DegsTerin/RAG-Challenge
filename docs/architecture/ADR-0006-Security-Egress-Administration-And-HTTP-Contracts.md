@@ -5,8 +5,9 @@
 - Owners: RAG-Challenge security, API and operations
 - State: `STATE-02 ARCHITECTURE`
 - Dependencies: ADR-0002, ADR-0004 and ADR-0005
-- Verification status: partial; official-source response and local offline-TLS
-  policy were observed, while AI and OCI endpoint evidence remains incomplete
+- Verification status: public primary-source verification completed for the
+  official source, AI API contracts/data controls and OCI regional endpoints;
+  profiles remain disabled and account/runtime evidence remains pending
 
 ## Purpose and authority
 
@@ -35,12 +36,13 @@ in one profile grants no access through another.
 
 - Candidate destination: exact DNS host `api.openai.com`, port `443`, HTTPS
   only.
-- Permit only the path families required by the verified embedding and
-  response APIs. Record those exact prefixes after official verification;
-  until then this profile remains disabled.
-- The candidate host was not contacted. `developers.openai.com` was authorised
-  for a second documentation round, but that round stopped during the prior
-  PdfPig search. No AI API path or destination is therefore verified.
+- Permit only `POST /v1/embeddings` and `POST /v1/responses`. The official
+  model pages and API references verify both routes for the proposed models.
+  No batch, chat-completions, files, tools or model-list path is required by
+  the MVP.
+- The candidate host was not contacted. Its authority and paths were observed
+  only as text in documentation retrieved from `developers.openai.com`; this
+  verifies the proposed allowlist but does not enable it.
 - Reject userinfo, non-default ports, redirects, proxies and ambient
   credentials.
 - Send only bounded authorised chunks for indexing, the bounded question for
@@ -48,6 +50,14 @@ in one profile grants no access through another.
   generation.
 - Apply connect and total timeouts, cancellation, request-size/token budgets,
   concurrency limits and a monetary circuit breaker.
+- Set Responses `store=false`; do not send conversation,
+  `previous_response_id`, background mode, file input or hosted-tool
+  configuration. Use no training-data opt-in.
+- Assume up to 30 days of abuse-monitoring retention unless the owner later
+  obtains and authorises Modified Abuse Monitoring or Zero Data Retention.
+  Brazil is not a documented data-residency region for these services. A
+  regional OpenAI endpoint would be a different exact authority and requires
+  an amended decision and allowlist; it cannot be substituted silently.
 
 #### `VECTOR_STORE_EGRESS`
 
@@ -81,10 +91,22 @@ in one profile grants no access through another.
   substitute for destination policy.
 - Keep metadata-service, private, link-local and loopback destinations denied
   from all untrusted URL flows.
-- Exact regional OCI service endpoints remain disabled until primary-source
-  verification and separate deployment authority identify them.
-- OCI documentation checks were not reached before either mandatory browsing
-  stop; no endpoint from this profile is currently verified.
+- The official API index publishes Core Services
+  `https://iaas.sa-saopaulo-1.oraclecloud.com`, Key Management
+  `https://kms.sa-saopaulo-1.oraclecloud.com`, Secret Management
+  `https://vaults.sa-saopaulo-1.oci.oraclecloud.com` and Secret Retrieval
+  `https://secrets.vaults.sa-saopaulo-1.oci.oraclecloud.com` for the candidate
+  region. Those strings were read from documentation only; no endpoint was
+  contacted.
+- Normal application runtime permits only Secret Retrieval when configured:
+  exact host `secrets.vaults.sa-saopaulo-1.oci.oraclecloud.com`, HTTPS port
+  `443`, `GET /20190301/secretbundles/{configuredSecretId}` and bounded query
+  keys for a configured version/stage. The host and secret ID are trusted
+  configuration, never public input.
+- Core, Key Management and Secret Management endpoints belong only to
+  separately authorised provisioning or administration. They are not normal
+  application-runtime egress. All four destinations remain disabled until an
+  accepted ADR, exact IAM design and separate deployment authority exist.
 
 ### Official-source network policy
 
@@ -239,12 +261,25 @@ polling.
 - A source-policy violation is never retried against a different destination.
 - Rate limits and monetary circuit breakers are not bypassed by retry.
 - Questions, passages and answers are not logged by default.
+- Provider requests use only the two exact API paths, disable provider-side
+  response storage and hosted tools, and disclose only the minimum authorised
+  question/evidence. These controls do not eliminate default abuse-monitoring
+  retention.
+- Runtime secret retrieval uses a preconfigured secret identity and
+  least-privilege OCI identity; management endpoints and generic OCI egress
+  remain unavailable to the application process.
 - A P0/P1 security finding blocks state progression until remediation or an
   explicit risk decision allowed by governance.
 
 ## Acceptance checks
 
 - Each egress profile has exact destinations or is explicitly empty/disabled.
+- AI egress tests permit only the exact embedding/Responses methods and prove
+  `store=false`, no hosted tools/state fields, bounded disclosure and refusal
+  of a substituted regional authority.
+- OCI tests permit only the configured Secret Retrieval GET in normal runtime
+  and prove that Core, Key Management and Secret Management endpoints remain
+  administrative and disabled.
 - Tests prove mixed DNS answers, forbidden addresses, rebinding attempts,
   IP-pinned connection, Host/SNI preservation, redirect refusal and zero
   certificate-validation egress.
@@ -254,6 +289,8 @@ polling.
 - Readiness tests cover healthy Local with every official-source degradation.
 - Administration tests prove OS identity capture, enable flag, reason,
   idempotency, lease conflict, audit failure and absence of HTTP routes.
-- The owner explicitly accepts the offline revocation residual risk and all
-  externally disclosed data categories.
+- The owner explicitly accepts the offline revocation residual risk, all
+  externally disclosed data categories, up-to-30-day default abuse monitoring
+  and absence of Brazilian provider data residency, or selects a separately
+  verified alternative.
 - Acceptance does not enable egress or create an external resource.
