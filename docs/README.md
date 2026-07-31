@@ -2,9 +2,11 @@
 
 ## Status
 
-Este índice descreve o corpus documental vigente `3.5.4`. A baseline `3.4.0`
+Este índice descreve o corpus documental vigente `4.0.0`. A baseline `3.4.0`
 encerrou o Human Gate de `STATE-00 DISCOVERY`; o `GATE-B01
 ARCHITECTURE_BOOTSTRAP_DECISION` aprovou o ADR-0001 e a licença MIT. O
+ADR-0003 aceito posteriormente substitui seu registro, preserva todas as
+decisões não relacionadas a nomenclatura e adota a nova identidade. O
 ADR-0002 permanece proposto, e `STATE-01 PROJECT_SETUP` está ativo com
 Automatic Quality Gate aprovado e Human Gate pendente. Relatórios de estado
 são evidências históricas; o presente factual pertence a

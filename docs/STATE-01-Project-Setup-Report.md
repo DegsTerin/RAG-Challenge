@@ -229,3 +229,87 @@ The next lifecycle action is a separate human review of this complete setup
 summary. Automatic approval does not close `STATE-01`, authorise `STATE-02`,
 or permit GitHub mutation, push, deployment, OCI, product providers, or any
 later-state capability.
+
+## 2026-07-30 identity migration addendum
+
+### Authority and decision
+
+The product owner requested:
+
+```text
+Gostaria de mudar o nome do projeto de Challenge para RAG-Challenge
+```
+
+The request explicitly changes the canonical project identity. ADR-0003
+records `RAG-Challenge` as the public product and solution name and
+`RagChallenge` as the syntax-safe PascalCase form for .NET projects,
+assemblies, namespaces and configuration. This is a naming amendment only;
+ADR-0003 supersedes ADR-0001 as the current decision record while
+incorporating every non-naming ADR-0001 decision unchanged. Every lifecycle
+boundary also remains unchanged.
+
+The migration is isolated in commit
+`8c347c0fa73fead3e03a1eb979deba9fe3617379`.
+
+### Migrated surfaces
+
+| Surface | Previous evidence | Current baseline |
+|---|---|---|
+| Product and repository identity | `Challenge` | `RAG-Challenge` |
+| Solution | `Challenge.sln` | `RAG-Challenge.sln` |
+| .NET prefix | `Challenge.*` | `RagChallenge.*` |
+| Configuration root | `Challenge` | `RagChallenge` |
+| Dashboard package | `challenge-dashboard-web` | `rag-challenge-dashboard-web` |
+| Documentation root placeholder | `<challenge-root>` | `<rag-challenge-root>` |
+
+Stable `CH-MOD-*` module IDs, `CH_*` error codes, historical evidence,
+Alura/ONE Challenge references and
+`reference-materials/challenge-original/` remain unchanged by design.
+
+### Verification evidence
+
+| Check | Exit/result | Sanitised evidence |
+|---|---:|---|
+| Runtime preflight | `0` | Zero verified RAG-Challenge process and zero relevant listener existed before the migration validation. |
+| Forced offline lockfile regeneration and locked restore | `0` | All seven .NET lockfiles resolve without a package-version change. |
+| `eng/ci.ps1 -Offline` on the main worktree | `0` | Restore, format, Release build, 15 .NET tests, coverage, Dashboard clean install, lint, two tests, typecheck, Vite build and repository audit passed. |
+| .NET build | `0` | Seven projects built with zero warnings and zero errors. |
+| .NET tests and coverage | `0` | 15 tests passed; merged coverage is 88% of lines and 100% of branches. |
+| Dashboard checks | `0` | Two structural tests, lint, typecheck and Vite production build passed with package `rag-challenge-dashboard-web`. |
+| Repository audit | `0` | 77 non-ignored files passed UTF-8, LF, final-newline, whitespace, local-link, ignored-material and common-secret-pattern checks. |
+| Loopback health smoke | `0` | `/health/live` and `/health/ready` returned HTTP `200`; the listener executable was verified under the renamed project output and stopped, leaving zero listener. |
+| Clean-clone reproduction | `0` | Commit `8c347c0` reproduced the complete offline gate without `reference-materials/`; the clone worktree remained clean. |
+| Technical residual scan | `0` | No active solution, project, source, configuration or package-lock artefact retains the previous technical prefix; preserved historical records remain explicit. |
+| Git whitespace checks | `0` | Staged and worktree diffs passed. |
+
+No dependency version changed, so the previously recorded npm and .NET
+vulnerability results remain evidence for the same resolved dependency set.
+No network vulnerability audit was repeated during this offline identity
+migration.
+
+The first integrated CI attempt identified one `using` ordering error, which
+was corrected without changing test coverage. A later repository-audit
+attempt correctly rejected the unstaged rename index; staging the complete
+migration and normalising final newlines resolved it. The final main-worktree
+and clean-clone gates both passed.
+
+### Local-only limitations
+
+- The physical checkout directory is outside Git and was not renamed.
+- Seven legacy directory trees contain no files and remain ignored locally
+  because the workspace ACL denied their recursive removal. They are absent
+  from the clean clone.
+- The validation clone contains no local reference material or untracked
+  change, but its recursive cleanup was denied by the execution policy. It
+  remains only under the operating-system temporary directory.
+
+No GitHub or OCI resource was created, renamed or contacted. No push,
+publication, deployment, product provider, corpus, official source,
+DB-Notifier resource or functional RAG capability was changed.
+
+### Refreshed gate result
+
+The `STATE-01 PROJECT_SETUP` Automatic Quality Gate remains `APROVADO` for
+the renamed baseline. `STATE-01` remains active and its Human Gate remains
+`PENDENTE`. A fresh complete Human Gate summary must include this addendum;
+neither the rename nor this automatic validation authorises `STATE-02`.

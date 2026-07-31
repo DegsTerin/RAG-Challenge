@@ -3,10 +3,11 @@
 ## Status and authority
 
 This pack contains architecture proposals prepared during `STATE-00
-DISCOVERY`. ADR-0001 was accepted by `GATE-B01` on 2026-07-30; its naming
-provisions were amended by accepted ADR-0003. ADR-0002 remains proposed.
-Acceptance records a decision but does not authorise implementation or prove
-runtime behaviour.
+DISCOVERY`. ADR-0001 was accepted by `GATE-B01` on 2026-07-30 and was later
+superseded by accepted ADR-0003. ADR-0003 incorporates every non-naming
+ADR-0001 decision unchanged and replaces its naming provisions. ADR-0002
+remains proposed. Acceptance records a decision but does not authorise
+implementation or prove runtime behaviour.
 
 The architecture follows DB-Notifier principles where they are proportional
 to the RAG-Challenge: inward dependencies, provider-neutral contracts,
@@ -106,11 +107,11 @@ Dashboard -- versioned HTTP --> API
 ## Architecture decisions
 
 - [ADR-0001 — Runtime Stack and Modular Monolith](ADR-0001-Runtime-Stack-And-Modular-Monolith.md)
-  (`accepted`; naming amended by ADR-0003)
+  (`superseded` by ADR-0003)
 - [ADR-0002 — RAG Lifecycle, Provider Boundaries and Source Separation](ADR-0002-RAG-Lifecycle-Providers-And-Source-Separation.md)
   (`proposed`)
 - [ADR-0003 — Product and Technical Naming](ADR-0003-Product-And-Technical-Naming.md)
-  (`accepted`)
+  (`accepted`; current bootstrap decision record)
 
 ## Related contracts
 

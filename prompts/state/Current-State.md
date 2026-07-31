@@ -19,30 +19,37 @@ proprietários.
 - Automatic Quality Gate documental: `APROVADO` para a baseline `3.4.0` que
   encerrou `STATE-00` e para o incremento transversal `3.5.0`, sem reabertura
   do gate; correções `3.5.1` e `3.5.2` também `APROVADAS`; correção `3.5.3`
-  também `APROVADA`; correção `3.5.4` também `APROVADA`.
+  também `APROVADA`; correção `3.5.4` também `APROVADA`; migração de
+  identidade `4.0.0` também `APROVADA`.
 - Human Gate de `STATE-00`: `APROVADO` sem ressalvas em 2026-07-30.
 - `GATE-B01`: `APROVADO` sem ressalvas em 2026-07-30.
 - Transição para `STATE-01 PROJECT_SETUP`: autorizada em 2026-07-30.
 - Automatic Quality Gate de `STATE-01`: `APROVADO`; lockfiles, restore,
   format, build, testes, cobertura, Dashboard, auditorias, health em loopback,
-  higiene e reprodução em clone limpo foram validados em 2026-07-30.
+  higiene e reprodução em clone limpo foram validados em 2026-07-30. O gate
+  offline, o health smoke e a reprodução limpa foram repetidos sobre a
+  baseline renomeada.
 - Human Gate de `STATE-01`: `PENDENTE`.
-- ADR-0001: `accepted`; ADR-0002: `proposed`.
+- ADR-0001: `superseded` pelo ADR-0003, após aceitação original no
+  `GATE-B01`; ADR-0002: `proposed`; ADR-0003: `accepted` pela solicitação
+  humana explícita de renomear o projeto para `RAG-Challenge`, incorporando
+  sem alteração todas as decisões não relacionadas a nomenclatura do
+  ADR-0001.
 
 ## Baseline documental
 
 - Os 20 arquivos da estrutura originalmente aprovada permanecem preservados;
   a política de idioma acrescentou o 21º documento público por incremento
-  versionado.
+  versionado, e o ADR-0003 acrescentou o 22º.
 - A baseline aprovada no Human Gate de `STATE-00` permanece `3.4.0`.
-- O corpus de instruções vigente possui versão `3.5.4` e 13 arquivos em
+- O corpus de instruções vigente possui versão `4.0.0` e 13 arquivos em
   `prompts/`.
 - Visão, requisitos, arquitetura, RAG, segurança, qualidade, lifecycle,
   roadmap, backlog, estado, histórico e templates estão documentados.
-- A auditoria do corpus `3.5.4` confirmou 21 documentos, 100 links locais
+- A auditoria do corpus `4.0.0` confirmou 22 documentos, 111 links locais
   válidos, 20 RF, 14 RNF, 15 critérios de aceitação, 31 itens de backlog, 8
-  módulos, 13 riscos, formato consistente, rastreabilidade e ausência de
-  implementação.
+  módulos, 13 riscos, formato consistente e rastreabilidade. A implementação
+  existente continua limitada ao scaffold de `STATE-01`.
 - A arquitetura adota princípios compatíveis com o DB-Notifier sem criar
   referência ou dependência entre os projetos.
 - Cada solicitação do proprietário recebe exatamente um encerramento compacto
@@ -102,11 +109,15 @@ proprietários.
   GitHub.
 - Existe repositório Git local inicializado na branch `main`; o scaffold está
   no commit `16aec5f8586f07c9a9d89165e330335b460d6fbf` e o lockfile npm no
-  commit `8a604ceaa34162673aea6b7ce3267bc9d3f8b83a`.
-- Existem `Challenge.sln`, quatro projetos .NET de produção, um boundary
-  React/TypeScript para o Dashboard e três projetos .NET de testes, conforme
-  ADR-0001. Eles contêm somente markers, composição de setup, health e
-  verificações estruturais; nenhuma lógica RAG ou funcional.
+  commit `8a604ceaa34162673aea6b7ce3267bc9d3f8b83a`; a migração técnica de
+  identidade está no commit
+  `8c347c0fa73fead3e03a1eb979deba9fe3617379`.
+- Existem `RAG-Challenge.sln`, quatro projetos .NET de produção sob o prefixo
+  `RagChallenge`, um boundary React/TypeScript para o Dashboard e três
+  projetos .NET de testes, conforme o ADR-0003, que incorpora as decisões
+  não relacionadas a nomenclatura do ADR-0001. Eles contêm somente markers,
+  composição de setup, health e verificações estruturais; nenhuma lógica RAG
+  ou funcional.
 - SDK .NET `10.0.302`, C# `14.0`, Node.js `24.18.0` e npm `11.16.0` estão
   fixados. NuGet usa gestão central e sete lockfiles reproduzidos offline.
 - Restore .NET offline locked, format, build Release, 15 testes e cobertura
@@ -115,9 +126,17 @@ proprietários.
 - O Dashboard possui `package-lock.json` v3 e passou clean install sem
   lifecycle scripts, lint, dois testes estruturais, typecheck e build Vite.
 - As auditorias npm e .NET não encontraram vulnerabilidades nas fontes atuais.
-- O clone limpo sem `reference-materials/` reproduziu restore locked, format,
-  build, 15 testes, cobertura, Dashboard, auditorias e higiene; liveness e
-  readiness responderam `200 Healthy` em loopback e o listener foi encerrado.
+- O clone limpo da baseline renomeada, sem `reference-materials/`, reproduziu
+  restore locked, format, build, 15 testes, cobertura, Dashboard e higiene;
+  liveness e readiness responderam `200` em loopback, e o listener pertencente
+  ao projeto foi encerrado.
+- O clone temporário dessa reprodução permanece no diretório temporário do
+  sistema porque a política de execução recusou sua remoção recursiva. Ele não
+  contém `reference-materials/`, secret ou mudança não rastreada.
+- O diretório físico do checkout não integra o Git e não foi renomeado. Sete
+  árvores antigas vazias e ignoradas permanecem localmente por restrição de
+  ACL; nenhum arquivo rastreado conserva os paths técnicos antigos, e esses
+  diretórios não existem no clone limpo.
 - O pipeline CI está definido localmente, com menor privilégio e sem deploy;
   não foi executado no GitHub.
 - O arquivo `LICENSE` materializa a licença MIT aprovada.
@@ -140,7 +159,7 @@ proprietários.
 - Substituição manual de documento e nova geração de índice.
 - Conteúdo bruto imutável/reabrível, staging não consultável, manifesto final
   íntegro e ativação/rollback pelo registro completo versionado.
-- Contrato HTTP/OpenAPI v1 versionado pertencente ao Challenge; adapters
+- Contrato HTTP/OpenAPI v1 versionado pertencente ao RAG-Challenge; adapters
   consumidores permanecem fora deste repositório.
 - Execução local e futuro deploy OCI.
 - GitHub Pages somente como frontend estático opcional.
@@ -173,8 +192,9 @@ autorizada.
 
 ## Próxima autoridade
 
-Apresentar o resumo completo do Automatic Quality Gate aprovado para decisão
-humana separada sobre o Human Gate de `STATE-01`. O resultado automático não
-encerra o estado nem autoriza a progressão para `STATE-02`. ADR-0002, corpus,
-providers, fonte oficial, persistência definitiva, infraestrutura, GitHub,
-OCI, deploy e demais ações externas continuam sem autorização.
+Apresentar o resumo completo e atualizado do Automatic Quality Gate aprovado,
+incluindo a baseline `RAG-Challenge`, para decisão humana separada sobre o
+Human Gate de `STATE-01`. O resultado automático não encerra o estado nem
+autoriza a progressão para `STATE-02`. ADR-0002, corpus, providers, fonte
+oficial, persistência definitiva, infraestrutura, GitHub, OCI, deploy e
+demais ações externas continuam sem autorização.

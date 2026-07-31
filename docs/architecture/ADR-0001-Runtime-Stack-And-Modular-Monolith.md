@@ -1,10 +1,11 @@
 # ADR-0001 — Runtime Stack and Modular Monolith
 
-- Status: accepted
+- Status: superseded
 - Date: 2026-07-29
 - Accepted: 2026-07-30
+- Superseded: 2026-07-30
 - Owners: Challenge architecture / product owner
-- Naming amendment:
+- Superseded by:
   [ADR-0003 — Product and Technical Naming](ADR-0003-Product-And-Technical-Naming.md)
 
 ## Context

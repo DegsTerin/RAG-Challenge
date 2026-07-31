@@ -3,8 +3,10 @@
 - Status: accepted
 - Date: 2026-07-30
 - Accepted: 2026-07-30
+- Decision authority: product-owner request, `Gostaria de mudar o nome do
+  projeto de Challenge para RAG-Challenge`
 - Owners: RAG-Challenge architecture / product owner
-- Amends:
+- Supersedes:
   [ADR-0001 — Runtime Stack and Modular Monolith](ADR-0001-Runtime-Stack-And-Modular-Monolith.md)
 
 ## Context
@@ -12,6 +14,11 @@
 The product owner explicitly requested that the project name change from
 `Challenge` to `RAG-Challenge`. ADR-0001 had already accepted `Challenge.*`
 as the .NET project and namespace family during bootstrap.
+
+That request is the explicit human decision for the canonical project
+identity. `RagChallenge` is the syntax-safe, PascalCase implementation of the
+same identity in C# and configuration, not a second public product name or a
+separate lifecycle decision.
 
 The public name contains a hyphen, which is not valid in a C# namespace.
 The repository therefore needs an explicit mapping between public identity,
@@ -21,6 +28,10 @@ release or external consumer contract exists.
 
 ## Decision
 
+- Supersede ADR-0001 as the current bootstrap decision record. Incorporate
+  every non-naming decision from ADR-0001 by reference without modification,
+  including the runtime stack, modular-monolith boundary, dependency
+  direction, toolchains, tests, administration mode and negative scope.
 - Use `RAG-Challenge` as the canonical product and repository name.
 - Use `RAG-Challenge.sln` as the solution filename.
 - Use `RagChallenge` as the .NET project, assembly, root namespace and
@@ -48,9 +59,9 @@ release or external consumer contract exists.
   history and references to the Alura/ONE Challenge materials.
 - Preserve `reference-materials/challenge-original/` as local-only
   provenance. Its path and contents are not renamed.
-- Keep every non-naming decision in ADR-0001 accepted and unchanged. This ADR
-  replaces only its product, solution, project, assembly, namespace and
-  configuration naming provisions.
+- Replace only ADR-0001's product, solution, project, assembly, namespace and
+  configuration naming provisions. Its other decisions remain current
+  through their incorporation above.
 - Treat the physical checkout directory and any future GitHub or OCI resource
   name as external environment concerns. This decision does not rename or
   create an external resource.
@@ -78,6 +89,8 @@ inconsistent overrides across projects and source files.
 - Existing local project, assembly, namespace and configuration names change
   incompatibly, but no released consumer contract requires a compatibility
   shim.
+- ADR-0001 becomes `superseded`; it remains the historical source for all
+  incorporated non-naming decisions.
 - The solution, project references, tests, setup scripts, lockfiles and
   onboarding documentation must migrate together.
 - Historical evidence continues to show the names that were true when that

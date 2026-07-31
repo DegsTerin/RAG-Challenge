@@ -2,10 +2,10 @@
 
 ## Versão atual
 
-- Versão: `3.5.4`
+- Versão: `4.0.0`
 - Data: 2026-07-30
-- Status: correção de completude do texto para copiar auditada; `GATE-B01`
-  pendente
+- Status: migração de identidade para `RAG-Challenge` auditada; `STATE-01`
+  ativo com Human Gate pendente
 - Escopo: 13 arquivos ativos em `prompts/`
 
 A versão do corpus é independente da versão futura do software.
@@ -19,6 +19,40 @@ A versão do corpus é independente da versão futura do software.
 
 Toda alteração atualiza este arquivo e, quando necessário,
 [`../Start-Here.md`](../Start-Here.md).
+
+## 4.0.0 — 2026-07-30
+
+- Registra a solicitação humana explícita `Gostaria de mudar o nome do projeto
+  de Challenge para RAG-Challenge` como decisão da identidade canônica.
+- Adota `RAG-Challenge` para produto e solution, `RagChallenge` para projetos,
+  assemblies, namespaces e configuração .NET, e
+  `rag-challenge-dashboard-web` para o package privado npm.
+- Aceita o ADR-0003 como registro vigente e marca o ADR-0001 como
+  `superseded`; o novo ADR incorpora sem modificação todas as decisões
+  anteriores não relacionadas a nomenclatura. A normalização `RagChallenge`
+  materializa a mesma identidade em sintaxe válida de C# e não cria outro
+  nome público.
+- Preserva a decisão histórica do ADR-0001, o histórico append-only, os
+  relatórios de execução, as referências ao Challenge da Alura/ONE, os IDs
+  `CH-MOD-*`, os códigos `CH_*` e
+  `reference-materials/challenge-original/`.
+- Migra solution, sete projetos .NET, namespaces, configuração, testes,
+  lockfiles, scripts, Dashboard e documentos canônicos sem alterar versão de
+  dependência, lógica funcional ou escopo de lifecycle.
+- O commit técnico
+  `8c347c0fa73fead3e03a1eb979deba9fe3617379` passou no gate offline integral:
+  build sem warning ou erro, 15 testes .NET, 88% de linhas, 100% de branches,
+  dois testes web, lint, typecheck, build Vite e auditoria de 77 arquivos.
+- Health smoke em loopback retornou `200` para liveness e readiness; o
+  processo pertencente ao projeto foi encerrado e nenhum listener permaneceu.
+  Um clone limpo sem materiais locais reproduziu o gate com worktree limpo.
+- O corpus `4.0.0` contém 22 documentos governados, 111 links locais válidos e
+  13 arquivos em `prompts/`; links e formato foram validados pela auditoria
+  local.
+- Classifica a mudança como MAJOR porque altera a identidade canônica e os
+  identificadores técnicos existentes. Não encerra `STATE-01`, não decide seu
+  Human Gate, não autoriza `STATE-02`, ADR-0002, GitHub, OCI, push,
+  publicação, deploy, provider, corpus, fonte oficial ou DB-Notifier.
 
 ## 3.5.4 — 2026-07-30
 

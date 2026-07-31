@@ -963,3 +963,63 @@ contém somente fatos cronológicos.
   humana separada sobre o Human Gate de `STATE-01`. Somente depois de seu
   registro poderá ser considerada uma autorização também separada de entrada
   em `STATE-02`.
+
+## 2026-07-30 — Migração de identidade para RAG-Challenge
+
+- Estado anterior e resultante: `STATE-01 PROJECT_SETUP` ativo; sem transição.
+- Autoridade humana exata:
+
+  ```text
+  Gostaria de mudar o nome do projeto de Challenge para RAG-Challenge
+  ```
+
+- Decisão de identidade: `RAG-Challenge` passa a ser o nome canônico do
+  produto, do repositório e da solution. `RagChallenge` é a forma PascalCase
+  válida em C# para projetos, assemblies, namespaces e configuração;
+  `rag-challenge-dashboard-web` é o nome do package privado npm.
+- Decisão arquitetural: ADR-0003 `accepted` pela solicitação humana explícita.
+  Ele substitui o ADR-0001 como registro vigente, incorpora sem alteração
+  todas as suas decisões não relacionadas a nomenclatura e substitui somente
+  os nomes anteriores. O ADR-0001 passa a `superseded`.
+- Preservação: IDs `CH-MOD-*`, códigos `CH_*`, decisões e evidências
+  históricas, menções ao Challenge da Alura/ONE e
+  `reference-materials/challenge-original/` não foram renomeados.
+- Escopo executado: nome público, solution, sete projetos .NET, namespaces,
+  configuração, referências, testes, lockfiles, script de CI, Dashboard,
+  documentos canônicos, estado, changelog e evidência do setup.
+- Escopo negativo: nenhuma versão de dependência ou lógica funcional foi
+  alterada; nenhuma transição, Human Gate, `STATE-02`, ADR-0002, GitHub, OCI,
+  push, publicação, deploy, provider, corpus, fonte oficial, persistência,
+  infraestrutura ou integração ao DB-Notifier foi autorizada ou executada.
+- Runtime preflight: zero processo e zero listener comprovadamente
+  pertencente ao projeto antes da validação executável.
+- Baseline técnica: commit
+  `8c347c0fa73fead3e03a1eb979deba9fe3617379`
+  (`refactor(identity): rename product to RAG-Challenge`).
+- Gate offline no workspace principal: restore locked, format, build Release
+  com zero warning e zero erro, 15 testes .NET, cobertura de 88% das linhas e
+  100% dos branches, lint, dois testes Dashboard, typecheck, build Vite e
+  auditoria de 77 arquivos `APROVADOS`.
+- Health smoke: `/health/live` e `/health/ready` responderam HTTP `200`; o
+  executável do listener foi comprovado sob o output de
+  `RagChallenge.Server.Api`, encerrado e deixou zero listener.
+- Clone limpo: o commit `8c347c0` reproduziu integralmente o gate offline sem
+  `reference-materials/` e permaneceu com worktree limpo. A política de
+  execução recusou a remoção recursiva do clone, que permanece somente no
+  diretório temporário do sistema, sem material local ou mudança não
+  rastreada.
+- Limitações locais: o diretório físico do checkout está fora do Git e não foi
+  renomeado; sete árvores antigas vazias e ignoradas permanecem por restrição
+  de ACL. Nenhum arquivo rastreado conserva os paths técnicos anteriores, e
+  essas árvores não aparecem no clone limpo.
+- Corpus: versão `4.0.0`, 22 documentos governados e 13 arquivos em
+  `prompts/`; links locais, UTF-8, LF, newline final, whitespace, materiais
+  ignorados e padrões comuns de secret foram auditados.
+- Relatório atualizado:
+  [`../../docs/STATE-01-Project-Setup-Report.md`](../../docs/STATE-01-Project-Setup-Report.md).
+- Quality Gate: `APROVADO` para a baseline `RAG-Challenge` de `STATE-01`.
+- Human Gate: `PENDENTE`; não decidido por esta migração.
+- Próxima condição: apresentar um resumo completo atualizado, incluindo a
+  migração de identidade, e obter decisão humana separada sobre o Human Gate
+  de `STATE-01`. Somente depois de seu registro poderá ser considerada uma
+  autorização também separada para `STATE-02`.
