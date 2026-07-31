@@ -6,8 +6,8 @@ Este índice descreve o corpus documental vigente `3.5.4`. A baseline `3.4.0`
 encerrou o Human Gate de `STATE-00 DISCOVERY`; o `GATE-B01
 ARCHITECTURE_BOOTSTRAP_DECISION` aprovou o ADR-0001 e a licença MIT. O
 ADR-0002 permanece proposto, e `STATE-01 PROJECT_SETUP` está ativo com
-Automatic Quality Gate e Human Gate pendentes. Relatórios de estado são
-evidências históricas; o presente factual pertence a
+Automatic Quality Gate aprovado e Human Gate pendente. Relatórios de estado
+são evidências históricas; o presente factual pertence a
 [`Current-State.md`](../prompts/state/Current-State.md).
 
 ## Comece aqui
@@ -25,7 +25,7 @@ evidências históricas; o presente factual pertence a
 7. [`PROJECT-SETUP.md`](PROJECT-SETUP.md): onboarding e checks do scaffold
    autorizado.
 8. [`STATE-01-Project-Setup-Report.md`](STATE-01-Project-Setup-Report.md):
-   evidência factual e bloqueios do setup.
+   evidência factual e Automatic Quality Gate do setup.
 
 ## Produto e arquitetura
 

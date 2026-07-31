@@ -23,11 +23,9 @@ proprietários.
 - Human Gate de `STATE-00`: `APROVADO` sem ressalvas em 2026-07-30.
 - `GATE-B01`: `APROVADO` sem ressalvas em 2026-07-30.
 - Transição para `STATE-01 PROJECT_SETUP`: autorizada em 2026-07-30.
-- Automatic Quality Gate de `STATE-01`: `BLOQUEADO` por ausência de
-  `package-lock.json`, clean install, typecheck/build do Dashboard,
-  auditorias de vulnerabilidade atuais e reprodução em clone limpo; a
-  autoridade limitada para executar essas verificações foi concedida e o
-  resultado ainda não foi registrado.
+- Automatic Quality Gate de `STATE-01`: `APROVADO`; lockfiles, restore,
+  format, build, testes, cobertura, Dashboard, auditorias, health em loopback,
+  higiene e reprodução em clone limpo foram validados em 2026-07-30.
 - Human Gate de `STATE-01`: `PENDENTE`.
 - ADR-0001: `accepted`; ADR-0002: `proposed`.
 
@@ -103,7 +101,8 @@ proprietários.
 - Os materiais originais não são o corpus do produto e não serão enviados ao
   GitHub.
 - Existe repositório Git local inicializado na branch `main`; o scaffold está
-  no commit `16aec5f8586f07c9a9d89165e330335b460d6fbf`.
+  no commit `16aec5f8586f07c9a9d89165e330335b460d6fbf` e o lockfile npm no
+  commit `8a604ceaa34162673aea6b7ce3267bc9d3f8b83a`.
 - Existem `Challenge.sln`, quatro projetos .NET de produção, um boundary
   React/TypeScript para o Dashboard e três projetos .NET de testes, conforme
   ADR-0001. Eles contêm somente markers, composição de setup, health e
@@ -113,9 +112,12 @@ proprietários.
 - Restore .NET offline locked, format, build Release, 15 testes e cobertura
   mesclada foram aprovados; cobertura observada: 88% de linhas e 100% de
   branches.
-- O Dashboard passou lint e dois testes estruturais. `package-lock.json`,
-  clean install, typecheck e build permanecem bloqueados porque o cache npm
-  está incompleto e rede não está autorizada.
+- O Dashboard possui `package-lock.json` v3 e passou clean install sem
+  lifecycle scripts, lint, dois testes estruturais, typecheck e build Vite.
+- As auditorias npm e .NET não encontraram vulnerabilidades nas fontes atuais.
+- O clone limpo sem `reference-materials/` reproduziu restore locked, format,
+  build, 15 testes, cobertura, Dashboard, auditorias e higiene; liveness e
+  readiness responderam `200 Healthy` em loopback e o listener foi encerrado.
 - O pipeline CI está definido localmente, com menor privilégio e sem deploy;
   não foi executado no GitHub.
 - O arquivo `LICENSE` materializa a licença MIT aprovada.
@@ -171,11 +173,8 @@ autorizada.
 
 ## Próxima autoridade
 
-Executar, dentro da autoridade limitada já registrada, geração e validação de
-`package-lock.json`, clean install, typecheck/build do Dashboard, auditorias
-de vulnerabilidade, smoke em loopback e reprodução em clone limpo. Depois,
-repetir o Automatic Quality Gate e somente então apresentar resumo completo
-para Human Gate separado. A entrada no estado não autoriza seu encerramento
-nem a progressão para `STATE-02`. ADR-0002, corpus, providers, fonte oficial,
-persistência definitiva, infraestrutura, GitHub, OCI, deploy e demais ações
-externas continuam sem autorização.
+Apresentar o resumo completo do Automatic Quality Gate aprovado para decisão
+humana separada sobre o Human Gate de `STATE-01`. O resultado automático não
+encerra o estado nem autoriza a progressão para `STATE-02`. ADR-0002, corpus,
+providers, fonte oficial, persistência definitiva, infraestrutura, GitHub,
+OCI, deploy e demais ações externas continuam sem autorização.

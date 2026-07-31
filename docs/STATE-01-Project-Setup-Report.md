@@ -8,10 +8,13 @@ licence, repository configuration, pinned toolchains, dependency management
 and lockfiles, the ADR-0001 scaffold, structural tests, minimal health
 endpoints, onboarding, and CI definition without deployment.
 
-The authority explicitly excluded functional RAG or product behaviour,
+The entry authority explicitly excluded functional RAG or product behaviour,
 ADR-0002, corpus decisions, providers, official sources, durable persistence,
 infrastructure, external network access, software installation, GitHub, OCI,
-push, publication, deployment, CD, and DB-Notifier changes.
+push, publication, deployment, CD, and DB-Notifier changes. A later bounded
+authority permitted only the npm and NuGet registries, installation of pinned
+dependencies without lifecycle scripts, dependency audits, and loopback
+health smoke needed to finish this gate.
 
 ## Environment
 
@@ -28,6 +31,7 @@ push, publication, deployment, CD, and DB-Notifier changes.
 | npm | `11.16.0` |
 | ripgrep | `15.2.0` |
 | Setup candidate commit | `16aec5f8586f07c9a9d89165e330335b460d6fbf` |
+| Gate candidate commit | `8a604ceaa34162673aea6b7ce3267bc9d3f8b83a` |
 
 No real workstation or host name is stored in project files. Evidence uses
 the stable `<challenge-root>` placeholder.
@@ -40,6 +44,8 @@ the stable `<challenge-root>` placeholder.
 - The MIT repository licence and physical project map were recorded.
 - `.git`, `LICENSE`, scaffold, dependencies, and implementation were absent
   before the entry authority.
+- Bounded npm/NuGet registry access and loopback health smoke were separately
+  authorised after the offline gate blocker was recorded.
 - The runtime preflight found zero Challenge-owned processes.
 
 ## Delivered artefacts
@@ -54,10 +60,11 @@ the stable `<challenge-root>` placeholder.
 - Added central NuGet package management and repository lockfile policy.
 - Generated and validated seven .NET `packages.lock.json` files offline.
 - Added the React/TypeScript dependency manifest with exact versions.
-
-The npm `package-lock.json` is not delivered. npm's offline mode reported
-`ENOTCACHED` because the local cache lacks package metadata required to
-resolve the complete dependency graph. No online fallback was attempted.
+- Generated npm `package-lock.json` v3 with 53 package entries and only
+  `registry.npmjs.org` resolved URLs.
+- Installed the pinned Dashboard dependencies with lifecycle scripts
+  disabled. The only install-script metadata belongs to optional macOS
+  package `fsevents`; it was not executed.
 
 ### S01-B — Empty boundaries
 
@@ -110,6 +117,8 @@ Structural tests verify:
 - Added local format, repository audit, merged coverage, and CI scripts.
 - Added Dashboard lint and Node-native structural tests.
 - Added setup onboarding and local/offline procedures.
+- Validated liveness and readiness on an ephemeral loopback listener and
+  removed the listener after the smoke.
 
 The workflow was defined but not executed on GitHub. GitHub mutation and
 external CI execution remain unauthorised.
@@ -135,12 +144,27 @@ otherwise.
 | `eng/check-repository.ps1` | `0` | Format, local links, ignored materials, and common secret assignments passed. |
 | `npm install --offline ... --package-lock-only` | `1` | `ENOTCACHED`; complete npm dependency graph unavailable offline. |
 | `eng/ci.ps1 -Offline` | `1` | All .NET gates passed, then npm clean install stopped because `package-lock.json` is absent. |
+| `npm install --package-lock-only --ignore-scripts` | `0` | Lockfile v3 generated with pinned direct versions and only the authorised npm registry. |
+| `npm ci --ignore-scripts` | `0` | Clean install added 21 packages without lifecycle script execution. |
+| `npm run lint`; `npm test` | `0` | Lint and two structural tests passed. |
+| `npm run typecheck`; `npm run build` | `0` | TypeScript and Vite production build passed. |
+| `npm audit --audit-level=high` | `0` | Zero vulnerabilities at every severity. |
+| `dotnet list Challenge.sln package --vulnerable --include-transitive` | `0` | No vulnerable package found in seven projects. |
+| Loopback health smoke | `0` | `/health/live` and `/health/ready` returned `200 Healthy`; zero listener remained after cleanup. |
+| Clean clone `eng/ci.ps1` | `0` | Isolated caches reproduced the complete gate without `reference-materials/`; worktree remained clean. |
+| Main worktree `eng/ci.ps1` | `0` | Integral gate repeated successfully on the committed baseline. |
 
 Two intermediate architecture-test runs failed because coverage
 instrumentation and compiler-generated types appeared outside product
 namespaces. The test was corrected to exclude instrumentation and
 compiler-generated types while continuing to reject misplaced product types.
 The final build and all final tests passed.
+
+The first Dashboard typecheck failed because the TypeScript Vite
+configuration imported Vite's Node-facing declarations without a direct Node
+type dependency. The configuration was converted to JavaScript ESM and
+excluded from the application typecheck. No dependency or version was added
+or changed; the complete Dashboard sequence then passed.
 
 ## Automatic Quality Gate
 
@@ -153,38 +177,38 @@ The final build and all final tests passed.
 | .NET locked restore, build, tests, and coverage | `APROVADO` | Offline restore passes; build has zero warnings; 15 tests pass; floors exceeded. |
 | Repository format, links, ignored materials, and secret pattern check | `APROVADO` | Local repository audit passes. |
 | Dashboard lint and structural tests | `APROVADO` | Lint and two Node tests pass. |
-| npm lockfile, clean install, typecheck, and build | `BLOQUEADO` | npm cache metadata is incomplete and network authority is absent. |
-| Dependency vulnerability audits | `BLOQUEADO` | Current advisory data requires separately authorised registry access. |
+| npm lockfile, clean install, typecheck, and build | `APROVADO` | Lockfile v3, clean install, lint, tests, typecheck, and Vite build pass. |
+| Dependency vulnerability audits | `APROVADO` | npm and all seven .NET projects have zero observed vulnerabilities. |
 | GitHub CI execution | `NÃO APLICÁVEL` | Workflow definition is local; GitHub mutation/execution is unauthorised. |
-| Clean-clone reproduction | `BLOQUEADO` | The npm lockfile and registry authority are missing. |
+| Loopback health smoke | `APROVADO` | Both health routes returned `200 Healthy`; cleanup left zero listener. |
+| Clean-clone reproduction | `APROVADO` | Isolated restores and the integral gate pass without local-only materials. |
 
-Overall Automatic Quality Gate result: `BLOQUEADO`.
+Overall Automatic Quality Gate result: `APROVADO`.
 
-No P0 or P1 defect was observed. The blocking condition is missing authority
-for package-registry access needed to complete and validate the npm lockfile,
-Dashboard typecheck/build, current vulnerability audits, and a clean restore.
+No P0-P3 residual setup finding was observed. GitHub workflow execution is
+not evidence required from this local authority and remains `NÃO APLICÁVEL`.
 
 ## Security and data
 
-- No secret value, corpus, snapshot, provider configuration, or external URL
-  was added.
+- No secret value, corpus, snapshot, provider configuration, or product
+  external URL was added.
 - `reference-materials/` remains ignored and is not required by the .NET
   restore, build, or tests.
 - External services fail closed in committed setup configuration.
-- No process listener, external request, package-registry request, GitHub
-  action, OCI action, or deployment was executed.
+- Registry traffic used only `registry.npmjs.org` and the configured
+  `api.nuget.org` service. Entry-point probes did not redirect, npm lock
+  entries use only the authorised npm host, and the NuGet vulnerability
+  resource remained on the authorised host.
+- The only listener bound to loopback for health smoke and was stopped after
+  the checks.
+- No GitHub action, OCI action, push, publication, deployment, CD, product
+  provider, official-source access, or DB-Notifier change was executed.
 - npm's `--offline` failures were cache-only checks and did not fall back to
   the network.
 
 ## Untested or blocked behaviour
 
-- npm clean install and `package-lock.json` reproducibility;
-- Dashboard TypeScript typecheck and Vite production build;
-- current npm and NuGet vulnerability advisory checks;
 - external GitHub Actions execution;
-- clean-clone restore, build, and test;
-- live loopback health smoke, conservatively omitted under the no-network
-  authority;
 - every product capability owned by later states.
 
 ## Rollback
@@ -198,11 +222,10 @@ local-only material remains intact.
 
 ## State and recommendation
 
-`STATE-01 PROJECT_SETUP` remains active. Its Human Gate is `PENDENTE` and must
-not be requested while the Automatic Quality Gate is blocked.
+`STATE-01 PROJECT_SETUP` remains active. Its Automatic Quality Gate is
+`APROVADO` and its Human Gate is `PENDENTE`.
 
-The minimum unblock is explicit authority for bounded package-registry access
-to generate and validate `package-lock.json`, run npm clean install,
-typecheck, build, and dependency audits, then execute a clean-clone
-reproduction. That authority would not permit GitHub mutation, push, deploy,
-OCI, product providers, or any later-state capability.
+The next lifecycle action is a separate human review of this complete setup
+summary. Automatic approval does not close `STATE-01`, authorise `STATE-02`,
+or permit GitHub mutation, push, deployment, OCI, product providers, or any
+later-state capability.

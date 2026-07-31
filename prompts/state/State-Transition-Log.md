@@ -916,3 +916,50 @@ contém somente fatos cronológicos.
 - Próxima condição: executar sequencialmente as verificações autorizadas,
   repetir integralmente o gate e apresentar seu resumo completo sem encerrar
   o estado.
+
+## 2026-07-30 — Automatic Quality Gate de STATE-01 aprovado
+
+- Estado anterior e resultante: `STATE-01 PROJECT_SETUP` ativo; sem transição.
+- Autoridade: entrada de `STATE-01` e autoridade limitada registrada em
+  `Autoridade limitada para desbloquear o gate de STATE-01`.
+- Baseline de execução: commits
+  `16aec5f8586f07c9a9d89165e330335b460d6fbf`,
+  `3610b1fa9674853d4e407e443a4cad9af8e6410a`,
+  `766a8a85abe716c2e0b3194c17395e28d992c38e` e
+  `8a604ceaa34162673aea6b7ce3267bc9d3f8b83a`.
+- Preflight: zero processo e zero listener pertencente ao Challenge.
+- Lockfile e supply chain: `package-lock.json` v3 com 53 entradas, versões
+  diretas fixadas e somente URLs resolvidas de `registry.npmjs.org`; clean
+  install de 21 pacotes com lifecycle scripts desabilitados.
+- Dashboard: lint, dois testes estruturais, typecheck e build Vite
+  `APROVADOS`. A primeira execução de typecheck identificou configuração Vite
+  TypeScript acoplada a tipos Node ausentes; ela foi convertida para ESM
+  JavaScript sem adicionar ou alterar dependência.
+- Auditorias: npm com zero vulnerabilidade em todas as severidades; sete
+  projetos .NET sem pacote vulnerável nas fontes atuais.
+- Health: `/health/live` e `/health/ready` responderam `200 Healthy` em
+  loopback; o processo Challenge foi identificado pelo executável e encerrado;
+  zero listener permaneceu.
+- Clone limpo: clone local sem hardlinks, sem `reference-materials/` e com
+  caches NuGet/npm isolados aprovou restore locked, format, build Release,
+  15 testes .NET, cobertura, Dashboard, auditorias, higiene e worktree limpo;
+  o diretório temporário foi removido.
+- Gate integral final: .NET `10.0.302`, Node.js `24.18.0` e npm `11.16.0`;
+  build com 0 warning e 0 erro; 15 testes .NET aprovados; cobertura de 88%
+  das linhas e 100% dos branches; lint, dois testes Dashboard, typecheck e
+  build aprovados; auditorias sem vulnerabilidade; auditoria de 76 arquivos e
+  `git diff --check` aprovados.
+- Rede observada: registries autorizados e loopback; probes dos entrypoints
+  sem redirect. Nenhum GitHub, OCI, push, publicação, deploy, CD, provider,
+  corpus, fonte oficial, persistência definitiva, infraestrutura, ADR-0002 ou
+  DB-Notifier foi acessado ou alterado.
+- Achados residuais: zero P0-P3 para o setup. A execução do workflow no GitHub
+  permanece `NÃO APLICÁVEL` à autoridade local.
+- Relatório:
+  [`../../docs/STATE-01-Project-Setup-Report.md`](../../docs/STATE-01-Project-Setup-Report.md).
+- Quality Gate: `APROVADO` para `STATE-01`.
+- Human Gate: `PENDENTE`; não decidido por esta auditoria.
+- Próxima condição: apresentar o resumo completo vigente e obter decisão
+  humana separada sobre o Human Gate de `STATE-01`. Somente depois de seu
+  registro poderá ser considerada uma autorização também separada de entrada
+  em `STATE-02`.
