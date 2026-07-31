@@ -23,7 +23,6 @@
     "exactOptionalPropertyTypes": true
   },
   "include": [
-    "src",
-    "vite.config.ts"
+    "src"
   ]
 }
