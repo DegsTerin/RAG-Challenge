@@ -4,9 +4,9 @@
 - Date: 2026-07-31
 - Owners: RAG-Challenge product, RAG evaluation and security
 - State: `STATE-02 ARCHITECTURE`
-- Verification status: partial; the candidate PDF, PostgreSQL licence and
-  proposed corpus-licence terms were checked on 2026-07-31, while the
-  remaining items below are still incomplete
+- Verification status: substantially complete for external source facts; no
+  conflicting robots or terms policy was found, no publisher rate guidance
+  was located, and the owner must decide the residual frequency/TLS risks
 
 ## Purpose and authority
 
@@ -99,11 +99,22 @@ covers use, copy, modification and distribution of the software and its
 documentation, subject to retaining the required notices. This supplies the
 proposed use-right basis but does not waive attribution/notice handling.
 
-Published robots or rate guidance, a separately recorded certificate-chain
-inspection and the complete no-lateral-egress certificate behaviour remain
-unverified. The successful HTTPS request establishes only that the current
-operating-system trust validation accepted this connection. A changed major
-version or URL requires an amended ADR rather than silent substitution.
+The [published robots policy](https://www.postgresql.org/robots.txt) returned
+`200` without redirect and does not disallow the versioned documentation PDF
+path. The [official policies index](https://www.postgresql.org/about/policies/)
+does not list a separate general terms-of-use policy, and targeted official
+search found no download-rate guidance. Therefore the PostgreSQL Licence is
+the published use-right basis, while the proposed once-per-24-hours limit is a
+project restraint rather than a publisher commitment.
+
+A direct TLS check resolved three public addresses, negotiated TLS 1.3 and
+validated a four-element chain against local trust with certificate downloads
+disabled and revocation set to `NoCheck`. This demonstrates current local
+no-lateral-download validation, not future certificate availability or the
+clean OCI environment. It preserves the explicit residual risk that offline
+validation cannot learn a new revocation until trust material is updated. A
+changed major version or URL requires an amended ADR rather than silent
+substitution.
 
 ### Evaluation dataset
 
@@ -162,10 +173,10 @@ Evidence status on 2026-07-31:
 |---|---|---|
 | 1 | Verified | Exact URL returned without redirect. |
 | 2 | Verified | The official documentation index and PDF use the exact `www.postgresql.org` authority and versioned path. |
-| 3 | Partial | The PostgreSQL Licence supplies the use/copy basis and required notices; a separate published terms review was not completed. |
-| 4 | Blocked | Published robots/rate guidance was not verified before the authorised browsing stop condition occurred. |
+| 3 | Verified with qualification | The PostgreSQL Licence supplies the use/copy basis and required notices; the official policies index lists no separate general terms-of-use policy. |
+| 4 | Verified with qualification | `robots.txt` does not disallow the exact path; no publisher download-rate guidance was located, so the proposed daily ceiling remains a project-owned conservative limit. |
 | 5 | Verified | Anonymous PDF, `application/pdf`, 15,771,040 bytes and valid leading signature. |
-| 6 | Partial | Default operating-system TLS validation succeeded; chain evidence and zero-lateral-egress behaviour were not separately captured or tested. |
+| 6 | Verified locally | TLS 1.3 and a four-element offline chain validated with certificate downloads disabled and revocation `NoCheck`; clean-environment and OCI reproduction remain later acceptance tests. |
 | 7 | Verified | This ADR and the state report contain the sanitised response record and primary-source references; no snapshot was retained. |
 
 No real product snapshot may be retained during architecture verification.

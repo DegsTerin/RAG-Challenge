@@ -22,6 +22,7 @@ deployment, CD and DB-Notifier changes.
 | Entry registration commit | `e9175b193b98bd0d8f464be7ed129da5af2de6aa` |
 | Architecture decision-package commit | `979677fa1f4d7324340b8be15d88eb8b5b802a1a` |
 | External-verification baseline | `8ba91889c0517d78747ae2980fb766c36268edf6` |
+| External-verification completion baseline | `f1066c3509f5f48d4fe6e21c9e36403e642c1431` |
 | Branch | `main` |
 | Instruction corpus | `4.1.0` |
 | Entry working tree | Clean |
@@ -44,6 +45,11 @@ price or unexpected authority was an explicit stop condition. Installation,
 full package/model/corpus download, paid API calls, credentials, external
 mutation and resource creation remained prohibited.
 
+The owner then authorised `developers.openai.com` and resumption of the
+remaining allowlisted checks, with the same negative scope. A new host,
+repository, redirect, authentication or unexpected authority remained a
+mandatory stop condition.
+
 ## Evidence inspected
 
 - The accepted .NET/React bootstrap and dependency boundaries.
@@ -58,7 +64,10 @@ mutation and resource creation remained prohibited.
 - Official NuGet package metadata and the allowlisted PdfPig source repository,
   licence and releases.
 - Official OpenAI discovery results and the GPT-4.1 launch publication, up to
-  the mandatory stop condition described below.
+  the first mandatory stop condition described below.
+- PostgreSQL `robots.txt` and a direct local offline-chain TLS assessment.
+- Current read-only NuGet registry version, registration and catalogue
+  metadata for PdfPig, without downloading a package.
 
 No provider endpoint, OCI service, account, credential or paid API was
 accessed. No package, corpus, model or complete PDF was downloaded, and no
@@ -69,16 +78,24 @@ external state was changed.
 | Area | Observed result | Reconciliation status |
 |---|---|---|
 | PostgreSQL candidate PDF | Exact `HEAD` returned `200`, no `Location`, `application/pdf`, 15,771,040 bytes, ETag `"6a05c867-f0a5a0"`, last modified `2026-05-14T13:04:39Z` and byte-range support. Exact `GET bytes=0-65535` returned `206`, 65,536 bytes, range total 15,771,040 and `%PDF-1.4`. | Verified for immediate response, media, size, validators, range and signature; no body persisted. |
-| PostgreSQL source rights | The [documentation index](https://www.postgresql.org/docs/) identifies version 18 as current. The [PostgreSQL Licence](https://www.postgresql.org/about/licence/) covers use, copy, modification and distribution of software and documentation with required notices. | Use-right basis verified; published robots/rate guidance and separate terms review remain incomplete. |
+| PostgreSQL source rights | The [documentation index](https://www.postgresql.org/docs/) identifies version 18 as current. The [PostgreSQL Licence](https://www.postgresql.org/about/licence/) covers use, copy, modification and distribution of software and documentation with required notices. The [official policies index](https://www.postgresql.org/about/policies/) lists no separate general terms-of-use policy. | Published use-right basis verified; no conflicting general terms policy was found. |
+| PostgreSQL robots/rate | [`robots.txt`](https://www.postgresql.org/robots.txt) returned `200` without redirect and does not disallow `/files/documentation/`. Targeted official search found no publisher download-rate guidance. | No policy conflict found; the proposed daily ceiling is a conservative project limit, not a publisher commitment. |
+| PostgreSQL TLS | Three DNS answers were public; direct TLS negotiated TLS 1.3 with `TLS_AES_256_GCM_SHA384`. A four-element chain validated locally with certificate downloads disabled and revocation `NoCheck`; the leaf was valid from `2026-06-02T17:09:47Z` to `2026-08-31T17:09:46Z`, SHA-256 `2738805715f7b32e7850b33dc2319e9d7b39d9acfb44936d56a1d18a6ef805ac`. | Current local no-lateral-download validation verified; offline-revocation, future rotation and clean OCI reproduction remain explicit residual/later-test concerns. |
 | Proposed local-corpus licence | The [CC BY 4.0 deed](https://creativecommons.org/licenses/by/4.0/) and [Portuguese legal code](https://creativecommons.org/licenses/by/4.0/legalcode.pt) confirm sharing/adaptation rights and attribution, licence-link, change-marking and no-additional-restriction duties. | Licence terms verified; the corpus is not authored and the owner has not granted the licence on it. |
-| PdfPig | [NuGet 0.1.14](https://www.nuget.org/packages/PdfPig/0.1.14) and the allowlisted [release list](https://github.com/UglyToad/PdfPig/releases) mark 0.1.14 as the latest stable release while newer builds are pre-release; NuGet and the [repository licence](https://github.com/UglyToad/PdfPig/blob/master/LICENSE) identify Apache-2.0. | Package identity, stable candidate and licence verified; no version selected or installed, and vulnerability/runtime evidence remains incomplete. |
-| OpenAI | The [GPT-4.1 launch publication](https://openai.com/index/gpt-4-1/) corroborates the `gpt-4.1-mini` family and historical launch pricing. Model-document discovery from `platform.openai.com` produced the canonical host `developers.openai.com`. | Mandatory stop condition reached because the canonical host was not allowlisted. Current model/snapshot, dimensions, endpoints, data controls, price, quota and SDK evidence remains blocked. |
-| OCI | No request made after the mandatory browsing stop. | Region, shape, capacity, price, quotas, storage, Vault and endpoint evidence remains unverified. |
+| PdfPig | The live [NuGet version index](https://api.nuget.org/v3-flatcontainer/pdfpig/index.json), [0.1.15 registration](https://api.nuget.org/v3/registration5-semver1/pdfpig/0.1.15.json) and catalogue metadata identify 0.1.15 as the newest stable release, published `2026-06-25T14:57:32.300Z`, listed, Apache-2.0 and tied to allowlisted repository commit `f131f642976936e06ee91cb19d3ed728f9dd18b6`; 0.1.16 builds are pre-release. | Corrects the earlier 0.1.14 observation. No version selected or installed. The catalogue exposed no `vulnerabilities` property, which does not prove absence; broader security/runtime evidence remains incomplete. |
+| OpenAI | The [GPT-4.1 launch publication](https://openai.com/index/gpt-4-1/) corroborates the `gpt-4.1-mini` family and historical launch pricing. A second authority allowed the previously blocked documentation host. | No second-round OpenAI request occurred before the new stop condition. Current model/snapshot, dimensions, endpoints, data controls, price, quota and SDK evidence remains incomplete. |
+| OCI | No request made before either mandatory browsing stop. | Region, shape, capacity, price, quotas, storage, Vault and endpoint evidence remains unverified. |
 
-The successful HTTPS request used normal operating-system certificate
-validation. A separately recorded chain inspection and the proposed
-zero-lateral-egress TLS behaviour were not tested. No certificate, PDF body or
-external response was saved in the repository.
+The initial HTTPS request used normal operating-system certificate validation.
+The second round added the separate offline-chain assessment recorded above;
+application integration and clean OCI reproduction remain untested. No
+certificate, PDF body or external response was saved in the repository.
+
+The second round stopped when a PdfPig security search returned results for
+GitHub repositories and hosts outside the explicit allowlist, including
+`github.com/bcgov/entity`, `github.github.com`, `docs.github.com` and
+`raw.github.com`. None of those results was opened or used as evidence. No
+subsequent OpenAI or OCI request was attempted.
 
 ## S02-A — Blocking decisions
 
@@ -88,16 +105,16 @@ external response was saved in the repository.
 |---|---|---|
 | RAG lifecycle and source separation | ADR-0002 as written | `proposed`; explicit human decision required. |
 | Local corpus | Owner-authored `Database Systems Catalogue — MVP`, 12 named systems, `CC BY 4.0` | `proposed`; content not authored and licence not yet granted. |
-| Official source | Versioned PostgreSQL 18 A4 PDF candidate | `proposed`; URL, media, size, immediate redirect behaviour and licence basis verified; robots/rate, separate terms and TLS-policy evidence incomplete. |
-| Parser | PdfPig adapter | `proposed`; 0.1.14 is the verified stable candidate under Apache-2.0; version selection, vulnerability and runtime evidence pending. |
+| Official source | Versioned PostgreSQL 18 A4 PDF candidate | `proposed`; URL, media, size, redirect behaviour, licence basis, robots and local offline TLS verified with documented rate/revocation qualifications. |
+| Parser | PdfPig adapter | `proposed`; 0.1.15 is the current verified stable candidate under Apache-2.0; version selection, vulnerability and runtime evidence pending. |
 | Normalisation | Unicode NFC and deterministic whitespace/control policy | `proposed`; locally specified. |
 | Chunking | `paragraph-window-v1`, target 3,200 scalars, overlap 480, hard max 4,000 | `proposed`; must pass evaluation. |
-| Embeddings | OpenAI `text-embedding-3-small`, 1,536 dimensions, cosine | `proposed`; current contract, dimensions, terms, price, quota and availability blocked by the unallowlisted canonical documentation host. |
-| Language model | OpenAI `gpt-4.1-mini-2025-04-14` | `proposed`; family/historical launch price corroborated, but current snapshot, contract, data policy, price and quota remain unverified. |
+| Embeddings | OpenAI `text-embedding-3-small`, 1,536 dimensions, cosine | `proposed`; current contract, dimensions, terms, price, quota and availability were not reached before the second stop. |
+| Language model | OpenAI `gpt-4.1-mini-2025-04-14` | `proposed`; family/historical launch price corroborated, but the second round did not reach current snapshot, contract, data policy, price or quota evidence. |
 | Catalogue/control persistence | EF Core SQLite | `proposed`; exact packages remain unapproved. |
 | Raw content | Durable content-addressed filesystem | `proposed`; contract specified. |
 | Vector store | Local `SqliteExactVectorStore`, hard SQL pre-filter and exact cosine ranking | `proposed`; 10,000-chunk cap requires later performance proof. |
-| OCI | Single ARM64 OCI Compute instance in `sa-saopaulo-1`, durable block volume | `proposed`; verification not run after the mandatory browsing stop. |
+| OCI | Single ARM64 OCI Compute instance in `sa-saopaulo-1`, durable block volume | `proposed`; verification not reached before either mandatory browsing stop. |
 | Evaluation | `rag-eval-mvp-v1`, 80 cases and pre-registered thresholds | `proposed`; dataset not authored or run. |
 
 ### Alternatives retained
@@ -161,9 +178,9 @@ decisions.
 | ADRs accepted or rejected | ADR-0002 and ADR-0004 to ADR-0006 | Proposed; human decisions pending. |
 | Canonical contracts and diagrams | `STATE-02-Canonical-Contracts.md`; data-flow diagrams in threat model | Prepared. |
 | Detailed threat model | `security/STATE-02-Threat-Model.md` | Prepared. |
-| Parser, embedding, vector and LLM selection | ADR-0005 | Proposed; parser evidence partial and provider evidence blocked. |
+| Parser, embedding, vector and LLM selection | ADR-0005 | Proposed; current parser metadata verified, parser security/runtime and provider evidence incomplete. |
 | Corpus and corpus licence | ADR-0004 | Proposed; corpus not authored. |
-| Official PDF, URL, terms, licence, maxAge and limits | ADR-0004 | Immediate PDF response and licence basis verified; policy/TLS evidence partial. |
+| Official PDF, URL, terms, licence, maxAge and limits | ADR-0004 | External facts substantially verified with explicit rate and offline-revocation qualifications. |
 | Durable content/catalogue/index persistence | ADR-0005 | Proposed. |
 | Four egress policies | ADR-0006 | Prepared; official-source URI observed, AI/OCI paths and endpoints incomplete. |
 | Vector search, failures, readiness and OpenAPI | Contract document and ADR-0006 | Prepared. |
@@ -174,16 +191,20 @@ decisions.
 
 ### Remaining external verification blocker
 
-The authorised round stopped when OpenAI documentation discovery produced the
-unallowlisted canonical host `developers.openai.com`. No later external check
-was attempted. Completion therefore requires renewed authority that includes
-that exact host and permits resuming the still-allowlisted read-only checks,
-without relaxing the existing negative scope.
+The first authorised round stopped when OpenAI documentation discovery
+produced the then-unallowlisted canonical host `developers.openai.com`. The
+owner authorised that host for a second round. The second round then stopped
+when the PdfPig security search returned GitHub hosts and repositories outside
+the explicit allowlist. No result outside the allowlist was opened and no later
+external request was attempted.
+
+Completion requires a renewed instruction that either permits those search
+results to be ignored without treating them as accessed authority or requires
+direct exact-URL retrieval without general web search. It does not require
+access to the unrelated results themselves.
 
 The remaining evidence is:
 
-- PostgreSQL published robots/rate guidance, separate terms review and a
-  recorded certificate-chain/no-lateral-egress assessment;
 - PdfPig vulnerability/security posture and authorised runtime compatibility;
 - OpenAI current embedding/model availability, immutable snapshot,
   dimensions, API paths, data retention/training/residency, current pricing,
@@ -203,7 +224,9 @@ them by implication.
 
 ## Risks and residual decisions
 
-- The official-source candidate may not meet licence, URL or TLS constraints.
+- The official-source candidate still carries publisher-frequency uncertainty
+  and offline-revocation/future-certificate risk despite passing the current
+  URL, licence, robots and local TLS checks.
 - External AI may be rejected due to data terms, cost, quota or region.
 - Local-only certificate revocation checking has a residual risk requiring
   explicit acceptance.
@@ -239,12 +262,14 @@ them by implication.
 | New-document H1, fence, unresolved-marker and absolute-user-path checks | Passed. |
 | ADR status consistency | ADR-0002 and ADR-0004 to ADR-0006 each have exactly one `proposed` status. |
 | PostgreSQL exact PDF `HEAD` and 64 KiB range | Passed within the authorised byte limit; no redirect or persistence. |
-| PostgreSQL and CC BY 4.0 licence review | Passed for the stated use-right and attribution basis; corpus grant and remaining source-policy evidence pending. |
-| PdfPig identity/release/licence review | Passed for package ID, stable candidate 0.1.14 and Apache-2.0; security/runtime evidence pending. |
-| OpenAI verification | Partial; historical family evidence observed, then stopped on canonical host `developers.openai.com`, outside the allowlist. |
-| OCI verification | Not run after the mandatory external stop condition. |
+| PostgreSQL and CC BY 4.0 licence review | Passed for the stated use-right and attribution basis; the future corpus grant remains an owner action. |
+| PostgreSQL robots and local TLS review | Passed without redirect: exact path not disallowed; no rate guidance located; TLS 1.3 and a four-element offline chain validated with downloads disabled and revocation `NoCheck`. |
+| PdfPig identity/release/licence review | Corrected to stable candidate 0.1.15, published 2026-06-25, listed and Apache-2.0; no version selected and security/runtime evidence pending. |
+| OpenAI verification | Historical family evidence only; the second round did not reach OpenAI before the new stop condition. |
+| OCI verification | Not run before either mandatory external stop condition. |
 | Prohibited external actions | None performed: no login, credential, paid API, complete artefact download, mutation or resource creation. |
 | Post-reconciliation repository audit | Passed for 83 non-ignored files and 30 Markdown files; 30 unique threat IDs, 12 security-test groups, four proposed ADR statuses and clean diff-format checks. |
+| Second-round reconciliation audit | Passed for the same 83-file/30-Markdown baseline, 30 threat IDs, 12 security-test groups, four unchanged `proposed` ADR statuses and clean structural/diff checks. |
 | Executable spike, build or runtime test | Not run; documentary scope and no implementation change. |
 | ADR decisions | Pending human decisions. |
 

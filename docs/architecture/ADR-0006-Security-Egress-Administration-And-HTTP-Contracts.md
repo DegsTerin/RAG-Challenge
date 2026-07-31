@@ -5,8 +5,8 @@
 - Owners: RAG-Challenge security, API and operations
 - State: `STATE-02 ARCHITECTURE`
 - Dependencies: ADR-0002, ADR-0004 and ADR-0005
-- Verification status: partial; official-source response policy was observed,
-  while AI and OCI endpoint evidence remains blocked
+- Verification status: partial; official-source response and local offline-TLS
+  policy were observed, while AI and OCI endpoint evidence remains incomplete
 
 ## Purpose and authority
 
@@ -38,9 +38,9 @@ in one profile grants no access through another.
 - Permit only the path families required by the verified embedding and
   response APIs. Record those exact prefixes after official verification;
   until then this profile remains disabled.
-- The candidate host was not contacted. Model-document discovery redirected
-  to the unallowlisted canonical host `developers.openai.com`, so no API path
-  or destination is verified by the 2026-07-31 evidence round.
+- The candidate host was not contacted. `developers.openai.com` was authorised
+  for a second documentation round, but that round stopped during the prior
+  PdfPig search. No AI API path or destination is therefore verified.
 - Reject userinfo, non-default ports, redirects, proxies and ambient
   credentials.
 - Send only bounded authorised chunks for indexing, the bounded question for
@@ -67,6 +67,11 @@ in one profile grants no access through another.
   authority, path, media type, byte-range behaviour, current size and leading
   signature only; it does not enable the profile or prove the complete
   application network policy.
+- `robots.txt` does not disallow the exact documentation path. Direct TLS
+  negotiated TLS 1.3 and an offline four-element chain validated using local
+  trust with certificate downloads disabled and revocation `NoCheck`. This
+  supports the proposed no-lateral-download policy while retaining its
+  explicit offline-revocation and future-clean-environment risks.
 
 #### `OCI_RUNTIME_EGRESS`
 
@@ -78,8 +83,8 @@ in one profile grants no access through another.
   from all untrusted URL flows.
 - Exact regional OCI service endpoints remain disabled until primary-source
   verification and separate deployment authority identify them.
-- OCI documentation checks were not run after the mandatory browsing stop;
-  no endpoint from this profile is currently verified.
+- OCI documentation checks were not reached before either mandatory browsing
+  stop; no endpoint from this profile is currently verified.
 
 ### Official-source network policy
 

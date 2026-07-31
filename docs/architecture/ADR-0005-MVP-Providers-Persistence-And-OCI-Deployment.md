@@ -4,9 +4,10 @@
 - Date: 2026-07-31
 - Owners: RAG-Challenge architecture, data and operations
 - State: `STATE-02 ARCHITECTURE`
-- Verification status: partial; PdfPig identity, stable-release metadata and
-  licence were verified on 2026-07-31, OpenAI verification stopped at an
-  unallowlisted canonical host, and OCI verification was not reached
+- Verification status: partial; current PdfPig registry metadata and licence
+  were verified on 2026-07-31, its broader security posture remains
+  incomplete, and OpenAI/OCI checks were not completed before a new stop
+  condition
 
 ## Purpose and authority
 
@@ -33,18 +34,20 @@ If accepted after verification:
 ### PDF parsing and normalisation
 
 - Select the `PdfPig` .NET library as the single PDF text parser adapter.
-- The official NuGet package ID is `PdfPig`. Version `0.1.14`, published on
-  2026-03-22, was the release marked `Latest` by the project while newer
-  `0.1.15` and `0.1.16` builds were pre-release builds. Treat `0.1.14` only as
-  the verified stable candidate; this proposed ADR does not select or install
-  it.
+- The official NuGet package ID is `PdfPig`. The live registry index lists
+  `0.1.15`, published on 2026-06-25, as the newest stable version and
+  `0.1.16-alpha-*` as pre-release builds. Treat `0.1.15` only as the current
+  verified stable candidate; this proposed ADR does not select or install it.
 - The NuGet gallery and source repository identify Apache-2.0 as the licence.
-  The package metadata declares .NET 6.0, .NET Standard 2.0 and .NET Framework
-  4.6.2 targets and computed compatibility with .NET 10. The project warns
-  that minor versions may change the public API before 1.0.0.
+  Registry metadata for `0.1.15` identifies repository commit
+  `f131f642976936e06ee91cb19d3ed728f9dd18b6` and target groups for .NET 6.0,
+  .NET 8.0, .NET Standard 2.0 and .NET Framework 4.6.2/4.7.1. The project
+  warns that minor versions may change the public API before 1.0.0.
 - Pin an exact version only after vulnerability evidence and an authorised
   compatibility/extraction spike are complete. The current security posture
-  was not independently verified in this round.
+  was not independently verified in this round. The NuGet catalogue entry did
+  not expose a `vulnerabilities` property, which is not evidence that no
+  vulnerability exists.
 - Reject encrypted PDFs, files with an invalid PDF signature, parser output
   beyond configured limits and pages without extractable text when the
   configured minimum coverage is not met.
@@ -189,11 +192,15 @@ The following bounded read-only evidence was observed on 2026-07-31:
 
 | Area | Status | Primary evidence or blocker |
 |---|---|---|
-| PdfPig package | Partial | [NuGet `PdfPig` 0.1.14](https://www.nuget.org/packages/PdfPig/0.1.14), the [project release list](https://github.com/UglyToad/PdfPig/releases) and [source licence](https://github.com/UglyToad/PdfPig/blob/master/LICENSE) verify identity, release and Apache-2.0; vulnerability posture and runtime quality remain unverified. |
+| PdfPig package | Partial | The [NuGet version index](https://api.nuget.org/v3-flatcontainer/pdfpig/index.json) and [0.1.15 registration](https://api.nuget.org/v3/registration5-semver1/pdfpig/0.1.15.json) verify the current stable candidate, publication instant and listed status; registry metadata and the [source licence](https://github.com/UglyToad/PdfPig/blob/master/LICENSE) verify repository identity and Apache-2.0. Vulnerability posture and runtime quality remain unverified. |
 | OpenAI language-model family | Partial | The [official GPT-4.1 launch publication](https://openai.com/index/gpt-4-1/) corroborates the family and historical launch pricing only. |
-| OpenAI model contracts | Blocked | Discovery through an allowlisted `platform.openai.com` URL produced the canonical host `developers.openai.com`, which was not allowlisted. Per owner instruction, browsing stopped and no facts dependent on that host are treated as verified. |
-| OpenAI SDK, current prices, quotas and data controls | Blocked | No further request was made after the stop condition. No provider endpoint, credential or paid API was accessed. |
-| OCI deployment | Not run | OCI documentation checks were not reached after the mandatory browsing stop. The region, shape, price, quotas, storage, Vault and endpoint candidates remain unverified. |
+| OpenAI model contracts | Not completed | A second authority allowed `developers.openai.com`, but a new mandatory stop condition occurred during the preceding PdfPig security search. No new OpenAI request was made in that round. |
+| OpenAI SDK, current prices, quotas and data controls | Not completed | No provider endpoint, credential or paid API was accessed. The earlier historical family evidence remains insufficient for decision. |
+| OCI deployment | Not run | OCI documentation checks were again not reached after the mandatory browsing stop. The region, shape, price, quotas, storage, Vault and endpoint candidates remain unverified. |
+
+The second verification round stopped when search results named GitHub hosts
+and repositories outside the explicit allowlist. Those results were not
+opened or used as product evidence.
 
 No package, model or corpus was downloaded or installed, and no external
 resource was created or changed.
