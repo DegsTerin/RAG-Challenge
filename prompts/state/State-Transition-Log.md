@@ -833,3 +833,48 @@ contém somente fatos cronológicos.
 - Próxima condição: concluir os entregáveis, executar o Automatic Quality
   Gate do setup e apresentar resumo completo para Human Gate separado.
 - Aprovador: proprietário do Challenge.
+
+## 2026-07-30 — Execução parcial de STATE-01 e Automatic Quality Gate bloqueado
+
+- Estado anterior e resultante: `STATE-01 PROJECT_SETUP` ativo; sem transição.
+- Autoridade: entrada registrada em `Entrada em STATE-01 PROJECT_SETUP
+  autorizada`, limitada aos lotes locais `S01-A`, `S01-B` e `S01-C`, sem rede
+  ou ação externa.
+- Escopo executado: Git local e commit focado; licença MIT; configuração;
+  toolchains fixadas; gestão central de pacotes; lockfiles .NET; scaffold do
+  ADR-0001; referências e testes estruturais; composição mínima e health;
+  boundary React/TypeScript; onboarding; scripts de gate e CI sem deploy.
+- Mudanças: 75 arquivos versionados no commit
+  `16aec5f8586f07c9a9d89165e330335b460d6fbf`; quatro projetos .NET de
+  produção, três projetos .NET de testes e um projeto Dashboard; nenhum
+  projeto ou tipo funcional RAG criado.
+- Verificações/evidências: restore .NET offline locked `APROVADO`; format
+  `APROVADO`; build Release com 0 warning e 0 erro; 15 testes .NET
+  `APROVADOS`; cobertura mesclada de 88% das linhas e 100% dos branches;
+  lint e dois testes estruturais do Dashboard `APROVADOS`; auditoria de 75
+  arquivos não ignorados `APROVADA`; `reference-materials/` permaneceu
+  ignorado.
+- Falhas corrigidas: duas execuções intermediárias de teste arquitetural
+  reprovaram porque tipos injetados pelo coverlet e gerados pelo compilador
+  foram tratados como tipos de produto; o teste foi restringido para ignorar
+  somente instrumentação e tipos compiler-generated, preservando a rejeição
+  de namespaces de produto incorretos.
+- Bloqueio: npm não conseguiu gerar `package-lock.json` em modo offline
+  (`ENOTCACHED`); `eng/ci.ps1 -Offline` aprovou todos os gates .NET e parou no
+  clean install do Dashboard pela ausência do lockfile. Nenhuma tentativa
+  online foi executada.
+- Escopo negativo preservado: nenhuma lógica RAG ou funcional, ADR-0002,
+  corpus, provider, fonte oficial, persistência definitiva, infraestrutura,
+  listener, rede, instalação externa, GitHub, OCI, push, publicação, deploy,
+  CD ou alteração no DB-Notifier.
+- Itens não testados: clean install npm, typecheck/build do Dashboard,
+  auditorias atuais de vulnerabilidade, workflow no GitHub, clone limpo e
+  smoke de health com listener.
+- Relatório:
+  [`../../docs/STATE-01-Project-Setup-Report.md`](../../docs/STATE-01-Project-Setup-Report.md).
+- Quality Gate: `BLOQUEADO` para `STATE-01`.
+- Human Gate: `PENDENTE`; não solicitado.
+- Próxima condição: autoridade explícita e limitada para package registries,
+  geração/validação de `package-lock.json`, clean install, typecheck/build,
+  auditorias de vulnerabilidade e reprodução em clone limpo; depois, repetir
+  integralmente o Automatic Quality Gate.

@@ -98,7 +98,8 @@ proprietários.
   PNG.
 - Os materiais originais não são o corpus do produto e não serão enviados ao
   GitHub.
-- Existe repositório Git local inicializado na branch `main`.
+- Existe repositório Git local inicializado na branch `main`; o scaffold está
+  no commit `16aec5f8586f07c9a9d89165e330335b460d6fbf`.
 - Existem `Challenge.sln`, quatro projetos .NET de produção, um boundary
   React/TypeScript para o Dashboard e três projetos .NET de testes, conforme
   ADR-0001. Eles contêm somente markers, composição de setup, health e

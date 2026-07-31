@@ -27,7 +27,7 @@ push, publication, deployment, CD, and DB-Notifier changes.
 | Node.js | `24.18.0` |
 | npm | `11.16.0` |
 | ripgrep | `15.2.0` |
-| Setup candidate commit | Pending final local commit |
+| Setup candidate commit | `16aec5f8586f07c9a9d89165e330335b460d6fbf` |
 
 No real workstation or host name is stored in project files. Evidence uses
 the stable `<challenge-root>` placeholder.
@@ -134,6 +134,7 @@ otherwise.
 | `npm test` | `0` | Two Dashboard structural tests passed. |
 | `eng/check-repository.ps1` | `0` | Format, local links, ignored materials, and common secret assignments passed. |
 | `npm install --offline ... --package-lock-only` | `1` | `ENOTCACHED`; complete npm dependency graph unavailable offline. |
+| `eng/ci.ps1 -Offline` | `1` | All .NET gates passed, then npm clean install stopped because `package-lock.json` is absent. |
 
 Two intermediate architecture-test runs failed because coverage
 instrumentation and compiler-generated types appeared outside product
