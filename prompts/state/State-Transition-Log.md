@@ -1087,3 +1087,45 @@ contém somente fatos cronológicos.
   autorizada.
 - Próxima condição: apresentar o resumo completo atualizado para decisão
   humana separada sobre o Human Gate de `STATE-01`.
+
+## 2026-07-31 — Human Gate de STATE-01 aprovado
+
+- Estado anterior: `STATE-01 PROJECT_SETUP` ativo; Automatic Quality Gate
+  `APROVADO`; Human Gate `PENDENTE`.
+- Baseline confirmada: produto `RAG-Challenge`, corpus documental `4.0.1` e
+  commit `a93b4384f705d07923756e226ba1254c0d67f3e3`.
+- Pré-condições: resumo completo vigente apresentado na mesma conversa,
+  incluindo scaffold, lockfiles, build, testes, cobertura, Dashboard,
+  auditorias, health, clone limpo, migração de identidade, correção do
+  checkout, limitações e escopo negativo.
+- Autoridade humana exata:
+
+  ```text
+  Confirmo a decisão acima exclusivamente para STATE-01
+  ```
+
+- Decisão: Human Gate `APROVADO` sem ressalvas, exclusivamente para
+  `STATE-01 PROJECT_SETUP`.
+- Entregáveis aceitos: Git e configuração local, licença MIT, toolchains e
+  dependências fixadas, lockfiles, solution e sete projetos nas fronteiras do
+  ADR-0003, testes estruturais, hosts mínimos, health, onboarding, CI sem
+  deploy e relatório completo do setup.
+- Evidências aceitas: restore locked, format, build Release com zero warning
+  e zero erro, 15 testes .NET, cobertura de 88% das linhas e 100% dos
+  branches, Dashboard clean install/lint/testes/typecheck/build, auditorias de
+  dependências, health em loopback, auditoria do repositório e reprodução em
+  clone limpo da baseline renomeada.
+- Limitações aceitas: execução do workflow no GitHub não aplicável à
+  autoridade local; auditoria online de vulnerabilidades não repetida após a
+  renomeação porque dependências e lockfiles permaneceram inalterados; clone
+  de validação preservado no diretório temporário após recusa de cleanup
+  recursivo, sem `reference-materials/`, secret ou mudança não rastreada.
+- Escopo negativo preservado: nenhuma lógica RAG ou funcional, entrada em
+  `STATE-02`, decisão de ADR-0002, corpus, provider, fonte oficial,
+  persistência definitiva, infraestrutura, GitHub, OCI, push, publicação,
+  deploy, CD ou alteração no DB-Notifier.
+- Estado resultante: `STATE-01 PROJECT_SETUP` encerrado; `STATE-02
+  ARCHITECTURE` permanece sem autorização de entrada.
+- Próxima condição: preparar resumo de prontidão e obter decisão humana
+  separada para qualquer entrada em `STATE-02`.
+- Aprovador: proprietário do RAG-Challenge.

@@ -3,12 +3,12 @@
 Assistente RAG independente para consultar documentação sobre bancos de dados
 em linguagem natural, com respostas fundamentadas e referências às fontes.
 
-> Status em 2026-07-30: `STATE-01 PROJECT_SETUP` ativo; `STATE-00 DISCOVERY`
-> e `GATE-B01 ARCHITECTURE_BOOTSTRAP_DECISION` estão encerrados. O scaffold
-> .NET, as fronteiras, os testes estruturais e a definição de CI existem sem
-> lógica RAG. O Automatic Quality Gate de `STATE-01` está aprovado após
-> reprodução em clone limpo; seu Human Gate permanece pendente. Não existe
-> produto funcional ou deploy.
+> Status em 2026-07-31: `STATE-00 DISCOVERY`, `GATE-B01
+> ARCHITECTURE_BOOTSTRAP_DECISION` e `STATE-01 PROJECT_SETUP` estão
+> encerrados. O Automatic Quality Gate e o Human Gate de `STATE-01` foram
+> aprovados sem autorizar entrada em `STATE-02`. O scaffold .NET, as
+> fronteiras, os testes estruturais e a definição de CI existem sem lógica
+> RAG. Não existe produto funcional ou deploy.
 
 ## Problema
 

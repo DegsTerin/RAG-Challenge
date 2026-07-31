@@ -1,6 +1,6 @@
 # Estado Atual
 
-Este documento é o snapshot factual vigente do workspace em 2026-07-30. Ele
+Este documento é o snapshot factual vigente do workspace em 2026-07-31. Ele
 não concede autoridade. Evolução e decisões no contexto original pertencem ao
 [`State-Transition-Log.md`](State-Transition-Log.md) e aos relatórios
 proprietários.
@@ -9,9 +9,10 @@ proprietários.
 
 - Posição: `STATE-00 DISCOVERY` encerrado; `GATE-B01
   ARCHITECTURE_BOOTSTRAP_DECISION` aprovado e encerrado; `STATE-01
-  PROJECT_SETUP` ativo por autorização humana explícita em 2026-07-30.
-- Escopo autorizado: registrar a entrada e executar localmente, de forma
-  sequencial, os lotes `S01-A`, `S01-B` e `S01-C`, sem lógica RAG ou
+  PROJECT_SETUP` encerrado após Human Gate aprovado sem ressalvas em
+  2026-07-31; entrada em `STATE-02 ARCHITECTURE` não autorizada.
+- Escopo concluído de `STATE-01`: registrar a entrada e executar localmente,
+  de forma sequencial, os lotes `S01-A`, `S01-B` e `S01-C`, sem lógica RAG ou
   funcional. A autoridade adicional de 2026-07-30 permite exclusivamente
   acesso HTTPS a `https://registry.npmjs.org/` e
   `https://api.nuget.org/v3/index.json`, instalação local das dependências
@@ -28,7 +29,7 @@ proprietários.
   higiene e reprodução em clone limpo foram validados em 2026-07-30. O gate
   offline, o health smoke e a reprodução limpa foram repetidos sobre a
   baseline renomeada.
-- Human Gate de `STATE-01`: `PENDENTE`.
+- Human Gate de `STATE-01`: `APROVADO` sem ressalvas em 2026-07-31.
 - ADR-0001: `superseded` pelo ADR-0003, após aceitação original no
   `GATE-B01`; ADR-0002: `proposed`; ADR-0003: `accepted` pela solicitação
   humana explícita de renomear o projeto para `RAG-Challenge`, incorporando
@@ -48,7 +49,8 @@ proprietários.
 - A auditoria do corpus `4.0.1` confirmou 22 documentos, 111 links locais
   válidos, 20 RF, 14 RNF, 15 critérios de aceitação, 31 itens de backlog, 8
   módulos, 13 riscos, formato consistente e rastreabilidade. A implementação
-  existente continua limitada ao scaffold de `STATE-01`.
+  existente continua limitada ao scaffold entregue pelo `STATE-01`
+  encerrado.
 - A arquitetura adota princípios compatíveis com o DB-Notifier sem criar
   referência ou dependência entre os projetos.
 - Cada solicitação do proprietário recebe exatamente um encerramento compacto
@@ -201,9 +203,8 @@ autorizada.
 
 ## Próxima autoridade
 
-Apresentar o resumo completo e atualizado do Automatic Quality Gate aprovado,
-incluindo a baseline `RAG-Challenge`, para decisão humana separada sobre o
-Human Gate de `STATE-01`. O resultado automático não encerra o estado nem
-autoriza a progressão para `STATE-02`. ADR-0002, corpus, providers, fonte
-oficial, persistência definitiva, infraestrutura, GitHub, OCI, deploy e
-demais ações externas continuam sem autorização.
+Preparar e decidir separadamente a autorização de entrada em `STATE-02
+ARCHITECTURE`. O encerramento de `STATE-01` satisfaz sua pré-condição de
+lifecycle, mas não concede entrada automática no próximo estado. ADR-0002,
+corpus, providers, fonte oficial, persistência definitiva, infraestrutura,
+GitHub, OCI, deploy e demais ações externas continuam sem autorização.

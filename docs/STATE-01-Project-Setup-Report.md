@@ -222,13 +222,11 @@ local-only material remains intact.
 
 ## State and recommendation
 
-`STATE-01 PROJECT_SETUP` remains active. Its Automatic Quality Gate is
-`APROVADO` and its Human Gate is `PENDENTE`.
+`STATE-01 PROJECT_SETUP` is closed. Its Automatic Quality Gate and Human Gate
+are `APROVADO`, with the human decision recorded on 2026-07-31.
 
-The next lifecycle action is a separate human review of this complete setup
-summary. Automatic approval does not close `STATE-01`, authorise `STATE-02`,
-or permit GitHub mutation, push, deployment, OCI, product providers, or any
-later-state capability.
+Closing `STATE-01` does not authorise `STATE-02`, GitHub mutation, push,
+deployment, OCI, product providers, or any later-state capability.
 
 ## 2026-07-30 identity migration addendum
 
@@ -389,3 +387,30 @@ remains `APROVADO`, and its Human Gate remains `PENDENTE`. No lifecycle
 transition, remote action or external-resource mutation was authorised.
 Runtime preflight was `NÃO APLICÁVEL`; no process or listener was inspected
 or stopped.
+
+## 2026-07-31 Human Gate decision
+
+- State: `STATE-01 PROJECT_SETUP`.
+- Validator and date: RAG-Challenge owner, 2026-07-31.
+- Reviewed evidence: the complete Automatic Quality Gate summary, including
+  the `RAG-Challenge` identity migration and checkout-cleanup addenda.
+- Critical samples: locked restores, Release build, 15 .NET tests, merged
+  coverage, Dashboard clean install/lint/tests/typecheck/build, architecture
+  checks, loopback health smoke, repository audit and clean-clone
+  reproduction were present in the reviewed evidence.
+- Samples not repeated after the identity migration: the online vulnerability
+  audit, because dependency versions and lockfiles were unchanged; GitHub CI
+  execution remained outside the authorised local scope.
+- Security and authority: no secret, local reference material, GitHub/OCI
+  mutation, push, publication, deployment, provider, corpus, official source,
+  persistence, infrastructure, ADR-0002 decision or DB-Notifier change was
+  included.
+- Accepted limitations: the validation clone remains in the operating-system
+  temporary directory after recursive cleanup was denied; it contains no
+  local reference material, secret or untracked change. Later-state product
+  capabilities remain unimplemented and untested.
+- Decision: `APROVADO` without reservations.
+- Unambiguous confirmation:
+  `Confirmo a decisão acima exclusivamente para STATE-01`.
+- Lifecycle effect: `STATE-01` is closed. Entry into `STATE-02` requires a
+  separate owner authorisation and was not granted by this Human Gate.
