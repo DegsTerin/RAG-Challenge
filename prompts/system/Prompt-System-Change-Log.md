@@ -2,10 +2,10 @@
 
 ## Versão atual
 
-- Versão: `4.0.1`
-- Data: 2026-07-30
-- Status: checkout físico e higiene local reconciliados com
-  `RAG-Challenge`; `STATE-01` ativo com Human Gate pendente
+- Versão: `4.1.0`
+- Data: 2026-07-31
+- Status: texto destinado a cópia destacado por bloco cercado inequívoco;
+  `STATE-01` encerrado e entrada em `STATE-02` pendente
 - Escopo: 13 arquivos ativos em `prompts/`
 
 A versão do corpus é independente da versão futura do software.
@@ -19,6 +19,33 @@ A versão do corpus é independente da versão futura do software.
 
 Toda alteração atualiza este arquivo e, quando necessário,
 [`../Start-Here.md`](../Start-Here.md).
+
+## 4.1.0 — 2026-07-31
+
+- Torna obrigatório destacar todo payload de `Texto para copiar e enviar` em
+  bloco cercado Markdown com identificador `text`, imediatamente abaixo do
+  rótulo em linha própria.
+- Define que rótulo, cercas de abertura/fechamento e orientação externa não
+  integram o conteúdo a copiar; o proprietário copia somente o interior do
+  bloco.
+- Aplica o mesmo destaque a payloads de uma linha e à frase canônica de Human
+  Gate, preservando `nenhum texto é necessário` como sentinela inline sem
+  bloco vazio.
+- Exige cerca externa alternativa ou mais longa quando o payload contém
+  blocos cercados, evitando limite ambíguo ou truncamento da mensagem.
+- Mantém `Templates.md` como autoridade temática do formato e atualiza
+  `AGENTS.md`, Start Here, Governance e Quality Gates apenas para enforcement,
+  roteamento e auditoria coerentes.
+- Automatic Quality Gate documental aprovado para 77 arquivos não ignorados,
+  24 arquivos Markdown rastreados, 114 links locais válidos, cercas Markdown
+  balanceadas, UTF-8/LF/newline final, ausência de trailing whitespace e
+  `git diff --check` limpo.
+- Classifica a mudança como MINOR porque adiciona um padrão permanente de
+  apresentação owner-facing sem alterar autoridade, lifecycle, arquitetura,
+  comportamento executável ou escopo funcional.
+- `STATE-01 PROJECT_SETUP` permanece encerrado; a entrada em `STATE-02`,
+  ADR-0002, rede, GitHub, OCI, providers, corpus, fonte oficial,
+  infraestrutura, publicação e deploy permanecem sem autorização.
 
 ## 4.0.1 — 2026-07-30
 

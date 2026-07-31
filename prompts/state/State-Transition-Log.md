@@ -1129,3 +1129,36 @@ contém somente fatos cronológicos.
 - Próxima condição: preparar resumo de prontidão e obter decisão humana
   separada para qualquer entrada em `STATE-02`.
 - Aprovador: proprietário do RAG-Challenge.
+
+## 2026-07-31 — Padrão permanente para texto copiável
+
+- Estado anterior e resultante: `STATE-01 PROJECT_SETUP` encerrado; entrada em
+  `STATE-02 ARCHITECTURE` pendente; sem transição.
+- Autoridade humana exata:
+
+  ```text
+  Poderia adotar como padrão e documentar isso de destacar o texto que devo copiar?
+  ```
+
+- Decisão: todo payload owner-facing de `Texto para copiar e enviar` deve
+  aparecer imediatamente abaixo do rótulo em linha própria, isolado em bloco
+  cercado Markdown. Somente o conteúdo interno é copiável; rótulo, cercas e
+  orientação externa não integram a mensagem.
+- Casos cobertos: mensagens de uma ou várias linhas, frase canônica de Human
+  Gate, continuidade atual/nova/anterior e retorno de lanes. Payload com bloco
+  interno exige cerca externa alternativa ou mais longa. A sentinela
+  `nenhum texto é necessário` permanece inline e não gera bloco vazio.
+- Autoridade temática: `prompts/templates/Templates.md`; `AGENTS.md`, Start
+  Here, Governance e Quality Gates aplicam e verificam o padrão sem criar
+  autoridade concorrente.
+- Versão do corpus: `4.1.0` (`MINOR`).
+- Verificações/evidências: 77 arquivos não ignorados, 24 Markdown rastreados,
+  114 links locais válidos, cercas Markdown balanceadas, UTF-8, LF, newline
+  final, trailing whitespace e `git diff --check` `APROVADOS`.
+- Escopo negativo: nenhuma mudança de lifecycle, arquitetura, comportamento
+  executável, dependência, `STATE-02`, ADR-0002, rede, GitHub, OCI, provider,
+  corpus, fonte oficial, infraestrutura, publicação, deploy ou DB-Notifier.
+- Quality Gate: incremento documental `APROVADO`.
+- Human Gate: não reaberto; `STATE-01` permanece encerrado.
+- Próxima condição: manter o padrão em todos os próximos handoffs e continuar
+  exigindo autorização separada para entrada em `STATE-02`.

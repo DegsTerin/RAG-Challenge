@@ -32,8 +32,8 @@ claras no corpo da resposta. Literais técnicos preservam a grafia canônica.
 - Sua ação agora: ação imediata exata, ou `nenhuma`
 - Conversa recomendada: `<ROUTE> — <TARGET> — <MOTIVO>`; acrescentar
   `Título sugerido: <TÍTULO>` no mesmo campo somente para `START_NEW`
-- Texto para copiar e enviar: bloco completo em `pt-BR`, ou
-  `nenhum texto é necessário`
+- Texto para copiar e enviar: rótulo em linha própria seguido pelo bloco
+  copiável completo em `pt-BR`, ou `nenhum texto é necessário` na mesma linha
 - Raciocínio recomendado: `<NÍVEL> — <JUSTIFICATIVA>. Alternativa:
   <FALLBACK>`
 - Paralelismo: `<CLASSIFICAÇÃO> — <MOTIVO>`
@@ -63,13 +63,45 @@ preencher o bloco. Nunca combinar `Sua ação agora: nenhuma` com orientação
 para iniciar, retomar ou enviar mensagem a uma conversa.
 
 `Texto para copiar e enviar` aparece no próprio handoff, imediatamente após
-`Conversa recomendada`, sem rótulo, prosa, título ou recomendação interpostos.
+`Conversa recomendada`, sem outro campo, prosa, título ou recomendação
+interpostos.
 Se `Sua ação agora` orientar continuar, iniciar, retomar, responder,
 confirmar, decidir, autorizar ou enviar algo em uma conversa, o campo é
 obrigatório e contém ali mesmo todo o payload pronto, sem placeholders. Não
 adiar o texto, não remeter a mensagem anterior ou a outra parte da resposta e
 não usar `nenhum texto é necessário`. Essa sentinela só é válida quando
 nenhuma ação imediata do proprietário depende de mensagem.
+
+### Destaque obrigatório do texto copiável
+
+Quando existir payload, colocar o rótulo `Texto para copiar e enviar:` em uma
+linha própria e, imediatamente abaixo, apresentar o conteúdo integral dentro
+de um bloco cercado Markdown com identificador `text`. O proprietário copia
+somente o conteúdo entre a cerca de abertura e a cerca de fechamento. O
+rótulo, a linha de abertura, a linha de fechamento e qualquer orientação fora
+do bloco não integram a mensagem.
+
+Usar este formato inclusive para payload de uma única linha e para a frase
+canônica de Human Gate:
+
+````markdown
+Texto para copiar e enviar:
+
+```text
+Confirmo a decisão acima exclusivamente para STATE-01
+```
+````
+
+Não inserir explicação, continuação do handoff ou conteúdo não copiável dentro
+do bloco. Se o payload contiver uma sequência de crases ou tils usada como
+cerca Markdown, escolher para a cerca externa outro caractere ou uma sequência
+mais longa do que qualquer sequência equivalente interna. Assim, blocos de
+código que façam parte da mensagem permanecem copiáveis sem encerrar o bloco
+externo antes da hora.
+
+Quando não existir payload útil, manter somente a forma inline
+`Texto para copiar e enviar: nenhum texto é necessário`; não criar bloco
+vazio nem cercar a sentinela.
 
 Quando for necessário anexar arquivo ou fornecer dado que não deva ser
 reproduzido, o bloco contém o texto acompanhante completo, mas não incorpora
@@ -249,7 +281,7 @@ Gate, ADR, autorização de estado ou autorização externa.
 - Solicitar a frase de confirmação somente com `CONTINUE_CURRENT`, destino
   `current`, e resumo completo da baseline vigente no mesmo handoff.
 - Nesse caso, `Texto para copiar e enviar` contém apenas a frase canônica do
-  gate.
+  gate, destacada no bloco copiável mesmo sendo uma única linha.
 - Para `START_NEW` ou `RETURN_TO_EXISTING`, a mensagem solicita releitura e
   republicação do resumo completo na conversa alvo. Não inclui a frase de
   confirmação; ela só será apresentada em um handoff posterior naquela mesma

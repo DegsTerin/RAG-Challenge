@@ -56,15 +56,19 @@ Um lote está pronto quando:
   processos e não encerram nada.
 - Handoff final informa rota, destino coerente e motivo; quando a continuidade
   exige mensagem, traz imediatamente depois o texto completo para copiar e
-  enviar. Somente `RETURN_TO_EXISTING` exige conversa verificável, e nenhuma
-  rota inventa referência ou amplia autoridade.
+  enviar, isolado no bloco cercado definido pelo template. Rótulo, cercas e
+  orientação externa ficam fora do payload. Somente `RETURN_TO_EXISTING` exige
+  conversa verificável, e nenhuma rota inventa referência ou amplia
+  autoridade.
 - `Sua ação agora`, `Conversa recomendada` e `Texto para copiar e enviar` são
   coerentes: uma orientação de continuar, iniciar, retomar, responder,
   confirmar, decidir, autorizar ou enviar torna o texto integral obrigatório;
   ausência só é válida sem ação dependente de mensagem.
 - O texto obrigatório está integralmente no próprio handoff, sem placeholders
   ou remissão a conteúdo anterior; título de `START_NEW` permanece no campo de
-  conversa, e mensagens de lanes não substituem o texto principal.
+  conversa, e mensagens de lanes não substituem o texto principal. A cerca
+  externa permanece inequívoca mesmo quando o payload contém blocos de código,
+  e frases de uma linha, inclusive Human Gate, também usam o destaque.
 - Handoff separa `Solicitação`, `Próximo trabalho recomendado`, `Estado/gate`
   e `Sua ação agora`; lote, tarefa, atividade, passo, lifecycle, roteamento e
   ação humana não são tratados como sinônimos.
@@ -131,7 +135,9 @@ autoridade/configuração próprias.
     texto integral está dentro do próprio handoff e aparece imediatamente
     depois da conversa quando há navegação, resposta, decisão ou envio, sem
     combinar ação `nenhuma` ou sentinela de ausência com essa orientação e sem
-    placeholders ou remissão a outra mensagem.
+    placeholders ou remissão a outra mensagem; verificar também rótulo em
+    linha própria, bloco copiável delimitado, cercas fora do payload e cerca
+    externa segura quando houver bloco interno.
 12. Validar presença e coerência da recomendação de raciocínio, de sua
     justificativa e de sua alternativa nos handoffs e lanes aplicáveis.
 13. Registrar achados com severidade, impacto, reprodução e recomendação.

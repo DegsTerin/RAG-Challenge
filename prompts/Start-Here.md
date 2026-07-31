@@ -89,8 +89,10 @@ resultado ou exigir nova autoridade.
   compacto em `pt-BR`, separando solicitação atual, próximo trabalho
   recomendado, estado/gate, ação imediata do proprietário, conversa
   recomendada e, imediatamente depois dela, o texto completo para copiar e
-  enviar quando a continuidade exigir mensagem. Declarar ausência de texto
-  somente quando nenhuma ação imediata depender dele. Atualizações
+  enviar quando a continuidade exigir mensagem. Destacar o payload no bloco
+  copiável delimitado por [`templates/Templates.md`](templates/Templates.md),
+  sem incluir seus delimitadores no conteúdo a enviar. Declarar ausência de
+  texto somente quando nenhuma ação imediata depender dele. Atualizações
   intermediárias da mesma
   solicitação são breves, acrescentam informação materialmente nova e não
   repetem, parafraseiam nem antecipam conteúdo já comunicado ou esse bloco.

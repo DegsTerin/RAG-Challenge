@@ -223,9 +223,10 @@ The single final hand-off uses the compact `pt-BR` labels defined in
 - the conversation recommendation, target, reason and a suggested title only
   when starting a new conversation;
 - a complete `pt-BR` text, placed immediately after the conversation
-  recommendation, ready for the owner to copy and send whenever continuity
-  requires a message, or an explicit statement that no text is needed only
-  when no owner action depends on one;
+  recommendation and visually isolated in the copy-ready fenced block defined
+  by [`prompts/templates/Templates.md`](prompts/templates/Templates.md), or an
+  explicit statement that no text is needed only when no owner action depends
+  on one;
 - one recommended Codex reasoning level for the next conversation, its
   concise justification and an explicit fallback if that level is
   unavailable;
@@ -266,11 +267,16 @@ When `Sua ação agora` tells the owner to continue, start, return, respond,
 confirm, decide, authorise or send something in a conversation, `Texto para
 copiar e enviar` is mandatory and contains the complete ready-to-send payload
 inside the same hand-off. It immediately follows `Conversa recomendada`,
-without an intervening label, prose, title or reasoning field; a `START_NEW`
-title remains inside the conversation field. Never defer that payload to a
-later answer, point to text supplied elsewhere or replace it with an absence
-sentinel. `Nenhum texto é necessário` is valid only when no immediate owner
-action depends on a message and no useful continuity message exists.
+without another field, prose, title or reasoning recommendation between them;
+a `START_NEW` title remains inside the conversation field. Put the field label
+on its own line and the payload immediately below it in a fenced Markdown code
+block whose delimiters are visibly outside the copyable content. This applies
+also to a one-line Human Gate phrase. When the payload contains a fence, use a
+longer or alternative outer fence so its boundaries remain unambiguous. Never
+defer that payload to a later answer, point to text supplied elsewhere or
+replace it with an absence sentinel. `Nenhum texto é necessário` remains an
+inline sentinel and is valid only when no immediate owner action depends on a
+message and no useful continuity message exists.
 
 Owner-facing hand-offs and copy-ready message blocks follow the
 [language policy](prompts/governance/Language-Policy.md). Code, identifiers,

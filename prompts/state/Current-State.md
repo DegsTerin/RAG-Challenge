@@ -20,7 +20,8 @@ proprietários.
 - Automatic Quality Gate documental: `APROVADO` para a baseline `3.4.0` que
   encerrou `STATE-00` e para o incremento transversal `3.5.0`, sem reabertura
   do gate; correções `3.5.1` a `3.5.4` também `APROVADAS`; migração de
-  identidade `4.0.0` e correção factual `4.0.1` também `APROVADAS`.
+  identidade `4.0.0`, correção factual `4.0.1` e padrão copiável `4.1.0`
+  também `APROVADOS`.
 - Human Gate de `STATE-00`: `APROVADO` sem ressalvas em 2026-07-30.
 - `GATE-B01`: `APROVADO` sem ressalvas em 2026-07-30.
 - Transição para `STATE-01 PROJECT_SETUP`: autorizada em 2026-07-30.
@@ -42,11 +43,11 @@ proprietários.
   a política de idioma acrescentou o 21º documento público por incremento
   versionado, e o ADR-0003 acrescentou o 22º.
 - A baseline aprovada no Human Gate de `STATE-00` permanece `3.4.0`.
-- O corpus de instruções vigente possui versão `4.0.1` e 13 arquivos em
+- O corpus de instruções vigente possui versão `4.1.0` e 13 arquivos em
   `prompts/`.
 - Visão, requisitos, arquitetura, RAG, segurança, qualidade, lifecycle,
   roadmap, backlog, estado, histórico e templates estão documentados.
-- A auditoria do corpus `4.0.1` confirmou 22 documentos, 111 links locais
+- A auditoria do corpus `4.1.0` confirmou 22 documentos, 114 links locais
   válidos, 20 RF, 14 RNF, 15 critérios de aceitação, 31 itens de backlog, 8
   módulos, 13 riscos, formato consistente e rastreabilidade. A implementação
   existente continua limitada ao scaffold entregue pelo `STATE-01`
@@ -79,8 +80,10 @@ proprietários.
 - Quando a ação imediata exige continuar, iniciar, retomar, responder,
   confirmar, decidir, autorizar ou enviar algo em uma conversa, o texto
   completo para copiar e enviar aparece dentro do próprio encerramento,
-  imediatamente depois da conversa recomendada. A ausência só é válida quando
-  nenhuma ação depende de mensagem.
+  imediatamente depois da conversa recomendada, destacado em bloco cercado
+  cujo rótulo e delimitadores ficam fora do payload. A regra inclui textos de
+  uma linha e Human Gate; a ausência só é válida quando nenhuma ação depende
+  de mensagem.
 - Todo handoff recomenda para a próxima conversa um dos níveis `Leve`,
   `Médio`, `Alto`, `Extra alto`, `Máximo` ou `Ultra`, com justificativa e
   alternativa se indisponível. A orientação não configura o Codex nem amplia

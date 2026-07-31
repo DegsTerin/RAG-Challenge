@@ -141,8 +141,9 @@ Usar estes termos sem intercâmbio:
   target e motivo; não descreve a entrega e não concede autoridade;
 - `Texto para copiar e enviar`: payload completo que materializa a ação do
   proprietário na conversa recomendada; aparece imediatamente depois dela e
-  só pode ser declarado desnecessário quando nenhuma ação imediata depender
-  de mensagem.
+  segue o destaque copiável definido em
+  [`../templates/Templates.md`](../templates/Templates.md); só pode ser
+  declarado desnecessário quando nenhuma ação imediata depender de mensagem.
 
 `Lote` é uma unidade governada que agrupa trabalho. `Tarefa` é uma subunidade
 de plano com entrega verificável. `Atividade` é uma operação interna e
@@ -213,7 +214,9 @@ rótulo, prosa, título ou recomendação; o título sugerido de `START_NEW`
 permanece no próprio campo de conversa. Não adiar o texto para outra resposta,
 não apontar para mensagem fornecida anteriormente ou em outra parte da
 resposta e não usar sentinela de ausência. Rota, destino, título, ação e
-conteúdo devem ser coerentes entre si.
+conteúdo devem ser coerentes entre si. O rótulo fica em linha própria e o
+payload imediatamente abaixo no bloco cercado visualmente copiável do
+template; cercas e orientação externa nunca integram o texto a enviar.
 
 Anexo, arquivo ou dado que não deva ser reproduzido no chat não substitui o
 texto: quando seu envio for necessário, o bloco contém a instrução completa
@@ -241,7 +244,8 @@ Uma frase de Human Gate só pode ser solicitada em `CONTINUE_CURRENT`, target
 a recomendação for `START_NEW` ou `RETURN_TO_EXISTING`, a mensagem manda
 reemitir e revisar o resumo completo na conversa alvo; a frase de confirmação
 não é transportada isoladamente. Autorizações externas e decisões
-arquiteturais também continuam sujeitas aos protocolos próprios. Roteamento de
+arquiteturais também continuam sujeitas aos protocolos próprios. Mesmo com
+uma única linha, a frase aparece no bloco copiável obrigatório. Roteamento de
 conversa não concede essa autoridade.
 
 ## Recomendação de raciocínio do Codex por conversa
