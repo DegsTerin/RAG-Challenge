@@ -3,6 +3,8 @@
 - Status: proposed
 - Date: 2026-07-29
 - Owners: RAG-Challenge RAG / data / security architecture
+- STATE-02 review: prepared for explicit human decision; entry into the state
+  did not accept or reject this ADR
 
 ## Context
 
@@ -285,3 +287,14 @@ tests; production adapters are added only when needed.
 - Readiness reports official-source degradation by scope without making a
   healthy Local query path globally unready.
 - Architecture tests prevent direct controller-to-provider coupling.
+
+## Related STATE-02 proposals
+
+- [ADR-0004 — MVP Corpus, Official Source and Evaluation Baseline](ADR-0004-MVP-Corpus-Official-Source-And-Evaluation.md)
+- [ADR-0005 — MVP Providers, Persistence and OCI Deployment](ADR-0005-MVP-Providers-Persistence-And-OCI-Deployment.md)
+- [ADR-0006 — Security, Egress, Administration and HTTP Contracts](ADR-0006-Security-Egress-Administration-And-HTTP-Contracts.md)
+- [STATE-02 Canonical Contracts](STATE-02-Canonical-Contracts.md)
+- [STATE-02 Threat Model](../security/STATE-02-Threat-Model.md)
+
+These documents refine this proposal but do not alter its status or provide
+implementation evidence.

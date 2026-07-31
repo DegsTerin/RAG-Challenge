@@ -10,7 +10,9 @@ em linguagem natural, com respostas fundamentadas e referências às fontes.
 > local nos lotes `S02-A` e `S02-B`. O scaffold .NET, as fronteiras, os testes
 > estruturais e a definição de CI existem sem lógica RAG. Não existe produto
 > funcional ou deploy, e nenhuma decisão de ADR decorre implicitamente da
-> entrada no estado.
+> entrada no estado. Os pacotes de decisão e contratos foram preparados como
+> propostas; fatos externos, decisões dos ADRs e o Automatic Quality Gate de
+> `STATE-02` continuam pendentes.
 
 ## Problema
 

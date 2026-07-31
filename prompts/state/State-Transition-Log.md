@@ -1211,3 +1211,50 @@ contém somente fatos cronológicos.
   separadamente os ADRs e escolhas para decisão humana e, somente depois das
   decisões, executar o Automatic Quality Gate de `STATE-02`.
 - Aprovador da entrada: proprietário do RAG-Challenge.
+
+## 2026-07-31 — Pacote de decisões e contratos de STATE-02 preparado
+
+- Estado anterior e resultante: `STATE-02 ARCHITECTURE` ativo; sem transição.
+- Autoridade: entrada em `STATE-02` e execução documental/local, sequencial,
+  dos lotes `S02-A` e `S02-B` registradas na entrada anterior.
+- Baseline de trabalho: commit de entrada
+  `e9175b193b98bd0d8f464be7ed129da5af2de6aa` na branch `main` e working tree
+  inicialmente limpo.
+- `S02-A`: propostos corpus autoral sob `CC BY 4.0`, fonte oficial PostgreSQL
+  18 versionada, PdfPig, normalização/chunking determinísticos, OpenAI para
+  embeddings e LLM, SQLite/filesystem duráveis, vector store SQLite exato
+  local, OCI Compute em São Paulo e baseline de avaliação com thresholds
+  prévios.
+- `S02-B`: preparados contratos canônicos de portas, ativação, busca, consulta,
+  citações, falhas/HTTP, readiness, administração e compatibilidade OpenAPI;
+  quatro políticas de egress, proteção SSRF/TLS e threat model com 30 ameaças
+  e 12 grupos de testes de segurança.
+- Artefatos: ADR-0004, ADR-0005, ADR-0006,
+  `STATE-02-Canonical-Contracts.md`, `security/STATE-02-Threat-Model.md` e
+  `STATE-02-Architecture-Report.md`; ADR-0002 recebeu somente links e estado de
+  revisão, sem mudança de decisão.
+- Decisões: ADR-0002 e ADR-0004 a ADR-0006 permanecem `proposed`. Nenhum
+  provider, corpus, fonte, package, persistência, egress, risco residual ou
+  infraestrutura foi aceito por implicação.
+- Evidência local: manifestos e caches locais inspecionados somente para
+  disponibilidade; EF Core SQLite `10.0.9` observado no cache, sem tratá-lo
+  como aprovação de supply chain.
+- Auditoria documental: `APROVADA` para 83 arquivos não ignorados e 30
+  Markdown; seis novos artefatos, links locais, UTF-8/LF/newline final,
+  whitespace, H1, cercas, ausência de placeholders/paths reais, quatro status
+  `proposed`, 30 IDs de ameaça, 12 grupos de testes e `git diff --check`
+  consistentes.
+- Bloqueio: URL/licença/termos da fonte oficial, package PdfPig,
+  provider/model OpenAI e região/shape/serviços OCI exigem verificação atual
+  em fontes primárias. Rede não estava autorizada e não foi usada.
+- Escopo negativo preservado: nenhuma instalação, download de corpus,
+  chamada paga, secret, código funcional, migration, runtime, GitHub, OCI,
+  push, publicação, deploy, CD, `STATE-03` ou alteração no DB-Notifier.
+- Runtime preflight: `NÃO APLICÁVEL`; nenhum processo ou listener foi
+  inspecionado ou encerrado.
+- Quality Gate de `STATE-02`: `BLOQUEADO` até verificação externa autorizada,
+  decisões humanas dos ADRs e auditoria da baseline aceita.
+- Human Gate de `STATE-02`: `PENDENTE`; não solicitado.
+- Próxima condição: obter autoridade HTTPS read-only limitada às fontes
+  primárias necessárias, reconciliar a evidência e submeter cada ADR a decisão
+  humana explícita.

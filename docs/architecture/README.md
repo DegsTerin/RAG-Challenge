@@ -3,11 +3,12 @@
 ## Status and authority
 
 This pack contains architecture proposals prepared during `STATE-00
-DISCOVERY`. ADR-0001 was accepted by `GATE-B01` on 2026-07-30 and was later
+DISCOVERY` and the active `STATE-02 ARCHITECTURE`. ADR-0001 was accepted by
+`GATE-B01` on 2026-07-30 and was later
 superseded by accepted ADR-0003. ADR-0003 incorporates every non-naming
-ADR-0001 decision unchanged and replaces its naming provisions. ADR-0002
-remains proposed. Acceptance records a decision but does not authorise
-implementation or prove runtime behaviour.
+ADR-0001 decision unchanged and replaces its naming provisions. ADR-0002 and
+ADR-0004 to ADR-0006 remain proposed. Acceptance records a decision but does
+not authorise implementation or prove runtime behaviour.
 
 The architecture follows DB-Notifier principles where they are proportional
 to the RAG-Challenge: inward dependencies, provider-neutral contracts,
@@ -112,6 +113,17 @@ Dashboard -- versioned HTTP --> API
   (`proposed`)
 - [ADR-0003 — Product and Technical Naming](ADR-0003-Product-And-Technical-Naming.md)
   (`accepted`; current bootstrap decision record)
+- [ADR-0004 — MVP Corpus, Official Source and Evaluation Baseline](ADR-0004-MVP-Corpus-Official-Source-And-Evaluation.md)
+  (`proposed`; external source facts unverified)
+- [ADR-0005 — MVP Providers, Persistence and OCI Deployment](ADR-0005-MVP-Providers-Persistence-And-OCI-Deployment.md)
+  (`proposed`; provider/package/OCI facts unverified)
+- [ADR-0006 — Security, Egress, Administration and HTTP Contracts](ADR-0006-Security-Egress-Administration-And-HTTP-Contracts.md)
+  (`proposed`)
+
+## STATE-02 design artefacts
+
+- [Canonical application, provider and HTTP contracts](STATE-02-Canonical-Contracts.md)
+- [Threat model](../security/STATE-02-Threat-Model.md)
 
 ## Related contracts
 

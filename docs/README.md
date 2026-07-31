@@ -7,11 +7,12 @@ encerrou o Human Gate de `STATE-00 DISCOVERY`; o `GATE-B01
 ARCHITECTURE_BOOTSTRAP_DECISION` aprovou o ADR-0001 e a licença MIT. O
 ADR-0003 aceito posteriormente substitui seu registro, preserva todas as
 decisões não relacionadas a nomenclatura e adota a nova identidade. O
-ADR-0002 permanece proposto, e `STATE-01 PROJECT_SETUP` está encerrado com
-Automatic Quality Gate e Human Gate aprovados. `STATE-02 ARCHITECTURE` está
-ativo para execução documental e local, sequencial, dos lotes `S02-A` e
-`S02-B`; nenhum ADR foi aceito por implicação. Relatórios de estado são
-evidências históricas; o presente factual pertence a
+ADR-0002 e ADR-0004 a ADR-0006 permanecem propostos, e `STATE-01
+PROJECT_SETUP` está encerrado com Automatic Quality Gate e Human Gate
+aprovados. `STATE-02 ARCHITECTURE` está ativo; seus pacotes documentais
+`S02-A` e `S02-B` foram preparados, mas fatos externos e decisões humanas
+continuam pendentes. Nenhum ADR foi aceito por implicação. Relatórios de
+estado são evidências históricas; o presente factual pertence a
 [`Current-State.md`](../prompts/state/Current-State.md).
 
 ## Comece aqui
@@ -30,6 +31,8 @@ evidências históricas; o presente factual pertence a
    autorizado.
 8. [`STATE-01-Project-Setup-Report.md`](STATE-01-Project-Setup-Report.md):
    evidência factual e Automatic Quality Gate do setup.
+9. [`STATE-02-Architecture-Report.md`](STATE-02-Architecture-Report.md):
+   execução factual, propostas e bloqueios do estado de arquitetura.
 
 ## Produto e arquitetura
 
@@ -40,6 +43,11 @@ evidências históricas; o presente factual pertence a
 - [ADR-0001 — Runtime Stack and Modular Monolith](architecture/ADR-0001-Runtime-Stack-And-Modular-Monolith.md)
 - [ADR-0002 — RAG Lifecycle, Provider Boundaries and Source Separation](architecture/ADR-0002-RAG-Lifecycle-Providers-And-Source-Separation.md)
 - [ADR-0003 — Product and Technical Naming](architecture/ADR-0003-Product-And-Technical-Naming.md)
+- [ADR-0004 — MVP Corpus, Official Source and Evaluation Baseline](architecture/ADR-0004-MVP-Corpus-Official-Source-And-Evaluation.md)
+- [ADR-0005 — MVP Providers, Persistence and OCI Deployment](architecture/ADR-0005-MVP-Providers-Persistence-And-OCI-Deployment.md)
+- [ADR-0006 — Security, Egress, Administration and HTTP Contracts](architecture/ADR-0006-Security-Egress-Administration-And-HTTP-Contracts.md)
+- [Contratos canônicos de STATE-02](architecture/STATE-02-Canonical-Contracts.md)
+- [Threat model de STATE-02](security/STATE-02-Threat-Model.md)
 
 ## Governança
 

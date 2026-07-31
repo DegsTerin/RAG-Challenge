@@ -37,11 +37,20 @@ proprietários.
   escopo negativo do resumo completo apresentado na conversa coordenadora.
   A autorização não aceita ADR por implicação nem concede rede, instalação,
   serviço pago, GitHub, OCI, publicação, deploy ou mudança no DB-Notifier.
+- Execução de `STATE-02`: pacote documental sequencial de `S02-A` e `S02-B`
+  preparado em 2026-07-31, com ADR-0002 e ADR-0004 a ADR-0006 ainda
+  `proposed`, contratos canônicos, threat model e relatório factual. Fatos de
+  fonte oficial, package/parser, provider/model e OCI dependentes de rede não
+  foram verificados e nenhuma escolha foi aceita por implicação.
+- Automatic Quality Gate de `STATE-02`: `BLOQUEADO` até verificação externa
+  autorizada, decisões humanas explícitas de cada ADR e nova auditoria da
+  baseline resultante. Human Gate de `STATE-02`: `PENDENTE` e ainda não pode
+  ser solicitado.
 - ADR-0001: `superseded` pelo ADR-0003, após aceitação original no
   `GATE-B01`; ADR-0002: `proposed`; ADR-0003: `accepted` pela solicitação
   humana explícita de renomear o projeto para `RAG-Challenge`, incorporando
   sem alteração todas as decisões não relacionadas a nomenclatura do
-  ADR-0001.
+  ADR-0001; ADR-0004, ADR-0005 e ADR-0006: `proposed`.
 
 ## Baseline documental
 
@@ -53,6 +62,13 @@ proprietários.
   `prompts/`.
 - Visão, requisitos, arquitetura, RAG, segurança, qualidade, lifecycle,
   roadmap, backlog, estado, histórico e templates estão documentados.
+- `STATE-02` acrescentou seis artefatos técnicos propostos: três ADRs, um
+  contrato canônico, um threat model e um relatório de execução. Eles não são
+  decisões aceitas nem evidência de implementação.
+- A auditoria do pacote proposto confirmou 83 arquivos não ignorados, 30
+  Markdown, links e formato válidos, quatro ADRs com status `proposed`, 30 IDs
+  de ameaça e 12 grupos de testes de segurança. A aprovação estrutural não
+  resolve os bloqueios externos nem substitui decisões humanas.
 - A auditoria do corpus `4.1.0` confirmou 22 documentos, 114 links locais
   válidos, 20 RF, 14 RNF, 15 critérios de aceitação, 31 itens de backlog, 8
   módulos, 13 riscos, formato consistente e rastreabilidade. A implementação
@@ -199,22 +215,29 @@ autorizada.
 
 ## Decisões pendentes
 
-1. Conteúdo, lista de bancos e licença do PDF inicial.
-2. Fonte oficial do MVP, URL pública, termos, limites, `maxAge`, trust,
-   revogação e eventual material TLS/egress auxiliar.
-3. Parser, normalização e chunking.
-4. Embedding provider/model.
-5. Vector store e, se gerenciado, egress/tratamento de dados.
-6. Language model.
-7. Persistência e retenção duráveis de conteúdo bruto, catálogo e índice.
-8. Serviço, região e orçamento OCI.
-9. Dataset, rubrica e thresholds de avaliação.
+1. Decidir ADR-0002 explicitamente.
+2. Confirmar ou substituir o corpus autoral, a lista de bancos e a licença
+   `CC BY 4.0` propostos pelo ADR-0004.
+3. Verificar e decidir a fonte PostgreSQL 18 candidata, URL pública, licença,
+   termos, limites, `maxAge`, trust e política TLS/revogação.
+4. Verificar e decidir PdfPig, normalização e `paragraph-window-v1`.
+5. Verificar e decidir OpenAI `text-embedding-3-small`.
+6. Verificar e decidir `SqliteExactVectorStore` e seus limites.
+7. Verificar e decidir OpenAI `gpt-4.1-mini-2025-04-14` e a divulgação de
+   dados ao provider.
+8. Decidir SQLite/filesystem duráveis, retenção, backup e rollback.
+9. Verificar e decidir OCI Compute em `sa-saopaulo-1`, shape, volume, secrets,
+   TLS e orçamento.
+10. Decidir dataset `rag-eval-mvp-v1`, rubrica e thresholds propostos.
+11. Decidir ADR-0006, incluindo egress, risco residual de revogação TLS,
+    administração, falhas/readiness e compatibilidade OpenAPI.
 
 ## Próxima autoridade
 
-Executar documentalmente e de forma sequencial os lotes `S02-A` e `S02-B`.
-Cada ADR e escolha arquitetural permanece proposta até decisão humana
-explícita; o Human Gate e o encerramento de `STATE-02` exigirão Automatic
-Quality Gate e resumo completos próprios. Rede, instalação, serviços pagos,
-GitHub, OCI, publicação, deploy, ações externas e mudanças no DB-Notifier
-continuam sem autorização.
+Obter autoridade separada e limitada para verificar, em fontes primárias, os
+fatos externos enumerados no relatório de `STATE-02`, sem instalar, baixar
+corpus, chamar API paga ou criar recurso. Depois, reconciliar a evidência e
+submeter ADR-0002 e ADR-0004 a ADR-0006 a decisões humanas explícitas. O Human
+Gate e o encerramento de `STATE-02` continuarão exigindo Automatic Quality Gate
+e resumo completos próprios. GitHub, OCI, publicação, deploy, demais ações
+externas e mudanças no DB-Notifier continuam sem autorização.
