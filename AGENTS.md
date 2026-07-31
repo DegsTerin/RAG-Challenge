@@ -1,9 +1,9 @@
-# Challenge — Permanent Agent Instructions
+# RAG-Challenge — Permanent Agent Instructions
 
 ## Purpose and authority
 
 This file contains the permanent, reusable instructions for work in the
-Challenge repository. It applies to the entire workspace unless a more
+RAG-Challenge repository. It applies to the entire workspace unless a more
 specific `AGENTS.md` is deliberately introduced for a subtree.
 
 Before acting, read [`prompts/Start-Here.md`](prompts/Start-Here.md), the
@@ -29,15 +29,18 @@ impactful action.
 
 ## Product identity and independence
 
-- `Challenge` is the canonical repository and product name until the owner
-  approves a different public name.
-- If ADR-0001 is accepted with a .NET runtime, use `Challenge` as the solution
-  and namespace prefix.
+- `RAG-Challenge` is the canonical repository and product name.
+- Use `RAG-Challenge.sln` as the solution filename and `RagChallenge` as the
+  .NET project, assembly, namespace and configuration prefix, as recorded by
+  ADR-0003.
+- Preserve the stable `CH-MOD-*` module IDs and `CH_*` error-code family;
+  product renaming does not silently migrate established identifiers.
 - The product is an independent RAG application for database documentation.
 - DB-Notifier is an architectural reference and a possible future consumer,
   never a build-time or runtime dependency of this repository.
-- A future DB-Notifier adapter must depend on stable Challenge contracts, not
-  introduce DB-Notifier concepts into Challenge Domain or Application.
+- A future DB-Notifier adapter must depend on stable RAG-Challenge contracts,
+  not introduce DB-Notifier concepts into RAG-Challenge Domain or
+  Application.
 
 ## Lifecycle and authority
 
@@ -131,7 +134,7 @@ impactful action.
 ## Runtime preflight
 
 Before a future technical action that changes or validates executable
-Challenge behaviour, identify and stop only Challenge-owned processes,
+RAG-Challenge behaviour, identify and stop only RAG-Challenge-owned processes,
 development servers and listeners that could affect the result. Verify the
 target by executable path, command line, port ownership or parentage. Never
 stop a database engine, ordinary browser, IDE or unrelated process under this

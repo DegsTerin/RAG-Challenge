@@ -2,7 +2,7 @@
 
 - Status: proposed
 - Date: 2026-07-29
-- Owners: Challenge RAG / data / security architecture
+- Owners: RAG-Challenge RAG / data / security architecture
 
 ## Context
 
@@ -14,7 +14,7 @@ substitution. Coupling use cases directly to one source, embedding SDK, vector
 database, LLM or mutable index would force large refactoring.
 
 Implementing every future capability now would also overcomplicate the
-Challenge. The design needs stable seams while the MVP keeps one concrete
+RAG-Challenge. The design needs stable seams while the MVP keeps one concrete
 implementation per seam.
 
 External documentation introduces licensing, provenance, SSRF, prompt
@@ -101,7 +101,7 @@ If accepted:
 - Resolve the complete activation record once at query start and use its
   explicit generation, snapshot and observation identities throughout
   retrieval, validation, response metadata and citations.
-- Make Challenge the owner of a generated, versioned HTTP/OpenAPI contract;
+- Make RAG-Challenge the owner of a generated, versioned HTTP/OpenAPI contract;
   consumer adapters, including a future DB-Notifier adapter, belong to their
   consumer repositories and gates. Do not expose Domain entities or provider
   ports.
@@ -232,7 +232,7 @@ tests; production adapters are added only when needed.
   replace a `Current` observation and freshness expires through `maxAge`.
 - A future DB-Notifier adapter consumes query and citation contracts without
   knowing provider implementations. The adapter is owned and gated by
-  DB-Notifier. The Challenge-owned v1 response includes typed outcome,
+  DB-Notifier. The RAG-Challenge-owned v1 response includes typed outcome,
   citations, generation identity, retrieval/prompt versions, a sanitised model
   descriptor and correlation identity.
 - Application failures use one canonical taxonomy. `STATE-02` maps it to
@@ -281,7 +281,7 @@ tests; production adapters are added only when needed.
   Host/SNI preservation, disabled redirects, decompressed-byte limits and
   refusal of certificate-validation egress.
 - The generated OpenAPI v1 artefact has compatibility tests and exposes no
-  Domain or provider SDK types; its consumer adapter is outside Challenge.
+  Domain or provider SDK types; its consumer adapter is outside RAG-Challenge.
 - Readiness reports official-source degradation by scope without making a
   healthy Local query path globally unready.
 - Architecture tests prevent direct controller-to-provider coupling.

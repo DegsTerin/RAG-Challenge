@@ -72,7 +72,7 @@ separada.
 
 IDs não podem ser reutilizados com outro significado. O módulo 07 integra o
 MVP no recorte de uma fonte oficial. O módulo 08 possui no MVP somente o
-contrato HTTP/OpenAPI público do Challenge; qualquer adapter consumidor,
+contrato HTTP/OpenAPI público do RAG-Challenge; qualquer adapter consumidor,
 inclusive o futuro adapter do DB-Notifier, pertence ao repositório consumidor
 e a decisões próprias.
 
@@ -176,7 +176,7 @@ O agente recomenda; o proprietário navega manualmente. O agente não afirma que
 abriu, renomeou, localizou ou mudou de conversa. Se título, label ou ID não for
 conhecido com segurança, não o inventa: recomenda `START_NEW` e propõe um
 título descritivo no formato
-`Challenge — <STATE-OU-GATE> — <OBJETIVO-CURTO>`.
+`RAG-Challenge — <STATE-OU-GATE> — <OBJETIVO-CURTO>`.
 Esse título é apenas sugestão, não identificador canônico. A mensagem inicial
 da nova conversa o repete como `Identificação da conversa`; quando o
 proprietário envia essa mensagem, a identificação torna-se referência
@@ -185,7 +185,7 @@ confirmada para handoffs futuros, mesmo que a interface exiba outro título.
 Quando a continuidade depender de mensagem, o handoff final fornece um bloco
 `Texto para copiar e enviar` pronto para uso. O texto:
 
-1. identifica `Challenge`, o estado/gate e o lote pretendido;
+1. identifica `RAG-Challenge`, o estado/gate e o lote pretendido;
 2. manda reler `AGENTS.md`, `prompts/Start-Here.md`,
    `prompts/state/Current-State.md` e documentos temáticos relevantes;
 3. declara objetivo, autoridade já registrada, escopo positivo e negativo;
@@ -351,7 +351,7 @@ Bloqueio não autoriza saltar estado, enfraquecer gate ou inventar resultado.
 - Preservar auditoria e proveniência.
 - Preferir geração nova e ativação atômica a mutação no lugar.
 - Nunca alterar um banco de dados documentado ou consultado como efeito do
-  rollback do Challenge.
+  rollback do RAG-Challenge.
 - Usar forward-fix quando rollback aumentar o risco, registrando a decisão.
 
 ## Memória do projeto

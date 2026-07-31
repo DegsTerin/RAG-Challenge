@@ -3,7 +3,7 @@
 ## Purpose and authority
 
 This document is the single thematic authority for language conventions in
-the Challenge repository. It applies to the entire workspace.
+the RAG-Challenge repository. It applies to the entire workspace.
 
 [`../../AGENTS.md`](../../AGENTS.md) remains the permanent repository
 instruction authority, and [`../Start-Here.md`](../Start-Here.md) defines

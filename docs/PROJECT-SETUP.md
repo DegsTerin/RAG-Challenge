@@ -24,10 +24,10 @@ lockfiles are the machine-readable authorities.
 The accepted production dependency direction is:
 
 ```text
-Challenge.Application -> Challenge.Domain
-Challenge.Infrastructure -> Challenge.Application + Challenge.Domain
-Challenge.Server.Api -> Challenge.Application + Challenge.Infrastructure
-Challenge.Dashboard.Web -> versioned HTTP/OpenAPI only
+RagChallenge.Application -> RagChallenge.Domain
+RagChallenge.Infrastructure -> RagChallenge.Application + RagChallenge.Domain
+RagChallenge.Server.Api -> RagChallenge.Application + RagChallenge.Infrastructure
+RagChallenge.Dashboard.Web -> versioned HTTP/OpenAPI only
 ```
 
 The Dashboard is a separate React/TypeScript build boundary. It does not
@@ -39,8 +39,8 @@ The standard restore requires access to the package registries configured in
 `NuGet.config` and npm's lockfile:
 
 ```powershell
-dotnet restore Challenge.sln --locked-mode
-Set-Location src/Challenge.Dashboard.Web
+dotnet restore RAG-Challenge.sln --locked-mode
+Set-Location src/RagChallenge.Dashboard.Web
 npm ci --ignore-scripts --no-audit --no-fund
 Set-Location ../..
 ```
@@ -50,10 +50,10 @@ registry access is explicitly authorised. When all packages already exist in
 the local caches, use:
 
 ```powershell
-dotnet restore Challenge.sln `
+dotnet restore RAG-Challenge.sln `
   --configfile eng/NuGet.Offline.config `
   --locked-mode
-Set-Location src/Challenge.Dashboard.Web
+Set-Location src/RagChallenge.Dashboard.Web
 npm ci --offline --ignore-scripts --no-audit --no-fund
 Set-Location ../..
 ```
@@ -66,15 +66,15 @@ the network.
 After a successful restore:
 
 ```powershell
-dotnet format Challenge.sln --verify-no-changes --no-restore
-dotnet build Challenge.sln --configuration Release --no-restore
-dotnet test Challenge.sln `
+dotnet format RAG-Challenge.sln --verify-no-changes --no-restore
+dotnet build RAG-Challenge.sln --configuration Release --no-restore
+dotnet test RAG-Challenge.sln `
   --configuration Release `
   --no-build `
   --no-restore `
   --collect:"XPlat Code Coverage"
 
-Set-Location src/Challenge.Dashboard.Web
+Set-Location src/RagChallenge.Dashboard.Web
 npm run lint
 npm run typecheck
 npm test
@@ -101,7 +101,7 @@ Before starting it, apply the runtime preflight in `AGENTS.md`.
 
 ```powershell
 dotnet run `
-  --project src/Challenge.Server.Api/Challenge.Server.Api.csproj `
+  --project src/RagChallenge.Server.Api/RagChallenge.Server.Api.csproj `
   --no-restore `
   --no-launch-profile `
   --urls http://127.0.0.1:5242
@@ -112,7 +112,7 @@ The setup endpoints are:
 - `GET /health/live`
 - `GET /health/ready`
 
-`Challenge:Setup:AllowExternalServices` defaults to `false`. Setting it to
+`RagChallenge:Setup:AllowExternalServices` defaults to `false`. Setting it to
 `true` fails startup closed. No administrative mode, ingestion, query,
 provider, persistence, or external connection exists in this state.
 

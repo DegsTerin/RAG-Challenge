@@ -1,4 +1,4 @@
-# Templates do Challenge
+# Templates do RAG-Challenge
 
 Templates não representam execução, evidência ou aprovação até serem
 preenchidos com resultados reais e revisados no estado proprietário.
@@ -157,7 +157,7 @@ nas linhas compactas do encerramento final.
 ### Texto para `CONTINUE_CURRENT`
 
 ```text
-Continue nesta conversa o trabalho do Challenge no estado/gate <STATE/GATE>,
+Continue nesta conversa o trabalho do RAG-Challenge no estado/gate <STATE/GATE>,
 objetivo/lote <OBJETIVO/LOTE>.
 Comunique-se comigo em pt-BR. Produza novos artefatos técnicos permanentes em
 en-GB e preserve o idioma dos documentos existentes do STATE-00.
@@ -179,14 +179,14 @@ divergência, mudança externa ou falta de autoridade, pare e informe.
 
 ### Texto para `START_NEW`
 
-Título proposto: `Challenge — <STATE-OU-GATE> — <OBJETIVO-CURTO>`.
+Título proposto: `RAG-Challenge — <STATE-OU-GATE> — <OBJETIVO-CURTO>`.
 
 ```text
-Projeto: Challenge.
-Diretório do projeto: <challenge-root>.
+Projeto: RAG-Challenge.
+Diretório do projeto: <rag-challenge-root>.
 Estado/gate de referência: <STATE/GATE>.
 Objetivo/lote pretendido: <OBJETIVO/LOTE>.
-Identificação da conversa: Challenge — <STATE-OU-GATE> — <OBJETIVO-CURTO>.
+Identificação da conversa: RAG-Challenge — <STATE-OU-GATE> — <OBJETIVO-CURTO>.
 
 Comunique-se comigo em pt-BR. Produza novos artefatos técnicos permanentes em
 en-GB e preserve o idioma dos documentos existentes do STATE-00.
@@ -216,7 +216,7 @@ confirmou.
 
 ```text
 Retome nesta conversa identificada como <TÍTULO-OU-LABEL-CONFIRMADO> o
-trabalho do Challenge no estado/gate <STATE/GATE>, objetivo/lote
+trabalho do RAG-Challenge no estado/gate <STATE/GATE>, objetivo/lote
 <OBJETIVO/LOTE>.
 
 Comunique-se comigo em pt-BR. Produza novos artefatos técnicos permanentes em
@@ -300,13 +300,13 @@ essa referência antes de abrir conversas auxiliares.
 ### Texto para uma conversa auxiliar paralela
 
 Título proposto, quando a rota for `START_NEW`:
-`Challenge — <STATE-OU-GATE> — <LANE-OBJETIVO>`.
+`RAG-Challenge — <STATE-OU-GATE> — <LANE-OBJETIVO>`.
 Para `RETURN_TO_EXISTING`, copiar exatamente o título ou a identificação
 confirmada pelo proprietário; nunca substituí-lo pelo formato proposto.
 
 ```text
-Projeto: Challenge.
-Diretório do projeto: <challenge-root>.
+Projeto: RAG-Challenge.
+Diretório do projeto: <rag-challenge-root>.
 Papel: responsável pela frente <LANE-ID>; não é a conversa coordenadora.
 Identificação da conversa: <LANE-LABEL-SUGERIDO-OU-CONFIRMADO>.
 Conversa coordenadora confirmada: <TÍTULO-OU-LABEL-DA-COORDENADORA>.

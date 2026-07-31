@@ -8,7 +8,7 @@ $ErrorActionPreference = "Stop"
 Set-StrictMode -Version Latest
 
 $repositoryRoot = Split-Path -Parent $PSScriptRoot
-$dashboardRoot = Join-Path $repositoryRoot "src/Challenge.Dashboard.Web"
+$dashboardRoot = Join-Path $repositoryRoot "src/RagChallenge.Dashboard.Web"
 $env:DOTNET_CLI_TELEMETRY_OPTOUT = "1"
 $env:DOTNET_NOLOGO = "1"
 $env:DOTNET_SKIP_FIRST_TIME_EXPERIENCE = "1"
@@ -25,24 +25,24 @@ Push-Location $repositoryRoot
 
 try {
     if ($Offline) {
-        dotnet restore Challenge.sln `
+        dotnet restore RAG-Challenge.sln `
             --configfile eng/NuGet.Offline.config `
             --locked-mode
         Assert-LastExitCode "Offline .NET restore"
     }
     else {
-        dotnet restore Challenge.sln --locked-mode
+        dotnet restore RAG-Challenge.sln --locked-mode
         Assert-LastExitCode ".NET restore"
     }
 
-    dotnet format Challenge.sln --verify-no-changes --no-restore
+    dotnet format RAG-Challenge.sln --verify-no-changes --no-restore
     Assert-LastExitCode ".NET format verification"
 
-    dotnet build Challenge.sln --configuration Release --no-restore
+    dotnet build RAG-Challenge.sln --configuration Release --no-restore
     Assert-LastExitCode ".NET Release build"
 
     $coverageRun = Join-Path "TestResults" ([guid]::NewGuid().ToString("N"))
-    dotnet test Challenge.sln `
+    dotnet test RAG-Challenge.sln `
         --configuration Release `
         --no-build `
         --no-restore `
@@ -82,7 +82,7 @@ try {
     }
 
     if (-not $Offline) {
-        dotnet list Challenge.sln package --vulnerable --include-transitive
+        dotnet list RAG-Challenge.sln package --vulnerable --include-transitive
         Assert-LastExitCode ".NET dependency audit"
     }
 

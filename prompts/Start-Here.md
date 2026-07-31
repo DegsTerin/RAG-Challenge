@@ -1,8 +1,9 @@
-# Challenge — Sistema de Instruções
+# RAG-Challenge — Sistema de Instruções
 
 ## Finalidade
 
-Este é o ponto de entrada obrigatório para trabalhos governados no Challenge.
+Este é o ponto de entrada obrigatório para trabalhos governados no
+RAG-Challenge.
 O corpus separa visão, arquitetura, RAG, governança, segurança, qualidade,
 estado factual, histórico, templates e evidências.
 
@@ -95,7 +96,8 @@ resultado ou exigir nova autoridade.
   repetem, parafraseiam nem antecipam conteúdo já comunicado ou esse bloco.
 - Tratar runtime preflight como `NÃO APLICÁVEL` em documentação e análise
   somente leitura: não anunciar shutdown, enumerar processos ou encerrar
-  qualquer processo. Nome genérico nunca comprova vínculo com o Challenge.
+  qualquer processo. Nome genérico nunca comprova vínculo com o
+  RAG-Challenge.
 - Em todo handoff governado, avaliar também se o trabalho deve permanecer
   sequencial ou pode usar conversas paralelas; quando puder, definir
   coordenação, ownership sem sobreposição, mensagens por frente e ordem de

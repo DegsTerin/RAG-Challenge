@@ -4,6 +4,8 @@
 - Date: 2026-07-29
 - Accepted: 2026-07-30
 - Owners: Challenge architecture / product owner
+- Naming amendment:
+  [ADR-0003 — Product and Technical Naming](ADR-0003-Product-And-Technical-Naming.md)
 
 ## Context
 

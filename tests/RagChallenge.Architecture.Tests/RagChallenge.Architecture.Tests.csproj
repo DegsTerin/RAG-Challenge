@@ -1,0 +1,30 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- Enforces the accepted project and namespace boundaries without third-party architecture tooling. -->
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <AssemblyName>RagChallenge.Architecture.Tests</AssemblyName>
+    <RootNamespace>RagChallenge.Architecture.Tests</RootNamespace>
+    <IsPackable>false</IsPackable>
+    <IsTestProject>true</IsTestProject>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="coverlet.collector" PrivateAssets="all" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" />
+    <PackageReference Include="xunit" />
+    <PackageReference Include="xunit.runner.visualstudio" PrivateAssets="all" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\RagChallenge.Application\RagChallenge.Application.csproj" />
+    <ProjectReference Include="..\..\src\RagChallenge.Domain\RagChallenge.Domain.csproj" />
+    <ProjectReference Include="..\..\src\RagChallenge.Infrastructure\RagChallenge.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\src\RagChallenge.Server.Api\RagChallenge.Server.Api.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Using Include="Xunit" />
+  </ItemGroup>
+
+</Project>

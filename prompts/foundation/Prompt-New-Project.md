@@ -1,4 +1,4 @@
-# Visão do Projeto Challenge
+# Visão do Projeto RAG-Challenge
 
 ## Contexto
 
@@ -36,7 +36,7 @@ Fornecer uma experiência simples de perguntas e respostas que:
 | Fase | Discovery de um MVP |
 | Porte | Pequeno, com arquitetura de produto evolutivo |
 | Criticidade | Moderada |
-| Exposição | Local no desenvolvimento; pública no deploy do Challenge |
+| Exposição | Local no desenvolvimento; pública no deploy do RAG-Challenge |
 | Dados | Acervo publicável e perguntas de usuários não confiáveis |
 | Disponibilidade | Best effort no MVP |
 | Arquitetura candidata | Monólito modular com API e interface web |
@@ -44,7 +44,7 @@ Fornecer uma experiência simples de perguntas e respostas que:
 
 ## Usuários e stakeholders
 
-- participante que desenvolve e mantém o Challenge;
+- participante que desenvolve e mantém o RAG-Challenge;
 - avaliador que instala, consulta e verifica a entrega;
 - pessoa interessada em documentação de bancos de dados;
 - futuro mantenedor do DB-Notifier, somente quando uma integração separada for
@@ -84,7 +84,7 @@ licença e autoriza ações externas.
 - Um banco ou índice vetorial.
 - Um modelo de linguagem.
 - Consulta por API e uma interface web mínima.
-- Contrato OpenAPI v1 versionado pertencente ao Challenge.
+- Contrato OpenAPI v1 versionado pertencente ao RAG-Challenge.
 - Resposta com citações e resultado explícito de evidência insuficiente.
 - Catálogo local de metadados, versão de documento e geração de índice.
 - Armazenamento durável e content-addressed dos bytes necessários a rebuild e
@@ -165,7 +165,7 @@ integração, homologação, recomendação ou suporte operacional.
 | `RF-014` | Sincronizar alterações por documento de forma incremental e agendada. | Futuro |
 | `RF-015` | Trocar embeddings, armazenamento vetorial e LLM por configuração/composição. | Preparado; uma implementação no MVP |
 | `RF-016` | Sincronizar manualmente uma fonte oficial online por adapter separado, allowlist e snapshot versionado, preservando URL e frescor. | Sim |
-| `RF-017` | Publicar no MVP o contrato HTTP/OpenAPI versionado do Challenge; qualquer adapter consumidor, inclusive do DB-Notifier, pertence ao repositório consumidor e a gates próprios futuros. | Contrato no MVP; adapters consumidores no futuro |
+| `RF-017` | Publicar no MVP o contrato HTTP/OpenAPI versionado do RAG-Challenge; qualquer adapter consumidor, inclusive do DB-Notifier, pertence ao repositório consumidor e a gates próprios futuros. | Contrato no MVP; adapters consumidores no futuro |
 | `RF-018` | Adicionar formatos documentais por adapters próprios sem alterar os casos de uso do núcleo. | Futuro |
 | `RF-019` | Aplicar RBAC e escopo por corpus antes da recuperação. | Futuro |
 | `RF-020` | Exigir que cada pergunta selecione `Local` ou `OfficialOnline`, recuperar somente desse escopo e falhar sem fallback silencioso quando a fonte estiver indisponível ou stale. | Sim |

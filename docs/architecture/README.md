@@ -1,14 +1,15 @@
-# Challenge Architecture Pack
+# RAG-Challenge Architecture Pack
 
 ## Status and authority
 
 This pack contains architecture proposals prepared during `STATE-00
-DISCOVERY`. ADR-0001 was accepted by `GATE-B01` on 2026-07-30; ADR-0002
-remains proposed. Acceptance records a decision but does not authorise
-implementation or prove runtime behaviour.
+DISCOVERY`. ADR-0001 was accepted by `GATE-B01` on 2026-07-30; its naming
+provisions were amended by accepted ADR-0003. ADR-0002 remains proposed.
+Acceptance records a decision but does not authorise implementation or prove
+runtime behaviour.
 
 The architecture follows DB-Notifier principles where they are proportional
-to the Challenge: inward dependencies, provider-neutral contracts,
+to the RAG-Challenge: inward dependencies, provider-neutral contracts,
 fail-closed configuration, typed outcomes, versioned evidence and explicit
 gates. It does not copy DB-Notifier's Agent, WPF, service control, distributed
 protocol, central PostgreSQL topology or other product-specific complexity.
@@ -22,7 +23,7 @@ User / Evaluator
 Web Dashboard
        |
        v
-Challenge API
+RAG-Challenge API
        |
        v
 Application use cases
@@ -38,10 +39,10 @@ document, vector store or language model directly.
 ## Dependency boundaries
 
 ```text
-Challenge.Domain
+RagChallenge.Domain
         ^
         |
-Challenge.Application
+RagChallenge.Application
 (including RAG abstractions)
         ^
         |
@@ -98,15 +99,18 @@ Dashboard -- versioned HTTP --> API
   destinations. A managed vector store also requires its own egress policy.
 - GitHub: source, documentation and CI.
 - GitHub Pages: optional static frontend only; never the RAG backend.
-- Future DB-Notifier: Challenge owns HTTP/OpenAPI v1; the HTTP adapter belongs
-  to DB-Notifier. Any in-process module requires a later decision and gates.
+- Future DB-Notifier: RAG-Challenge owns HTTP/OpenAPI v1; the HTTP adapter
+  belongs to DB-Notifier. Any in-process module requires a later decision and
+  gates.
 
 ## Architecture decisions
 
 - [ADR-0001 — Runtime Stack and Modular Monolith](ADR-0001-Runtime-Stack-And-Modular-Monolith.md)
-  (`accepted`)
+  (`accepted`; naming amended by ADR-0003)
 - [ADR-0002 — RAG Lifecycle, Provider Boundaries and Source Separation](ADR-0002-RAG-Lifecycle-Providers-And-Source-Separation.md)
   (`proposed`)
+- [ADR-0003 — Product and Technical Naming](ADR-0003-Product-And-Technical-Naming.md)
+  (`accepted`)
 
 ## Related contracts
 

@@ -1,0 +1,14 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- Defines replaceable outer adapters without selecting persistence or RAG providers during setup. -->
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <AssemblyName>RagChallenge.Infrastructure</AssemblyName>
+    <RootNamespace>RagChallenge.Infrastructure</RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\RagChallenge.Application\RagChallenge.Application.csproj" />
+    <ProjectReference Include="..\RagChallenge.Domain\RagChallenge.Domain.csproj" />
+  </ItemGroup>
+
+</Project>

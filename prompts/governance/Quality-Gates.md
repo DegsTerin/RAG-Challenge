@@ -192,7 +192,7 @@ coordenação ou validação.
 - A fonte oficial está no MVP com uma única URL PDF, snapshot e escopo de
   consulta; não restam alegações ativas de que está desativada/futura.
 - O desenho diferencia requisito planejado de autorização real de egress.
-- O Challenge é owner do OpenAPI; adapters consumidores pertencem aos
+- O RAG-Challenge é owner do OpenAPI; adapters consumidores pertencem aos
   repositórios consumidores.
 - Lacunas identificadas por auditoria posterior estão reconciliadas ou
   registradas como ressalvas explícitas do Human Gate.

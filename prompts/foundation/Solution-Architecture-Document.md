@@ -1,4 +1,4 @@
-# Arquitetura da Solução Challenge
+# Arquitetura da Solução RAG-Challenge
 
 ## Status
 
@@ -18,8 +18,8 @@ documental não representa implementação, teste, deploy ou homologação.
 - Índices construídos de forma imutável antes da ativação.
 - Falha externa isolada e explicitamente classificada.
 - Fonte local e fonte oficial externa separadas.
-- Contrato externo versionado pertencente ao Challenge; adapters consumidores
-  futuros pertencem aos respectivos repositórios.
+- Contrato externo versionado pertencente ao RAG-Challenge; adapters
+  consumidores futuros pertencem aos respectivos repositórios.
 
 ## Contexto do sistema
 
@@ -27,12 +27,12 @@ documental não representa implementação, teste, deploy ou homologação.
 Question author / evaluator
           |
           v
-   Challenge Dashboard
+  RAG-Challenge Dashboard
           |
        HTTPS
           |
           v
-    Challenge Server/API
+    RAG-Challenge Server/API
           |
           v
  Application use cases
@@ -49,24 +49,24 @@ mesmo deploy. Isso reduz operação sem acoplar a interface aos casos de uso.
 ## Direção de dependências
 
 ```text
-Challenge.Domain
+RagChallenge.Domain
         ^
         |
-Challenge.Rag.Abstractions
+RagChallenge.Rag.Abstractions
         ^
         |
-Challenge.Application
+RagChallenge.Application
         ^
         |
 Infrastructure / Persistence / API
 
-Challenge.Dashboard.Web -- versioned HTTP --> Challenge.Server.Api
+RagChallenge.Dashboard.Web -- versioned HTTP --> RagChallenge.Server.Api
 ```
 
-- `Challenge.Domain` possui identidades, versões, estados e invariantes.
-- `Challenge.Rag.Abstractions` possui contratos RAG e depende apenas da
+- `RagChallenge.Domain` possui identidades, versões, estados e invariantes.
+- `RagChallenge.Rag.Abstractions` possui contratos RAG e depende apenas da
   semântica canônica necessária.
-- `Challenge.Application` implementa casos de uso e orquestra portas.
+- `RagChallenge.Application` implementa casos de uso e orquestra portas.
 - Infrastructure e Persistence implementam adapters.
 - API é composition root e não contém regras de negócio.
 - Dashboard não possui referência de código ao Application; consome somente
@@ -83,12 +83,12 @@ Challenge.Dashboard.Web -- versioned HTTP --> Challenge.Server.Api
 | `CH-MOD-05` | `QUERY_EXPERIENCE` | API e interface de consulta. |
 | `CH-MOD-06` | `OPERATIONS_GOVERNANCE` | Configuração, health, logs, auditoria e gates. |
 | `CH-MOD-07` | `OFFICIAL_EXTERNAL_SOURCES` | Sincronização manual e governada de um PDF oficial no MVP. |
-| `CH-MOD-08` | `EXTERNAL_INTEGRATION_CONTRACTS` | Contrato HTTP/OpenAPI versionado do Challenge; adapters consumidores ficam fora deste repositório. |
+| `CH-MOD-08` | `EXTERNAL_INTEGRATION_CONTRACTS` | Contrato HTTP/OpenAPI versionado do RAG-Challenge; adapters consumidores ficam fora deste repositório. |
 
 IDs não devem ser reutilizados com outro significado.
 `CH-MOD-08` conserva a fronteira de integração da baseline anterior, mas o
-rótulo foi corrigido antes do Human Gate para deixar explícito que o Challenge
-é owner do contrato e não do adapter consumidor.
+rótulo foi corrigido antes do Human Gate para deixar explícito que o
+RAG-Challenge é owner do contrato e não do adapter consumidor.
 
 ## Estrutura candidata para o `STATE-01`
 
@@ -100,7 +100,7 @@ registrado e a entrada no estado receber autorização separada.
 /
 ├── AGENTS.md
 ├── README.md
-├── Challenge.sln
+├── RAG-Challenge.sln
 ├── Directory.Build.props
 ├── Directory.Packages.props
 ├── global.json
@@ -111,41 +111,44 @@ registrado e a entrada no estado receber autorização separada.
 ├── docs/
 ├── prompts/
 ├── src/
-│   ├── Challenge.Domain/
-│   ├── Challenge.Rag.Abstractions/
-│   ├── Challenge.Application/
-│   ├── Challenge.Infrastructure/
-│   ├── Challenge.Persistence.Sqlite/
-│   ├── Challenge.Server.Api/
-│   └── Challenge.Dashboard.Web/
+│   ├── RagChallenge.Domain/
+│   ├── RagChallenge.Rag.Abstractions/
+│   ├── RagChallenge.Application/
+│   ├── RagChallenge.Infrastructure/
+│   ├── RagChallenge.Persistence.Sqlite/
+│   ├── RagChallenge.Server.Api/
+│   └── RagChallenge.Dashboard.Web/
 └── tests/
-    ├── Challenge.UnitTests/
-    ├── Challenge.Architecture.Tests/
-    └── Challenge.IntegrationTests/
+    ├── RagChallenge.UnitTests/
+    ├── RagChallenge.Architecture.Tests/
+    └── RagChallenge.IntegrationTests/
 ```
 
 Se autorizada, a fase cria apenas scaffold, configuração, checks e hosts
 mínimos. Não implementa ingestão, recuperação ou geração. Cada assembly deve
 possuir responsabilidade e boundary de dependência ou teste distintos. No
-`GATE-B01`, `Challenge.Rag.Abstractions` poderá ser combinado com
-`Challenge.Application`, e `Challenge.Persistence.Sqlite` com
-`Challenge.Infrastructure`, se a separação física não se justificar. As
+`GATE-B01`, `RagChallenge.Rag.Abstractions` poderá ser combinado com
+`RagChallenge.Application`, e `RagChallenge.Persistence.Sqlite` com
+`RagChallenge.Infrastructure`, se a separação física não se justificar. As
 fronteiras conceituais permanecem mesmo quando dois papéis compartilham um
 assembly. O mesmo gate registra o mapa
 `CH-MOD-* → namespace/pasta/projeto`, dependências permitidas e testes de
 arquitetura. Também decide se a administração one-shot usa um modo explícito
-do host principal ou justifica um projeto `Challenge.Tools.Admin`; a escolha
+do host principal ou justifica um projeto `RagChallenge.Tools.Admin`; a escolha
 da identidade e das permissões continua pertencendo ao `STATE-02`.
 
 ## Convenções de nomenclatura
 
-- Solution e prefixo de namespace: `Challenge`.
-- Projetos: `Challenge.<Responsibility>`.
-- Testes: `Challenge.<TestScope>Tests`.
+- Nome público e arquivo da solution: `RAG-Challenge` e
+  `RAG-Challenge.sln`.
+- Prefixo técnico de projeto, assembly e namespace: `RagChallenge`.
+- Projetos: `RagChallenge.<Responsibility>`.
+- Testes: `RagChallenge.<TestScope>Tests`.
 - Tipos e membros C#: PascalCase; variáveis e parâmetros: camelCase.
 - API inicial: `/api/v1`.
-- Configuração: seções `Challenge:<Capability>`.
-- IDs de erro: `CH_<AREA>_<CONDITION>`, estáveis e sem detalhe secreto.
+- Configuração: seções `RagChallenge:<Capability>`.
+- IDs de erro: `CH_<AREA>_<CONDITION>`, estáveis e sem detalhe secreto; o
+  prefixo permanece por compatibilidade após a renomeação do produto.
 - IDs de corpus: slug estável em minúsculas; nomes de exibição não são
   identificadores.
 - Timestamps de contrato: UTC em ISO 8601.
@@ -260,7 +263,7 @@ verifica a geração ativa; não ingere, sincroniza, ativa nem executa rollback,
 salvo em modo administrativo one-shot explicitamente configurado e invocado.
 
 O contrato público inicial para consumidores externos é HTTP/OpenAPI v1,
-pertence ao Challenge e não expõe entidades Domain nem portas de provider.
+pertence ao RAG-Challenge e não expõe entidades Domain nem portas de provider.
 Conceitualmente:
 
 ```text
@@ -288,7 +291,7 @@ Citação oficial inclui URL canônica, snapshot, `revalidatedAt` e freshness.
 `languageModelDescriptor` contém apenas provider, modelo e revisão não
 secretos; não contém endpoint, credencial ou configuração interna.
 
-O artefato OpenAPI v1 pertence ao Challenge, é gerado e versionado com a API,
+O artefato OpenAPI v1 pertence ao RAG-Challenge, é gerado e versionado com a API,
 inclui pergunta, respostas concluídas, citações e Problem Details, e passa por
 teste de compatibilidade. A política de breaking changes pertence ao
 `STATE-02`; a implementação e a prova do artefato pertencem ao `STATE-04`.
@@ -385,17 +388,17 @@ question
 Seções candidatas:
 
 ```text
-Challenge:Corpus
-Challenge:OfficialSource
-Challenge:ContentStore
-Challenge:Parsing
-Challenge:Chunking
-Challenge:Embeddings
-Challenge:VectorStore
-Challenge:LanguageModel
-Challenge:Query
-Challenge:Observability
-Challenge:Egress
+RagChallenge:Corpus
+RagChallenge:OfficialSource
+RagChallenge:ContentStore
+RagChallenge:Parsing
+RagChallenge:Chunking
+RagChallenge:Embeddings
+RagChallenge:VectorStore
+RagChallenge:LanguageModel
+RagChallenge:Query
+RagChallenge:Observability
+RagChallenge:Egress
 ```
 
 ## Tratamento de erros
@@ -487,7 +490,7 @@ Compatibilidade é obtida por:
 - proveniência, UTC, cancelamento e observabilidade.
 
 A primeira fronteira de integração será um adapter HTTP pertencente ao
-DB-Notifier que consome o contrato OpenAPI v1 pertencente ao Challenge.
+DB-Notifier que consome o contrato OpenAPI v1 pertencente ao RAG-Challenge.
 Requisição, resposta tipada, `sourceScope`, citações, metadados de
 reprodutibilidade, `indexGenerationId` e `correlationId` pertencem ao contrato
 público; entidades Domain, portas RAG e tipos de SDK não atravessam essa
@@ -495,8 +498,8 @@ fronteira.
 
 Empacotamento in-process de contratos ou casos de uso só poderá nascer depois,
 por ADR próprio e evidência de necessidade. A decisão de integrar também será
-registrada no repositório consumidor. O Challenge não referencia assemblies,
-banco, eventos ou configuração do DB-Notifier no MVP e não implementa o
+registrada no repositório consumidor. O RAG-Challenge não referencia
+assemblies, banco, eventos ou configuração do DB-Notifier no MVP e não implementa o
 adapter consumidor.
 
 ## Implantação e funcionamento independente

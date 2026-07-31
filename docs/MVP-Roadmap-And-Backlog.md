@@ -338,9 +338,9 @@ Critério: checklist oficial completo.
 | `BL-C05` | Mais providers de embeddings, vetor e LLM. |
 | `BL-C06` | RBAC e escopo por corpus (`RF-019`). |
 | `BL-C07` | Frontend estático opcional no GitHub Pages. |
-| `BL-C08` | Adapter consumidor pertencente ao DB-Notifier, sob ADR e gates do repositório consumidor; o Challenge fornece somente OpenAPI versionado. |
+| `BL-C08` | Adapter consumidor pertencente ao DB-Notifier, sob ADR e gates do repositório consumidor; o RAG-Challenge fornece somente OpenAPI versionado. |
 
-### Won't — não neste Challenge
+### Won't — não neste RAG-Challenge
 
 | ID | Item |
 |---|---|

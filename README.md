@@ -1,4 +1,4 @@
-# Challenge
+# RAG-Challenge
 
 Assistente RAG independente para consultar documentação sobre bancos de dados
 em linguagem natural, com respostas fundamentadas e referências às fontes.
@@ -13,15 +13,16 @@ em linguagem natural, com respostas fundamentadas e referências às fontes.
 ## Problema
 
 Documentação técnica costuma estar distribuída entre arquivos extensos e
-fontes diferentes. O Challenge pretende reduzir o tempo de busca oferecendo
+fontes diferentes. O RAG-Challenge pretende reduzir o tempo de busca oferecendo
 uma interface de perguntas e respostas que recupera trechos relevantes antes
 de solicitar uma resposta ao modelo de linguagem.
 
 O produto nasce independente para cumprir o Challenge da Alura/ONE. A
 arquitetura preserva compatibilidade conceitual e tecnológica com o
 DB-Notifier para uma possível integração futura, sem criar dependência entre
-os repositórios. O Challenge será proprietário do OpenAPI público; o futuro
-adapter consumidor pertencerá ao DB-Notifier e aos gates desse repositório.
+os repositórios. O RAG-Challenge será proprietário do OpenAPI público; o
+futuro adapter consumidor pertencerá ao DB-Notifier e aos gates desse
+repositório.
 
 ## MVP proposto
 
@@ -42,7 +43,7 @@ O primeiro produto funcional deverá:
 - executar no computador local;
 - ser publicável em OCI com evidência verificável;
 - possuir testes, configuração segura e documentação de execução;
-- publicar um contrato OpenAPI v1 versionado pertencente ao Challenge.
+- publicar um contrato OpenAPI v1 versionado pertencente ao RAG-Challenge.
 
 O acervo de referência fornecido pelo curso não será usado automaticamente:
 ele permanece em `reference-materials/`, fora do Git. Antes da implementação,
@@ -70,10 +71,10 @@ implementadas antecipadamente.
 Browser
    |
    v
-Challenge Dashboard
+RAG-Challenge Dashboard
    |
    v
-Challenge API
+RAG-Challenge API
    |
    v
 Application use cases
@@ -90,10 +91,10 @@ Application use cases
 A direção de dependências será voltada ao núcleo:
 
 ```text
-Challenge.Domain
+RagChallenge.Domain
         ^
         |
-Challenge.Application
+RagChallenge.Application
 (inclui RAG abstractions)
         ^
         |
@@ -143,17 +144,17 @@ ficam no roadmap até uma decisão explícita.
 ├── .github/workflows/  # definição de CI, sem deploy
 ├── eng/                # checks reproduzíveis do setup
 ├── src/
-│   ├── Challenge.Domain/
-│   ├── Challenge.Application/
-│   ├── Challenge.Infrastructure/
-│   ├── Challenge.Server.Api/
-│   └── Challenge.Dashboard.Web/
+│   ├── RagChallenge.Domain/
+│   ├── RagChallenge.Application/
+│   ├── RagChallenge.Infrastructure/
+│   ├── RagChallenge.Server.Api/
+│   └── RagChallenge.Dashboard.Web/
 ├── tests/
-│   ├── Challenge.UnitTests/
-│   ├── Challenge.Architecture.Tests/
-│   └── Challenge.IntegrationTests/
+│   ├── RagChallenge.UnitTests/
+│   ├── RagChallenge.Architecture.Tests/
+│   └── RagChallenge.IntegrationTests/
 ├── AGENTS.md
-├── Challenge.sln
+├── RAG-Challenge.sln
 ├── LICENSE
 ├── README.md
 ├── docs/

@@ -1,4 +1,4 @@
-# Documentação do Challenge
+# Documentação do RAG-Challenge
 
 ## Status
 
@@ -35,6 +35,7 @@ são evidências históricas; o presente factual pertence a
 - [Índice de arquitetura](architecture/README.md)
 - [ADR-0001 — Runtime Stack and Modular Monolith](architecture/ADR-0001-Runtime-Stack-And-Modular-Monolith.md)
 - [ADR-0002 — RAG Lifecycle, Provider Boundaries and Source Separation](architecture/ADR-0002-RAG-Lifecycle-Providers-And-Source-Separation.md)
+- [ADR-0003 — Product and Technical Naming](architecture/ADR-0003-Product-And-Technical-Naming.md)
 
 ## Governança
 

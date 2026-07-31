@@ -234,7 +234,7 @@ Aceite:
 
 ## STATE-08 PRODUCTION_RELEASE
 
-Objetivo: publicar a entrega do Challenge no alvo OCI autorizado.
+Objetivo: publicar a entrega do RAG-Challenge no alvo OCI autorizado.
 
 Entregáveis:
 
