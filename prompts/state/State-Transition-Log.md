@@ -878,3 +878,41 @@ contém somente fatos cronológicos.
   geração/validação de `package-lock.json`, clean install, typecheck/build,
   auditorias de vulnerabilidade e reprodução em clone limpo; depois, repetir
   integralmente o Automatic Quality Gate.
+
+## 2026-07-30 — Autoridade limitada para desbloquear o gate de STATE-01
+
+- Estado anterior e resultante: `STATE-01 PROJECT_SETUP` ativo; sem transição.
+- Autoridade humana exata:
+
+  ```text
+  Autorizo, exclusivamente para concluir o Automatic Quality Gate de STATE-01,
+  acesso HTTPS limitado a https://registry.npmjs.org/ e
+  https://api.nuget.org/v3/index.json, instalação local somente das
+  dependências já fixadas, geração e commit do package-lock.json, auditorias
+  npm/.NET e uso de loopback local para o smoke de health. Execute
+  sequencialmente clean install, lint, testes, typecheck, build, auditorias,
+  clone limpo e repetição integral do gate. Não altere versões ou escopo
+  funcional. Pare antes de qualquer host, redirecionamento, lifecycle script
+  ou autoridade inesperada. Permanecem proibidos GitHub, OCI, push,
+  publicação, deploy, CD, providers, corpus, fonte oficial, persistência
+  definitiva, infraestrutura, ADR-0002 e DB-Notifier. Não encerre STATE-01
+  nem solicite Human Gate sem o resumo completo do Automatic Quality Gate.
+  ```
+
+- Decisão: acesso de package registry e loopback autorizado exclusivamente
+  para concluir as verificações pendentes do setup.
+- Escopo: gerar e validar `package-lock.json`; instalar localmente somente as
+  dependências fixadas, sem lifecycle scripts; executar clean install, lint,
+  testes, typecheck, build, auditorias npm/.NET, smoke de health em loopback,
+  clone limpo e repetição integral do Automatic Quality Gate.
+- Destinos de rede: `https://registry.npmjs.org/` e
+  `https://api.nuget.org/v3/index.json`; qualquer host ou redirecionamento
+  inesperado é condição de parada.
+- Escopo negativo: nenhuma alteração de versão ou lógica funcional, GitHub,
+  OCI, push, publicação, deploy, CD, provider, corpus, fonte oficial,
+  persistência definitiva, infraestrutura, ADR-0002 ou DB-Notifier.
+- Quality Gate: permanece `BLOQUEADO` até execução e registro das evidências.
+- Human Gate: `PENDENTE`; não solicitado.
+- Próxima condição: executar sequencialmente as verificações autorizadas,
+  repetir integralmente o gate e apresentar seu resumo completo sem encerrar
+  o estado.

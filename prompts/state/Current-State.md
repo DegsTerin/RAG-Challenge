@@ -12,7 +12,10 @@ proprietários.
   PROJECT_SETUP` ativo por autorização humana explícita em 2026-07-30.
 - Escopo autorizado: registrar a entrada e executar localmente, de forma
   sequencial, os lotes `S01-A`, `S01-B` e `S01-C`, sem lógica RAG ou
-  funcional, acesso de rede ou ação externa.
+  funcional. A autoridade adicional de 2026-07-30 permite exclusivamente
+  acesso HTTPS a `https://registry.npmjs.org/` e
+  `https://api.nuget.org/v3/index.json`, instalação local das dependências
+  fixadas, lockfile npm, auditorias npm/.NET e loopback para smoke de health.
 - Automatic Quality Gate documental: `APROVADO` para a baseline `3.4.0` que
   encerrou `STATE-00` e para o incremento transversal `3.5.0`, sem reabertura
   do gate; correções `3.5.1` e `3.5.2` também `APROVADAS`; correção `3.5.3`
@@ -22,8 +25,9 @@ proprietários.
 - Transição para `STATE-01 PROJECT_SETUP`: autorizada em 2026-07-30.
 - Automatic Quality Gate de `STATE-01`: `BLOQUEADO` por ausência de
   `package-lock.json`, clean install, typecheck/build do Dashboard,
-  auditorias de vulnerabilidade atuais e reprodução em clone limpo; todas
-  dependem de acesso a package registries ainda não autorizado.
+  auditorias de vulnerabilidade atuais e reprodução em clone limpo; a
+  autoridade limitada para executar essas verificações foi concedida e o
+  resultado ainda não foi registrado.
 - Human Gate de `STATE-01`: `PENDENTE`.
 - ADR-0001: `accepted`; ADR-0002: `proposed`.
 
@@ -167,11 +171,11 @@ autorizada.
 
 ## Próxima autoridade
 
-Obter autoridade explícita e limitada para acesso aos package registries
-necessários a gerar e validar `package-lock.json`, executar clean install,
-typecheck/build do Dashboard, auditorias de vulnerabilidade e reprodução em
-clone limpo. Depois, repetir o Automatic Quality Gate e somente então
-apresentar resumo completo para Human Gate separado. A entrada no estado não
-autoriza seu encerramento nem a progressão para `STATE-02`. ADR-0002, corpus,
-providers, fonte oficial, persistência definitiva, infraestrutura, GitHub,
-OCI, deploy e demais ações externas continuam sem autorização.
+Executar, dentro da autoridade limitada já registrada, geração e validação de
+`package-lock.json`, clean install, typecheck/build do Dashboard, auditorias
+de vulnerabilidade, smoke em loopback e reprodução em clone limpo. Depois,
+repetir o Automatic Quality Gate e somente então apresentar resumo completo
+para Human Gate separado. A entrada no estado não autoriza seu encerramento
+nem a progressão para `STATE-02`. ADR-0002, corpus, providers, fonte oficial,
+persistência definitiva, infraestrutura, GitHub, OCI, deploy e demais ações
+externas continuam sem autorização.
