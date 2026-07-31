@@ -4,16 +4,17 @@
 - Date: 2026-07-31
 - Owners: RAG-Challenge architecture, data and operations
 - State: `STATE-02 ARCHITECTURE`
-- Verification status: package, provider, model, pricing and OCI facts require
-  separately authorised primary-source verification
+- Verification status: partial; PdfPig identity, stable-release metadata and
+  licence were verified on 2026-07-31, OpenAI verification stopped at an
+  unallowlisted canonical host, and OCI verification was not reached
 
 ## Purpose and authority
 
 This ADR proposes one implementation for each replaceable MVP capability and
 one durable deployment shape. It does not install a package, call a provider,
-create an OCI resource, approve spend or accept itself. All external product
-facts are explicitly unverified because this state currently has no network
-authority.
+create an OCI resource, approve spend or accept itself. A bounded read-only
+verification was authorised and partially completed on 2026-07-31; the
+proposal remains undecided and incomplete where stated below.
 
 ## Context
 
@@ -32,9 +33,18 @@ If accepted after verification:
 ### PDF parsing and normalisation
 
 - Select the `PdfPig` .NET library as the single PDF text parser adapter.
-- Pin the exact NuGet package ID and version only after current official
-  package metadata, source repository, licence and vulnerability evidence are
-  verified. No version is selected by this offline proposal.
+- The official NuGet package ID is `PdfPig`. Version `0.1.14`, published on
+  2026-03-22, was the release marked `Latest` by the project while newer
+  `0.1.15` and `0.1.16` builds were pre-release builds. Treat `0.1.14` only as
+  the verified stable candidate; this proposed ADR does not select or install
+  it.
+- The NuGet gallery and source repository identify Apache-2.0 as the licence.
+  The package metadata declares .NET 6.0, .NET Standard 2.0 and .NET Framework
+  4.6.2 targets and computed compatibility with .NET 10. The project warns
+  that minor versions may change the public API before 1.0.0.
+- Pin an exact version only after vulnerability evidence and an authorised
+  compatibility/extraction spike are complete. The current security posture
+  was not independently verified in this round.
 - Reject encrypted PDFs, files with an invalid PDF signature, parser output
   beyond configured limits and pages without extractable text when the
   configured minimum coverage is not met.
@@ -71,9 +81,9 @@ If accepted after verification:
 - Use a project-owned `IEmbeddingProvider`; keep the official provider SDK or
   HTTP adapter inside Infrastructure.
 
-The model's continued availability, dimension contract, API endpoint,
-retention/training policy, data residency, pricing, quota and current official
-.NET integration have not been verified and block human acceptance.
+The model's continued availability, 1,536-dimension contract, API endpoint,
+retention/training policy, data residency, current pricing, quota and current
+official .NET integration remain unverified and block human acceptance.
 
 ### Language model
 
@@ -89,9 +99,13 @@ retention/training policy, data residency, pricing, quota and current official
   failures or `InsufficientEvidence` according to the canonical contract; do
   not repair factual content with an ungrounded second call.
 
-The versioned model's continued availability, endpoint, data policy, pricing,
-quota and structured-output support require current primary-source evidence.
-No fallback model is active in the MVP.
+The official 2025 launch publication confirms the `gpt-4.1-mini` family and
+its launch price of USD 0.40 input, USD 0.10 cached input and USD 1.60 output
+per million tokens. It does not prove the current availability or price of the
+versioned snapshot. Continued availability of
+`gpt-4.1-mini-2025-04-14`, endpoint, data policy, current pricing, quota and
+structured-output support require current primary-source evidence. No
+fallback model is active in the MVP.
 
 ### Control-plane persistence
 
@@ -168,6 +182,21 @@ Shape availability, Always Free eligibility, pricing, capacity, service
 limits, block-volume durability, Vault integration, region availability and
 TLS/certificate options are not verified. No OCI account, tenancy or resource
 was accessed.
+
+## Primary-source verification record
+
+The following bounded read-only evidence was observed on 2026-07-31:
+
+| Area | Status | Primary evidence or blocker |
+|---|---|---|
+| PdfPig package | Partial | [NuGet `PdfPig` 0.1.14](https://www.nuget.org/packages/PdfPig/0.1.14), the [project release list](https://github.com/UglyToad/PdfPig/releases) and [source licence](https://github.com/UglyToad/PdfPig/blob/master/LICENSE) verify identity, release and Apache-2.0; vulnerability posture and runtime quality remain unverified. |
+| OpenAI language-model family | Partial | The [official GPT-4.1 launch publication](https://openai.com/index/gpt-4-1/) corroborates the family and historical launch pricing only. |
+| OpenAI model contracts | Blocked | Discovery through an allowlisted `platform.openai.com` URL produced the canonical host `developers.openai.com`, which was not allowlisted. Per owner instruction, browsing stopped and no facts dependent on that host are treated as verified. |
+| OpenAI SDK, current prices, quotas and data controls | Blocked | No further request was made after the stop condition. No provider endpoint, credential or paid API was accessed. |
+| OCI deployment | Not run | OCI documentation checks were not reached after the mandatory browsing stop. The region, shape, price, quotas, storage, Vault and endpoint candidates remain unverified. |
+
+No package, model or corpus was downloaded or installed, and no external
+resource was created or changed.
 
 ## Configuration decisions
 

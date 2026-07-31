@@ -4,8 +4,9 @@
 - Date: 2026-07-31
 - Owners: RAG-Challenge product, RAG evaluation and security
 - State: `STATE-02 ARCHITECTURE`
-- Verification status: blocked for external facts; no network access was
-  authorised for this decision package
+- Verification status: partial; the candidate PDF, PostgreSQL licence and
+  proposed corpus-licence terms were checked on 2026-07-31, while the
+  remaining items below are still incomplete
 
 ## Purpose and authority
 
@@ -56,6 +57,15 @@ The document does not exist yet. Acceptance of this ADR selects its contract
 and licence but does not claim that the corpus has been authored, reviewed or
 licensed in fact.
 
+The [CC BY 4.0 deed](https://creativecommons.org/licenses/by/4.0/) and
+[Portuguese legal code](https://creativecommons.org/licenses/by/4.0/legalcode.pt)
+were inspected on 2026-07-31. They permit sharing and adaptation, including
+commercial use, while requiring appropriate credit, a licence link and an
+indication of changes and prohibiting additional legal or technological
+restrictions. This verifies the terms of the proposed licence only. It does
+not establish ownership of unwritten content or grant the licence on the
+future corpus; those remain owner actions.
+
 ### Official source candidate
 
 - Use PostgreSQL documentation as the single `OfficialOnline` source.
@@ -74,12 +84,26 @@ licensed in fact.
 - Disable redirects, authentication, cookies, proxies and ambient
   credentials. Preserve the canonical public URL in citations.
 
-The candidate URL, current availability, publisher identity, licence, terms,
-robots policy, expected media type, observed size, certificate chain and
-redirect behaviour have not been verified in this state because external
-network access was explicitly excluded. They are blocking evidence, not
-assumptions. A changed major version or URL requires an amended ADR rather
-than silent substitution.
+The exact candidate URL and its immediate response behaviour were verified on
+2026-07-31 under bounded read-only authority. The URL returned `200` to
+`HEAD` without a `Location` header, `Content-Type: application/pdf`,
+`Content-Length: 15771040`, `ETag: "6a05c867-f0a5a0"`,
+`Last-Modified: 2026-05-14T13:04:39Z` and `Accept-Ranges: bytes`. A single
+`GET` for bytes `0-65535` returned `206`, the matching content range, exactly
+65,536 bytes and `%PDF-1.4`; no snapshot or response body was persisted.
+
+The [PostgreSQL documentation index](https://www.postgresql.org/docs/) lists
+PostgreSQL 18 as the current manual and links an A4 PDF. The
+[PostgreSQL Licence](https://www.postgresql.org/about/licence/) expressly
+covers use, copy, modification and distribution of the software and its
+documentation, subject to retaining the required notices. This supplies the
+proposed use-right basis but does not waive attribution/notice handling.
+
+Published robots or rate guidance, a separately recorded certificate-chain
+inspection and the complete no-lateral-egress certificate behaviour remain
+unverified. The successful HTTPS request establishes only that the current
+operating-system trust validation accepted this connection. A changed major
+version or URL requires an amended ADR rather than silent substitution.
 
 ### Evaluation dataset
 
@@ -132,6 +156,18 @@ separately authorised, allowlisted HTTPS access:
 7. a sanitised record captures date, status, media type, size, validators and
    evidence references without downloading into the repository.
 
+Evidence status on 2026-07-31:
+
+| Item | Status | Evidence or remaining work |
+|---|---|---|
+| 1 | Verified | Exact URL returned without redirect. |
+| 2 | Verified | The official documentation index and PDF use the exact `www.postgresql.org` authority and versioned path. |
+| 3 | Partial | The PostgreSQL Licence supplies the use/copy basis and required notices; a separate published terms review was not completed. |
+| 4 | Blocked | Published robots/rate guidance was not verified before the authorised browsing stop condition occurred. |
+| 5 | Verified | Anonymous PDF, `application/pdf`, 15,771,040 bytes and valid leading signature. |
+| 6 | Partial | Default operating-system TLS validation succeeded; chain evidence and zero-lateral-egress behaviour were not separately captured or tested. |
+| 7 | Verified | This ADR and the state report contain the sanitised response record and primary-source references; no snapshot was retained. |
+
 No real product snapshot may be retained during architecture verification.
 
 ## Alternatives
@@ -180,6 +216,9 @@ more clearly while remaining separate from the software licence.
   environment credential or signed query.
 - Snapshot bytes stay outside Git unless the verified licence expressly
   permits redistribution and the owner separately authorises it.
+- Any retained PostgreSQL documentation copy preserves the licence copyright
+  notice and required paragraphs in the governed source record or
+  distribution bundle.
 - The evaluation dataset must contain no personal, customer or confidential
   information.
 
