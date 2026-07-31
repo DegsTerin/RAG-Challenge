@@ -1,0 +1,28 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- Enforces the accepted project and namespace boundaries without third-party architecture tooling. -->
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <IsPackable>false</IsPackable>
+    <IsTestProject>true</IsTestProject>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="coverlet.collector" PrivateAssets="all" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" />
+    <PackageReference Include="xunit" />
+    <PackageReference Include="xunit.runner.visualstudio" PrivateAssets="all" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Challenge.Application\Challenge.Application.csproj" />
+    <ProjectReference Include="..\..\src\Challenge.Domain\Challenge.Domain.csproj" />
+    <ProjectReference Include="..\..\src\Challenge.Infrastructure\Challenge.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\src\Challenge.Server.Api\Challenge.Server.Api.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Using Include="Xunit" />
+  </ItemGroup>
+
+</Project>

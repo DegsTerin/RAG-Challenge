@@ -1,0 +1,35 @@
+# Local source and governance input materials excluded from version control.
+/reference-materials/
+
+# .NET build and test output.
+**/bin/
+**/obj/
+/artifacts/
+/TestResults/
+*.user
+*.suo
+
+# JavaScript dependencies and generated output.
+**/node_modules/
+**/dist/
+**/coverage/
+*.tsbuildinfo
+
+# Local configuration and secrets.
+.env
+.env.*
+!.env.example
+secrets.json
+appsettings.*.local.json
+
+# IDE and operating-system state.
+.vs/
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Temporary and local audit output.
+*.log
+*.tmp
+/artifacts-local/

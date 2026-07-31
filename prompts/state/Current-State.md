@@ -1,0 +1,176 @@
+# Estado Atual
+
+Este documento é o snapshot factual vigente do workspace em 2026-07-30. Ele
+não concede autoridade. Evolução e decisões no contexto original pertencem ao
+[`State-Transition-Log.md`](State-Transition-Log.md) e aos relatórios
+proprietários.
+
+## Lifecycle e gates
+
+- Posição: `STATE-00 DISCOVERY` encerrado; `GATE-B01
+  ARCHITECTURE_BOOTSTRAP_DECISION` aprovado e encerrado; `STATE-01
+  PROJECT_SETUP` ativo por autorização humana explícita em 2026-07-30.
+- Escopo autorizado: registrar a entrada e executar localmente, de forma
+  sequencial, os lotes `S01-A`, `S01-B` e `S01-C`, sem lógica RAG ou
+  funcional, acesso de rede ou ação externa.
+- Automatic Quality Gate documental: `APROVADO` para a baseline `3.4.0` que
+  encerrou `STATE-00` e para o incremento transversal `3.5.0`, sem reabertura
+  do gate; correções `3.5.1` e `3.5.2` também `APROVADAS`; correção `3.5.3`
+  também `APROVADA`; correção `3.5.4` também `APROVADA`.
+- Human Gate de `STATE-00`: `APROVADO` sem ressalvas em 2026-07-30.
+- `GATE-B01`: `APROVADO` sem ressalvas em 2026-07-30.
+- Transição para `STATE-01 PROJECT_SETUP`: autorizada em 2026-07-30.
+- Automatic Quality Gate de `STATE-01`: `BLOQUEADO` por ausência de
+  `package-lock.json`, clean install, typecheck/build do Dashboard,
+  auditorias de vulnerabilidade atuais e reprodução em clone limpo; todas
+  dependem de acesso a package registries ainda não autorizado.
+- Human Gate de `STATE-01`: `PENDENTE`.
+- ADR-0001: `accepted`; ADR-0002: `proposed`.
+
+## Baseline documental
+
+- Os 20 arquivos da estrutura originalmente aprovada permanecem preservados;
+  a política de idioma acrescentou o 21º documento público por incremento
+  versionado.
+- A baseline aprovada no Human Gate de `STATE-00` permanece `3.4.0`.
+- O corpus de instruções vigente possui versão `3.5.4` e 13 arquivos em
+  `prompts/`.
+- Visão, requisitos, arquitetura, RAG, segurança, qualidade, lifecycle,
+  roadmap, backlog, estado, histórico e templates estão documentados.
+- A auditoria do corpus `3.5.4` confirmou 21 documentos, 100 links locais
+  válidos, 20 RF, 14 RNF, 15 critérios de aceitação, 31 itens de backlog, 8
+  módulos, 13 riscos, formato consistente, rastreabilidade e ausência de
+  implementação.
+- A arquitetura adota princípios compatíveis com o DB-Notifier sem criar
+  referência ou dependência entre os projetos.
+- Cada solicitação do proprietário recebe exatamente um encerramento compacto
+  em `pt-BR`, somente na resposta final. Atualizações intermediárias informam
+  somente progresso materialmente novo: não repetem nem parafraseiam
+  conclusões, o bloco, o roteamento, o texto para copiar, o raciocínio ou o
+  paralelismo.
+- O Human Gate de `STATE-00` foi confirmado na conversa coordenadora que
+  continha o resumo completo da baseline `3.4.0`; a decisão não aceita ADR,
+  não decide `GATE-B01` e não autoriza `STATE-01`.
+- O `GATE-B01` foi confirmado na conversa coordenadora que continha o resumo
+  completo vigente. A decisão aceitou o ADR-0001, selecionou a licença MIT
+  com o aviso exato
+  `Copyright (c) 2026 Bruno Araújo - DegsTerin.`, consolidou RAG abstractions
+  em Application e persistence em Infrastructure, aprovou o mapa
+  `CH-MOD-*`, as dependências/testes arquiteturais e o modo administrativo
+  one-shot no host principal.
+- A aprovação de `GATE-B01` não criou licença, solution ou projetos, não
+  aceitou o ADR-0002 e não autorizou `STATE-01`.
+- O handoff final classifica o paralelismo como sequencial, opcional ou
+  recomendado; plano e mensagens por lane aparecem somente quando aplicáveis.
+- O handoff distingue solicitação atual, próximo trabalho recomendado,
+  posição de estado/gate, ação imediata do proprietário e conversa
+  recomendada. `Lote`, `tarefa`, `atividade` e `passo` ficam restritos a seus
+  papéis internos e não competem como rótulos do encerramento.
+- Quando a ação imediata exige continuar, iniciar, retomar, responder,
+  confirmar, decidir, autorizar ou enviar algo em uma conversa, o texto
+  completo para copiar e enviar aparece dentro do próprio encerramento,
+  imediatamente depois da conversa recomendada. A ausência só é válida quando
+  nenhuma ação depende de mensagem.
+- Todo handoff recomenda para a próxima conversa um dos níveis `Leve`,
+  `Médio`, `Alto`, `Extra alto`, `Máximo` ou `Ultra`, com justificativa e
+  alternativa se indisponível. A orientação não configura o Codex nem amplia
+  autoridade, e cada lane recebe recomendação própria.
+- Git local existe. Escritas paralelas futuras exigem branches e worktrees
+  separados, ownership disjunto e isolamento de runtime/dados; esta execução
+  permaneceu sequencial na conversa coordenadora.
+- Runtime preflight é `NÃO APLICÁVEL` para documentação e análise read-only:
+  nenhum shutdown é anunciado, nenhum processo é enumerado e nada é
+  encerrado.
+- [`Language-Policy.md`](../governance/Language-Policy.md) é a autoridade
+  temática única para idioma; os demais documentos apontam para ela.
+- Títulos, rótulos, orientações e mensagens destinados ao proprietário usam
+  `pt-BR`; literais técnicos preservam a grafia exigida.
+- Evidências e documentos existentes do `STATE-00` preservam o idioma do
+  próprio arquivo; novos artefatos técnicos usam `en-GB`, enquanto tradução
+  integral e idioma da interface permanecem decisões separadas.
+
+## Workspace
+
+- `.gitignore` exclui `reference-materials/`.
+- `reference-materials/` preserva 24 arquivos locais: 23 materiais originais
+  do Challenge e 1 prompt genérico de governança arquivado sem alteração.
+- `reference-materials/challenge-original/` mantém 8 Markdown, 14 PDFs e 1
+  PNG.
+- Os materiais originais não são o corpus do produto e não serão enviados ao
+  GitHub.
+- Existe repositório Git local inicializado na branch `main`.
+- Existem `Challenge.sln`, quatro projetos .NET de produção, um boundary
+  React/TypeScript para o Dashboard e três projetos .NET de testes, conforme
+  ADR-0001. Eles contêm somente markers, composição de setup, health e
+  verificações estruturais; nenhuma lógica RAG ou funcional.
+- SDK .NET `10.0.302`, C# `14.0`, Node.js `24.18.0` e npm `11.16.0` estão
+  fixados. NuGet usa gestão central e sete lockfiles reproduzidos offline.
+- Restore .NET offline locked, format, build Release, 15 testes e cobertura
+  mesclada foram aprovados; cobertura observada: 88% de linhas e 100% de
+  branches.
+- O Dashboard passou lint e dois testes estruturais. `package-lock.json`,
+  clean install, typecheck e build permanecem bloqueados porque o cache npm
+  está incompleto e rede não está autorizada.
+- O pipeline CI está definido localmente, com menor privilégio e sem deploy;
+  não foi executado no GitHub.
+- O arquivo `LICENSE` materializa a licença MIT aprovada.
+- Não existem API funcional, ingestão, recuperação, banco, vector store,
+  modelo, corpus, container, infraestrutura ou deploy.
+- Nenhum recurso OCI ou GitHub foi criado ou alterado.
+- O DB-Notifier permaneceu somente leitura.
+
+## Escopo corrente do produto
+
+- Aplicação RAG independente para documentação de bancos de dados.
+- MVP com um corpus, um PDF local publicável e uma fonte oficial online
+  allowlisted.
+- Seletor explícito de consulta entre `Local` e `OfficialOnline`, sem mistura
+  silenciosa de evidências.
+- Sincronização manual e governada da fonte oficial para snapshot versionado.
+- Fonte oficial pública sem credenciais, egress deny-by-default e validação TLS
+  sem destinos laterais não autorizados.
+- Resposta grounded com citações e evidência insuficiente explícita.
+- Substituição manual de documento e nova geração de índice.
+- Conteúdo bruto imutável/reabrível, staging não consultável, manifesto final
+  íntegro e ativação/rollback pelo registro completo versionado.
+- Contrato HTTP/OpenAPI v1 versionado pertencente ao Challenge; adapters
+  consumidores permanecem fora deste repositório.
+- Execução local e futuro deploy OCI.
+- GitHub Pages somente como frontend estático opcional.
+
+## Capacidades futuras inativas
+
+- múltiplos acervos;
+- formatos adicionais;
+- sincronização incremental agendada;
+- múltiplas fontes oficiais e crawling genérico;
+- múltiplos providers;
+- RBAC/multi-tenancy;
+- integração ao DB-Notifier.
+
+Nenhuma dessas capacidades está implementada, testada, implantada ou
+autorizada.
+
+## Decisões pendentes
+
+1. Conteúdo, lista de bancos e licença do PDF inicial.
+2. Fonte oficial do MVP, URL pública, termos, limites, `maxAge`, trust,
+   revogação e eventual material TLS/egress auxiliar.
+3. Parser, normalização e chunking.
+4. Embedding provider/model.
+5. Vector store e, se gerenciado, egress/tratamento de dados.
+6. Language model.
+7. Persistência e retenção duráveis de conteúdo bruto, catálogo e índice.
+8. Serviço, região e orçamento OCI.
+9. Dataset, rubrica e thresholds de avaliação.
+
+## Próxima autoridade
+
+Obter autoridade explícita e limitada para acesso aos package registries
+necessários a gerar e validar `package-lock.json`, executar clean install,
+typecheck/build do Dashboard, auditorias de vulnerabilidade e reprodução em
+clone limpo. Depois, repetir o Automatic Quality Gate e somente então
+apresentar resumo completo para Human Gate separado. A entrada no estado não
+autoriza seu encerramento nem a progressão para `STATE-02`. ADR-0002, corpus,
+providers, fonte oficial, persistência definitiva, infraestrutura, GitHub,
+OCI, deploy e demais ações externas continuam sem autorização.
