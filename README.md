@@ -6,9 +6,11 @@ em linguagem natural, com respostas fundamentadas e referências às fontes.
 > Status em 2026-07-31: `STATE-00 DISCOVERY`, `GATE-B01
 > ARCHITECTURE_BOOTSTRAP_DECISION` e `STATE-01 PROJECT_SETUP` estão
 > encerrados. O Automatic Quality Gate e o Human Gate de `STATE-01` foram
-> aprovados sem autorizar entrada em `STATE-02`. O scaffold .NET, as
-> fronteiras, os testes estruturais e a definição de CI existem sem lógica
-> RAG. Não existe produto funcional ou deploy.
+> aprovados, e `STATE-02 ARCHITECTURE` está ativo para trabalho documental e
+> local nos lotes `S02-A` e `S02-B`. O scaffold .NET, as fronteiras, os testes
+> estruturais e a definição de CI existem sem lógica RAG. Não existe produto
+> funcional ou deploy, e nenhuma decisão de ADR decorre implicitamente da
+> entrada no estado.
 
 ## Problema
 

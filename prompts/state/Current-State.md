@@ -10,7 +10,8 @@ proprietários.
 - Posição: `STATE-00 DISCOVERY` encerrado; `GATE-B01
   ARCHITECTURE_BOOTSTRAP_DECISION` aprovado e encerrado; `STATE-01
   PROJECT_SETUP` encerrado após Human Gate aprovado sem ressalvas em
-  2026-07-31; entrada em `STATE-02 ARCHITECTURE` não autorizada.
+  2026-07-31; entrada em `STATE-02 ARCHITECTURE` autorizada em 2026-07-31,
+  com execução documental e local, sequencial, dos lotes `S02-A` e `S02-B`.
 - Escopo concluído de `STATE-01`: registrar a entrada e executar localmente,
   de forma sequencial, os lotes `S01-A`, `S01-B` e `S01-C`, sem lógica RAG ou
   funcional. A autoridade adicional de 2026-07-30 permite exclusivamente
@@ -31,6 +32,11 @@ proprietários.
   offline, o health smoke e a reprodução limpa foram repetidos sobre a
   baseline renomeada.
 - Human Gate de `STATE-01`: `APROVADO` sem ressalvas em 2026-07-31.
+- Transição para `STATE-02 ARCHITECTURE`: autorizada em 2026-07-31,
+  exclusivamente nos limites, entregáveis, verificações, riscos, rollback e
+  escopo negativo do resumo completo apresentado na conversa coordenadora.
+  A autorização não aceita ADR por implicação nem concede rede, instalação,
+  serviço pago, GitHub, OCI, publicação, deploy ou mudança no DB-Notifier.
 - ADR-0001: `superseded` pelo ADR-0003, após aceitação original no
   `GATE-B01`; ADR-0002: `proposed`; ADR-0003: `accepted` pela solicitação
   humana explícita de renomear o projeto para `RAG-Challenge`, incorporando
@@ -206,8 +212,9 @@ autorizada.
 
 ## Próxima autoridade
 
-Preparar e decidir separadamente a autorização de entrada em `STATE-02
-ARCHITECTURE`. O encerramento de `STATE-01` satisfaz sua pré-condição de
-lifecycle, mas não concede entrada automática no próximo estado. ADR-0002,
-corpus, providers, fonte oficial, persistência definitiva, infraestrutura,
-GitHub, OCI, deploy e demais ações externas continuam sem autorização.
+Executar documentalmente e de forma sequencial os lotes `S02-A` e `S02-B`.
+Cada ADR e escolha arquitetural permanece proposta até decisão humana
+explícita; o Human Gate e o encerramento de `STATE-02` exigirão Automatic
+Quality Gate e resumo completos próprios. Rede, instalação, serviços pagos,
+GitHub, OCI, publicação, deploy, ações externas e mudanças no DB-Notifier
+continuam sem autorização.

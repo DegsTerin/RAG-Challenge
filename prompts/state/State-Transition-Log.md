@@ -1162,3 +1162,52 @@ contém somente fatos cronológicos.
 - Human Gate: não reaberto; `STATE-01` permanece encerrado.
 - Próxima condição: manter o padrão em todos os próximos handoffs e continuar
   exigindo autorização separada para entrada em `STATE-02`.
+
+## 2026-07-31 — Entrada em STATE-02 ARCHITECTURE autorizada
+
+- Estado anterior: `STATE-01 PROJECT_SETUP` encerrado; Automatic Quality Gate
+  e Human Gate aprovados sem ressalvas; `STATE-02 ARCHITECTURE` ainda não
+  iniciado.
+- Estado solicitado: entrar em `STATE-02 ARCHITECTURE` e executar
+  documentalmente, de forma local e sequencial, os lotes `S02-A` e `S02-B`.
+- Autoridade humana exata:
+
+  ```text
+  Autorizo a entrada no STATE-02 ARCHITECTURE e a execução documental e local, de forma sequencial, dos lotes S02-A e S02-B, exclusivamente nos limites, entregáveis, verificações, riscos, rollback e escopo negativo apresentados nesta conversa.
+  ```
+
+- Baseline confirmada: branch `main`, commit
+  `47435930727fc344298d84658b1ad9b2da9b5b62`, corpus de instruções `4.1.0`
+  e working tree limpo.
+- Pré-condições: `STATE-00`, `GATE-B01` e `STATE-01` encerrados; ADR-0003
+  aceito como decisão de bootstrap vigente; resumo completo de prontidão
+  apresentado na mesma conversa; nenhuma divergência factual ou autoridade
+  incompatível identificada.
+- Decisão: entrada em `STATE-02 ARCHITECTURE` autorizada sem ressalvas dentro
+  do envelope apresentado; lotes `S02-A` e `S02-B` ativos para execução
+  documental, local e sequencial.
+- Escopo: decisões bloqueadoras, ADRs propostos, contratos canônicos,
+  diagramas, threat model, seleção recomendada de corpus, fonte oficial,
+  parser, providers, persistência, avaliação e OCI, políticas de configuração
+  e egress, readiness, OpenAPI e rollback.
+- Decisões humanas preservadas: a entrada não aceita, rejeita ou altera
+  ADR-0002 nem qualquer novo ADR por implicação. Cada decisão arquitetural
+  permanece dependente de pedido e resposta humanos explícitos.
+- Escopo negativo: nenhuma lógica RAG ou produto funcional, migration,
+  entrada em `STATE-03`, rede, instalação, provider pago, envio de dados,
+  secret, GitHub, OCI, push, publicação, deploy, CD, microserviço, plug-in
+  dinâmico, múltiplos corpora/providers/fontes ativos ou mudança no
+  DB-Notifier.
+- Runtime preflight: `NÃO APLICÁVEL`; o trabalho autorizado é documental e
+  local, sem alteração ou validação de comportamento executável.
+- Rollback: baseline anterior identificada pelo commit `4743593`; histórico e
+  decisões permanecem append-only, alterações locais usam reversões focadas e
+  ADR aceito só pode ser substituído por novo ADR.
+- Quality Gate: `PENDENTE` para `STATE-02`.
+- Human Gate: `PENDENTE` para `STATE-02`.
+- Estado resultante: `STATE-02 ARCHITECTURE` ativo; `STATE-03
+  DATA_AND_INDEX_MODELING` não autorizado.
+- Próxima condição: produzir os entregáveis de `S02-A` e `S02-B`, submeter
+  separadamente os ADRs e escolhas para decisão humana e, somente depois das
+  decisões, executar o Automatic Quality Gate de `STATE-02`.
+- Aprovador da entrada: proprietário do RAG-Challenge.

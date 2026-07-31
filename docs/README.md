@@ -8,9 +8,10 @@ ARCHITECTURE_BOOTSTRAP_DECISION` aprovou o ADR-0001 e a licença MIT. O
 ADR-0003 aceito posteriormente substitui seu registro, preserva todas as
 decisões não relacionadas a nomenclatura e adota a nova identidade. O
 ADR-0002 permanece proposto, e `STATE-01 PROJECT_SETUP` está encerrado com
-Automatic Quality Gate e Human Gate aprovados. A entrada em `STATE-02` não
-está autorizada. Relatórios de estado são evidências históricas; o presente
-factual pertence a
+Automatic Quality Gate e Human Gate aprovados. `STATE-02 ARCHITECTURE` está
+ativo para execução documental e local, sequencial, dos lotes `S02-A` e
+`S02-B`; nenhum ADR foi aceito por implicação. Relatórios de estado são
+evidências históricas; o presente factual pertence a
 [`Current-State.md`](../prompts/state/Current-State.md).
 
 ## Comece aqui
