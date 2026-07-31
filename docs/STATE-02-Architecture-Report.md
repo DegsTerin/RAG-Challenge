@@ -198,7 +198,7 @@ them by implication.
 | Repository format/local links/ignored materials/secret-pattern audit after entry | Passed for 77 non-ignored files. |
 | `git diff --check` after entry | Passed. |
 | Combined STATE-02 document audit | Passed for 83 non-ignored files and 30 Markdown files; six new artefacts, 30 unique threat IDs and 12 unique security-test groups. |
-| New-document H1, fence, placeholder and absolute-user-path checks | Passed. |
+| New-document H1, fence, unresolved-marker and absolute-user-path checks | Passed. |
 | ADR status consistency | ADR-0002 and ADR-0004 to ADR-0006 each have exactly one `proposed` status. |
 | External source/provider/OCI verification | Not run; no authority. |
 | Executable spike, build or runtime test | Not run; documentary scope and no implementation change. |
