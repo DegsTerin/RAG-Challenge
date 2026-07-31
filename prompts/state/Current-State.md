@@ -18,9 +18,8 @@ proprietários.
   fixadas, lockfile npm, auditorias npm/.NET e loopback para smoke de health.
 - Automatic Quality Gate documental: `APROVADO` para a baseline `3.4.0` que
   encerrou `STATE-00` e para o incremento transversal `3.5.0`, sem reabertura
-  do gate; correções `3.5.1` e `3.5.2` também `APROVADAS`; correção `3.5.3`
-  também `APROVADA`; correção `3.5.4` também `APROVADA`; migração de
-  identidade `4.0.0` também `APROVADA`.
+  do gate; correções `3.5.1` a `3.5.4` também `APROVADAS`; migração de
+  identidade `4.0.0` e correção factual `4.0.1` também `APROVADAS`.
 - Human Gate de `STATE-00`: `APROVADO` sem ressalvas em 2026-07-30.
 - `GATE-B01`: `APROVADO` sem ressalvas em 2026-07-30.
 - Transição para `STATE-01 PROJECT_SETUP`: autorizada em 2026-07-30.
@@ -42,11 +41,11 @@ proprietários.
   a política de idioma acrescentou o 21º documento público por incremento
   versionado, e o ADR-0003 acrescentou o 22º.
 - A baseline aprovada no Human Gate de `STATE-00` permanece `3.4.0`.
-- O corpus de instruções vigente possui versão `4.0.0` e 13 arquivos em
+- O corpus de instruções vigente possui versão `4.0.1` e 13 arquivos em
   `prompts/`.
 - Visão, requisitos, arquitetura, RAG, segurança, qualidade, lifecycle,
   roadmap, backlog, estado, histórico e templates estão documentados.
-- A auditoria do corpus `4.0.0` confirmou 22 documentos, 111 links locais
+- A auditoria do corpus `4.0.1` confirmou 22 documentos, 111 links locais
   válidos, 20 RF, 14 RNF, 15 critérios de aceitação, 31 itens de backlog, 8
   módulos, 13 riscos, formato consistente e rastreabilidade. A implementação
   existente continua limitada ao scaffold de `STATE-01`.
@@ -133,10 +132,20 @@ proprietários.
 - O clone temporário dessa reprodução permanece no diretório temporário do
   sistema porque a política de execução recusou sua remoção recursiva. Ele não
   contém `reference-materials/`, secret ou mudança não rastreada.
-- O diretório físico do checkout não integra o Git e não foi renomeado. Sete
-  árvores antigas vazias e ignoradas permanecem localmente por restrição de
-  ACL; nenhum arquivo rastreado conserva os paths técnicos antigos, e esses
-  diretórios não existem no clone limpo.
+- O diretório físico do checkout, externo ao Git, foi renomeado manualmente
+  para `RAG-Challenge`; não existe um diretório irmão `Challenge`.
+- As sete árvores técnicas legadas, que continham zero arquivos, foram
+  removidas após validação dos alvos. As 15 raízes ignoradas de build e teste
+  que conservavam o path absoluto anterior também foram removidas como
+  artefatos reproduzíveis.
+- Verificações .NET posteriores recriaram transitoriamente 14 raízes
+  canônicas `bin/` e `obj/`, sem o path anterior; uma segunda passagem
+  removeu essas saídas. No snapshot final, `bin/`, `obj/` e `TestResults/`
+  estão ausentes nos sete projetos.
+- Nenhum arquivo ou path técnico ativo conserva o prefixo ou o path absoluto
+  anterior. `reference-materials/` permaneceu ignorado e preservou
+  integralmente seus 24 arquivos; usos históricos, externos e de proveniência
+  permanecem deliberadamente inalterados.
 - O pipeline CI está definido localmente, com menor privilégio e sem deploy;
   não foi executado no GitHub.
 - O arquivo `LICENSE` materializa a licença MIT aprovada.

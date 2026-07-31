@@ -1023,3 +1023,67 @@ contém somente fatos cronológicos.
   migração de identidade, e obter decisão humana separada sobre o Human Gate
   de `STATE-01`. Somente depois de seu registro poderá ser considerada uma
   autorização também separada para `STATE-02`.
+
+## 2026-07-30 — Correção pós-renomeação do checkout e higiene local
+
+- Estado anterior e resultante: `STATE-01 PROJECT_SETUP` ativo; sem transição.
+- Autoridade humana exata:
+
+  ```text
+  O que tiver dentro de reference-materials não altere, não corrigir nada,
+
+  Corrigir os demais
+  ```
+
+- Situação inicial observada: o checkout físico já se chamava
+  `RAG-Challenge`, o diretório irmão `Challenge` não existia e sete árvores
+  técnicas legadas permaneciam dentro do checkout. Elas continham zero
+  arquivos e 149 diretórios, incluindo suas raízes.
+- Resíduo gerado: 15 raízes ignoradas `bin/`, `obj/` e `TestResults/`
+  continham 529 arquivos gerados. Desses arquivos, 68 continham 501
+  ocorrências do path absoluto anterior. Não havia resíduo técnico rastreado.
+- Limpeza executada: uma validação inicial removeu um
+  `*.csproj.FileListAbsolute.txt`; a limpeza integral subsequente das 15
+  raízes removeu os outros 528 arquivos. Cumulativamente, a primeira passagem
+  eliminou os 529 arquivos gerados, 186 diretórios gerados e as sete árvores
+  legadas com 149 diretórios; ao todo, 335 diretórios foram removidos. Nenhum
+  arquivo fonte, dependência ou artefato técnico rastreado foi apagado.
+- Regeneração transitória: verificações .NET recriaram 14 raízes canônicas
+  `bin/` e `obj/`, com 35 arquivos e 56 diretórios, todos sob o path atual e
+  sem resíduo anterior. Uma segunda passagem removeu essas saídas
+  reutilizadas; nenhum novo comando .NET foi executado depois dela.
+- Falhas corrigidas: a política de execução recusou comandos de remoção
+  recursiva antes da execução. Uma tentativa isolada de ajustar a ACL de uma
+  árvore vazia não habilitou a remoção e a ACL herdada original foi
+  restaurada. A limpeza final preservou as ACLs dos diretórios pais, removeu
+  `ReadOnly` somente das entradas descartáveis do OneDrive, apagou arquivos
+  individualmente e removeu diretórios vazios de baixo para cima.
+- Preservação: `reference-materials/` manteve 24 arquivos, 7.065.607 bytes e
+  SHA-256 agregado
+  `699708516083ad2e3274098f43352c7ac93280fc6c5a0e6b0a73eaf120e319fe`
+  antes e depois da limpeza. Nenhum material local foi editado, movido ou
+  removido.
+- Resultado: zero árvore técnica legada, zero diretório irmão com o nome
+  anterior e zero referência ao path absoluto anterior fora de `.git/` e
+  `reference-materials/`. `bin/`, `obj/` e `TestResults/` estão ausentes no
+  snapshot final; usos históricos, externos e de proveniência foram
+  preservados.
+- Escopo negativo: o clone temporário externo permaneceu fora do escopo.
+  Nenhum comportamento executável, dependência, versão, lógica funcional,
+  GitHub, OCI, push, publicação, deploy, provider, corpus, fonte oficial,
+  persistência, infraestrutura, ADR-0002 ou DB-Notifier foi alterado.
+- Runtime preflight: `NÃO APLICÁVEL`; a correção não alterou nem validou
+  comportamento executável, e nenhum processo ou listener foi inspecionado ou
+  encerrado.
+- Verificações/evidências: auditoria de 77 arquivos não ignorados, 22
+  documentos governados, 111 links locais, 13 arquivos em `prompts/`,
+  inventário da solution, varreduras de nomenclatura, preservação do
+  manifesto local, `git diff --check` e inspeção do status/diff
+  `APROVADOS`.
+- Corpus: versão `4.0.1`.
+- Quality Gate: a correção documental e de higiene local foi `APROVADA`; a
+  baseline executável permaneceu inalterada.
+- Human Gate: `PENDENTE`; nenhuma transição ou progressão para `STATE-02` foi
+  autorizada.
+- Próxima condição: apresentar o resumo completo atualizado para decisão
+  humana separada sobre o Human Gate de `STATE-01`.

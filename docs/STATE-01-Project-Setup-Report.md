@@ -313,3 +313,79 @@ The `STATE-01 PROJECT_SETUP` Automatic Quality Gate remains `APROVADO` for
 the renamed baseline. `STATE-01` remains active and its Human Gate remains
 `PENDENTE`. A fresh complete Human Gate summary must include this addendum;
 neither the rename nor this automatic validation authorises `STATE-02`.
+
+## 2026-07-30 checkout rename and local cleanup addendum
+
+### Subsequent factual change
+
+The earlier local-only limitations remain unchanged because they record the
+conditions observed during the identity-migration validation. Subsequently,
+the checkout was observed under the physical directory name
+`RAG-Challenge`, with no sibling directory named `Challenge`.
+
+The product owner explicitly required every file under
+`reference-materials/` to remain unchanged and authorised correction of the
+remaining naming-audit findings.
+
+### Preservation and cleanup evidence
+
+Before removal, the seven legacy technical trees were resolved inside the
+checkout and outside `reference-materials/`. They contained zero files and
+149 directories, including their seven roots:
+
+```text
+src/Challenge.Application
+src/Challenge.Domain
+src/Challenge.Infrastructure
+src/Challenge.Server.Api
+tests/Challenge.Architecture.Tests
+tests/Challenge.IntegrationTests
+tests/Challenge.UnitTests
+```
+
+Fifteen ignored `bin/`, `obj/` and `TestResults/` roots contained 529
+generated files. Of those files, 68 contained 501 references to the previous
+absolute checkout path. An initial procedure check removed one
+`*.csproj.FileListAbsolute.txt`; the subsequent complete root cleanup removed
+the other 528 files. Cumulatively, the first pass removed all 529 generated
+files, 186 generated directories and 149 empty legacy directories. All 335
+removed directories were absent in the immediate post-condition check.
+
+Subsequent .NET solution checks transiently recreated 14 canonical `bin/` and
+`obj/` roots with 35 files and 56 directories. Every regenerated file used
+the current checkout path and none contained the previous path. A second
+hygiene pass removed those reused outputs, and no further .NET command was
+run afterwards. The final snapshot contains no `bin/`, `obj/` or
+`TestResults/` root under the seven projects.
+
+The execution policy rejected recursive PowerShell removal before it ran. A
+scoped ACL experiment on one empty legacy tree did not enable deletion, and
+its original inherited ACL was restored before cleanup. The successful
+procedure left all parent ACLs unchanged, cleared the OneDrive `ReadOnly`
+attribute only on disposable target entries, deleted files individually and
+removed empty directories bottom-up.
+
+`reference-materials/` retained 24 files and 7,065,607 bytes. Its aggregate
+SHA-256 remained
+`699708516083ad2e3274098f43352c7ac93280fc6c5a0e6b0a73eaf120e319fe`
+before and after cleanup. No reference material was edited, moved or removed.
+The external validation clone remained outside the authorised scope.
+
+The aggregate is the SHA-256 of an ordinally sorted UTF-8 manifest without a
+BOM. Each line contains the project-relative path with forward slashes, a tab,
+the byte count, a tab, the lowercase file SHA-256 and a final line feed.
+
+The final repository audit passed for 77 non-ignored files. The governed
+documentation remains at 22 documents and 111 valid local links. The
+solution inventory still contains the seven expected projects, no legacy
+technical root remains, and no previous absolute checkout path remains
+outside `.git/` and `reference-materials/`.
+
+### Lifecycle effect
+
+This local cleanup does not change executable behaviour or the approved setup
+baseline. `STATE-01 PROJECT_SETUP` remains active, its Automatic Quality Gate
+remains `APROVADO`, and its Human Gate remains `PENDENTE`. No lifecycle
+transition, remote action or external-resource mutation was authorised.
+Runtime preflight was `NÃO APLICÁVEL`; no process or listener was inspected
+or stopped.

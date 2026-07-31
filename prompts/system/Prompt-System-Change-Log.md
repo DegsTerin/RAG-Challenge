@@ -2,10 +2,10 @@
 
 ## Versão atual
 
-- Versão: `4.0.0`
+- Versão: `4.0.1`
 - Data: 2026-07-30
-- Status: migração de identidade para `RAG-Challenge` auditada; `STATE-01`
-  ativo com Human Gate pendente
+- Status: checkout físico e higiene local reconciliados com
+  `RAG-Challenge`; `STATE-01` ativo com Human Gate pendente
 - Escopo: 13 arquivos ativos em `prompts/`
 
 A versão do corpus é independente da versão futura do software.
@@ -19,6 +19,40 @@ A versão do corpus é independente da versão futura do software.
 
 Toda alteração atualiza este arquivo e, quando necessário,
 [`../Start-Here.md`](../Start-Here.md).
+
+## 4.0.1 — 2026-07-30
+
+- Corrige o snapshot factual depois da renomeação manual do diretório físico
+  do checkout para `RAG-Challenge` e registra a ausência do diretório irmão
+  `Challenge`.
+- Registra a remoção das sete árvores técnicas legadas após comprovar que
+  estavam dentro do checkout, fora de `reference-materials/` e continham zero
+  arquivos. As árvores somavam 149 diretórios, incluindo suas sete raízes.
+- Remove 15 raízes ignoradas de build e teste que conservavam metadados com o
+  path absoluto anterior. A primeira passagem removeu cumulativamente 529
+  arquivos gerados: um `*.csproj.FileListAbsolute.txt` durante a validação do
+  procedimento e os 528 restantes na limpeza integral das raízes. Desses 529,
+  68 continham 501 ocorrências do path anterior; 186 diretórios gerados
+  também foram eliminados. Nenhum artefato técnico rastreado foi removido ou
+  alterado pela limpeza.
+- Verificações .NET recriaram transitoriamente 14 raízes canônicas com 35
+  arquivos e zero ocorrência do path anterior; a segunda passagem removeu
+  esses 35 arquivos e 56 diretórios reutilizados. O snapshot final não
+  conserva `bin/`, `obj/` ou `TestResults/` nos sete projetos.
+- Preserva integralmente `reference-materials/`: 24 arquivos, 7.065.607 bytes
+  e SHA-256 agregado
+  `699708516083ad2e3274098f43352c7ac93280fc6c5a0e6b0a73eaf120e319fe`
+  permaneceram idênticos antes e depois da limpeza.
+- A auditoria final confirmou 77 arquivos não ignorados, 22 documentos
+  governados, 111 links locais válidos, 13 arquivos em `prompts/`, zero raiz
+  técnica legada e zero referência ao path absoluto anterior fora de
+  `.git/` e `reference-materials/`.
+- Classifica a mudança como PATCH porque corrige o presente factual e remove
+  artefatos locais reproduzíveis sem alterar autoridade, lifecycle, gates,
+  requisitos, arquitetura, comportamento executável ou dependências.
+- `STATE-01 PROJECT_SETUP` permanece ativo, com Automatic Quality Gate
+  `APROVADO` e Human Gate `PENDENTE`; nenhuma ação remota, mutação de recurso
+  externo ou progressão para `STATE-02` foi autorizada.
 
 ## 4.0.0 — 2026-07-30
 
