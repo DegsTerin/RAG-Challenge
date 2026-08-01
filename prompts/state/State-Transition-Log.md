@@ -1328,3 +1328,44 @@ contém somente fatos cronológicos.
 - Escopo negativo: nenhuma execução da Fase 2 de `Organize.md`, condensação
   normativa, aceitação de ADR, mudança de lifecycle/gate, Human Gate ou ação
   externa.
+
+## 2026-08-01 — Ownership normativo consolidado no corpus 4.2.1
+
+- Estado anterior e resultante: `STATE-02 ARCHITECTURE` ativo; Automatic
+  Quality Gate `BLOQUEADO`; Human Gate `PENDENTE`; sem transição.
+- Autoridade: aprovação explícita do proprietário para executar
+  sequencialmente a Fase 2 de `Organize.md` sobre a baseline
+  `main@fb93cf9514c010325d29b07646aecdd36cb0afda`, conforme a matriz de
+  equivalência `EQ-01` a `EQ-10`, o escopo, os checks, o rollback e o
+  tratamento Git previamente apresentados.
+- Resultado: Governance conserva a semântica canônica de handoff,
+  continuidade, raciocínio e paralelismo; Templates conserva formato e
+  formulários; Quality Gates conserva resultados auditáveis; AGENTS conserva
+  enforcement transversal mínimo; Start Here conserva roteamento; Language
+  Policy conserva idioma; Current State conserva somente fatos vigentes.
+- Equivalência: gatilhos, exceções, resultados, condições de parada,
+  enforcement, auditoria, links e rastreabilidade da matriz foram preservados;
+  nenhuma regra foi criada, removida ou semanticamente alterada.
+- SemVer: `4.2.1` (`PATCH`) por condensar duplicações e corrigir ownership e
+  referências sem mudança de autoridade, lifecycle, arquitetura, segurança,
+  escopo funcional ou comportamento normativo.
+- Arquivos graváveis: `AGENTS.md`, `prompts/Start-Here.md`,
+  `prompts/governance/Language-Policy.md`,
+  `prompts/governance/Quality-Gates.md`, `prompts/templates/Templates.md`,
+  `prompts/state/Current-State.md`, este histórico somente por append,
+  `prompts/system/Prompt-System-Change-Log.md` e `docs/README.md`.
+- Decisões: ADR-0001 permanece `superseded`; ADR-0003 permanece `accepted`;
+  ADR-0002 e ADR-0004 a ADR-0006 permanecem `proposed`.
+- Preservação: `Organize.md` permaneceu local, não rastreado e fora do Git;
+  autoridades não graváveis, evidência histórica, código e demais itens do
+  escopo negativo permaneceram sem alteração.
+- Execução: exclusivamente documental, local e sequencial; runtime preflight
+  `NÃO APLICÁVEL`, sem rede, instalação, inspeção de processos ou ação externa.
+- Verificações: duas revisões sequenciais aprovaram equivalência `EQ-01` a
+  `EQ-10`, coerência entre autoridades e registros, escopo exato, histórico
+  append-only, links e formato; a auditoria documental aprovou 84 arquivos não
+  ignorados e `git diff --check` não apontou erro.
+- Próxima condição: decisões humanas explícitas dos ADRs propostos,
+  reconciliação da baseline escolhida e auditoria combinada continuam
+  necessárias para desbloquear o Automatic Quality Gate de `STATE-02`; esta
+  autorização não foi tratada como Human Gate.

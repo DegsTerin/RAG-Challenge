@@ -23,7 +23,8 @@ proprietários.
   do gate; correções `3.5.1` a `3.5.4` também `APROVADAS`; migração de
   identidade `4.0.0`, correção factual `4.0.1` e padrão copiável `4.1.0`
   também `APROVADOS`. O incremento normativo de eficiência decisória foi
-  registrado como `4.2.0` (`MINOR`) em 2026-08-01.
+  registrado como `4.2.0` (`MINOR`), e sua reorganização semanticamente
+  equivalente como `4.2.1` (`PATCH`), em 2026-08-01.
 - Human Gate de `STATE-00`: `APROVADO` sem ressalvas em 2026-07-30.
 - `GATE-B01`: `APROVADO` sem ressalvas em 2026-07-30.
 - Transição para `STATE-01 PROJECT_SETUP`: autorizada em 2026-07-30.
@@ -66,7 +67,7 @@ proprietários.
   a política de idioma acrescentou o 21º documento público por incremento
   versionado, e o ADR-0003 acrescentou o 22º.
 - A baseline aprovada no Human Gate de `STATE-00` permanece `3.4.0`.
-- O corpus de instruções vigente possui versão `4.2.0` e 13 arquivos em
+- O corpus de instruções vigente possui versão `4.2.1` e 13 arquivos em
   `prompts/`.
 - Visão, requisitos, arquitetura, RAG, segurança, qualidade, lifecycle,
   roadmap, backlog, estado, histórico e templates estão documentados.
@@ -90,13 +91,14 @@ proprietários.
   verificar candidatos em duas etapas, preferir autoridade limitada completa,
   parar por valor decrescente e preservar integralmente segurança, qualidade,
   lifecycle e autoridade explícita.
+- O corpus `4.2.1` consolida ownership normativo sem alterar comportamento:
+  Governance conserva a semântica de handoff, continuidade, raciocínio e
+  paralelismo; Templates conserva o formato; Quality Gates conserva os
+  resultados auditáveis; AGENTS mantém enforcement transversal mínimo; Start
+  Here mantém roteamento; Language Policy conserva somente convenções de
+  idioma.
 - A arquitetura adota princípios compatíveis com o DB-Notifier sem criar
   referência ou dependência entre os projetos.
-- Cada solicitação do proprietário recebe exatamente um encerramento compacto
-  em `pt-BR`, somente na resposta final. Atualizações intermediárias informam
-  somente progresso materialmente novo: não repetem nem parafraseiam
-  conclusões, o bloco, o roteamento, o texto para copiar, o raciocínio ou o
-  paralelismo.
 - O Human Gate de `STATE-00` foi confirmado na conversa coordenadora que
   continha o resumo completo da baseline `3.4.0`; a decisão não aceita ADR,
   não decide `GATE-B01` e não autoriza `STATE-01`.
@@ -109,36 +111,13 @@ proprietários.
   one-shot no host principal.
 - A aprovação de `GATE-B01` não criou licença, solution ou projetos, não
   aceitou o ADR-0002 e não autorizou `STATE-01`.
-- O handoff final classifica o paralelismo como sequencial, opcional ou
-  recomendado; plano e mensagens por lane aparecem somente quando aplicáveis.
-- O handoff distingue solicitação atual, próximo trabalho recomendado,
-  posição de estado/gate, ação imediata do proprietário e conversa
-  recomendada. `Lote`, `tarefa`, `atividade` e `passo` ficam restritos a seus
-  papéis internos e não competem como rótulos do encerramento.
-- Quando a ação imediata exige continuar, iniciar, retomar, responder,
-  confirmar, decidir, autorizar ou enviar algo em uma conversa, o texto
-  completo para copiar e enviar aparece dentro do próprio encerramento,
-  imediatamente depois da conversa recomendada, destacado em bloco cercado
-  cujo rótulo e delimitadores ficam fora do payload. A regra inclui textos de
-  uma linha e Human Gate; a ausência só é válida quando nenhuma ação depende
-  de mensagem.
-- Todo handoff recomenda para a próxima conversa um dos níveis `Leve`,
-  `Médio`, `Alto`, `Extra alto`, `Máximo` ou `Ultra`, com justificativa e
-  alternativa se indisponível. A orientação não configura o Codex nem amplia
-  autoridade, e cada lane recebe recomendação própria.
-- Git local existe. Escritas paralelas futuras exigem branches e worktrees
-  separados, ownership disjunto e isolamento de runtime/dados; esta execução
-  permaneceu sequencial na conversa coordenadora.
-- Runtime preflight é `NÃO APLICÁVEL` para documentação e análise read-only:
-  nenhum shutdown é anunciado, nenhum processo é enumerado e nada é
-  encerrado.
-- [`Language-Policy.md`](../governance/Language-Policy.md) é a autoridade
-  temática única para idioma; os demais documentos apontam para ela.
-- Títulos, rótulos, orientações e mensagens destinados ao proprietário usam
-  `pt-BR`; literais técnicos preservam a grafia exigida.
-- Evidências e documentos existentes do `STATE-00` preservam o idioma do
-  próprio arquivo; novos artefatos técnicos usam `en-GB`, enquanto tradução
-  integral e idioma da interface permanecem decisões separadas.
+- Git local existe. A reorganização de governança `4.2.1` foi executada
+  sequencialmente na conversa coordenadora, sem lanes paralelas.
+- A execução foi exclusivamente documental; runtime preflight permaneceu
+  `NÃO APLICÁVEL`, sem inspeção ou encerramento de processos.
+- A política, o enforcement, o roteamento, os critérios e os templates de
+  continuidade permanecem vigentes em suas autoridades temáticas; o snapshot
+  não os redefine.
 
 ## Workspace
 

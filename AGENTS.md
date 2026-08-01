@@ -230,143 +230,65 @@ information since the previous one; do not restate, paraphrase or echo an
 already reported conclusion, including a sub-agent result, unless correcting
 it or explaining a changed consequence.
 
-The single final hand-off uses the compact `pt-BR` labels defined in
-[`prompts/templates/Templates.md`](prompts/templates/Templates.md) and states:
-
-- the current request's situation, concrete result and exact pending work,
-  including names or zero;
-- one recommended next project deliverable, its responsible actor and the
-  authority or condition it requires;
-- the current lifecycle position and the named next state or gate with its
-  entry condition;
-- the exact action required from the owner now, or an explicit statement that
-  none is required;
-- the conversation recommendation, target, reason and a suggested title only
-  when starting a new conversation;
-- a complete `pt-BR` text, placed immediately after the conversation
-  recommendation and visually isolated in the copy-ready fenced block defined
-  by [`prompts/templates/Templates.md`](prompts/templates/Templates.md), or an
-  explicit statement that no text is needed only when no owner action depends
-  on one;
-- one recommended Codex reasoning level for the next conversation, its
-  concise justification and an explicit fallback if that level is
-  unavailable;
-- the parallel-work classification and reason, adding a safe plan and one
-  complete message per worker conversation only when parallel work is
-  actually recommended or offered.
-
-Do not repeat facts already clear in the answer merely to lengthen the
-hand-off. Combine related routing, reasoning and parallelism details on their
-respective compact lines. Do not emit synthetic `none` fields that the compact
-template marks as conditional.
-
-Use the continuity vocabulary consistently. `Solicitação` combines the
-current request's situation, result and pending work. `Próximo trabalho
-recomendado` names one concrete subsequent deliverable, its responsible actor
-and its authority/condition. `Estado/gate` is lifecycle information, never a
-task or an authorisation. `Sua ação agora` contains only the immediate input,
-decision or navigation required from the owner. `Conversa recomendada` says
-where the next work belongs; it does not describe the work or grant authority.
-Inside plans, a `lot` groups work, a `task` is a verifiable subunit, an
-`activity` is an internal operation and a `step` is an ordered procedure item;
-none is a competing hand-off label.
-
-Naming a next stage never authorises entry into it.
-
-Conversation routing follows the owning governance policy and template.
-Never claim that an agent can open, rename or switch conversations. Never
-present a proposed title as an existing conversation, and never invent an
-existing title, link or ID. `RETURN_TO_EXISTING` is valid only when the target
-was explicitly supplied or previously confirmed; otherwise recommend
-`START_NEW` and propose a title. The exact next message must route the next
-agent through `AGENTS.md`, `prompts/Start-Here.md`,
-`prompts/state/Current-State.md` and the relevant owner documents, while
-preserving the current authority and negative scope. Conversation history is
-context, not project memory or execution authority.
-
-When `Sua ação agora` tells the owner to continue, start, return, respond,
-confirm, decide, authorise or send something in a conversation, `Texto para
-copiar e enviar` is mandatory and contains the complete ready-to-send payload
-inside the same hand-off. It immediately follows `Conversa recomendada`,
-without another field, prose, title or reasoning recommendation between them;
-a `START_NEW` title remains inside the conversation field. Put the field label
-on its own line and the payload immediately below it in a fenced Markdown code
-block whose delimiters are visibly outside the copyable content. This applies
-also to a one-line Human Gate phrase. When the payload contains a fence, use a
-longer or alternative outer fence so its boundaries remain unambiguous. Never
-defer that payload to a later answer, point to text supplied elsewhere or
-replace it with an absence sentinel. `Nenhum texto é necessário` remains an
-inline sentinel and is valid only when no immediate owner action depends on a
-message and no useful continuity message exists.
-
-Owner-facing hand-offs and copy-ready message blocks follow the
-[language policy](prompts/governance/Language-Policy.md). Code, identifiers,
-commands and literal project artefacts inside those messages retain their
-required language and spelling.
-
-Reasoning recommendations follow the policy and canonical `pt-BR` values in
+Follow the continuity, vocabulary, reasoning and parallel-work policy in
 [`prompts/governance/Governance.md`](prompts/governance/Governance.md) and the
-fields in [`prompts/templates/Templates.md`](prompts/templates/Templates.md).
-They apply per conversation or worker lane, use the lowest sufficient level
-and are advisory only. They never claim that Codex was configured
-automatically and never expand authority, scope, permissions, lifecycle state
-or external access. Availability depends on the active Codex surface, account
-and model; an unavailable level is not silently treated as selected.
+compact `pt-BR` format in
+[`prompts/templates/Templates.md`](prompts/templates/Templates.md). The final
+hand-off states the request result and exact pending work; one next deliverable,
+owner and condition; lifecycle position and next entry condition; the owner's
+immediate action; conversation route, target and reason; copy-ready text when
+required; reasoning level, justification and fallback; and the parallel-work
+classification and reason.
 
-An exact Human Gate confirmation may be requested only with
-`Conversa recomendada: CONTINUE_CURRENT — current — <motivo>`, when the
-complete current-baseline gate summary is in the same hand-off. The
-`Texto para copiar e enviar` field then contains only the required phrase. Do
-not wrap or alter it merely to repeat the routing preamble. If routing is
-`START_NEW` or `RETURN_TO_EXISTING`, the exact message requests a fresh,
-complete gate summary in that target conversation; it never carries the
-confirmation phrase by itself.
+Keep those concepts separate. A future deliverable, state/gate, owner action
+and conversation route neither substitute for one another nor grant
+authority. Use conditional fields only when applicable, do not repeat body
+content merely to lengthen the hand-off and never treat naming a next stage as
+authorisation to enter it.
 
-A completed hand-off contains no unresolved placeholders. When no owner
-action or further message is useful, say in `pt-BR` that no action and no
-message are required; do not fabricate owner work merely to populate the
-handoff. This routing requirement applies once to the final answer of each
-owner request. Intermediate commentary never carries the full field sequence,
-a copy-ready routing block or repeated reasoning/parallelism recommendations.
+Use only `CONTINUE_CURRENT`, `START_NEW` or `RETURN_TO_EXISTING` as defined by
+Governance. Never claim to open, rename or switch conversations, invent an
+existing target or present a proposed title as confirmed. Every continuation
+message routes through `AGENTS.md`, Start Here, Current State and the relevant
+owner documents, preserving authority and negative scope; conversation history
+is context, not project memory.
 
-Assess parallel work separately from conversation routing. Use:
+When the owner must continue, start, return, respond, confirm, decide,
+authorise or send something, provide the complete `pt-BR` payload immediately
+after `Conversa recomendada` in the copy-ready fenced form owned by Templates.
+The label and fences remain outside the payload, including for a one-line
+Human Gate phrase; use an unambiguous outer fence when the payload contains a
+fence. Never defer or replace required text with the absence sentinel. Use the
+inline absence form only when no action depends on a message and no useful
+continuity message exists.
 
-- `SEQUENTIAL_ONLY` when work overlaps, depends on unfinished output, changes
-  shared authority or contracts, competes for the same runtime/data, or lacks
-  safe isolation;
-- `PARALLEL_OPTIONAL` when lanes are independent but the expected time saving
-  is small or coordination cost may outweigh it;
-- `PARALLEL_RECOMMENDED` when at least two independent lanes have clear
-  ownership and materially shorten the authorised work.
+Apply the [language policy](prompts/governance/Language-Policy.md) and retain
+the required spelling of technical literals. Recommend the lowest sufficient
+canonical reasoning level for each conversation or lane, with justification
+and an explicit fallback; it is advisory and never changes configuration,
+authority, scope or lifecycle.
 
-A parallel plan has exactly one coordination conversation with an
-owner-confirmed title or label so workers can route results back without
-guessing. Worker conversations receive one bounded lane each and may not
-broaden authority, integrate other lanes, advance lifecycle state, accept an
-ADR, request a Human Gate or mutate shared external state. Each lane declares
-its own recommended reasoning level, justification and fallback, as well as
-exclusive writable paths or read-only status; two active lanes never write
-the same file, generated artefact, manifest, migration, lockfile, runtime data
-or configuration. Canonical state, transition history, gate decisions and
-final integration remain coordinator-owned.
+Request an exact Human Gate phrase only with `CONTINUE_CURRENT` to `current`
+when the complete current-baseline summary is in the same hand-off. A new or
+returning conversation must first receive and review a fresh complete summary;
+it never carries the confirmation phrase alone. Do not leave placeholders or
+invent owner work merely to populate the final hand-off.
 
-Without an initialised tracked Git repository, parallel conversations are
-limited to read-only analysis, review or audit; all filesystem writes occur
-sequentially in the coordination conversation. After Git and the relevant
-workflow are authorised, parallel write lanes require separate branches and
-worktrees, disjoint ownership and isolated ports, stores, temporary paths and
-build outputs as applicable. Sharing one worktree is not write isolation.
+Classify parallel work separately from conversation routing as
+`SEQUENTIAL_ONLY`, `PARALLEL_OPTIONAL` or `PARALLEL_RECOMMENDED` under the
+Governance criteria. A parallel plan has exactly one owner-confirmed
+coordinator, bounded lanes, lane-specific reasoning guidance, disjoint
+ownership or read-only status, explicit stop conditions and deterministic
+integration. Workers never broaden authority, integrate other lanes, decide
+an ADR/Human Gate/lifecycle transition or update canonical memory.
 
-The coordinator integrates completed lanes one at a time, inspects each
-result against the current baseline, resolves conflicts centrally and reruns
-all cross-cutting checks after the last integration. A worker stops and
-reports instead of editing outside ownership when it detects an overlapping
-change, stale baseline, unmet dependency, runtime collision, unexpected
-external state or missing authority. Human Gate confirmation is requested
-only after integrated evidence is present in the coordination conversation.
-A worker marked complete has delivered an integration candidate, not a
-completed project lot. Its hand-off provides the owner with an exact
-return-to-coordinator message populated with the lane's actual evidence.
+Before tracked Git, simultaneous lanes are read-only and all writes remain
+sequential in the coordinator. Authorised write lanes require separate
+branches and worktrees plus isolated mutable resources; a shared worktree is
+not isolation. A worker stops on overlap, stale baseline, unmet dependency,
+runtime collision, unexpected external state or missing authority and returns
+actual evidence. The coordinator integrates one candidate at a time and reruns
+cross-cutting checks before any gate decision.
 
 ## Maintaining these instructions
 

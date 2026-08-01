@@ -2,11 +2,10 @@
 
 ## Versão atual
 
-- Versão: `4.2.0`
+- Versão: `4.2.1`
 - Data: 2026-08-01
-- Status: eficiência decisória e proporcionalidade incorporadas ao enforcement
-  permanente; `STATE-02` ativo, com fatos públicos reconciliados e decisões de
-  ADR pendentes
+- Status: ownership normativo consolidado sem alteração semântica; `STATE-02`
+  ativo, com fatos públicos reconciliados e decisões de ADR pendentes
 - Escopo: 13 arquivos ativos em `prompts/`
 
 A versão do corpus é independente da versão futura do software.
@@ -20,6 +19,36 @@ A versão do corpus é independente da versão futura do software.
 
 Toda alteração atualiza este arquivo e, quando necessário,
 [`../Start-Here.md`](../Start-Here.md).
+
+## 4.2.1 — 2026-08-01
+
+- Executa a reorganização documental aprovada sobre a baseline
+  `fb93cf9514c010325d29b07646aecdd36cb0afda`, preservando a equivalência
+  integral registrada na matriz `EQ-01` a `EQ-10`.
+- Consolida ownership sem criar regra: Governance permanece autoridade para
+  semântica de handoff, continuidade, raciocínio e paralelismo; Templates para
+  formato e formulários; Quality Gates para resultados auditáveis; AGENTS
+  para enforcement transversal mínimo; Start Here para roteamento; Language
+  Policy para idioma; Current State para fatos vigentes.
+- Condensa somente duplicações normativas ou detalhes temáticos; gatilhos,
+  exceções, condições de parada, Human Gate, runtime preflight, payload
+  copiável, isolamento paralelo, rastreabilidade e critérios de auditoria
+  permanecem explícitos nas respectivas autoridades ou referências.
+- Atualiza `AGENTS.md`, `Start-Here.md`, `Language-Policy.md`,
+  `Quality-Gates.md`, `Templates.md`, `Current-State.md`, este changelog e o
+  índice documental; acrescenta somente uma entrada append-only ao histórico
+  de estados.
+- Mantém 13 arquivos ativos em `prompts/` e não altera precedência,
+  autoridade, segurança, lifecycle, gate, arquitetura, escopo funcional,
+  status de ADR ou comportamento executável.
+- Classifica a mudança como `PATCH`: clareza, referências e distribuição de
+  responsabilidades foram melhoradas sem introdução, remoção ou mudança de
+  comportamento normativo.
+- A revisão semântica aprovou `EQ-01` a `EQ-10`; a auditoria documental
+  aprovou 84 arquivos não ignorados, e escopo, histórico append-only, links,
+  formato, versão, status dos ADRs e `git diff --check` permaneceram coerentes.
+- A reorganização permaneceu sequencial e local; `Organize.md` continuou não
+  rastreado, e os artefatos protegidos permaneceram sem alterações.
 
 ## 4.2.0 — 2026-08-01
 

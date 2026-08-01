@@ -21,11 +21,11 @@ restating it.
 - Keep a literal filename, path, command, code fragment, API name, protocol
   field or canonical enum in its required language when technically
   necessary. Explain its meaning in `pt-BR` when it may not be clear.
-- Every project communication states the immediate next step, the
-  conversation in which it belongs and a complete `pt-BR` message ready for
-  the owner to copy and send.
-- When no owner action or follow-up message is needed, say so explicitly
-  instead of inventing work.
+- Apply the conversation and ready-to-copy structures owned by
+  [Governance](Governance.md) and [Templates](../templates/Templates.md); all
+  of their owner-facing labels, guidance and payload prose use `pt-BR`.
+- When those authorities require an explicit absence of owner action or
+  follow-up message, state it in `pt-BR` instead of inventing work.
 
 ## Project artefacts
 

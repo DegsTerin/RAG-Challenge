@@ -9,16 +9,11 @@ aplicam essa autoridade sem reproduzi-la.
 
 ## Encerramento único de cada solicitação
 
-Emitir este bloco exatamente uma vez, somente no final da resposta que
-conclui, pausa ou bloqueia a solicitação do proprietário. Não o usar em
-atualizações intermediárias da mesma solicitação. Essas atualizações podem
-informar progresso ou evidência de forma breve somente quando acrescentarem
-informação materialmente nova. Não repetir nem parafrasear uma conclusão já
-comunicada e não antecipar roteamento, texto para copiar, raciocínio ou
-paralelismo.
-
-Em documentação e análise somente leitura, runtime preflight é
-`NÃO APLICÁVEL`: não anunciar shutdown, enumerar processos ou encerrar nada.
+Aplicar este formato quando e somente quando exigido pela semântica de
+[`Governance.md`](../governance/Governance.md) e pelo enforcement de
+[`../../AGENTS.md`](../../AGENTS.md). Este documento materializa apresentação
+e formulários; não redefine continuidade, runtime preflight, autoridade ou
+gate.
 
 Usar o formato compacto abaixo em `pt-BR`. Não repetir nele explicações já
 claras no corpo da resposta. Literais técnicos preservam a grafia canônica.
@@ -57,20 +52,14 @@ da linha de paralelismo:
 - Mensagens para as frentes: um bloco completo por lane
 
 Para `SEQUENTIAL_ONLY`, a linha `Paralelismo` já encerra o tema; não criar
-campos separados de plano ou mensagens com valores artificiais. Se não houver
-ação do proprietário, não propor título, tarefa ou mensagem apenas para
-preencher o bloco. Nunca combinar `Sua ação agora: nenhuma` com orientação
-para iniciar, retomar ou enviar mensagem a uma conversa.
+campos separados de plano ou mensagens com valores artificiais. Aplicar as
+regras de coerência entre ação, rota, campos condicionais e ausência definidas
+em Governance.
 
-`Texto para copiar e enviar` aparece no próprio handoff, imediatamente após
-`Conversa recomendada`, sem outro campo, prosa, título ou recomendação
-interpostos.
-Se `Sua ação agora` orientar continuar, iniciar, retomar, responder,
-confirmar, decidir, autorizar ou enviar algo em uma conversa, o campo é
-obrigatório e contém ali mesmo todo o payload pronto, sem placeholders. Não
-adiar o texto, não remeter a mensagem anterior ou a outra parte da resposta e
-não usar `nenhum texto é necessário`. Essa sentinela só é válida quando
-nenhuma ação imediata do proprietário depende de mensagem.
+Quando Governance exigir `Texto para copiar e enviar`, posicioná-lo
+imediatamente após `Conversa recomendada`, sem conteúdo interposto, e preencher
+todo o payload sem placeholders. A forma de ausência permanece inline somente
+nos casos permitidos por essa autoridade.
 
 ### Destaque obrigatório do texto copiável
 
@@ -110,19 +99,10 @@ plano próprio e não substituem o texto principal.
 
 ### Vocabulário e situação
 
-Não usar `próximo passo`, `próxima etapa`, `tarefa`, `atividade` e `ação` como
-sinônimos no encerramento. `Lote` agrupa trabalho governado, `tarefa` é
-subunidade verificável de plano, `atividade` é operação interna e `passo` é
-item ordenado de procedimento. `Etapa` deve ser substituída pelo estado/gate
-canônico. O próximo trabalho recomendado descreve a entrega; `Estado/gate`
-descreve lifecycle; `Sua ação agora` descreve somente o ato imediato do
-proprietário.
-
-- `concluída`: pendências `0`; o próximo trabalho é recomendação futura;
-- `parcial`: pendências exatas; o próximo trabalho é o primeiro item ainda
-  necessário para concluir a solicitação;
-- `bloqueada`: pendência e condição de desbloqueio explícitas; `Sua ação
-  agora` informa o dado, decisão ou autorização humana necessária.
+Usar os conceitos e as situações `concluída`, `parcial` e `bloqueada`
+exatamente como definidos em Governance. Os campos acima materializam essa
+separação; não transformam lote, tarefa, atividade ou passo em rótulos
+concorrentes do handoff.
 
 ## Entrada do histórico de estados
 
@@ -289,9 +269,9 @@ Gate, ADR, autorização de estado ou autorização externa.
 
 ## Plano de conversas paralelas
 
-Avaliar paralelismo em toda solicitação, mas preencher a seção detalhada
-abaixo somente para `PARALLEL_OPTIONAL` ou `PARALLEL_RECOMMENDED`.
-Paralelismo é recomendação, não autorização adicional.
+Quando Governance classificar o trabalho como `PARALLEL_OPTIONAL` ou
+`PARALLEL_RECOMMENDED`, preencher a seção abaixo. A classificação não concede
+autoridade adicional.
 
 - Classificação do trabalho paralelo: `SEQUENTIAL_ONLY` /
   `PARALLEL_OPTIONAL` /
@@ -374,13 +354,9 @@ também um bloco exato para eu copiar na conversa coordenadora confirmada,
 que fará a integração na ordem <ORDEM>.
 ```
 
-Antes de Git rastreado e worktrees autorizados, o campo de escrita de toda
-conversa auxiliar simultânea deve ser somente leitura. Depois disso, uma frente
-de escrita exige branch/worktree próprio, responsabilidade exclusiva e
-isolamento de recursos mutáveis. O integrador aplica uma entrega por vez e
-repete as verificações globais. Uma conversa auxiliar concluída entrega
-somente um candidato pronto para revisão. O bloco de retorno deve conter os
-resultados reais; não pode declarar integração, transição ou gate concluído.
+Preencher ownership, isolamento e retorno conforme Governance. O bloco de
+retorno contém resultados reais e nunca declara integração, transição ou gate
+concluído por uma conversa auxiliar.
 
 ## Relatório de execução
 

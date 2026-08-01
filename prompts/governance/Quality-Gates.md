@@ -45,43 +45,25 @@ Um lote está pronto quando:
 - Itens não testados e riscos residuais explícitos.
 - Mudanças preexistentes não relacionadas preservadas.
 - Diff revisado e entrega focal.
-- Cada solicitação possui exatamente um handoff compacto, somente na resposta
-  final; comentários intermediários não repetem seus rótulos, roteamento,
-  mensagem, raciocínio ou paralelismo.
-- Cada comentário intermediário contém informação materialmente nova; não
-  repete nem parafraseia conclusão já comunicada sem correção ou consequência
-  nova.
-- Runtime preflight é aplicado somente a mudança ou validação executável;
-  documentação e análise read-only não anunciam shutdown, não enumeram
-  processos e não encerram nada.
-- Handoff final informa rota, destino coerente e motivo; quando a continuidade
-  exige mensagem, traz imediatamente depois o texto completo para copiar e
-  enviar, isolado no bloco cercado definido pelo template. Rótulo, cercas e
-  orientação externa ficam fora do payload. Somente `RETURN_TO_EXISTING` exige
-  conversa verificável, e nenhuma rota inventa referência ou amplia
-  autoridade.
-- `Sua ação agora`, `Conversa recomendada` e `Texto para copiar e enviar` são
-  coerentes: uma orientação de continuar, iniciar, retomar, responder,
-  confirmar, decidir, autorizar ou enviar torna o texto integral obrigatório;
-  ausência só é válida sem ação dependente de mensagem.
-- O texto obrigatório está integralmente no próprio handoff, sem placeholders
-  ou remissão a conteúdo anterior; título de `START_NEW` permanece no campo de
-  conversa, e mensagens de lanes não substituem o texto principal. A cerca
-  externa permanece inequívoca mesmo quando o payload contém blocos de código,
-  e frases de uma linha, inclusive Human Gate, também usam o destaque.
-- Handoff separa `Solicitação`, `Próximo trabalho recomendado`, `Estado/gate`
-  e `Sua ação agora`; lote, tarefa, atividade, passo, lifecycle, roteamento e
-  ação humana não são tratados como sinônimos.
-- Handoff classifica o trabalho paralelo; qualquer plano paralelo possui
-  coordenadora confirmada, ownership sem sobreposição, mensagem por lane,
-  condições de parada, integração serializada e checks transversais finais.
-- Handoff recomenda exatamente um dos seis níveis canônicos de raciocínio para
-  a próxima conversa, justifica o menor nível suficiente e informa uma
-  alternativa; não afirma configuração automática nem usa o nível para
-  ampliar autoridade.
+- O handoff cumpre integralmente a semântica de
+  [Governance](Governance.md) e o formato de
+  [Templates](../templates/Templates.md): ocorre uma vez na resposta final,
+  usa somente campos aplicáveis e mantém resultado, entrega futura,
+  lifecycle, ação humana e roteamento distintos.
+- Atualizações intermediárias acrescentam informação materialmente nova e não
+  repetem nem antecipam o handoff.
+- Rota, target, ação e payload são coerentes; texto obrigatório fica completo
+  e sem placeholders imediatamente após a conversa, com rótulo/cercas fora do
+  conteúdo, inclusive para Human Gate de uma linha ou payload com cerca
+  interna. Ausência só é aceita quando nenhuma ação depende de mensagem.
+- Runtime preflight foi classificado antes de qualquer inspeção e é aplicado
+  somente a mudança ou validação executável; em documentação/read-only não há
+  anúncio, enumeração ou encerramento de processo.
+- A classificação paralela, quando aplicável, satisfaz o gate específico
+  abaixo; raciocínio usa um valor canônico, justificativa e fallback sem
+  ampliar autoridade ou alegar configuração automática.
 - Comunicação e artefatos cumprem a
-  [`política de idioma`](Language-Policy.md), incluindo a continuidade
-  recomendada e o texto completo em `pt-BR` destinado ao proprietário.
+  [`política de idioma`](Language-Policy.md).
 
 ## Política de cobertura
 
@@ -124,23 +106,13 @@ autoridade/configuração próprias.
 7. Verificar configuração fail-closed e ausência de material local privado.
 8. Classificar cada gate como `APROVADO`, `REPROVADO`, `BLOQUEADO` ou
    `NÃO APLICÁVEL`.
-9. Verificar um único encerramento final por solicitação, ausência do bloco em
-   atualizações intermediárias e uso apenas dos campos condicionais
-   aplicáveis.
-10. Verificar que atualizações intermediárias acrescentam informação nova,
-    sem repetição semântica, e que runtime preflight foi classificado antes de
-    qualquer inspeção de processos.
-11. Validar a separação entre solicitação atual, próximo trabalho recomendado,
-    estado/gate, ação do proprietário e conversa recomendada; conferir que o
-    texto integral está dentro do próprio handoff e aparece imediatamente
-    depois da conversa quando há navegação, resposta, decisão ou envio, sem
-    combinar ação `nenhuma` ou sentinela de ausência com essa orientação e sem
-    placeholders ou remissão a outra mensagem; verificar também rótulo em
-    linha própria, bloco copiável delimitado, cercas fora do payload e cerca
-    externa segura quando houver bloco interno.
-12. Validar presença e coerência da recomendação de raciocínio, de sua
-    justificativa e de sua alternativa nos handoffs e lanes aplicáveis.
-13. Registrar achados com severidade, impacto, reprodução e recomendação.
+9. Auditar os resultados de handoff definidos na Definition of Done contra
+   Governance e Templates, incluindo unicidade, campos condicionais,
+   comentário intermediário, vocabulário, rota/target/ação, payload copiável,
+   cerca interna, Human Gate, raciocínio e fallback.
+10. Confirmar que runtime preflight foi classificado antes de qualquer
+    inspeção e que a decisão observada corresponde ao tipo de trabalho.
+11. Registrar achados com severidade, impacto, reprodução e recomendação.
 
 Auditoria não corrige silenciosamente, não inventa evidência e não promove
 estado.
@@ -202,23 +174,9 @@ coordenação ou validação.
   repositórios consumidores.
 - Lacunas identificadas por auditoria posterior estão reconciliadas ou
   registradas como ressalvas explícitas do Human Gate.
-- Continuidade de conversa possui classificação, target, motivo e texto
-  completo para copiar e enviar imediatamente depois da conversa quando há
-  ação dependente de mensagem; retorno antigo exige referência confirmada e
-  reconciliação com Current State; frase de Human Gate permanece na conversa
-  do resumo completo.
-- Cada solicitação possui um único encerramento compacto na resposta final;
-  atualizações intermediárias não repetem o bloco e campos de título, mensagem
-  ou plano aparecem somente quando aplicáveis.
-- Paralelismo entre conversas possui classificação, coordenadora, ownership,
-  mensagens por lane, fallback sequencial e gate que proíbe escrita concorrente
-  no workspace atual sem Git/worktree.
-- Raciocínio do Codex por conversa usa somente os seis valores canônicos, com
-  justificativa, alternativa, caráter consultivo e compatibilidade entre
-  `Ultra` e o gate de paralelismo.
-- A [`política de idioma`](Language-Policy.md) é a única autoridade temática,
-  está corretamente roteada e não conflita com instruções, templates ou
-  evidências existentes.
+- Os resultados transversais de handoff, continuidade, Human Gate,
+  paralelismo, raciocínio e idioma satisfazem a Definition of Done e o gate de
+  trabalho paralelo acima, com autoridades e templates corretamente roteados.
 
 ## Verificações por estado
 

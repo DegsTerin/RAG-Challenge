@@ -41,9 +41,8 @@ autoridade temática definida em
 | Segurança, acesso, logging e auditoria | [`governance/Security-And-Access.md`](governance/Security-And-Access.md) |
 | Estado factual atual | [`state/Current-State.md`](state/Current-State.md) |
 | Histórico append-only | [`state/State-Transition-Log.md`](state/State-Transition-Log.md) |
-| Handoff, auditoria, Human Gate e ADR | [`templates/Templates.md`](templates/Templates.md) |
-| Continuar, iniciar, retomar ou paralelizar conversas | [`governance/Governance.md`](governance/Governance.md) e [`templates/Templates.md`](templates/Templates.md) |
-| Raciocínio do Codex recomendado por conversa | [`governance/Governance.md`](governance/Governance.md) e [`templates/Templates.md`](templates/Templates.md) |
+| Semântica de handoff, continuidade, raciocínio e paralelismo | [`governance/Governance.md`](governance/Governance.md) |
+| Formato, ordem, texto copiável e formulários | [`templates/Templates.md`](templates/Templates.md) |
 | Versão do corpus de instruções | [`system/Prompt-System-Change-Log.md`](system/Prompt-System-Change-Log.md) |
 | Índice público da documentação | [`../docs/README.md`](../docs/README.md) |
 | Evidência do `STATE-00` | [`../docs/STATE-00-Discovery-Report.md`](../docs/STATE-00-Discovery-Report.md) |
@@ -85,29 +84,13 @@ resultado ou exigir nova autoridade.
 - Consultar o estado antes de executar uma fase.
 - Atualizar estado e histórico somente quando houver mudança factual.
 - Manter o Human Gate separado da auditoria automática.
-- Encerrar cada solicitação do proprietário com exatamente um handoff final
-  compacto em `pt-BR`, separando solicitação atual, próximo trabalho
-  recomendado, estado/gate, ação imediata do proprietário, conversa
-  recomendada e, imediatamente depois dela, o texto completo para copiar e
-  enviar quando a continuidade exigir mensagem. Destacar o payload no bloco
-  copiável delimitado por [`templates/Templates.md`](templates/Templates.md),
-  sem incluir seus delimitadores no conteúdo a enviar. Declarar ausência de
-  texto somente quando nenhuma ação imediata depender dele. Atualizações
-  intermediárias da mesma
-  solicitação são breves, acrescentam informação materialmente nova e não
-  repetem, parafraseiam nem antecipam conteúdo já comunicado ou esse bloco.
-- Tratar runtime preflight como `NÃO APLICÁVEL` em documentação e análise
-  somente leitura: não anunciar shutdown, enumerar processos ou encerrar
-  qualquer processo. Nome genérico nunca comprova vínculo com o
-  RAG-Challenge.
-- Em todo handoff governado, avaliar também se o trabalho deve permanecer
-  sequencial ou pode usar conversas paralelas; quando puder, definir
-  coordenação, ownership sem sobreposição, mensagens por frente e ordem de
-  integração.
-- Em toda recomendação de conversa, indicar o raciocínio do Codex usando um
-  dos seis valores canônicos, justificar o menor nível suficiente e informar
-  uma alternativa explícita caso ele não esteja disponível. Essa orientação
-  não configura o Codex nem concede autoridade.
+- Aplicar o enforcement permanente de [`../AGENTS.md`](../AGENTS.md), a
+  semântica de handoff, continuidade, raciocínio e paralelismo de
+  [`governance/Governance.md`](governance/Governance.md), e o formato de
+  [`templates/Templates.md`](templates/Templates.md), sem redefini-los aqui.
+- Classificar runtime preflight conforme AGENTS e Governance antes de qualquer
+  inspeção; documentação e análise somente leitura permanecem
+  `NÃO APLICÁVEIS`.
 - Aplicar integralmente a
   [`política de idioma`](governance/Language-Policy.md), sem reproduzi-la ou
   enfraquecê-la em outro documento.
