@@ -28,6 +28,8 @@ Incluído:
 - consulta com citações e `INSUFFICIENT_EVIDENCE`;
 - perguntas e respostas em `pt-BR` e `en-GB`, com resposta no idioma
   declarado da pergunta e citações no idioma original;
+- interface localizável em `pt-BR` e `en-GB`, com seleção explícita e
+  independente do idioma da consulta;
 - API, artefato OpenAPI v1 versionado e interface web mínima;
 - execução local;
 - CI;
@@ -252,6 +254,10 @@ Critério: API não expõe secret, stack trace ou conteúdo indevido.
 ### Lote S05-A — Interface mínima
 
 - Formulário de pergunta.
+- Seletor explícito de `interfaceLanguage=pt-BR|en-GB`, independente de
+  `questionLanguage`.
+- Localizar labels, instruções, validações, loading, vazio, erro, stale,
+  indisponível, rate limit e sem evidência nos dois idiomas.
 - Seletor `Local`/`Documentação oficial online — snapshot sincronizado`.
 - Resposta e lista de citações.
 - URL/snapshot/freshness nas citações oficiais.
@@ -259,7 +265,9 @@ Critério: API não expõe secret, stack trace ou conteúdo indevido.
 - Texto puro por padrão; qualquer Markdown usa subconjunto sanitizado, sem
   HTML cru, com schemes de URL permitidos e CSP.
 
-Critério: fluxo funciona por teclado e viewport reduzido.
+Critério: fluxo funciona por teclado e viewport reduzido em `pt-BR` e
+`en-GB`; testes cobrem os quatro pares entre `interfaceLanguage` e
+`questionLanguage`, sem mistura de textos do produto nem tradução de citações.
 
 ### Lote S06-A — E2E e artefato
 
@@ -331,6 +339,7 @@ Critério: checklist oficial completo.
 | `BL-M14` | Preservar uma geração anterior elegível e testar ativação/rollback atômicos do `CorpusActivationRecord` por compare-and-swap. | S03/S04/S07 |
 | `BL-M15` | Sincronizar um PDF oficial allowlisted com pinning DNS/IP e consultar por `OfficialOnline` com snapshot, freshness e isolamento. | S02–S08 |
 | `BL-M16` | Suportar e homologar perguntas/respostas em `pt-BR` e `en-GB`, inclusive recuperação cruzada e preservação do idioma original das citações. | S02/S04/S07 |
+| `BL-M17` | Localizar a interface em `pt-BR` e `en-GB`, com seletor explícito, independência da consulta e testes de acessibilidade nos dois idiomas. | S05/S07 |
 
 ### Should — se não comprometer a entrega
 
@@ -373,6 +382,8 @@ Critério: checklist oficial completo.
 - Recuperação cruzada e geração em `pt-BR`/`en-GB` podem reprovar os providers
   candidatos e exigir alternativa, sem reduzir o requisito para obter
   aprovação.
+- Textos incompletos ou misturados entre `pt-BR` e `en-GB` podem degradar
+  acessibilidade e compreensão; a matriz de UI deve bloquear a homologação.
 - Escolha tardia de dimensão/vector store pode forçar reindexação.
 - Vector store gerenciado pode expor chunks/embeddings sem política própria.
 - GitHub Pages pode ser confundido com backend; a documentação deve manter a

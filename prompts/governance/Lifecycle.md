@@ -175,6 +175,8 @@ Objetivo: implementar a interface web mínima.
 Entregáveis:
 
 - pergunta e resposta;
+- interface localizada em `pt-BR` e `en-GB`, com seletor explícito e estado
+  visual independente de `questionLanguage`;
 - seletor obrigatório `Local`/`OfficialOnline`;
 - citações;
 - estados loading, vazio, erro, fonte stale/indisponível, rate limit e sem
@@ -188,9 +190,12 @@ Aceite:
 - nenhuma lógica de autorização ou acesso direto a provider no cliente;
 - informação de fonte não depende apenas de cor;
 - troca de escopo exige ação explícita e citações exibem snapshot/freshness;
-- mensagens são factuais e localizadas.
-- o idioma visual da interface é aplicado somente por decisão própria, nunca
-  inferido do contrato bilíngue de consulta.
+- mensagens pertencentes ao produto são factuais e integralmente localizadas
+  no `interfaceLanguage` selecionado;
+- os fluxos `pt-BR` e `en-GB` preservam teclado, foco, semântica, reflow e
+  ausência de mistura de idiomas;
+- `interfaceLanguage` nunca é inferido do contrato bilíngue de consulta e não
+  traduz conteúdo de citação.
 
 ## STATE-06 INTEGRATION
 

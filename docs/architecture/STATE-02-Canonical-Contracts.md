@@ -314,7 +314,8 @@ The server builds citations from validated catalogue/evidence records, not
 from free-form model fields. Source-derived title, section, excerpt or other
 citation text remains in `contentLanguage`; it is never replaced by a model
 translation. This query-language contract does not determine Dashboard labels,
-navigation or other user-interface language.
+navigation or the selected `interfaceLanguage`. The Dashboard separately
+supports `pt-BR` and `en-GB`; no public query field selects its visual locale.
 
 ## Failure taxonomy and HTTP mapping
 

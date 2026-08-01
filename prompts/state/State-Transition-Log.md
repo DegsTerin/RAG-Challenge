@@ -1422,3 +1422,57 @@ contém somente fatos cronológicos.
 - Próxima condição: decidir explicitamente ADR-0002 e ADR-0004 a ADR-0006,
   reconciliar a baseline escolhida e executar a auditoria combinada do
   `STATE-02`; a decisão bilíngue não implica nenhuma dessas decisões.
+
+## 2026-08-01 — Idiomas da interface formalizados no corpus 4.4.0
+
+- Estado anterior e resultante: `STATE-02 ARCHITECTURE` ativo; Automatic
+  Quality Gate `BLOQUEADO`; Human Gate `PENDENTE`; sem transição.
+- Autoridade humana exata:
+
+  ```text
+  idioma da interface: pt-BR e en-GB
+  ```
+
+- Decisão: `pt-BR` e `en-GB` são o conjunto fechado de idiomas da interface
+  do MVP. O Dashboard deve oferecer escolha visual explícita e localizar
+  rótulos, orientações, estados, validações e erros pertencentes ao produto no
+  idioma selecionado.
+- Independência: `interfaceLanguage` não altera nem é inferido de
+  `questionLanguage`, `answerLanguage` ou `contentLanguage`. Perguntas em
+  qualquer idioma de consulta suportado podem ser feitas em qualquer idioma
+  visual; textos derivados da fonte permanecem no idioma original da citação.
+- Homologação: testes de componente e fluxo devem cobrir
+  `pt-BR×pt-BR`, `pt-BR×en-GB`, `en-GB×pt-BR` e `en-GB×en-GB` entre idioma
+  visual e idioma da pergunta, sem mistura indevida de textos do produto nem
+  tradução de citações.
+- Rastreabilidade: acrescentados `RF-022`, `RNF-016`, `AC-MVP-017` e
+  `BL-M17`; política de idioma, visão, arquitetura, contratos, lifecycle,
+  Quality Gates, roadmap, threat model, relatório, índices e snapshot factual
+  foram reconciliados.
+- Limite factual: o suporte visual bilíngue não foi implementado nem testado.
+  Idioma inicial, persistência da preferência e fallback não foram decididos
+  e pertencem ao trabalho futuro de frontend em `STATE-05`.
+- Escopo negativo: nenhuma mudança no comportamento bilíngue de consulta;
+  nenhum idioma inicial, mecanismo de persistência ou fallback inferido;
+  nenhuma aceitação de ADR, mudança de lifecycle, código funcional,
+  dependência, rede, provider, GitHub, OCI, recurso externo, publicação,
+  deploy ou DB-Notifier.
+- SemVer: corpus `4.4.0` (`MINOR`) por acrescentar uma capacidade funcional e
+  critérios de homologação compatíveis antes da implementação pública,
+  preservando os 13 arquivos ativos em `prompts/`.
+- Runtime preflight: `NÃO APLICÁVEL`; a execução foi exclusivamente
+  documental e local, sem inspeção ou encerramento de processos.
+- Verificações: auditoria do repositório aprovou 83 arquivos não ignorados e
+  30 Markdown; 13 arquivos em `prompts/`; 22 RF, 16 RNF, 17 critérios de
+  aceitação e 33 itens de backlog; 88 definições estáveis sem duplicidade; um
+  H1 por Markdown; ADR-0001 `superseded`, ADR-0003 `accepted` e ADR-0002 e
+  ADR-0004 a ADR-0006 `proposed`; 30 ameaças, 12 grupos de testes de segurança
+  e `git diff --check` aprovados.
+- Quality Gate: incremento documental `4.4.0` `APROVADO`; o Automatic Quality
+  Gate de `STATE-02` permanece `BLOQUEADO` pelas decisões de ADR e auditoria
+  combinada ainda pendentes.
+- Human Gate: permanece `PENDENTE` e não foi solicitado.
+- Próxima condição: decidir explicitamente ADR-0002 e ADR-0004 a ADR-0006,
+  reconciliar a baseline escolhida e executar a auditoria combinada do
+  `STATE-02`; a decisão dos idiomas visuais não implica nenhuma dessas
+  decisões.

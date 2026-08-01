@@ -13,7 +13,9 @@ not authorise implementation or prove runtime behaviour.
 The owner has independently fixed the query-language boundary to `pt-BR` and
 `en-GB`: answers use the declared question language and source-derived
 citations retain their original language. This does not accept a proposed ADR
-or determine the Dashboard language.
+or determine the Dashboard language. A later independent owner decision
+selected `pt-BR` and `en-GB` as the supported Dashboard languages; the visual
+selection remains independent from the query language.
 
 The architecture follows DB-Notifier principles where they are proportional
 to the RAG-Challenge: inward dependencies, provider-neutral contracts,

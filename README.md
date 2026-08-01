@@ -45,6 +45,8 @@ O primeiro produto funcional deverá:
 - responder perguntas usando somente evidências recuperadas;
 - aceitar perguntas em `pt-BR` e `en-GB` e responder no idioma declarado da
   pergunta;
+- permitir alternar a interface entre `pt-BR` e `en-GB`, independentemente do
+  idioma da pergunta;
 - apresentar documento e localização usados na resposta;
 - preservar nas citações o idioma original do conteúdo da fonte;
 - declarar evidência insuficiente quando o acervo não sustentar a resposta;
@@ -54,8 +56,9 @@ O primeiro produto funcional deverá:
 - possuir testes, configuração segura e documentação de execução;
 - publicar um contrato OpenAPI v1 versionado pertencente ao RAG-Challenge.
 
-Esse suporte bilíngue pertence ao fluxo de consulta. Ele não define nem
-antecipa o idioma visual da interface web.
+O idioma visual e o idioma da consulta são seleções independentes. A forma de
+seleção inicial, persistência e fallback da interface ainda será decidida no
+estado responsável pelo frontend.
 
 O acervo de referência fornecido pelo curso não será usado automaticamente:
 ele permanece em `reference-materials/`, fora do Git. Antes da implementação,

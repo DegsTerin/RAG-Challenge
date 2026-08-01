@@ -68,13 +68,27 @@ payload data or externally supplied content merely to apply `en-GB`.
 
 ## User interface
 
-Treat the user-interface language as a separate product decision.
+The owner separately selected Brazilian Portuguese (`pt-BR`) and British
+English (`en-GB`) as the closed set of supported user-interface languages on
+2026-08-01.
+
+- The interface exposes an explicit language choice and renders
+  project-owned labels, guidance, status, validation and error messages in the
+  selected interface language.
+- The selected interface language is independent from `questionLanguage`. A
+  user can ask in either supported query language while using either supported
+  interface language.
+- Source-derived citation content remains in `contentLanguage`; interface
+  localisation does not translate evidence.
+- Initial selection, persistence and fallback mechanics require their own
+  later product decision and must not be inferred by an implementation.
 
 Do not infer the interface language from:
 
 - the conversation language;
 - the engineering language;
-- the documentation language.
+- the documentation language;
+- `questionLanguage` or `answerLanguage`.
 
 ## Governance
 

@@ -2,10 +2,11 @@
 
 ## Versão atual
 
-- Versão: `4.3.0`
+- Versão: `4.4.0`
 - Data: 2026-08-01
-- Status: suporte de consulta em `pt-BR` e `en-GB` formalizado; `STATE-02`
-  ativo, com fatos públicos reconciliados e decisões de ADR pendentes
+- Status: interface e consulta em `pt-BR` e `en-GB` formalizadas por contratos
+  independentes; `STATE-02` ativo, com fatos públicos reconciliados e decisões
+  de ADR pendentes
 - Escopo: 13 arquivos ativos em `prompts/`
 
 A versão do corpus é independente da versão futura do software.
@@ -19,6 +20,40 @@ A versão do corpus é independente da versão futura do software.
 
 Toda alteração atualiza este arquivo e, quando necessário,
 [`../Start-Here.md`](../Start-Here.md).
+
+## 4.4.0 — 2026-08-01
+
+- Registra a decisão explícita e separada do proprietário de suportar a
+  interface do Dashboard em português do Brasil (`pt-BR`) e inglês britânico
+  (`en-GB`).
+- Exige escolha visual explícita e localização de rótulos, orientações,
+  estados, validações e erros pertencentes ao produto, preservando
+  acessibilidade e evitando mistura não intencional de idiomas.
+- Mantém `interfaceLanguage` independente de `questionLanguage`,
+  `answerLanguage` e `contentLanguage`: qualquer idioma de consulta suportado
+  pode ser usado em qualquer idioma visual, e textos derivados das fontes
+  permanecem sem tradução nas citações.
+- Acrescenta `RF-022`, `RNF-016`, `AC-MVP-017` e `BL-M17`, e reconcilia visão,
+  arquitetura, contratos, lifecycle, Quality Gates, roadmap, threat model,
+  relatório, índices e estado factual com a decisão.
+- Exige testes de componente e fluxo para as quatro combinações entre idioma
+  visual e `questionLanguage`: `pt-BR×pt-BR`, `pt-BR×en-GB`,
+  `en-GB×pt-BR` e `en-GB×en-GB`, sem traduzir citações.
+- Mantém idioma inicial, persistência da preferência e fallback como decisões
+  futuras de frontend; nenhum desses mecanismos foi inferido da seleção do
+  conjunto suportado.
+- Mantém ADR-0002 e ADR-0004 a ADR-0006 como `proposed`; a decisão não aceita
+  corpus, fonte, provider, persistência, egress, OCI ou qualquer outro
+  conteúdo desses ADRs.
+- Não altera comportamento executável, instala dependência, acessa rede,
+  executa provider, modifica recurso externo nem avança o lifecycle.
+- Classifica a mudança como `MINOR` por adicionar uma capacidade funcional e
+  critérios de homologação compatíveis antes da implementação pública.
+- A auditoria documental aprovou 83 arquivos não ignorados, 30 Markdown, 13
+  arquivos em `prompts/`, 22 RF, 16 RNF, 17 critérios de aceitação, 33 itens
+  de backlog, 88 definições estáveis sem duplicidade, H1, links, UTF-8/LF,
+  status dos ADRs, 30 ameaças, 12 grupos de testes de segurança e
+  `git diff --check`.
 
 ## 4.3.0 — 2026-08-01
 

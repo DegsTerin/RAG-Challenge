@@ -32,6 +32,9 @@ source-derived citation text remains in the source language. Tests cover
 same-language and both cross-language directions. This decision does not
 select the Dashboard language and does not accept the remaining proposals in
 this ADR.
+A later, separate owner decision selected `pt-BR` and `en-GB` as the supported
+Dashboard languages; the HTTP query contract still does not choose between
+them.
 
 ## Proposed decision
 
@@ -175,7 +178,8 @@ in one profile grants no access through another.
 - Keep Domain entities, provider SDK types and administration operations out
   of OpenAPI.
 - Keep the query-language contract independent from Dashboard labels,
-  navigation and other user-interface language decisions.
+  navigation and `interfaceLanguage`; the Dashboard supports `pt-BR` and
+  `en-GB` through its own product state rather than an API authority field.
 
 ### Query limits and abuse controls
 

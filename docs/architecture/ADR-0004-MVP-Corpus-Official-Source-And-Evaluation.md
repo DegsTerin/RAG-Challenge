@@ -36,6 +36,8 @@ original language. Deterministic tests cover same-language retrieval and both
 cross-language directions. This constraint is accepted independently of the
 corpus, source, licence and threshold proposals below, does not decide the
 Dashboard language and does not accept this ADR as a whole.
+A later, separate owner decision selected `pt-BR` and `en-GB` as the supported
+Dashboard languages without coupling them to the query-language matrix.
 
 ## Proposed decision
 
