@@ -27,6 +27,27 @@ Apply instructions in this order:
 Surface any unresolved material conflict before an irreversible or externally
 impactful action.
 
+## Decision efficiency and proportionality
+
+- Optimise for useful decision progress per unit of time. Start with the
+  simplest accurate answer, candidate set or local inspection that can resolve
+  the owner's immediate question.
+- Identify the exact decision or deliverable before gathering evidence, and
+  separate facts that can change that decision from merely useful background.
+- Match verification depth to decision risk. Do not turn exploratory or
+  editorial work into evidence-grade external verification unless the current
+  gate, security boundary or owner explicitly requires it.
+- Separate rapid composition from formal verification: establish the candidate
+  set first, then verify only the facts that can alter selection, acceptance or
+  safe execution.
+- Prefer one complete, bounded authority proposal over serial
+  micro-authorisations when risk and scope permit. Stop and re-plan when a
+  source or verification path shows diminishing decision value.
+- Do not repeat failed sources or requests merely to recover low-value data.
+  Report the limitation and recommend the fastest defensible alternative.
+- Efficiency never relaxes factual honesty, security, quality, lifecycle or
+  explicit-authority requirements.
+
 ## Product identity and independence
 
 - `RAG-Challenge` is the canonical repository and product name.
