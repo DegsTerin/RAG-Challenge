@@ -33,6 +33,7 @@ Local source or governed official snapshot
 
 Question
   -> Validation
+  -> Question-language validation
   -> Source-scope selection
   -> Source availability/freshness validation
   -> Query embedding
@@ -53,7 +54,7 @@ Unidade lógica de conhecimento com:
 - nome e descrição;
 - estado `Active`, `Inactive` ou `Unavailable`;
 - política de fonte;
-- idioma;
+- idiomas de conteúdo declarados, restritos no MVP a `pt-BR` e `en-GB`;
 - revisão declarada;
 - referência lógica à geração de índice ativa, cujo registro canônico pertence
   exclusivamente ao `IIndexGenerationStore`.
@@ -75,6 +76,7 @@ citações. Ele não representa dois acervos administráveis nem permite `All`.
 - versão declarada quando disponível;
 - data da fonte;
 - data de ingestão;
+- `contentLanguage` declarado como `pt-BR` ou `en-GB`;
 - `sourceAdapterId`;
 - `SourceTrustClass`;
 - locator sanitizado;
@@ -94,6 +96,7 @@ integra a geração do índice.
 Cada chunk preserva:
 
 - corpus, `SourceScope`, documento e versão;
+- `contentLanguage` herdado da versão documental;
 - estratégia e versão de chunking;
 - ordem;
 - página, seção ou localização disponível;
@@ -432,6 +435,9 @@ O MVP fixa um único corpus por configuração e não expõe administração rem
 ## Recuperação e geração
 
 - Normalizar e limitar a pergunta.
+- Exigir `questionLanguage=pt-BR|en-GB` e validá-lo antes de qualquer chamada
+  externa; não inferir silenciosamente outro idioma em perguntas curtas ou
+  ambíguas.
 - Validar `sourceScope`; não aceitar URL, domínio ou adapter na pergunta.
 - Resolver o `CorpusActivationRecord` uma única vez no início da consulta.
 - Validar disponibilidade e freshness do escopo selecionado antes de gerar o
@@ -443,6 +449,8 @@ O MVP fixa um único corpus por configuração e não expõe administração rem
 - Aplicar os filtros obrigatórios de `CorpusId`, `IndexGenerationId` e
   `SourceScope` antes do top-k/ranking.
 - Separar claramente instruções confiáveis de evidências não confiáveis.
+- Instruir o modelo a gerar a resposta exatamente em `questionLanguage`,
+  mesmo quando `contentLanguage` das evidências for diferente.
 - Limitar número e tamanho total dos trechos.
 - Exigir referência de cada afirmação factual relevante.
 - Rejeitar citação que não pertença ao conjunto recuperado.
@@ -498,6 +506,7 @@ Uma citação sempre inclui:
 - `indexGenerationId`;
 - `documentId`;
 - `documentVersion`;
+- `contentLanguage`;
 - chunk ID;
 - `sourceAdapterId` e `SourceTrustClass`.
 
@@ -507,12 +516,17 @@ Quando disponíveis, também inclui:
 - página ou seção;
 - locator seguro para exibição.
 
+Título, seção, trecho e qualquer outro texto derivado da fonte permanecem no
+`contentLanguage` original. A geração pode explicar a evidência no idioma da
+pergunta, mas não reescreve nem traduz o conteúdo apresentado como citação.
+
 A resposta inclui metadados técnicos:
 
 - `SourceScope`;
 - `indexGenerationId`;
 - `retrievalPolicyVersion`;
 - `promptVersion`;
+- `answerLanguage`, sempre igual ao `questionLanguage` aceito;
 - provider e revisão do modelo de linguagem;
 - `correlationId`.
 
@@ -550,6 +564,7 @@ Antes de homologar um provider ou versão:
 - rubrica para relevância, fidelidade e qualidade da citação;
 - recuperação: recall/precision em critérios aprovados;
 - resposta: groundedness e ausência de afirmações não sustentadas;
+- idioma: resposta no idioma da pergunta e citação no idioma original;
 - segurança: prompt injection e conteúdo malicioso;
 - isolamento entre `Local` e `OfficialOnline`;
 - busca adversarial em que chunks do scope incorreto pontuam acima dos
@@ -567,6 +582,13 @@ Antes de homologar um provider ou versão:
   `CorpusActivationRecord`;
 - operação: latência, falha, rate limit e custo;
 - regressão entre versões de documento, prompt, modelo e índice.
+
+A suíte determinística cobre a matriz completa entre idioma da pergunta e
+idioma da evidência: `pt-BR→pt-BR`, `en-GB→en-GB`, `pt-BR→en-GB` e
+`en-GB→pt-BR`. Quando o corpus real aprovado não contiver um dos idiomas de
+evidência, testes unitários, de contrato e de integração usam fixtures
+sintéticas autorizadas e claramente separadas do corpus do produto. Essa
+matriz não decide o idioma visual da interface.
 
 Dataset, rubrica e thresholds iniciais pertencem ao `STATE-02`. O `STATE-07`
 executa a campanha; qualquer revisão exige decisão formal registrada antes da

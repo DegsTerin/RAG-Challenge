@@ -85,6 +85,9 @@ If accepted after verification:
 
 - Select provider ID `openai` and model ID `text-embedding-3-small` as the MVP
   candidate.
+- Treat cross-language retrieval quality as unverified until the candidate
+  passes the `pt-BR`/`en-GB` same-language and bidirectional cross-language
+  evaluation matrix; public model availability is not that evidence.
 - Use 1,536 dimensions and cosine similarity. Reject a response whose
   descriptor or vector dimension differs from active configuration.
 - Batch only within a configured byte/token ceiling and preserve input/output
@@ -122,6 +125,9 @@ new generation and blocks silent reuse.
   conversations, previous-response state or hosted tools.
 - Send only the validated question, the minimum retrieved evidence, trusted
   response instructions and non-secret citation identifiers.
+- Include the trusted `questionLanguage` instruction and require structured
+  `answerLanguage` output equal to it. Do not ask the model to translate
+  source-derived citation text.
 - Require structured output that identifies cited chunk IDs; validate every
   ID against retrieved evidence before producing `Answered`.
 - Treat invalid structure, unsupported citations and provider refusal as typed
@@ -381,6 +387,8 @@ conflict with the accepted lifecycle model.
   monitoring for up to 30 days and no verified Brazilian residency.
 - The embedding candidate lacks a dated immutable snapshot, so provider alias
   drift must be detected and evaluated rather than assumed stable.
+- Either provider candidate failing the accepted `pt-BR`/`en-GB` language
+  matrix blocks that candidate; it does not relax the product requirement.
 - One Sao Paulo availability domain and 99.99% block-volume durability make a
   regional independent backup and tested restore material, not optional
   copies on the data volume.
@@ -414,6 +422,9 @@ conflict with the accepted lifecycle model.
 - A disposable authorised spike confirms PDF extraction quality, embedding
   dimensions, structured model output and the exact vector-store latency cap;
   no spike artefact becomes product implementation.
+- The authorised evaluation proves answer-language equality, original-language
+  citation preservation and all four question/evidence language pairs before
+  either provider is described as supporting the product requirement.
 - A clean local environment and the named OCI architecture can reopen raw
   content, catalogue and vector data after restart.
 - Backup/restore and activation rollback have distinct procedures and owners.

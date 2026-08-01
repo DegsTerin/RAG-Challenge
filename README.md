@@ -43,13 +43,19 @@ O primeiro produto funcional deverá:
 - preservar bytes imutáveis reabríveis para rebuild e rollback;
 - dividir, vetorizar e indexar o conteúdo com estratégias versionadas;
 - responder perguntas usando somente evidências recuperadas;
+- aceitar perguntas em `pt-BR` e `en-GB` e responder no idioma declarado da
+  pergunta;
 - apresentar documento e localização usados na resposta;
+- preservar nas citações o idioma original do conteúdo da fonte;
 - declarar evidência insuficiente quando o acervo não sustentar a resposta;
 - permitir substituir documentos e reconstruir o índice com segurança;
 - executar no computador local;
 - ser publicável em OCI com evidência verificável;
 - possuir testes, configuração segura e documentação de execução;
 - publicar um contrato OpenAPI v1 versionado pertencente ao RAG-Challenge.
+
+Esse suporte bilíngue pertence ao fluxo de consulta. Ele não define nem
+antecipa o idioma visual da interface web.
 
 O acervo de referência fornecido pelo curso não será usado automaticamente:
 ele permanece em `reference-materials/`, fora do Git. Antes da implementação,

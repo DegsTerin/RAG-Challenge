@@ -23,6 +23,16 @@ capabilities. It must prevent a question or retrieved document from changing
 policy, source, provider or administration. It also needs a stable OpenAPI v1
 contract without exposing Domain, persistence or provider types.
 
+## Owner-decided query-language constraint
+
+On 2026-08-01, the owner explicitly required question and answer support for
+Brazilian Portuguese (`pt-BR`) and British English (`en-GB`). Each request
+declares the question language, the answer uses that same language, and
+source-derived citation text remains in the source language. Tests cover
+same-language and both cross-language directions. This decision does not
+select the Dashboard language and does not accept the remaining proposals in
+this ADR.
+
 ## Proposed decision
 
 If accepted:
@@ -145,9 +155,14 @@ in one profile grants no access through another.
   model or adapter fields.
 - Require exactly one configured `corpusId` and one of `Local` or
   `OfficialOnline`.
+- Require `questionLanguage` with exactly `pt-BR` or `en-GB`; reject missing,
+  unsupported or non-canonical language tags before any provider call.
 - Return completed `Answered` and `InsufficientEvidence` outcomes with HTTP
-  `200`; map every failure through the canonical table in the contract
-  document.
+  `200`. Every completed response includes `answerLanguage` equal to the
+  accepted `questionLanguage`; an `Answered` payload uses that language. Map
+  every failure through the canonical table in the contract document.
+- Include `contentLanguage` in every citation and preserve source-derived
+  title, section, excerpt and other citation text without model translation.
 - Use RFC 9457 Problem Details with stable `CH_*` extension code and
   correlation ID. Never include stack, provider payload, prompt, passage,
   path, endpoint or secret.
@@ -159,6 +174,8 @@ in one profile grants no access through another.
   permitted in v1 only after contract tests and changelog review.
 - Keep Domain entities, provider SDK types and administration operations out
   of OpenAPI.
+- Keep the query-language contract independent from Dashboard labels,
+  navigation and other user-interface language decisions.
 
 ### Query limits and abuse controls
 
@@ -251,6 +268,9 @@ polling.
   access to the host.
 - OpenAPI compatibility becomes a testable product contract owned solely by
   RAG-Challenge.
+- Explicit language tags avoid ambiguous server-side detection for short
+  questions, while cross-language retrieval remains an evaluated RAG
+  capability.
 
 ## Security and operations
 
@@ -283,7 +303,10 @@ polling.
 - Tests prove mixed DNS answers, forbidden addresses, rebinding attempts,
   IP-pinned connection, Host/SNI preservation, redirect refusal and zero
   certificate-validation egress.
-- Query tests prove no cross-scope fallback and no source fetch.
+- Query tests prove no cross-scope fallback, no source fetch, exact
+  `answerLanguage == questionLanguage`, and the full `pt-BR→pt-BR`,
+  `en-GB→en-GB`, `pt-BR→en-GB` and `en-GB→pt-BR` question/evidence matrix
+  with untranslated source-derived citation text.
 - OpenAPI compatibility tests cover schemas, statuses, stable codes and
   provider/Domain type exclusion.
 - Readiness tests cover healthy Local with every official-source degradation.

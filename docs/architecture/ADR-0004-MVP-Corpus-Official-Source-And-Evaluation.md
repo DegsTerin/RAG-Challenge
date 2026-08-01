@@ -27,6 +27,16 @@ The local Challenge materials are provenance inputs only and cannot be used as
 the product corpus. Evaluation criteria must be frozen before the first
 homologation run that could influence thresholds.
 
+## Owner-decided query-language constraint
+
+On 2026-08-01, the owner explicitly selected Brazilian Portuguese (`pt-BR`)
+and British English (`en-GB`) for questions and answers. An answer uses the
+declared question language; source-derived citation text remains in its
+original language. Deterministic tests cover same-language retrieval and both
+cross-language directions. This constraint is accepted independently of the
+corpus, source, licence and threshold proposals below, does not decide the
+Dashboard language and does not accept this ADR as a whole.
+
 ## Proposed decision
 
 If accepted after verification:
@@ -125,6 +135,13 @@ substitution.
 - Annotate each answerable case with the allowed document version, one or more
   relevant locations, required facts, prohibited extrapolations and the
   expected evidence scope.
+- Annotate every case with `questionLanguage` and the expected
+  `contentLanguage` of its evidence. In each scope, include answerable
+  questions in both `pt-BR` and `en-GB` against the approved evidence.
+- Supplement the scored product-corpus cases with deterministic contract and
+  integration fixtures that cover `pt-BR→pt-BR`, `en-GB→en-GB`,
+  `pt-BR→en-GB` and `en-GB→pt-BR` between question and evidence. Fixtures are
+  not product corpus and are never reported as product-source coverage.
 - Keep evaluation questions and expected answers out of the runtime corpus.
 - Use deterministic retrieval evaluation and a documented two-person human
   rubric for answer quality. A model judge may be supplementary but cannot be
@@ -137,6 +154,8 @@ substitution.
 | Recall@5 for answerable cases | at least `0.90` overall and `0.85` per scope |
 | Mean reciprocal rank at 5 | at least `0.75` per scope |
 | Citation identity and location validity | `1.00` |
+| Answer language equals declared question language | `1.00` |
+| Source-derived citation text preserved in its original language | `1.00` |
 | Supported factual claims | at least `0.95` |
 | Correct insufficient-evidence outcome | at least `0.95` |
 | Unsupported high-impact factual claims | `0` |
@@ -218,6 +237,9 @@ more clearly while remaining separate from the software licence.
   corpus or supported claims expand.
 - Exact thresholds may expose provider or chunking weaknesses early; that is a
   desired gate outcome rather than a reason to relax the baseline.
+- Cross-language retrieval or answer-language failures reject the candidate
+  provider or prompt baseline; they do not justify translating citations or
+  weakening the accepted language requirement.
 
 ## Security, privacy and operations
 
@@ -243,5 +265,8 @@ more clearly while remaining separate from the software licence.
   corpus and official snapshot.
 - Dataset membership and thresholds are frozen before any scored run.
 - Every case declares exactly one `SourceScope`.
+- Every case declares exactly one `questionLanguage`; the combined scored and
+  deterministic suites cover both same-language pairs and both cross-language
+  directions without changing citation text.
 - The decision does not authorise a real network synchronisation or create a
   product snapshot.

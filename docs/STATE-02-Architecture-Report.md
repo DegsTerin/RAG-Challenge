@@ -51,6 +51,13 @@ remaining allowlisted checks, with the same negative scope. A new host,
 repository, redirect, authentication or unexpected authority remained a
 mandatory stop condition.
 
+On 2026-08-01, the owner separately fixed the product query-language boundary
+to `pt-BR` and `en-GB`: answers use the declared question language,
+source-derived citation text remains in its original language and tests cover
+same-language and both cross-language directions. This documentary decision
+does not select the Dashboard language, accept an ADR or authorise executable
+work.
+
 The final resumption instruction required direct HTTPS requests to exact URLs
 on the existing allowlist and prohibited general web search and automatic link
 following. Textual references to other hosts were not access. A performed
@@ -127,13 +134,13 @@ and requested separately.
 | Parser | PdfPig adapter | `proposed`; 0.1.15 is the current verified stable candidate under Apache-2.0, public .NET 10 compatibility and security metadata are recorded, and absence of a public advisory is not proof of safety. Version selection and runtime extraction evidence remain pending. |
 | Normalisation | Unicode NFC and deterministic whitespace/control policy | `proposed`; locally specified. |
 | Chunking | `paragraph-window-v1`, target 3,200 scalars, overlap 480, hard max 4,000 | `proposed`; must pass evaluation. |
-| Embeddings | OpenAI `text-embedding-3-small`, 1,536 dimensions, cosine | `proposed`; current availability, dimensions, endpoint, price and public quotas verified. No immutable dated snapshot exists; actual tier and owner acceptance of retention/disclosure/residency remain pending. |
-| Language model | OpenAI `gpt-4.1-mini-2025-04-14` | `proposed`; snapshot, Responses/Structured Outputs, price, public quotas and data policy verified. The owner must decide default provider retention/disclosure and absence of Brazilian residency. |
+| Embeddings | OpenAI `text-embedding-3-small`, 1,536 dimensions, cosine | `proposed`; current availability, dimensions, endpoint, price and public quotas verified. No immutable dated snapshot exists; actual tier, owner acceptance of retention/disclosure/residency and `pt-BR`/`en-GB` retrieval quality remain pending. |
+| Language model | OpenAI `gpt-4.1-mini-2025-04-14` | `proposed`; snapshot, Responses/Structured Outputs, price, public quotas and data policy verified. The owner must decide default provider retention/disclosure and absence of Brazilian residency; answer-language compliance remains untested. |
 | Catalogue/control persistence | EF Core SQLite | `proposed`; exact packages remain unapproved. |
 | Raw content | Durable content-addressed filesystem | `proposed`; contract specified. |
 | Vector store | Local `SqliteExactVectorStore`, hard SQL pre-filter and exact cosine ranking | `proposed`; 10,000-chunk cap requires later performance proof. |
 | OCI | Single ARM64 OCI Compute instance in `sa-saopaulo-1`, durable block volume | `proposed`; region, shape validity, public limits/prices, storage, Secret Management and endpoints verified. Actual capacity/entitlement is tenancy-specific; free-allowance sources conflict, and backup target/retention remain decisions. |
-| Evaluation | `rag-eval-mvp-v1`, 80 cases and pre-registered thresholds | `proposed`; dataset not authored or run. |
+| Evaluation | `rag-eval-mvp-v1`, 80 cases and pre-registered thresholds | `proposed`; dataset not authored or run. The `pt-BR`/`en-GB` question/evidence matrix is an owner-decided constraint on the future dataset and deterministic fixtures. |
 
 ### Alternatives retained
 
@@ -163,6 +170,8 @@ ADR-0004 and ADR-0005, followed by reconciliation of the chosen baseline.
   ports;
 - complete `CorpusActivationRecord` compare-and-swap semantics;
 - query request/response and citation v1;
+- explicit `questionLanguage`, `answerLanguage` and citation
+  `contentLanguage` semantics for `pt-BR` and `en-GB`;
 - canonical `ApplicationFailure → CH_* → HTTP/Problem Details` table;
 - readiness semantics that keep Local serviceable during official-source
   degradation;
@@ -189,7 +198,10 @@ ADR-0004 and ADR-0005, followed by reconciliation of the chosen baseline.
 `PREPARADO PARA DECISÃO`, not accepted: ADR-0006, the canonical contracts and
 threat model are complete as proposals. Exact AI paths and Sao Paulo OCI
 service endpoints are now documented; residual-risk acceptance still depends
-on ADR-0004/ADR-0005 and explicit owner decisions.
+on ADR-0004/ADR-0005 and explicit owner decisions. The separately decided
+query-language constraint is already binding on whichever proposal baseline
+is later accepted; it does not accept the remaining contents of ADR-0004 or
+ADR-0006.
 
 The threat-model status cells for `THR-S02-014` and `THR-S02-015` retain the
 pre-resumption wording `Blocked by provider verification`. Public provider
@@ -212,6 +224,7 @@ Quality Gate can pass.
 | Durable content/catalogue/index persistence | ADR-0005 | Proposed. |
 | Four egress policies | ADR-0006 | Prepared; exact official-source URI, AI methods and candidate OCI regional endpoints documented. Profiles remain disabled and untested. |
 | Vector search, failures, readiness and OpenAPI | Contract document and ADR-0006 | Prepared. |
+| `pt-BR`/`en-GB` question, answer, evidence and citation semantics | Requirements, contract document, ADR-0004 and ADR-0006 | Owner decided; documented for later implementation and homologation, not yet tested at runtime. |
 | SSRF and DNS/IP pinning | ADR-0006 and threat model | Prepared; not implemented/tested. |
 | Evaluation, OCI and rollback | ADR-0004, ADR-0005 and contracts | Proposed; public external facts verified. Dataset, account capacity/entitlement, backup choice and later tests remain pending. |
 
@@ -255,8 +268,10 @@ The current decision packet requires these explicit outcomes:
 - ADR-0005: accept, reject or change PdfPig 0.1.15 subject to a later spike;
   `paragraph-window-v1`; the mutable `text-embedding-3-small` alias; OpenAI
   `gpt-4.1-mini-2025-04-14`; default provider retention/disclosure and absence
-  of Brazilian residency; OpenAI SDK 2.12.0 candidate; SQLite/filesystem/exact
-  vector persistence; and the Sao Paulo A1 deployment subject to capacity,
+  of Brazilian residency; compliance with the owner-decided `pt-BR`/`en-GB`
+  retrieval and answer contract; OpenAI SDK 2.12.0 candidate;
+  SQLite/filesystem/exact vector persistence; and the Sao Paulo A1 deployment
+  subject to capacity,
   conflicting free-allowance evidence, selected block-volume size,
   independent backup/retention and Secret Management design.
 - ADR-0006: accept, reject or change the four deny-by-default egress profiles,
@@ -329,6 +344,7 @@ creates a resource or authorises `STATE-03`.
 | Final direct-URL reconciliation audit | Passed for 83 non-ignored files; only ADR-0005, ADR-0006 and this report changed, all with LF. Repository audit, `git diff --check`, four `proposed` ADR statuses, 30 threat IDs and 12 security-test groups passed. |
 | Executable spike, build or runtime test | Not run; documentary scope and no implementation change. |
 | ADR decisions | Pending human decisions. |
+| Query-language requirement and contract consistency | Documented for `pt-BR` and `en-GB`, with answer-language equality, original-language citations and a four-pair question/evidence test matrix; executable behaviour not run. |
 
 ## Current gate assessment
 

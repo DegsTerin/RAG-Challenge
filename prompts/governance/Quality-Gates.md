@@ -84,7 +84,7 @@ Um lote está pronto quando:
 | Arquitetura | Dependências para dentro e superfícies proibidas. |
 | Contrato | Adapters de parser, conteúdo bruto, embeddings, vetor, LLM, OpenAPI e API. |
 | Integração | Persistência, geração/ativação atômica, rollback, restart e HTTP. |
-| RAG evaluation | Recuperação, groundedness, citações e recusa. |
+| RAG evaluation | Recuperação, groundedness, citações, recusa e matriz `pt-BR`/`en-GB` entre pergunta e evidência. |
 | Segurança | Arquivo malicioso, prompt injection, SSRF, source leakage, secrets e abuso. |
 | Acessibilidade | Teclado, foco, semântica, contraste e reflow. |
 | E2E | Documento até resposta e deploy até smoke. |
@@ -183,12 +183,12 @@ coordenação ou validação.
 | Estado | Verificações adicionais |
 |---|---|
 | `STATE-01` | Clone/bootstrap limpo, lockfiles, configuração, CI e ausência de domínio prematuro. |
-| `STATE-02` | ADRs, contratos, threat model, providers, corpus/licença, URL oficial/termos, quatro políticas de egress, persistência durável, erros/readiness/OpenAPI e rollback. |
+| `STATE-02` | ADRs, contratos, threat model, providers, corpus/licença, URL oficial/termos, contrato `pt-BR`/`en-GB`, quatro políticas de egress, persistência durável, erros/readiness/OpenAPI e rollback. |
 | `STATE-03` | Constraints, conteúdo reabrível, hashes, snapshot imutável, observações/freshness, source scope/digests, staging não consultável, manifesto final com integridade/contagens, retenção, migrations e `CorpusActivationRecord` atômico. |
-| `STATE-04` | Arquitetura, sync oficial manual, `304`/hash idêntico e retirada/desativação condicionados ao registro ativo, hard pre-filter antes do top-k, OpenAPI versionado, citações, recusa, idempotência, falhas e adapters. |
+| `STATE-04` | Arquitetura, sync oficial manual, `304`/hash idêntico e retirada/desativação condicionados ao registro ativo, hard pre-filter antes do top-k, OpenAPI versionado, contrato bilíngue, citações no idioma original, recusa, idempotência, falhas e adapters. |
 | `STATE-05` | Seletor Local/OfficialOnline, freshness, estados de UI, teclado, contraste e acessibilidade. |
 | `STATE-06` | E2E com HTTP falso, smoke real opt-in autorizado, restart, artefato e sandbox OCI. |
-| `STATE-07` | Dataset por escopo, source leakage, DNS rebinding/pinning/redirect, stale, groundedness, carga, crash boundaries e recuperação. |
+| `STATE-07` | Dataset por escopo, matriz `pt-BR`/`en-GB` entre pergunta/evidência, source leakage, DNS rebinding/pinning/redirect, stale, groundedness, carga, crash boundaries e recuperação. |
 | `STATE-08` | Artefato, egress oficial autorizado, deploy, smoke, health, evidência e rollback. |
 
 ## Estratégia de CI
@@ -216,6 +216,8 @@ A campanha define antes da execução:
 - corpus e versão;
 - `sourceScope`, snapshot/freshness e política de isolamento;
 - conjunto de perguntas e casos sem resposta;
+- `questionLanguage` e `contentLanguage` de cada caso, com os pares
+  `pt-BR→pt-BR`, `en-GB→en-GB`, `pt-BR→en-GB` e `en-GB→pt-BR` cobertos;
 - providers, modelos, prompts e parâmetros;
 - versão do índice;
 - rubrica e thresholds;
@@ -226,6 +228,8 @@ Medidas candidatas:
 
 - relevância/recall da recuperação;
 - precisão de citações;
+- correspondência exata entre idioma da resposta e da pergunta;
+- preservação do idioma original do texto derivado da fonte nas citações;
 - groundedness;
 - taxa de respostas indevidas em casos sem evidência;
 - latência e custo;
@@ -272,8 +276,10 @@ Human Gate.
 - `STATE-01`: repetir onboarding, build e testes de clone limpo.
 - `STATE-02`: walkthrough de threats, providers, corpus, fonte oficial e rollback.
 - `STATE-03`: revisar modelo, snapshot, source scope, geração e recuperação.
-- `STATE-04`: sync oficial, perguntas por escopo, sem evidência e falhas.
+- `STATE-04`: sync oficial, perguntas por escopo/idioma, recuperação cruzada,
+  citações no idioma original, sem evidência e falhas.
 - `STATE-05`: seletor, freshness, teclado, reflow, citações e erros.
 - `STATE-06`: fluxo local/official, restart e configuração de ambiente.
-- `STATE-07`: amostra por escopo, SSRF, stale, ataque, carga e rollback.
+- `STATE-07`: amostra por escopo e pelos quatro pares `pt-BR`/`en-GB`, SSRF,
+  stale, ataque, carga e rollback.
 - `STATE-08`: egress, deploy, smoke, health e recuperação.

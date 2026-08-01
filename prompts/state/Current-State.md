@@ -24,7 +24,10 @@ proprietários.
   identidade `4.0.0`, correção factual `4.0.1` e padrão copiável `4.1.0`
   também `APROVADOS`. O incremento normativo de eficiência decisória foi
   registrado como `4.2.0` (`MINOR`), e sua reorganização semanticamente
-  equivalente como `4.2.1` (`PATCH`), em 2026-08-01.
+  equivalente como `4.2.1` (`PATCH`), em 2026-08-01. A decisão de suporte
+  bilíngue para consulta foi formalizada como corpus `4.3.0` (`MINOR`) na
+  mesma data; sua auditoria incremental foi `APROVADA`, sem transição de
+  lifecycle ou aceitação implícita de ADR.
 - Human Gate de `STATE-00`: `APROVADO` sem ressalvas em 2026-07-30.
 - `GATE-B01`: `APROVADO` sem ressalvas em 2026-07-30.
 - Transição para `STATE-01 PROJECT_SETUP`: autorizada em 2026-07-30.
@@ -67,7 +70,7 @@ proprietários.
   a política de idioma acrescentou o 21º documento público por incremento
   versionado, e o ADR-0003 acrescentou o 22º.
 - A baseline aprovada no Human Gate de `STATE-00` permanece `3.4.0`.
-- O corpus de instruções vigente possui versão `4.2.1` e 13 arquivos em
+- O corpus de instruções vigente possui versão `4.3.0` e 13 arquivos em
   `prompts/`.
 - Visão, requisitos, arquitetura, RAG, segurança, qualidade, lifecycle,
   roadmap, backlog, estado, histórico e templates estão documentados.
@@ -97,6 +100,12 @@ proprietários.
   resultados auditáveis; AGENTS mantém enforcement transversal mínimo; Start
   Here mantém roteamento; Language Policy conserva somente convenções de
   idioma.
+- O corpus `4.3.0` formaliza a decisão explícita do proprietário de aceitar
+  perguntas e respostas em `pt-BR` e `en-GB`: cada consulta declara o idioma,
+  a resposta usa o mesmo idioma, textos derivados da fonte permanecem no
+  idioma original da citação e a matriz de testes cobre os pares iguais e as
+  duas direções cruzadas. A decisão não define o idioma da interface e não
+  aceita os ADRs ainda propostos.
 - A arquitetura adota princípios compatíveis com o DB-Notifier sem criar
   referência ou dependência entre os projetos.
 - O Human Gate de `STATE-00` foi confirmado na conversa coordenadora que
@@ -187,6 +196,8 @@ proprietários.
 - Fonte oficial pública sem credenciais, egress deny-by-default e validação TLS
   sem destinos laterais não autorizados.
 - Resposta grounded com citações e evidência insuficiente explícita.
+- Perguntas e respostas com idioma explícito `pt-BR` ou `en-GB`, resposta no
+  idioma da pergunta e citações preservadas no idioma original da fonte.
 - Substituição manual de documento e nova geração de índice.
 - Conteúdo bruto imutável/reabrível, staging não consultável, manifesto final
   íntegro e ativação/rollback pelo registro completo versionado.
@@ -221,19 +232,23 @@ autorizada.
    `paragraph-window-v1`; qualidade e segurança de extração dependem de spike
    futuro separadamente autorizado.
 5. Aceitar, rejeitar ou alterar OpenAI `text-embedding-3-small`, incluindo o
-   risco de alias mutável; tier, entitlement e limites da conta futura não
-   foram verificados.
+   risco de alias mutável e a obrigação de passar a recuperação cruzada
+   `pt-BR`/`en-GB`; tier, entitlement, limites da conta futura e desempenho
+   bilíngue não foram verificados.
 6. Aceitar, rejeitar ou alterar `SqliteExactVectorStore` e seus limites; a
    prova de desempenho pertence a teste futuro.
 7. Aceitar, rejeitar ou alterar OpenAI `gpt-4.1-mini-2025-04-14`, retenção,
-   divulgação de dados e ausência documentada de residência brasileira;
-   elegibilidade e controles da conta futura não foram verificados.
+   divulgação de dados, ausência documentada de residência brasileira e a
+   obrigação de responder em `questionLanguage`; elegibilidade, controles da
+   conta futura e desempenho bilíngue não foram verificados.
 8. Decidir SQLite/filesystem duráveis, retenção, backup e rollback.
 9. Aceitar, rejeitar ou alterar OCI Compute em `sa-saopaulo-1`, shape,
    volume, backup, secrets, TLS e orçamento; capacidade, entitlement, limites
    efetivos e cobrança da tenancy futura não foram verificados, e fontes
    públicas divergem sobre a franquia gratuita.
-10. Decidir dataset `rag-eval-mvp-v1`, rubrica e thresholds propostos.
+10. Decidir dataset `rag-eval-mvp-v1`, rubrica e thresholds propostos,
+    preservando a matriz `pt-BR`/`en-GB` já decidida para perguntas,
+    respostas e idioma original das citações.
 11. Decidir ADR-0006, incluindo egress, risco residual de revogação TLS,
     administração, falhas/readiness e compatibilidade OpenAPI.
 

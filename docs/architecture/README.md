@@ -10,6 +10,11 @@ ADR-0001 decision unchanged and replaces its naming provisions. ADR-0002 and
 ADR-0004 to ADR-0006 remain proposed. Acceptance records a decision but does
 not authorise implementation or prove runtime behaviour.
 
+The owner has independently fixed the query-language boundary to `pt-BR` and
+`en-GB`: answers use the declared question language and source-derived
+citations retain their original language. This does not accept a proposed ADR
+or determine the Dashboard language.
+
 The architecture follows DB-Notifier principles where they are proportional
 to the RAG-Challenge: inward dependencies, provider-neutral contracts,
 fail-closed configuration, typed outcomes, versioned evidence and explicit
@@ -90,6 +95,8 @@ Dashboard -- versioned HTTP --> API
   back or mix silently.
 - Official freshness is validated before retrieval; query-time never accesses
   the web.
+- Query contracts use explicit `pt-BR`/`en-GB` language tags; answer language
+  matches the question and citation content remains in its source language.
 
 ## Deployment shapes
 

@@ -2,9 +2,9 @@
 
 ## Versão atual
 
-- Versão: `4.2.1`
+- Versão: `4.3.0`
 - Data: 2026-08-01
-- Status: ownership normativo consolidado sem alteração semântica; `STATE-02`
+- Status: suporte de consulta em `pt-BR` e `en-GB` formalizado; `STATE-02`
   ativo, com fatos públicos reconciliados e decisões de ADR pendentes
 - Escopo: 13 arquivos ativos em `prompts/`
 
@@ -19,6 +19,35 @@ A versão do corpus é independente da versão futura do software.
 
 Toda alteração atualiza este arquivo e, quando necessário,
 [`../Start-Here.md`](../Start-Here.md).
+
+## 4.3.0 — 2026-08-01
+
+- Registra a decisão explícita do proprietário de suportar perguntas e
+  respostas em português do Brasil (`pt-BR`) e inglês britânico (`en-GB`).
+- Exige `questionLanguage` canônico em cada consulta, `answerLanguage` igual
+  na resposta e `contentLanguage` na evidência/citação, preservando título,
+  seção, trecho e demais textos derivados da fonte no idioma original.
+- Acrescenta `RF-021`, `RNF-015`, `AC-MVP-016` e `BL-M16`, e reconcilia visão,
+  arquitetura, contratos, lifecycle, Quality Gates, roadmap, threat model,
+  relatório e estado factual com a decisão.
+- Define a matriz determinística `pt-BR→pt-BR`, `en-GB→en-GB`,
+  `pt-BR→en-GB` e `en-GB→pt-BR` entre idioma da pergunta e idioma da
+  evidência, sem confundir fixtures de teste com o corpus do produto.
+- Mantém o idioma visual da interface como decisão de produto separada e não
+  infere rótulos, navegação ou localização do Dashboard a partir do contrato
+  bilíngue de consulta.
+- Mantém ADR-0002 e ADR-0004 a ADR-0006 como `proposed`; a restrição linguística
+  decidida vincula a futura baseline aceita, mas não aceita corpus, fonte,
+  provider, persistência, egress, OCI ou qualquer outro conteúdo desses ADRs.
+- Não altera comportamento executável, instala dependência, acessa rede,
+  executa provider, modifica recurso externo nem avança o lifecycle.
+- Classifica a mudança como `MINOR` por adicionar uma capacidade funcional e
+  critérios de homologação compatíveis antes da implementação pública.
+- A auditoria documental aprovou 83 arquivos não ignorados, 30 Markdown, 13
+  arquivos em `prompts/`, 21 RF, 15 RNF, 16 critérios de aceitação, 32 itens
+  de backlog, 84 definições estáveis sem duplicidade, H1, links, UTF-8/LF,
+  status dos ADRs, 30 ameaças, 12 grupos de testes de segurança e
+  `git diff --check`.
 
 ## 4.2.1 — 2026-08-01
 

@@ -26,7 +26,10 @@ Fornecer uma experiência simples de perguntas e respostas que:
 - pesquisa um acervo controlado;
 - recupera trechos relevantes;
 - gera uma resposta limitada às evidências;
+- aceita perguntas em `pt-BR` e `en-GB` e responde no idioma declarado da
+  pergunta;
 - apresenta citações rastreáveis;
+- preserva nas citações o idioma original do conteúdo referenciado;
 - declara quando a evidência é insuficiente.
 
 ## Classificação
@@ -57,6 +60,8 @@ licença e autoriza ações externas.
 
 - Entregar um MVP local e online comprovadamente funcional.
 - Produzir respostas grounded, com fontes e recusa segura.
+- Suportar perguntas e respostas em `pt-BR` e `en-GB`, com a resposta no
+  idioma declarado da pergunta e sem traduzir o conteúdo citado.
 - Manter baixo acoplamento entre domínio e provedores de IA.
 - Permitir trocar embeddings, banco vetorial e modelo sem reescrever os casos
   de uso.
@@ -86,6 +91,8 @@ licença e autoriza ações externas.
 - Consulta por API e uma interface web mínima.
 - Contrato OpenAPI v1 versionado pertencente ao RAG-Challenge.
 - Resposta com citações e resultado explícito de evidência insuficiente.
+- Idioma da pergunta explicitamente declarado como `pt-BR` ou `en-GB`, com a
+  resposta no mesmo idioma e citações preservadas no idioma da evidência.
 - Catálogo local de metadados, versão de documento e geração de índice.
 - Armazenamento durável e content-addressed dos bytes necessários a rebuild e
   rollback.
@@ -169,6 +176,7 @@ integração, homologação, recomendação ou suporte operacional.
 | `RF-018` | Adicionar formatos documentais por adapters próprios sem alterar os casos de uso do núcleo. | Futuro |
 | `RF-019` | Aplicar RBAC e escopo por corpus antes da recuperação. | Futuro |
 | `RF-020` | Exigir que cada pergunta selecione `Local` ou `OfficialOnline`, recuperar somente desse escopo e falhar sem fallback silencioso quando a fonte estiver indisponível ou stale. | Sim |
+| `RF-021` | Aceitar perguntas com idioma declarado `pt-BR` ou `en-GB`, responder no mesmo idioma e preservar no idioma original todo conteúdo derivado da fonte exibido em citações. | Sim |
 
 ## Requisitos não funcionais
 
@@ -188,6 +196,7 @@ integração, homologação, recomendação ou suporte operacional.
 | `RNF-012` | Mudanças de documento ou provider não exigem refatoração do núcleo. |
 | `RNF-013` | O repositório público possui estrutura compreensível e histórico incremental de commits. |
 | `RNF-014` | O egress da fonte oficial falha fechado, mantém os escopos distinguíveis e aplica HTTPS, allowlist, limites, pinning da conexão ao DNS/IP autorizado, redirects bloqueados, validação TLS sem destinos laterais e proteção SSRF. |
+| `RNF-015` | Contratos, recuperação e geração tratam `pt-BR` e `en-GB` por tags BCP 47 explícitas; a homologação cobre perguntas e evidências no mesmo idioma e nas duas direções cruzadas. |
 
 ## Critérios de aceitação do MVP
 
@@ -208,6 +217,7 @@ integração, homologação, recomendação ou suporte operacional.
 | `AC-MVP-013` | O repositório público possui estrutura compreensível e histórico incremental de commits, sem secrets ou materiais locais ignorados. |
 | `AC-MVP-014` | Uma sincronização autorizada busca o PDF oficial allowlisted; conteúdo alterado produz snapshot versionado e ativa atomicamente geração, snapshot e observação validados. `304` ou hash idêntico atualiza somente a observação quando a geração ativa já referencia o snapshot compatível; retirada autoritativa ou desativação administrativa também muda somente a observação do mesmo registro. Os casos incompatíveis exigem reconstrução controlada. As citações expõem URL canônica pública, snapshot e frescor. |
 | `AC-MVP-015` | A sincronização usa fonte pública sem autenticação ou segredo na URL, rejeita domínio, IP, porta, path, query, resposta DNS mista, redirect ou destino lateral de validação TLS fora da política com `SourcePolicyViolation`, e conecta somente ao IP previamente autorizado preservando Host/SNI. O usuário escolhe `Local` ou `OfficialOnline`, cada modo recupera somente o escopo selecionado, e falha, retirada ou expiração retornam estado tipado sem fallback silencioso. |
+| `AC-MVP-016` | Perguntas declaradas como `pt-BR` recebem respostas em `pt-BR`, perguntas declaradas como `en-GB` recebem respostas em `en-GB`, e citações não traduzem título, seção, trecho ou outro conteúdo proveniente da fonte. Testes determinísticos cobrem `pt-BR→pt-BR`, `en-GB→en-GB`, `pt-BR→en-GB` e `en-GB→pt-BR` entre idioma da pergunta e idioma da evidência. |
 
 ## Premissas
 
@@ -222,6 +232,8 @@ integração, homologação, recomendação ou suporte operacional.
 - Um serviço OCI de hospedagem é suficiente para o requisito mínimo, desde que
   a execução seja real e documentada.
 - As tecnologias sugeridas pelo curso são opcionais.
+- O suporte bilíngue de perguntas e respostas não determina o idioma visual
+  da interface, que permanece uma decisão de produto separada.
 
 ## Limitações e decisões pendentes
 

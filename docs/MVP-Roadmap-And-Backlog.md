@@ -26,6 +26,8 @@ Incluído:
 - um LLM;
 - geração imutável de índice;
 - consulta com citações e `INSUFFICIENT_EVIDENCE`;
+- perguntas e respostas em `pt-BR` e `en-GB`, com resposta no idioma
+  declarado da pergunta e citações no idioma original;
 - API, artefato OpenAPI v1 versionado e interface web mínima;
 - execução local;
 - CI;
@@ -151,6 +153,8 @@ Critério: cada escolha tem alternativa, consequência e owner.
   logging e auditoria.
 - Definir ownership, schemas, metadados e política de compatibilidade do
   OpenAPI v1.
+- Definir `questionLanguage`, `answerLanguage` e `contentLanguage` com os
+  valores canônicos `pt-BR` e `en-GB`, sem decidir o idioma da interface.
 - Definir dataset, rubrica e thresholds antes da execução.
 - Definir source scope, ausência de fallback e autorização dos testes reais.
 
@@ -217,19 +221,24 @@ Critério: conteúdo idêntico não cria inconsistência; falha não substitui a
 ### Lote S04-C — Recuperação e resposta
 
 - Validar pergunta.
+- Validar `questionLanguage=pt-BR|en-GB` antes de qualquer provider e exigir
+  que a geração use esse mesmo idioma na resposta.
 - Exigir `Local` ou `OfficialOnline` e aplicar pre-filter antes do top-k.
 - Recuperar somente evidências do escopo escolhido.
 - Gerar resposta constrained.
 - Validar citações.
 - Retornar evidência insuficiente.
 
-Critério: testes cobrem os dois escopos, sem resposta, stale, indisponível,
-source leakage, provider down e injection.
+Critério: testes cobrem os dois escopos, os quatro pares entre idioma da
+pergunta e idioma da evidência, preservação do idioma original nas citações,
+sem resposta, stale, indisponível, source leakage, provider down e injection.
 
 ### Lote S04-D — API
 
 - Implementar `/api/v1/questions`.
 - Exigir `sourceScope`; rejeitar URL/domínio/adapter no payload.
+- Exigir `questionLanguage=pt-BR|en-GB`, retornar `answerLanguage` igual e
+  expor `contentLanguage` nas citações.
 - Implementar liveness/readiness.
 - Mapear a taxonomia canônica para códigos `CH_*` e Problem Details.
 - Gerar e versionar o artefato OpenAPI v1 com schemas de consulta, resposta,
@@ -265,6 +274,9 @@ Critério: clone limpo reproduz o caminho documentado.
 ### Lote S07-A — Avaliação e segurança
 
 - Executar dataset congelado.
+- Executar a matriz `pt-BR→pt-BR`, `en-GB→en-GB`, `pt-BR→en-GB` e
+  `en-GB→pt-BR` entre idioma da pergunta e idioma da evidência, verificando
+  resposta no idioma da pergunta e citação sem tradução.
 - Medir recuperação, groundedness, citações, latência e custo.
 - Testar prompt injection, abuso, rate limit e falhas.
 - Testar SSRF, DNS rebinding, respostas mistas, pinning IP/Host/SNI, redirect,
@@ -318,6 +330,7 @@ Critério: checklist oficial completo.
 | `BL-M13` | README final com exemplos reais. | S08 |
 | `BL-M14` | Preservar uma geração anterior elegível e testar ativação/rollback atômicos do `CorpusActivationRecord` por compare-and-swap. | S03/S04/S07 |
 | `BL-M15` | Sincronizar um PDF oficial allowlisted com pinning DNS/IP e consultar por `OfficialOnline` com snapshot, freshness e isolamento. | S02–S08 |
+| `BL-M16` | Suportar e homologar perguntas/respostas em `pt-BR` e `en-GB`, inclusive recuperação cruzada e preservação do idioma original das citações. | S02/S04/S07 |
 
 ### Should — se não comprometer a entrega
 
@@ -357,6 +370,9 @@ Critério: checklist oficial completo.
 - Egress/SSRF e freshness exigem testes sem tornar a suíte padrão dependente
   da internet.
 - Provider externo pode exigir conta, quota, região e custo.
+- Recuperação cruzada e geração em `pt-BR`/`en-GB` podem reprovar os providers
+  candidatos e exigir alternativa, sem reduzir o requisito para obter
+  aprovação.
 - Escolha tardia de dimensão/vector store pode forçar reindexação.
 - Vector store gerenciado pode expor chunks/embeddings sem política própria.
 - GitHub Pages pode ser confundido com backend; a documentação deve manter a

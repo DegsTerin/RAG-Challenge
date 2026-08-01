@@ -172,11 +172,11 @@ succeeds; a deterministic status allows safe operator recovery.
 | `SEC-SRC-02` | Controlled DNS mixed/rebinding cases and proof of connected approved IP plus Host/SNI. |
 | `SEC-SRC-03` | Redirect, proxy, credential and certificate-download refusal. |
 | `SEC-PDF-01` | Malformed, oversized, compressed and active-content fixture limits. |
-| `SEC-RAG-01` | Prompt-injection corpus and citation-forgery rejection. |
+| `SEC-RAG-01` | Prompt-injection corpus and citation-forgery rejection across `pt-BR`, `en-GB` and cross-language evidence. |
 | `SEC-RAG-02` | Higher-scoring wrong scope/generation/corpus pre-filter proof. |
 | `SEC-DATA-01` | Content-store traversal, overwrite, symlink/reparse and deletion refusal. |
 | `SEC-ACT-01` | Crash/concurrency matrix around snapshot, manifest, audit and activation writes. |
-| `SEC-API-01` | Payload bounds, unknown fields, CORS, rate, cancellation and sanitised errors. |
+| `SEC-API-01` | Payload bounds, exact `questionLanguage` enum, unknown fields, CORS, rate, cancellation and sanitised errors. |
 | `SEC-UI-01` | XSS through question, evidence, answer, citation and Problem Details. |
 | `SEC-ADM-01` | OS identity, enable flag, reason, idempotency, lease and no HTTP route. |
 | `SEC-OCI-01` | NSG, metadata denial, unprivileged process, secret injection and restore isolation. |

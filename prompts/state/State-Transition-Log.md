@@ -1369,3 +1369,56 @@ contém somente fatos cronológicos.
   reconciliação da baseline escolhida e auditoria combinada continuam
   necessárias para desbloquear o Automatic Quality Gate de `STATE-02`; esta
   autorização não foi tratada como Human Gate.
+
+## 2026-08-01 — Suporte bilíngue de consulta formalizado no corpus 4.3.0
+
+- Estado anterior e resultante: `STATE-02 ARCHITECTURE` ativo; Automatic
+  Quality Gate `BLOQUEADO`; Human Gate `PENDENTE`; sem transição.
+- Autoridade humana exata:
+
+  ```text
+  Formalize no RAG-Challenge o suporte a perguntas e respostas em pt-BR e en-GB. A resposta deve usar o idioma da pergunta, as citações devem preservar o idioma original e os testes devem cobrir consultas no mesmo idioma e consultas cruzadas entre pt-BR e en-GB. Não infira dessa decisão o idioma da interface.
+  ```
+
+- Decisão: `pt-BR` e `en-GB` são o conjunto fechado de idiomas de consulta do
+  MVP. Cada request declara `questionLanguage`; todo resultado concluído
+  declara `answerLanguage` igual; cada evidência/citação declara
+  `contentLanguage`, e título, seção, trecho ou outro texto derivado da fonte
+  não é traduzido.
+- Contrato: `QueryRequestV1`, `QueryResponseV1`, `CitationV1`,
+  `GroundedGenerationRequest` e os metadados de documento/chunk foram
+  reconciliados com as tags BCP 47 exatas. Idioma ausente, fora do conjunto ou
+  com tag não canônica falha como entrada inválida antes de provider.
+- Homologação: a matriz determinística cobre `pt-BR→pt-BR`, `en-GB→en-GB`,
+  `pt-BR→en-GB` e `en-GB→pt-BR` entre pergunta e evidência. Quando o corpus
+  real não contiver um dos idiomas de evidência, fixtures sintéticas
+  autorizadas permanecem separadas do corpus do produto.
+- Rastreabilidade: acrescentados `RF-021`, `RNF-015`, `AC-MVP-016` e
+  `BL-M16`; visão, arquitetura, ADRs propostos, contratos, threat model,
+  lifecycle, Quality Gates, roadmap, relatório, índices e snapshot factual
+  foram reconciliados.
+- Limite factual: nenhum provider foi executado ou homologado para suporte
+  bilíngue. Os candidatos de embedding e LLM devem passar a matriz; falha
+  exige rever o candidato ou prompt, não reduzir o requisito.
+- Escopo negativo: nenhuma decisão sobre idioma visual, rótulos ou navegação
+  da interface; nenhuma aceitação de ADR, mudança de lifecycle, código
+  funcional, dependência, rede, provider, GitHub, OCI, recurso externo,
+  publicação, deploy ou DB-Notifier.
+- SemVer: corpus `4.3.0` (`MINOR`) por acrescentar uma capacidade funcional e
+  critérios de homologação compatíveis antes da implementação pública,
+  preservando os 13 arquivos ativos em `prompts/`.
+- Runtime preflight: `NÃO APLICÁVEL`; a execução foi exclusivamente
+  documental e local, sem inspeção ou encerramento de processos.
+- Verificações: auditoria do repositório aprovou 83 arquivos não ignorados e
+  30 Markdown; 13 arquivos em `prompts/`; 21 RF, 15 RNF, 16 critérios de
+  aceitação e 32 itens de backlog; 84 definições estáveis sem duplicidade;
+  um H1 por Markdown; ADR-0001 `superseded`, ADR-0003 `accepted` e ADR-0002 e
+  ADR-0004 a ADR-0006 `proposed`; 30 ameaças, 12 grupos de testes de segurança
+  e `git diff --check` aprovados.
+- Quality Gate: incremento documental `4.3.0` `APROVADO`; o Automatic Quality
+  Gate de `STATE-02` permanece `BLOQUEADO` pelas decisões de ADR e auditoria
+  combinada ainda pendentes.
+- Human Gate: permanece `PENDENTE` e não foi solicitado.
+- Próxima condição: decidir explicitamente ADR-0002 e ADR-0004 a ADR-0006,
+  reconciliar a baseline escolhida e executar a auditoria combinada do
+  `STATE-02`; a decisão bilíngue não implica nenhuma dessas decisões.

@@ -17,6 +17,8 @@ Infrastructure owns adapters; Server owns HTTP mapping and composition.
   prefix or slug format.
 - Instants use UTC ISO 8601 and durations use explicit units.
 - Public payloads use camelCase; .NET concepts below use PascalCase.
+- Language values use exact BCP 47 tags from the closed MVP set `pt-BR` and
+  `en-GB`; casing and region subtags are canonical.
 - Required bounds are validated before external or persistence work.
 - Every asynchronous port accepts cancellation and an explicit operation
   budget; no port reads ambient authority from model or document content.
@@ -31,9 +33,10 @@ Infrastructure owns adapters; Server owns HTTP mapping and composition.
 |---|---|
 | `CorpusId` | Stable lower-case slug; MVP value is fixed by configuration. |
 | `DocumentId` | Stable logical identity independent of filename. |
-| `DocumentVersion` | SHA-256, byte length, media type, source metadata and licence/provenance state. |
+| `DocumentVersion` | SHA-256, byte length, media type, `contentLanguage`, source metadata and licence/provenance state. |
 | `ContentObjectId` | Lower-case SHA-256 identity for immutable reopened bytes. |
 | `SourceScope` | Closed enum `Local` or `OfficialOnline`; no combined value. |
+| `SupportedLanguage` | Closed enum backed by exact tags `pt-BR` or `en-GB`; no neutral, inferred or fallback value. |
 | `SourceTrustClass` | Closed enum `LocalAuthorised` or `OfficialExternal`. |
 | `OfficialSnapshotId` | Immutable source key, canonical URL and content hash identity. |
 | `OfficialObservationId` | Append-only revalidation/freshness observation identity. |
@@ -102,8 +105,8 @@ Chunk(ParsedDocumentArtifact, NormalisationPolicy, ChunkingPolicy)
 ```
 
 Output is deterministic for the complete input descriptors. Every chunk
-contains corpus, scope, document/version, stable order, page/location, text
-hash and policy versions.
+contains corpus, scope, document/version, inherited `contentLanguage`, stable
+order, page/location, text hash and policy versions.
 
 ## Provider ports
 
@@ -161,10 +164,12 @@ GenerateAsync(GroundedGenerationRequest, ProviderCallBudget,
   -> GroundedGenerationResult
 ```
 
-The request contains trusted instructions, bounded question, bounded
-untrusted evidence and allowed chunk IDs. It exposes no tool. Output contains
-plain answer text and cited chunk IDs. Application validates all citations and
-returns no answer when evidence or output fails policy.
+The request contains trusted instructions, bounded question, explicit
+`questionLanguage`, bounded untrusted evidence with `contentLanguage` and
+allowed chunk IDs. It exposes no tool. Output contains plain answer text,
+`answerLanguage` and cited chunk IDs. Application requires
+`answerLanguage == questionLanguage`, validates all citations and returns no
+answer when evidence, language or output fails policy.
 
 ## Persistence ports
 
@@ -251,6 +256,7 @@ component combines it with a separately fetched "latest" observation.
 QueryRequestV1
   corpusId: string, required, configured MVP value
   sourceScope: Local | OfficialOnline, required
+  questionLanguage: pt-BR | en-GB, required
   question: string, required, 1..4096 UTF-8 bytes after normalisation
 ```
 
@@ -263,6 +269,7 @@ provider or future authority-bearing field.
 QueryResponseV1
   sourceScope
   outcome: Answered | InsufficientEvidence
+  answerLanguage: pt-BR | en-GB
   answer?: plain string
   citations: CitationV1[]
   sourceSnapshotId?: string
@@ -274,10 +281,11 @@ QueryResponseV1
   correlationId
 ```
 
-`answer` is required only for `Answered`. `citations` is empty for
-`InsufficientEvidence`. An official completed response requires a current
-snapshot/observation and includes canonical URL, snapshot and revalidation
-metadata in each citation.
+`answerLanguage` is always equal to the accepted `questionLanguage`. `answer`
+is required only for `Answered` and must use `answerLanguage`. `citations` is
+empty for `InsufficientEvidence`. An official completed response requires a
+current snapshot/observation and includes canonical URL, snapshot and
+revalidation metadata in each citation.
 
 ### Citation
 
@@ -288,6 +296,7 @@ CitationV1
   indexGenerationId
   documentId
   documentVersion
+  contentLanguage: pt-BR | en-GB
   chunkId
   sourceAdapterId
   sourceTrustClass
@@ -302,7 +311,10 @@ CitationV1
 ```
 
 The server builds citations from validated catalogue/evidence records, not
-from free-form model fields.
+from free-form model fields. Source-derived title, section, excerpt or other
+citation text remains in `contentLanguage`; it is never replaced by a model
+translation. This query-language contract does not determine Dashboard labels,
+navigation or other user-interface language.
 
 ## Failure taxonomy and HTTP mapping
 
@@ -396,6 +408,10 @@ structured stderr/audit without secret content.
 - Crash/concurrency tests for every compare-and-swap boundary.
 - Negative tests for unknown request fields, bounds, stale source, policy
   violations, invalid provider responses and citation forgery.
+- Language-contract tests for `pt-BR→pt-BR`, `en-GB→en-GB`,
+  `pt-BR→en-GB` and `en-GB→pt-BR` between question and evidence, including
+  exact answer-language equality and preservation of source-derived citation
+  text.
 - Readiness tests proving official degradation never causes scope fallback.
 
 No item in this document is implementation or test evidence.

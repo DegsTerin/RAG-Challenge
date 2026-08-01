@@ -80,6 +80,8 @@ Entregáveis:
 
 - ADRs aceitos ou rejeitados;
 - contratos canônicos e diagramas;
+- contrato bilíngue de consulta com `pt-BR`/`en-GB`, resposta no idioma da
+  pergunta e citação no idioma original;
 - threat model detalhado;
 - seleção de parser, embeddings, vetor e LLM;
 - definição do corpus e da licença do corpus;
@@ -99,6 +101,8 @@ Aceite:
 - o recorte oficial é uma URL PDF, sem crawling ou fallback silencioso;
 - limites, custos, falhas e segurança foram tratados;
 - thresholds são definidos antes da homologação.
+- idioma da pergunta, resposta e evidência possui semântica canônica sem
+  decidir o idioma da interface.
 
 ## STATE-03 DATA_AND_INDEX_MODELING
 
@@ -144,6 +148,8 @@ Entregáveis:
 - adapter allowlisted para um PDF oficial e snapshot governado;
 - persistência;
 - API versionada;
+- validação de `questionLanguage`, geração em `answerLanguage` e propagação de
+  `contentLanguage` nas citações;
 - artefato OpenAPI v1 versionado e testes de compatibilidade;
 - configuração;
 - citações e recusa;
@@ -158,6 +164,8 @@ Aceite:
 - geração anterior sobrevive a falha de reconstrução;
 - falha/stale oficial não faz fallback para `Local`;
 - perguntas sem evidência recusam;
+- perguntas `pt-BR` e `en-GB` respondem no mesmo idioma e citações preservam
+  o idioma da fonte, inclusive na recuperação cruzada;
 - suíte padrão não exige serviço pago.
 
 ## STATE-05 FRONTEND_IMPLEMENTATION
@@ -181,6 +189,8 @@ Aceite:
 - informação de fonte não depende apenas de cor;
 - troca de escopo exige ação explícita e citações exibem snapshot/freshness;
 - mensagens são factuais e localizadas.
+- o idioma visual da interface é aplicado somente por decisão própria, nunca
+  inferido do contrato bilíngue de consulta.
 
 ## STATE-06 INTEGRATION
 
@@ -214,6 +224,8 @@ experiência representativa.
 Entregáveis:
 
 - dataset e relatório de avaliação;
+- matriz de idioma pergunta/evidência para `pt-BR` e `en-GB`, nos pares iguais
+  e nas duas direções cruzadas;
 - testes negativos e prompt injection;
 - SSRF, DNS rebinding, resposta DNS mista, pinning IP/Host/SNI, redirect, URL,
   media type, tamanho, freshness e source leakage;
@@ -226,6 +238,8 @@ Entregáveis:
 Aceite:
 
 - thresholds previamente aprovados são atendidos;
+- respostas usam o idioma declarado da pergunta e textos de citação mantêm o
+  idioma original em todos os quatro pares da matriz;
 - limitações e custos são explícitos;
 - nenhuma vulnerabilidade bloqueadora;
 - fonte oficial real é testada somente quando egress específico foi autorizado;

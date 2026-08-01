@@ -15,6 +15,8 @@ documental não representa implementação, teste, deploy ou homologação.
 - Portas tipadas para fontes, parsing, embeddings, vetores e LLM.
 - Configuração fail-closed, sem segredos persistidos.
 - Proveniência e versão preservadas do documento à citação.
+- Pergunta e resposta suportadas em `pt-BR` e `en-GB`, com idioma explícito e
+  conteúdo citado preservado no idioma da fonte.
 - Índices construídos de forma imutável antes da ativação.
 - Falha externa isolada e explicitamente classificada.
 - Fonte local e fonte oficial externa separadas.
@@ -174,6 +176,7 @@ Conceitos candidatos:
 - `CandidateBuildId`, `IndexGenerationId`, `IndexGenerationStatus` e
   `CorpusActivationRecord`;
 - `ProviderDescriptor`;
+- `SupportedLanguage`, restrito a `pt-BR` e `en-GB` no MVP;
 - `QueryRequest`, `RetrievedEvidence` e `AnswerOutcome`.
 
 O Domain não conhece caminhos de arquivo, PDF, SQL, HTTP, SDKs ou modelos.
@@ -270,11 +273,13 @@ Conceitualmente:
 QueryRequestV1
   corpusId
   sourceScope: Local | OfficialOnline
+  questionLanguage: pt-BR | en-GB
   question
 
 QueryResponseV1
   sourceScope
   outcome: Answered | InsufficientEvidence
+  answerLanguage: pt-BR | en-GB
   answer?
   citations[]
   sourceSnapshotId?
@@ -288,6 +293,10 @@ QueryResponseV1
 
 Cada citação preserva corpus, escopo, documento, versão, geração e localização.
 Citação oficial inclui URL canônica, snapshot, `revalidatedAt` e freshness.
+Toda citação declara `contentLanguage=pt-BR|en-GB`; títulos, seções e trechos
+derivados da fonte permanecem nesse idioma original. `answerLanguage` é sempre
+igual ao `questionLanguage` aceito, inclusive quando a evidência usa o outro
+idioma.
 `languageModelDescriptor` contém apenas provider, modelo e revisão não
 secretos; não contém endpoint, credencial ou configuração interna.
 
@@ -295,6 +304,9 @@ O artefato OpenAPI v1 pertence ao RAG-Challenge, é gerado e versionado com a AP
 inclui pergunta, respostas concluídas, citações e Problem Details, e passa por
 teste de compatibilidade. A política de breaking changes pertence ao
 `STATE-02`; a implementação e a prova do artefato pertencem ao `STATE-04`.
+
+Os campos de idioma pertencem ao contrato de consulta e não determinam o
+idioma visual, os rótulos ou a navegação do Dashboard.
 
 `QueryResponseV1` representa apenas uma consulta concluída com
 `Answered` ou `InsufficientEvidence`. Entrada inválida, fonte
@@ -360,6 +372,7 @@ conjunto inteiro.
 ```text
 question
   -> validate and bound
+  -> validate pt-BR | en-GB question language
   -> validate Local | OfficialOnline
   -> resolve active generation once
   -> validate selected scope availability and freshness
@@ -368,7 +381,7 @@ question
   -> retrieve top candidates by explicit generation ID
   -> apply score/policy checks
   -> build untrusted evidence context
-  -> generate constrained answer
+  -> generate constrained answer in question language
   -> validate citations
   -> answer or INSUFFICIENT_EVIDENCE
 ```
