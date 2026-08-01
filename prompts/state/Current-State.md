@@ -29,8 +29,11 @@ proprietários.
   mesma data, e a decisão separada de suporte visual a `pt-BR` e `en-GB` foi
   formalizada como corpus `4.4.0` (`MINOR`). A seleção posterior dos temas
   `Light` e `Dark` foi formalizada como corpus `4.5.0` (`MINOR`); as auditorias
-  incrementais foram `APROVADAS`, sem transição de lifecycle ou aceitação
-  implícita de ADR.
+  incrementais foram `APROVADAS`. A remoção posterior dos tetos de 12 sistemas
+  e 120 páginas foi formalizada como corpus `4.6.0` (`MINOR`), com validação
+  documental direcionada; a auditoria combinada de `STATE-02` permanece
+  pendente. Nenhum desses incrementos transitou o lifecycle ou aceitou ADR por
+  implicação.
 - Human Gate de `STATE-00`: `APROVADO` sem ressalvas em 2026-07-30.
 - `GATE-B01`: `APROVADO` sem ressalvas em 2026-07-30.
 - Transição para `STATE-01 PROJECT_SETUP`: autorizada em 2026-07-30.
@@ -73,7 +76,7 @@ proprietários.
   a política de idioma acrescentou o 21º documento público por incremento
   versionado, e o ADR-0003 acrescentou o 22º.
 - A baseline aprovada no Human Gate de `STATE-00` permanece `3.4.0`.
-- O corpus de instruções vigente possui versão `4.5.0` e 13 arquivos em
+- O corpus de instruções vigente possui versão `4.6.0` e 13 arquivos em
   `prompts/`.
 - Visão, requisitos, arquitetura, RAG, segurança, qualidade, lifecycle,
   roadmap, backlog, estado, histórico e templates estão documentados.
@@ -122,6 +125,13 @@ proprietários.
   `questionLanguage` deve ser executada nos dois temas. Tema inicial,
   preferência do sistema, persistência e fallback permanecem para decisão
   futura de frontend. A decisão não aceita os ADRs ainda propostos.
+- O corpus `4.6.0` formaliza a decisão independente de não impor teto de
+  produto à quantidade de sistemas ou de páginas do corpus. Cada versão
+  permanece finita e registra as contagens observadas; controles de segurança
+  e capacidade são condicionais ao corpus e ao ambiente, não um recorte fixo
+  de cobertura. A lista integral de 51 nomes informada pelo proprietário não é
+  recuperável dos arquivos rastreados e permanece pendente de reconciliação
+  exata, sem reconstrução por inferência. A decisão não aceita o ADR-0004.
 - A arquitetura adota princípios compatíveis com o DB-Notifier sem criar
   referência ou dependência entre os projetos.
 - O Human Gate de `STATE-00` foi confirmado na conversa coordenadora que
@@ -206,6 +216,9 @@ proprietários.
 - Aplicação RAG independente para documentação de bancos de dados.
 - MVP com um corpus, um PDF local publicável e uma fonte oficial online
   allowlisted.
+- Nenhum teto de produto para quantidade de sistemas ou páginas do corpus;
+  cada versão finita registra suas contagens e precisa caber com segurança no
+  ambiente homologado sem redução silenciosa do catálogo aprovado.
 - Seletor explícito de consulta entre `Local` e `OfficialOnline`, sem mistura
   silenciosa de evidências.
 - Sincronização manual e governada da fonte oficial para snapshot versionado.
@@ -242,8 +255,10 @@ autorizada.
 ## Decisões pendentes
 
 1. Decidir ADR-0002 explicitamente.
-2. Aceitar, rejeitar ou alterar o corpus autoral, a lista de bancos e a
-   licença `CC BY 4.0` propostos pelo ADR-0004.
+2. Recuperar e reconciliar exatamente a lista integral de 51 bancos; depois,
+   aceitar, rejeitar ou alterar o conteúdo e a licença `CC BY 4.0` propostos
+   pelo ADR-0004. Os antigos tetos de 12 sistemas e 120 páginas já foram
+   removidos e não integram essa decisão pendente.
 3. Aceitar, rejeitar ou alterar a fonte PostgreSQL 18 candidata, frequência
    manual, `maxAge`, limites, trust e risco residual de revogação TLS; URL,
    media type, tamanho, licença, robots e TLS local foram verificados no

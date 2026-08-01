@@ -1527,3 +1527,45 @@ contém somente fatos cronológicos.
 - Próxima condição: decidir explicitamente ADR-0002 e ADR-0004 a ADR-0006,
   reconciliar a baseline escolhida e executar a auditoria combinada do
   `STATE-02`; a decisão dos temas não implica nenhuma dessas decisões.
+
+## 2026-08-01 — Tetos de sistemas e páginas removidos no corpus 4.6.0
+
+- Estado anterior e resultante: `STATE-02 ARCHITECTURE` ativo; Automatic
+  Quality Gate `BLOQUEADO`; Human Gate `PENDENTE`; sem transição.
+- Autoridade humana exata:
+
+  ```text
+  Lembra que eu disse: "12 sistemas e máximo de 120 páginas" remover esta regra, é sem limite de sistemas, sem limite de paginas.
+  ```
+
+- Decisão: o produto não define máximo para a quantidade de sistemas nem para
+  a quantidade de páginas do corpus. Cada versão publicada permanece finita e
+  registra suas contagens observadas.
+- Reconciliação: o recorte anterior de doze sistemas deixa de representar o
+  MVP e permanece apenas como conjunto não exaustivo de exemplos históricos.
+  A lista integral de 51 nomes informada pelo proprietário não é recuperável
+  do repositório rastreado e não foi reconstruída por inferência.
+- Segurança e capacidade: limites configuráveis de bytes, memória de trabalho,
+  tempo e concorrência continuam obrigatórios para processamento seguro, mas
+  são condicionais ao corpus e ao ambiente e não constituem limite de cobertura
+  nem substituem a lista aprovada.
+- Rastreabilidade: visão, ADR-0004 proposto, relatório de arquitetura, snapshot
+  factual, changelog e este histórico foram reconciliados como corpus `4.6.0`.
+- Escopo negativo: nenhuma aceitação, rejeição ou alteração de status de ADR;
+  nenhuma auditoria combinada, Human Gate, transição, código funcional,
+  dependência, rede, provider, GitHub, OCI, publicação, deploy ou mudança no
+  DB-Notifier.
+- SemVer: corpus `4.6.0` (`MINOR`) porque a remoção dos dois tetos altera o
+  escopo funcional e os critérios futuros de capacidade/homologação,
+  preservando 13 arquivos ativos em `prompts/`.
+- Runtime preflight: `NÃO APLICÁVEL`; trabalho exclusivamente documental e
+  local, sem inspeção ou encerramento de processos.
+- Verificações: validação direcionada de ocorrências residuais, versão,
+  status dos ADRs, links locais dos arquivos alterados, UTF-8/LF e
+  `git diff --check`; a auditoria combinada de `STATE-02` permanece pendente.
+- Quality Gate: Automatic Quality Gate de `STATE-02` permanece `BLOQUEADO`;
+  esta reconciliação não o executa nem substitui.
+- Human Gate: permanece `PENDENTE` e não foi solicitado.
+- Próxima condição: obter a lista integral de 51 bancos, reconciliá-la sem
+  condensação com o ADR-0004 e confirmar separadamente as decisões dos ADRs
+  sobre a nova baseline antes da auditoria combinada.

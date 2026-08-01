@@ -10,7 +10,7 @@
 
 ## Purpose and authority
 
-This ADR proposes the bounded knowledge sources and pre-registered evaluation
+This ADR proposes the governed knowledge sources and pre-registered evaluation
 baseline for the MVP. It does not license content, approve an external URL,
 authorise network access or accept itself. The product owner must decide the
 ADR explicitly after the external evidence identified below has been verified
@@ -39,6 +39,17 @@ Dashboard language and does not accept this ADR as a whole.
 A later, separate owner decision selected `pt-BR` and `en-GB` as the supported
 Dashboard languages without coupling them to the query-language matrix.
 
+## Owner-decided corpus-scale constraint
+
+On 2026-08-01, the owner explicitly removed the proposed ceilings of twelve
+database systems and 120 pages. Each published corpus version remains finite
+and records its actual system and page counts, but the product contract sets no
+maximum for either count. Operational capacity, parser safety and resource
+budgets must be validated against the selected corpus rather than used to
+exclude systems or pages by a fixed product rule. This constraint is accepted
+independently of the source, licence and evaluation proposals below and does
+not accept this ADR as a whole.
+
 ## Proposed decision
 
 If accepted after verification:
@@ -52,9 +63,11 @@ If accepted after verification:
 - License the owner-authored corpus under `CC BY 4.0`, separately from the MIT
   software repository. Include the licence, author, version and generation
   method in the source and PDF metadata.
-- Cover a finite representative set of twelve systems:
-  PostgreSQL, MySQL, MariaDB, Microsoft SQL Server, Oracle Database, SQLite,
-  MongoDB, Valkey, Apache Cassandra, OpenSearch, Neo4j and InfluxDB.
+- Cover the complete owner-approved system list for the selected corpus
+  version, with no product-defined maximum count. The previously communicated
+  51-name list must be reconciled exactly before the corpus content contract is
+  considered complete; examples elsewhere in the documentation must not be
+  treated as a substitute for that list.
 - For each system, cover only: data model, primary workload, consistency and
   transaction characteristics, deployment shape, query interface, scaling
   model, operational constraints and explicit non-recommendation caveats.
@@ -62,12 +75,18 @@ If accepted after verification:
   authored source document. Do not copy third-party prose, logos or diagrams.
 - Treat trade-marked product names as nominative references and include a
   non-affiliation notice.
-- Limit the first authorised PDF to 120 pages and 20 MiB. A larger document
-  requires a recorded impact review before ingestion.
+- Do not impose a fixed product limit on PDF page count. Apply configurable
+  byte, parser-working-set, time and concurrency safeguards appropriate to the
+  deployment environment, and validate capacity against the actual corpus
+  before ingestion. These safeguards fail closed when a document cannot be
+  processed safely, but they do not define catalogue eligibility or require an
+  architecture decision merely because the former 120-page ceiling is
+  exceeded.
 
 The document does not exist yet. Acceptance of this ADR selects its contract
 and licence but does not claim that the corpus has been authored, reviewed or
-licensed in fact.
+licensed in fact. The exact 51-name list is not recoverable from the tracked
+repository and must not be reconstructed by inference.
 
 The [CC BY 4.0 deed](https://creativecommons.org/licenses/by/4.0/) and
 [Portuguese legal code](https://creativecommons.org/licenses/by/4.0/legalcode.pt)
@@ -233,6 +252,10 @@ more clearly while remaining separate from the software licence.
 
 - The owner must author and review the local corpus before implementation can
   claim a usable `Local` source.
+- Removing fixed system and page ceilings increases delivery, evaluation and
+  capacity uncertainty. Corpus size must be measured per version, and a
+  candidate environment that cannot process it safely must be scaled or
+  changed rather than silently reducing the approved catalogue.
 - A single versioned official manual gives a reproducible and finite security
   boundary but does not represent all supported database systems.
 - The evaluation set is intentionally modest and must be expanded if the
@@ -262,7 +285,9 @@ more clearly while remaining separate from the software licence.
 - The owner explicitly decides this ADR after the seven external verification
   items have evidence.
 - The local corpus source and generated PDF are reproducible and have matching
-  version/hash metadata.
+  version/hash metadata, including observed system and page counts.
+- The corpus contains the complete owner-approved system list for its version;
+  no acceptance check substitutes a twelve-system sample or a 120-page cap.
 - Rights and attribution are independently checked for the software, local
   corpus and official snapshot.
 - Dataset membership and thresholds are frozen before any scored run.

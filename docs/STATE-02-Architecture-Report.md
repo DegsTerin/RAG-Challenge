@@ -72,6 +72,13 @@ state and non-colour-only accessibility requirements. Initial theme, system
 preference, persistence and fallback were not decided. This documentary
 decision does not accept an ADR or authorise frontend implementation.
 
+The owner also removed the proposed product ceilings of twelve database
+systems and 120 PDF pages. Each corpus version remains finite and records its
+observed counts, but catalogue coverage and page count have no fixed product
+maximum. Runtime safety and capacity controls remain conditional on the actual
+corpus and deployment environment. This independent constraint does not accept
+ADR-0004, authorise corpus creation or supply the unavailable 51-name list.
+
 The final resumption instruction required direct HTTPS requests to exact URLs
 on the existing allowlist and prohibited general web search and automatic link
 following. Textual references to other hosts were not access. A performed
@@ -143,7 +150,7 @@ and requested separately.
 | Area | Proposed selection | Decision/evidence state |
 |---|---|---|
 | RAG lifecycle and source separation | ADR-0002 as written | `proposed`; explicit human decision required. |
-| Local corpus | Owner-authored `Database Systems Catalogue — MVP`, 12 named systems, `CC BY 4.0` | `proposed`; content not authored and licence not yet granted. |
+| Local corpus | Owner-authored `Database Systems Catalogue — MVP`, no fixed system/page ceiling, `CC BY 4.0` | Scale constraint owner-decided; exact 51-name list is not recoverable from tracked files, content is not authored and the licence is not yet granted. |
 | Official source | Versioned PostgreSQL 18 A4 PDF candidate | `proposed`; URL, media, size, redirect behaviour, licence basis, robots and local offline TLS verified with documented rate/revocation qualifications. |
 | Parser | PdfPig adapter | `proposed`; 0.1.15 is the current verified stable candidate under Apache-2.0, public .NET 10 compatibility and security metadata are recorded, and absence of a public advisory is not proof of safety. Version selection and runtime extraction evidence remain pending. |
 | Normalisation | Unicode NFC and deterministic whitespace/control policy | `proposed`; locally specified. |
@@ -279,8 +286,10 @@ The current decision packet requires these explicit outcomes:
   activation authority, provider boundaries and RAG-Challenge-owned API
   contract.
 - ADR-0004: accept, reject or change the owner-authored corpus, `CC BY 4.0`
-  grant, twelve-system boundary, PostgreSQL 18 source, manual-frequency and
-  offline-revocation residual risks, evaluation dataset and thresholds.
+  grant, complete owner-approved system list, PostgreSQL 18 source,
+  manual-frequency and offline-revocation residual risks, evaluation dataset
+  and thresholds. The absence of fixed system and page ceilings is already an
+  independent owner constraint.
 - ADR-0005: accept, reject or change PdfPig 0.1.15 subject to a later spike;
   `paragraph-window-v1`; the mutable `text-embedding-3-small` alias; OpenAI
   `gpt-4.1-mini-2025-04-14`; default provider retention/disclosure and absence
@@ -321,6 +330,9 @@ creates a resource or authorises `STATE-03`.
   backup choice and tested restore.
 - The owner-authored corpus schedule is a delivery risk and remains the first
   material product-data dependency.
+- The absence of fixed system and page ceilings makes final corpus scale a
+  capacity and schedule risk. The exact 51-name list still requires factual
+  recovery; it must not be replaced by the earlier twelve examples.
 - Evaluation thresholds are pre-registered but untested; failure must drive a
   design change, not post-hoc threshold relaxation.
 
@@ -363,6 +375,7 @@ creates a resource or authorises `STATE-03`.
 | Query-language requirement and contract consistency | Documented for `pt-BR` and `en-GB`, with answer-language equality, original-language citations and a four-pair question/evidence test matrix; executable behaviour not run. |
 | Dashboard-language requirement and separation | Documented for `pt-BR` and `en-GB`, with an explicit independent selection and a four-pair UI/query-language test matrix; frontend behaviour not implemented or run. |
 | Dashboard-theme requirement and separation | Documented for `Light` and `Dark`, with explicit independent selection and the four-pair UI/query-language matrix executed in both themes; frontend behaviour not implemented or run. |
+| Corpus-scale constraint | Fixed ceilings of twelve systems and 120 pages removed; targeted textual consistency checks passed. The exact 51-name list remains unavailable, and no corpus or runtime capacity test was performed. |
 
 ## Current gate assessment
 

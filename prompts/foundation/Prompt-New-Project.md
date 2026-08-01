@@ -124,7 +124,8 @@ licença e autoriza ações externas.
 ## Acervo inicial
 
 O acervo conceitual candidato é `Catálogo de Bancos de Dados — MVP`. Ele deve
-ser finito, versionado, publicável e organizado por categorias como:
+ser finito em cada versão, versionado, publicável e organizado por categorias
+como:
 
 - relacionais;
 - documentos;
@@ -136,22 +137,24 @@ ser finito, versionado, publicável e organizado por categorias como:
 - data warehouse e serviços gerenciados.
 
 A lista exata de produtos, a licença do documento local e a fonte oficial
-online permanecem decisões do `STATE-02 ARCHITECTURE`. A fonte online do MVP
-deve ser um único PDF oficial, ter scheme/host/porta/path allowlisted,
-termos/licença revisados e snapshot sincronizado antes da recuperação.
+online permanecem decisões do `STATE-02 ARCHITECTURE`. Não existe teto de
+escopo do produto para a quantidade de sistemas nem para a quantidade de
+páginas do corpus; cada versão registra suas contagens observadas. A fonte
+online do MVP deve ser um único PDF oficial, ter scheme/host/porta/path
+allowlisted, termos/licença revisados e snapshot sincronizado antes da
+recuperação.
 
 ### Catálogo candidato em ondas
 
-Esta lista preserva as sugestões já discutidas sem declarar cobertura ou
-suporte. A priorização final deve ser validada no `STATE-02` com fontes
-oficiais e um limite compatível com o prazo.
+Esta lista não exaustiva preserva exemplos já discutidos sem declarar
+cobertura, suporte, prioridade ou limite. Ela não substitui a lista integral
+aprovada para cada versão do catálogo.
 
-| Onda | Categorias e exemplos candidatos |
+| Referência | Categorias e exemplos candidatos |
 |---|---|
-| MVP representativo | PostgreSQL, MySQL, MariaDB, Microsoft SQL Server, Oracle Database, SQLite, MongoDB, Redis/Valkey, Apache Cassandra, Elasticsearch/OpenSearch, Neo4j e InfluxDB. |
-| Expansão relacional/enterprise | IBM Db2, SAP HANA, Firebird, CockroachDB e outros motores aprovados. |
-| Expansão NoSQL/distribuída | Couchbase, CouchDB, ScyllaDB e outros document/wide-column stores aprovados. |
-| Expansão especializada/cloud | TimescaleDB, data warehouses e serviços gerenciados de AWS, Azure, Google Cloud e Oracle Cloud. |
+| Exemplos relacionais e gerais | PostgreSQL, MySQL, MariaDB, Microsoft SQL Server, Oracle Database, SQLite, IBM Db2, SAP HANA, Firebird e CockroachDB. |
+| Exemplos NoSQL e distribuídos | MongoDB, Redis/Valkey, Apache Cassandra, Couchbase, CouchDB e ScyllaDB. |
+| Exemplos especializados e cloud | Elasticsearch/OpenSearch, Neo4j, InfluxDB, TimescaleDB, data warehouses e serviços gerenciados de AWS, Azure, Google Cloud e Oracle Cloud. |
 
 O catálogo arquitetural é aberto; inclusão no documento não significa
 integração, homologação, recomendação ou suporte operacional.

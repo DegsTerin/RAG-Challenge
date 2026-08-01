@@ -2,11 +2,11 @@
 
 ## Versão atual
 
-- Versão: `4.5.0`
+- Versão: `4.6.0`
 - Data: 2026-08-01
-- Status: temas `Light`/`Dark` e idiomas `pt-BR`/`en-GB` da interface
-  formalizados por estados independentes; `STATE-02` ativo, com fatos públicos
-  reconciliados e decisões de ADR pendentes
+- Status: tetos de sistemas e páginas removidos por decisão independente;
+  `STATE-02` ativo, com lista integral de 51 bancos ainda não recuperada e
+  decisões de ADR pendentes
 - Escopo: 13 arquivos ativos em `prompts/`
 
 A versão do corpus é independente da versão futura do software.
@@ -20,6 +20,33 @@ A versão do corpus é independente da versão futura do software.
 
 Toda alteração atualiza este arquivo e, quando necessário,
 [`../Start-Here.md`](../Start-Here.md).
+
+## 4.6.0 — 2026-08-01
+
+- Registra a decisão explícita e independente do proprietário de remover os
+  tetos propostos de 12 sistemas e 120 páginas do corpus.
+- Mantém cada versão publicada finita e exige registrar suas contagens reais,
+  sem definir máximo de produto para sistemas ou páginas.
+- Substitui o recorte de doze sistemas por uma lista integral aprovada pelo
+  proprietário; a lista de 51 nomes anteriormente informada não é recuperável
+  dos arquivos rastreados e não pode ser reconstruída por inferência.
+- Preserva limites configuráveis de bytes, memória de trabalho, tempo e
+  concorrência como controles de segurança e capacidade condicionais ao
+  ambiente. Esses controles não definem elegibilidade do catálogo nem
+  reintroduzem os tetos removidos.
+- Reconcilia visão, ADR-0004 proposto, relatório de arquitetura, snapshot
+  factual, histórico e este changelog sem alterar código, dependências ou
+  runtime.
+- Mantém ADR-0002 e ADR-0004 a ADR-0006 como `proposed`; não registra as
+  decisões ainda não materializadas desses ADRs nem executa a auditoria
+  combinada de `STATE-02`.
+- Não acessa rede, provider, GitHub, OCI ou DB-Notifier; não publica, implanta,
+  solicita Human Gate nem autoriza `STATE-03`.
+- Classifica a mudança como `MINOR` porque remove dois limites funcionais da
+  baseline proposta e altera os critérios futuros de escala e homologação.
+- A validação direcionada cobre ocorrências residuais dos tetos, versão do
+  corpus, status dos ADRs, links locais dos arquivos alterados, UTF-8/LF e
+  `git diff --check`; não substitui a auditoria combinada pendente.
 
 ## 4.5.0 — 2026-08-01
 
