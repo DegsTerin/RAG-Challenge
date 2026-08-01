@@ -17,6 +17,10 @@ or determine the Dashboard language. A later independent owner decision
 selected `pt-BR` and `en-GB` as the supported Dashboard languages; the visual
 selection remains independent from the query language.
 
+The owner also selected `Light` and `Dark` as the supported Dashboard themes.
+Theme state remains independent from interface and query languages and is not
+part of the public query contract.
+
 The architecture follows DB-Notifier principles where they are proportional
 to the RAG-Challenge: inward dependencies, provider-neutral contracts,
 fail-closed configuration, typed outcomes, versioned evidence and explicit

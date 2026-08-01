@@ -309,6 +309,10 @@ Os campos de idioma pertencem ao contrato de consulta e não selecionam o
 idioma visual. O Dashboard suporta separadamente `interfaceLanguage=pt-BR` ou
 `interfaceLanguage=en-GB`.
 
+O tema também pertence ao estado local do Dashboard, com `Light` e `Dark`
+como valores suportados. Ele não integra o contrato público de consulta e não
+altera idioma, conteúdo, escopo, resposta, evidência ou citação.
+
 `QueryResponseV1` representa apenas uma consulta concluída com
 `Answered` ou `InsufficientEvidence`. Entrada inválida, fonte
 stale/indisponível, violação de política, rate limit, indisponibilidade de
@@ -324,6 +328,11 @@ sensíveis. O mapeamento HTTP exato pertence ao `STATE-02`.
 - Labels, instruções, validações, estados e erros pertencentes ao produto
   integralmente localizados no idioma visual selecionado; citações preservam
   `contentLanguage`.
+- Seletor explícito de tema entre `Light` e `Dark`, independente de
+  `interfaceLanguage`, `questionLanguage` e do conteúdo consultado.
+- Tokens visuais de fundo, superfície, texto, borda, foco e estado
+  preservam contraste, hierarquia e informação não dependente apenas de cor
+  nos dois temas.
 - Seletor obrigatório `Local` ou
   `Documentação oficial online — snapshot sincronizado`.
 - Estados de carregamento, vazio, erro, rate limit, fonte indisponível/stale e
@@ -331,8 +340,9 @@ sensíveis. O mapeamento HTTP exato pertence ao `STATE-02`.
 - Navegação por teclado e foco visível.
 - Citações acessíveis e separadas da resposta.
 - Nenhum acesso direto ao vetor, ao LLM ou a secrets.
-- Seleção inicial, persistência e fallback de `interfaceLanguage` pertencem ao
-  `STATE-05` e permanecem sem decisão.
+- Seleção inicial, persistência e fallback de `interfaceLanguage`, assim como
+  tema inicial, preferência do sistema, persistência e fallback de tema,
+  pertencem ao `STATE-05` e permanecem sem decisão.
 - Saída é texto puro por padrão. Se Markdown for autorizado, usa subconjunto
   sanitizado, bloqueia HTML cru, permite somente schemes de URL aprovados e
   opera sob Content Security Policy.

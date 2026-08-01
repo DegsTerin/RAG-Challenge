@@ -95,6 +95,8 @@ licença e autoriza ações externas.
   resposta no mesmo idioma e citações preservadas no idioma da evidência.
 - Interface web disponível em `pt-BR` e `en-GB`, com seleção explícita e
   independente do idioma da pergunta.
+- Temas visuais `Light` e `Dark`, com seleção explícita e independente dos
+  idiomas da interface, pergunta, resposta e evidência.
 - Catálogo local de metadados, versão de documento e geração de índice.
 - Armazenamento durável e content-addressed dos bytes necessários a rebuild e
   rollback.
@@ -180,6 +182,7 @@ integração, homologação, recomendação ou suporte operacional.
 | `RF-020` | Exigir que cada pergunta selecione `Local` ou `OfficialOnline`, recuperar somente desse escopo e falhar sem fallback silencioso quando a fonte estiver indisponível ou stale. | Sim |
 | `RF-021` | Aceitar perguntas com idioma declarado `pt-BR` ou `en-GB`, responder no mesmo idioma e preservar no idioma original todo conteúdo derivado da fonte exibido em citações. | Sim |
 | `RF-022` | Permitir selecionar `pt-BR` ou `en-GB` para a interface e localizar todo texto visual pertencente ao produto sem alterar `questionLanguage`, `answerLanguage` ou conteúdo citado. | Sim |
+| `RF-023` | Permitir selecionar o tema visual `Light` ou `Dark` sem alterar `interfaceLanguage`, `questionLanguage`, `answerLanguage`, evidência ou citações. | Sim |
 
 ## Requisitos não funcionais
 
@@ -201,6 +204,7 @@ integração, homologação, recomendação ou suporte operacional.
 | `RNF-014` | O egress da fonte oficial falha fechado, mantém os escopos distinguíveis e aplica HTTPS, allowlist, limites, pinning da conexão ao DNS/IP autorizado, redirects bloqueados, validação TLS sem destinos laterais e proteção SSRF. |
 | `RNF-015` | Contratos, recuperação e geração tratam `pt-BR` e `en-GB` por tags BCP 47 explícitas; a homologação cobre perguntas e evidências no mesmo idioma e nas duas direções cruzadas. |
 | `RNF-016` | A interface não mistura idiomas em textos pertencentes ao produto, conserva acessibilidade nas duas localizações e mantém o idioma visual independente do idioma da consulta. |
+| `RNF-017` | Os temas `Light` e `Dark` preservam contraste, foco visível, semântica, reflow e todos os estados da interface, sem comunicar informação somente por cor. |
 
 ## Critérios de aceitação do MVP
 
@@ -223,6 +227,7 @@ integração, homologação, recomendação ou suporte operacional.
 | `AC-MVP-015` | A sincronização usa fonte pública sem autenticação ou segredo na URL, rejeita domínio, IP, porta, path, query, resposta DNS mista, redirect ou destino lateral de validação TLS fora da política com `SourcePolicyViolation`, e conecta somente ao IP previamente autorizado preservando Host/SNI. O usuário escolhe `Local` ou `OfficialOnline`, cada modo recupera somente o escopo selecionado, e falha, retirada ou expiração retornam estado tipado sem fallback silencioso. |
 | `AC-MVP-016` | Perguntas declaradas como `pt-BR` recebem respostas em `pt-BR`, perguntas declaradas como `en-GB` recebem respostas em `en-GB`, e citações não traduzem título, seção, trecho ou outro conteúdo proveniente da fonte. Testes determinísticos cobrem `pt-BR→pt-BR`, `en-GB→en-GB`, `pt-BR→en-GB` e `en-GB→pt-BR` entre idioma da pergunta e idioma da evidência. |
 | `AC-MVP-017` | A pessoa consegue alternar explicitamente a interface entre `pt-BR` e `en-GB`; labels, instruções, validações e estados pertencentes ao produto usam integralmente o idioma visual selecionado. Testes de componente e fluxo cobrem cada idioma da interface combinado com cada `questionLanguage`, sem traduzir citações. |
+| `AC-MVP-018` | A pessoa consegue alternar explicitamente a interface entre `Light` e `Dark`; conteúdo, idioma e contexto da consulta permanecem inalterados. Testes de componente, acessibilidade e fluxo executam nos dois temas as quatro combinações entre `interfaceLanguage` e `questionLanguage`, totalizando oito combinações, e validam contraste, foco, estados e ausência de informação dependente apenas de cor. |
 
 ## Premissas
 
@@ -240,6 +245,9 @@ integração, homologação, recomendação ou suporte operacional.
 - A interface suporta `pt-BR` e `en-GB` por decisão separada do suporte
   bilíngue de consulta; seleção inicial, persistência e fallback permanecem
   detalhes futuros próprios.
+- A interface suporta `Light` e `Dark` por decisão própria; tema inicial,
+  preferência do sistema, persistência e fallback permanecem detalhes futuros
+  do frontend.
 
 ## Limitações e decisões pendentes
 

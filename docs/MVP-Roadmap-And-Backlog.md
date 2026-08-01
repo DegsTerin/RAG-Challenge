@@ -30,6 +30,8 @@ Incluído:
   declarado da pergunta e citações no idioma original;
 - interface localizável em `pt-BR` e `en-GB`, com seleção explícita e
   independente do idioma da consulta;
+- interface com temas `Light` e `Dark`, selecionáveis independentemente do
+  idioma visual e da consulta;
 - API, artefato OpenAPI v1 versionado e interface web mínima;
 - execução local;
 - CI;
@@ -258,6 +260,10 @@ Critério: API não expõe secret, stack trace ou conteúdo indevido.
   `questionLanguage`.
 - Localizar labels, instruções, validações, loading, vazio, erro, stale,
   indisponível, rate limit e sem evidência nos dois idiomas.
+- Seletor explícito de tema `Light`/`Dark`, sem alterar idioma, pergunta,
+  resposta, evidência ou citações.
+- Aplicar tokens acessíveis de fundo, superfície, texto, borda, foco e estado
+  nos dois temas, sem comunicar informação somente por cor.
 - Seletor `Local`/`Documentação oficial online — snapshot sincronizado`.
 - Resposta e lista de citações.
 - URL/snapshot/freshness nas citações oficiais.
@@ -266,8 +272,9 @@ Critério: API não expõe secret, stack trace ou conteúdo indevido.
   HTML cru, com schemes de URL permitidos e CSP.
 
 Critério: fluxo funciona por teclado e viewport reduzido em `pt-BR` e
-`en-GB`; testes cobrem os quatro pares entre `interfaceLanguage` e
-`questionLanguage`, sem mistura de textos do produto nem tradução de citações.
+`en-GB`; testes executam os quatro pares entre `interfaceLanguage` e
+`questionLanguage` em `Light` e `Dark`, totalizando oito combinações, sem
+mistura de textos do produto, perda de contraste nem tradução de citações.
 
 ### Lote S06-A — E2E e artefato
 
@@ -340,6 +347,7 @@ Critério: checklist oficial completo.
 | `BL-M15` | Sincronizar um PDF oficial allowlisted com pinning DNS/IP e consultar por `OfficialOnline` com snapshot, freshness e isolamento. | S02–S08 |
 | `BL-M16` | Suportar e homologar perguntas/respostas em `pt-BR` e `en-GB`, inclusive recuperação cruzada e preservação do idioma original das citações. | S02/S04/S07 |
 | `BL-M17` | Localizar a interface em `pt-BR` e `en-GB`, com seletor explícito, independência da consulta e testes de acessibilidade nos dois idiomas. | S05/S07 |
+| `BL-M18` | Implementar e homologar temas `Light` e `Dark`, com seletor explícito, independência de idioma e matriz visual/acessível nos dois temas. | S05/S07 |
 
 ### Should — se não comprometer a entrega
 
@@ -384,6 +392,9 @@ Critério: checklist oficial completo.
   aprovação.
 - Textos incompletos ou misturados entre `pt-BR` e `en-GB` podem degradar
   acessibilidade e compreensão; a matriz de UI deve bloquear a homologação.
+- Tokens incompletos ou contraste inadequado em `Light` ou `Dark` podem
+  ocultar foco, estados e proveniência; a matriz de temas deve bloquear a
+  homologação.
 - Escolha tardia de dimensão/vector store pode forçar reindexação.
 - Vector store gerenciado pode expor chunks/embeddings sem política própria.
 - GitHub Pages pode ser confundido com backend; a documentação deve manter a

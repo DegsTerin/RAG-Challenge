@@ -177,7 +177,7 @@ succeeds; a deterministic status allows safe operator recovery.
 | `SEC-DATA-01` | Content-store traversal, overwrite, symlink/reparse and deletion refusal. |
 | `SEC-ACT-01` | Crash/concurrency matrix around snapshot, manifest, audit and activation writes. |
 | `SEC-API-01` | Payload bounds, exact `questionLanguage` enum, unknown fields, CORS, rate, cancellation and sanitised errors. |
-| `SEC-UI-01` | XSS through question, evidence, answer, citation and Problem Details; localisation completeness in `pt-BR` and `en-GB`; and independence between interface and query languages. |
+| `SEC-UI-01` | XSS through question, evidence, answer, citation and Problem Details; localisation completeness in `pt-BR` and `en-GB`; independence between interface and query languages; and contrast, focus and state visibility in `Light` and `Dark`. |
 | `SEC-ADM-01` | OS identity, enable flag, reason, idempotency, lease and no HTTP route. |
 | `SEC-OCI-01` | NSG, metadata denial, unprivileged process, secret injection and restore isolation. |
 

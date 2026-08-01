@@ -35,6 +35,8 @@ this ADR.
 A later, separate owner decision selected `pt-BR` and `en-GB` as the supported
 Dashboard languages; the HTTP query contract still does not choose between
 them.
+A further independent owner decision selected `Light` and `Dark` as the
+supported Dashboard themes; the HTTP query contract does not choose a theme.
 
 ## Proposed decision
 
@@ -178,8 +180,9 @@ in one profile grants no access through another.
 - Keep Domain entities, provider SDK types and administration operations out
   of OpenAPI.
 - Keep the query-language contract independent from Dashboard labels,
-  navigation and `interfaceLanguage`; the Dashboard supports `pt-BR` and
-  `en-GB` through its own product state rather than an API authority field.
+  navigation, `interfaceLanguage` and theme state; the Dashboard supports
+  `pt-BR`/`en-GB` and `Light`/`Dark` through its own product state rather than
+  API authority fields.
 
 ### Query limits and abuse controls
 

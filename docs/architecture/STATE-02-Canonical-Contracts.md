@@ -315,7 +315,8 @@ from free-form model fields. Source-derived title, section, excerpt or other
 citation text remains in `contentLanguage`; it is never replaced by a model
 translation. This query-language contract does not determine Dashboard labels,
 navigation or the selected `interfaceLanguage`. The Dashboard separately
-supports `pt-BR` and `en-GB`; no public query field selects its visual locale.
+supports `pt-BR` and `en-GB`, and its separate visual state supports `Light`
+and `Dark`; no public query field selects its locale or theme.
 
 ## Failure taxonomy and HTTP mapping
 

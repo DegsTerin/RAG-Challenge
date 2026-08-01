@@ -65,6 +65,13 @@ from `questionLanguage`; source-derived citations stay untranslated. Initial
 selection, persistence and fallback were not decided. This documentary
 decision does not accept an ADR or authorise frontend implementation.
 
+The owner subsequently selected `Light` and `Dark` as the closed set of
+Dashboard themes. Theme choice must remain independent from interface and
+query languages, preserve content and query context, and meet contrast, focus,
+state and non-colour-only accessibility requirements. Initial theme, system
+preference, persistence and fallback were not decided. This documentary
+decision does not accept an ADR or authorise frontend implementation.
+
 The final resumption instruction required direct HTTPS requests to exact URLs
 on the existing allowlist and prohibited general web search and automatic link
 following. Textual references to other hosts were not access. A performed
@@ -233,6 +240,7 @@ Quality Gate can pass.
 | Vector search, failures, readiness and OpenAPI | Contract document and ADR-0006 | Prepared. |
 | `pt-BR`/`en-GB` question, answer, evidence and citation semantics | Requirements, contract document, ADR-0004 and ADR-0006 | Owner decided; documented for later implementation and homologation, not yet tested at runtime. |
 | `pt-BR`/`en-GB` Dashboard localisation | Language Policy, requirements, lifecycle and roadmap | Owner decided supported set and independent explicit choice; initial selection, persistence, fallback, implementation and runtime tests remain pending. |
+| `Light`/`Dark` Dashboard themes | Requirements, architecture, lifecycle and roadmap | Owner decided supported set and independent explicit choice; initial theme, system preference, persistence, fallback, implementation and runtime tests remain pending. |
 | SSRF and DNS/IP pinning | ADR-0006 and threat model | Prepared; not implemented/tested. |
 | Evaluation, OCI and rollback | ADR-0004, ADR-0005 and contracts | Proposed; public external facts verified. Dataset, account capacity/entitlement, backup choice and later tests remain pending. |
 
@@ -354,6 +362,7 @@ creates a resource or authorises `STATE-03`.
 | ADR decisions | Pending human decisions. |
 | Query-language requirement and contract consistency | Documented for `pt-BR` and `en-GB`, with answer-language equality, original-language citations and a four-pair question/evidence test matrix; executable behaviour not run. |
 | Dashboard-language requirement and separation | Documented for `pt-BR` and `en-GB`, with an explicit independent selection and a four-pair UI/query-language test matrix; frontend behaviour not implemented or run. |
+| Dashboard-theme requirement and separation | Documented for `Light` and `Dark`, with explicit independent selection and the four-pair UI/query-language matrix executed in both themes; frontend behaviour not implemented or run. |
 
 ## Current gate assessment
 

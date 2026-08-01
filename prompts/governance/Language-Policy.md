@@ -82,13 +82,17 @@ English (`en-GB`) as the closed set of supported user-interface languages on
   localisation does not translate evidence.
 - Initial selection, persistence and fallback mechanics require their own
   later product decision and must not be inferred by an implementation.
+- The separately selected `Light` and `Dark` themes do not select or alter
+  the interface language. Theme initialisation, system preference,
+  persistence and fallback remain later frontend decisions.
 
 Do not infer the interface language from:
 
 - the conversation language;
 - the engineering language;
 - the documentation language;
-- `questionLanguage` or `answerLanguage`.
+- `questionLanguage` or `answerLanguage`;
+- the selected `Light` or `Dark` theme.
 
 ## Governance
 

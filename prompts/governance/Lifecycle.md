@@ -177,6 +177,8 @@ Entregáveis:
 - pergunta e resposta;
 - interface localizada em `pt-BR` e `en-GB`, com seletor explícito e estado
   visual independente de `questionLanguage`;
+- temas `Light` e `Dark`, com seletor explícito e estado independente de
+  `interfaceLanguage` e `questionLanguage`;
 - seletor obrigatório `Local`/`OfficialOnline`;
 - citações;
 - estados loading, vazio, erro, fonte stale/indisponível, rate limit e sem
@@ -194,6 +196,10 @@ Aceite:
   no `interfaceLanguage` selecionado;
 - os fluxos `pt-BR` e `en-GB` preservam teclado, foco, semântica, reflow e
   ausência de mistura de idiomas;
+- `Light` e `Dark` preservam contraste, foco, hierarquia, reflow, estados e
+  informação que não dependa apenas de cor;
+- a matriz de quatro combinações entre `interfaceLanguage` e
+  `questionLanguage` é executada nos dois temas;
 - `interfaceLanguage` nunca é inferido do contrato bilíngue de consulta e não
   traduz conteúdo de citação.
 

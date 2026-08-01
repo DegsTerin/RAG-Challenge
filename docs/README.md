@@ -2,7 +2,7 @@
 
 ## Status
 
-Este índice descreve o corpus documental vigente `4.4.0`. A baseline `3.4.0`
+Este índice descreve o corpus documental vigente `4.5.0`. A baseline `3.4.0`
 encerrou o Human Gate de `STATE-00 DISCOVERY`; o `GATE-B01
 ARCHITECTURE_BOOTSTRAP_DECISION` aprovou o ADR-0001 e a licença MIT. O
 ADR-0003 aceito posteriormente substitui seu registro, preserva todas as
@@ -16,9 +16,9 @@ a auditoria combinada da baseline escolhida continuam pendentes. Nenhum ADR
 foi aceito por implicação. Relatórios de estado são evidências históricas; o
 presente factual pertence a
 [`Current-State.md`](../prompts/state/Current-State.md).
-O corpus `4.4.0` preserva o contrato bilíngue de consulta de `4.3.0` e
-formaliza a interface em `pt-BR` e `en-GB`, com escolha visual explícita e
-independente do idioma da pergunta. Nenhuma dessas decisões altera o lifecycle
+O corpus `4.5.0` preserva o contrato bilíngue de consulta de `4.3.0` e a
+localização `pt-BR`/`en-GB` de `4.4.0`, e formaliza os temas `Light` e `Dark`
+como seleção visual independente. Nenhuma dessas decisões altera o lifecycle
 ou aceita um ADR proposto.
 
 ## Comece aqui

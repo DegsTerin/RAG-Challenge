@@ -2,11 +2,11 @@
 
 ## Versão atual
 
-- Versão: `4.4.0`
+- Versão: `4.5.0`
 - Data: 2026-08-01
-- Status: interface e consulta em `pt-BR` e `en-GB` formalizadas por contratos
-  independentes; `STATE-02` ativo, com fatos públicos reconciliados e decisões
-  de ADR pendentes
+- Status: temas `Light`/`Dark` e idiomas `pt-BR`/`en-GB` da interface
+  formalizados por estados independentes; `STATE-02` ativo, com fatos públicos
+  reconciliados e decisões de ADR pendentes
 - Escopo: 13 arquivos ativos em `prompts/`
 
 A versão do corpus é independente da versão futura do software.
@@ -20,6 +20,38 @@ A versão do corpus é independente da versão futura do software.
 
 Toda alteração atualiza este arquivo e, quando necessário,
 [`../Start-Here.md`](../Start-Here.md).
+
+## 4.5.0 — 2026-08-01
+
+- Registra a decisão explícita do proprietário de suportar `Light` e `Dark`
+  como o conjunto fechado de temas do Dashboard.
+- Exige escolha visual explícita, independente de `interfaceLanguage`,
+  `questionLanguage`, `answerLanguage` e `contentLanguage`, sem alterar
+  conteúdo, escopo, resposta, evidência ou citações.
+- Exige que fundo, superfície, texto, borda, foco e estados preservem
+  contraste, hierarquia, reflow e informação que não dependa apenas de cor nos
+  dois temas.
+- Acrescenta `RF-023`, `RNF-017`, `AC-MVP-018` e `BL-M18`, e reconcilia visão,
+  arquitetura, contratos, lifecycle, Quality Gates, roadmap, threat model,
+  relatório, índices e estado factual com a decisão.
+- Executa nos dois temas a matriz de quatro combinações entre
+  `interfaceLanguage` e `questionLanguage`, totalizando oito combinações de
+  componente, acessibilidade e fluxo.
+- Mantém tema inicial, preferência do sistema, persistência e fallback como
+  decisões futuras de frontend; a ordem `Light`/`Dark` não define preferência
+  ou valor inicial.
+- Mantém ADR-0002 e ADR-0004 a ADR-0006 como `proposed`; a decisão não aceita
+  corpus, fonte, provider, persistência, egress, OCI ou qualquer outro
+  conteúdo desses ADRs.
+- Não altera comportamento executável, instala dependência, acessa rede,
+  executa provider, modifica recurso externo nem avança o lifecycle.
+- Classifica a mudança como `MINOR` por adicionar uma capacidade funcional e
+  critérios de homologação compatíveis antes da implementação pública.
+- A auditoria documental aprovou 83 arquivos não ignorados, 30 Markdown, 13
+  arquivos em `prompts/`, 23 RF, 17 RNF, 18 critérios de aceitação, 34 itens
+  de backlog, 92 definições estáveis sem duplicidade, H1, links, UTF-8/LF,
+  status dos ADRs, 30 ameaças, 12 grupos de testes de segurança e
+  `git diff --check`.
 
 ## 4.4.0 — 2026-08-01
 

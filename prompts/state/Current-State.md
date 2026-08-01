@@ -27,8 +27,10 @@ proprietários.
   equivalente como `4.2.1` (`PATCH`), em 2026-08-01. A decisão de suporte
   bilíngue para consulta foi formalizada como corpus `4.3.0` (`MINOR`) na
   mesma data, e a decisão separada de suporte visual a `pt-BR` e `en-GB` foi
-  formalizada como corpus `4.4.0` (`MINOR`); as auditorias incrementais foram
-  `APROVADAS`, sem transição de lifecycle ou aceitação implícita de ADR.
+  formalizada como corpus `4.4.0` (`MINOR`). A seleção posterior dos temas
+  `Light` e `Dark` foi formalizada como corpus `4.5.0` (`MINOR`); as auditorias
+  incrementais foram `APROVADAS`, sem transição de lifecycle ou aceitação
+  implícita de ADR.
 - Human Gate de `STATE-00`: `APROVADO` sem ressalvas em 2026-07-30.
 - `GATE-B01`: `APROVADO` sem ressalvas em 2026-07-30.
 - Transição para `STATE-01 PROJECT_SETUP`: autorizada em 2026-07-30.
@@ -71,7 +73,7 @@ proprietários.
   a política de idioma acrescentou o 21º documento público por incremento
   versionado, e o ADR-0003 acrescentou o 22º.
 - A baseline aprovada no Human Gate de `STATE-00` permanece `3.4.0`.
-- O corpus de instruções vigente possui versão `4.4.0` e 13 arquivos em
+- O corpus de instruções vigente possui versão `4.5.0` e 13 arquivos em
   `prompts/`.
 - Visão, requisitos, arquitetura, RAG, segurança, qualidade, lifecycle,
   roadmap, backlog, estado, histórico e templates estão documentados.
@@ -114,6 +116,12 @@ proprietários.
   citações continuam no idioma original da fonte. Idioma inicial,
   persistência da preferência e fallback permanecem para decisão futura de
   frontend. A decisão não aceita os ADRs ainda propostos.
+- O corpus `4.5.0` formaliza a decisão posterior de suportar os temas `Light`
+  e `Dark`, com escolha explícita e independente dos idiomas da interface e da
+  consulta. A matriz de quatro combinações entre `interfaceLanguage` e
+  `questionLanguage` deve ser executada nos dois temas. Tema inicial,
+  preferência do sistema, persistência e fallback permanecem para decisão
+  futura de frontend. A decisão não aceita os ADRs ainda propostos.
 - A arquitetura adota princípios compatíveis com o DB-Notifier sem criar
   referência ou dependência entre os projetos.
 - O Human Gate de `STATE-00` foi confirmado na conversa coordenadora que
@@ -208,6 +216,8 @@ proprietários.
   idioma da pergunta e citações preservadas no idioma original da fonte.
 - Interface com seleção explícita entre `pt-BR` e `en-GB`, independente do
   idioma da pergunta, da resposta e da evidência.
+- Interface com seleção explícita entre `Light` e `Dark`, independente dos
+  idiomas da interface, da pergunta, da resposta e da evidência.
 - Substituição manual de documento e nova geração de índice.
 - Conteúdo bruto imutável/reabrível, staging não consultável, manifesto final
   íntegro e ativação/rollback pelo registro completo versionado.
@@ -265,6 +275,9 @@ autorizada.
     preferência e o comportamento de fallback; o conjunto suportado
     `pt-BR`/`en-GB` e sua independência do idioma da consulta já estão
     decididos.
+13. Decidir no `STATE-05` o tema inicial, eventual preferência do sistema,
+    persistência e fallback; o conjunto suportado `Light`/`Dark` e sua
+    independência dos idiomas já estão decididos.
 
 ## Próxima autoridade
 

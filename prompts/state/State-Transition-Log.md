@@ -1476,3 +1476,54 @@ contém somente fatos cronológicos.
   reconciliar a baseline escolhida e executar a auditoria combinada do
   `STATE-02`; a decisão dos idiomas visuais não implica nenhuma dessas
   decisões.
+
+## 2026-08-01 — Temas Light e Dark formalizados no corpus 4.5.0
+
+- Estado anterior e resultante: `STATE-02 ARCHITECTURE` ativo; Automatic
+  Quality Gate `BLOQUEADO`; Human Gate `PENDENTE`; sem transição.
+- Autoridade humana exata:
+
+  ```text
+  Quero tema: Dark e Light, ainda dá para incluir?
+  ```
+
+- Decisão: `Light` e `Dark` são o conjunto fechado de temas da interface do
+  MVP. O Dashboard deve oferecer escolha visual explícita entre os dois, sem
+  que a ordem dos nomes determine preferência ou tema inicial.
+- Independência: o tema não altera nem é inferido de `interfaceLanguage`,
+  `questionLanguage`, `answerLanguage` ou `contentLanguage`, e não modifica
+  conteúdo, escopo, resposta, evidência ou citação.
+- Homologação: a matriz de quatro combinações entre `interfaceLanguage` e
+  `questionLanguage` deve ser executada em `Light` e `Dark`, totalizando oito
+  combinações. Testes validam contraste, foco, hierarquia, reflow, estados e
+  informação não dependente apenas de cor.
+- Rastreabilidade: acrescentados `RF-023`, `RNF-017`, `AC-MVP-018` e
+  `BL-M18`; política de idioma, visão, arquitetura, contratos, lifecycle,
+  Quality Gates, roadmap, threat model, relatório, índices e snapshot factual
+  foram reconciliados.
+- Limite factual: os temas não foram implementados nem testados. Tema inicial,
+  preferência do sistema, persistência e fallback não foram decididos e
+  pertencem ao trabalho futuro de frontend em `STATE-05`.
+- Escopo negativo: nenhum tema inicial, detecção automática, persistência ou
+  fallback inferido; nenhuma mudança nos idiomas ou no comportamento de
+  consulta; nenhuma aceitação de ADR, mudança de lifecycle, código funcional,
+  dependência, rede, provider, GitHub, OCI, recurso externo, publicação,
+  deploy ou DB-Notifier.
+- SemVer: corpus `4.5.0` (`MINOR`) por acrescentar uma capacidade funcional e
+  critérios de homologação compatíveis antes da implementação pública,
+  preservando os 13 arquivos ativos em `prompts/`.
+- Runtime preflight: `NÃO APLICÁVEL`; a execução foi exclusivamente
+  documental e local, sem inspeção ou encerramento de processos.
+- Verificações: auditoria do repositório aprovou 83 arquivos não ignorados e
+  30 Markdown; 13 arquivos em `prompts/`; 23 RF, 17 RNF, 18 critérios de
+  aceitação e 34 itens de backlog; 92 definições estáveis sem duplicidade; um
+  H1 por Markdown; ADR-0001 `superseded`, ADR-0003 `accepted` e ADR-0002 e
+  ADR-0004 a ADR-0006 `proposed`; 30 ameaças, 12 grupos de testes de segurança
+  e `git diff --check` aprovados.
+- Quality Gate: incremento documental `4.5.0` `APROVADO`; o Automatic Quality
+  Gate de `STATE-02` permanece `BLOQUEADO` pelas decisões de ADR e auditoria
+  combinada ainda pendentes.
+- Human Gate: permanece `PENDENTE` e não foi solicitado.
+- Próxima condição: decidir explicitamente ADR-0002 e ADR-0004 a ADR-0006,
+  reconciliar a baseline escolhida e executar a auditoria combinada do
+  `STATE-02`; a decisão dos temas não implica nenhuma dessas decisões.

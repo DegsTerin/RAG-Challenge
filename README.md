@@ -47,6 +47,8 @@ O primeiro produto funcional deverá:
   pergunta;
 - permitir alternar a interface entre `pt-BR` e `en-GB`, independentemente do
   idioma da pergunta;
+- permitir alternar o tema da interface entre `Light` e `Dark`,
+  independentemente do idioma visual e da consulta;
 - apresentar documento e localização usados na resposta;
 - preservar nas citações o idioma original do conteúdo da fonte;
 - declarar evidência insuficiente quando o acervo não sustentar a resposta;
@@ -56,9 +58,9 @@ O primeiro produto funcional deverá:
 - possuir testes, configuração segura e documentação de execução;
 - publicar um contrato OpenAPI v1 versionado pertencente ao RAG-Challenge.
 
-O idioma visual e o idioma da consulta são seleções independentes. A forma de
-seleção inicial, persistência e fallback da interface ainda será decidida no
-estado responsável pelo frontend.
+O idioma visual, o tema e o idioma da consulta são seleções independentes. A
+seleção inicial, a persistência, o fallback e eventual preferência do sistema
+ainda serão decididos no estado responsável pelo frontend.
 
 O acervo de referência fornecido pelo curso não será usado automaticamente:
 ele permanece em `reference-materials/`, fora do Git. Antes da implementação,
