@@ -1,6 +1,6 @@
 # Estado Atual
 
-Este documento é o snapshot factual vigente do workspace em 2026-07-31. Ele
+Este documento é o snapshot factual vigente do workspace em 2026-08-01. Ele
 não concede autoridade. Evolução e decisões no contexto original pertencem ao
 [`State-Transition-Log.md`](State-Transition-Log.md) e aos relatórios
 proprietários.
@@ -22,7 +22,8 @@ proprietários.
   encerrou `STATE-00` e para o incremento transversal `3.5.0`, sem reabertura
   do gate; correções `3.5.1` a `3.5.4` também `APROVADAS`; migração de
   identidade `4.0.0`, correção factual `4.0.1` e padrão copiável `4.1.0`
-  também `APROVADOS`.
+  também `APROVADOS`. O incremento normativo de eficiência decisória foi
+  registrado como `4.2.0` (`MINOR`) em 2026-08-01.
 - Human Gate de `STATE-00`: `APROVADO` sem ressalvas em 2026-07-30.
 - `GATE-B01`: `APROVADO` sem ressalvas em 2026-07-30.
 - Transição para `STATE-01 PROJECT_SETUP`: autorizada em 2026-07-30.
@@ -40,13 +41,19 @@ proprietários.
 - Execução de `STATE-02`: pacote documental sequencial de `S02-A` e `S02-B`
   preparado no commit `979677fa1f4d7324340b8be15d88eb8b5b802a1a` em
   2026-07-31, com ADR-0002 e ADR-0004 a ADR-0006 ainda `proposed`, contratos
-  canônicos, threat model e relatório factual. Fatos de fonte oficial,
-  package/parser, provider/model e OCI dependentes de rede não foram
-  verificados e nenhuma escolha foi aceita por implicação.
-- Automatic Quality Gate de `STATE-02`: `BLOQUEADO` até verificação externa
-  autorizada, decisões humanas explícitas de cada ADR e nova auditoria da
-  baseline resultante. Human Gate de `STATE-02`: `PENDENTE` e ainda não pode
-  ser solicitado.
+  canônicos, threat model e relatório factual. A verificação pública
+  autorizada foi registrada nos commits
+  `f1066c3509f5f48d4fe6e21c9e36403e642c1431`,
+  `e80f8c41bea3f28deff3d8cdccafccbca5dcc016` e
+  `9cc62746ea2ba861676a2d5bfee317eaf66dad7c`: nenhum item de fonte primária
+  pública permanece pendente no escopo autorizado. Fatos dependentes de
+  conta, entitlement, capacidade ou execução continuam não verificados e
+  exigem autoridade futura própria; nenhuma escolha foi aceita por
+  implicação.
+- Automatic Quality Gate de `STATE-02`: `BLOQUEADO` até decisões humanas
+  explícitas de ADR-0002 e ADR-0004 a ADR-0006, reconciliação da baseline
+  aceita/rejeitada e auditoria combinada dos documentos resultantes. Human
+  Gate de `STATE-02`: `PENDENTE` e ainda não pode ser solicitado.
 - ADR-0001: `superseded` pelo ADR-0003, após aceitação original no
   `GATE-B01`; ADR-0002: `proposed`; ADR-0003: `accepted` pela solicitação
   humana explícita de renomear o projeto para `RAG-Challenge`, incorporando
@@ -59,7 +66,7 @@ proprietários.
   a política de idioma acrescentou o 21º documento público por incremento
   versionado, e o ADR-0003 acrescentou o 22º.
 - A baseline aprovada no Human Gate de `STATE-00` permanece `3.4.0`.
-- O corpus de instruções vigente possui versão `4.1.0` e 13 arquivos em
+- O corpus de instruções vigente possui versão `4.2.0` e 13 arquivos em
   `prompts/`.
 - Visão, requisitos, arquitetura, RAG, segurança, qualidade, lifecycle,
   roadmap, backlog, estado, histórico e templates estão documentados.
@@ -68,13 +75,21 @@ proprietários.
   decisões aceitas nem evidência de implementação.
 - A auditoria do pacote proposto confirmou 83 arquivos não ignorados, 30
   Markdown, links e formato válidos, quatro ADRs com status `proposed`, 30 IDs
-  de ameaça e 12 grupos de testes de segurança. A aprovação estrutural não
-  resolve os bloqueios externos nem substitui decisões humanas.
+  de ameaça e 12 grupos de testes de segurança. As verificações posteriores
+  reconciliaram os fatos públicos de fonte oficial, parser/package,
+  provider/model e OCI sem resolver fatos dependentes de conta ou runtime e
+  sem substituir decisões humanas.
 - A auditoria do corpus `4.1.0` confirmou 22 documentos, 114 links locais
   válidos, 20 RF, 14 RNF, 15 critérios de aceitação, 31 itens de backlog, 8
   módulos, 13 riscos, formato consistente e rastreabilidade. A implementação
   existente continua limitada ao scaffold entregue pelo `STATE-01`
   encerrado.
+- O corpus `4.2.0` acrescenta a `AGENTS.md` regras permanentes de eficiência
+  decisória e proporcionalidade: identificar a entrega antes da coleta,
+  separar fatos decisivos de contexto, calibrar profundidade ao risco,
+  verificar candidatos em duas etapas, preferir autoridade limitada completa,
+  parar por valor decrescente e preservar integralmente segurança, qualidade,
+  lifecycle e autoridade explícita.
 - A arquitetura adota princípios compatíveis com o DB-Notifier sem criar
   referência ou dependência entre os projetos.
 - Cada solicitação do proprietário recebe exatamente um encerramento compacto
@@ -217,28 +232,40 @@ autorizada.
 ## Decisões pendentes
 
 1. Decidir ADR-0002 explicitamente.
-2. Confirmar ou substituir o corpus autoral, a lista de bancos e a licença
-   `CC BY 4.0` propostos pelo ADR-0004.
-3. Verificar e decidir a fonte PostgreSQL 18 candidata, URL pública, licença,
-   termos, limites, `maxAge`, trust e política TLS/revogação.
-4. Verificar e decidir PdfPig, normalização e `paragraph-window-v1`.
-5. Verificar e decidir OpenAI `text-embedding-3-small`.
-6. Verificar e decidir `SqliteExactVectorStore` e seus limites.
-7. Verificar e decidir OpenAI `gpt-4.1-mini-2025-04-14` e a divulgação de
-   dados ao provider.
+2. Aceitar, rejeitar ou alterar o corpus autoral, a lista de bancos e a
+   licença `CC BY 4.0` propostos pelo ADR-0004.
+3. Aceitar, rejeitar ou alterar a fonte PostgreSQL 18 candidata, frequência
+   manual, `maxAge`, limites, trust e risco residual de revogação TLS; URL,
+   media type, tamanho, licença, robots e TLS local foram verificados no
+   escopo público autorizado.
+4. Aceitar, rejeitar ou alterar PdfPig 0.1.15, normalização e
+   `paragraph-window-v1`; qualidade e segurança de extração dependem de spike
+   futuro separadamente autorizado.
+5. Aceitar, rejeitar ou alterar OpenAI `text-embedding-3-small`, incluindo o
+   risco de alias mutável; tier, entitlement e limites da conta futura não
+   foram verificados.
+6. Aceitar, rejeitar ou alterar `SqliteExactVectorStore` e seus limites; a
+   prova de desempenho pertence a teste futuro.
+7. Aceitar, rejeitar ou alterar OpenAI `gpt-4.1-mini-2025-04-14`, retenção,
+   divulgação de dados e ausência documentada de residência brasileira;
+   elegibilidade e controles da conta futura não foram verificados.
 8. Decidir SQLite/filesystem duráveis, retenção, backup e rollback.
-9. Verificar e decidir OCI Compute em `sa-saopaulo-1`, shape, volume, secrets,
-   TLS e orçamento.
+9. Aceitar, rejeitar ou alterar OCI Compute em `sa-saopaulo-1`, shape,
+   volume, backup, secrets, TLS e orçamento; capacidade, entitlement, limites
+   efetivos e cobrança da tenancy futura não foram verificados, e fontes
+   públicas divergem sobre a franquia gratuita.
 10. Decidir dataset `rag-eval-mvp-v1`, rubrica e thresholds propostos.
 11. Decidir ADR-0006, incluindo egress, risco residual de revogação TLS,
     administração, falhas/readiness e compatibilidade OpenAPI.
 
 ## Próxima autoridade
 
-Obter autoridade separada e limitada para verificar, em fontes primárias, os
-fatos externos enumerados no relatório de `STATE-02`, sem instalar, baixar
-corpus, chamar API paga ou criar recurso. Depois, reconciliar a evidência e
-submeter ADR-0002 e ADR-0004 a ADR-0006 a decisões humanas explícitas. O Human
-Gate e o encerramento de `STATE-02` continuarão exigindo Automatic Quality Gate
-e resumo completos próprios. GitHub, OCI, publicação, deploy, demais ações
+Submeter ADR-0002 e ADR-0004 a ADR-0006 a decisões humanas explícitas de
+aceitação, rejeição ou alteração, sem inferir uma decisão a partir de outra.
+Depois, reconciliar a baseline escolhida e executar a auditoria combinada
+exigida pelo Automatic Quality Gate. Fatos dependentes de conta, entitlement,
+capacidade, spike ou runtime permanecem para autoridades futuras próprias e
+não bloqueiam a decisão documental por ausência de fonte pública. O Human Gate
+e o encerramento de `STATE-02` continuarão exigindo Automatic Quality Gate e
+resumo completos próprios. GitHub, OCI, publicação, deploy, demais ações
 externas e mudanças no DB-Notifier continuam sem autorização.

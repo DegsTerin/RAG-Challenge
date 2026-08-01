@@ -3,7 +3,7 @@
 Assistente RAG independente para consultar documentação sobre bancos de dados
 em linguagem natural, com respostas fundamentadas e referências às fontes.
 
-> Status em 2026-07-31: `STATE-00 DISCOVERY`, `GATE-B01
+> Status em 2026-08-01: `STATE-00 DISCOVERY`, `GATE-B01
 > ARCHITECTURE_BOOTSTRAP_DECISION` e `STATE-01 PROJECT_SETUP` estão
 > encerrados. O Automatic Quality Gate e o Human Gate de `STATE-01` foram
 > aprovados, e `STATE-02 ARCHITECTURE` está ativo para trabalho documental e
@@ -11,8 +11,10 @@ em linguagem natural, com respostas fundamentadas e referências às fontes.
 > estruturais e a definição de CI existem sem lógica RAG. Não existe produto
 > funcional ou deploy, e nenhuma decisão de ADR decorre implicitamente da
 > entrada no estado. Os pacotes de decisão e contratos foram preparados como
-> propostas; fatos externos, decisões dos ADRs e o Automatic Quality Gate de
-> `STATE-02` continuam pendentes.
+> propostas, e a verificação pública autorizada foi reconciliada. ADR-0002 e
+> ADR-0004 a ADR-0006, a baseline resultante de suas decisões e o Automatic
+> Quality Gate de `STATE-02` continuam pendentes; fatos dependentes de conta ou
+> runtime permanecem para autoridades futuras próprias.
 
 ## Problema
 

@@ -2,10 +2,11 @@
 
 ## Versão atual
 
-- Versão: `4.1.0`
-- Data: 2026-07-31
-- Status: texto destinado a cópia destacado por bloco cercado inequívoco;
-  `STATE-01` encerrado e entrada em `STATE-02` pendente
+- Versão: `4.2.0`
+- Data: 2026-08-01
+- Status: eficiência decisória e proporcionalidade incorporadas ao enforcement
+  permanente; `STATE-02` ativo, com fatos públicos reconciliados e decisões de
+  ADR pendentes
 - Escopo: 13 arquivos ativos em `prompts/`
 
 A versão do corpus é independente da versão futura do software.
@@ -19,6 +20,37 @@ A versão do corpus é independente da versão futura do software.
 
 Toda alteração atualiza este arquivo e, quando necessário,
 [`../Start-Here.md`](../Start-Here.md).
+
+## 4.2.0 — 2026-08-01
+
+- Registra o incremento normativo já materializado em `AGENTS.md` pelo commit
+  `9d5adba65aea462465c475f311880e5d9afe2b46`.
+- Torna permanente a otimização por progresso decisório útil: identificar a
+  decisão ou entrega antes da coleta e começar pela resposta, conjunto de
+  candidatos ou inspeção local mais simples que possa resolvê-la.
+- Separa fatos capazes de alterar seleção, aceite ou execução segura de
+  contexto apenas informativo e calibra a profundidade de verificação ao risco
+  da decisão.
+- Estabelece composição e verificação em duas etapas, preferência por uma
+  proposta de autoridade limitada e completa, parada por valor decisório
+  decrescente e alternativa defensável quando uma fonte falha repetidamente.
+- Preserva sem relaxamento factualidade, segurança, qualidade, lifecycle e
+  autoridade explícita; nenhuma regra substituída, decisão arquitetural,
+  capability executável ou nova fonte temática foi criada.
+- Mantém 13 arquivos ativos em `prompts/`; `Start-Here.md` continua roteando
+  `AGENTS.md` como enforcement transversal e não requer alteração normativa
+  para aplicar o incremento.
+- Classifica a mudança como `MINOR`: adiciona um playbook transversal de
+  eficiência e proporcionalidade sem quebra de precedência, autoridade,
+  lifecycle, arquitetura ou escopo funcional.
+- A reconciliação factual concomitante registra no snapshot e nos índices que
+  a verificação pública autorizada de `STATE-02` terminou; ela não compõe o
+  motivo SemVer, não aceita ADR, não altera lifecycle/gate e não transforma
+  evidência histórica em autoridade vigente.
+- A auditoria documental do registro passou para 84 arquivos não ignorados e
+  31 Markdown, incluindo `Organize.md` local e não rastreado; confirmou 13
+  arquivos em `prompts/`, links e formato válidos, histórico append-only,
+  status dos seis ADRs preservados e `git diff --check` limpo.
 
 ## 4.1.0 — 2026-07-31
 

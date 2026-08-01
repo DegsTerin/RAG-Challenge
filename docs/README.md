@@ -2,7 +2,7 @@
 
 ## Status
 
-Este índice descreve o corpus documental vigente `4.1.0`. A baseline `3.4.0`
+Este índice descreve o corpus documental vigente `4.2.0`. A baseline `3.4.0`
 encerrou o Human Gate de `STATE-00 DISCOVERY`; o `GATE-B01
 ARCHITECTURE_BOOTSTRAP_DECISION` aprovou o ADR-0001 e a licença MIT. O
 ADR-0003 aceito posteriormente substitui seu registro, preserva todas as
@@ -10,9 +10,11 @@ decisões não relacionadas a nomenclatura e adota a nova identidade. O
 ADR-0002 e ADR-0004 a ADR-0006 permanecem propostos, e `STATE-01
 PROJECT_SETUP` está encerrado com Automatic Quality Gate e Human Gate
 aprovados. `STATE-02 ARCHITECTURE` está ativo; seus pacotes documentais
-`S02-A` e `S02-B` foram preparados, mas fatos externos e decisões humanas
-continuam pendentes. Nenhum ADR foi aceito por implicação. Relatórios de
-estado são evidências históricas; o presente factual pertence a
+`S02-A` e `S02-B` foram preparados e a verificação pública autorizada foi
+reconciliada. Decisões humanas de ADR, fatos dependentes de conta ou runtime e
+a auditoria combinada da baseline escolhida continuam pendentes. Nenhum ADR
+foi aceito por implicação. Relatórios de estado são evidências históricas; o
+presente factual pertence a
 [`Current-State.md`](../prompts/state/Current-State.md).
 
 ## Comece aqui

@@ -114,11 +114,12 @@ Dashboard -- versioned HTTP --> API
 - [ADR-0003 — Product and Technical Naming](ADR-0003-Product-And-Technical-Naming.md)
   (`accepted`; current bootstrap decision record)
 - [ADR-0004 — MVP Corpus, Official Source and Evaluation Baseline](ADR-0004-MVP-Corpus-Official-Source-And-Evaluation.md)
-  (`proposed`; external source facts unverified)
+  (`proposed`; public source facts reconciled, human decision pending)
 - [ADR-0005 — MVP Providers, Persistence and OCI Deployment](ADR-0005-MVP-Providers-Persistence-And-OCI-Deployment.md)
-  (`proposed`; provider/package/OCI facts unverified)
+  (`proposed`; public provider/package/OCI facts reconciled, account and
+  runtime evidence deferred)
 - [ADR-0006 — Security, Egress, Administration and HTTP Contracts](ADR-0006-Security-Egress-Administration-And-HTTP-Contracts.md)
-  (`proposed`)
+  (`proposed`; public endpoint evidence reconciled, human decision pending)
 
 ## STATE-02 design artefacts
 
@@ -138,13 +139,17 @@ Dashboard -- versioned HTTP --> API
 - Corpus licence and provenance in `STATE-02`; the repository licence is MIT
   as recorded by `GATE-B01`.
 - Exact corpus scope and redistributable PDF.
-- Exact official PDF URL, terms/licence, maxAge and egress limits.
-- Embedding, vector-store and language-model implementations.
+- Acceptance or revision of the verified official PDF candidate, its
+  licence basis, `maxAge`, egress limits and residual TLS risk.
+- Parser, chunking, embedding, vector-store and language-model selections;
+  account entitlement and runtime evidence require later authority.
 - Persistence technology for raw content, catalogue and vector index,
   including deployment durability and retention.
 - Managed-vector-store data policy and egress, if a local adapter is not
   selected.
-- OCI service, region, domain/TLS and operating budget.
+- OCI shape, storage, independent backup, secrets, domain/TLS and operating
+  budget; tenancy capacity, entitlement and effective billing remain later
+  account-specific evidence.
 - Evaluation dataset and thresholds.
 
 These decisions belong to the authorised state that owns them.

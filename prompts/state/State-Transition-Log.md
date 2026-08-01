@@ -1261,3 +1261,70 @@ contém somente fatos cronológicos.
 - Próxima condição: obter autoridade HTTPS read-only limitada às fontes
   primárias necessárias, reconciliar a evidência e submeter cada ADR a decisão
   humana explícita.
+
+## 2026-08-01 — Verificação pública de STATE-02 reconciliada no snapshot
+
+- Estado anterior e resultante: `STATE-02 ARCHITECTURE` ativo; Automatic
+  Quality Gate `BLOQUEADO`; Human Gate `PENDENTE`; sem transição.
+- Autoridade: solicitação explícita do proprietário para reconciliar
+  preliminarmente o snapshot factual com a conclusão da verificação pública
+  registrada nos commits
+  `f1066c3509f5f48d4fe6e21c9e36403e642c1431`,
+  `e80f8c41bea3f28deff3d8cdccafccbca5dcc016` e
+  `9cc62746ea2ba861676a2d5bfee317eaf66dad7c`, sem executar a Fase 2 de
+  `Organize.md`.
+- Evidência protegida: `docs/STATE-02-Architecture-Report.md` permanece
+  histórico e somente leitura; foi confrontado com os commits e com o estado
+  vigente, sem ser tratado como substituição automática do snapshot.
+- Resultado observado: nenhum item de fonte primária pública permanece
+  pendente no escopo HTTPS anônimo que foi autorizado. Fonte oficial,
+  package/parser, provider/model e OCI conservam as qualificações registradas;
+  nenhum candidato foi aceito por implicação.
+- Limite factual: entitlement, capacidade, limites e controles de contas
+  futuras, cobrança efetiva, IAM, reachability e resultados de spikes ou
+  runtime continuam não verificados. Eles exigem autoridades futuras próprias
+  e não foram inferidos de documentação pública.
+- Memória reconciliada: `Current-State.md`, README público e índices de
+  documentação/arquitetura passaram a distinguir verificação pública
+  concluída, decisões humanas pendentes e evidência de conta/runtime adiada.
+- Decisões: ADR-0002 e ADR-0004 a ADR-0006 permanecem `proposed`; ADR-0001
+  permanece `superseded` e ADR-0003 permanece `accepted`.
+- Gates: o Automatic Quality Gate de `STATE-02` permanece `BLOQUEADO` até as
+  decisões explícitas dos ADRs, reconciliação da baseline escolhida e
+  auditoria combinada; o Human Gate permanece `PENDENTE` e não pode ser
+  solicitado.
+- Escopo negativo: nenhuma edição de ADR, relatório `STATE-*`, contrato,
+  threat model, `Organize.md`, código, teste, dependência, configuração
+  executável ou `reference-materials/`; nenhuma rede, instalação, inspeção de
+  processo, GitHub, OCI, provider, push, publicação ou deploy.
+
+## 2026-08-01 — Incremento normativo 4.2.0 registrado
+
+- Estado anterior e resultante: `STATE-02 ARCHITECTURE` ativo; Automatic
+  Quality Gate `BLOQUEADO`; Human Gate `PENDENTE`; sem transição.
+- Autoridade: solicitação explícita do proprietário para validar a
+  equivalência e registrar como `4.2.0 MINOR` o incremento normativo já
+  existente no commit `9d5adba65aea462465c475f311880e5d9afe2b46`.
+- Baseline normativa observada: o commit altera somente `AGENTS.md` e
+  acrescenta 21 linhas de eficiência decisória e proporcionalidade, sem
+  remover ou reescrever regra anterior.
+- Equivalência validada: o incremento exige identificar a decisão ou entrega,
+  separar fatos decisivos de contexto, calibrar verificação ao risco,
+  estabelecer candidatos antes da verificação formal, preferir autoridade
+  limitada completa, parar por valor decrescente e adotar alternativa
+  defensável para fontes repetidamente improdutivas.
+- Invariantes preservados: factualidade, segurança, qualidade, lifecycle e
+  autoridade explícita continuam limites não relaxáveis; não houve mudança de
+  precedência, estado, gate, arquitetura, escopo funcional ou ação externa.
+- SemVer: `4.2.0` (`MINOR`) porque o corpus recebe um playbook transversal
+  novo e compatível; 13 arquivos ativos em `prompts/` foram preservados.
+- Resultado: changelog, snapshot e índice documental registram a versão; o
+  conteúdo normativo de `AGENTS.md` já materializado no commit de origem não
+  foi reeditado durante esta reconciliação.
+- Verificações: auditoria do repositório, formato, links, escopo do diff,
+  histórico append-only, coerência factual, versão do corpus, status dos ADRs
+  e conteúdo protegido foram aprovados; `Organize.md` permaneceu não rastreado
+  e com SHA-256 inalterado.
+- Escopo negativo: nenhuma execução da Fase 2 de `Organize.md`, condensação
+  normativa, aceitação de ADR, mudança de lifecycle/gate, Human Gate ou ação
+  externa.
