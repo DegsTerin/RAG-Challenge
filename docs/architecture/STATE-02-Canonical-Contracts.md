@@ -32,12 +32,16 @@ Infrastructure owns adapters; Server owns HTTP mapping and composition.
 | Contract | Minimum semantics |
 |---|---|
 | `CorpusId` | Stable lower-case slug; MVP value is fixed by configuration. |
+| `DatabaseProductId` | Stable opaque identity independent of display name. |
+| `DatabaseProductRevision` | Immutable display/provenance revision. |
+| `DatabaseCategoryAssignment` | Many-to-many link; one database identity may belong to several categories. |
+| `CatalogueItemStatus` | `Candidate`, `Active`, `Deactivated` or logical tombstone `Removed`. |
 | `DocumentId` | Stable logical identity independent of filename. |
-| `DocumentVersion` | SHA-256, byte length, media type, `contentLanguage`, source metadata and licence/provenance state. |
+| `DocumentVersion` | Database ID, SHA-256, byte length, format `Pdf` or `Csv`, media type, `contentLanguage`, source metadata and licence/provenance state. |
 | `ContentObjectId` | Lower-case SHA-256 identity for immutable reopened bytes. |
-| `SourceScope` | Closed enum `Local` or `OfficialOnline`; no combined value. |
 | `SupportedLanguage` | Closed enum backed by exact tags `pt-BR` or `en-GB`; no neutral, inferred or fallback value. |
 | `SourceTrustClass` | Closed enum `LocalAuthorised` or `OfficialExternal`. |
+| `OfficialSourceRegistrationId` | Trusted administrative record containing one exact canonical allowlisted URL and policy reference. |
 | `OfficialSnapshotId` | Immutable source key, canonical URL and content hash identity. |
 | `OfficialObservationId` | Append-only revalidation/freshness observation identity. |
 | `CandidateBuildId` | Temporary random/ULID-style build identity; never queryable. |
@@ -61,9 +65,10 @@ OpenReadAsync(DiscoveredDocument, BoundedReadPolicy, CancellationToken)
   -> BoundedDocumentContent
 ```
 
-`DocumentDiscoveryRequest` carries configured `CorpusId`, `SourceScope` and a
-trusted source configuration reference. Public input cannot provide a path.
-The local adapter proves canonical-root containment before opening content.
+`DocumentDiscoveryRequest` carries configured `CorpusId`, database/document
+identities and a trusted source configuration reference. Public input cannot
+provide a path. The local adapter proves canonical-root containment before
+opening content.
 
 ### `IOfficialSourceSynchroniser`
 
@@ -72,7 +77,7 @@ SynchroniseAsync(OfficialSynchronisationRequest, CancellationToken)
   -> OfficialSynchronisationResult
 ```
 
-The request carries only an approved source ID, expected activation revision,
+The request carries only an approved source-registration ID, expected activation revision,
 reason, actor/operation identities and bounded policy. It does not carry a URL
 from the caller. Results are one of:
 
@@ -93,9 +98,10 @@ ParseAsync(VerifiedContentObject, ParserPolicy, CancellationToken)
 ```
 
 The parser receives reopened, hash-verified content. Output contains ordered
-page/block units, safe location metadata, parser descriptor and warnings. It
-cannot return an executable attachment, raw link authority or filesystem
-path.
+units, safe location metadata, parser descriptor and warnings. PDF units use
+page/block locations; CSV units use record ranges, columns and headers. It
+cannot return an executable attachment/formula, raw link authority or
+filesystem path.
 
 ### `IChunkingStrategy`
 
@@ -105,8 +111,9 @@ Chunk(ParsedDocumentArtifact, NormalisationPolicy, ChunkingPolicy)
 ```
 
 Output is deterministic for the complete input descriptors. Every chunk
-contains corpus, scope, document/version, inherited `contentLanguage`, stable
-order, page/location, text hash and policy versions.
+contains corpus, database/revision, document/version/format, trust,
+inherited `contentLanguage`, stable order, format-specific location, text hash
+and policy versions.
 
 ## Provider ports
 
@@ -144,15 +151,16 @@ DeleteOrphanAsync(OrphanCleanupRequest, CancellationToken)
 ```text
 CorpusId
 IndexGenerationId
-SourceScope
 QueryVector with expected dimensions
 TopK in range 1..8
 MinimumScorePolicyVersion
+Optional authorised database/document filters
 ```
 
-The adapter hard-filters corpus, generation and scope before ranking/top-k or
-uses an equivalent physical partition. It returns the selectors used in its
-result so Application can validate them. It has no activate/deactivate API.
+The adapter hard-filters corpus, generation and any declared administrative
+filters before ranking/top-k or uses an equivalent physical partition. It
+returns the selectors used so Application can validate them. It has no
+activate/deactivate API.
 
 ### `ILanguageModel`
 
@@ -194,9 +202,10 @@ the object.
 
 ### `IDocumentCatalog`
 
-Owns document identities, immutable versions, source descriptors, snapshots,
+Owns database identities/revisions/statuses, category assignments, document
+identities/versions/statuses, source registrations/descriptors, snapshots,
 append-only observations and provenance. It does not own the active generation
-pointer.
+pointer. Data-driven compatible additions do not add code branches.
 
 ### `IIndexGenerationStore`
 
@@ -227,15 +236,27 @@ CorpusActivationRecord
   recordRevision
   previousRecordRevision?
   indexGenerationId
-  officialSnapshotId?
-  officialObservationId?
+  catalogueRevision
+  documentBindings[]       # ordinal canonical ordering
+    databaseProductId
+    databaseProductRevision
+    documentId
+    documentVersion
+    documentFormat: Pdf | Csv
+    sourceAdapterId
+    sourceTrustClass
+    officialSourceRegistrationId?
+    sourceSnapshotId?
+    sourceObservationId?
   generationActivatedAt
   recordUpdatedAt
 ```
 
-The active record is read once at query start. Retrieval, freshness checks,
-response metadata and citations use only identities from that snapshot. No
-component combines it with a separately fetched "latest" observation.
+The active record is read once at query start. Retrieval, per-binding freshness
+checks, response coverage and citations use only identities from that snapshot.
+No component combines it with separately fetched catalogue state or a
+"latest" observation. Every active database has at least one active/elegible
+document binding.
 
 ## Application use cases
 
@@ -244,9 +265,12 @@ component combines it with a separately fetched "latest" observation.
 | `BuildCorpusIndex` | Produces a validated immutable generation; does not activate. |
 | `ActivateIndexGeneration` | Compare-and-swap of the complete activation record and audit. |
 | `RollbackIndexGeneration` | Creates a new record revision targeting a complete retained record. |
+| `AdministerDatabaseProduct` | Adds/versions/activates/deactivates/logically removes a database under catalogue invariants. |
+| `AdministerDocument` | Adds/versions/activates/deactivates/logically removes a PDF/CSV document under retention and last-document invariants. |
+| `RegisterOfficialSource` | Creates/versions a trusted exact-URL registration; does not enable egress or activate content. |
 | `SynchroniseOfficialSource` | Creates immutable snapshot/observation and rebuilds or rebinds only under recorded compatibility rules. |
-| `AskQuestion` | Returns `Answered`, `InsufficientEvidence` or canonical failure for one scope. |
-| `GetSystemReadiness` | Returns sanitised global and per-scope capability state without external probing. |
+| `AskQuestion` | Returns `Answered`, `InsufficientEvidence` or canonical failure over all active/current bindings. |
+| `GetSystemReadiness` | Returns sanitised global and per-document/source coverage without external probing. |
 
 ## Query contract v1
 
@@ -255,7 +279,6 @@ component combines it with a separately fetched "latest" observation.
 ```text
 QueryRequestV1
   corpusId: string, required, configured MVP value
-  sourceScope: Local | OfficialOnline, required
   questionLanguage: pt-BR | en-GB, required
   question: string, required, 1..4096 UTF-8 bytes after normalisation
 ```
@@ -267,13 +290,11 @@ provider or future authority-bearing field.
 
 ```text
 QueryResponseV1
-  sourceScope
   outcome: Answered | InsufficientEvidence
   answerLanguage: pt-BR | en-GB
   answer?: plain string
   citations: CitationV1[]
-  sourceSnapshotId?: string
-  sourceFreshness?: Current
+  evidenceCoverage: EvidenceCoverageV1
   indexGenerationId
   retrievalPolicyVersion
   promptVersion
@@ -283,19 +304,22 @@ QueryResponseV1
 
 `answerLanguage` is always equal to the accepted `questionLanguage`. `answer`
 is required only for `Answered` and must use `answerLanguage`. `citations` is
-empty for `InsufficientEvidence`. An official completed response requires a
-current snapshot/observation and includes canonical URL, snapshot and
-revalidation metadata in each citation.
+empty for `InsufficientEvidence`. `evidenceCoverage` records active/eligible
+database/document counts and sanitised degraded source IDs/statuses. Official
+evidence requires a current snapshot/observation and includes canonical URL,
+snapshot and revalidation metadata in its citation.
 
 ### Citation
 
 ```text
 CitationV1
   corpusId
-  sourceScope
   indexGenerationId
+  databaseProductId
+  databaseProductRevision
   documentId
   documentVersion
+  documentFormat: Pdf | Csv
   contentLanguage: pt-BR | en-GB
   chunkId
   sourceAdapterId
@@ -303,6 +327,9 @@ CitationV1
   title?
   pageStart?
   pageEnd?
+  recordStart?             # CSV only
+  recordEnd?               # CSV only
+  columns?                 # CSV only; bounded header names
   section?
   canonicalUrl?          # official only
   sourceSnapshotId?      # official only
@@ -318,6 +345,10 @@ navigation or the selected `interfaceLanguage`. The Dashboard separately
 supports `pt-BR` and `en-GB`, and its separate visual state supports `Light`
 and `Dark`; no public query field selects its locale or theme.
 
+`EvidenceCoverageV1` is derived from the activation record and contains only
+sanitised IDs/counts/statuses. It never exposes a local path, unapproved URL,
+licence text, provider configuration or reason for an administrative action.
+
 ## Failure taxonomy and HTTP mapping
 
 | Application failure | Stable code | HTTP | Public meaning |
@@ -325,8 +356,9 @@ and `Dark`; no public query field selects its locale or theme.
 | `InvalidInput` | `CH_QUERY_INVALID_INPUT` | `400` | Request is invalid or outside bounds. |
 | `CorpusUnavailable` | `CH_CORPUS_UNAVAILABLE` | `503` | Configured corpus cannot serve. |
 | `UnsupportedDocument` | `CH_DOCUMENT_UNSUPPORTED` | n/a | Local administration failure only. |
-| `SourceUnavailable` | `CH_SOURCE_UNAVAILABLE` | `503` | Selected scope is unavailable. |
-| `SourceStale` | `CH_SOURCE_STALE` | `503` | Official evidence is not current. |
+| `CatalogueInvariantViolation` | `CH_CATALOGUE_INVARIANT` | n/a | Administration would leave invalid active state. |
+| `SourceUnavailable` | `CH_SOURCE_UNAVAILABLE` | `503` | No eligible active source can serve. |
+| `SourceStale` | `CH_SOURCE_STALE` | `503` | No eligible official evidence remains current. |
 | `SourcePolicyViolation` | `CH_SOURCE_POLICY_VIOLATION` | `503` | Source capability failed closed. |
 | `ParseFailed` | `CH_DOCUMENT_PARSE_FAILED` | n/a | Local administration failure only. |
 | `EmbeddingUnavailable` | `CH_EMBEDDING_UNAVAILABLE` | `503` | Query embedding cannot be produced. |
@@ -359,8 +391,10 @@ retryAfterSeconds?        # bounded and applicable only
 ```text
 ReadinessV1
   status: Ready | Degraded | Unready
-  local: Ready | Unavailable | Incompatible
-  officialOnline: Ready | Stale | Unavailable | Withdrawn | Deactivated
+  activeDatabaseCount
+  eligibleDocumentCount
+  degradedDocumentCount
+  sourceStates: SanitisedSourceStateV1[]
   activeGenerationId?
   configurationRevision
   checks: SanitisedCapabilityCheckV1[]
@@ -368,19 +402,23 @@ ReadinessV1
 ```
 
 No endpoint, exception, file path, SQL detail, provider payload or secret
-reference is included. `Degraded` is HTTP 200 only when `Local` remains ready;
-`Unready` is HTTP 503.
+reference is included. `Degraded` is HTTP 200 only while at least one active
+database/document binding remains servable; `Unready` is HTTP 503.
 
 ## Administration command contract
 
 | Command | Required inputs | Idempotent output |
 |---|---|---|
 | `status` | corpus ID | Current sanitised record and capability state. |
-| `synchronise-official` | corpus ID, reason, operation ID | Observation/snapshot outcome and rebuild requirement. |
+| `add-database` / `version-database` | database descriptor, categories, reason, operation ID | Candidate database identity/revision. |
+| `activate-database` / `deactivate-database` / `remove-database` | database ID, expected revision, reason, operation ID | New catalogue revision or invariant conflict. |
+| `add-document` / `version-document` | database ID, PDF/CSV descriptor, provenance, reason, operation ID | Candidate document/version identity. |
+| `activate-document` / `deactivate-document` / `remove-document` | document ID/version, expected revision, reason, operation ID | New catalogue revision or last-document invariant conflict. |
+| `register-official-source` | document ID, exact trusted source policy, reason, operation ID | Candidate source-registration identity; no egress. |
+| `synchronise-official` | source-registration ID, reason, operation ID | Observation/snapshot outcome and rebuild requirement. |
 | `build-index` | corpus ID, reason, operation ID | Candidate or finalised generation identity; never activates. |
 | `activate-generation` | generation ID, expected record revision, reason, operation ID | New activation record revision. |
 | `rollback-generation` | retained record revision, expected current revision, reason, operation ID | New current record revision targeting complete retained state. |
-| `deactivate-official` | expected record revision, reason, operation ID | New observation binding without index mutation. |
 
 Commands use typed exit categories: `0` success, `2` invalid input, `3`
 configuration/authority denied, `4` conflict, `5` dependency unavailable and
@@ -399,6 +437,10 @@ structured stderr/audit without secret content.
   baseline even when vectors remain compatible.
 - A provider adapter can change without a Domain/Application contract change
   only when its declared semantics and compatibility descriptor remain exact.
+- Adding a database, category assignment, PDF/CSV document or anonymous exact
+  HTTPS source that conforms to existing contracts is data administration and
+  needs neither code nor an ADR per item. A new format, protocol,
+  authentication or trust semantic may require both.
 
 ## Required verification
 
@@ -406,14 +448,19 @@ structured stderr/audit without secret content.
   adapters.
 - Architecture tests for inward dependencies and SDK/type isolation.
 - OpenAPI snapshot and compatibility tests.
-- Adversarial vector tests proving pre-filter before top-k.
+- Adversarial vector tests proving corpus/generation and any declared
+  database/document pre-filter before top-k.
 - Crash/concurrency tests for every compare-and-swap boundary.
 - Negative tests for unknown request fields, bounds, stale source, policy
   violations, invalid provider responses and citation forgery.
+- Catalogue lifecycle tests for 51 unique initial identities, 54 category
+  assignments, Candidate activation, logical removal, retention and the
+  last-active-document invariant; parser contracts cover PDF and CSV locators.
 - Language-contract tests for `pt-BR→pt-BR`, `en-GB→en-GB`,
   `pt-BR→en-GB` and `en-GB→pt-BR` between question and evidence, including
   exact answer-language equality and preservation of source-derived citation
   text.
-- Readiness tests proving official degradation never causes scope fallback.
+- Readiness tests proving per-source degradation is explicit, never silently
+  substituted and remains servable only while eligible evidence exists.
 
 No item in this document is implementation or test evidence.

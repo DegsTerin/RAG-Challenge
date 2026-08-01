@@ -107,21 +107,30 @@ impactful action.
 
 ## MVP proportionality
 
-- The MVP uses one configured corpus, one PDF parser shared by local and
-  official documents, one bounded official-source adapter, one chunking
-  strategy, one embedding provider, one vector-store implementation and one
-  language model.
+- The MVP uses one configured logical corpus, an administrator-managed database
+  catalogue, PDF and CSV parser adapters, one bounded official-source adapter
+  implementation per supported integration class, one chunking strategy, one
+  embedding provider, one vector-store implementation and one language model.
 - The initial corpus must be authored by the owner or have verified
   redistribution and use permission. The local Challenge source materials are
   not the product corpus.
-- Manual local-corpus replacement, manual official-source synchronisation and
-  safe re-indexing belong to the MVP.
-- A query selects exactly one evidence scope: `Local` or `OfficialOnline`.
-  The MVP never mixes those scopes silently.
-- Multiple active corpora, scheduled incremental synchronisation, additional
-  general document formats, dynamic provider loading, multiple official
-  sources, generic crawling and the DB-Notifier adapter remain future
-  capabilities until separately authorised.
+- Administrators may add, version, activate, deactivate and logically remove
+  any number of database products and associated authorised PDF or CSV
+  documents through governed records. Compatible additions require neither a
+  hard-coded list, a code change nor an ADR per item.
+- Every active database has at least one active, validated document. All active
+  documents participate in one retrieval space; `LocalAuthorised` and
+  `OfficialExternal` remain explicit provenance/trust metadata and are never
+  mixed without being disclosed in citations and response coverage metadata.
+- Manual document ingestion, manual official-source synchronisation, candidate
+  indexing and explicit activation belong to the MVP. Deactivation removes an
+  item from retrieval without erasing history; removal is a logical auditable
+  tombstone and physical deletion follows retention and reachability policy.
+- Multiple active corpora, scheduled incremental synchronisation, document
+  formats beyond PDF and CSV, dynamic provider loading, generic crawling and
+  the DB-Notifier adapter remain future capabilities until separately
+  authorised. A new integration class may require implementation and its own
+  architectural decision.
 - Choose the simplest implementation that preserves the documented
   boundaries. Do not build speculative flexibility.
 

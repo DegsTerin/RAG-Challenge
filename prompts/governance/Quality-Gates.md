@@ -82,10 +82,10 @@ Um lote está pronto quando:
 |---|---|
 | Unitário | Invariantes, versionamento, hashing, políticas, limites e falhas. |
 | Arquitetura | Dependências para dentro e superfícies proibidas. |
-| Contrato | Adapters de parser, conteúdo bruto, embeddings, vetor, LLM, OpenAPI e API. |
+| Contrato | Adapters PDF/CSV, catálogo, conteúdo bruto, embeddings, vetor, LLM, OpenAPI e API. |
 | Integração | Persistência, geração/ativação atômica, rollback, restart e HTTP. |
 | RAG evaluation | Recuperação, groundedness, citações, recusa e matriz `pt-BR`/`en-GB` entre pergunta e evidência. |
-| Segurança | Arquivo malicioso, prompt injection, SSRF, source leakage, secrets e abuso. |
+| Segurança | PDF/CSV malicioso, poisoning de registro, prompt injection, SSRF, source leakage, secrets e abuso. |
 | Acessibilidade | Teclado, foco, semântica, contraste, reflow, localização `pt-BR`/`en-GB` e temas `Light`/`Dark`. |
 | E2E | Documento até resposta e deploy até smoke. |
 | Performance | Latência, limites, memória, custo e carga definidos. |
@@ -183,12 +183,12 @@ coordenação ou validação.
 | Estado | Verificações adicionais |
 |---|---|
 | `STATE-01` | Clone/bootstrap limpo, lockfiles, configuração, CI e ausência de domínio prematuro. |
-| `STATE-02` | ADRs, contratos, threat model, providers, corpus/licença, URL oficial/termos, contrato `pt-BR`/`en-GB`, quatro políticas de egress, persistência durável, erros/readiness/OpenAPI e rollback. |
-| `STATE-03` | Constraints, conteúdo reabrível, hashes, snapshot imutável, observações/freshness, source scope/digests, staging não consultável, manifesto final com integridade/contagens, retenção, migrations e `CorpusActivationRecord` atômico. |
-| `STATE-04` | Arquitetura, sync oficial manual, `304`/hash idêntico e retirada/desativação condicionados ao registro ativo, hard pre-filter antes do top-k, OpenAPI versionado, contrato bilíngue, citações no idioma original, recusa, idempotência, falhas e adapters. |
-| `STATE-05` | Seletor Local/OfficialOnline, `interfaceLanguage` `pt-BR`/`en-GB`, temas `Light`/`Dark`, independência de `questionLanguage`, freshness, estados de UI, teclado, contraste e acessibilidade. |
+| `STATE-02` | ADRs, contratos, threat model, providers, catálogo inicial 51/54/9, PDF/CSV, fontes/licenças/allowlists, contrato `pt-BR`/`en-GB`, quatro políticas de egress, persistência durável, erros/readiness/OpenAPI e rollback. |
+| `STATE-03` | Constraints, bancos/categorias/documentos/estados, conteúdo reabrível, hashes, snapshots, observações/freshness, bindings/digests, staging não consultável, manifesto íntegro, retenção, migrations e `CorpusActivationRecord` atômico. |
+| `STATE-04` | Arquitetura, administração de bancos/documentos, parsers PDF/CSV, sync oficial manual, `304`/hash idêntico, hard pre-filter antes do top-k, recuperação unificada, OpenAPI, contrato bilíngue, citações, recusa, idempotência, falhas e adapters. |
+| `STATE-05` | Cobertura/proveniência, `interfaceLanguage` `pt-BR`/`en-GB`, temas `Light`/`Dark`, independência de `questionLanguage`, freshness, estados de UI, teclado, contraste e acessibilidade. |
 | `STATE-06` | E2E com HTTP falso, smoke real opt-in autorizado, restart, artefato e sandbox OCI. |
-| `STATE-07` | Dataset por escopo, matriz `pt-BR`/`en-GB` entre pergunta/evidência, source leakage, DNS rebinding/pinning/redirect, stale, groundedness, carga, crash boundaries e recuperação. |
+| `STATE-07` | Dataset estratificado por banco/documento/formato, matriz `pt-BR`/`en-GB`, source leakage, DNS rebinding/pinning/redirect, stale, groundedness, carga, crash boundaries e recuperação. |
 | `STATE-08` | Artefato, egress oficial autorizado, deploy, smoke, health, evidência e rollback. |
 
 ## Estratégia de CI
@@ -214,7 +214,7 @@ deploy.
 A campanha define antes da execução:
 
 - corpus e versão;
-- `sourceScope`, snapshot/freshness e política de isolamento;
+- catálogo/bancos/documentos ativos, formatos, snapshots/freshness e cobertura;
 - conjunto de perguntas e casos sem resposta;
 - `questionLanguage` e `contentLanguage` de cada caso, com os pares
   `pt-BR→pt-BR`, `en-GB→en-GB`, `pt-BR→en-GB` e `en-GB→pt-BR` cobertos;
@@ -235,7 +235,7 @@ Medidas candidatas:
 - latência e custo;
 - estabilidade entre versões;
 - resistência a prompt injection;
-- taxa de mistura/fallback indevido entre fontes;
+- taxa de proveniência incorreta, cobertura omitida ou fallback indevido;
 
 Não escolher thresholds depois de observar o resultado.
 
@@ -274,15 +274,16 @@ Human Gate.
 
 - `STATE-00`: revisar escopo, riscos, arquitetura, ADRs e backlog.
 - `STATE-01`: repetir onboarding, build e testes de clone limpo.
-- `STATE-02`: walkthrough de threats, providers, corpus, fonte oficial e rollback.
-- `STATE-03`: revisar modelo, snapshot, source scope, geração e recuperação.
-- `STATE-04`: sync oficial, perguntas por escopo/idioma, recuperação cruzada,
+- `STATE-02`: walkthrough de threats, providers, catálogo, formatos, fontes e rollback.
+- `STATE-03`: revisar bancos/categorias/documentos, snapshots, bindings, geração e recuperação.
+- `STATE-04`: administração, sync oficial, perguntas por banco/formato/idioma,
+  recuperação unificada,
   citações no idioma original, sem evidência e falhas.
-- `STATE-05`: seletores de escopo, idioma e tema; matriz entre
+- `STATE-05`: cobertura/proveniência, idioma e tema; matriz entre
   `interfaceLanguage` e `questionLanguage` executada em `Light` e `Dark`;
   ausência de mistura, contraste, freshness, teclado, reflow, citações e
   erros.
-- `STATE-06`: fluxo local/official, restart e configuração de ambiente.
-- `STATE-07`: amostra por escopo e pelos quatro pares `pt-BR`/`en-GB`, SSRF,
+- `STATE-06`: fluxo PDF/CSV local/oficial, restart e configuração de ambiente.
+- `STATE-07`: amostra por banco/documento/formato e pelos quatro pares `pt-BR`/`en-GB`, SSRF,
   stale, ataque, carga e rollback.
 - `STATE-08`: egress, deploy, smoke, health e recuperação.

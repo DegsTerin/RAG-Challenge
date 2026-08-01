@@ -21,6 +21,14 @@ The owner also selected `Light` and `Dark` as the supported Dashboard themes.
 Theme state remains independent from interface and query languages and is not
 part of the public query contract.
 
+The owner has now fixed the initial canonical catalogue at 51 unique database
+products, 9 categories and 54 many-to-many assignments. Every active database
+has at least one active PDF or CSV document; any number of additional compatible
+documents may be administered without a hard-coded list, code change or ADR per
+item. All active documents participate in unified retrieval, while local or
+official origin remains explicit provenance. This decision does not accept the
+four proposed ADRs or authorise implementation.
+
 The architecture follows DB-Notifier principles where they are proportional
 to the RAG-Challenge: inward dependencies, provider-neutral contracts,
 fail-closed configuration, typed outcomes, versioned evidence and explicit
@@ -40,9 +48,9 @@ RAG-Challenge API
        |
        v
 Application use cases
-   |          |        |        |
- local     official   vector   language
- source    PDF sync   store    model
+   |             |        |        |
+ catalogue/   governed   vector   language
+ PDF+CSV      sources    store    model
 ```
 
 The API owns request validation and composition. Application owns use cases.
@@ -66,8 +74,8 @@ Dashboard -- versioned HTTP --> API
 
 - Domain owns canonical identities, versions and outcomes.
 - RAG abstractions own replaceable capability contracts.
-- Application owns local ingestion, official synchronisation, activation,
-  scoped retrieval and answer use cases.
+- Application owns catalogue/document administration, local ingestion,
+  official synchronisation, activation, unified retrieval and answer use cases.
 - Infrastructure implements parser, provider, network and storage adapters.
 - Hosts are composition roots.
 - Dashboard has no code reference to Application and uses only versioned HTTP
@@ -87,8 +95,9 @@ Dashboard -- versioned HTTP --> API
 
 - A failed candidate index never replaces the active generation.
 - The generation store is the sole system of record for the atomic activation
-  record binding generation, official snapshot and freshness observation;
-  vector access always uses explicit corpus, generation and source-scope IDs.
+  record binding generation and the ordered set of active database/document,
+  snapshot and freshness identities; vector access always uses explicit corpus
+  and generation IDs.
 - Raw document and snapshot bytes remain content-addressed and reopenable;
   vector data is derivative, not the source of truth.
 - Document, provider and index incompatibility fail closed.
@@ -97,10 +106,11 @@ Dashboard -- versioned HTTP --> API
 - Query cancellation propagates to external calls.
 - Retry is bounded and limited to transient, idempotent operations.
 - Source, document, chunk, index and model versions remain traceable.
-- `Local` and `OfficialOnline` are hard-filtered before top-k and never fall
-  back or mix silently.
-- Official freshness is validated before retrieval; query-time never accesses
-  the web.
+- Every active/current document is eligible in unified retrieval; origin and
+  trust remain citation metadata, and partial coverage is explicit rather than
+  a silent fallback.
+- Official freshness is validated per source before retrieval; query-time never
+  accesses the web.
 - Query contracts use explicit `pt-BR`/`en-GB` language tags; answer language
   matches the question and citation content remains in its source language.
 
@@ -109,7 +119,7 @@ Dashboard -- versioned HTTP --> API
 - Local development: API, Dashboard and configured providers on one machine.
 - OCI MVP: one deployable application boundary, with external secrets and
   environment configuration. Official-source egress is limited to the exact
-  approved URL; the runtime allowlist separately aggregates only approved
+  approved active URL set; the runtime allowlist separately aggregates only approved
   official, AI, vector-store, secret-store, telemetry and operational
   destinations. A managed vector store also requires its own egress policy.
 - GitHub: source, documentation and CI.
@@ -126,7 +136,7 @@ Dashboard -- versioned HTTP --> API
   (`proposed`)
 - [ADR-0003 — Product and Technical Naming](ADR-0003-Product-And-Technical-Naming.md)
   (`accepted`; current bootstrap decision record)
-- [ADR-0004 — MVP Corpus, Official Source and Evaluation Baseline](ADR-0004-MVP-Corpus-Official-Source-And-Evaluation.md)
+- [ADR-0004 — MVP Catalogue, Governed Documents, Official Sources and Evaluation](ADR-0004-MVP-Corpus-Official-Source-And-Evaluation.md)
   (`proposed`; public source facts reconciled, human decision pending)
 - [ADR-0005 — MVP Providers, Persistence and OCI Deployment](ADR-0005-MVP-Providers-Persistence-And-OCI-Deployment.md)
   (`proposed`; public provider/package/OCI facts reconciled, account and
@@ -151,9 +161,10 @@ Dashboard -- versioned HTTP --> API
 
 - Corpus licence and provenance in `STATE-02`; the repository licence is MIT
   as recorded by `GATE-B01`.
-- Exact corpus scope and redistributable PDF.
-- Acceptance or revision of the verified official PDF candidate, its
-  licence basis, `maxAge`, egress limits and residual TLS risk.
+- Initial documents, licences and languages for every database product.
+- Acceptance or revision of the verified first PostgreSQL source candidate and
+  the policy for subsequent compatible registrations, including licence basis,
+  `maxAge`, egress limits and residual TLS risk.
 - Parser, chunking, embedding, vector-store and language-model selections;
   account entitlement and runtime evidence require later authority.
 - Persistence technology for raw content, catalogue and vector index,

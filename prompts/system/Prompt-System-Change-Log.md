@@ -2,11 +2,10 @@
 
 ## Versão atual
 
-- Versão: `4.6.0`
+- Versão: `4.7.0`
 - Data: 2026-08-01
-- Status: tetos de sistemas e páginas removidos por decisão independente;
-  `STATE-02` ativo, com lista integral de 51 bancos ainda não recuperada e
-  decisões de ADR pendentes
+- Status: catálogo inicial 51/54/9, PDF/CSV e recuperação unificada
+  reconciliados; `STATE-02` ativo e decisões de ADR pendentes
 - Escopo: 13 arquivos ativos em `prompts/`
 
 A versão do corpus é independente da versão futura do software.
@@ -20,6 +19,42 @@ A versão do corpus é independente da versão futura do software.
 
 Toda alteração atualiza este arquivo e, quando necessário,
 [`../Start-Here.md`](../Start-Here.md).
+
+## 4.7.0 — 2026-08-01
+
+- Registra os 51 bancos exatos fornecidos pelo proprietário como catálogo
+  inicial canônico, com 9 categorias e 54 associações muitos-para-muitos;
+  Redis, SAP HANA e SingleStore permanecem entidades únicas multiclasse.
+- Exige que cada banco ativo tenha ao menos um documento ativo PDF e/ou CSV e
+  permite qualquer quantidade adicional, sem teto de produto.
+- Torna bancos, categorias, documentos, versões e fontes compatíveis registros
+  administráveis, sem lista hard-coded, código ou ADR por item. Novas classes
+  de formato, protocolo, autenticação ou confiança preservam decisão própria.
+- Define `Candidate`, `Active`, `Deactivated` e `Removed`: desativação preserva
+  história, remoção é lógica e a saída do último documento ativo exige
+  desativação explícita e atômica do banco.
+- Substitui os corpora de consulta mutuamente exclusivos por recuperação
+  unificada de todos os documentos ativos/current, mantendo origem local ou
+  oficial como proveniência, trust, cobertura e citação explícitos.
+- Reconcilia visão, arquitetura, RAG, governance, lifecycle, Quality Gates,
+  segurança, roadmap, ADRs propostos, contratos, threat model, relatório,
+  índices, estado factual e histórico.
+- Mantém PostgreSQL como primeira fonte publicamente verificada, sem autorizar
+  as outras fontes, rede, download ou crawling.
+- Torna PDF e CSV formatos iniciais; PdfPig, pacote CSV, versões de packages,
+  SQLite vector, OCI e metas operacionais permanecem candidatos condicionais.
+- Mantém ADR-0002 e ADR-0004 a ADR-0006 como `proposed`; não registra decisão
+  ADR por inferência nem executa auditoria combinada ou Human Gate.
+- Classifica a alteração como `MINOR` por ampliar cardinalidade, formatos,
+  administração, recuperação, contratos e homologação sem mudar autoridade,
+  precedência ou lifecycle.
+- A validação dirigida confirma exatamente 22 arquivos alterados, catálogo
+  51/54/9 idêntico na visão e no ADR-0004, 25 RF, 18 RNF, 20 critérios de
+  aceitação, 19 itens Must, 36 ameaças, 15 grupos de testes, quatro ADRs
+  `proposed`, links/H1/fences/tabelas, LF/newline final e `git diff --check`.
+  Ela não executa a auditoria combinada de `STATE-02`.
+- Não altera código, instala dependência, acessa rede/provider/conta, modifica
+  GitHub/OCI/DB-Notifier, publica, faz deploy ou autoriza `STATE-03`.
 
 ## 4.6.0 — 2026-08-01
 

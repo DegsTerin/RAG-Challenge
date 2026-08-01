@@ -85,7 +85,9 @@ Entregáveis:
 - threat model detalhado;
 - seleção de parser, embeddings, vetor e LLM;
 - definição do corpus e da licença do corpus;
-- seleção do PDF oficial, URL canônica, termos/licença, maxAge e limites;
+- catálogo canônico inicial, ciclo administrativo de bancos/documentos,
+  formatos PDF/CSV e registros de fontes oficiais com URLs, termos/licenças,
+  maxAge e limites individuais;
 - decisão de persistência durável para conteúdo bruto, catálogo e índice;
 - política de configuração, `AI_PROVIDER_EGRESS`, `VECTOR_STORE_EGRESS`,
   `OFFICIAL_SOURCE_EGRESS` e `OCI_RUNTIME_EGRESS`;
@@ -97,8 +99,10 @@ Aceite:
 
 - dependências apontam para o núcleo;
 - providers são substituíveis por portas;
-- fonte local e oficial online estão separadas;
-- o recorte oficial é uma URL PDF, sem crawling ou fallback silencioso;
+- origem local/oficial permanece rastreável sem dividir silenciosamente a
+  recuperação unificada;
+- cada fonte oficial possui URL PDF/CSV allowlisted, sem crawling ou fallback
+  silencioso;
 - limites, custos, falhas e segurança foram tratados;
 - thresholds são definidos antes da homologação.
 - idioma da pergunta, resposta e evidência possui semântica canônica sem
@@ -106,8 +110,9 @@ Aceite:
 
 ## STATE-03 DATA_AND_INDEX_MODELING
 
-Objetivo: modelar catálogo, versões, chunks, snapshots oficiais, freshness,
-manifestos, gerações, auditoria e persistência.
+Objetivo: modelar bancos, categorias muitos-para-muitos, documentos, versões,
+chunks, snapshots oficiais, freshness, manifestos, gerações, auditoria e
+persistência.
 
 Entregáveis:
 
@@ -115,8 +120,8 @@ Entregáveis:
 - constraints, índices e concorrência;
 - migrations não produtivas;
 - retenção e recuperação;
-- `SourceScope`, snapshot imutável, observações de revalidação, URL canônica,
-  freshness e estados de retirada;
+- estados Candidate/Active/Deactivated/Removed, formato PDF/CSV, snapshot
+  imutável, observações de revalidação, URL canônica, freshness e retirada;
 - manifesto canônico versionado, staging/finalização idempotentes, digest e
   contagens dos artefatos lógicos e identidade determinística da geração
   finalizada;
@@ -132,20 +137,22 @@ Aceite:
   digest/contagens/readback antes da ativação;
 - secrets não integram o modelo;
 - geração parcial ou observação não vinculada nunca fica ativa;
-- `Local` e `OfficialOnline` integram identidades/digests e não se misturam;
+- todo documento ativo integra o manifesto; origem/trust integram identidade,
+  digest e citação sem formar corpora mutuamente exclusivos;
 - migrations e recuperação são verificáveis;
 - corpus do produto não é confundido com banco documentado.
 
 ## STATE-04 BACKEND_IMPLEMENTATION
 
-Objetivo: implementar ingestão local, sincronização manual oficial,
-indexação, recuperação por escopo, geração e API.
+Objetivo: implementar administração/ingestão PDF/CSV, sincronização manual
+oficial, indexação, recuperação unificada, geração e API.
 
 Entregáveis:
 
 - Domain e Application;
 - adapters autorizados;
-- adapter allowlisted para um PDF oficial e snapshot governado;
+- adapters PDF/CSV e registros allowlisted de fontes oficiais com snapshots
+  governados;
 - persistência;
 - API versionada;
 - validação de `questionLanguage`, geração em `answerLanguage` e propagação de
@@ -162,7 +169,8 @@ Aceite:
 - falhas são tipadas e sanitizadas;
 - hard pre-filter integra o contrato do vector store e precede o top-k;
 - geração anterior sobrevive a falha de reconstrução;
-- falha/stale oficial não faz fallback para `Local`;
+- falha/stale de uma fonte reduz cobertura explicitamente sem apresentar outra
+  origem como substituta;
 - perguntas sem evidência recusam;
 - perguntas `pt-BR` e `en-GB` respondem no mesmo idioma e citações preservam
   o idioma da fonte, inclusive na recuperação cruzada;
@@ -179,7 +187,7 @@ Entregáveis:
   visual independente de `questionLanguage`;
 - temas `Light` e `Dark`, com seletor explícito e estado independente de
   `interfaceLanguage` e `questionLanguage`;
-- seletor obrigatório `Local`/`OfficialOnline`;
+- indicador de cobertura e proveniência das fontes efetivamente consultadas;
 - citações;
 - estados loading, vazio, erro, fonte stale/indisponível, rate limit e sem
   evidência;
@@ -191,7 +199,8 @@ Aceite:
 - teclado, foco, contraste e semântica adequados;
 - nenhuma lógica de autorização ou acesso direto a provider no cliente;
 - informação de fonte não depende apenas de cor;
-- troca de escopo exige ação explícita e citações exibem snapshot/freshness;
+- cobertura degradada é explícita e citações exibem origem, snapshot/freshness
+  e localização PDF/CSV;
 - mensagens pertencentes ao produto são factuais e integralmente localizadas
   no `interfaceLanguage` selecionado;
 - os fluxos `pt-BR` e `en-GB` preservam teclado, foco, semântica, reflow e
@@ -223,7 +232,8 @@ Aceite:
 - fluxo completo é reproduzível;
 - reinicialização e persistência são conhecidas;
 - erros externos não corrompem o índice ativo;
-- consulta nunca faz fetch e os dois escopos permanecem isolados;
+- consulta nunca faz fetch, usa somente bindings ativos e expõe a proveniência
+  de cada evidência sem mistura de geração;
 - nenhum secret no artefato;
 - evidências não são confundidas com produção.
 
@@ -265,7 +275,7 @@ Entregáveis:
 
 - release candidate identificável;
 - configuração e secrets externos;
-- `OFFICIAL_SOURCE_EGRESS` restrito à URL oficial exata e
+- `OFFICIAL_SOURCE_EGRESS` restrito ao conjunto exato de URLs ativas e
   `OCI_RUNTIME_EGRESS` composto somente pelos destinos separadamente
   autorizados;
 - `VECTOR_STORE_EGRESS` vazio para adapter local ou restrito ao serviço

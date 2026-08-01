@@ -77,7 +77,23 @@ systems and 120 PDF pages. Each corpus version remains finite and records its
 observed counts, but catalogue coverage and page count have no fixed product
 maximum. Runtime safety and capacity controls remain conditional on the actual
 corpus and deployment environment. This independent constraint does not accept
-ADR-0004, authorise corpus creation or supply the unavailable 51-name list.
+ADR-0004 or authorise corpus creation.
+
+The owner subsequently supplied and confirmed the exact initial canonical
+catalogue: 51 unique database products, 9 categories and 54 many-to-many
+assignments. Redis, SAP HANA and SingleStore remain single entities assigned to
+two categories each. Compatible database products and any number of associated
+documents are administrator-managed records rather than hard-coded branches.
+
+The owner also confirmed that every active database must have at least one
+active PDF and/or CSV document and may have any number of additional documents.
+All active/current documents participate in unified retrieval. Local or
+official origin remains explicit provenance and trust metadata rather than a
+mutually exclusive query corpus. New records start `Candidate`; deactivation
+preserves history, removal is a logical tombstone, physical deletion follows
+retention, and the last active document can leave only with explicit atomic
+database deactivation. This documentary authority does not accept an ADR or
+authorise implementation, network, download, provider or lifecycle progress.
 
 The final resumption instruction required direct HTTPS requests to exact URLs
 on the existing allowlist and prohibited general web search and automatic link
@@ -122,13 +138,13 @@ external state was changed.
 | PostgreSQL source rights | The [documentation index](https://www.postgresql.org/docs/) identifies version 18 as current. The [PostgreSQL Licence](https://www.postgresql.org/about/licence/) covers use, copy, modification and distribution of software and documentation with required notices. The [official policies index](https://www.postgresql.org/about/policies/) lists no separate general terms-of-use policy. | Published use-right basis verified; no conflicting general terms policy was found. |
 | PostgreSQL robots/rate | [`robots.txt`](https://www.postgresql.org/robots.txt) returned `200` without redirect and does not disallow `/files/documentation/`. Targeted official search found no publisher download-rate guidance. | No policy conflict found; the proposed daily ceiling is a conservative project limit, not a publisher commitment. |
 | PostgreSQL TLS | Three DNS answers were public; direct TLS negotiated TLS 1.3 with `TLS_AES_256_GCM_SHA384`. A four-element chain validated locally with certificate downloads disabled and revocation `NoCheck`; the leaf was valid from `2026-06-02T17:09:47Z` to `2026-08-31T17:09:46Z`, SHA-256 `2738805715f7b32e7850b33dc2319e9d7b39d9acfb44936d56a1d18a6ef805ac`. | Current local no-lateral-download validation verified; offline-revocation, future rotation and clean OCI reproduction remain explicit residual/later-test concerns. |
-| Proposed local-corpus licence | The [CC BY 4.0 deed](https://creativecommons.org/licenses/by/4.0/) and [Portuguese legal code](https://creativecommons.org/licenses/by/4.0/legalcode.pt) confirm sharing/adaptation rights and attribution, licence-link, change-marking and no-additional-restriction duties. | Licence terms verified; the corpus is not authored and the owner has not granted the licence on it. |
+| Proposed owner-authored-document licence | The [CC BY 4.0 deed](https://creativecommons.org/licenses/by/4.0/) and [Portuguese legal code](https://creativecommons.org/licenses/by/4.0/legalcode.pt) confirm sharing/adaptation rights and attribution, licence-link, change-marking and no-additional-restriction duties. | Licence terms verified; no owner-authored product document currently exists and the owner has not granted the licence on one. |
 | PdfPig | The live [NuGet version index](https://api.nuget.org/v3-flatcontainer/pdfpig/index.json), [0.1.15 registration](https://api.nuget.org/v3/registration5-semver1/pdfpig/0.1.15.json), catalogue, [package page](https://www.nuget.org/packages/PdfPig/0.1.15), [release](https://github.com/UglyToad/PdfPig/releases/tag/v0.1.15) and [security page](https://github.com/UglyToad/PdfPig/security) identify 0.1.15 as newest stable, listed, Apache-2.0, computed compatible with `net10.0` and tied to commit `f131f642976936e06ee91cb19d3ed728f9dd18b6`. GitHub reports no security policy and no published advisory; the release adds nesting-depth enforcement support. | Public package/security metadata verified. Empty advisory/catalogue vulnerability fields do not prove absence of vulnerability; no version was selected or installed, and extraction/runtime evidence still requires a separately authorised spike. |
 | OpenAI models/contracts | The current [embedding model](https://developers.openai.com/api/docs/models/text-embedding-3-small), [embedding guide](https://developers.openai.com/api/docs/guides/embeddings), [GPT-4.1 mini model](https://developers.openai.com/api/docs/models/gpt-4.1-mini) and API references verify the proposed IDs, 1,536 embedding dimensions, `POST /v1/embeddings`, `POST /v1/responses`, Structured Outputs, model limits and current public quota tables. The embedding model exposes only a mutable alias; `gpt-4.1-mini-2025-04-14` remains the default and only listed snapshot. | Public contract facts verified. Current prices are USD 0.02 per million embedding input tokens and USD 0.40/0.10/1.60 per million GPT input/cached/output tokens. Actual project tier, spend limit and account availability remain unverified without login. |
 | OpenAI data/SDK | The [data-control guide](https://developers.openai.com/api/docs/guides/your-data) states no training unless opt-in, default abuse monitoring for up to 30 days, no embedding application state and at least 30 days of Responses application state by default or with `store=true`. ZDR/MAM and non-US residency require approval; Brazil is not listed. The [official .NET repository](https://github.com/openai/openai-dotnet), releases and NuGet metadata identify stable `OpenAI` 2.12.0, MIT, targeting `net10.0`, with embedding and Responses clients. | Public policy and SDK metadata verified. The proposal now requires Responses `store=false`, no provider state/tools and explicit owner acceptance of default retention/disclosure and no Brazilian residency. No SDK was installed and no provider endpoint was contacted. |
 | OCI region/compute | The [regions table](https://docs.oracle.com/en-us/iaas/Content/General/Concepts/regions.htm) verifies `sa-saopaulo-1`, realm `OC1`, with one availability domain. The [shape reference](https://docs.oracle.com/en-us/iaas/Content/Compute/References/computeshapes.htm) verifies the ARM64 A1 shape and candidate 1-OCPU/6-GiB configuration. The public default is 16 A1 OCPUs/96 GiB per availability domain for Pay As You Go or Trial. | Region and configuration verified; future tenancy capacity is not public and requires authenticated `ListShapes`/provisioning. Always Free documentation warns about host-capacity exhaustion. |
 | OCI price/capacity | The [Always Free page](https://docs.oracle.com/en-us/iaas/Content/FreeTier/freetier_topic-Always_Free_Resources.htm) states 1,500 A1 OCPU-hours and 9,000 GB-hours, equivalent to 2 OCPUs/12 GiB. The [live price-list JSON](https://www.oracle.com/a/ocom/docs/pricing/cloud-price-list.json), build 350 dated 2026-07-16, instead prices zero through 3,000/18,000 and then USD 0.01/OCPU-hour plus USD 0.0015/GB-hour. | Primary sources conflict on the free allowance. The candidate fits the lower figure, but zero-cost entitlement and billing cannot be claimed before tenancy verification. |
-| OCI storage/Vault/endpoints | Block Volume documents persistence, encryption, one-AD access, redundant copies and a 99.99% annual-durability objective while recommending regular backups. Backups are encrypted and regionally stored in Object Storage. Public prices are USD 0.0255/GB-month capacity plus USD 0.0017/VPU-GB-month; Secret Management and software-protected keys are free. The [API index](https://docs.oracle.com/en-us/iaas/api/specs/index.json) publishes exact Sao Paulo Core, KMS, Secret Management and Secret Retrieval endpoints; retrieval uses `GET /20190301/secretbundles/{secretId}`. | Public storage, secret and endpoint facts verified without contacting an OCI service. Volume size, independent backup target/retention, runtime IAM and actual tenancy limits remain decisions or later tests. |
+| OCI storage/Vault/endpoints | Block Volume documents persistence, encryption, one-AD access, redundant copies and a 99.99% annual-durability objective while recommending regular backups. Backups are encrypted and regionally stored in Object Storage. Public prices are USD 0.0255/GB-month capacity plus USD 0.0017/VPU-GB-month; Secret Management and software-protected keys are free. The [API index](https://docs.oracle.com/en-us/iaas/api/specs/index.json) publishes exact Sao Paulo Core, KMS, Secret Management and Secret Retrieval endpoints; retrieval uses `GET /20190301/secretbundles/{secretId}`. | Public storage, secret and endpoint facts verified without contacting an OCI service. The conditional 50-GiB target, regional daily and pre-change backup, 14-day retention, 24-hour RPO, eight-hour restore objective and read-only instance-principal policy are proposed; tenancy limits, IAM enforcement, application consistency and restore remain untested. |
 
 The initial HTTPS request used normal operating-system certificate validation.
 The second round added the separate offline-chain assessment recorded above;
@@ -149,25 +165,26 @@ and requested separately.
 
 | Area | Proposed selection | Decision/evidence state |
 |---|---|---|
-| RAG lifecycle and source separation | ADR-0002 as written | `proposed`; explicit human decision required. |
-| Local corpus | Owner-authored `Database Systems Catalogue — MVP`, no fixed system/page ceiling, `CC BY 4.0` | Scale constraint owner-decided; exact 51-name list is not recoverable from tracked files, content is not authored and the licence is not yet granted. |
-| Official source | Versioned PostgreSQL 18 A4 PDF candidate | `proposed`; URL, media, size, redirect behaviour, licence basis, robots and local offline TLS verified with documented rate/revocation qualifications. |
-| Parser | PdfPig adapter | `proposed`; 0.1.15 is the current verified stable candidate under Apache-2.0, public .NET 10 compatibility and security metadata are recorded, and absence of a public advisory is not proof of safety. Version selection and runtime extraction evidence remain pending. |
+| RAG lifecycle and source separation | One logical corpus, data-driven catalogue, unified active-document retrieval and ordered activation bindings | ADR-0002 remains `proposed`; owner cardinality/lifecycle constraints are reconciled but explicit ADR decision is required. |
+| Catalogue/documents | Initial 51 unique products, 9 categories, 54 assignments; any number of PDF/CSV documents per database | Owner-decided contract; no product document is acquired, validated, indexed or active, and rights remain per-document evidence. |
+| Official sources | Any number of compatible exact allowlisted registrations; PostgreSQL 18 A4 PDF is the first verified candidate | `proposed`; only PostgreSQL URL/media/size/redirect/licence/robots/local TLS facts are verified. No other source or egress is authorised. |
+| Parsers | PdfPig PDF candidate plus a separate CSV adapter | `proposed`; PdfPig 0.1.15 public facts are recorded, CSV package/version is unselected, and both require executable quality/security evidence. |
 | Normalisation | Unicode NFC and deterministic whitespace/control policy | `proposed`; locally specified. |
 | Chunking | `paragraph-window-v1`, target 3,200 scalars, overlap 480, hard max 4,000 | `proposed`; must pass evaluation. |
 | Embeddings | OpenAI `text-embedding-3-small`, 1,536 dimensions, cosine | `proposed`; current availability, dimensions, endpoint, price and public quotas verified. No immutable dated snapshot exists; actual tier, owner acceptance of retention/disclosure/residency and `pt-BR`/`en-GB` retrieval quality remain pending. |
 | Language model | OpenAI `gpt-4.1-mini-2025-04-14` | `proposed`; snapshot, Responses/Structured Outputs, price, public quotas and data policy verified. The owner must decide default provider retention/disclosure and absence of Brazilian residency; answer-language compliance remains untested. |
 | Catalogue/control persistence | EF Core SQLite | `proposed`; exact packages remain unapproved. |
 | Raw content | Durable content-addressed filesystem | `proposed`; contract specified. |
-| Vector store | Local `SqliteExactVectorStore`, hard SQL pre-filter and exact cosine ranking | `proposed`; 10,000-chunk cap requires later performance proof. |
-| OCI | Single ARM64 OCI Compute instance in `sa-saopaulo-1`, durable block volume | `proposed`; region, shape validity, public limits/prices, storage, Secret Management and endpoints verified. Actual capacity/entitlement is tenancy-specific; free-allowance sources conflict, and backup target/retention remain decisions. |
-| Evaluation | `rag-eval-mvp-v1`, 80 cases and pre-registered thresholds | `proposed`; dataset not authored or run. The `pt-BR`/`en-GB` question/evidence matrix is an owner-decided constraint on the future dataset and deterministic fixtures. |
+| Vector store | Local `SqliteExactVectorStore`, hard SQL pre-filter and exact cosine ranking | `proposed`; 10,000 chunks is an initial benchmark point, not a product limit. Representative catalogue performance remains untested. |
+| OCI | Conditional ARM64 OCI Compute target in `sa-saopaulo-1`, 1 OCPU/6 GiB, initial 50 GiB volume | `proposed`; public facts verified, while tenancy capacity/entitlement/IAM/cost and application-consistent daily/pre-change backup with 14-day retention, RPO 24 h and restore objective 8 h remain untested. |
+| Evaluation | Extensible `rag-eval-catalogue-v1` stratified by active database/document/source/format and pre-registered thresholds | `proposed`; dataset not authored or run. No fixed total case count limits catalogue growth. |
 
 ### Alternatives retained
 
 - local embedding/LLM if provider data terms or cost are rejected;
 - PostgreSQL/pgvector if the exact SQLite adapter fails the performance gate;
-- another versioned official PDF only through an amended source ADR;
+- another compatible exact PDF/CSV registration through the same governed
+  controls; a new integration class may require an amended ADR;
 - another OCI shape/region when verified capacity or budget requires it.
 
 None is an active fallback. Switching requires a decision and a new
@@ -186,31 +203,32 @@ ADR-0004 and ADR-0005, followed by reconciliation of the chosen baseline.
 
 ### Prepared contracts
 
-- core identity and provenance contracts;
+- database/category/document identity, lifecycle and provenance contracts;
 - source, parser, chunker, embedding, vector, language-model and persistence
   ports;
-- complete `CorpusActivationRecord` compare-and-swap semantics;
+- complete ordered-binding `CorpusActivationRecord` compare-and-swap semantics;
 - query request/response and citation v1;
 - explicit `questionLanguage`, `answerLanguage` and citation
   `contentLanguage` semantics for `pt-BR` and `en-GB`;
 - canonical `ApplicationFailure → CH_* → HTTP/Problem Details` table;
-- readiness semantics that keep Local serviceable during official-source
-  degradation;
-- one-shot administration commands, inputs, idempotency and exit categories;
+- readiness and coverage semantics that keep remaining active documents
+  serviceable during per-source degradation;
+- one-shot catalogue/document/source administration commands, inputs,
+  invariants, idempotency and exit categories;
 - OpenAPI v1 compatibility rules;
 - required architecture, contract, adversarial, crash and negative tests.
 
 ### Prepared security design
 
 - four independent deny-by-default egress profiles;
-- exact official URI, DNS-set rejection, approved-IP connection and Host/SNI
-  preservation;
+- exact URI per source registration, DNS-set rejection, approved-IP connection
+  and Host/SNI preservation;
 - redirects, proxy, ambient credentials and certificate downloads disabled;
 - local-only trust with an explicit unverified revocation residual risk;
 - bounded public query, rate, concurrency, deadline, retrieval and evidence;
 - local OS-identity administration with enable flag, reason, lease,
   compare-and-swap and sanitised audit;
-- 30 registered threats and 12 security test groups;
+- 36 registered threats and 15 security test groups;
 - explicit risk-acceptance boundaries for data disclosure, TLS, licence,
   provider, OCI and P0/P1 findings.
 
@@ -224,13 +242,9 @@ query-language constraint is already binding on whichever proposal baseline
 is later accepted; it does not accept the remaining contents of ADR-0004 or
 ADR-0006.
 
-The threat-model status cells for `THR-S02-014` and `THR-S02-015` retain the
-pre-resumption wording `Blocked by provider verification`. Public provider
-verification is now complete; their real blocker is the owner decision on
-data disclosure, retention and residency. The current instruction permits
-reconciliation only in proposed ADRs and this report, so those two cells remain
-unchanged and must be normalised after the ADR decision before the Automatic
-Quality Gate can pass.
+The provider-disclosure threats remain blocked by human acceptance or selection
+of an alternative, not by absence of public documentation. No provider call or
+account verification occurred during this reconciliation.
 
 ## Deliverable map
 
@@ -240,16 +254,16 @@ Quality Gate can pass.
 | Canonical contracts and diagrams | `STATE-02-Canonical-Contracts.md`; data-flow diagrams in threat model | Prepared. |
 | Detailed threat model | `security/STATE-02-Threat-Model.md` | Prepared. |
 | Parser, embedding, vector and LLM selection | ADR-0005 | Proposed; public parser, provider, model, data-control, price, quota and SDK facts verified. Runtime spikes and human decisions remain pending. |
-| Corpus and corpus licence | ADR-0004 | Proposed; corpus not authored. |
-| Official PDF, URL, terms, licence, maxAge and limits | ADR-0004 | External facts substantially verified with explicit rate and offline-revocation qualifications. |
+| Catalogue, documents and licences | ADR-0004 | Initial 51/54/9 and PDF/CSV lifecycle owner-decided; documents and per-document rights not materialised. |
+| Official source records, URLs, terms, licences, maxAge and limits | ADR-0004 | PostgreSQL candidate facts verified; every additional registration requires its own evidence and activation. |
 | Durable content/catalogue/index persistence | ADR-0005 | Proposed. |
-| Four egress policies | ADR-0006 | Prepared; exact official-source URI, AI methods and candidate OCI regional endpoints documented. Profiles remain disabled and untested. |
+| Four egress policies | ADR-0006 | Prepared; per-source exact URI, AI methods and candidate OCI regional endpoints documented. Profiles remain disabled and untested. |
 | Vector search, failures, readiness and OpenAPI | Contract document and ADR-0006 | Prepared. |
 | `pt-BR`/`en-GB` question, answer, evidence and citation semantics | Requirements, contract document, ADR-0004 and ADR-0006 | Owner decided; documented for later implementation and homologation, not yet tested at runtime. |
 | `pt-BR`/`en-GB` Dashboard localisation | Language Policy, requirements, lifecycle and roadmap | Owner decided supported set and independent explicit choice; initial selection, persistence, fallback, implementation and runtime tests remain pending. |
 | `Light`/`Dark` Dashboard themes | Requirements, architecture, lifecycle and roadmap | Owner decided supported set and independent explicit choice; initial theme, system preference, persistence, fallback, implementation and runtime tests remain pending. |
 | SSRF and DNS/IP pinning | ADR-0006 and threat model | Prepared; not implemented/tested. |
-| Evaluation, OCI and rollback | ADR-0004, ADR-0005 and contracts | Proposed; public external facts verified. Dataset, account capacity/entitlement, backup choice and later tests remain pending. |
+| Evaluation, OCI and rollback | ADR-0004, ADR-0005 and contracts | Proposed; public facts verified. Extensible dataset, account capacity/entitlement, IAM, backup consistency and restore evidence remain pending. |
 
 ## Blockers and required authority
 
@@ -282,36 +296,38 @@ A `STATE-02` Human Gate does not accept them by implication.
 
 The current decision packet requires these explicit outcomes:
 
-- ADR-0002: accept, reject or change the immutable two-scope lifecycle,
-  activation authority, provider boundaries and RAG-Challenge-owned API
+- ADR-0002: accept, reject or change the unified active-document lifecycle,
+  ordered activation bindings, provider boundaries and RAG-Challenge-owned API
   contract.
-- ADR-0004: accept, reject or change the owner-authored corpus, `CC BY 4.0`
-  grant, complete owner-approved system list, PostgreSQL 18 source,
-  manual-frequency and offline-revocation residual risks, evaluation dataset
-  and thresholds. The absence of fixed system and page ceilings is already an
-  independent owner constraint.
-- ADR-0005: accept, reject or change PdfPig 0.1.15 subject to a later spike;
+- ADR-0004: accept, reject or change the catalogue/document/licence proposal,
+  first PostgreSQL 18 source, per-source manual frequency and
+  offline-revocation residual risks, extensible evaluation dataset and
+  thresholds. The exact 51/54/9 catalogue, PDF/CSV cardinality and absence of
+  fixed ceilings are already independent owner constraints.
+- ADR-0005: accept, reject or change conditional PdfPig 0.1.15 and the
+  unselected CSV parser package subject to later spikes;
   `paragraph-window-v1`; the mutable `text-embedding-3-small` alias; OpenAI
   `gpt-4.1-mini-2025-04-14`; default provider retention/disclosure and absence
   of Brazilian residency; compliance with the owner-decided `pt-BR`/`en-GB`
   retrieval and answer contract; OpenAI SDK 2.12.0 candidate;
-  SQLite/filesystem/exact vector persistence; and the Sao Paulo A1 deployment
-  subject to capacity,
-  conflicting free-allowance evidence, selected block-volume size,
-  independent backup/retention and Secret Management design.
+  SQLite/filesystem/exact vector persistence; and the conditional Sao Paulo A1
+  deployment subject to capacity, conflicting free-allowance evidence, 50 GiB
+  initial volume, application-consistent regional backups, 14-day retention,
+  RPO 24 h, restore objective 8 h and read-only instance-principal Secret
+  Management design.
 - ADR-0006: accept, reject or change the four deny-by-default egress profiles,
-  exact AI methods, documented OCI endpoints, runtime-only secret-retrieval
-  boundary, offline certificate-revocation risk, administration surface,
-  readiness and HTTP/OpenAPI v1 compatibility policy.
+  exact AI methods, registered source allowlists, documented OCI endpoints,
+  runtime-only secret-retrieval boundary, offline certificate-revocation risk,
+  catalogue administration, coverage/readiness and HTTP/OpenAPI v1 policy.
 
 No one decision implies another, installs a candidate, enables egress,
 creates a resource or authorises `STATE-03`.
 
 ## Risks and residual decisions
 
-- The official-source candidate still carries publisher-frequency uncertainty
-  and offline-revocation/future-certificate risk despite passing the current
-  URL, licence, robots and local TLS checks.
+- Each official-source candidate carries its own licence, publisher-frequency,
+  freshness, availability and TLS risk. Only PostgreSQL has the existing public
+  evidence record.
 - External AI may be rejected because default abuse-monitoring retention is up
   to 30 days, Brazil has no documented residency option, account eligibility
   and limits are unknown, or the owner rejects the cost/disclosure model.
@@ -319,8 +335,8 @@ creates a resource or authorises `STATE-03`.
   drift would undermine generation reproducibility.
 - Local-only certificate revocation checking has a residual risk requiring
   explicit acceptance.
-- Exact SQLite vector search may miss latency/memory thresholds at the final
-  corpus size.
+- Exact SQLite vector search may miss latency/memory thresholds at catalogue
+  scale; 10,000 chunks is a benchmark point rather than a product ceiling.
 - ARM64 OCI capacity or package compatibility may require the documented
   alternative shape. Sao Paulo has one availability domain and public
   Always Free sources conflict on the allowance.
@@ -328,11 +344,15 @@ creates a resource or authorises `STATE-03`.
   availability-domain loss. The 99.99% block-volume durability objective and
   Oracle's backup recommendation require an explicit independent regional
   backup choice and tested restore.
-- The owner-authored corpus schedule is a delivery risk and remains the first
-  material product-data dependency.
-- The absence of fixed system and page ceilings makes final corpus scale a
-  capacity and schedule risk. The exact 51-name list still requires factual
-  recovery; it must not be replaced by the earlier twelve examples.
+- Obtaining, licensing, validating and maintaining at least one PDF/CSV
+  document for each of the 51 initial databases is the first material
+  product-data dependency.
+- Open cardinality makes final catalogue scale a capacity, cost, evaluation and
+  schedule risk. Capacity failure must block activation rather than truncate
+  the canonical catalogue.
+- A poisoned source registration, stale vectors after deactivation or a race
+  that leaves an active database without evidence would violate the new
+  lifecycle and requires dedicated contract/security tests.
 - Evaluation thresholds are pre-registered but untested; failure must drive a
   design change, not post-hoc threshold relaxation.
 
@@ -375,7 +395,8 @@ creates a resource or authorises `STATE-03`.
 | Query-language requirement and contract consistency | Documented for `pt-BR` and `en-GB`, with answer-language equality, original-language citations and a four-pair question/evidence test matrix; executable behaviour not run. |
 | Dashboard-language requirement and separation | Documented for `pt-BR` and `en-GB`, with an explicit independent selection and a four-pair UI/query-language test matrix; frontend behaviour not implemented or run. |
 | Dashboard-theme requirement and separation | Documented for `Light` and `Dark`, with explicit independent selection and the four-pair UI/query-language matrix executed in both themes; frontend behaviour not implemented or run. |
-| Corpus-scale constraint | Fixed ceilings of twelve systems and 120 pages removed; targeted textual consistency checks passed. The exact 51-name list remains unavailable, and no corpus or runtime capacity test was performed. |
+| Corpus-scale constraint | Fixed ceilings removed; exact 51 names, 9 categories and 54 assignments reconciled twice with expected order and duplicates. No corpus or runtime capacity test was performed. |
+| Corpus `4.7.0` catalogue/document reconciliation | Directed local validation passed for exactly 22 authorised files: 51 unique names/54 assignments/9 categories in vision and ADR-0004; 25 RF, 18 RNF, 20 acceptance criteria, 19 Must backlog IDs, 36 threat IDs and 15 security-test groups; four ADRs remain `proposed`; H1/fences/local links, LF/final newline, table structure and `git diff --check` passed. This was not the combined `STATE-02` audit. |
 
 ## Current gate assessment
 

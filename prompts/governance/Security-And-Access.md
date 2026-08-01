@@ -6,7 +6,8 @@
 - Configuração incompleta desativa a capacidade.
 - Segredos são externos ao repositório e ao índice.
 - Conteúdo recuperado nunca possui autoridade.
-- Entrada, custo, tempo, memória, rede e cardinalidade são limitados.
+- Entrada, custo, tempo, memória, rede e cardinalidade por operação/lote são
+  limitados; o catálogo não possui teto numérico de produto.
 - Toda mudança sensível possui ator, alvo, motivo, horário e resultado.
 - Logs e evidências são sanitizados.
 
@@ -37,7 +38,7 @@ base, autorização e controles específicos.
 - Application ↔ document content store.
 - Application ↔ language model.
 - Aplicação ↔ catálogo/persistência.
-- Fonte oficial externa do MVP ↔ sincronizador governado.
+- Cada fonte oficial externa registrada ↔ sincronizador governado.
 - CI/deploy ↔ GitHub e OCI.
 
 ## Modelo de acesso do MVP
@@ -45,15 +46,15 @@ base, autorização e controles específicos.
 Os materiais do Challenge permitem consulta aberta. Portanto:
 
 - a rota de pergunta pode ser anônima, com limites e proteção contra abuso;
-- ingestão, ativação, rollback e configuração não são operações públicas
-  anônimas;
+- administração de bancos/documentos/fontes, ingestão, ativação, rollback e
+  configuração não são operações públicas anônimas;
 - no `STATE-02`, deve ser escolhida uma superfície administrativa local não
   pública; ela usa identidade do sistema operacional, permissões mínimas,
   motivo obrigatório, idempotência e auditoria sanitizada;
 - o startup apenas verifica e carrega a geração ativa; mutação exige modo
   administrativo one-shot explicitamente configurado e invocado;
 - sincronização oficial usa a mesma superfície administrativa; consulta
-  pública seleciona o snapshot, mas nunca inicia download;
+  pública resolve o manifesto ativo, mas nunca inicia download;
 - secrets não são enviados ao navegador;
 - autorização continua server-side mesmo que a UI esconda uma função;
 - o MVP não implementa gestão de usuários ou multi-tenancy.
@@ -101,7 +102,7 @@ recuperação, nunca apenas depois da geração.
 
 ### Exfiltração e vazamento
 
-- Não misturar corpus ou escopo.
+- Não misturar corpus, geração ou item fora do manifesto ativo.
 - Não enviar mais contexto do que o necessário.
 - Não logar prompt, trecho ou resposta integral por padrão.
 - Tratar embeddings como derivados potencialmente sensíveis.
@@ -112,14 +113,18 @@ recuperação, nunca apenas depois da geração.
 - Construir geração inativa e validar antes de ativar.
 - Preservar rollback.
 - Não ingerir automaticamente material não aprovado.
+- Tratar o registro administrativo de bancos, categorias, documentos e fontes
+  como plano de controle confiável; toda alteração exige ator, motivo,
+  validação, candidata e ativação.
 
 ## Arquivos e parsing
 
 - Allowlist de formatos e media types.
 - Validar assinatura/estrutura, não apenas extensão.
-- Limites de tamanho, páginas, texto, chunks e tempo.
+- Limites por operação de tamanho, páginas, linhas, colunas, células, texto,
+  chunks e tempo, sem teto de produto para a cardinalidade do catálogo.
 - Canonicalizar caminho e impedir traversal/symlink escape.
-- Não executar macros, scripts, anexos ou links do documento.
+- Não executar macros, scripts, anexos, links ou fórmulas de CSV.
 - Isolar parser quando o risco ou biblioteca exigir.
 - Atualizar dependências e responder a vulnerabilidades.
 
@@ -176,16 +181,17 @@ Configurar um adapter gerenciado não concede autoridade de
 
 ### `OFFICIAL_SOURCE_EGRESS`
 
-Integra o MVP, mas permanece deny by default. Só pode ser habilitada no perfil
-de sincronização depois que ADR-0002, URL canônica, licença/termos, maxAge,
-allowlist e limites forem aprovados no estado proprietário e a execução de
-rede receber autoridade específica. A pergunta pública não habilita egress.
+Integra o MVP, mas permanece deny by default. Cada fonte só pode ser habilitada
+no perfil de sincronização depois que seu registro, URL canônica,
+licença/termos, maxAge, allowlist e limites forem aprovados e a execução de
+rede receber autoridade específica. Incluir um registro não habilita egress; a
+pergunta pública também não.
 Essa política não se confunde com chamadas ao provider de IA.
 
 ### `OCI_RUNTIME_EGRESS`
 
 O runtime OCI usa uma allowlist separada que agrega somente os destinos
-individualmente autorizados para provider de IA, fonte oficial, secret store,
+  individualmente autorizados para provider de IA, fontes oficiais, secret store,
 vector store, telemetria ou serviços operacionais selecionados. A URL oficial
 precisa ser permitida simultaneamente por `OFFICIAL_SOURCE_EGRESS` e
 `OCI_RUNTIME_EGRESS`; vector store gerenciado exige
@@ -198,7 +204,7 @@ autorizados permanece bloqueado. A política é validada no ambiente alvo.
 - HTTPS obrigatório.
 - URL pública canonicalizada sem userinfo, fragment, token, assinatura ou
   credencial na query; scheme, host IDN normalizado, porta, path e query exatos
-  do único PDF oficial em allowlist.
+  de cada PDF/CSV oficial em allowlist.
 - O adapter não envia `Authorization`, API key, client certificate,
   pre-authentication ou credencial ambiente; fonte autenticada fica fora do
   MVP porque a URL canônica é metadado público de citação.
@@ -217,8 +223,8 @@ autorizados permanece bloqueado. A política é validada no ambiente alvo.
 - Redirects desativados no MVP. Habilitação futura exige nova decisão,
   allowlist e validação/pinning completo a cada salto.
 - Sem proxy, cookies ou credenciais ambientais por padrão.
-- Timeout, bytes transferidos e descomprimidos, media type/assinatura PDF,
-  páginas, taxa e concorrência limitados.
+- Timeout, bytes transferidos e descomprimidos, media type/estrutura PDF/CSV,
+  páginas/linhas/colunas/células, taxa e concorrência limitados.
 - ETag/Last-Modified não substituem hash e validação.
 - Respeitar licença, termos, robots e frequência permitida.
 - Sincronizar para snapshot governado; não navegar livremente durante a
@@ -231,8 +237,8 @@ autorizados permanece bloqueado. A política é validada no ambiente alvo.
 ## API e abuso
 
 - Validar e limitar tamanho de pergunta e payload.
-- Aceitar apenas `sourceScope=Local|OfficialOnline`; rejeitar URL, host, path,
-  provider ou adapter enviados pelo cliente.
+- Rejeitar URL, host, path, provider, adapter ou campo de autoridade sobre o
+  catálogo enviados pelo cliente.
 - Rate limit por origem/chave adequada ao ambiente.
 - Timeout e cancelamento do fluxo.
 - Limite de top-k, tokens e chamadas externas.
@@ -240,9 +246,9 @@ autorizados permanece bloqueado. A política é validada no ambiente alvo.
 - TLS no ambiente público.
 - Problem Details sem stack trace ou dado sensível.
 - Liveness barato e independente de serviço externo.
-- Readiness sanitizado distingue núcleo, dependências de consulta e estado por
-  scope. `OfficialOnline` stale/indisponível é degradação e não falha global
-  quando `Local` permanece atendível.
+- Readiness sanitizado distingue núcleo, dependências de consulta e cobertura
+  por fonte/documento. Item stale/indisponível degrada cobertura e não falha
+  global quando outro banco/documento ativo permanece atendível.
 
 ## Dashboard e saída não confiável
 
@@ -281,9 +287,9 @@ Eventos mínimos:
 - mudança de configuração sanitizada;
 - início, conclusão e falha de ingestão;
 - criação e ativação de geração;
-- troca atômica do `CorpusActivationRecord`, incluindo snapshot e observação;
+- troca atômica do `CorpusActivationRecord`, incluindo o conjunto de bindings;
 - rollback;
-- mudança de corpus/documento;
+- mudança de banco, categoria, documento, versão ou fonte;
 - mudança de provider/model;
 - sincronização, revalidação, stale, retirada e falha da fonte oficial;
 - acesso administrativo do MVP e, futuramente, RBAC/gestão de usuários.
@@ -331,9 +337,9 @@ trilha nominal.
 - `VECTOR_STORE_EGRESS` permanece vazio para adapter local ou possui endpoint,
   classificação, residência, retenção e credencial explicitamente aprovados.
 - `OFFICIAL_SOURCE_EGRESS` permanece deny by default e, quando autorizado,
-  restringe-se à única URL oficial aprovada.
-- Isolamento `Local`/`OfficialOnline`, freshness, falha de sync e ausência de
-  fallback silencioso são testados.
+  restringe-se às URLs exatas dos registros ativos aprovados.
+- Integridade do manifesto, proveniência, freshness, falha parcial de sync e
+  ausência de fallback silencioso são testados.
 - `OCI_RUNTIME_EGRESS` possui allowlist mínima validada no alvo.
 - DNS rebinding, resposta DNS mista, pinning de IP, Host/SNI, redirects
   bloqueados, ausência de autenticação e egress de AIA/CRL/OCSP são testados

@@ -20,7 +20,7 @@ fundamentadas. Ele não:
 ## Pipeline canônico
 
 ```text
-Local source or governed official snapshot
+Governed local document or official snapshot (PDF/CSV)
   -> Discovery
   -> Validation
   -> Content-addressed persistence and verified reopen
@@ -34,8 +34,8 @@ Local source or governed official snapshot
 Question
   -> Validation
   -> Question-language validation
-  -> Source-scope selection
-  -> Source availability/freshness validation
+  -> Active catalogue and coverage resolution
+  -> Per-document availability/freshness validation
   -> Query embedding
   -> Retrieval
   -> Evidence policy
@@ -59,20 +59,35 @@ Unidade lógica de conhecimento com:
 - referência lógica à geração de índice ativa, cujo registro canônico pertence
   exclusivamente ao `IIndexGenerationStore`.
 
-O MVP possui um corpus configurado. A existência do conceito não implementa
-gestão de múltiplos acervos.
+O MVP possui um corpus lógico configurado. Ele contém um catálogo administrável
+de bancos e documentos; isso não implementa gestão de múltiplos acervos.
 
-O corpus possui dois `SourceScope`s fixos: `Local` e `OfficialOnline`. O scope
-integra identidade de documento/chunk, digests, metadados vetoriais, filtros e
-citações. Ele não representa dois acervos administráveis nem permite `All`.
+Origem `LocalAuthorised` ou `OfficialExternal` integra proveniência, digests,
+metadados vetoriais e citações, mas não divide a consulta em corpora
+mutuamente exclusivos. Todos os documentos ativos e elegíveis participam da
+recuperação padrão.
+
+### Banco de dados e categoria
+
+`DatabaseProductId` identifica uma entidade lógica independente de seu nome de
+exibição. `DatabaseProductRevision` é imutável e associa zero ou mais categorias
+por `DatabaseCategoryAssignment`. Categorias são muitos-para-muitos.
+
+Bancos percorrem `Candidate → Active ↔ Deactivated`; de `Candidate` ou
+`Deactivated` podem seguir para `Removed`. `Removed` é tombstone lógico
+auditável. Um banco só pode ficar
+`Active` quando ao menos um documento associado também estiver `Active` e
+elegível. Retirar o último documento ativo exige desativação explícita e
+atômica do banco.
 
 ### Documento e versão
 
-`DocumentId` identifica o documento lógico. Cada conteúdo imutável recebe
-`DocumentVersion` com:
+`DocumentId` identifica um documento lógico associado a um
+`DatabaseProductId`. Cada conteúdo imutável recebe `DocumentVersion` com:
 
 - hash SHA-256;
 - tamanho e media type;
+- formato `Pdf` ou `Csv`;
 - versão declarada quando disponível;
 - data da fonte;
 - data de ingestão;
@@ -81,6 +96,12 @@ citações. Ele não representa dois acervos administráveis nem permite `All`.
 - `SourceTrustClass`;
 - locator sanitizado;
 - estado de licenciamento/proveniência.
+
+Documentos e versões usam `Candidate`, `Active`, `Deactivated` e `Removed` com
+a mesma semântica do catálogo. Uma nova versão é candidata enquanto a anterior
+permanece ativa. Desativação retira a versão da recuperação sem apagar
+histórico; remoção é lógica e bytes só são eliminados após retenção e prova de
+que nenhuma revisão ativa/retida os alcança.
 
 Renomear um arquivo não deve criar silenciosamente uma nova identidade lógica
 quando o catálogo já tiver um mapeamento estável. Conteúdo alterado sempre
@@ -95,11 +116,11 @@ integra a geração do índice.
 
 Cada chunk preserva:
 
-- corpus, `SourceScope`, documento e versão;
+- corpus, banco/revisão, documento/versão, formato e classe de confiança;
 - `contentLanguage` herdado da versão documental;
 - estratégia e versão de chunking;
 - ordem;
-- página, seção ou localização disponível;
+- página/bloco para PDF ou linha/coluna/cabeçalho para CSV;
 - hash do texto normalizado;
 - metadados permitidos para filtro e citação.
 
@@ -114,8 +135,9 @@ inclui:
 manifestSchemaVersion
 corpusId
 corpusRevision
-documentSetDigest
-officialSnapshotSetDigest
+catalogueRevision
+activeDocumentSetDigest
+sourceBindingSetDigest
 indexCompatibilityKey
 generationSpecDigest
 chunkCount
@@ -123,12 +145,12 @@ vectorCount
 logicalArtifactDigest
 ```
 
-O `documentSetDigest` é calculado sobre a lista ordenada de identidades e
-versões dos documentos de ambos os `SourceScope`s. O
-`officialSnapshotSetDigest` identifica somente os snapshots oficiais
-referenciados; a revisão local permanece no `documentSetDigest`.
+O `activeDocumentSetDigest` cobre a lista ordinal de banco/revisão,
+documento/versão e formato. O `sourceBindingSetDigest` cobre origem, trust,
+registro de fonte, snapshot e observação aplicáveis, inclusive para que a
+proveniência local permaneça explícita.
 
-`generationSpecDigest` é o SHA-256 da representação canônica dos seis primeiros
+`generationSpecDigest` é o SHA-256 da representação canônica dos sete primeiros
 campos do manifesto e identifica a especificação de build. O candidato usa um
 `candidateBuildId` temporário; depois de produzir todos os chunks e vetores, a
 finalização calcula `logicalArtifactDigest` sobre registros lógicos ordenados e
@@ -177,7 +199,7 @@ silenciosa de artefatos incompatíveis.
 | `IDocumentParser` | Transformar bytes validados em unidades textuais e localização. |
 | `IChunkingStrategy` | Produzir chunks determinísticos e versionados. |
 | `IEmbeddingProvider` | Gerar vetores com descriptor de modelo e dimensão. |
-| `IVectorStore` | Escrever gerações imutáveis e consultar por `VectorSearchRequest` com `CorpusId`, `IndexGenerationId` e `SourceScope`; provar hard pre-filter dos três seletores ou partição física equivalente e não gerir ativação. |
+| `IVectorStore` | Escrever gerações imutáveis e consultar por `VectorSearchRequest` com `CorpusId`, `IndexGenerationId` e filtros administrativos opcionais; provar hard pre-filter antes do top-k e não gerir ativação. |
 | `ILanguageModel` | Gerar resposta limitada ao prompt e às evidências. |
 | `IDocumentContentStore` | Persistir e reabrir bytes imutáveis content-addressed de versões locais e snapshots oficiais. |
 | `IDocumentCatalog` | Persistir identidades, versões, proveniência e estado. |
@@ -213,24 +235,29 @@ corpusId
 recordRevision
 previousRecordRevision?
 indexGenerationId
-officialSnapshotId?
-officialObservationId?
+catalogueRevision
+documentBindings[]
+  databaseProductId/databaseProductRevision
+  documentId/documentVersion/documentFormat
+  sourceTrustClass/sourceAdapterId
+  officialSourceRegistrationId?/snapshotId?/observationId?
 generationActivatedAt
 recordUpdatedAt
 ```
 
 O compare-and-swap altera o registro inteiro em uma transação do plano de
 controle que também preserva as representações completas anterior e nova no
-histórico versionado de ativação e grava o evento de auditoria sanitizado. A
-observação e o snapshot já devem existir de forma imutável antes da transação.
-Falha ou conflito deixa registro e histórico anteriores intactos; conteúdo,
-observação e vetores candidatos permanecem órfãos auditáveis até cleanup
-explícito. A consulta lê o registro corrente uma vez e não combina geração com
-a “última observação” obtida separadamente.
+histórico versionado de ativação e grava o evento de auditoria sanitizado. Cada
+binding é ordenado ordinalmente e coberto pelos digests do manifesto.
+Observações e snapshots oficiais já devem existir imutavelmente antes da
+transação. Falha ou conflito deixa registro e histórico anteriores intactos;
+conteúdo, observações e vetores candidatos permanecem órfãos auditáveis até
+cleanup explícito. A consulta lê o registro corrente uma vez e não combina a
+geração com estado de catálogo ou “última observação” obtidos separadamente.
 
 ## Fontes locais e externas
 
-### Fonte local do MVP
+### Fontes locais autorizadas
 
 Usa `sourceAdapterId=local-directory` e
 `SourceTrustClass=LocalAuthorised`. O ID do adapter é extensível; a
@@ -239,20 +266,21 @@ classificação de confiança é fechada e não concede autorização por si só
 - raiz configurada e canonicalizada;
 - sem acesso fora da raiz;
 - allowlist de extensão/media type;
-- tamanho e quantidade limitados;
+- limites por arquivo/operação de tamanho, páginas/linhas e concorrência, sem
+  teto de produto para a quantidade total de documentos;
 - conteúdo hashado antes da indexação;
 - bytes validados promovidos idempotentemente ao `IDocumentContentStore` e
   reabertos com hash verificado antes de qualquer ativação;
 - nenhuma dependência de `reference-materials/`.
 
-### Fonte oficial externa do MVP
+### Fontes oficiais externas
 
 Implementação separada com `SourceTrustClass=OfficialExternal` e
 `sourceAdapterId` estável específico do adapter:
 
 - somente HTTPS;
-- exatamente uma fonte oficial aprovada no MVP;
-- scheme, domínio, porta, path e query exatos do PDF em allowlist;
+- qualquer quantidade de registros aprovados compatíveis com o adapter;
+- scheme, domínio, porta, path e query exatos de cada PDF/CSV em allowlist;
 - fonte pública anônima, sem userinfo, token/assinatura em query,
   `Authorization`, API key, client certificate ou credencial ambiente;
 - redirects desativados no MVP;
@@ -261,7 +289,8 @@ Implementação separada com `SourceTrustClass=OfficialExternal` e
 - validação TLS não pode buscar AIA, CRL ou OCSP fora da política; trust,
   revogação, downloads de cadeia e eventual material local são decididos no
   `STATE-02`, e qualquer destino auxiliar exige allowlist própria;
-- timeout, máximo de bytes/páginas, media type PDF, concorrência e rate limit;
+- timeout, máximo de bytes/páginas/linhas, media type/assinatura ou estrutura
+  PDF/CSV, concorrência e rate limit;
 - termos, licença e robots revisados antes da primeira sincronização;
 - snapshot de conteúdo imutável com `sourceKey`, `snapshotId`, URL canônica,
   ETag/Last-Modified observados na captura, hash, `retrievedAt` e licença;
@@ -269,51 +298,46 @@ Implementação separada com `SourceTrustClass=OfficialExternal` e
 - observações de revalidação append-only com `observationId`, `snapshotId`,
   validators condicionais enviados, status HTTP, ETag/Last-Modified
   observados, `revalidatedAt`, `maxAge`, resultado e evidência sanitizada;
-- sincronização para um snapshot governado antes da recuperação;
-- distinção visível entre evidência local e online.
+- sincronização para snapshot governado antes da recuperação;
+- origem local/oficial visível sem separar o espaço padrão de recuperação.
 
-O conteúdo do snapshot nunca muda. O vínculo configurado da fonte possui
+O conteúdo de cada snapshot nunca muda. O vínculo configurado da fonte possui
 estado `Current`, `Stale`, `Withdrawn` ou `Deactivated`, derivado da observação
-apontada pelo `CorpusActivationRecord`, e não simplesmente da última
+apontada pelo binding do `CorpusActivationRecord`, e não simplesmente da última
 observação gravada. Conteúdo expirado, retirado ou desativado não é apresentado
 como atual; status e frescor acompanham a citação. A política padrão do MVP
-falha fechada para `OfficialOnline` quando o registro ativo não vincula
-snapshot e observação elegível `Current`.
+falha fechada para o documento quando o registro ativo não vincula snapshot e
+observação elegível `Current`; os demais documentos ativos continuam elegíveis
+e a cobertura degradada é explícita.
 
 A consulta não recebe acesso irrestrito à web. O conteúdo sincronizado não
 altera políticas, prompts de sistema ou autorização.
 
-Sincronização oficial é um caso de uso administrativo manual:
+Sincronização oficial é um caso de uso administrativo manual por registro:
 
-1. carregar uma configuração aprovada; nenhuma URL vem da pergunta;
-2. canonicalizar a URL pública sem credenciais, validar allowlist, resolver
-   A/AAAA e rejeitar atomicamente respostas mistas/proibidas; conectar ao IP
+1. carregar `OfficialSourceRegistrationId` aprovado; nenhuma URL vem da
+   pergunta;
+2. canonicalizar a URL pública sem credenciais, validar a allowlist específica,
+   resolver A/AAAA e rejeitar respostas mistas/proibidas; conectar ao IP
    aprovado preservando host/SNI, sem egress lateral da validação TLS;
-3. fazer request condicional usando os validators da observação vinculada ao
-   registro ativo e persistir os validators enviados/recebidos e o status;
-   redirects permanecem desativados;
-4. em resposta `304`, persistir observação imutável e atualizar por
-   compare-and-swap somente o `officialObservationId` do registro ativo se ele
-   já referenciar o mesmo snapshot e uma geração compatível; caso contrário,
-   seguir para reconstrução controlada;
-5. baixar para quarentena, limitar também bytes descomprimidos, validar media
-   type, assinatura e páginas, e calcular hash antes de promover conteúdo;
-6. se o hash for igual ao snapshot conhecido, aplicar a mesma regra
-   transacional do passo 4;
-7. se o conteúdo mudou, persistir bytes e novo snapshot bruto imutáveis,
-   reabrir e conferir o hash, acrescentar observação validada ainda não ativa e
-   processar pelo mesmo parser PDF da fonte local;
-8. reconstruir a geração candidata e validar proveniência, frescor,
-   isolamento e smoke queries;
-9. em uma única transação do plano de controle, ativar por compare-and-swap o
-   `CorpusActivationRecord` que vincula geração, snapshot e observação, junto
-   do registro de auditoria.
+3. fazer request condicional usando os validators do binding ativo e persistir
+   os validators enviados/recebidos e o status; redirects ficam desativados;
+4. em `304` ou hash idêntico, persistir observação imutável e atualizar somente
+   o binding correspondente por compare-and-swap quando ele já referenciar o
+   snapshot e a geração compatíveis; caso contrário, reconstruir candidata;
+5. para conteúdo novo, baixar para quarentena, limitar bytes e trabalho de
+   parser, validar PDF/CSV, calcular hash, persistir/reabrir o snapshot e criar
+   uma versão documental `Candidate`;
+6. construir e validar geração candidata com o novo conjunto ordenado;
+7. em uma transação, ativar banco/documento quando aplicável e trocar o
+   `CorpusActivationRecord` completo com auditoria sanitizada.
 
 Uma resposta autoritativa `404`/`410`, quando assim definida pela política da
 fonte, cria observação `Withdrawn` vinculada ao snapshot ativo. Uma operação
 administrativa explícita e auditada cria observação `Deactivated` sem fetch.
-Nos dois casos, o compare-and-swap muda somente a observação do registro
-compatível e preserva geração/snapshot; nenhuma reindexação ocorre. Falha
+Nos dois casos, o compare-and-swap muda somente o binding do registro
+compatível e preserva geração/snapshot quando o documento deixa de ser
+elegível apenas por freshness; nenhuma reindexação ocorre. Falha
 transitória de DNS/transporte/`5xx` registra a tentativa, mas não substitui uma
 observação `Current`; o snapshot passa a `Stale` pelo `maxAge`. Voltar a
 `Current` exige nova sincronização/revalidação elegível e, após
@@ -321,48 +345,45 @@ observação `Current`; o snapshot passa a `Stale` pelo `maxAge`. Voltar a
 
 Falha transitória ou sincronização rejeitada nunca altera geração, snapshot ou
 observação ativos. Um snapshot anterior pode continuar servindo somente
-enquanto `Current`; após `maxAge`, o resultado é `SourceStale`, sem fallback
-silencioso para `Local`.
+enquanto `Current`; após `maxAge`, ele deixa a recuperação e a resposta expõe
+cobertura degradada, sem apresentar outra origem como substituta silenciosa.
 
 ## Estratégia do MVP para atualização
 
 O MVP mantém o fluxo simples:
 
-1. descobrir o documento local e o snapshot oficial referenciado pelo registro
-   ativo, quando existente, independentemente de freshness;
-2. validar, classificar e hashear cada documento;
+1. resolver bancos/documentos ativos mais candidatos explicitamente escolhidos
+   e os snapshots oficiais vinculados;
+2. validar formato, proveniência, licença, identidade e hash de cada documento;
 3. persistir ou reutilizar o objeto imutável por hash, reabri-lo pelo
    `IDocumentContentStore` e conferir seus bytes;
-4. construir uma geração única com chunks marcados como `Local` ou
-   `OfficialOnline`;
-5. validar manifesto, referências reabríveis, compatibilidade, isolamento de
-   escopo e smoke queries;
+4. construir uma geração única com todos os chunks elegíveis e metadados de
+   banco, documento, formato, origem e confiança;
+5. validar manifesto, referências reabríveis, compatibilidade, elegibilidade,
+   cobertura e smoke queries;
 6. trocar por compare-and-swap o `CorpusActivationRecord` completo no
-   `IIndexGenerationStore`, incluindo o vínculo oficial aplicável;
+   `IIndexGenerationStore`, incluindo todos os bindings documentais;
 7. manter a geração ativa e ao menos uma geração anterior validada até cleanup
    explícito após a janela de rollback definida.
 
 O MVP pode reconstruir a geração completa. Ele não precisa implementar diff
 por chunk, scheduler, fila ou sincronização distribuída.
 
-Cada pergunta exige `sourceScope=Local|OfficialOnline`. A recuperação filtra o
-escopo antes de selecionar candidatos. O valor `Combined` não existe no MVP.
+Cada pergunta recupera, por padrão, em todos os bindings ativos e elegíveis do
+registro resolvido. Origem não é um filtro implícito; filtros administrativos
+opcionais por banco/documento, quando introduzidos, devem ser explícitos.
 
 Invariantes da geração conjunta:
 
-- uma candidata representa snapshot coerente dos dois escopos;
-- uma atualização de `Local` preserva a revisão oficial do registro ativo,
-  mesmo quando a fonte oficial está `Stale`; freshness não remove conteúdo do
-  manifesto;
-- atualizações operacionais de conteúdo são serializadas e no máximo um
-  escopo muda por geração;
-- bootstrap inicial e migração global da chave de compatibilidade podem
-  reconstruir ambos os escopos, são classificadas como operações globais e
-  validam o conjunto inteiro;
-- ambos os escopos e o pre-filter são validados antes da ativação;
-- `VectorSearchRequest` exige `CorpusId`, `IndexGenerationId` e `SourceScope`;
-  o vector store prova filtro pelos três seletores antes do top-k; se não
-  suportar hard pre-filter, usa partições físicas equivalentes;
+- uma candidata representa snapshot coerente do catálogo inteiro selecionado;
+- toda atualização preserva bancos/documentos não alterados por identidade e
+  versão no novo manifesto;
+- atualizações de conteúdo são serializadas por corpus;
+- um banco ativo possui ao menos um documento ativo/elegível;
+- a saída do último documento ativo exige desativação explícita e atômica do
+  banco;
+- `VectorSearchRequest` exige `CorpusId` e `IndexGenerationId`; filtros
+  administrativos declarados também são aplicados antes do top-k;
 - post-filter depois de busca global é violação de contrato;
 - rollback troca a geração inteira; rollback parcial cria uma nova candidata;
 - freshness oficial é metadado revalidado fora do índice e não volta a
@@ -397,11 +418,11 @@ Rollback de índice usa como alvo uma revisão anterior completa e preservada do
 corrente por compare-and-swap. Não edita vetores no lugar nem combina a
 geração anterior com um vínculo oficial arbitrário.
 
-Rollback de documento seleciona uma versão anterior e cria uma nova candidata
-quando somente um escopo retorna. Uma geração anterior só pode ser reativada
-quando o conjunto completo `Local` + `OfficialOnline`, a chave de
-compatibilidade e a observação de freshness elegível correspondem exatamente
-ao alvo; reativação nunca torna snapshot antigo novamente `Current`.
+Rollback de documento seleciona uma versão anterior e cria nova candidata para
+o manifesto completo. Uma geração anterior só pode ser reativada quando o
+conjunto completo de bancos/documentos, a chave de compatibilidade e todas as
+observações de freshness elegíveis correspondem exatamente ao alvo; reativação
+nunca torna snapshot antigo novamente `Current`.
 
 Rollback de aplicação, configuração, catálogo e índice são procedimentos
 separados. No MVP, cleanup nunca remove a geração ativa nem o único alvo de
@@ -438,16 +459,17 @@ O MVP fixa um único corpus por configuração e não expõe administração rem
 - Exigir `questionLanguage=pt-BR|en-GB` e validá-lo antes de qualquer chamada
   externa; não inferir silenciosamente outro idioma em perguntas curtas ou
   ambíguas.
-- Validar `sourceScope`; não aceitar URL, domínio ou adapter na pergunta.
+- Não aceitar URL, domínio, banco, documento, origem ou adapter como campo de
+  autoridade na pergunta.
 - Resolver o `CorpusActivationRecord` uma única vez no início da consulta.
-- Validar disponibilidade e freshness do escopo selecionado antes de gerar o
+- Resolver todos os bindings ativos/current e a cobertura antes de gerar o
   query embedding ou chamar qualquer provider.
-- Usar `CorpusId`, `IndexGenerationId` e `SourceScope` resolvidos em um
+- Usar `CorpusId` e `IndexGenerationId` resolvidos em um
   `VectorSearchRequest` durante toda recuperação, validação e citação; nenhuma
   etapa relê silenciosamente o registro.
 - Usar top-k e thresholds definidos por avaliação, não por palpite.
-- Aplicar os filtros obrigatórios de `CorpusId`, `IndexGenerationId` e
-  `SourceScope` antes do top-k/ranking.
+- Aplicar `CorpusId`, `IndexGenerationId` e filtros administrativos opcionais
+  antes do top-k/ranking.
 - Separar claramente instruções confiáveis de evidências não confiáveis.
 - Instruir o modelo a gerar a resposta exatamente em `questionLanguage`,
   mesmo quando `contentLanguage` das evidências for diferente.
@@ -460,17 +482,18 @@ O MVP fixa um único corpus por configuração e não expõe administração rem
 O modelo não recebe acesso direto ao vetor, arquivo, rede ou catálogo. A
 Application seleciona e limita as evidências.
 
-`OfficialOnline` stale/indisponível falha antes de retrieval/LLM. `Local`
-continua operacional, mas só é usado depois de ação explícita do usuário.
+Documento oficial stale/indisponível não participa da recuperação e aparece na
+cobertura degradada. A consulta continua somente quando existe ao menos um
+documento ativo/elegível, sem afirmar que outra origem substituiu a ausente.
 
 ### Readiness por capacidade
 
 - Liveness depende apenas da capacidade do processo responder.
-- Readiness global exige plano de controle, geração ativa compatível, vector
-  store, embedding de query e LLM necessários para servir ao menos `Local`.
-- `OfficialOnline=Stale|Unavailable|Withdrawn|Deactivated` é degradação por
-  scope e não torna a instância globalmente indisponível quando `Local`
-  continua saudável.
+- Readiness global exige plano de controle, geração ativa compatível, ao menos
+  um banco/documento servível, vector store, embedding de query e LLM.
+- Fontes/documentos `Stale|Unavailable|Withdrawn|Deactivated` produzem
+  degradação de cobertura e não tornam a instância indisponível enquanto outro
+  documento ativo/elegível permanece servível.
 - Disponibilidade do egress administrativo de sincronização é diagnóstico
   separado e não participa da readiness do caminho de consulta.
 
@@ -502,10 +525,11 @@ adapters não traduzem a mesma falha para categorias concorrentes.
 Uma citação sempre inclui:
 
 - `corpusId`;
-- `SourceScope`;
+- `databaseProductId` e `databaseProductRevision`;
 - `indexGenerationId`;
 - `documentId`;
 - `documentVersion`;
+- `documentFormat`;
 - `contentLanguage`;
 - chunk ID;
 - `sourceAdapterId` e `SourceTrustClass`.
@@ -513,7 +537,7 @@ Uma citação sempre inclui:
 Quando disponíveis, também inclui:
 
 - título;
-- página ou seção;
+- página/bloco para PDF ou linha/coluna/cabeçalho para CSV;
 - locator seguro para exibição.
 
 Título, seção, trecho e qualquer outro texto derivado da fonte permanecem no
@@ -522,7 +546,7 @@ pergunta, mas não reescreve nem traduz o conteúdo apresentado como citação.
 
 A resposta inclui metadados técnicos:
 
-- `SourceScope`;
+- resumo de `evidenceCoverage` e origens efetivamente citadas;
 - `indexGenerationId`;
 - `retrievalPolicyVersion`;
 - `promptVersion`;
@@ -541,9 +565,9 @@ universal sem calibração.
 ## Segurança
 
 - Prompt injection em documento é ameaça explícita.
-- PDFs são entrada não confiável; parsing ocorre com limites e sem macros.
-- O PDF oficial também é entrada não confiável; anexos, links e instruções
-  embutidas não recebem autoridade.
+- PDFs e CSVs são entrada não confiável; parsing ocorre com limites. Anexos,
+  ações, links, fórmulas e instruções embutidas não recebem autoridade nem são
+  executados.
 - Cada conexão oficial usa somente IP previamente resolvido e autorizado,
   preserva host/SNI e não refaz resolução por hostname no socket.
 - A fonte oficial é anônima e sua validação TLS não inicia downloads
@@ -566,17 +590,18 @@ Antes de homologar um provider ou versão:
 - resposta: groundedness e ausência de afirmações não sustentadas;
 - idioma: resposta no idioma da pergunta e citação no idioma original;
 - segurança: prompt injection e conteúdo malicioso;
-- isolamento entre `Local` e `OfficialOnline`;
-- busca adversarial em que chunks do scope incorreto pontuam acima dos
-  corretos, provando pre-filter antes do top-k;
+- cobertura por banco, documento e formato, com casos proporcionais ao conjunto
+  ativo;
+- busca adversarial em que chunks de banco/documento excluído por filtro
+  explícito pontuam acima dos corretos, provando pre-filter antes do top-k;
 - busca adversarial com chunks de outra geração e, quando aplicável, de outro
   corpus pontuando acima dos corretos, provando isolamento antes do top-k;
 - SSRF, redirect, domínio/path, tamanho e freshness da fonte oficial;
 - `304` ou hash idêntico atualiza a observação de revalidação sem criar novo
   snapshot ou índice somente quando o registro ativo já referencia o snapshot
   compatível;
-- atualização local enquanto `OfficialOnline` está stale, seguida de
-  revalidação `304`, preservando o snapshot e restaurando elegibilidade sem
+- degradação de uma fonte enquanto outras permanecem servíveis, seguida de
+  revalidação `304`, preservando snapshot e restaurando elegibilidade sem
   mistura de geração;
 - crash antes, durante e depois da ativação, provando atomicidade do
   `CorpusActivationRecord`;
@@ -599,11 +624,12 @@ escolhido ou alterado depois de observar o resultado para fazê-lo passar.
 
 | Capacidade | MVP | Evolução |
 |---|---|---|
-| Acervo local | Um | Vários |
-| Formato | PDF local + PDF oficial sincronizado | CSV, Markdown, HTML, Office e outros autorizados |
-| Atualização | Substituição local e sincronização oficial manuais | Diff incremental e scheduler |
+| Corpus lógico | Um, com catálogo administrável | Vários com autorização/RBAC próprios |
+| Bancos e documentos | 51 iniciais; cardinalidade aberta por registros | Novos itens compatíveis sem mudança do núcleo |
+| Formato | PDF e CSV | Markdown, HTML, Office e outros autorizados |
+| Atualização | Administração e sincronização oficiais manuais | Diff incremental e scheduler |
 | Providers | Um por porta | Catálogo e múltiplas implementações |
 | Índice | Geração imutável, uma anterior retida e rollback limitado | Migração, compactação e distribuição |
-| Fontes online | Uma fonte oficial allowlisted e snapshot | Múltiplas fontes e catálogo |
+| Fontes online | Registros oficiais allowlisted e snapshots | Novas classes de autenticação/protocolo por decisão própria |
 | Acesso | Consulta anônima limitada | RBAC e escopo por corpus |
 | Integração DB-Notifier | Nenhuma | Adapter ou módulo versionado |

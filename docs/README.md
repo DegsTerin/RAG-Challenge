@@ -2,7 +2,7 @@
 
 ## Status
 
-Este índice descreve o corpus documental vigente `4.5.0`. A baseline `3.4.0`
+Este índice descreve o corpus documental vigente `4.7.0`. A baseline `3.4.0`
 encerrou o Human Gate de `STATE-00 DISCOVERY`; o `GATE-B01
 ARCHITECTURE_BOOTSTRAP_DECISION` aprovou o ADR-0001 e a licença MIT. O
 ADR-0003 aceito posteriormente substitui seu registro, preserva todas as
@@ -16,10 +16,12 @@ a auditoria combinada da baseline escolhida continuam pendentes. Nenhum ADR
 foi aceito por implicação. Relatórios de estado são evidências históricas; o
 presente factual pertence a
 [`Current-State.md`](../prompts/state/Current-State.md).
-O corpus `4.5.0` preserva o contrato bilíngue de consulta de `4.3.0` e a
-localização `pt-BR`/`en-GB` de `4.4.0`, e formaliza os temas `Light` e `Dark`
-como seleção visual independente. Nenhuma dessas decisões altera o lifecycle
-ou aceita um ADR proposto.
+O corpus `4.7.0` preserva o contrato bilíngue de consulta de `4.3.0`, a
+localização `pt-BR`/`en-GB` de `4.4.0`, os temas `Light` e `Dark` de `4.5.0` e
+a ausência de tetos de sistemas/páginas de `4.6.0`. Ele também formaliza o
+catálogo inicial de 51 bancos, PDF/CSV sem cardinalidade fixa por banco e a
+recuperação unificada de todos os documentos ativos. Nenhuma dessas decisões
+altera o lifecycle ou aceita um ADR proposto.
 
 ## Comece aqui
 
@@ -49,7 +51,7 @@ ou aceita um ADR proposto.
 - [ADR-0001 — Runtime Stack and Modular Monolith](architecture/ADR-0001-Runtime-Stack-And-Modular-Monolith.md)
 - [ADR-0002 — RAG Lifecycle, Provider Boundaries and Source Separation](architecture/ADR-0002-RAG-Lifecycle-Providers-And-Source-Separation.md)
 - [ADR-0003 — Product and Technical Naming](architecture/ADR-0003-Product-And-Technical-Naming.md)
-- [ADR-0004 — MVP Corpus, Official Source and Evaluation Baseline](architecture/ADR-0004-MVP-Corpus-Official-Source-And-Evaluation.md)
+- [ADR-0004 — MVP Catalogue, Governed Documents, Official Sources and Evaluation](architecture/ADR-0004-MVP-Corpus-Official-Source-And-Evaluation.md)
 - [ADR-0005 — MVP Providers, Persistence and OCI Deployment](architecture/ADR-0005-MVP-Providers-Persistence-And-OCI-Deployment.md)
 - [ADR-0006 — Security, Egress, Administration and HTTP Contracts](architecture/ADR-0006-Security-Egress-Administration-And-HTTP-Contracts.md)
 - [Contratos canônicos de STATE-02](architecture/STATE-02-Canonical-Contracts.md)

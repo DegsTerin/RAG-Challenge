@@ -3,8 +3,8 @@
 ## Objetivo
 
 Entregar um agente RAG independente, reproduzível localmente e implantado em
-OCI, que responda sobre um PDF local publicável ou um PDF oficial sincronizado
-online, com escopo explícito, citações e recusa segura.
+OCI, que responda sobre todos os documentos PDF/CSV ativos do catálogo de
+bancos, com proveniência explícita, citações e recusa segura.
 
 Este documento planeja trabalho; não autoriza entrada em estado, código,
 consumo externo ou deploy.
@@ -14,11 +14,14 @@ consumo externo ou deploy.
 Incluído:
 
 - um corpus lógico;
-- um PDF local;
-- um PDF oficial obtido de uma URL HTTPS allowlisted;
-- sincronização manual para snapshot versionado;
-- seleção `Local`/`OfficialOnline` sem mistura ou fallback silencioso;
-- catálogo e versões;
+- catálogo inicial de 51 bancos, 9 categorias e 54 associações;
+- qualquer quantidade de documentos PDF/CSV por banco;
+- administração Candidate/Active/Deactivated/Removed sem hard-code;
+- fontes oficiais obtidas de URLs HTTPS individualmente allowlisted;
+- sincronização manual para snapshots versionados;
+- recuperação unificada de todos os documentos ativos, com proveniência
+  local/oficial e cobertura explícitas;
+- catálogo e versões imutáveis;
 - armazenamento imutável e reabrível do conteúdo bruto;
 - parsing e chunking versionados;
 - um embedding provider;
@@ -40,9 +43,9 @@ Incluído:
 
 Não incluído:
 
-- todos os formatos;
+- formatos além de PDF e CSV;
 - múltiplos acervos ativos;
-- sincronização incremental/agendada ou mais de uma fonte oficial;
+- sincronização incremental/agendada;
 - crawling, HTML genérico ou URL fornecida pelo usuário;
 - vários providers em produção;
 - autenticação corporativa;
@@ -56,10 +59,10 @@ Não incluído:
 | `STATE-00` | Discovery, requisitos, arquitetura proposta, riscos, backlog e governança. | Quality Gate documental e Human Gate explícito. |
 | `GATE-B01` | ADR-0001, licença do repositório e mapa físico de projetos decididos. | Decisão humana registrada; nenhuma implementação autorizada. |
 | `STATE-01` | Repositório e scaffold reproduzível sem lógica RAG, conforme bootstrap aceito. | Clone limpo compila/testa e CI estrutural passa. |
-| `STATE-02` | ADR-0002, providers, corpus/licença, URL oficial/termos, threat model e OCI decididos. | Decisões aceitas e riscos críticos tratados. |
-| `STATE-03` | Modelo de documento/snapshot/índice, freshness, source scope, migrations e rollback. | Geração/ativação e isolamento são verificáveis sem serviço produtivo. |
-| `STATE-04` | Ingestão local, sync oficial, pipeline RAG e API funcionais localmente. | Perguntas por escopo e falhas passam testes. |
-| `STATE-05` | Interface mínima com seletor e freshness. | Fluxos Local/OfficialOnline e citações validados humanamente. |
+| `STATE-02` | ADR-0002, providers, catálogo/documentos/licenças/fontes, threat model e OCI decididos. | Decisões aceitas e riscos críticos tratados. |
+| `STATE-03` | Modelo de banco/categoria/documento/snapshot/índice, freshness, bindings, migrations e rollback. | Geração/ativação e isolamento são verificáveis sem serviço produtivo. |
+| `STATE-04` | Administração/ingestão PDF/CSV, sync oficial, pipeline RAG e API funcionais localmente. | Recuperação unificada, citações e falhas passam testes. |
+| `STATE-05` | Interface mínima com cobertura, proveniência e freshness. | Fluxos PDF/CSV local/oficial e citações validados humanamente. |
 | `STATE-06` | E2E offline, artefato e smoke online autorizado. | Execução reproduzível sem corrupção, leak ou secret. |
 | `STATE-07` | Homologação RAG, SSRF, isolamento, carga, recuperação e acessibilidade. | Thresholds prévios atendidos e riscos aceitos. |
 | `STATE-08` | Deploy OCI, egress oficial, smoke, evidência e README final. | Entrega pública atende aos critérios oficiais. |
@@ -128,8 +131,9 @@ Critério: pipeline localmente reproduzível; CI não faz deploy.
 - Aceitar/rejeitar ADR-0002 e decisões adicionais necessárias.
 - Escolher a licença do corpus; não reabrir silenciosamente a licença do
   repositório.
-- Congelar escopo do PDF.
-- Escolher uma URL PDF oficial, termos/licença, maxAge e limites.
+- Congelar o catálogo inicial 51/54/9 e o contrato PDF/CSV sem teto numérico.
+- Definir o ciclo administrativo e os registros de URLs oficiais,
+  termos/licenças, maxAge e limites por fonte.
 - Selecionar parser, embeddings, vector store e LLM.
 - Definir persistência durável e retenção de conteúdo bruto, catálogo e
   índice, incluindo restart e armazenamento OCI.
@@ -160,15 +164,17 @@ Critério: cada escolha tem alternativa, consequência e owner.
 - Definir `questionLanguage`, `answerLanguage` e `contentLanguage` com os
   valores canônicos `pt-BR` e `en-GB`, sem decidir o idioma da interface.
 - Definir dataset, rubrica e thresholds antes da execução.
-- Definir source scope, ausência de fallback e autorização dos testes reais.
+- Definir recuperação unificada, cobertura, proveniência, ausência de fallback
+  e autorização dos testes reais.
 
 Critério: implementação pode começar sem decisão material em aberto.
 
 ### Lote S03-A — Modelo de catálogo
 
-- Modelar corpus, documento, versão e proveniência.
-- Modelar snapshot oficial imutável, observações de revalidação, freshness e
-  `SourceScope`.
+- Modelar corpus, banco, categoria muitos-para-muitos, documento, versão,
+  formato, estado e proveniência.
+- Modelar registros de fontes, snapshots oficiais imutáveis, observações de
+  revalidação e freshness.
 - Modelar especificação e manifesto final canônicos, staging não consultável,
   digest/contagens dos artefatos lógicos, identidade determinística da geração
   finalizada e separação entre snapshot selecionado e freshness.
@@ -182,8 +188,8 @@ Critério: modelo não contém secret nem SDK/provider type.
 
 - Criar migrations não produtivas.
 - Testar create/upgrade/failure/rollback.
-- Provar compare-and-swap atômico do registro completo de geração, snapshot,
-  observação e auditoria.
+- Provar compare-and-swap atômico do registro completo de geração, bindings de
+  bancos/documentos/snapshots/observações e auditoria.
 - Preservar e reabrir bytes content-addressed alcançáveis; limpar somente
   órfãos comprovados após retenção.
 - Preservar a geração ativa e ao menos uma geração anterior validada até
@@ -192,30 +198,32 @@ Critério: modelo não contém secret nem SDK/provider type.
 Critério: falha preserva geração anterior e o retorno ativação → geração
 anterior é testado.
 
-### Lote S04-A — Ingestão local e sincronização oficial
+### Lote S04-A — Administração, ingestão e sincronização oficial
 
-- Validar arquivo e raiz.
-- Validar URL allowlisted e sincronizar manualmente o PDF oficial para
+- Administrar bancos, categorias, documentos, versões e estados com auditoria.
+- Validar PDF/CSV local e raiz.
+- Validar cada URL allowlisted e sincronizar manualmente PDF/CSV oficial para
   snapshot.
 - Persistir e reabrir por hash os bytes locais/oficiais antes de ativar e
   registrar status e validators HTTP enviados/recebidos em cada observação.
 - Em `304` ou hash idêntico, registrar nova observação de revalidação sem
   criar snapshot ou índice somente se o registro ativo já referenciar o
   snapshot compatível; caso contrário, reconstruir de forma controlada.
-- Extrair ambos os PDFs pelo mesmo parser.
+- Extrair PDF e CSV por adapters próprios.
 - Normalizar e produzir chunks de forma determinística.
 - Persistir bytes brutos, metadados e hashes de forma idempotente.
 
-Critério: fixtures local/HTTP geram chunks rastreáveis; falha de sync preserva
-o snapshot e a geração ativos.
+Critério: fixtures PDF/CSV local/HTTP geram chunks rastreáveis; falha de sync
+preserva snapshots, documentos e geração ativos.
 
 ### Lote S04-B — Indexação
 
 - Integrar embedding provider.
 - Construir staging inativo por `candidateBuildId`.
-- Incluir `SourceScope` em identidade, digest e metadados vetoriais.
-- Exigir `CorpusId`, `IndexGenerationId` e `SourceScope` no contrato de busca
-  e provar hard pre-filter dos três seletores ou partição física equivalente.
+- Incluir banco, documento, formato, origem e trust em identidade, digest e
+  metadados vetoriais.
+- Exigir `CorpusId` e `IndexGenerationId` no contrato de busca e provar
+  hard pre-filter desses IDs e de filtros administrativos opcionais.
 - Finalizar digest/contagens/readback, derivar `IndexGenerationId`, validar o
   manifesto final e ativar.
 - Reexecutar idempotentemente sem promover candidato parcial.
@@ -227,20 +235,21 @@ Critério: conteúdo idêntico não cria inconsistência; falha não substitui a
 - Validar pergunta.
 - Validar `questionLanguage=pt-BR|en-GB` antes de qualquer provider e exigir
   que a geração use esse mesmo idioma na resposta.
-- Exigir `Local` ou `OfficialOnline` e aplicar pre-filter antes do top-k.
-- Recuperar somente evidências do escopo escolhido.
+- Resolver todos os documentos ativos/current e aplicar filtros autorizados
+  antes do top-k.
+- Recuperar evidências em todo o conjunto ativo e expor cobertura/proveniência.
 - Gerar resposta constrained.
 - Validar citações.
 - Retornar evidência insuficiente.
 
-Critério: testes cobrem os dois escopos, os quatro pares entre idioma da
+Critério: testes cobrem bancos/documentos/formatos/origens, os quatro pares entre idioma da
 pergunta e idioma da evidência, preservação do idioma original nas citações,
 sem resposta, stale, indisponível, source leakage, provider down e injection.
 
 ### Lote S04-D — API
 
 - Implementar `/api/v1/questions`.
-- Exigir `sourceScope`; rejeitar URL/domínio/adapter no payload.
+- Rejeitar URL/domínio/adapter e campos públicos de autoridade sobre catálogo.
 - Exigir `questionLanguage=pt-BR|en-GB`, retornar `answerLanguage` igual e
   expor `contentLanguage` nas citações.
 - Implementar liveness/readiness.
@@ -264,7 +273,8 @@ Critério: API não expõe secret, stack trace ou conteúdo indevido.
   resposta, evidência ou citações.
 - Aplicar tokens acessíveis de fundo, superfície, texto, borda, foco e estado
   nos dois temas, sem comunicar informação somente por cor.
-- Seletor `Local`/`Documentação oficial online — snapshot sincronizado`.
+- Indicador de cobertura ativa e proveniência local/oficial, com degradação por
+  fonte/documento sem divisão silenciosa da consulta.
 - Resposta e lista de citações.
 - URL/snapshot/freshness nas citações oficiais.
 - Loading, vazio, erro, stale, indisponível e sem evidência.
@@ -330,10 +340,10 @@ Critério: checklist oficial completo.
 
 | ID | Item | Estado proprietário |
 |---|---|---|
-| `BL-M01` | Definir e licenciar o PDF `Catálogo de Bancos de Dados — MVP`. | S02 |
+| `BL-M01` | Preservar o catálogo inicial 51/54/9 e verificar licença/proveniência dos documentos PDF/CSV. | S02–S04 |
 | `BL-M02` | Scaffold .NET 10 modular e CI. | S01 |
 | `BL-M03` | Catálogo, conteúdo bruto reabrível, documento, manifesto e índice versionados. | S03 |
-| `BL-M04` | Ingestão PDF local segura. | S04 |
+| `BL-M04` | Ingestão PDF/CSV local e oficial segura. | S04 |
 | `BL-M05` | Embeddings e geração imutável de índice. | S04 |
 | `BL-M06` | Recuperação, resposta grounded e citações. | S04 |
 | `BL-M07` | Resultado de evidência insuficiente. | S04 |
@@ -344,10 +354,11 @@ Critério: checklist oficial completo.
 | `BL-M12` | Deploy em OCI e evidência. | S08 |
 | `BL-M13` | README final com exemplos reais. | S08 |
 | `BL-M14` | Preservar uma geração anterior elegível e testar ativação/rollback atômicos do `CorpusActivationRecord` por compare-and-swap. | S03/S04/S07 |
-| `BL-M15` | Sincronizar um PDF oficial allowlisted com pinning DNS/IP e consultar por `OfficialOnline` com snapshot, freshness e isolamento. | S02–S08 |
+| `BL-M15` | Sincronizar registros oficiais PDF/CSV allowlisted com pinning DNS/IP, snapshot, freshness e cobertura explícita. | S02–S08 |
 | `BL-M16` | Suportar e homologar perguntas/respostas em `pt-BR` e `en-GB`, inclusive recuperação cruzada e preservação do idioma original das citações. | S02/S04/S07 |
 | `BL-M17` | Localizar a interface em `pt-BR` e `en-GB`, com seletor explícito, independência da consulta e testes de acessibilidade nos dois idiomas. | S05/S07 |
 | `BL-M18` | Implementar e homologar temas `Light` e `Dark`, com seletor explícito, independência de idioma e matriz visual/acessível nos dois temas. | S05/S07 |
+| `BL-M19` | Administrar bancos, categorias e qualquer quantidade de documentos por registros Candidate/Active/Deactivated/Removed, sem hard-code ou ADR por item compatível. | S03/S04/S07 |
 
 ### Should — se não comprometer a entrega
 
@@ -361,10 +372,10 @@ Critério: checklist oficial completo.
 
 | ID | Item |
 |---|---|
-| `BL-C01` | CSV, Markdown, HTML e formatos Office (`RF-018`). |
+| `BL-C01` | Markdown, HTML, JSON e formatos Office além de PDF/CSV (`RF-018`). |
 | `BL-C02` | Múltiplos acervos e ativação individual. |
 | `BL-C03` | Sincronização incremental e scheduler. |
-| `BL-C04` | Múltiplas fontes oficiais, HTML/crawling e sincronização agendada. |
+| `BL-C04` | HTML/crawling, autenticação de fonte e sincronização agendada. |
 | `BL-C05` | Mais providers de embeddings, vetor e LLM. |
 | `BL-C06` | RBAC e escopo por corpus (`RF-019`). |
 | `BL-C07` | Frontend estático opcional no GitHub Pages. |
@@ -383,7 +394,7 @@ Critério: checklist oficial completo.
 ## Riscos do roadmap
 
 - O corpus e sua licença são o primeiro bloqueio material.
-- A URL oficial, seus termos/licença e estabilidade são bloqueios próprios.
+- Cada fonte oficial, seus termos/licença e estabilidade são bloqueios próprios.
 - Egress/SSRF e freshness exigem testes sem tornar a suíte padrão dependente
   da internet.
 - Provider externo pode exigir conta, quota, região e custo.
@@ -399,7 +410,10 @@ Critério: checklist oficial completo.
 - Vector store gerenciado pode expor chunks/embeddings sem política própria.
 - GitHub Pages pode ser confundido com backend; a documentação deve manter a
   separação.
-- Suporte prematuro a muitos formatos ameaça o prazo do MVP.
+- Novos formatos além de PDF/CSV ameaçam o prazo e exigem adapter/decisão
+  compatíveis.
+- O catálogo sem teto pode ultrapassar a capacidade do vector store candidato;
+  falha bloqueia ativação, não reduz silenciosamente bancos ou documentos.
 - Avaliação sem dataset congelado pode produzir sucesso não reproduzível.
 
 ## Regra de progressão

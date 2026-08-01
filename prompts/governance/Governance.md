@@ -71,7 +71,8 @@ separada.
 - `CH-MOD-08 EXTERNAL_INTEGRATION_CONTRACTS`
 
 IDs não podem ser reutilizados com outro significado. O módulo 07 integra o
-MVP no recorte de uma fonte oficial. O módulo 08 possui no MVP somente o
+MVP por registros governados de fontes oficiais compatíveis, sem crawling ou
+URL pública arbitrária. O módulo 08 possui no MVP somente o
 contrato HTTP/OpenAPI público do RAG-Challenge; qualquer adapter consumidor,
 inclusive o futuro adapter do DB-Notifier, pertence ao repositório consumidor
 e a decisões próprias.

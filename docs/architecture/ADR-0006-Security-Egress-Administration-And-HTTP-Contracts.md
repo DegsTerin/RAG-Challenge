@@ -6,8 +6,9 @@
 - State: `STATE-02 ARCHITECTURE`
 - Dependencies: ADR-0002, ADR-0004 and ADR-0005
 - Verification status: public primary-source verification completed for the
-  official source, AI API contracts/data controls and OCI regional endpoints;
-  profiles remain disabled and account/runtime evidence remains pending
+  first PostgreSQL source candidate, AI API contracts/data controls and OCI
+  regional endpoints; every later source requires its own evidence, profiles
+  remain disabled and account/runtime evidence remains pending
 
 ## Purpose and authority
 
@@ -18,10 +19,11 @@ accept itself.
 
 ## Context
 
-The application has four independent outbound purposes and two public query
-capabilities. It must prevent a question or retrieved document from changing
-policy, source, provider or administration. It also needs a stable OpenAPI v1
-contract without exposing Domain, persistence or provider types.
+The application has four independent outbound purposes and a public unified
+query capability over an administrator-managed catalogue. It must prevent a
+question or retrieved document from changing policy, catalogue, source,
+provider or administration. It also needs a stable OpenAPI v1 contract without
+exposing Domain, persistence or provider types.
 
 ## Owner-decided query-language constraint
 
@@ -82,12 +84,14 @@ in one profile grants no access through another.
 
 #### `OFFICIAL_SOURCE_EGRESS`
 
-- Candidate destination: exact canonical URI declared by ADR-0004.
+- Candidate destinations: the exact active canonical URIs held by approved
+  `OfficialSourceRegistration` records. PostgreSQL is the first verified
+  candidate; it does not authorise any other URI.
 - Enable only in the explicit administration synchronisation profile.
 - Apply the complete SSRF, DNS/IP, TLS, redirect, content and rate policy
   below. Query and normal startup profiles cannot resolve or connect to the
   source.
-- The exact URI returned `200` to `HEAD` and `206` to the authorised 64 KiB
+- The first PostgreSQL URI returned `200` to `HEAD` and `206` to the authorised 64 KiB
   range request without a redirect on 2026-07-31. This verifies the candidate
   authority, path, media type, byte-range behaviour, current size and leading
   signature only; it does not enable the profile or prove the complete
@@ -100,7 +104,7 @@ in one profile grants no access through another.
 
 #### `OCI_RUNTIME_EGRESS`
 
-- Compose only destinations already authorised for AI, official source,
+- Compose only destinations already authorised for AI, official sources,
   secret retrieval, certificate operation and sanitised telemetry.
 - Do not include a generic `0.0.0.0/0` or `::/0` application egress rule as a
   substitute for destination policy.
@@ -125,8 +129,9 @@ in one profile grants no access through another.
 
 ### Official-source network policy
 
-- Canonicalise once and compare scheme, IDNA ASCII host, port, path and query
-  against the configured exact URI.
+- Resolve a trusted source-registration ID, then canonicalise once and compare
+  scheme, IDNA ASCII host, port, path and query against that record's exact
+  URI. Public input never supplies or mutates a registration.
 - Resolve A and AAAA for each new physical connection. Reject the whole answer
   atomically if any address is loopback, link-local, private, multicast,
   unspecified, documentation-only, metadata-service or otherwise prohibited.
@@ -146,20 +151,20 @@ in one profile grants no access through another.
 - Fail closed on unknown chain material. A future online revocation design
   requires an ADR and exact auxiliary allowlists.
 - Limit DNS/connect to 10 seconds, response headers to 30 seconds and the full
-  operation to 120 seconds. Enforce transferred, decompressed/working and page
-  limits from ADR-0004.
-- Validate PDF media type, `%PDF-` signature, structure and page limit before
-  promotion. ETag and Last-Modified never replace SHA-256.
+  operation to 120 seconds. Enforce transferred, decompressed/working and
+  PDF-page or CSV-row/column/cell limits from ADR-0004.
+- Validate PDF media/signature/structure or CSV media/encoding/dialect/structure
+  before promotion. ETag and Last-Modified never replace SHA-256.
 
 ### Public HTTP/OpenAPI v1
 
 - Publish `POST /api/v1/questions`, `GET /api/v1/health/live` and
   `GET /api/v1/health/ready` only.
 - Require `application/json`, an 8 KiB request-body limit and a 4 KiB UTF-8
-  question limit. Reject unknown `sourceScope`, URL, host, path, provider,
-  model or adapter fields.
-- Require exactly one configured `corpusId` and one of `Local` or
-  `OfficialOnline`.
+  question limit. Reject URL, host, path, source registration, provider, model,
+  adapter or any public field that attempts to mutate catalogue authority.
+- Require exactly one configured `corpusId`; the server resolves all active
+  document bindings from one activation-record revision.
 - Require `questionLanguage` with exactly `pt-BR` or `en-GB`; reject missing,
   unsupported or non-canonical language tags before any provider call.
 - Return completed `Answered` and `InsufficientEvidence` outcomes with HTTP
@@ -168,6 +173,9 @@ in one profile grants no access through another.
   every failure through the canonical table in the contract document.
 - Include `contentLanguage` in every citation and preserve source-derived
   title, section, excerpt and other citation text without model translation.
+- Include database/document/version/format/trust identity and a sanitised
+  evidence-coverage summary. PDF citations use page/block locations; CSV
+  citations use record/column/header locations.
 - Use RFC 9457 Problem Details with stable `CH_*` extension code and
   correlation ID. Never include stack, provider payload, prompt, passage,
   path, endpoint or secret.
@@ -202,14 +210,15 @@ in one profile grants no access through another.
   dependency.
 - Global readiness is healthy only when configuration is valid, the
   control-plane store is readable, one compatible activation record exists,
-  the selected `Local` content/index is readable, the vector adapter can
-  search it and AI provider configuration/circuit state permits an attempt.
+  at least one active database/document binding is readable, the vector
+  adapter can search it and AI provider configuration/circuit state permits an
+  attempt.
 - Readiness does not make a billable provider call or synchronise a source.
-- `OfficialOnline` stale, unavailable, withdrawn or deactivated is a typed
-  per-scope degradation and does not make the instance globally unready while
-  `Local` remains serviceable.
-- Return HTTP `200` for ready/degraded-global-with-local and `503` when the
-  mandatory Local path cannot serve. Expose only sanitised capability states.
+- A stale, unavailable, withdrawn or deactivated source/document is a typed
+  per-item coverage degradation and does not make the instance globally unready
+  while another active document remains serviceable.
+- Return HTTP `200` for ready/degraded-with-partial-coverage and `503` when no
+  active document path can serve. Expose only sanitised capability states.
 
 ### Local administration
 
@@ -220,8 +229,12 @@ in one profile grants no access through another.
   RagChallenge.Server.Api admin <command> --reason <bounded-text>
   ```
 
-- Permit only `synchronise-official`, `build-index`, `activate-generation`,
-  `rollback-generation`, `deactivate-official` and read-only `status`.
+- Permit catalogue commands `add-database`, `version-database`,
+  `activate-database`, `deactivate-database`, `remove-database`,
+  `add-document`, `version-document`, `activate-document`,
+  `deactivate-document`, `remove-document`, `register-official-source`,
+  `synchronise-official`, `build-index`, `activate-generation`,
+  `rollback-generation` and read-only `status`.
 - Require a local operating-system identity, an explicit administration
   enable flag, a non-empty reason of at most 512 characters and the minimum
   filesystem/database permissions needed by the command.
@@ -229,6 +242,9 @@ in one profile grants no access through another.
   mapping for every administration command.
 - Use a database-backed lease plus compare-and-swap to serialise mutations by
   corpus. Make each command idempotent under an operation ID.
+- Enforce `Candidate` before activation, logical tombstones for removal and the
+  invariant that the last active document can leave only in the same explicit
+  transaction that deactivates its database.
 - Record actor identifier, command, reason hash or sanitised reason, source and
   target IDs, start/end instants, result code and correlation/operation IDs.
   Do not log document, prompt, answer or secret content.
@@ -285,6 +301,9 @@ polling.
   policy or authority.
 - No provider, URL, model or administration command is selected from a public
   request.
+- Catalogue and source registrations are trusted control-plane records;
+  compatible cardinality does not weaken per-item provenance, licence,
+  allowlist, validation or activation requirements.
 - A source-policy violation is never retried against a different destination.
 - Rate limits and monetary circuit breakers are not bypassed by retry.
 - Questions, passages and answers are not logged by default.
@@ -292,9 +311,13 @@ polling.
   response storage and hosted tools, and disclose only the minimum authorised
   question/evidence. These controls do not eliminate default abuse-monitoring
   retention.
-- Runtime secret retrieval uses a preconfigured secret identity and
-  least-privilege OCI identity; management endpoints and generic OCI egress
-  remain unavailable to the application process.
+- External AI accepts only public/authorised corpus data. The public query
+  experience warns against confidential, personal or secret questions; this
+  ADR authorises no such disclosure.
+- Runtime secret retrieval uses an OCI instance principal permitted only to
+  read configured secret bundles. It cannot list unrelated bundles or manage
+  secrets, keys or vaults; management endpoints and generic OCI egress remain
+  unavailable to the application process.
 - A P0/P1 security finding blocks state progression until remediation or an
   explicit risk decision allowed by governance.
 
@@ -306,19 +329,23 @@ polling.
   of a substituted regional authority.
 - OCI tests permit only the configured Secret Retrieval GET in normal runtime
   and prove that Core, Key Management and Secret Management endpoints remain
-  administrative and disabled.
+  administrative and disabled; IAM denies unrelated bundle reads and all
+  secret/key/vault mutations.
 - Tests prove mixed DNS answers, forbidden addresses, rebinding attempts,
   IP-pinned connection, Host/SNI preservation, redirect refusal and zero
   certificate-validation egress.
-- Query tests prove no cross-scope fallback, no source fetch, exact
+- Query tests prove unified retrieval over all active bindings, explicit
+  partial coverage, no source fetch, exact
   `answerLanguage == questionLanguage`, and the full `pt-BR→pt-BR`,
   `en-GB→en-GB`, `pt-BR→en-GB` and `en-GB→pt-BR` question/evidence matrix
   with untranslated source-derived citation text.
 - OpenAPI compatibility tests cover schemas, statuses, stable codes and
   provider/Domain type exclusion.
-- Readiness tests cover healthy Local with every official-source degradation.
+- Readiness tests cover remaining healthy documents with each per-source
+  degradation and fail when no active document is serviceable.
 - Administration tests prove OS identity capture, enable flag, reason,
-  idempotency, lease conflict, audit failure and absence of HTTP routes.
+  idempotency, Candidate/Active/Deactivated/Removed transitions, last-document
+  invariant, lease conflict, audit failure and absence of HTTP routes.
 - The owner explicitly accepts the offline revocation residual risk, all
   externally disclosed data categories, up-to-30-day default abuse monitoring
   and absence of Brazilian provider data residency, or selects a separately

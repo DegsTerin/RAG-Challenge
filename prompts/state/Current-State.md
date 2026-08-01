@@ -31,9 +31,11 @@ proprietários.
   `Light` e `Dark` foi formalizada como corpus `4.5.0` (`MINOR`); as auditorias
   incrementais foram `APROVADAS`. A remoção posterior dos tetos de 12 sistemas
   e 120 páginas foi formalizada como corpus `4.6.0` (`MINOR`), com validação
-  documental direcionada; a auditoria combinada de `STATE-02` permanece
-  pendente. Nenhum desses incrementos transitou o lifecycle ou aceitou ADR por
-  implicação.
+  documental direcionada. A reconciliação posterior do catálogo inicial de 51
+  bancos, 9 categorias, 54 associações, PDF/CSV e recuperação unificada foi
+  formalizada como corpus `4.7.0` (`MINOR`); a auditoria combinada de
+  `STATE-02` permanece pendente. Nenhum desses incrementos transitou o
+  lifecycle ou aceitou ADR por implicação.
 - Human Gate de `STATE-00`: `APROVADO` sem ressalvas em 2026-07-30.
 - `GATE-B01`: `APROVADO` sem ressalvas em 2026-07-30.
 - Transição para `STATE-01 PROJECT_SETUP`: autorizada em 2026-07-30.
@@ -76,7 +78,7 @@ proprietários.
   a política de idioma acrescentou o 21º documento público por incremento
   versionado, e o ADR-0003 acrescentou o 22º.
 - A baseline aprovada no Human Gate de `STATE-00` permanece `3.4.0`.
-- O corpus de instruções vigente possui versão `4.6.0` e 13 arquivos em
+- O corpus de instruções vigente possui versão `4.7.0` e 13 arquivos em
   `prompts/`.
 - Visão, requisitos, arquitetura, RAG, segurança, qualidade, lifecycle,
   roadmap, backlog, estado, histórico e templates estão documentados.
@@ -129,9 +131,16 @@ proprietários.
   produto à quantidade de sistemas ou de páginas do corpus. Cada versão
   permanece finita e registra as contagens observadas; controles de segurança
   e capacidade são condicionais ao corpus e ao ambiente, não um recorte fixo
-  de cobertura. A lista integral de 51 nomes informada pelo proprietário não é
-  recuperável dos arquivos rastreados e permanece pendente de reconciliação
-  exata, sem reconstrução por inferência. A decisão não aceita o ADR-0004.
+  de cobertura. A decisão não aceita o ADR-0004.
+- O corpus `4.7.0` formaliza a decisão posterior de usar os 51 nomes exatos
+  fornecidos pelo proprietário como catálogo inicial canônico, em 9 categorias
+  e 54 associações muitos-para-muitos. Cada banco ativo exige ao menos um
+  documento ativo PDF e/ou CSV; não há teto de documentos. Todos os documentos
+  ativos/current participam da recuperação unificada, enquanto origem
+  local/oficial permanece proveniência. Itens compatíveis são administráveis
+  sem hard-code, código ou ADR por item; novas classes de integração conservam
+  decisão própria. Nada foi implementado, ingerido, indexado ou ativado, e os
+  quatro ADRs permanecem propostos.
 - A arquitetura adota princípios compatíveis com o DB-Notifier sem criar
   referência ou dependência entre os projetos.
 - O Human Gate de `STATE-00` foi confirmado na conversa coordenadora que
@@ -214,16 +223,19 @@ proprietários.
 ## Escopo corrente do produto
 
 - Aplicação RAG independente para documentação de bancos de dados.
-- MVP com um corpus, um PDF local publicável e uma fonte oficial online
-  allowlisted.
+- MVP com um corpus lógico, catálogo inicial de 51 bancos, 9 categorias e 54
+  associações, administrável por registros e sem hard-code.
+- Cada banco ativo possui ao menos um documento ativo PDF/CSV e pode possuir
+  qualquer quantidade adicional.
 - Nenhum teto de produto para quantidade de sistemas ou páginas do corpus;
   cada versão finita registra suas contagens e precisa caber com segurança no
   ambiente homologado sem redução silenciosa do catálogo aprovado.
-- Seletor explícito de consulta entre `Local` e `OfficialOnline`, sem mistura
-  silenciosa de evidências.
-- Sincronização manual e governada da fonte oficial para snapshot versionado.
-- Fonte oficial pública sem credenciais, egress deny-by-default e validação TLS
-  sem destinos laterais não autorizados.
+- Recuperação unificada de todos os documentos ativos/current; origem local ou
+  oficial permanece explícita em proveniência, cobertura e citações.
+- Sincronização manual e governada de cada fonte oficial registrada para
+  snapshot versionado.
+- Fontes oficiais públicas sem credenciais, egress deny-by-default por URL
+  exata e validação TLS sem destinos laterais não autorizados.
 - Resposta grounded com citações e evidência insuficiente explícita.
 - Perguntas e respostas com idioma explícito `pt-BR` ou `en-GB`, resposta no
   idioma da pergunta e citações preservadas no idioma original da fonte.
@@ -231,7 +243,8 @@ proprietários.
   idioma da pergunta, da resposta e da evidência.
 - Interface com seleção explícita entre `Light` e `Dark`, independente dos
   idiomas da interface, da pergunta, da resposta e da evidência.
-- Substituição manual de documento e nova geração de índice.
+- Ciclo Candidate/Active/Deactivated/Removed para bancos e documentos,
+  versionamento manual e nova geração candidata.
 - Conteúdo bruto imutável/reabrível, staging não consultável, manifesto final
   íntegro e ativação/rollback pelo registro completo versionado.
 - Contrato HTTP/OpenAPI v1 versionado pertencente ao RAG-Challenge; adapters
@@ -242,9 +255,9 @@ proprietários.
 ## Capacidades futuras inativas
 
 - múltiplos acervos;
-- formatos adicionais;
+- formatos além de PDF e CSV;
 - sincronização incremental agendada;
-- múltiplas fontes oficiais e crawling genérico;
+- crawling genérico e novas classes de fonte/autenticação;
 - múltiplos providers;
 - RBAC/multi-tenancy;
 - integração ao DB-Notifier.
@@ -255,33 +268,36 @@ autorizada.
 ## Decisões pendentes
 
 1. Decidir ADR-0002 explicitamente.
-2. Recuperar e reconciliar exatamente a lista integral de 51 bancos; depois,
-   aceitar, rejeitar ou alterar o conteúdo e a licença `CC BY 4.0` propostos
-   pelo ADR-0004. Os antigos tetos de 12 sistemas e 120 páginas já foram
-   removidos e não integram essa decisão pendente.
-3. Aceitar, rejeitar ou alterar a fonte PostgreSQL 18 candidata, frequência
+2. Aceitar, rejeitar ou alterar o catálogo 51/54/9, o ciclo administrativo,
+   PDF/CSV, licenças por documento e avaliação extensível reconciliados no
+   ADR-0004. Os antigos tetos e o PDF único não integram a baseline atual.
+3. Aceitar, rejeitar ou alterar a primeira fonte PostgreSQL 18 candidata e a
+   política aplicável a registros oficiais compatíveis, frequência
    manual, `maxAge`, limites, trust e risco residual de revogação TLS; URL,
    media type, tamanho, licença, robots e TLS local foram verificados no
    escopo público autorizado.
-4. Aceitar, rejeitar ou alterar PdfPig 0.1.15, normalização e
-   `paragraph-window-v1`; qualidade e segurança de extração dependem de spike
-   futuro separadamente autorizado.
+4. Aceitar, rejeitar ou alterar PdfPig 0.1.15 condicionado, o parser CSV ainda
+   sem package selecionado, normalização e `paragraph-window-v1`; qualidade e
+   segurança dependem de spikes futuros separadamente autorizados.
 5. Aceitar, rejeitar ou alterar OpenAI `text-embedding-3-small`, incluindo o
    risco de alias mutável e a obrigação de passar a recuperação cruzada
    `pt-BR`/`en-GB`; tier, entitlement, limites da conta futura e desempenho
    bilíngue não foram verificados.
-6. Aceitar, rejeitar ou alterar `SqliteExactVectorStore` e seus limites; a
-   prova de desempenho pertence a teste futuro.
+6. Aceitar, rejeitar ou alterar `SqliteExactVectorStore`; 10.000 chunks é ponto
+   inicial de benchmark, não teto, e a prova de desempenho pertence a teste
+   futuro sobre catálogo representativo.
 7. Aceitar, rejeitar ou alterar OpenAI `gpt-4.1-mini-2025-04-14`, retenção,
    divulgação de dados, ausência documentada de residência brasileira e a
    obrigação de responder em `questionLanguage`; elegibilidade, controles da
    conta futura e desempenho bilíngue não foram verificados.
-8. Decidir SQLite/filesystem duráveis, retenção, backup e rollback.
-9. Aceitar, rejeitar ou alterar OCI Compute em `sa-saopaulo-1`, shape,
-   volume, backup, secrets, TLS e orçamento; capacidade, entitlement, limites
-   efetivos e cobrança da tenancy futura não foram verificados, e fontes
-   públicas divergem sobre a franquia gratuita.
-10. Decidir dataset `rag-eval-mvp-v1`, rubrica e thresholds propostos,
+8. Decidir SQLite/filesystem duráveis, retenção, backup consistente e rollback.
+9. Aceitar, rejeitar ou alterar o alvo OCI condicional em `sa-saopaulo-1`, A1
+   ARM64 1 OCPU/6 GiB, volume inicial 50 GiB, backup regional diário/pré-mudança,
+   retenção 14 dias, RPO 24 h, objetivo de restauração 8 h, Secret Management
+   e instance principal somente-leitura; capacidade, entitlement, IAM, restore
+   e cobrança reais não foram verificados, e fontes públicas divergem sobre a
+   franquia gratuita.
+10. Decidir dataset extensível `rag-eval-catalogue-v1`, rubrica e thresholds,
     preservando a matriz `pt-BR`/`en-GB` já decidida para perguntas,
     respostas e idioma original das citações.
 11. Decidir ADR-0006, incluindo egress, risco residual de revogação TLS,

@@ -1,27 +1,30 @@
-# ADR-0004 — MVP Corpus, Official Source and Evaluation Baseline
+# ADR-0004 — MVP Catalogue, Governed Documents, Official Sources and Evaluation
 
 - Status: proposed
 - Date: 2026-07-31
 - Owners: RAG-Challenge product, RAG evaluation and security
 - State: `STATE-02 ARCHITECTURE`
-- Verification status: substantially complete for external source facts; no
-  conflicting robots or terms policy was found, no publisher rate guidance
-  was located, and the owner must decide the residual frequency/TLS risks
+- Verification status: substantially complete only for the first PostgreSQL
+  source candidate; no conflicting robots or terms policy was found, no
+  publisher rate guidance was located, and every later source requires its own
+  evidence before activation
 
 ## Purpose and authority
 
 This ADR proposes the governed knowledge sources and pre-registered evaluation
 baseline for the MVP. It does not license content, approve an external URL,
 authorise network access or accept itself. The product owner must decide the
-ADR explicitly after the external evidence identified below has been verified
-under separate authority.
+ADR explicitly. Every actual document/source must also pass the evidence gate
+below under separate authority before activation.
 
 ## Context
 
-The MVP requires one logical corpus with two evidence scopes. `Local` uses one
-owner-authorised PDF. `OfficialOnline` uses one immutable snapshot of one exact
-official HTTPS PDF. Query-time retrieval must never fetch from the network,
-mix scopes or fall back silently.
+The MVP requires one logical corpus with an administrator-managed database and
+document catalogue. Documents may be locally supplied authorised content or
+snapshots of official external sources. PDF and CSV are the initial formats.
+All active/current documents participate in unified query-time retrieval;
+origin and trust remain explicit provenance. Query-time retrieval never fetches
+from the network or silently hides degraded coverage.
 
 The local Challenge materials are provenance inputs only and cannot be used as
 the product corpus. Evaluation criteria must be frozen before the first
@@ -50,62 +53,83 @@ exclude systems or pages by a fixed product rule. This constraint is accepted
 independently of the source, licence and evaluation proposals below and does
 not accept this ADR as a whole.
 
+## Owner-decided catalogue and document constraint
+
+On 2026-08-01, the owner explicitly established 51 unique database products,
+9 categories and 54 many-to-many assignments as the initial canonical
+catalogue. Redis, SAP HANA and SingleStore are single entities assigned to two
+categories each. Administrators may add, version, activate, deactivate and
+logically remove any number of compatible database products and associated PDF
+or CSV documents without a hard-coded list, code change or ADR per item.
+
+Every active database must have at least one active document. New databases,
+documents and versions begin as `Candidate`; only validation, candidate
+indexing and explicit administrative activation make them queryable.
+Deactivation preserves history/provenance, removal is a logical auditable
+tombstone, and physical deletion follows retention. Removing the last active
+document requires explicit atomic deactivation of its database. These
+constraints do not accept this ADR as a whole or authorise implementation,
+network access or source synchronisation.
+
 ## Proposed decision
 
 If accepted after verification:
 
-### Local corpus
+### Canonical catalogue and governed documents
 
-- Use one owner-authored document named `Database Systems Catalogue — MVP`.
 - Use stable corpus ID `database-systems-catalogue-mvp`.
-- Author the document in British English and publish it as an accessible PDF
-  generated from a tracked source artefact.
-- License the owner-authored corpus under `CC BY 4.0`, separately from the MIT
-  software repository. Include the licence, author, version and generation
-  method in the source and PDF metadata.
-- Cover the complete owner-approved system list for the selected corpus
-  version, with no product-defined maximum count. The previously communicated
-  51-name list must be reconciled exactly before the corpus content contract is
-  considered complete; examples elsewhere in the documentation must not be
-  treated as a substitute for that list.
-- For each system, cover only: data model, primary workload, consistency and
-  transaction characteristics, deployment shape, query interface, scaling
-  model, operational constraints and explicit non-recommendation caveats.
-- Cite the public source used to substantiate each factual section in the
-  authored source document. Do not copy third-party prose, logos or diagrams.
-- Treat trade-marked product names as nominative references and include a
-  non-affiliation notice.
-- Do not impose a fixed product limit on PDF page count. Apply configurable
-  byte, parser-working-set, time and concurrency safeguards appropriate to the
-  deployment environment, and validate capacity against the actual corpus
-  before ingestion. These safeguards fail closed when a document cannot be
-  processed safely, but they do not define catalogue eligibility or require an
-  architecture decision merely because the former 120-page ceiling is
-  exceeded.
+- Represent the following names exactly as stable catalogue data, not code
+  enums, constants or adapter branches:
 
-The document does not exist yet. Acceptance of this ADR selects its contract
-and licence but does not claim that the corpus has been authored, reviewed or
-licensed in fact. The exact 51-name list is not recoverable from the tracked
-repository and must not be reconstructed by inference.
+| Category | Canonical database products |
+|---|---|
+| Relacionais (SQL) | PostgreSQL; MySQL; MariaDB; Microsoft SQL Server; Oracle Database; SQLite; IBM Db2; SAP HANA; Firebird; Teradata; CockroachDB; YugabyteDB; SingleStore; TiDB; Amazon Aurora |
+| Documentos (NoSQL) | MongoDB; Couchbase; CouchDB; RavenDB; Amazon DocumentDB; Azure Cosmos DB |
+| Chave-valor | Redis; Valkey; Amazon DynamoDB; Riak KV; Aerospike |
+| Wide-column | Apache Cassandra; ScyllaDB; Apache HBase; Google Bigtable |
+| Grafos | Neo4j; Amazon Neptune; TigerGraph; JanusGraph; ArangoDB |
+| Busca | Elasticsearch; OpenSearch; Apache Solr |
+| Séries temporais | InfluxDB; TimescaleDB; QuestDB; VictoriaMetrics |
+| Data Warehouse / Analytics | Snowflake; Google BigQuery; Databricks SQL; Amazon Redshift; ClickHouse; Vertica; DuckDB; Apache Doris; StarRocks |
+| Em memória | Redis; SAP HANA; SingleStore |
+
+- Associate each document with a database product and record its immutable
+  version, PDF/CSV format, content language, provenance, licence/use rights,
+  hash, source adapter and trust classification.
+- Require each active database to have at least one active document; permit any
+  number of additional documents without a product ceiling.
+- Permit owner-authored, owner-authorised or official external documents only
+  when their rights and provenance permit the intended parsing, indexing,
+  quotation, citation, retention and any publication.
+- Keep `reference-materials/` excluded. Its contents do not become product
+  corpus by catalogue registration.
+- Apply bounded byte, page/line, parser-working-set, time and concurrency
+  safeguards per operation. Capacity failure blocks candidate activation and
+  never silently removes catalogue items.
+
+The catalogue is a documentary contract, not an implemented dataset. No
+document for the 51 products has been acquired, authored, validated, indexed
+or activated by this decision. `CC BY 4.0` remains a valid candidate for
+owner-authored documentation, but every actual document retains its own
+verified licence/provenance record and is not relicensed by inference.
 
 The [CC BY 4.0 deed](https://creativecommons.org/licenses/by/4.0/) and
 [Portuguese legal code](https://creativecommons.org/licenses/by/4.0/legalcode.pt)
 were inspected on 2026-07-31. They permit sharing and adaptation, including
-commercial use, while requiring appropriate credit, a licence link and an
-indication of changes and prohibiting additional legal or technological
-restrictions. This verifies the terms of the proposed licence only. It does
-not establish ownership of unwritten content or grant the licence on the
-future corpus; those remain owner actions.
+commercial use, subject to attribution, licence-link and change-notice
+conditions. This verifies only the candidate licence terms; it grants no rights
+over an unwritten or third-party document.
 
-### Official source candidate
+### First official source candidate
 
-- Use PostgreSQL documentation as the single `OfficialOnline` source.
+- Use PostgreSQL documentation as the first verified official source candidate,
+  not as the exclusive source or a template that authorises other URLs.
 - Candidate source ID: `postgresql-18-reference-a4`.
 - Candidate canonical URL:
   `https://www.postgresql.org/files/documentation/pdf/18/postgresql-18-A4.pdf`.
 - Require an empty query and fragment, implicit port `443`, exact ASCII host
   `www.postgresql.org` and exact case-sensitive path shown above.
-- Use source adapter ID `postgresql-official-pdf-v1` and trust class
+- Use generic compatible source adapter ID `https-official-pdf-v1` and trust class
   `OfficialExternal`.
 - Recommend `maxAge=168h` and manual revalidation no more frequently than once
   every 24 hours, except an explicitly authorised incident check.
@@ -144,21 +168,26 @@ disabled and revocation set to `NoCheck`. This demonstrates current local
 no-lateral-download validation, not future certificate availability or the
 clean OCI environment. It preserves the explicit residual risk that offline
 validation cannot learn a new revocation until trust material is updated. A
-changed major version or URL requires an amended ADR rather than silent
-substitution.
+changed major version or URL requires a new Candidate registration/version and
+the same verification/activation controls. It needs an amended ADR only when it
+introduces a new integration or policy class.
 
 ### Evaluation dataset
 
-- Freeze dataset ID `rag-eval-mvp-v1` before the first scored run.
-- Use 80 cases split equally between `Local` and `OfficialOnline`.
-- Per scope, include 24 answerable questions, 8 insufficient-evidence cases,
-  4 citation-boundary cases and 4 prompt-injection or scope-leakage cases.
-- Annotate each answerable case with the allowed document version, one or more
-  relevant locations, required facts, prohibited extrapolations and the
-  expected evidence scope.
+- Freeze dataset ID `rag-eval-catalogue-v1` and its catalogue/document manifest
+  before the first scored run.
+- Do not impose a fixed total case count. Grow the dataset with every active
+  database, document, source and format.
+- For each active database, include answerable, insufficient-evidence,
+  citation-boundary and prompt-injection/provenance cases appropriate to its
+  documents. PDF and CSV each require format-specific location cases whenever
+  present in the active set.
+- Annotate each answerable case with database/revision, allowed document
+  version, one or more relevant locations, required facts, prohibited
+  extrapolations and expected provenance.
 - Annotate every case with `questionLanguage` and the expected
-  `contentLanguage` of its evidence. In each scope, include answerable
-  questions in both `pt-BR` and `en-GB` against the approved evidence.
+  `contentLanguage` of its evidence. Include answerable questions in both
+  `pt-BR` and `en-GB` against the approved evidence across the dataset.
 - Supplement the scored product-corpus cases with deterministic contract and
   integration fixtures that cover `pt-BR→pt-BR`, `en-GB→en-GB`,
   `pt-BR→en-GB` and `en-GB→pt-BR` between question and evidence. Fixtures are
@@ -172,16 +201,16 @@ substitution.
 
 | Measure | Threshold |
 |---|---:|
-| Recall@5 for answerable cases | at least `0.90` overall and `0.85` per scope |
-| Mean reciprocal rank at 5 | at least `0.75` per scope |
+| Recall@5 for answerable cases | at least `0.90` overall and `0.85` for every reportable database/source stratum |
+| Mean reciprocal rank at 5 | at least `0.75` for every reportable database/source stratum |
 | Citation identity and location validity | `1.00` |
 | Answer language equals declared question language | `1.00` |
 | Source-derived citation text preserved in its original language | `1.00` |
 | Supported factual claims | at least `0.95` |
 | Correct insufficient-evidence outcome | at least `0.95` |
 | Unsupported high-impact factual claims | `0` |
-| Cross-scope, cross-generation or cross-corpus leakage | `0` |
-| Silent fallback from `OfficialOnline` to `Local` | `0` |
+| Cross-database filter, cross-generation or cross-corpus leakage | `0` |
+| Incorrect provenance or silent substitution of a degraded source | `0` |
 | Successful instruction override from retrieved content | `0` |
 | Stale, withdrawn or deactivated source calls to embedding/LLM | `0` |
 | Query p95 on the named homologation environment | at most `12 s` |
@@ -192,10 +221,12 @@ Latency and cost results are not yet observed. A threshold may be amended only
 before a new campaign begins, with the reason and new dataset/model baseline
 recorded. It cannot be changed after observing a failing run merely to pass.
 
-## External verification required before decision
+## Verification required before each source activation
 
-The following evidence must be collected from primary publisher sources under
-separately authorised, allowlisted HTTPS access:
+The following evidence must be collected for each official source from primary
+publisher sources under separately authorised, allowlisted HTTPS access. The
+record below covers only the PostgreSQL candidate and grants no authority to
+another source:
 
 1. the candidate PDF responds from the exact URL without redirect;
 2. the official publisher controls the host and path;
@@ -228,20 +259,20 @@ No real product snapshot may be retained during architecture verification.
 Rejected because redistribution and product-runtime rights are not
 established, and `reference-materials/` is explicitly local-only.
 
-### Use a vendor manual as both local and official evidence
+### Collapse local and official provenance
 
-Rejected because it would obscure the trust and provenance distinction
-between owner-authored and externally governed sources.
+Rejected because unified retrieval does not justify erasing trust,
+licence, acquisition and freshness differences from evidence metadata.
 
 ### Use a changing `current` documentation URL
 
 Rejected because a moving path weakens reproducibility. A versioned PDF is
 preferred even when the source publishes a newer version.
 
-### Use several official PDFs or crawl HTML
+### Crawl HTML or accept arbitrary URLs
 
-Rejected for the MVP. It increases legal, freshness, SSRF and operational
-surface without meeting a current requirement.
+Rejected for the MVP. Administrative cardinality does not grant generic web
+authority; every official PDF/CSV source remains an exact allowlisted record.
 
 ### License the corpus under the repository MIT licence
 
@@ -250,16 +281,17 @@ more clearly while remaining separate from the software licence.
 
 ## Consequences
 
-- The owner must author and review the local corpus before implementation can
-  claim a usable `Local` source.
+- The owner must supply or authorise at least one valid PDF/CSV document per
+  database before implementation can claim that database as active/queryable.
 - Removing fixed system and page ceilings increases delivery, evaluation and
   capacity uncertainty. Corpus size must be measured per version, and a
   candidate environment that cannot process it safely must be scaled or
   changed rather than silently reducing the approved catalogue.
-- A single versioned official manual gives a reproducible and finite security
-  boundary but does not represent all supported database systems.
-- The evaluation set is intentionally modest and must be expanded if the
-  corpus or supported claims expand.
+- Every versioned official document has its own finite security boundary;
+  adding a compatible record increases evaluation, legal and operational work
+  without requiring a per-item ADR.
+- The evaluation set grows with the active catalogue; its size is an observed
+  consequence rather than a product ceiling.
 - Exact thresholds may expose provider or chunking weaknesses early; that is a
   desired gate outcome rather than a reason to relax the baseline.
 - Cross-language retrieval or answer-language failures reject the candidate
@@ -268,9 +300,10 @@ more clearly while remaining separate from the software licence.
 
 ## Security, privacy and operations
 
-- Both documents remain untrusted parser and prompt inputs.
-- No question, URL or model output can alter the configured source.
-- The source is anonymous and must not receive a secret-bearing header,
+- Every PDF/CSV remains an untrusted parser and prompt input.
+- No question, URL or model output can alter the catalogue or configured
+  sources.
+- Initial external sources are anonymous and must not receive a secret-bearing header,
   environment credential or signed query.
 - Snapshot bytes stay outside Git unless the verified licence expressly
   permits redistribution and the owner separately authorises it.
@@ -284,14 +317,19 @@ more clearly while remaining separate from the software licence.
 
 - The owner explicitly decides this ADR after the seven external verification
   items have evidence.
-- The local corpus source and generated PDF are reproducible and have matching
-  version/hash metadata, including observed system and page counts.
-- The corpus contains the complete owner-approved system list for its version;
-  no acceptance check substitutes a twelve-system sample or a 120-page cap.
-- Rights and attribution are independently checked for the software, local
-  corpus and official snapshot.
+- The catalogue contains exactly the 51 approved unique names and 54 category
+  assignments for its initial revision; no abbreviated example list replaces
+  it.
+- Every active database has at least one active, hash-verified PDF/CSV document;
+  every document records format, language, rights, provenance and location
+  semantics.
+- Rights and attribution are independently checked for software and each
+  document/snapshot.
+- Candidate, activation, deactivation and logical removal preserve history;
+  the last active document cannot leave an active database.
 - Dataset membership and thresholds are frozen before any scored run.
-- Every case declares exactly one `SourceScope`.
+- Every case declares its database, document/version, format and expected
+  provenance; the active dataset covers every active database.
 - Every case declares exactly one `questionLanguage`; the combined scored and
   deterministic suites cover both same-language pairs and both cross-language
   directions without changing citation text.

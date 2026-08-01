@@ -34,12 +34,17 @@ repositório.
 
 O primeiro produto funcional deverá:
 
-- processar um PDF local e publicável sobre bancos de dados;
-- sincronizar manualmente uma fonte oficial online allowlisted para snapshot
-  versionado;
-- permitir escolher, em cada pergunta, entre `Local` e `OfficialOnline`;
-- usar o mesmo parser para o PDF local e um PDF oficial obtido por URL
-  canônica HTTPS;
+- manter o catálogo canônico inicial de 51 bancos de dados, com categorias
+  muitos-para-muitos e sem lista hard-coded no produto;
+- permitir ao administrador adicionar, versionar, ativar, desativar e remover
+  logicamente bancos e qualquer quantidade de documentos PDF/CSV associados;
+- exigir ao menos um documento ativo e validado para cada banco ativo;
+- sincronizar manualmente fontes oficiais allowlisted para snapshots
+  versionados e ingerir documentos locais autorizados com a mesma governança;
+- pesquisar, por padrão, todos os documentos ativos em um único espaço de
+  recuperação, preservando origem `LocalAuthorised` ou `OfficialExternal` nas
+  citações;
+- usar adapters próprios para PDF e CSV sem acoplar o núcleo aos parsers;
 - preservar bytes imutáveis reabríveis para rebuild e rollback;
 - dividir, vetorizar e indexar o conteúdo com estratégias versionadas;
 - responder perguntas usando somente evidências recuperadas;
@@ -52,7 +57,8 @@ O primeiro produto funcional deverá:
 - apresentar documento e localização usados na resposta;
 - preservar nas citações o idioma original do conteúdo da fonte;
 - declarar evidência insuficiente quando o acervo não sustentar a resposta;
-- permitir substituir documentos e reconstruir o índice com segurança;
+- permitir versionar documentos, construir índices candidatos e ativá-los com
+  segurança, sem tornar staging parcial consultável;
 - executar no computador local;
 - ser publicável em OCI com evidência verificável;
 - possuir testes, configuração segura e documentação de execução;
@@ -71,9 +77,9 @@ redistribuição verificados.
 
 - múltiplos acervos ativos ao mesmo tempo;
 - sincronização incremental agendada;
-- múltiplas fontes oficiais, crawling genérico ou URL fornecida pelo usuário;
+- crawling genérico ou URL fornecida pelo usuário;
 - navegação livre na internet durante uma pergunta;
-- suporte simultâneo a todos os formatos documentais;
+- formatos documentais além de PDF e CSV;
 - loader dinâmico de plug-ins;
 - múltiplos provedores ativos de embeddings, vetores ou modelos;
 - autenticação corporativa, RBAC completo e multi-tenancy;
@@ -150,9 +156,9 @@ Os materiais locais do Challenge estabelecem como resultado mínimo:
 - uso de pelo menos um serviço OCI;
 - link público ou captura de tela que comprove a execução online.
 
-Os mesmos materiais divergem entre exigir um PDF ou CSV para o resultado
-mínimo e sugerir oito formatos. O MVP adota um formato inicial; os demais
-ficam no roadmap até uma decisão explícita.
+Os mesmos materiais permitem PDF ou CSV e sugerem formatos adicionais. O MVP
+adota PDF e CSV como formatos iniciais; os demais ficam no roadmap até uma
+decisão explícita e adapter compatível.
 
 ## Organização atual
 

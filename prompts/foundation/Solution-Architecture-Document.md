@@ -19,7 +19,8 @@ documental não representa implementação, teste, deploy ou homologação.
   conteúdo citado preservado no idioma da fonte.
 - Índices construídos de forma imutável antes da ativação.
 - Falha externa isolada e explicitamente classificada.
-- Fonte local e fonte oficial externa separadas.
+- Origem local e oficial preservadas como proveniência e confiança, com todos
+  os documentos ativos elegíveis na recuperação unificada.
 - Contrato externo versionado pertencente ao RAG-Challenge; adapters
   consumidores futuros pertencem aos respectivos repositórios.
 
@@ -42,7 +43,7 @@ Question author / evaluator
    |       |        |        +--> language-model adapter
    |       |        +-----------> vector-store adapter
    |       +--------------------> document/embedding adapters
-   +----------------------------> allowlisted official-PDF adapter
+   +----------------------------> governed local/official source adapters
 ```
 
 No MVP, o servidor pode hospedar a API e os arquivos estáticos do Dashboard no
@@ -78,13 +79,13 @@ RagChallenge.Dashboard.Web -- versioned HTTP --> RagChallenge.Server.Api
 
 | ID | Módulo | Responsabilidade |
 |---|---|---|
-| `CH-MOD-01` | `CORPUS_CATALOG` | Identidade, configuração, versão e estado do acervo. |
-| `CH-MOD-02` | `DOCUMENT_INGESTION` | Descoberta local, validação, parsing e normalização. |
+| `CH-MOD-01` | `CORPUS_CATALOG` | Identidade, categorias muitos-para-muitos, versões e estado de bancos/documentos. |
+| `CH-MOD-02` | `DOCUMENT_INGESTION` | Descoberta, validação, parsing PDF/CSV e normalização. |
 | `CH-MOD-03` | `INDEXING_RETRIEVAL` | Chunking, embeddings, gerações e recuperação. |
 | `CH-MOD-04` | `ANSWER_GENERATION` | Contexto grounded, resposta, citações e recusa. |
 | `CH-MOD-05` | `QUERY_EXPERIENCE` | API e interface de consulta. |
 | `CH-MOD-06` | `OPERATIONS_GOVERNANCE` | Configuração, health, logs, auditoria e gates. |
-| `CH-MOD-07` | `OFFICIAL_EXTERNAL_SOURCES` | Sincronização manual e governada de um PDF oficial no MVP. |
+| `CH-MOD-07` | `OFFICIAL_EXTERNAL_SOURCES` | Registro e sincronização manual governada de fontes oficiais compatíveis. |
 | `CH-MOD-08` | `EXTERNAL_INTEGRATION_CONTRACTS` | Contrato HTTP/OpenAPI versionado do RAG-Challenge; adapters consumidores ficam fora deste repositório. |
 
 IDs não devem ser reutilizados com outro significado.
@@ -168,10 +169,13 @@ as redefine.
 Conceitos candidatos:
 
 - `CorpusId`, `CorpusStatus` e `CorpusRevision`;
-- `DocumentId`, `DocumentVersion` e `SourceDescriptor`;
+- `DatabaseProductId`, `DatabaseProductRevision`, `DatabaseProductStatus` e
+  `DatabaseCategoryAssignment`;
+- `DocumentId`, `DocumentVersion`, `DocumentStatus`, `DocumentFormat` e
+  `SourceDescriptor`;
 - `ContentObjectId` e referência imutável ao conteúdo bruto;
-- `SourceScope`, `OfficialSourceSnapshot`, `OfficialSourceObservation` e
-  `SourceFreshness`;
+- `SourceTrustClass`, `OfficialSourceRegistration`, `OfficialSourceSnapshot`,
+  `OfficialSourceObservation` e `SourceFreshness`;
 - `ChunkIdentity` e `Citation`;
 - `CandidateBuildId`, `IndexGenerationId`, `IndexGenerationStatus` e
   `CorpusActivationRecord`;
@@ -199,18 +203,18 @@ Portas candidatas:
 
 Contratos carregam `CancellationToken`, limites e resultados tipados.
 `IVectorStore` recebe um `VectorSearchRequest` com `CorpusId`,
-`IndexGenerationId`, `SourceScope`, vetor de consulta, limites e política de
-score. O adapter prova hard pre-filter dos três seletores antes do top-k ou usa
-partição física equivalente; post-filter de busca global não satisfaz o
-contrato. Ele não possui autoridade de ativação.
+`IndexGenerationId`, vetor de consulta, limites e filtros administrativos
+opcionais por banco/documento. O adapter prova hard pre-filter de corpus,
+geração e filtros antes do top-k ou usa partição física equivalente; post-filter
+de busca global não satisfaz o contrato. Ele não possui autoridade de ativação.
 
 `IDocumentContentStore` persiste e reabre bytes imutáveis endereçados por
 conteúdo. `IDocumentCatalog` mantém identidades e referências, e
 `IIndexGenerationStore` é a única fonte de verdade do
-`CorpusActivationRecord`, que vincula atomicamente geração ativa, snapshot
-oficial e observação de freshness aplicável. Revisões completas anterior e
-nova do registro ficam no histórico versionado da mesma transação; `Active` e
-`Retained` são projeções desse estado, não autoridades paralelas.
+`CorpusActivationRecord`, que vincula atomicamente a geração ativa e um
+conjunto ordenado de bindings de banco, documento, versão, snapshot e observação
+aplicável. Revisões completas anterior e nova ficam no histórico versionado da
+mesma transação; `Active` e `Retained` são projeções, não autoridades paralelas.
 
 ### Application
 
@@ -219,13 +223,19 @@ Casos de uso candidatos:
 - `BuildCorpusIndex`;
 - `ActivateIndexGeneration`;
 - `RollbackIndexGeneration`;
+- `RegisterDatabaseProduct`, `VersionDatabaseProduct`,
+  `ActivateDatabaseProduct`, `DeactivateDatabaseProduct` e
+  `RemoveDatabaseProduct`;
+- `RegisterDocument`, `VersionDocument`, `ActivateDocument`,
+  `DeactivateDocument` e `RemoveDocument`;
 - `SynchroniseOfficialSource`;
 - `AskQuestion`;
 - `GetSystemReadiness`.
 
 Atualização incremental agendada e gestão de múltiplos acervos não integram os
-casos de uso do MVP. A sincronização oficial é manual, limitada a uma URL
-configurada e não ocorre no fluxo de pergunta.
+casos de uso do MVP. Bancos, documentos e fontes compatíveis são registros
+administráveis; sincronização oficial é manual, limitada às URLs allowlisted e
+não ocorre no fluxo de pergunta.
 
 ### Infrastructure e Persistence
 
@@ -241,9 +251,9 @@ configurada e não ocorre no fluxo de pergunta.
   próprios; escolher implementação local evita esse egress no MVP.
 - EF Core ou detalhes de schema não vazam para Domain/Application.
 - A fonte local aplica raiz configurada, canonicalização de caminho e limites.
-- A fonte oficial aplica URL PDF pública sem credenciais, allowlist completa,
-  proteção SSRF, pinning DNS/IP/Host/SNI, política TLS sem egress lateral,
-  limites e snapshot antes de reutilizar o mesmo parser PDF.
+- Cada fonte oficial aplica URL PDF/CSV pública sem credenciais, allowlist
+  completa, proteção SSRF, pinning DNS/IP/Host/SNI, política TLS sem egress
+  lateral, limites e snapshot antes de usar o parser do formato declarado.
 - Chamadas externas usam cliente tipado, timeout, retry somente quando seguro
   e sanitização.
 
@@ -272,18 +282,15 @@ Conceitualmente:
 ```text
 QueryRequestV1
   corpusId
-  sourceScope: Local | OfficialOnline
   questionLanguage: pt-BR | en-GB
   question
 
 QueryResponseV1
-  sourceScope
   outcome: Answered | InsufficientEvidence
   answerLanguage: pt-BR | en-GB
   answer?
   citations[]
-  sourceSnapshotId?
-  sourceFreshness?
+  evidenceCoverage
   indexGenerationId
   retrievalPolicyVersion
   promptVersion
@@ -291,8 +298,10 @@ QueryResponseV1
   correlationId
 ```
 
-Cada citação preserva corpus, escopo, documento, versão, geração e localização.
-Citação oficial inclui URL canônica, snapshot, `revalidatedAt` e freshness.
+Cada citação preserva corpus, banco, documento, versão, formato, classe de
+confiança, geração e localização. Citação oficial inclui URL canônica,
+snapshot, `revalidatedAt` e freshness; PDF usa páginas/blocos e CSV usa
+linhas/colunas/cabeçalhos.
 Toda citação declara `contentLanguage=pt-BR|en-GB`; títulos, seções e trechos
 derivados da fonte permanecem nesse idioma original. `answerLanguage` é sempre
 igual ao `questionLanguage` aceito, inclusive quando a evidência usa o outro
@@ -313,12 +322,13 @@ O tema também pertence ao estado local do Dashboard, com `Light` e `Dark`
 como valores suportados. Ele não integra o contrato público de consulta e não
 altera idioma, conteúdo, escopo, resposta, evidência ou citação.
 
-`QueryResponseV1` representa apenas uma consulta concluída com
-`Answered` ou `InsufficientEvidence`. Entrada inválida, fonte
-stale/indisponível, violação de política, rate limit, indisponibilidade de
-provider e falha interna são resultados tipados da Application mapeados pela
-API para Problem Details não `2xx`, com código estável e sem detalhes
-sensíveis. O mapeamento HTTP exato pertence ao `STATE-02`.
+`QueryResponseV1` representa apenas uma consulta concluída com `Answered` ou
+`InsufficientEvidence`. `evidenceCoverage` identifica o conjunto ativo
+consultado e eventuais fontes degradadas sem substituir evidência
+silenciosamente. Entrada inválida, ausência de qualquer conjunto servível,
+violação de política, rate limit, indisponibilidade de provider e falha interna
+são resultados tipados da Application mapeados pela API para Problem Details
+não `2xx`, com código estável e sem detalhes sensíveis.
 
 ### Dashboard
 
@@ -333,10 +343,10 @@ sensíveis. O mapeamento HTTP exato pertence ao `STATE-02`.
 - Tokens visuais de fundo, superfície, texto, borda, foco e estado
   preservam contraste, hierarquia e informação não dependente apenas de cor
   nos dois temas.
-- Seletor obrigatório `Local` ou
-  `Documentação oficial online — snapshot sincronizado`.
-- Estados de carregamento, vazio, erro, rate limit, fonte indisponível/stale e
-  evidência insuficiente.
+- Indicador acessível de cobertura e proveniência local/oficial das evidências,
+  sem criar corpora mutuamente exclusivos.
+- Estados de carregamento, vazio, erro, rate limit, cobertura degradada, fonte
+  indisponível/stale e evidência insuficiente.
 - Navegação por teclado e foco visível.
 - Citações acessíveis e separadas da resposta.
 - Nenhum acesso direto ao vetor, ao LLM ou a secrets.
@@ -350,8 +360,8 @@ sensíveis. O mapeamento HTTP exato pertence ao `STATE-02`.
 ## Fluxo de indexação
 
 ```text
-configured corpus
-  -> discover local document and selected retained official snapshot
+configured logical corpus and catalogue
+  -> resolve Candidate database/document versions and retained source snapshots
   -> validate and hash
   -> persist content by hash and reopen/verify
   -> parse
@@ -360,16 +370,15 @@ configured corpus
   -> write under temporary candidate build identity
   -> finalise canonical manifest with logical artifact digest/counts
   -> validate readback, manifest and smoke queries
-  -> compare-and-swap CorpusActivationRecord in IIndexGenerationStore
+  -> compare-and-swap complete CorpusActivationRecord in IIndexGenerationStore
 ```
 
-O snapshot oficial selecionado para a candidata é a referência preservada pelo
-registro ativo, independentemente de seu estado `Current` ou `Stale`.
-Freshness decide elegibilidade de consulta, não pertencimento ao manifesto.
-Falha antes ou durante o compare-and-swap mantém geração, snapshot e
-observação anteriores. Vetores, conteúdo ou observações candidatos que não
-forem ativados são órfãos auditáveis até cleanup explícito. A estratégia
-detalhada está em [`RAG-Module.md`](RAG-Module.md).
+Cada binding oficial selecionado para a candidata preserva snapshot e
+observação. Somente bindings `Current` e itens `Active` participam do conjunto
+consultável. Falha antes ou durante o compare-and-swap mantém geração e
+bindings anteriores. Vetores, conteúdo ou observações candidatos que não forem
+ativados são órfãos auditáveis até cleanup explícito. A estratégia detalhada
+está em [`RAG-Module.md`](RAG-Module.md).
 
 Candidato parcial nunca possui `IndexGenerationId` nem é consultável. A
 identidade final deriva da especificação e do digest/contagens dos artefatos
@@ -377,13 +386,12 @@ lógicos produzidos; outputs distintos não reutilizam silenciosamente o mesmo
 ID. Staging, finalização idempotente e evidência mínima de readback pertencem
 ao `STATE-03`.
 
-A candidata contém os dois `SourceScope`s. Em atualização operacional de
-conteúdo, somente um deles muda por operação serializada; bootstrap e migração
-global da chave de compatibilidade podem reconstruir ambos e validam o
-conjunto inteiro. O vector store deve filtrar `CorpusId`,
-`IndexGenerationId` e `SourceScope` antes do top-k; se não oferecer pre-filter
-comprovável, o adapter mantém partições físicas equivalentes. Rollback troca o
-conjunto inteiro.
+A candidata contém um conjunto ordenado de todos os bancos e documentos que se
+pretende ativar. Atualizações são serializadas por corpus; o vector store deve
+filtrar `CorpusId`, `IndexGenerationId` e quaisquer filtros administrativos
+declarados antes do top-k. Rollback troca o manifesto inteiro. Desativar ou
+remover o último documento ativo exige desativar explicitamente o banco na
+mesma operação atômica.
 
 ## Fluxo de consulta
 
@@ -391,12 +399,10 @@ conjunto inteiro.
 question
   -> validate and bound
   -> validate pt-BR | en-GB question language
-  -> validate Local | OfficialOnline
   -> resolve active generation once
-  -> validate selected scope availability and freshness
+  -> resolve all active/current document bindings and coverage
   -> embed query
-  -> filter source scope
-  -> retrieve top candidates by explicit generation ID
+  -> retrieve top candidates across all active documents by explicit generation ID
   -> apply score/policy checks
   -> build untrusted evidence context
   -> generate constrained answer in question language
@@ -409,9 +415,9 @@ question
 - Configuração comum em arquivos sem segredo.
 - Overrides por ambiente e variáveis protegidas.
 - Secrets somente por referências ou nomes de variáveis.
-- Startup valida provider, modelo, dimensão, limites, caminhos do corpus e do
-  content store, durabilidade mínima e compatibilidade do índice. O perfil
-  oficial valida a URL canônica, política de egress e freshness sem executar
+- Startup valida provider, modelo, dimensão, limites, catálogo, content store,
+  durabilidade mínima e compatibilidade do índice. O perfil oficial valida cada
+  registro de URL/allowlist, política de egress e freshness sem executar
   sincronização.
 - Capacidade incompleta permanece desativada; não há fallback silencioso.
 - Um `.env.example` futuro contém apenas nomes e valores fictícios.
@@ -466,18 +472,18 @@ criam taxonomias paralelas.
 ## Observabilidade, logging e auditoria
 
 - Logs estruturados com correlation ID, operation ID e códigos estáveis.
-- Métricas de ingestão/sincronização: duração, documentos, páginas, bytes,
-  chunks, freshness, falhas e versão.
+- Métricas de ingestão/sincronização: duração, bancos, documentos, formatos,
+  páginas/linhas, bytes, chunks, freshness, falhas e versão.
 - Métricas de consulta: latência por estágio, candidatos, recusas e falhas de
   provider.
 - Custo/tokens somente quando o provider oferece metadados seguros.
 - Liveness verifica somente que o processo responde e não depende de serviço
   externo.
-- Readiness global exige que o núcleo e as dependências necessárias consigam
-  servir a capacidade obrigatória `Local`. `OfficialOnline=Stale`,
-  `Unavailable`, `Withdrawn` ou `Deactivated` aparece como degradação tipada
-  por scope e não retira uma instância que ainda atende `Local`. Egress de
-  sincronização não integra o caminho de readiness de consulta.
+- Readiness global exige ao menos um banco ativo com um documento ativo e uma
+  geração compatível servível. Fontes `Stale`, `Unavailable`, `Withdrawn` ou
+  `Deactivated` aparecem como cobertura degradada por fonte/documento; somente
+  ausência de qualquer conjunto servível torna a instância globalmente
+  indisponível. Egress de sincronização não integra o caminho de readiness.
 - Auditoria registra configuração relevante sanitizada, início/fim de
   indexação/sincronização, snapshot, ativação, rollback e provider/version.
 - Perguntas, trechos e respostas completas não são logados por padrão.
@@ -497,12 +503,13 @@ O `STATE-01` deve preparar CI, não deploy automático. Pipeline mínimo:
 9. secret scan;
 10. validação de links e higiene do diff.
 
-Testes padrão usam fonte HTTP falsa local e não acessam a URL oficial real.
+Testes padrão usam fontes HTTP falsas locais e não acessam URLs oficiais reais.
 Smoke real é opt-in e exige autoridade de rede própria.
 
 CD e OCI pertencem aos estados posteriores. O deploy inicial candidato é um
 único artefato no serviço OCI selecionado, com configuração e secrets
-externos. `OFFICIAL_SOURCE_EGRESS` fica limitado à URL oficial exata;
+externos. `OFFICIAL_SOURCE_EGRESS` fica limitado ao conjunto exato de URLs
+ativas e separadamente aprovadas;
 `OCI_RUNTIME_EGRESS` agrega separadamente somente os destinos aprovados de
 fonte oficial, IA, vector store externo, secret store, telemetria e operação.
 Um vector store gerenciado exige também `VECTOR_STORE_EGRESS`; autorização do
@@ -522,7 +529,7 @@ Compatibilidade é obtida por:
 
 A primeira fronteira de integração será um adapter HTTP pertencente ao
 DB-Notifier que consome o contrato OpenAPI v1 pertencente ao RAG-Challenge.
-Requisição, resposta tipada, `sourceScope`, citações, metadados de
+Requisição, resposta tipada, cobertura/proveniência, citações, metadados de
 reprodutibilidade, `indexGenerationId` e `correlationId` pertencem ao contrato
 público; entidades Domain, portas RAG e tipos de SDK não atravessam essa
 fronteira.

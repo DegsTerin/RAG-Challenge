@@ -65,25 +65,28 @@ licença e autoriza ações externas.
 - Manter baixo acoplamento entre domínio e provedores de IA.
 - Permitir trocar embeddings, banco vetorial e modelo sem reescrever os casos
   de uso.
-- Permitir substituir documentos e reconstruir o índice com segurança.
-- Entregar consulta a uma fonte oficial online controlada, sem navegação livre.
-- Preparar, sem implementar agora, múltiplos acervos, múltiplas fontes oficiais
-  e atualização incremental agendada.
+- Permitir administrar bancos e versões documentais, construir candidatos e
+  ativar um conjunto coerente sem interromper a geração vigente.
+- Entregar consulta unificada a documentos PDF/CSV locais autorizados e fontes
+  oficiais controladas, sem navegação livre.
+- Preparar, sem implementar agora, múltiplos acervos e atualização incremental
+  agendada.
 - Preservar um caminho de integração futura ao DB-Notifier sem dependência
   direta.
 
 ## Escopo do MVP
 
-- Um corpus configurado.
-- Um documento PDF autoral ou com direitos de uso e redistribuição
-  confirmados.
-- Uma fonte oficial online selecionada no `STATE-02`, limitada a uma URL
-  canônica HTTPS de PDF em domínio aprovado.
-- Um parser de PDF compartilhado pelo documento local e pelo snapshot oficial.
-- Sincronização manual server-side da fonte oficial para snapshot imutável,
-  com proveniência, frescor e rollback.
-- Seleção explícita, por pergunta, entre evidência `Local` e
-  `OfficialOnline`; o MVP não mistura as duas silenciosamente.
+- Um corpus lógico configurado com catálogo administrativo de bancos e
+  documentos.
+- Catálogo inicial canônico de 51 bancos de dados e 54 associações a 9
+  categorias, sem hard-code no produto.
+- Qualquer quantidade de documentos PDF/CSV locais autorizados ou oficiais por
+  banco, desde que cada banco ativo possua ao menos um documento ativo.
+- Um adapter de parser por formato inicial: PDF e CSV.
+- Sincronização manual server-side de cada fonte oficial aprovada para snapshot
+  imutável, com proveniência, frescor e rollback.
+- Recuperação unificada de todos os documentos ativos. Origem local/oficial e
+  classe de confiança permanecem visíveis em metadados e citações.
 - Uma estratégia versionada de normalização e chunking compartilhada.
 - Um provider de embeddings.
 - Um banco ou índice vetorial.
@@ -100,20 +103,21 @@ licença e autoriza ações externas.
 - Catálogo local de metadados, versão de documento e geração de índice.
 - Armazenamento durável e content-addressed dos bytes necessários a rebuild e
   rollback.
-- Substituição manual do acervo e reconstrução segura.
+- Administração local de bancos e documentos, indexação candidata e ativação
+  explícita e segura.
 - Execução local reproduzível.
 - Deploy autorizado em OCI e evidência da execução.
 - Testes, observabilidade mínima e documentação pública.
 
 ## Fora do escopo do MVP
 
-- Prometer todos os bancos de dados existentes.
-- Ingerir simultaneamente PDF, Word, Excel, PowerPoint, Markdown, CSV, JSON e
-  HTML.
+- Prometer cobertura de todos os bancos de dados existentes além do catálogo
+  administrativamente ativado.
+- Ingerir Word, Excel, PowerPoint, Markdown, JSON, HTML ou outros formatos além
+  de PDF e CSV sem adapter e decisão compatíveis.
 - Upload público e administração remota de acervos.
 - Mais de um acervo ativo.
 - Sincronização incremental agendada e distribuída.
-- Mais de uma fonte ou URL oficial online.
 - URL arbitrária, crawling genérico ou consulta direta à internet durante cada
   pergunta.
 - Autenticação corporativa, RBAC completo ou multi-tenancy.
@@ -123,69 +127,65 @@ licença e autoriza ações externas.
 
 ## Acervo inicial
 
-O acervo conceitual candidato é `Catálogo de Bancos de Dados — MVP`. Ele deve
-ser finito em cada versão, versionado, publicável e organizado por categorias
-como:
+O acervo lógico é `Catálogo de Bancos de Dados — MVP`. Sua revisão inicial
+possui 51 entidades únicas e 54 associações em 9 categorias. Categorias são
+muitos-para-muitos; Redis, SAP HANA e SingleStore são entidades únicas em duas
+categorias cada.
 
-- relacionais;
-- documentos;
-- chave-valor;
-- wide-column;
-- grafos;
-- séries temporais;
-- busca;
-- data warehouse e serviços gerenciados.
-
-A lista exata de produtos, a licença do documento local e a fonte oficial
-online permanecem decisões do `STATE-02 ARCHITECTURE`. Não existe teto de
-escopo do produto para a quantidade de sistemas nem para a quantidade de
-páginas do corpus; cada versão registra suas contagens observadas. A fonte
-online do MVP deve ser um único PDF oficial, ter scheme/host/porta/path
-allowlisted, termos/licença revisados e snapshot sincronizado antes da
-recuperação.
-
-### Catálogo candidato em ondas
-
-Esta lista não exaustiva preserva exemplos já discutidos sem declarar
-cobertura, suporte, prioridade ou limite. Ela não substitui a lista integral
-aprovada para cada versão do catálogo.
-
-| Referência | Categorias e exemplos candidatos |
+| Categoria | Bancos canônicos |
 |---|---|
-| Exemplos relacionais e gerais | PostgreSQL, MySQL, MariaDB, Microsoft SQL Server, Oracle Database, SQLite, IBM Db2, SAP HANA, Firebird e CockroachDB. |
-| Exemplos NoSQL e distribuídos | MongoDB, Redis/Valkey, Apache Cassandra, Couchbase, CouchDB e ScyllaDB. |
-| Exemplos especializados e cloud | Elasticsearch/OpenSearch, Neo4j, InfluxDB, TimescaleDB, data warehouses e serviços gerenciados de AWS, Azure, Google Cloud e Oracle Cloud. |
+| Relacionais (SQL) | PostgreSQL; MySQL; MariaDB; Microsoft SQL Server; Oracle Database; SQLite; IBM Db2; SAP HANA; Firebird; Teradata; CockroachDB; YugabyteDB; SingleStore; TiDB; Amazon Aurora |
+| Documentos (NoSQL) | MongoDB; Couchbase; CouchDB; RavenDB; Amazon DocumentDB; Azure Cosmos DB |
+| Chave-valor | Redis; Valkey; Amazon DynamoDB; Riak KV; Aerospike |
+| Wide-column | Apache Cassandra; ScyllaDB; Apache HBase; Google Bigtable |
+| Grafos | Neo4j; Amazon Neptune; TigerGraph; JanusGraph; ArangoDB |
+| Busca | Elasticsearch; OpenSearch; Apache Solr |
+| Séries temporais | InfluxDB; TimescaleDB; QuestDB; VictoriaMetrics |
+| Data Warehouse / Analytics | Snowflake; Google BigQuery; Databricks SQL; Amazon Redshift; ClickHouse; Vertica; DuckDB; Apache Doris; StarRocks |
+| Em memória | Redis; SAP HANA; SingleStore |
 
-O catálogo arquitetural é aberto; inclusão no documento não significa
-integração, homologação, recomendação ou suporte operacional.
+A lista é dado canônico inicial, não enum, constante ou condição hard-coded.
+O administrador pode acrescentar bancos e documentos compatíveis sem mudança
+de código ou ADR por item. Cada inclusão registra proveniência, licença,
+idioma, fonte/URL allowlisted quando externa, snapshot imutável, hash, adapter,
+validação, indexação candidata e ativação. Uma nova classe de formato,
+protocolo, autenticação ou confiança pode exigir implementação e decisão
+arquitetural própria.
+
+Não existe teto de produto para bancos, documentos ou páginas. Cada versão é
+finita, registra suas contagens observadas e deve caber com segurança no
+ambiente homologado. Limites de arquivo, linha, página, memória, tempo e
+concorrência são controles operacionais e não limites do catálogo.
 
 ## Requisitos funcionais
 
 | ID | Requisito | MVP |
 |---|---|---|
-| `RF-001` | Carregar o acervo local configurado sem depender de `reference-materials/`. | Sim |
+| `RF-001` | Carregar documentos PDF/CSV autorizados sem depender de `reference-materials/`. | Sim |
 | `RF-002` | Validar tipo, tamanho, identidade e integridade do documento antes do processamento. | Sim |
-| `RF-003` | Extrair texto de um PDF e produzir chunks com metadados de origem. | Sim |
+| `RF-003` | Extrair conteúdo de PDF e CSV e produzir chunks com localização e metadados de origem específicos do formato. | Sim |
 | `RF-004` | Gerar embeddings e construir uma geração de índice identificável. | Sim |
 | `RF-005` | Consultar o índice com uma pergunta em linguagem natural. | Sim |
 | `RF-006` | Gerar resposta somente a partir dos trechos recuperados. | Sim |
 | `RF-007` | Retornar citações com documento, versão e localização disponível. | Sim |
 | `RF-008` | Retornar `INSUFFICIENT_EVIDENCE` quando a recuperação não sustentar a resposta. | Sim |
-| `RF-009` | Substituir manualmente o documento e construir nova geração sem destruir previamente a ativa. | Sim |
+| `RF-009` | Versionar manualmente um documento e construir candidata sem destruir previamente a versão ativa. | Sim |
 | `RF-010` | Expor liveness, readiness e diagnóstico sanitizado de dependências. | Sim |
 | `RF-011` | Executar localmente por procedimento documentado. | Sim |
 | `RF-012` | Executar em OCI e produzir evidência verificável. | Sim |
 | `RF-013` | Adicionar, remover, versionar, ativar e desativar múltiplos acervos. | Futuro |
 | `RF-014` | Sincronizar alterações por documento de forma incremental e agendada. | Futuro |
 | `RF-015` | Trocar embeddings, armazenamento vetorial e LLM por configuração/composição. | Preparado; uma implementação no MVP |
-| `RF-016` | Sincronizar manualmente uma fonte oficial online por adapter separado, allowlist e snapshot versionado, preservando URL e frescor. | Sim |
+| `RF-016` | Sincronizar manualmente cada fonte oficial registrada por adapter compatível, allowlist e snapshot versionado, preservando URL e frescor. | Sim |
 | `RF-017` | Publicar no MVP o contrato HTTP/OpenAPI versionado do RAG-Challenge; qualquer adapter consumidor, inclusive do DB-Notifier, pertence ao repositório consumidor e a gates próprios futuros. | Contrato no MVP; adapters consumidores no futuro |
-| `RF-018` | Adicionar formatos documentais por adapters próprios sem alterar os casos de uso do núcleo. | Futuro |
+| `RF-018` | Processar PDF e CSV por adapters próprios sem alterar os casos de uso do núcleo; formatos adicionais permanecem futuros. | Sim para PDF/CSV |
 | `RF-019` | Aplicar RBAC e escopo por corpus antes da recuperação. | Futuro |
-| `RF-020` | Exigir que cada pergunta selecione `Local` ou `OfficialOnline`, recuperar somente desse escopo e falhar sem fallback silencioso quando a fonte estiver indisponível ou stale. | Sim |
+| `RF-020` | Recuperar por padrão em todos os documentos ativos, registrar a proveniência local/oficial de cada evidência e nunca substituir silenciosamente uma fonte indisponível por outra. | Sim |
 | `RF-021` | Aceitar perguntas com idioma declarado `pt-BR` ou `en-GB`, responder no mesmo idioma e preservar no idioma original todo conteúdo derivado da fonte exibido em citações. | Sim |
 | `RF-022` | Permitir selecionar `pt-BR` ou `en-GB` para a interface e localizar todo texto visual pertencente ao produto sem alterar `questionLanguage`, `answerLanguage` ou conteúdo citado. | Sim |
 | `RF-023` | Permitir selecionar o tema visual `Light` ou `Dark` sem alterar `interfaceLanguage`, `questionLanguage`, `answerLanguage`, evidência ou citações. | Sim |
+| `RF-024` | Permitir ao administrador adicionar, versionar, ativar, desativar e remover logicamente bancos do catálogo, com estado Candidate antes da ativação. | Sim |
+| `RF-025` | Permitir qualquer quantidade de documentos por banco e administrar suas versões/estados; cada banco ativo exige ao menos um documento ativo e todos os documentos ativos participam da recuperação. | Sim |
 
 ## Requisitos não funcionais
 
@@ -208,16 +208,17 @@ integração, homologação, recomendação ou suporte operacional.
 | `RNF-015` | Contratos, recuperação e geração tratam `pt-BR` e `en-GB` por tags BCP 47 explícitas; a homologação cobre perguntas e evidências no mesmo idioma e nas duas direções cruzadas. |
 | `RNF-016` | A interface não mistura idiomas em textos pertencentes ao produto, conserva acessibilidade nas duas localizações e mantém o idioma visual independente do idioma da consulta. |
 | `RNF-017` | Os temas `Light` e `Dark` preservam contraste, foco visível, semântica, reflow e todos os estados da interface, sem comunicar informação somente por cor. |
+| `RNF-018` | Bancos, categorias, documentos e fontes compatíveis são registros administráveis, não listas hard-coded; inclusão por item não exige código nem ADR, mas uma nova classe de integração pode exigir ambos. |
 
 ## Critérios de aceitação do MVP
 
 | ID | Critério |
 |---|---|
 | `AC-MVP-001` | Um clone limpo pode ser configurado, compilado, testado e executado pelo procedimento publicado. |
-| `AC-MVP-002` | O documento autorizado é persistido/reaberto por hash, processado e uma geração finalizada com integridade validada fica ativa; staging parcial permanece não consultável. |
+| `AC-MVP-002` | Cada documento autorizado é persistido/reaberto por hash, processado e incorporado a uma candidata validada; staging parcial permanece não consultável. |
 | `AC-MVP-003` | Perguntas representativas aprovadas recuperam citações corretas. |
 | `AC-MVP-004` | Perguntas fora do acervo não recebem resposta factual inventada. |
-| `AC-MVP-005` | A troca manual do documento cria uma geração validada, ativa atomicamente o registro completo que vincula geração, snapshot e observação oficial, preserva a revisão completa anterior elegível e permite retorno testado dentro da janela de rollback. |
+| `AC-MVP-005` | Mudança de banco ou documento cria candidata validada e ativa atomicamente o manifesto completo com todos os bindings documentais aplicáveis, preservando revisão anterior elegível e rollback testado. |
 | `AC-MVP-006` | Nenhum secret ou material local ignorado integra o repositório. |
 | `AC-MVP-007` | Os checks automáticos aplicáveis ao estado são aprovados. |
 | `AC-MVP-008` | A aplicação é executada em OCI com link ou evidência visual sanitizada. |
@@ -226,11 +227,13 @@ integração, homologação, recomendação ou suporte operacional.
 | `AC-MVP-011` | A API expõe consulta, health e artefato OpenAPI v1 versionados, com configuração fail-closed, limites, cancelamento, metadados reproduzíveis, erros canônicos e diagnóstico sanitizado; compatibilidade do contrato é testada. |
 | `AC-MVP-012` | Testes de arquitetura e contrato demonstram que Domain/Application não dependem de SDKs ou adapters concretos e que providers são compostos pelas bordas. |
 | `AC-MVP-013` | O repositório público possui estrutura compreensível e histórico incremental de commits, sem secrets ou materiais locais ignorados. |
-| `AC-MVP-014` | Uma sincronização autorizada busca o PDF oficial allowlisted; conteúdo alterado produz snapshot versionado e ativa atomicamente geração, snapshot e observação validados. `304` ou hash idêntico atualiza somente a observação quando a geração ativa já referencia o snapshot compatível; retirada autoritativa ou desativação administrativa também muda somente a observação do mesmo registro. Os casos incompatíveis exigem reconstrução controlada. As citações expõem URL canônica pública, snapshot e frescor. |
-| `AC-MVP-015` | A sincronização usa fonte pública sem autenticação ou segredo na URL, rejeita domínio, IP, porta, path, query, resposta DNS mista, redirect ou destino lateral de validação TLS fora da política com `SourcePolicyViolation`, e conecta somente ao IP previamente autorizado preservando Host/SNI. O usuário escolhe `Local` ou `OfficialOnline`, cada modo recupera somente o escopo selecionado, e falha, retirada ou expiração retornam estado tipado sem fallback silencioso. |
+| `AC-MVP-014` | A sincronização autorizada de cada fonte allowlisted produz snapshot/observação versionados; alteração de conteúdo exige candidata, enquanto `304`/hash idêntico pode atualizar somente o binding de observação compatível. Citações expõem fonte, URL pública quando aplicável, snapshot e frescor. |
+| `AC-MVP-015` | Cada fonte externa rejeita domínio, IP, porta, path, query, resposta DNS mista, redirect ou destino TLS lateral fora de sua política. Consulta não faz fetch e considera somente documentos ativos/current, expondo cobertura degradada sem fallback silencioso. |
 | `AC-MVP-016` | Perguntas declaradas como `pt-BR` recebem respostas em `pt-BR`, perguntas declaradas como `en-GB` recebem respostas em `en-GB`, e citações não traduzem título, seção, trecho ou outro conteúdo proveniente da fonte. Testes determinísticos cobrem `pt-BR→pt-BR`, `en-GB→en-GB`, `pt-BR→en-GB` e `en-GB→pt-BR` entre idioma da pergunta e idioma da evidência. |
 | `AC-MVP-017` | A pessoa consegue alternar explicitamente a interface entre `pt-BR` e `en-GB`; labels, instruções, validações e estados pertencentes ao produto usam integralmente o idioma visual selecionado. Testes de componente e fluxo cobrem cada idioma da interface combinado com cada `questionLanguage`, sem traduzir citações. |
 | `AC-MVP-018` | A pessoa consegue alternar explicitamente a interface entre `Light` e `Dark`; conteúdo, idioma e contexto da consulta permanecem inalterados. Testes de componente, acessibilidade e fluxo executam nos dois temas as quatro combinações entre `interfaceLanguage` e `questionLanguage`, totalizando oito combinações, e validam contraste, foco, estados e ausência de informação dependente apenas de cor. |
+| `AC-MVP-019` | O catálogo inicial contém exatamente 51 entidades e 54 associações nas 9 categorias aprovadas, preservando Redis, SAP HANA e SingleStore como entidades únicas multiclasse. |
+| `AC-MVP-020` | Banco/documento novo começa Candidate; somente validação e ativação explícita permitem consulta. Desativação preserva histórico; remoção é lógica; o último documento ativo só pode sair em operação que também desative explicitamente o banco. |
 
 ## Premissas
 
@@ -240,7 +243,7 @@ integração, homologação, recomendação ou suporte operacional.
 - Operações administrativas de ingestão não serão expostas anonimamente.
 - A sincronização oficial é manual e administrativa; uma pergunta pública não
   inicia crawling nem escolhe URL.
-- A fonte oficial do MVP é publicamente acessível sem autenticação; URL,
+- Fontes oficiais iniciais são publicamente acessíveis sem autenticação; URL,
   headers e query não carregam token, assinatura ou credencial.
 - Um serviço OCI de hospedagem é suficiente para o requisito mínimo, desde que
   a execução seja real e documentada.
@@ -255,8 +258,9 @@ integração, homologação, recomendação ou suporte operacional.
 ## Limitações e decisões pendentes
 
 - Licença do repositório e do acervo.
-- Conteúdo exato do PDF inicial.
-- Fonte oficial, URL canônica, termos/licença, maxAge e limites.
+- Documentos iniciais de cada banco, suas licenças e idiomas.
+- Registros de fontes oficiais, URLs canônicas, termos/licenças, maxAge e
+  limites individuais.
 - Provider de embeddings, armazenamento vetorial e LLM.
 - Persistência durável e retenção dos bytes documentais, catálogo e índice
   entre reinicializações.

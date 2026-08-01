@@ -5,8 +5,9 @@
 - Owners: RAG-Challenge architecture, data and operations
 - State: `STATE-02 ARCHITECTURE`
 - Verification status: public primary-source verification completed on
-  2026-07-31 within the authorised read-only scope; account-specific
-  entitlement, capacity and controls plus runtime spikes remain untested
+  2026-07-31 for the named PDF/provider/OCI candidates; the CSV package is
+  unselected, and all exact package versions, account-specific entitlement,
+  capacity, controls and runtime spikes remain conditional or untested
 
 ## Purpose and authority
 
@@ -23,17 +24,19 @@ The accepted bootstrap uses .NET 10, ASP.NET Core, React/TypeScript and one
 modular-monolith deployable. Domain and Application must remain independent of
 parser libraries, provider SDKs, persistence engines and OCI.
 
-The MVP is small enough to favour deterministic local persistence and exact
-vector search. A managed vector service would add data egress, credentials,
-tenancy and lifecycle coordination before scale demonstrates a need.
+The catalogue has no product cardinality ceiling and begins with 51 database
+products plus any number of PDF/CSV documents. Deterministic local persistence
+and exact vector search remain the simplest candidates, but their suitability
+is conditional on representative capacity evidence. A managed vector service
+would add data egress, credentials, tenancy and lifecycle coordination.
 
 ## Proposed decision
 
 If accepted after verification:
 
-### PDF parsing and normalisation
+### PDF and CSV parsing and normalisation
 
-- Select the `PdfPig` .NET library as the single PDF text parser adapter.
+- Select `PdfPig` as the conditional PDF text parser adapter candidate.
 - The official NuGet package ID is `PdfPig`. The live registry index lists
   `0.1.15`, published on 2026-06-25, as the newest stable version and
   `0.1.16-alpha-*` as pre-release builds. Treat `0.1.15` only as the current
@@ -67,6 +70,15 @@ If accepted after verification:
   control characters and deterministic horizontal-whitespace collapse.
 - Preserve paragraph and page boundaries. Do not apply dictionary-based
   spelling correction, translation or speculative de-hyphenation.
+- Provide a separate CSV parser adapter behind `IDocumentParser`. Support a
+  configured, bounded dialect with header handling, delimiter, quoting,
+  escaping, encoding and newline policy recorded in its descriptor.
+- Treat the exact CSV package and version as conditional on implementation-time
+  primary-source, licence, vulnerability, .NET 10 compatibility and
+  adversarial parsing verification. This ADR selects no unverified package.
+- Preserve header names plus deterministic record/column locations. Reject
+  ambiguous/malformed structure outside policy, bound rows, columns and cell
+  length, and never execute or evaluate formulas.
 
 ### Chunking
 
@@ -74,8 +86,8 @@ If accepted after verification:
 - Prefer section, paragraph and sentence boundaries in that order.
 - Target 3,200 Unicode scalar values per chunk, use 480 scalar values of
   overlap and enforce a hard maximum of 4,000 scalar values.
-- Never cross a document, document version, page-range discontinuity or
-  `SourceScope` boundary.
+- Never cross a document, document version, PDF page discontinuity or CSV
+  record-group boundary.
 - Include the strategy ID, limits, separator policy and normalisation version
   in `IndexCompatibilityKey`.
 - Treat these values as the pre-evaluation baseline. Any adjustment creates a
@@ -113,7 +125,11 @@ no dated immutable snapshot. Acceptance therefore requires the owner to
 accept alias drift as an explicit reproducibility risk, with the observed
 response model/dimensions and complete compatibility descriptor persisted per
 generation. A changed descriptor, dimensions or evaluation result requires a
-new generation and blocks silent reuse.
+new generation and blocks silent reuse. At startup and every embedding
+response, the adapter validates the observed descriptor/dimensions against the
+active compatibility record. Any drift disables new indexing, requires a new
+candidate generation and evaluation baseline, and cannot silently alter an
+active generation.
 
 ### Language model
 
@@ -125,6 +141,10 @@ new generation and blocks silent reuse.
   conversations, previous-response state or hosted tools.
 - Send only the validated question, the minimum retrieved evidence, trusted
   response instructions and non-secret citation identifiers.
+- Permit external AI only for documents whose classification and rights allow
+  provider disclosure. The public query experience must warn users not to
+  submit confidential, personal or secret content; questions are minimised and
+  no confidential input is authorised by this ADR.
 - Include the trusted `questionLanguage` instruction and require structured
   `answerLanguage` output equal to it. Do not ask the model to translate
   source-derived citation text.
@@ -160,6 +180,13 @@ regional processing, but Brazil is not a listed data-residency region. The
 proposal must therefore assume the default abuse-monitoring retention and no
 Brazilian residency unless separately contracted. The owner must explicitly
 accept that disclosure/residency model; no fallback model is active.
+
+Across indexing, authorised document chunks may cumulatively disclose the full
+active public/authorised corpus to the embedding service. At query time, only
+the bounded question is sent for its embedding and only minimum retrieved
+passages are sent to the language model. Source URLs, filesystem paths,
+licence records and unrelated catalogue metadata are not sent unless required
+by an approved provider contract.
 
 The official [OpenAI .NET repository](https://github.com/openai/openai-dotnet)
 identifies the `OpenAI` NuGet library as generated from OpenAI's OpenAPI
@@ -208,44 +235,65 @@ remain an implementation-authority decision after official verification.
 - Persist float32 vectors and allowed metadata in SQLite under an immutable
   candidate/generation identity. The vector database is a derived store and
   not the activation system of record.
-- Execute a SQL hard filter on `corpusId`, `indexGenerationId` and
-  `sourceScope` before loading candidate vectors for exact cosine ranking.
-- Reject a global scan followed by scope filtering. Use a composite index on
-  the three selectors plus deterministic chunk identity.
+- Execute a SQL hard filter on `corpusId`, `indexGenerationId` and any explicit
+  database/document filters before loading candidate vectors for exact cosine
+  ranking.
+- Reject a global scan followed by required-filter post-processing. Use a
+  composite index on corpus/generation plus deterministic chunk identity and
+  indexed metadata needed by authorised filters.
 - Load only the bounded filtered partition, rank exactly in process and apply
   the configured top-k and score policy.
-- Cap the MVP at 10,000 active chunks and 1,536 dimensions. Exceeding either
-  limit fails readiness for that generation and requires a new ADR or proven
-  optimisation.
+- Use 10,000 active chunks at 1,536 dimensions as the initial mandatory
+  benchmark point, not a catalogue or product limit. A generation above the
+  largest proven envelope remains Candidate and cannot activate until the same
+  adapter passes the homologation thresholds or an alternative vector-store
+  decision is accepted. Adding a compatible database/document record never
+  requires an ADR merely because this benchmark is exceeded.
 - Keep `VECTOR_STORE_EGRESS` empty.
 
 This design trades scale for minimal operational and security surface. State
-07 must prove memory, latency and restart behaviour on the named environment.
+07 must prove memory, latency and restart behaviour using the representative
+active catalogue; failure promotes the documented PostgreSQL/pgvector
+alternative rather than silently reducing catalogue coverage.
 
-### OCI deployment
+### Conditional OCI deployment target
 
-- Deploy one self-contained Linux ARM64 build of `RagChallenge.Server.Api`
-  with the compiled Dashboard on one OCI Compute instance.
-- Candidate region: `sa-saopaulo-1`.
-- Candidate shape: `VM.Standard.A1.Flex`, one OCPU and 6 GiB memory.
+- Conditionally deploy one self-contained Linux ARM64 build of
+  `RagChallenge.Server.Api` with the compiled Dashboard on one OCI Compute
+  instance after tenancy capacity, entitlement, ARM64 compatibility, cost and
+  restore evidence pass.
+- Candidate region: `sa-saopaulo-1`; candidate shape:
+  `VM.Standard.A1.Flex`, one OCPU and 6 GiB memory. These are planning targets,
+  not guaranteed availability or a zero-cost claim.
 - Use a dedicated durable block volume for SQLite databases, content objects,
   vector data and temporary same-volume atomic writes. An archive or copy on
   that same volume is not an availability-domain recovery backup.
+- Use 50 GiB as the initial planning size only after tenancy limits, free/paid
+  entitlement, forecast catalogue size and headroom are validated. Resize or
+  change the target rather than imposing a catalogue ceiling.
 - Run the application under a dedicated unprivileged operating-system account
   as a managed service. Put a minimal TLS reverse proxy in front of Kestrel;
   bind Kestrel to loopback only.
 - Restrict inbound traffic to HTTPS, temporary HTTP only when required by the
   separately approved certificate procedure, and administrator SSH from an
   exact owner-controlled source range. Deny public administration endpoints.
-- Store provider secrets in the OCI Secret Management service, backed by an
-  owner-approved virtual-vault key, or another explicitly approved OCI secret
-  mechanism. Persist only opaque secret references and inject values at
-  runtime.
-- Take an identified application-consistent backup before release and before
-  a migration. The owner must select regional OCI Block Volume Backup or
-  another independent backup target before accepting the deployment decision;
-  restore into an isolated path and validate before declaring a rollback
-  target.
+- Conditionally store provider secrets in OCI Secret Management backed by a
+  software-protected virtual-vault key. The runtime uses an instance principal
+  whose policy permits only `read secret-bundles` for the configured secret
+  OCIDs; it cannot create/update/delete secrets, manage keys/vaults or list
+  unrelated bundles. Persist only opaque references and inject values at
+  runtime. Exact IAM must be proved in the tenancy.
+- Use regional OCI Block Volume Backup as the conditional independent target.
+  Plan daily backups plus one before release or migration, 14-day retention,
+  RPO 24 hours and restore objective 8 hours. These are unverified operational
+  targets, not an SLA or accepted runtime evidence.
+- Create an application-consistent backup under an administration lease: stop
+  catalogue/index mutations, complete or abandon candidates, checkpoint the
+  SQLite WAL, record the activation revision and manifest/content digests, and
+  snapshot the control database, vector database and content volume as one
+  identified recovery set. Restore into an isolated path and validate SQLite
+  integrity, content hashes, manifest/binding reachability and a read-only
+  query before declaring the set recoverable.
 
 The [regions table](https://docs.oracle.com/en-us/iaas/Content/General/Concepts/regions.htm)
 verifies `sa-saopaulo-1` as Brazil East (Sao Paulo), commercial realm `OC1`,
@@ -341,8 +389,8 @@ service endpoint remained uncontacted.
 - Treat provider, model, dimensions, endpoint policy, corpus root, content
   root, database path, vector schema and compatibility key as immutable for a
   running process.
-- Disable `OfficialOnline`, administration and external AI independently when
-  their complete configuration is absent.
+- Disable each official source registration, administration and external AI
+  independently when its complete configuration is absent.
 - Do not support dynamic plug-in loading or runtime provider switching.
 
 ## Alternatives
@@ -354,9 +402,9 @@ credential and egress policy without demonstrated scale need.
 
 ### PostgreSQL with pgvector
 
-Viable but not selected. It adds database operation and deployment complexity
-for a single bounded corpus. It is the preferred reconsideration if the exact
-SQLite scan fails the pre-registered performance threshold.
+Viable but not selected. It adds database operation and deployment complexity.
+It is the preferred reconsideration if exact SQLite search fails the
+pre-registered performance threshold for the active catalogue.
 
 ### Local embedding and language models
 
@@ -380,13 +428,16 @@ conflict with the accepted lifecycle model.
 - All durable product state fits one secured volume and one process boundary.
 - SQLite remains a replaceable Infrastructure detail but becomes important to
   backup, concurrency and corruption testing.
-- Exact vector search is predictable and proves isolation, but the explicit
-  chunk/dimension limits constrain corpus growth.
+- Exact vector search is predictable and proves isolation, but its measured
+  capacity envelope may block candidate activation and force the documented
+  vector-store alternative.
 - External AI minimises OCI compute requirements but discloses authorised
   chunks and questions under a separately governed policy, with default abuse
   monitoring for up to 30 days and no verified Brazilian residency.
 - The embedding candidate lacks a dated immutable snapshot, so provider alias
   drift must be detected and evaluated rather than assumed stable.
+- PDF and CSV parsing require separate adapters; exact package versions remain
+  conditional until primary-source and executable checks are authorised.
 - Either provider candidate failing the accepted `pt-BR`/`en-GB` language
   matrix blocks that candidate; it does not relax the product requirement.
 - One Sao Paulo availability domain and 99.99% block-volume durability make a
@@ -402,6 +453,8 @@ conflict with the accepted lifecycle model.
   API.
 - Backups inherit corpus classification, are encrypted by the selected OCI
   mechanism and have a recorded retention/deletion procedure.
+- The application-consistency lease, WAL checkpoint, activation revision and
+  recovery-set digest are required evidence for every usable backup.
 - The OCI metadata service, private address ranges and generic internet access
   remain denied unless an exact operational dependency is approved.
 - Standard tests use deterministic fakes and make no provider or OCI call.
@@ -419,15 +472,19 @@ conflict with the accepted lifecycle model.
   independent regional backup target, retention and restore objective.
 - The owner selects the exact OCI secret mechanism and runtime retrieval/IAM
   design; documentation evidence does not create a vault or grant access.
-- A disposable authorised spike confirms PDF extraction quality, embedding
-  dimensions, structured model output and the exact vector-store latency cap;
-  no spike artefact becomes product implementation.
+- Disposable authorised spikes confirm PDF/CSV extraction quality, embedding
+  dimensions, structured model output and vector-store performance against a
+  representative catalogue; no spike artefact becomes product implementation.
 - The authorised evaluation proves answer-language equality, original-language
   citation preservation and all four question/evidence language pairs before
   either provider is described as supporting the product requirement.
 - A clean local environment and the named OCI architecture can reopen raw
   content, catalogue and vector data after restart.
-- Backup/restore and activation rollback have distinct procedures and owners.
+- Backup/restore and activation rollback have distinct procedures and owners;
+  the 50 GiB volume, daily/pre-change backup, 14-day retention, 24-hour RPO and
+  8-hour restore objective remain conditional until tenancy and restore tests.
+- Runtime instance-principal tests prove read-only access only to configured
+  secret bundles and deny secret/key/vault management plus unrelated bundles.
 - No Domain/Application type depends on PdfPig, EF Core, SQLite, OpenAI or OCI.
 - No external package, model or resource is installed or accessed merely by
   accepting this ADR.

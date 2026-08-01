@@ -1569,3 +1569,67 @@ contém somente fatos cronológicos.
 - Próxima condição: obter a lista integral de 51 bancos, reconciliá-la sem
   condensação com o ADR-0004 e confirmar separadamente as decisões dos ADRs
   sobre a nova baseline antes da auditoria combinada.
+
+## 2026-08-01 — Catálogo 51/54/9 e documentos PDF/CSV formalizados no corpus 4.7.0
+
+- Estado anterior e resultante: `STATE-02 ARCHITECTURE` ativo; Automatic
+  Quality Gate `BLOQUEADO`; Human Gate `PENDENTE`; sem transição.
+- Baseline de escrita confirmada: branch `main`, commit
+  `3bc956ef19c9111a6e6ac3386c47a0c8921c6f71` e working tree limpa.
+- Autoridade humana consolidada:
+
+  ```text
+  Confirmo que os 51 bancos de dados únicos da lista apresentada constituem o catálogo inicial canónico do RAG-Challenge.
+
+  Quero que o produto permita ao administrador adicionar, versionar, ativar, desativar e remover bancos de dados e qualquer quantidade de documentos oficiais associados, sem lista hard-coded, sem teto numérico e sem exigir alteração de código ou novo ADR para cada inclusão compatível com os adapters e políticas existentes.
+
+  Confirmo que cada banco ativo deve possuir pelo menos um documento ativo, podendo ser PDF e/ou CSV, e pode possuir qualquer quantidade adicional de documentos nesses formatos.
+
+  Todos os documentos ativos e validados de todos os bancos ativos devem participar da recuperação de evidências. A origem local ou oficial permanece registrada como proveniência, mas não divide silenciosamente a consulta em corpora mutuamente exclusivos.
+  ```
+
+- Catálogo: 51 entidades únicas, 9 categorias e 54 associações. Redis, SAP HANA
+  e SingleStore são entidades únicas com duas categorias cada; nomes foram
+  preservados sem agrupamento ou renomeação.
+- Administração: bancos/documentos compatíveis são registros, não hard-code.
+  Inclusão por item não exige código ou ADR; nova classe de formato, protocolo,
+  autenticação ou confiança pode exigir ambos.
+- Lifecycle: novos bancos/documentos/versões entram `Candidate`; somente
+  validação, indexação candidata e ativação explícita os tornam consultáveis.
+  Desativação preserva histórico, remoção é tombstone lógico, eliminação física
+  segue retenção e o último documento só sai com desativação explícita e
+  atômica do banco.
+- Recuperação: todos os documentos PDF/CSV ativos/current integram um espaço
+  unificado. Origem local/oficial permanece trust/proveniência explícita em
+  cobertura e citações; consulta não realiza fetch.
+- Proporcionalidade: nenhum teto de bancos, documentos ou páginas. Limites por
+  operação e capacidade continuam obrigatórios e podem bloquear ativação sem
+  reduzir silenciosamente o catálogo.
+- Rastreabilidade: acrescentados `RF-024`, `RF-025`, `RNF-018`, `AC-MVP-019`,
+  `AC-MVP-020` e `BL-M19`; visão, arquitetura, RAG, governance, lifecycle,
+  Quality Gates, segurança, roadmap, ADRs propostos, contratos, threat model,
+  relatório, índices, snapshot e changelog foram reconciliados.
+- Limite factual: nenhum dos 51 bancos possui documento de produto adquirido,
+  validado, indexado ou ativo; nenhum parser/provider foi executado. PostgreSQL
+  permanece somente a primeira fonte candidata com fatos públicos já
+  verificados.
+- Escopo negativo: nenhuma aceitação/rejeição/alteração de status de ADR,
+  auditoria combinada, Human Gate, transição, código, dependência, rede,
+  download, provider, GitHub, OCI, publicação, deploy ou DB-Notifier.
+- SemVer: corpus `4.7.0` (`MINOR`) por ampliar catálogo, cardinalidade,
+  formatos, administração, recuperação e contratos sem mudar autoridade ou
+  lifecycle; permanecem 13 arquivos ativos em `prompts/`.
+- Runtime preflight: `NÃO APLICÁVEL`; trabalho exclusivamente documental e
+  local, sem inspeção ou encerramento de processos.
+- Verificações dirigidas: exatamente 22 arquivos autorizados; listas canônicas
+  em visão e ADR-0004 com 51 entidades, 54 associações, 9 categorias e somente
+  Redis/SAP HANA/SingleStore duplicados por categoria; 25 RF, 18 RNF, 20
+  critérios de aceitação, 19 itens Must, 36 ameaças e 15 grupos de testes;
+  quatro ADRs `proposed`; H1, fences, tabelas, links locais, UTF-8/LF, newline
+  final e `git diff --check` aprovados. A auditoria combinada não foi executada.
+- Quality Gate: Automatic Quality Gate de `STATE-02` permanece `BLOQUEADO`;
+  esta reconciliação não executa nem substitui a auditoria combinada.
+- Human Gate: permanece `PENDENTE` e não foi solicitado.
+- Próxima condição: decisões humanas explícitas e independentes sobre
+  ADR-0002 e ADR-0004 a ADR-0006 na baseline reconciliada, seguidas somente
+  depois pela auditoria combinada separadamente autorizada.
