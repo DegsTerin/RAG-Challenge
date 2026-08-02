@@ -13,7 +13,10 @@ proprietários.
   2026-07-31; entrada em `STATE-02 ARCHITECTURE` autorizada em 2026-07-31,
   com execução documental e local, sequencial, dos lotes `S02-A` e `S02-B`;
   `STATE-02` encerrado após Human Gate aprovado sem ressalvas em 2026-08-02;
-  entrada em `STATE-03 DATA_AND_INDEX_MODELING` não autorizada.
+  entrada em `STATE-03 DATA_AND_INDEX_MODELING` autorizada em 2026-08-02,
+  exclusivamente para registro append-only e execução local, sequencial, do
+  lote `S03-A`; `S03-B` permanece bloqueado até decisão separada sobre
+  dependências, restore/instalação, lockfiles, migrations e stores.
 - Escopo concluído de `STATE-01`: registrar a entrada e executar localmente,
   de forma sequencial, os lotes `S01-A`, `S01-B` e `S01-C`, sem lógica RAG ou
   funcional. A autoridade adicional de 2026-07-30 permite exclusivamente
@@ -84,6 +87,15 @@ proprietários.
   revisão do relatório automático, das amostras críticas, limitações, riscos
   residuais, condições pendentes e escopo negativo. A decisão encerra somente
   `STATE-02` e não autoriza entrada em `STATE-03`.
+- Transição para `STATE-03 DATA_AND_INDEX_MODELING`: autorizada em 2026-08-02
+  sobre `main@35b67c194f6ea2459833420b8bc2143fadfe75df`, corpus `4.9.1` e
+  working tree limpa. A autoridade permite registrar a entrada e executar
+  localmente, de forma sequencial, somente `S03-A`: modelo e dicionário,
+  identidades, estados, relações, constraints, revisões, serialização
+  canônica, vetores de referência dos dois domínios de digest, três validações
+  pré-CAS, invariantes de ativação/retenção/rollback e fixtures
+  determinísticas. `S03-B`, migrations, stores persistentes, novas
+  dependências e instalação permanecem sem autorização.
 - Lote corretivo de `STATE-02`: sobre
   `main@9707b87d75a6acb14c8993ff0283a4221bc6c762`, corpus `4.8.0`, foi
   preparado o ADR-0007, recomendando separar identidade de geração
@@ -381,10 +393,12 @@ autorizada.
 
 ## Próxima autoridade
 
-Uma solicitação separada do proprietário pode preparar a prontidão e decidir
-explicitamente a entrada em `STATE-03 DATA_AND_INDEX_MODELING`. O encerramento
-de `STATE-02` satisfaz a pré-condição de lifecycle, mas não concede entrada
-automática, implementação ou qualquer ação externa. Fatos dependentes de
-conta, entitlement, capacidade, spike ou runtime permanecem para autoridades
-futuras próprias. `STATE-03`, GitHub, OCI, publicação, deploy, demais ações
+`STATE-03 DATA_AND_INDEX_MODELING` está ativo somente para a execução local e
+sequencial de `S03-A` dentro do envelope registrado. `S03-B` exige decisão
+separada sobre o conjunto e as versões exatas das dependências, verificação de
+supply chain, restore/instalação, lockfiles, migrations e stores. O estado não
+pode ser encerrado nem promover `STATE-04` sem os entregáveis restantes,
+Automatic Quality Gate, relatório factual, resumo completo e Human Gate
+separados. Rede, providers, contas, corpus real, fontes oficiais,
+armazenamento operacional, GitHub, OCI, publicação, deploy, demais ações
 externas e mudanças no DB-Notifier continuam sem autorização.

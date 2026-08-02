@@ -2052,3 +2052,73 @@ contém somente fatos cronológicos.
 - Próxima condição: preparar resumo de prontidão e obter autorização humana
   separada e explícita para qualquer entrada em `STATE-03`.
 - Aprovador: proprietário do RAG-Challenge.
+
+## 2026-08-02 — Entrada limitada em STATE-03 DATA_AND_INDEX_MODELING autorizada
+
+- Estado anterior: `STATE-02 ARCHITECTURE` encerrado; Automatic Quality Gate
+  e Human Gate aprovados sem ressalvas; `STATE-03 DATA_AND_INDEX_MODELING`
+  ainda não iniciado.
+- Estado solicitado: entrar em `STATE-03` e executar localmente, de forma
+  sequencial, somente o lote `S03-A`.
+- Baseline confirmada antes do registro: branch `main`, commit
+  `35b67c194f6ea2459833420b8bc2143fadfe75df`, corpus `4.9.1` e working tree
+  limpa.
+- Autoridade humana exata:
+
+  ```text
+  Continue nesta conversa o trabalho do RAG-Challenge.
+
+  Autorizo a entrada no STATE-03 DATA_AND_INDEX_MODELING sobre a baseline
+  main@35b67c194f6ea2459833420b8bc2143fadfe75df, corpus 4.9.1,
+  exclusivamente no envelope de prontidão apresentado nesta conversa.
+
+  Registre primeiro a entrada de forma append-only. Depois, execute localmente e
+  de forma sequencial somente o lote S03-A: modelo e dicionário do catálogo,
+  identidades e estados, relações e constraints, separação das revisões,
+  serialização canônica, golden vectors dos dois domínios de digest, três
+  validações pré-CAS, invariantes de ativação/retensão/rollback e fixtures
+  determinísticas. Preserve as fronteiras aceitas de Domain, Application e
+  Infrastructure.
+
+  S03-B permanece bloqueado até decisão separada sobre o conjunto e as versões
+  exatas das dependências, verificação de supply chain, restore/instalação,
+  lockfiles, migrations e stores. Nesta autorização, não crie migrations, não
+  materialize stores persistentes e não adicione ou instale dependências.
+
+  Permanecem proibidos rede, providers, contas, corpus real, fontes oficiais,
+  armazenamento operacional, GitHub, OCI, publicação, deploy, DB-Notifier,
+  entrada em STATE-04 e encerramento de STATE-03. Não avance o lifecycle sem
+  Automatic Quality Gate, relatório factual, resumo completo e Human Gate
+  separados.
+
+  Antes de qualquer escrita, confirme novamente branch, commit, corpus, working
+  tree, estado factual e autoridade. Se houver divergência, mudança externa,
+  dependência inesperada ou necessidade de ampliar o escopo, pare e informe.
+  ```
+
+- Decisão: entrada em `STATE-03 DATA_AND_INDEX_MODELING` autorizada dentro do
+  envelope apresentado; somente `S03-A` está ativo para execução local e
+  sequencial.
+- Escopo autorizado: modelo e dicionário do catálogo; identidades, estados,
+  relações e constraints; separação entre `catalogueRevision`, revisão do
+  journal de observações e `recordRevision`; serialização canônica e vetores
+  de referência de `sourceBindingSetDigest` e
+  `activationBindingSetDigest`; três validações pré-CAS; invariantes de
+  ativação, retenção e rollback; fixtures determinísticas; verificações e
+  commits locais focados.
+- Escopo bloqueado: `S03-B`, seleção/adição/instalação de dependências,
+  restore, lockfiles, migrations, stores persistentes e armazenamento
+  operacional.
+- Escopo negativo preservado: nenhuma rede, provider, conta, corpus real,
+  fonte oficial, GitHub, OCI, publicação, deploy, DB-Notifier, entrada em
+  `STATE-04` ou encerramento de `STATE-03`.
+- Runtime preflight: aplicável antes da primeira alteração ou validação de
+  comportamento executável de `S03-A`; o registro documental da entrada o
+  precede deliberadamente.
+- Quality Gate de `STATE-03`: `PENDENTE`.
+- Human Gate de `STATE-03`: `PENDENTE`.
+- Estado resultante: `STATE-03 DATA_AND_INDEX_MODELING` ativo somente para
+  `S03-A`; `STATE-04 BACKEND_IMPLEMENTATION` não autorizado.
+- Próxima condição: concluir e verificar `S03-A`; depois, obter decisão
+  separada para qualquer execução de `S03-B`.
+- Aprovador da entrada: proprietário do RAG-Challenge.
