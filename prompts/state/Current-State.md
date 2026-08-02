@@ -14,8 +14,8 @@ proprietários.
   com execução documental e local, sequencial, dos lotes `S02-A` e `S02-B`;
   `STATE-02` encerrado após Human Gate aprovado sem ressalvas em 2026-08-02;
   entrada em `STATE-03 DATA_AND_INDEX_MODELING` autorizada em 2026-08-02;
-  `S03-A` e `S03-B0` a `S03-B5` concluídos; Automatic Quality Gate e Human
-  Gate de `STATE-03` permanecem pendentes e separados.
+  `S03-A` e `S03-B0` a `S03-B5` concluídos; Automatic Quality Gate de
+  `STATE-03` aprovado sem achados; Human Gate permanece pendente e separado.
 - Escopo concluído de `STATE-01`: registrar a entrada e executar localmente,
   de forma sequencial, os lotes `S01-A`, `S01-B` e `S01-C`, sem lógica RAG ou
   funcional. A autoridade adicional de 2026-07-30 permite exclusivamente
@@ -146,6 +146,17 @@ proprietários.
   Dashboard, auditoria de 130 arquivos e diff hygiene. A consulta NuGet
   vigente não encontrou package vulnerável. `S03-B5` e S03-B estão concluídos;
   isso não executa Automatic Quality Gate nem Human Gate.
+- Automatic Quality Gate de `STATE-03`: `APROVADO` sobre
+  `main@3d0731fdf3f5004fb185dc760b5f74e4d73b4aa5`, corpus `4.9.1`, com zero
+  achados P0, P1, P2 ou P3. Preflight encontrou zero processos/listeners do
+  produto. O gate local e offline confirmou catálogo 51/54/9, dois domínios de
+  digest, três validações pré-CAS, fronteiras arquiteturais, conteúdo
+  reabrível, staging não consultável, CAS, retenção, rollback por nova revisão,
+  recuperação, 40 packages materializados em Infrastructure sem
+  `System.Memory`, migrations Control/Vector e baseline limpa. O agregado
+  aprovou 82 testes, 94,83% de linhas, 72,34% de branches, Dashboard e
+  auditoria de 130 arquivos. Nenhum arquivo rastreado foi alterado durante a
+  coleta; os stores temporários foram removidos. Human Gate não foi executado.
 - Lote corretivo de `STATE-02`: sobre
   `main@9707b87d75a6acb14c8993ff0283a4221bc6c762`, corpus `4.8.0`, foi
   preparado o ADR-0007, recomendando separar identidade de geração
@@ -451,10 +462,11 @@ autorizada.
 
 ## Próxima autoridade
 
-`S03-A` e `S03-B0` a `S03-B5` estão concluídos. A próxima ação possível é uma
-Automatic Quality Gate separadamente autorizada sobre a baseline limpa. O
-estado não pode ser encerrado nem promover `STATE-04` sem essa auditoria,
-resumo completo e Human Gate separado.
+`S03-A`, `S03-B0` a `S03-B5` e o Automatic Quality Gate estão concluídos e
+aprovados. A próxima ação possível é o Human Gate de `STATE-03`, somente após
+apresentação do resumo completo da baseline vigente e confirmação humana pela
+frase canônica. O estado não pode ser encerrado nem promover `STATE-04` sem
+essa decisão separada.
 Rede fora das fontes primárias já autorizadas para supply chain, providers,
 contas, corpus real, fontes oficiais do produto, armazenamento operacional,
 GitHub, OCI, publicação, deploy, demais ações externas e mudanças no

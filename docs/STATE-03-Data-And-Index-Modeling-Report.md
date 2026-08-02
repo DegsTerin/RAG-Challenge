@@ -12,13 +12,14 @@
 - S03-B5 diagnostic resumption baseline:
   `main@c72c8b967667f72e8971f4887174585d3640a36e`.
 - Report date: 2026-08-02.
-- Automatic Quality Gate: pending and not inferred from the checks below.
+- Automatic Quality Gate: `APROVADO` on
+  `main@3d0731fdf3f5004fb185dc760b5f74e4d73b4aa5`.
 - Human Gate: pending.
 - State closure and entry into `STATE-04`: not authorised.
 
-This is a factual increment-completion report. It records S03-B as complete
-but does not close `STATE-03`; no Automatic Quality Gate or Human Gate has
-been executed or inferred.
+This is a factual increment and audit report. It records S03-B as complete and
+the Automatic Quality Gate as approved, but does not close `STATE-03`; no
+Human Gate has been executed or inferred.
 
 ## Authority and preconditions
 
@@ -255,13 +256,47 @@ query reported no vulnerable direct or transitive package in any project.
 Node.js `24.18.1` remained the previously accepted local verification
 variance; repository pins remain `24.18.0` and npm `11.16.0`.
 
+## Automatic Quality Gate
+
+The owner authorised only the local, sequential Automatic Quality Gate over
+clean `main@3d0731fdf3f5004fb185dc760b5f74e4d73b4aa5`, corpus `4.9.1`.
+The authority excluded fixes, Human Gate, state closure, `STATE-04`, providers,
+real corpus, official sources, GitHub, OCI, publication, deployment and every
+other external action. The audit made no network call and changed no tracked
+file while evidence was being gathered.
+
+Runtime preflight found zero RAG-Challenge-owned processes and zero owned
+listeners. Toolchains were .NET SDK `10.0.302`, EF CLI `10.0.10`, Git
+`2.55.0.windows.3`, PowerShell `7.6.4`, Node.js `24.18.1` under the previously
+accepted local variance, and npm `11.16.0`.
+
+| Gate area | Result | Observed evidence |
+|---|---|---|
+| Authority, baseline and scope | `APROVADO` | Exact authorised commit and clean `main` matched before and after evidence collection; no prohibited action occurred. |
+| Logical model and deterministic fixtures | `APROVADO` | Data dictionary and typed model cover catalogue, documents, snapshots, observations, manifests, activation, retention and rollback; fixture contains exactly 51 products, 9 categories and 54 assignments. |
+| Canonical identity and pre-CAS policy | `APROVADO` | Both executable digest domains, canonical generation identity, three independent projections, observation relations, idempotent finalisation and fail-closed mismatches passed unit/integration tests. |
+| Architecture and trust boundaries | `APROVADO` | Domain/Application contain no EF Core, SQLite or Infrastructure dependency; `control.db` alone owns active authority and `vectors.db` remains derived. Architecture suite passed 10/10. |
+| Persistence, content and lifecycle invariants | `APROVADO` | Immutable SHA-256 content reopen, candidate isolation, readback, one-winner CAS, retention, leased cleanup, observation-only rebind, rollback by new revision, audit, corruption rejection and isolated recovery passed. |
+| Migrations | `APROVADO` | Fresh Control and Vector list/apply/rollback-to-zero/reapply cycles passed in separate non-production stores; neither context had a pending model change. The 380,928-byte Control and 49,152-byte Vector stores were removed with their validated temporary root. |
+| Reproducible aggregate | `APROVADO` | `eng/ci.ps1 -Offline` returned `0`: locked offline restore, format, warning-free Release build, 82/82 .NET tests, coverage, Dashboard lint/typecheck/2 tests/build, repository audit and diff hygiene passed. |
+| Coverage | `APROVADO` | 94.83% lines (8,481/8,943) and 72.34% branches (688/951), above the 70%/45% floors. |
+| Supply chain and repository hygiene | `APROVADO` | Infrastructure materialised exactly 40 packages and no `System.Memory`; lockfile hashes matched the baseline, 130 tracked/non-ignored files passed audit, and no tracked `reference-materials/`, runtime database or build output exists. Existing S03-B0 signature/licence and S03-B5 vulnerability evidence remain applicable because the dependency graph did not change. |
+| Lifecycle and handoff separation | `APROVADO` | Audit result is recorded without Human Gate, state closure or `STATE-04` authority. |
+
+Automatic Quality Gate result: `APROVADO`. Findings: P0 `0`, P1 `0`, P2 `0`,
+P3 `0`. No correction was made during the audit. The Node.js patch variance,
+absence of process-crash injection, synthetic rather than benchmarked vector
+scale, and absence of real corpus/provider/operational-store evidence remain
+explicit limitations assigned to their later owning states; none is a
+`STATE-03` gate failure.
+
 ## Deferred and blocked work
 
-S03-B has no remaining implementation item. Automatic Quality Gate, Human
-Gate, `STATE-03` closure and entry into `STATE-04` remain separate and
-unauthorised. Provider calls, accounts, real product corpus, official-source
-synchronisation, operational storage, GitHub or OCI mutation, publication,
-deployment and DB-Notifier integration also remain prohibited.
+S03-B has no remaining implementation item and the Automatic Quality Gate is
+approved. Human Gate, `STATE-03` closure and entry into `STATE-04` remain
+separate and unauthorised. Provider calls, accounts, real product corpus,
+official-source synchronisation, operational storage, GitHub or OCI mutation,
+publication, deployment and DB-Notifier integration also remain prohibited.
 
 ## Risks and limitations
 
@@ -284,6 +319,6 @@ in reverse dependency order; append-only lifecycle evidence must remain.
 ## Lifecycle conclusion
 
 S03-A and S03-B0 through S03-B5 are implemented and verified within
-`STATE-03`. This completes the authorised S03-B increment but does not close
-the state. Automatic Quality Gate, Human Gate and `STATE-04` remain pending
-and unauthorised.
+`STATE-03`; its Automatic Quality Gate is approved with no finding. This does
+not close the state. Human Gate remains pending, and `STATE-04` remains
+unauthorised.

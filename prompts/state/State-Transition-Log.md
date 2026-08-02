@@ -2402,3 +2402,64 @@ contém somente fatos cronológicos.
   Quality Gate de `STATE-03` sobre baseline limpa; somente depois preparar o
   resumo completo do Human Gate.
 - Aprovador da retomada: proprietário do RAG-Challenge.
+
+## 2026-08-02 — Automatic Quality Gate de STATE-03 aprovado
+
+- Estado anterior: `STATE-03 DATA_AND_INDEX_MODELING` ativo; `S03-A` e
+  `S03-B0` a `S03-B5` concluídos; Automatic Quality Gate e Human Gate
+  pendentes.
+- Baseline auditada: branch `main`, commit
+  `3d0731fdf3f5004fb185dc760b5f74e4d73b4aa5`, corpus `4.9.1`, working tree
+  limpa.
+- Autoridade humana exata:
+
+  ```text
+  Continue nesta conversa o trabalho do RAG-Challenge.
+
+  Autorizo exclusivamente a execução local e sequencial do Automatic Quality Gate de STATE-03 sobre main@3d0731fdf3f5004fb185dc760b5f74e4d73b4aa5, corpus 4.9.1 e working tree limpa.
+
+  Audite os entregáveis de STATE-03, execute as verificações offline aplicáveis, repita as migrations somente em stores temporários não produtivos e produza o resultado factual do gate. Não corrija achados silenciosamente: diante de qualquer achado, pare, classifique-o e informe.
+
+  Não execute Human Gate, encerramento de STATE-03, entrada em STATE-04, provider, corpus real, fonte oficial, GitHub, OCI, publicação, deploy ou qualquer outra ação externa.
+  ```
+
+- Runtime preflight: zero processos e zero listeners pertencentes ao
+  RAG-Challenge; nada foi encerrado.
+- Escopo estático: modelo/dicionário, constraints, índices, catálogo 51/54/9,
+  snapshots, observações e revisão própria, dois domínios de digest, três
+  validações pré-CAS, manifesto/generation identity, staging, conteúdo
+  imutável, CAS, retenção, cleanup, rollback e recuperação reconciliados com
+  Lifecycle, Quality Gates, contratos aceitos, source e testes.
+- Arquitetura: Domain/Application sem EF Core, SQLite, Infrastructure ou
+  adapters externos; `control.db` conserva autoridade exclusiva e
+  `vectors.db` permanece derivado. Nenhum material local, database runtime ou
+  build output está rastreado.
+- Gate agregado: `eng/ci.ps1 -Offline` retornou exit code `0`; locked restore,
+  format, build Release sem warnings/errors, 82 testes .NET (56 unitários, 10
+  de arquitetura e 16 de integração), cobertura de 94,83% de linhas
+  (8.481/8.943) e 72,34% de branches (688/951), lint, typecheck, dois testes e
+  build Vite, auditoria de 130 arquivos e diff hygiene aprovados.
+- Migrations: Control e Vector passaram separadamente list, apply, rollback
+  para zero, reapply e `has-pending-model-changes` após clean/build novos.
+  Os stores não produtivos possuíam 380.928 e 49.152 bytes e foram removidos
+  com o diretório temporário validado.
+- Supply chain offline: Infrastructure materializou exatamente 40 packages,
+  sem `System.Memory`; lockfiles permaneceram logicamente idênticos à
+  baseline. As evidências anteriores de assinatura/licença e vulnerabilidade
+  continuam aplicáveis porque o grafo não mudou; o gate não acessou rede.
+- Toolchains: .NET SDK `10.0.302`, EF CLI `10.0.10`, Git
+  `2.55.0.windows.3`, PowerShell `7.6.4`, npm `11.16.0`; Node.js `24.18.1`
+  permaneceu somente como variação local já aceita, sem alterar os pins.
+- Resultado por gate: `APROVADO`.
+- Achados: P0 `0`; P1 `0`; P2 `0`; P3 `0`. Nenhuma correção foi executada
+  durante a auditoria.
+- Limitações não bloqueantes e de estados futuros: ausência de process-crash
+  injection, benchmark/SLA, corpus real, provider/conta, fonte oficial,
+  armazenamento operacional e OCI. Nenhuma foi tratada como evidência de
+  implementação ou como redução do critério de `STATE-03`.
+- Human Gate de `STATE-03`: `PENDENTE` e não executado.
+- Estado resultante: `STATE-03` permanece ativo e aberto; `STATE-04` continua
+  não autorizado.
+- Próxima condição: apresentar o resumo completo da baseline vigente e obter
+  a frase canônica do Human Gate exclusivamente para `STATE-03`.
+- Autorizador do gate: proprietário do RAG-Challenge.
