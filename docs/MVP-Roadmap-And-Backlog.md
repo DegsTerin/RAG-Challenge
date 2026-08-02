@@ -381,6 +381,7 @@ Critério: checklist oficial completo.
 | `BL-S02` | Cache seguro de embeddings por hash. | Somente após medir benefício. |
 | `BL-S03` | Métricas de custo/tokens. | Se provider expuser dados seguros. |
 | `BL-S04` | Interface de diagnóstico do corpus. | Read-only e sanitizada. |
+| `BL-S05` | Mapa de prontidão de implantação e preflight local, mantendo separados decidido, implementado, verificado localmente, verificado em OCI e implantado. | Preparar em S06; evidência real de OCI e deploy pertence a S08. |
 
 ### Could — evolução
 
