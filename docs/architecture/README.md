@@ -15,8 +15,10 @@ implementation or prove runtime behaviour.
 
 The later combined audit failed on `AQG-S02-001`, an internal contradiction
 between observation-inclusive generation identity and observation-only
-freshness rebinding. ADR-0007 now records a corrective proposal; it is not
-accepted and does not alter ADR-0002 until an explicit owner decision.
+freshness rebinding. The owner accepted ADR-0007 explicitly on 2026-08-02. It
+now supersedes the conflicting generation-identity and exact-record rollback
+clauses of ADR-0002; the traced semantic reconciliation remains pending and
+the failed gate is unchanged.
 
 The owner has independently fixed the query-language boundary to `pt-BR` and
 `en-GB`: answers use the declared question language and source-derived
@@ -106,8 +108,9 @@ Dashboard -- versioned HTTP --> API
 - The generation store is the sole system of record for the atomic activation
   record binding generation and the ordered set of active database/document,
   snapshot and freshness identities; vector access always uses explicit corpus
-  and generation IDs. The exact digest boundary between snapshot and
-  observation identity is the unresolved subject of proposed ADR-0007.
+  and generation IDs. Accepted ADR-0007 separates the generation-bound source
+  digest from the activation-record digest that also covers observation
+  identity; the accepted semantic documents still require reconciliation.
 - Raw document and snapshot bytes remain content-addressed and reopenable;
   vector data is derivative, not the source of truth.
 - Document, provider and index incompatibility fail closed.
@@ -155,7 +158,8 @@ Dashboard -- versioned HTTP --> API
 - [ADR-0006 — Security, Egress, Administration and HTTP Contracts](ADR-0006-Security-Egress-Administration-And-HTTP-Contracts.md)
   (`accepted`; profiles remain disabled and untested)
 - [ADR-0007 — Generation Identity and Freshness Observation Rebinding](ADR-0007-Generation-Identity-And-Freshness-Observation-Rebinding.md)
-  (`proposed`; corrective decision pending for `AQG-S02-001`)
+  (`accepted`; corrective semantic reconciliation pending for
+  `AQG-S02-001`)
 
 ## STATE-02 design artefacts
 
@@ -185,9 +189,9 @@ Dashboard -- versioned HTTP --> API
 - OCI tenancy capacity, entitlement, IAM enforcement, effective billing and
   restore evidence for the accepted conditional target.
 - The extensible evaluation dataset and thresholds frozen before scored runs.
-- An explicit decision on proposed ADR-0007, its post-acceptance semantic
-  reconciliation and a new separately authorised combined `STATE-02` audit
-  before any Human Gate. The source documents for `AQG-S02-002` and
+- The post-acceptance ADR-0007 semantic reconciliation and a new separately
+  authorised combined `STATE-02` audit before any Human Gate. The source
+  documents for `AQG-S02-002` and
   `AQG-S02-003` have been factually reconciled, but the failed gate remains
   unchanged until that audit.
 

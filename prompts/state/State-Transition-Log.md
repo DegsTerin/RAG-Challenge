@@ -1811,3 +1811,50 @@ contém somente fatos cronológicos.
   Se aceito, executar a reconciliação semântica rastreada e somente depois
   obter autoridade separada para nova auditoria combinada sobre baseline
   limpa. `STATE-03` permanece sem autorização.
+
+## 2026-08-02 — ADR-0007 aceito sem reconciliação semântica
+
+- Estado anterior e resultante: `STATE-02 ARCHITECTURE` ativo; Automatic
+  Quality Gate `REPROVADO`; Human Gate `PENDENTE`; sem transição.
+- Baseline decisória confirmada: branch `main`, commit
+  `664187c6926be5ce4bef3734603f8d936626d535`, corpus `4.8.1`, working tree
+  limpa e ADR-0007 com um único status `proposed` antes do registro.
+- Autoridade humana exata:
+
+  ```text
+  ADR-0007: ACEITAR.
+  ```
+
+- Decisão: ADR-0007 passa de `proposed` para `accepted`. A decisão torna
+  autoritativa a separação entre identidade imutável da geração e identidade
+  revisionada do registro de ativação, incluindo
+  `activationBindingSetDigest` para o binding completo com observação.
+- Efeito sobre ADR-0002: somente suas cláusulas conflitantes de identidade
+  inclusiva da observação e rollback por registro exato são substituídas. As
+  demais decisões aceitas de lifecycle, catálogo, providers e fontes
+  permanecem vigentes.
+- Limite da decisão: ADR-0002, contratos canônicos, módulo RAG, requisitos,
+  lifecycle, Quality Gates, roadmap e threat model não foram reconciliados
+  semanticamente neste registro. A aceitação não dispõe `AQG-S02-001` e não
+  transforma o pacote proposto em evidência de implementação.
+- Corpus: `4.9.0` (`MINOR`) porque uma proposta corretiva passa a autoridade
+  arquitetural aceita sem mudança de lifecycle ou escopo funcional.
+- Verificações dirigidas executadas antes e repetidas após esta entrada:
+  auditoria do repositório aprovada para 84 arquivos não ignorados; 31
+  Markdown; 13 arquivos em `prompts/`; ADR-0007 com exatamente um status
+  `accepted` e zero `proposed`; zero mudança em ADR-0002, contratos canônicos
+  ou módulo RAG; e `git diff --check` com exit `0`. A validação é documental e
+  não constitui repetição do Automatic Quality Gate.
+- Escopo negativo preservado: nenhuma reconciliação semântica, implementação,
+  build, parser, provider, conta, corpus, índice, rede, GitHub, OCI,
+  publicação, deploy, Human Gate, `STATE-03` ou alteração no DB-Notifier.
+- Quality Gate: permanece `REPROVADO`; `AQG-S02-001` continua aberto até a
+  reconciliação semântica e nova auditoria combinada separadamente autorizada.
+  `AQG-S02-002` e `AQG-S02-003` preservam a reconciliação factual de suas
+  fontes, ainda sem nova disposição de gate.
+- Human Gate: permanece `PENDENTE`, não solicitado e indisponível enquanto o
+  Automatic Quality Gate estiver reprovado.
+- Próxima condição: obter autoridade separada para executar a reconciliação
+  semântica rastreada pelo ADR-0007 aceito; depois, obter autoridade também
+  separada para nova auditoria combinada sobre baseline limpa. `STATE-03`
+  permanece sem autorização.

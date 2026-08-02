@@ -24,12 +24,14 @@ deployment, CD and DB-Notifier changes.
 | Architecture acceptance baseline | `39e2f803bf73cb4e2b59e56a0596e2858a3aed51` |
 | Combined-audit result commit | `9707b87d75a6acb14c8993ff0283a4221bc6c762` |
 | Corrective proposal baseline | `9707b87d75a6acb14c8993ff0283a4221bc6c762` |
+| ADR-0007 decision baseline | `664187c6926be5ce4bef3734603f8d936626d535` |
 | External-verification baseline | `8ba91889c0517d78747ae2980fb766c36268edf6` |
 | External-verification completion baseline | `f1066c3509f5f48d4fe6e21c9e36403e642c1431` |
 | Direct-URL verification resumption baseline | `e80f8c41bea3f28deff3d8cdccafccbca5dcc016` |
 | Branch | `main` |
 | Entry instruction corpus | `4.1.0` |
 | Corrective proposal corpus | `4.8.1` |
+| ADR-0007 decision corpus | `4.9.0` |
 | Entry working tree | Clean |
 | Runtime preflight | `NÃO APLICÁVEL` |
 
@@ -649,7 +651,8 @@ audit.
 
 ### Package status and validation boundary
 
-- ADR-0007: `proposed`; no owner decision recorded.
+- At package validation, ADR-0007 was `proposed`; no owner decision had yet
+  been recorded.
 - `AQG-S02-001`: open and blocking until a corrective ADR is accepted and the
   accepted semantic documents are reconciled.
 - `AQG-S02-002` and `AQG-S02-003`: source documents factually reconciled;
@@ -675,13 +678,55 @@ the directed scope check also confirmed exactly 12 changed documentary paths.
 No build, runtime, provider, account, network or remote check is part of this
 package.
 
+## ADR-0007 decision registration
+
+### Authority and baseline
+
+The owner explicitly accepted ADR-0007 on 2026-08-02 with the exact decision
+`ADR-0007: ACEITAR.`. Before registration, the repository remained on clean
+`main@664187c6926be5ce4bef3734603f8d936626d535`, instruction corpus `4.8.1`,
+and ADR-0007 had one `proposed` status and no `accepted` status.
+
+### Decision and boundary
+
+ADR-0007 is `accepted`. It supersedes only the observation-inclusive
+generation-identity and exact-record rollback clauses of accepted ADR-0002.
+The generation-bound `sourceBindingSetDigest` excludes
+`sourceObservationId`; the complete activation binding, including the
+observation, is protected separately by `activationBindingSetDigest`.
+
+This registration does not apply the traced semantic edits to ADR-0002,
+canonical contracts, the RAG module, requirements, lifecycle, Quality Gates,
+roadmap or threat model. It therefore does not dispose of `AQG-S02-001` or
+make the accepted baseline ready for another audit. The factual source
+reconciliation for `AQG-S02-002` and `AQG-S02-003` is unchanged and still
+awaits disposition by a later combined audit.
+
+No implementation, build, parser, provider, account, corpus, index, network,
+GitHub, OCI, publication, deployment or DB-Notifier action was authorised or
+performed. The Automatic Quality Gate remains `REPROVADO`, the Human Gate
+remains `PENDENTE`, and `STATE-03` remains unauthorised.
+
+The decision registration is corpus `4.9.0` (`MINOR`) because a proposed
+architecture correction becomes accepted authority without changing the
+lifecycle or functional scope. Directed validation of the registration is a
+documentary scope check and does not repeat the Automatic Quality Gate.
+
+The repository audit passed for 84 non-ignored files. `git diff --check`
+returned exit `0`; the registration changed exactly eight documentary paths;
+ADR-0007 has one `accepted` status, one acceptance date and no `proposed`
+status; the State Transition Log changed only by append; and ADR-0002,
+canonical contracts and the RAG module have zero pre-reconciliation diff.
+
 ## Current gate assessment
 
 Automatic Quality Gate for `STATE-02`: `REPROVADO`. The combined audit was
 executed against the accepted baseline and found one P1, one P2 and one P3
-finding. `AQG-S02-001` is the blocking contract defect; the remaining findings
-also require reconciliation or an applicable recorded disposition before a
-new audit.
+finding. Accepted ADR-0007 corrects the decision model for `AQG-S02-001`, but
+the affected accepted documents have not been reconciled. The source text for
+`AQG-S02-002` and `AQG-S02-003` is factually reconciled. No finding has a new
+gate disposition until a separately authorised combined audit evaluates the
+complete corrected baseline.
 
 Human Gate for `STATE-02`: `PENDENTE` and must not be requested while the
 Automatic Quality Gate has result `REPROVADO`.

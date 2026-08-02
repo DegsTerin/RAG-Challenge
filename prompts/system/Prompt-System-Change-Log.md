@@ -2,10 +2,10 @@
 
 ## Versão atual
 
-- Versão: `4.8.1`
+- Versão: `4.9.0`
 - Data: 2026-08-02
-- Status: ADR-0007 proposto; `AQG-S02-002` e `AQG-S02-003` reconciliados nas
-  fontes; Automatic Quality Gate de `STATE-02` permanece `REPROVADO`
+- Status: ADR-0007 aceito; reconciliação semântica e nova auditoria ainda
+  pendentes; Automatic Quality Gate de `STATE-02` permanece `REPROVADO`
 - Escopo: 13 arquivos ativos em `prompts/`
 
 A versão do corpus é independente da versão futura do software.
@@ -19,6 +19,27 @@ A versão do corpus é independente da versão futura do software.
 
 Toda alteração atualiza este arquivo e, quando necessário,
 [`../Start-Here.md`](../Start-Here.md).
+
+## 4.9.0 — 2026-08-02
+
+- Registra a decisão explícita `ADR-0007: ACEITAR.` do proprietário sobre
+  `main@664187c6926be5ce4bef3734603f8d936626d535`, corpus `4.8.1`.
+- Torna autoritativa a separação entre a identidade imutável da geração e a
+  identidade revisionada do registro de ativação, protegida pelo novo
+  `activationBindingSetDigest` que inclui `sourceObservationId`.
+- Substitui somente as cláusulas conflitantes de identidade da geração e
+  rollback exato do ADR-0002; preserva as demais decisões aceitas de catálogo,
+  providers, persistência, segurança, egress, avaliação e OCI.
+- Registra que `304`/hash idêntico preserva manifesto e geração, mas cria nova
+  revisão íntegra do registro de ativação; rollback constrói registro novo com
+  observações atualmente compatíveis e elegíveis.
+- Classifica a alteração como `MINOR` porque uma proposta corretiva passa a
+  autoridade arquitetural aceita sem alterar lifecycle ou escopo funcional.
+- Não aplica ainda a reconciliação semântica em ADR-0002, contratos, RAG,
+  requisitos, lifecycle, Quality Gates, roadmap ou threat model; esse trabalho
+  exige autoridade separada.
+- Não dispõe `AQG-S02-001`, não repete o Automatic Quality Gate, não solicita
+  Human Gate e não autoriza `STATE-03`, implementação ou ação externa.
 
 ## 4.8.1 — 2026-08-02
 

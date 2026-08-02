@@ -19,9 +19,11 @@ em linguagem natural, com respostas fundamentadas e referências às fontes.
 > Quality Gate por um conflito P1 na identidade de geração/observação, além de
 > um achado P2 e um P3 documentais. O Human Gate permanece pendente e
 > `STATE-03` não está autorizado. O pacote corretivo posterior registrou o
-> ADR-0007 como `proposed` para resolver o P1 e reconciliou factualmente as
-> fontes do P2/P3, sem aceitar o novo ADR nem repetir a auditoria; portanto o
-> resultado do gate continua `REPROVADO`.
+> ADR-0007, e o proprietário o aceitou explicitamente em 2026-08-02 para
+> corrigir o modelo decisório do P1. A reconciliação semântica correspondente
+> ainda não foi autorizada ou executada; as fontes do P2/P3 já foram
+> reconciliadas factualmente, mas a auditoria não foi repetida e o resultado
+> do gate continua `REPROVADO`.
 
 ## Problema
 

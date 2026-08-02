@@ -1,13 +1,15 @@
 # ADR-0007 — Generation Identity and Freshness Observation Rebinding
 
-- Status: proposed
+- Status: accepted
 - Date: 2026-08-02
-- Decision authority: pending explicit product-owner decision
+- Accepted: 2026-08-02
+- Decision authority: explicit product-owner acceptance on baseline
+  `main@664187c6926be5ce4bef3734603f8d936626d535`, corpus `4.8.1`
 - Proposal baseline:
   `main@9707b87d75a6acb14c8993ff0283a4221bc6c762`, corpus `4.8.0`
 - Owners: RAG-Challenge RAG / data / security architecture
-- Corrects if accepted: `AQG-S02-001`
-- Supersedes if accepted: the observation-inclusive generation-identity and
+- Corrects: the architectural decision model identified by `AQG-S02-001`
+- Supersedes: the observation-inclusive generation-identity and
   exact-record rollback clauses of
   [ADR-0002](ADR-0002-RAG-Lifecycle-Providers-And-Source-Separation.md)
 
@@ -37,13 +39,14 @@ The correction must preserve all of these accepted properties:
 - a bounded generation rollback path that never makes old evidence fresh;
 - no in-place mutation of manifest, snapshot, observation or vector data.
 
-This proposal does not accept itself, change the current gate result, authorise
-implementation or authorise any external action.
+Preparing and committing the proposal did not accept it. The later explicit
+owner decision accepts the architecture correction only; it does not change
+the current gate result, authorise the follow-on semantic reconciliation,
+authorise implementation or authorise any external action.
 
 ## Decision
 
-If this ADR is explicitly accepted, use separate integrity domains for a
-generation and an activation record.
+Use separate integrity domains for a generation and an activation record.
 
 ### Generation-bound identity
 
@@ -266,10 +269,10 @@ canonical integrity value covering the complete active binding set.
 
 ## Compatibility and migration
 
-If accepted before implementation, this is a documentary compatibility
-correction with no runtime data migration. The following accepted-baseline
-documents must then be reconciled in one authorised change before another
-combined audit:
+This ADR was accepted before implementation, so it is a documentary
+compatibility correction with no runtime data migration. The following
+accepted-baseline documents must be reconciled in one separately authorised
+change before another combined audit:
 
 | Artefact | Required reconciliation |
 |---|---|
@@ -309,9 +312,10 @@ unauthorised.
   security and catalogue decisions and introduces no implementation claim.
 - A new combined `STATE-02` audit passes before any Human Gate is prepared.
 
-## Decision requested
+## Decision outcome
 
-The product owner must explicitly accept or reject this ADR. Preparing or
-committing this proposal is not acceptance, does not resolve `AQG-S02-001`
-and does not authorise the follow-on documentary reconciliation or any
-implementation.
+The product owner explicitly accepted ADR-0007 on 2026-08-02 with the exact
+decision `ADR-0007: ACEITAR.`. The acceptance makes this ADR the authority for
+the corrected generation/activation identity and rollback clauses, but does
+not by itself reconcile the affected documents, dispose of `AQG-S02-001`,
+repeat the Automatic Quality Gate or authorise any implementation.
