@@ -1931,3 +1931,70 @@ contém somente fatos cronológicos.
   Automatic Quality Gate estiver reprovado.
 - Próxima condição: autoridade separada para nova auditoria combinada sobre a
   baseline limpa reconciliada. `STATE-03` permanece sem autorização.
+
+## 2026-08-02 — Nova auditoria combinada de STATE-02 aprovada
+
+- Estado anterior e resultante: `STATE-02 ARCHITECTURE` ativo; Automatic
+  Quality Gate `REPROVADO` antes da execução e `APROVADO` depois dela; Human
+  Gate `PENDENTE`; sem transição.
+- Baseline confirmada antes da releitura e novamente antes do registro: branch
+  `main`, commit `3978a17201cf5f6ac4ddc189862736fc3646457b`, corpus `4.9.1`
+  e working tree limpa.
+- Autoridade humana exata:
+
+  ```text
+  Objetivo autorizado: executar localmente a nova auditoria combinada do
+  Automatic Quality Gate de STATE-02 sobre a baseline reconciliada, registrar o
+  resultado factual e criar commit documental focado, parando após o relatório.
+  ```
+
+- Escopo: inspeção documental local e rastreabilidade entre ADR-0002 e
+  ADR-0004 a ADR-0007, contratos, requisitos, lifecycle, Quality Gates,
+  arquitetura, módulo RAG, roadmap, threat model, relatório, índices, estado e
+  histórico; classificação e disposição factual dos achados anteriores.
+- Escopo negativo preservado: nenhuma implementação, rede, provider, conta,
+  GitHub, OCI, publicação, deploy, DB-Notifier, solicitação de Human Gate ou
+  autorização de `STATE-03`.
+- Runtime preflight: `NÃO APLICÁVEL`; o trabalho foi exclusivamente documental
+  e local, sem inspeção ou encerramento de processos.
+- Verificações mecânicas: PowerShell `7.6.4`, Git `2.55.0.windows.3` e ripgrep
+  `15.2.0` em `<rag-challenge-root>`; `eng/check-repository.ps1` e
+  `git diff --check` com exit `0`; 84 arquivos não ignorados, 31 Markdown, 143
+  links locais, um H1 e fences balanceadas por Markdown, sem marcador de merge;
+  cinco ADRs aceitos com status/data/autoridade únicos; catálogo idêntico
+  51/54/9; 25 RF, 18 RNF, 20 critérios, 19 itens Must, 36 threats e 15 grupos
+  de testes de segurança.
+- Verificação semântica: assertions retornaram zero falhas para separação entre
+  `sourceBindingSetDigest` e `activationBindingSetDigest`, domínios canônicos,
+  três validações pré-CAS, campos exatos de `304`/hash idêntico, revisões,
+  hard pre-filter anterior ao top-k, rollback por novo registro, proveniência,
+  status de risco e atualidade dos documentos roteados.
+- `AQG-S02-001` — `RESOLVIDO`: ADR-0007 aceito e corpus `4.9.1` tornam
+  coerentes manifesto, identidade da geração, binding completo, revalidação e
+  rollback; a contradição P1 histórica não foi reproduzida.
+- `AQG-S02-002` — `RESOLVIDO`: `THR-S02-008`, `THR-S02-014`, `THR-S02-015`
+  e a seção de aceitação de riscos distinguem a boundary arquitetural aceita
+  de controles, conta, egress, orçamento, aviso e evidência ainda ausentes.
+- `AQG-S02-003` — `RESOLVIDO`: os documentos roteados do `STATE-00` preservam
+  seu idioma e contexto proposto, mas refletem o mapa físico aceito e o status
+  aceito/condicional de administração, TLS, providers, persistência e OCI.
+- Achados novos: zero P0, zero P1, zero P2 e zero P3. As severidades anteriores
+  permanecem preservadas como evidência histórica; a auditoria não corrigiu
+  achado silenciosamente.
+- Limitações e riscos residuais: nenhuma fonte foi reconsultada; nenhum build,
+  parser, provider, conta, corpus, índice, benchmark, backup, restore, IAM,
+  egress ou runtime foi executado. Packages PDF/CSV, qualidade bilíngue,
+  capacidade do vector store, controles de segurança, dados/licenças do corpus
+  e fatos da tenancy permanecem para seus estados e autoridades próprios. Os
+  36 threats continuam requisitos de implementação/teste, e os riscos
+  residuais aceitos não habilitam egress nem provam controles.
+- Corpus: permanece `4.9.1`; o lote registra resultado factual de gate sem
+  mudar autoridade normativa, capacidade, lifecycle ou escopo funcional.
+- Validação do registro: exatamente sete arquivos documentais alterados;
+  auditoria do repositório, assertions semânticas e `git diff --check`
+  repetidos com os mesmos resultados aprovados após esta entrada.
+- Quality Gate: `APROVADO` para `STATE-02` sobre a baseline reconciliada.
+- Human Gate: permanece `PENDENTE`, não foi solicitado e não recebeu decisão.
+- Próxima condição: autoridade separada do proprietário para preparar e
+  apresentar o resumo completo do Human Gate de `STATE-02`. A aprovação
+  automática não promove o lifecycle; `STATE-03` permanece sem autorização.

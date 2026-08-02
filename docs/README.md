@@ -31,9 +31,12 @@ factualmente `AQG-S02-002` e `AQG-S02-003` e registra a proposta do ADR-0007.
 O incremento `4.9.0` registra a aceitação explícita do ADR-0007, sem executar
 a reconciliação semântica rastreada nem repetir a auditoria. O `4.9.1` aplica
 essa semântica a ADR-0002, contratos, RAG, requisitos, lifecycle, gates,
-roadmap e threat model. O Automatic Quality Gate permanece `REPROVADO` até uma
-nova auditoria separadamente autorizada; nenhuma dessas mudanças autoriza
-implementação, Human Gate ou `STATE-03`.
+roadmap e threat model. A nova auditoria combinada sobre
+`main@3978a17201cf5f6ac4ddc189862736fc3646457b`, corpus `4.9.1`, aprovou o
+Automatic Quality Gate, dispôs `AQG-S02-001` a `AQG-S02-003` como
+`RESOLVIDOS` e não encontrou novo achado classificado. O Human Gate permanece
+`PENDENTE` e não solicitado; nenhuma dessas mudanças autoriza implementação ou
+`STATE-03`.
 
 ## Comece aqui
 
@@ -67,7 +70,7 @@ implementação, Human Gate ou `STATE-03`.
 - [ADR-0005 — MVP Providers, Persistence and OCI Deployment](architecture/ADR-0005-MVP-Providers-Persistence-And-OCI-Deployment.md)
 - [ADR-0006 — Security, Egress, Administration and HTTP Contracts](architecture/ADR-0006-Security-Egress-Administration-And-HTTP-Contracts.md)
 - [ADR-0007 — Generation Identity and Freshness Observation Rebinding](architecture/ADR-0007-Generation-Identity-And-Freshness-Observation-Rebinding.md)
-  (`accepted`; semantic reconciliation applied; renewed audit pending)
+  (`accepted`; semantic reconciliation applied; renewed audit approved)
 - [Contratos canônicos de STATE-02](architecture/STATE-02-Canonical-Contracts.md)
 - [Threat model de STATE-02](security/STATE-02-Threat-Model.md)
 

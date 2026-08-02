@@ -18,8 +18,11 @@ between observation-inclusive generation identity and observation-only
 freshness rebinding. The owner accepted ADR-0007 explicitly on 2026-08-02. It
 now supersedes the conflicting generation-identity and exact-record rollback
 clauses of ADR-0002. Corpus `4.9.1` applies the traced semantic reconciliation;
-the failed gate is unchanged until a separately authorised combined audit
-disposes the historical finding.
+the separately authorised renewed audit on
+`main@3978a17201cf5f6ac4ddc189862736fc3646457b` approved the Automatic
+Quality Gate, disposed `AQG-S02-001` to `AQG-S02-003` as `RESOLVED` and found
+no new classified finding. The Human Gate remains pending and was not
+requested.
 
 The owner has independently fixed the query-language boundary to `pt-BR` and
 `en-GB`: answers use the declared question language and source-derived
@@ -159,8 +162,8 @@ Dashboard -- versioned HTTP --> API
 - [ADR-0006 — Security, Egress, Administration and HTTP Contracts](ADR-0006-Security-Egress-Administration-And-HTTP-Contracts.md)
   (`accepted`; profiles remain disabled and untested)
 - [ADR-0007 — Generation Identity and Freshness Observation Rebinding](ADR-0007-Generation-Identity-And-Freshness-Observation-Rebinding.md)
-  (`accepted`; corrective semantic reconciliation applied, renewed audit
-  pending for `AQG-S02-001`)
+  (`accepted`; corrective semantic reconciliation applied and renewed audit
+  approved)
 
 ## STATE-02 design artefacts
 
@@ -190,13 +193,12 @@ Dashboard -- versioned HTTP --> API
 - OCI tenancy capacity, entitlement, IAM enforcement, effective billing and
   restore evidence for the accepted conditional target.
 - The extensible evaluation dataset and thresholds frozen before scored runs.
-- A new separately authorised combined `STATE-02` audit of the reconciled
-  ADR-0007 baseline before any Human Gate. The source documents for
-  `AQG-S02-002` and
-  `AQG-S02-003` have been factually reconciled, but the failed gate remains
-  unchanged until that audit.
+- A complete `STATE-02` Human Gate summary, prepared and presented only under
+  separate owner authority. The approved Automatic Quality Gate does not
+  request or decide that Human Gate.
 
-ADR-0007 and corpus `4.9.1` supply the material decision and documentary
-change required by `AQG-S02-001`; only the next authorised combined audit may
-dispose the historical finding. The other inputs do not reopen the accepted
-architecture merely by remaining conditional or unverified.
+ADR-0007 and corpus `4.9.1` supplied the material decision and documentary
+change required by `AQG-S02-001`; the renewed audit disposed all three
+historical findings without altering the accepted architecture. The other
+inputs do not reopen that architecture merely by remaining conditional or
+unverified.

@@ -26,6 +26,7 @@ deployment, CD and DB-Notifier changes.
 | Corrective proposal baseline | `9707b87d75a6acb14c8993ff0283a4221bc6c762` |
 | ADR-0007 decision baseline | `664187c6926be5ce4bef3734603f8d936626d535` |
 | ADR-0007 semantic-reconciliation baseline | `9aa90c012e3bc973330f5a79678fc358c81809df` |
+| Renewed combined-audit baseline | `3978a17201cf5f6ac4ddc189862736fc3646457b` |
 | External-verification baseline | `8ba91889c0517d78747ae2980fb766c36268edf6` |
 | External-verification completion baseline | `f1066c3509f5f48d4fe6e21c9e36403e642c1431` |
 | Direct-URL verification resumption baseline | `e80f8c41bea3f28deff3d8cdccafccbca5dcc016` |
@@ -813,18 +814,98 @@ threat and security-test counts, and separately confirmed that the State
 Transition Log retained its entire prior content unchanged before the new
 entry.
 
+## Renewed combined audit after ADR-0007 reconciliation
+
+### Authority, baseline and method
+
+The owner separately authorised a new combined local documentary Automatic
+Quality Gate audit of the reconciled `STATE-02` baseline and its factual
+registration. The authority excluded implementation, network/provider/account
+access, GitHub, OCI, DB-Notifier changes, publication, deployment, a Human Gate
+request and `STATE-03` authorisation.
+
+The audit started from clean `main` at
+`3978a17201cf5f6ac4ddc189862736fc3646457b`, instruction corpus `4.9.1`. The
+first recorded command instant was `2026-08-02T12:23:41.9941263Z`. PowerShell
+`7.6.4`, Git `2.55.0.windows.3` and ripgrep `15.2.0` performed the checks from
+`<rag-challenge-root>`. Runtime preflight remained `NÃO APLICÁVEL` because the
+audit changed or validated no executable behaviour.
+
+The audit reread the complete governing, lifecycle, state/history, accepted
+ADR, canonical-contract, requirement, architecture, RAG, roadmap, threat and
+report baseline. It then re-executed repository checks and traced the two
+canonical digest domains, generation identity, observation freshness,
+activation, rollback, provenance and the three historical findings across
+their owning artefacts.
+
+### Results by gate
+
+| Gate area | Result | Observed evidence |
+|---|---|---|
+| Baseline and authority | `APROVADO` | Branch `main`, commit, corpus `4.9.1` and clean working tree matched the authorised baseline before inspection and again before registration. |
+| Repository structure and hygiene | `APROVADO` | `eng/check-repository.ps1` returned exit `0` for 84 non-ignored files. All 31 Markdown files had one H1 and balanced fences; 143 local links resolved; UTF-8/LF, final newline, trailing whitespace, ignored-material, common-secret, merge-marker and diff-hygiene checks passed. |
+| ADR decision state | `APROVADO` | ADR-0002 and ADR-0004 to ADR-0007 each contain exactly one `accepted` status, one acceptance date and one decision-authority field; no `proposed` status remains in those records. |
+| Catalogue, requirements and test traceability | `APROVADO` | The vision and ADR-0004 retain identical ordered catalogues with 51 unique products, 54 assignments and 9 categories; only Redis, SAP HANA and SingleStore occur twice. Counts remain 25 RF, 18 RNF, 20 acceptance criteria, 19 Must backlog items, 36 unique threats and 15 unique security-test groups. |
+| PDF/CSV, providers, persistence, OCI and egress | `APROVADO` for documentary qualification | PDF/CSV adapters, conditional package selection, bounded provider disclosure, durable catalogue/content/vector persistence, conditional OCI targets and four deny-by-default egress profiles remain explicit and are not represented as installed, enabled or runtime-verified. |
+| Digest domains and generation identity | `APROVADO` | `sourceBindingSetDigest` excludes `sourceObservationId`; `activationBindingSetDigest` covers the complete binding. Distinct version discriminators, fixed field/order/null encoding, duplicate rejection and the three pre-CAS projection validations are defined consistently. |
+| Freshness, activation and rollback | `APROVADO` | Compatible `304`/identical-hash rebinding changes the complete activation record and its digest while preserving the exact generation-bound fields. Query uses one resolved record and hard pre-filters eligible generation-bound selectors before top-k. Rollback constructs a new record with explicitly selected compatible/currently eligible observations and never replays historical freshness. |
+| Provenance, security and routed-document currency | `APROVADO` | Citation/coverage contracts preserve source, snapshot, observation and trust. The threat register distinguishes accepted risk boundaries from missing controls/evidence, and routed foundation documents use the accepted ADR-0003 physical map and conditional provider/persistence/OCI status. |
+| Executable, provider, account and remote checks | `NÃO APLICÁVEL` | No build, parser, provider, account, corpus, index, source fetch, OCI action or external mutation was authorised or performed. |
+
+### Historical finding disposition
+
+| Finding | Previous severity | Disposition | Factual basis |
+|---|---|---|---|
+| `AQG-S02-001` | `P1 Alta` | `RESOLVED` | Accepted ADR-0007 and corpus `4.9.1` separate generation-bound and activation-bound identity, define exact canonical domains and field transitions, and reconcile query/rollback semantics. The former contradiction is not reproducible. |
+| `AQG-S02-002` | `P2 Média` | `RESOLVED` | `THR-S02-008`, `THR-S02-014`, `THR-S02-015` and the risk-acceptance section now record the accepted architecture boundaries while keeping control, account, egress, budget, notice and runtime evidence open. |
+| `AQG-S02-003` | `P3 Baixa` | `RESOLVED` | The routed `STATE-00` documents preserve their language and proposal context while pointing to the accepted physical map and accepted/conditional administration, TLS, provider, persistence and OCI decisions. |
+
+The earlier severities remain historical evidence in the first combined-audit
+section. This audit observed zero new P0, P1, P2 or P3 findings and did not
+silently correct a finding.
+
+### Limitations and residual risks
+
+- Existing public-source evidence was inspected only from the repository; no
+  source was re-fetched and no current external fact was inferred.
+- Exact PDF/CSV package versions, parser quality/security, provider account
+  entitlement, spend controls and bilingual runtime behaviour remain
+  unverified.
+- The representative `SqliteExactVectorStore` envelope, restart, concurrency,
+  corruption, application-consistent backup and restore remain untested.
+- OCI tenancy capacity, entitlement, IAM enforcement, effective billing,
+  egress and recovery remain unverified.
+- No authorised product document set, complete per-document rights evidence,
+  evaluation dataset, active corpus or index exists.
+- The 36 threats remain design requirements until their owning states
+  implement and test the controls. Accepted TLS, provider-disclosure and
+  conditional OCI risk boundaries neither enable egress nor prove control
+  effectiveness.
+
+### Pending conditions and registration validation
+
+The Automatic Quality Gate for `STATE-02` is approved on this documentary
+baseline. The Human Gate remains `PENDENTE` and was not requested by this
+audit. `STATE-02` remains active and `STATE-03` remains unauthorised. Preparing
+and presenting a complete Human Gate summary requires separate owner authority;
+state progression still requires the explicit Human Gate and its factual
+append-only registration.
+
+The result-registration diff changed exactly seven documentary files. The
+post-registration repository audit returned exit `0` for 84 non-ignored files
+and 31 Markdown files; all 143 local links resolved, every Markdown file had
+one H1 and balanced fences, semantic assertions returned zero failures, and
+`git diff --check` returned exit `0`.
+
 ## Current gate assessment
 
-Automatic Quality Gate for `STATE-02`: `REPROVADO`. The combined audit was
-executed against the accepted baseline and found one P1, one P2 and one P3
-finding. Accepted ADR-0007 and corpus `4.9.1` now correct and reconcile the
-documentary decision model for `AQG-S02-001`. The source text for
-`AQG-S02-002` and `AQG-S02-003` is factually reconciled. No finding has a new
-gate disposition until a separately authorised combined audit evaluates the
-complete corrected baseline.
+Automatic Quality Gate for `STATE-02`: `APROVADO`. The renewed combined audit
+disposed `AQG-S02-001`, `AQG-S02-002` and `AQG-S02-003` as `RESOLVED` and
+observed zero new P0, P1, P2 or P3 findings. The approval applies to the
+documentary architecture baseline only and does not convert any accepted
+decision into implementation or runtime evidence.
 
-Human Gate for `STATE-02`: `PENDENTE` and must not be requested while the
-Automatic Quality Gate has result `REPROVADO`.
+Human Gate for `STATE-02`: `PENDENTE` and not requested by this audit.
 
 `STATE-02 ARCHITECTURE` remains active. `STATE-03 DATA_AND_INDEX_MODELING` is
 not authorised.

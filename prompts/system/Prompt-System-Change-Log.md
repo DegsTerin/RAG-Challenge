@@ -4,8 +4,8 @@
 
 - Versão: `4.9.1`
 - Data: 2026-08-02
-- Status: ADR-0007 aceito e baseline semântica reconciliada; nova auditoria
-  ainda pendente; Automatic Quality Gate de `STATE-02` permanece `REPROVADO`
+- Status: ADR-0007 aceito, baseline semântica reconciliada e nova auditoria
+  combinada `APROVADA`; Human Gate de `STATE-02` permanece `PENDENTE`
 - Escopo: 13 arquivos ativos em `prompts/`
 
 A versão do corpus é independente da versão futura do software.

@@ -37,8 +37,12 @@ proprietários.
   independente de ADR-0002 e ADR-0004 a ADR-0006 foi registrada como corpus
   `4.8.0` (`MINOR`). A auditoria combinada posterior foi executada sobre
   `main@a01a765d177efb6c4013c6846c5f54c8adbe7e0f` e resultou
-  `REPROVADA`, com um achado P1, um P2 e um P3. Nenhum desses incrementos
-  transitou o lifecycle ou aceitou ADR por implicação.
+  `REPROVADA`, com um achado P1, um P2 e um P3. Depois da aceitação e
+  reconciliação do ADR-0007, a nova auditoria combinada sobre
+  `main@3978a17201cf5f6ac4ddc189862736fc3646457b`, corpus `4.9.1`, resultou
+  `APROVADA`, dispôs os três achados como `RESOLVIDOS` e não encontrou novo
+  P0, P1, P2 ou P3. Nenhum desses incrementos transitou o lifecycle ou aceitou
+  ADR por implicação.
 - Human Gate de `STATE-00`: `APROVADO` sem ressalvas em 2026-07-30.
 - `GATE-B01`: `APROVADO` sem ressalvas em 2026-07-30.
 - Transição para `STATE-01 PROJECT_SETUP`: autorizada em 2026-07-30.
@@ -67,34 +71,40 @@ proprietários.
   explicitamente e de forma independente ADR-0002 e ADR-0004 a ADR-0006 sobre
   `main@39e2f803bf73cb4e2b59e56a0596e2858a3aed51`, corpus `4.7.0`; nenhuma
   escolha decorreu de outra e nada foi implementado por implicação.
-- Automatic Quality Gate de `STATE-02`: `REPROVADO` após a auditoria combinada
-  da baseline aceita. `AQG-S02-001` identifica contradição P1 entre a inclusão
-  da observação de freshness no digest/identidade da geração e a troca somente
-  do binding de observação sem nova geração. `AQG-S02-002` registra como P2
-  três riscos ainda marcados como decisão humana pendente apesar da aceitação
-  explícita, e `AQG-S02-003` registra como P3 drift de status em documentos
-  propostos do `STATE-00`. Human Gate de `STATE-02`: `PENDENTE` e não pode ser
-  solicitado com o gate automático reprovado.
+- Automatic Quality Gate de `STATE-02`: `APROVADO` após nova auditoria
+  combinada da baseline reconciliada
+  `main@3978a17201cf5f6ac4ddc189862736fc3646457b`, corpus `4.9.1`.
+  `AQG-S02-001` (P1), `AQG-S02-002` (P2) e `AQG-S02-003` (P3), registrados
+  historicamente pela auditoria anterior, foram dispostos como `RESOLVIDOS`;
+  a nova auditoria não encontrou novo P0, P1, P2 ou P3. Human Gate de
+  `STATE-02`: `PENDENTE` e não solicitado.
 - Lote corretivo de `STATE-02`: sobre
   `main@9707b87d75a6acb14c8993ff0283a4221bc6c762`, corpus `4.8.0`, foi
   preparado o ADR-0007, recomendando separar identidade de geração
   e identidade do registro de ativação. As fontes de `AQG-S02-002` e
   `AQG-S02-003` foram reconciliadas factualmente, sem registrar aceitação do
   ADR, alterar os contratos semânticos aceitos ou repetir o Automatic Quality
-  Gate. O resultado do gate permanece `REPROVADO`.
+  Gate. Nesse lote, o resultado do gate permaneceu `REPROVADO`.
 - Decisão corretiva de `STATE-02`: em 2026-08-02, sobre
   `main@664187c6926be5ce4bef3734603f8d936626d535`, corpus `4.8.1`, o
   proprietário aceitou explicitamente o ADR-0007 com a decisão
   `ADR-0007: ACEITAR.`. A aceitação corrige a autoridade arquitetural de
   identidade/freshness e rollback, mas não autoriza nem executa a
-  reconciliação semântica rastreada, não dispõe `AQG-S02-001` e não repete o
-  Automatic Quality Gate.
+  reconciliação semântica rastreada, não dispôs `AQG-S02-001` naquele registro
+  e não repetiu o Automatic Quality Gate.
 - Reconciliação semântica de `STATE-02`: em 2026-08-02, a partir de
   `main@9aa90c012e3bc973330f5a79678fc358c81809df`, corpus `4.9.0`, a
   semântica aceita do ADR-0007 foi aplicada transversalmente ao baseline
-  documental como corpus `4.9.1`. O trabalho não repetiu o Automatic Quality
-  Gate: o resultado continua `REPROVADO`, e nenhum achado histórico recebeu
-  nova disposição.
+  documental como corpus `4.9.1`. Esse lote não repetiu o Automatic Quality
+  Gate; o resultado então permaneceu `REPROVADO` e os achados ainda não
+  receberam nova disposição.
+- Nova auditoria combinada de `STATE-02`: em 2026-08-02, sobre a baseline limpa
+  `main@3978a17201cf5f6ac4ddc189862736fc3646457b`, corpus `4.9.1`, todas as
+  áreas documentais aplicáveis foram `APROVADAS`. Os dois domínios de digest,
+  três validações pré-CAS, revalidação, hard pre-filter, rollback, proveniência,
+  riscos e documentos roteados convergem; `AQG-S02-001` a `AQG-S02-003` estão
+  `RESOLVIDOS`, sem novo achado classificado. O trabalho não implementou nem
+  executou comportamento, não solicitou Human Gate e não autorizou `STATE-03`.
 - ADR-0001: `superseded` pelo ADR-0003, após aceitação original no
   `GATE-B01`; ADR-0002: `accepted`; ADR-0003: `accepted` pela solicitação
   humana explícita de renomear o projeto para `RAG-Challenge`, incorporando
@@ -206,9 +216,10 @@ proprietários.
   compatíveis e atualmente elegíveis. ADR-0002, contratos canônicos,
   arquitetura da solução, módulo RAG, requisitos, lifecycle, Quality Gates,
   roadmap, threat model e registros factuais agora convergem. A validação
-  dirigida não repetiu o gate nem comprovou implementação; `AQG-S02-001`
-  continua sem nova disposição até a auditoria combinada separadamente
-  autorizada.
+  dirigida não repetiu o gate nem comprovou implementação. A nova auditoria
+  combinada posterior dispôs `AQG-S02-001`, `AQG-S02-002` e `AQG-S02-003`
+  como `RESOLVIDOS` e aprovou a baseline documental, sem comprovar
+  implementação.
 - A arquitetura adota princípios compatíveis com o DB-Notifier sem criar
   referência ou dependência entre os projetos.
 - O Human Gate de `STATE-00` foi confirmado na conversa coordenadora que
@@ -336,11 +347,9 @@ autorizada.
 
 ## Evidências e decisões futuras pendentes
 
-1. Autorizar e repetir a auditoria combinada sobre a baseline limpa já
-   reconciliada com os dois domínios de digest do ADR-0007 antes de preparar
-   qualquer Human Gate. As fontes de `AQG-S02-002` e
-   `AQG-S02-003` já receberam reconciliação factual, ainda sem nova disposição
-   de gate.
+1. Preparar e apresentar o resumo completo do Human Gate de `STATE-02` somente
+   sob autoridade separada do proprietário. A auditoria atual não solicitou o
+   gate e não registrou decisão humana.
 2. Fornecer ou autorizar documentos PDF/CSV, direitos, proveniência e idioma
    para cada banco antes de sua ativação.
 3. Validar e ativar individualmente novos registros de fonte oficial; a
@@ -364,11 +373,11 @@ autorizada.
 
 ## Próxima autoridade
 
-Autorizar separadamente uma nova auditoria combinada sobre a baseline limpa
-reconciliada. Fatos dependentes de conta, entitlement, capacidade, spike ou
-runtime permanecem para autoridades futuras próprias e não substituem essa
-correção. O Human Gate e o
-encerramento de `STATE-02` continuam exigindo novo Automatic Quality Gate
-aprovado e resumo completo próprios. `STATE-03`, GitHub, OCI, publicação,
+Uma solicitação separada do proprietário pode autorizar a preparação e
+apresentação do resumo completo do Human Gate de `STATE-02` sobre a baseline
+vigente. A auditoria aprovada não solicita nem decide esse gate. Fatos
+dependentes de conta, entitlement, capacidade, spike ou runtime permanecem
+para autoridades futuras próprias. `STATE-03`, GitHub, OCI, publicação,
 deploy, demais ações externas e mudanças no DB-Notifier continuam sem
-autorização.
+autorização; qualquer transição ainda exige Human Gate explícito, registro
+append-only e autoridade própria.

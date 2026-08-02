@@ -22,8 +22,11 @@ em linguagem natural, com respostas fundamentadas e referências às fontes.
 > ADR-0007, e o proprietário o aceitou explicitamente em 2026-08-02 para
 > corrigir o modelo decisório do P1. O corpus `4.9.1` aplicou a reconciliação
 > semântica correspondente aos documentos aceitos; as fontes do P2/P3 também
-> estão reconciliadas factualmente. A auditoria não foi repetida, nenhum achado
-> recebeu nova disposição e o resultado do gate continua `REPROVADO`.
+> estão reconciliadas factualmente. A nova auditoria combinada sobre
+> `main@3978a17201cf5f6ac4ddc189862736fc3646457b`, corpus `4.9.1`, aprovou o
+> Automatic Quality Gate, dispôs `AQG-S02-001` a `AQG-S02-003` como
+> `RESOLVIDOS` e não encontrou novo P0, P1, P2 ou P3. O Human Gate permanece
+> `PENDENTE`, não foi solicitado, e `STATE-03` continua sem autorização.
 
 ## Problema
 
