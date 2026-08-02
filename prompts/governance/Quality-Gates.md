@@ -83,13 +83,13 @@ Um lote está pronto quando:
 | Unitário | Invariantes, versionamento, hashing, políticas, limites e falhas. |
 | Arquitetura | Dependências para dentro e superfícies proibidas. |
 | Contrato | Adapters PDF/CSV, catálogo, conteúdo bruto, embeddings, vetor, LLM, OpenAPI e API. |
-| Integração | Persistência, geração/ativação atômica, rollback, restart e HTTP. |
+| Integração | Persistência, digests separados de geração/ativação, rebinding de observação, ativação atômica, rollback por novo registro, restart e HTTP. |
 | RAG evaluation | Recuperação, groundedness, citações, recusa e matriz `pt-BR`/`en-GB` entre pergunta e evidência. |
 | Segurança | PDF/CSV malicioso, poisoning de registro, prompt injection, SSRF, source leakage, secrets e abuso. |
 | Acessibilidade | Teclado, foco, semântica, contraste, reflow, localização `pt-BR`/`en-GB` e temas `Light`/`Dark`. |
 | E2E | Documento até resposta e deploy até smoke. |
 | Performance | Latência, limites, memória, custo e carga definidos. |
-| Recuperação | Falha de indexação, geração incompatível e rollback. |
+| Recuperação | Falha de indexação, geração incompatível, mismatch de observação e rollback sem replay de freshness. |
 
 Testes padrão usam fixtures sintéticas ou corpus pequeno autorizado e não
 dependem de rede ou cobrança. Testes externos são opt-in, isolados e exigem
@@ -184,8 +184,8 @@ coordenação ou validação.
 |---|---|
 | `STATE-01` | Clone/bootstrap limpo, lockfiles, configuração, CI e ausência de domínio prematuro. |
 | `STATE-02` | ADRs, contratos, threat model, providers, catálogo inicial 51/54/9, PDF/CSV, fontes/licenças/allowlists, contrato `pt-BR`/`en-GB`, quatro políticas de egress, persistência durável, erros/readiness/OpenAPI e rollback. |
-| `STATE-03` | Constraints, bancos/categorias/documentos/estados, conteúdo reabrível, hashes, snapshots, observações/freshness, bindings/digests, staging não consultável, manifesto íntegro, retenção, migrations e `CorpusActivationRecord` atômico. |
-| `STATE-04` | Arquitetura, administração de bancos/documentos, parsers PDF/CSV, sync oficial manual, `304`/hash idêntico, hard pre-filter antes do top-k, recuperação unificada, OpenAPI, contrato bilíngue, citações, recusa, idempotência, falhas e adapters. |
+| `STATE-03` | Constraints, bancos/categorias/documentos/estados, conteúdo reabrível, hashes, snapshots, journal de observações/freshness separado de `catalogueRevision`, vetores canônicos para `sourceBindingSetDigest` sem observação e `activationBindingSetDigest` completo, staging não consultável, três validações de projeção, manifesto íntegro, retenção, migrations e `CorpusActivationRecord` atômico; rollback constrói registro novo com observações compatíveis/elegíveis. |
+| `STATE-04` | Arquitetura, administração de bancos/documentos, parsers PDF/CSV, sync oficial manual, `304`/hash idêntico com campos preservados/alterados exatos, rejeição de mismatch, retry idempotente, hard pre-filter de bindings elegíveis antes do top-k, recuperação unificada, OpenAPI, contrato bilíngue, citações, recusa, falhas e adapters. |
 | `STATE-05` | Cobertura/proveniência, `interfaceLanguage` `pt-BR`/`en-GB`, temas `Light`/`Dark`, independência de `questionLanguage`, freshness, estados de UI, teclado, contraste e acessibilidade. |
 | `STATE-06` | E2E com HTTP falso, smoke real opt-in autorizado, restart, artefato e sandbox OCI. |
 | `STATE-07` | Dataset estratificado por banco/documento/formato, matriz `pt-BR`/`en-GB`, source leakage, DNS rebinding/pinning/redirect, stale, groundedness, carga, crash boundaries e recuperação. |
@@ -275,7 +275,9 @@ Human Gate.
 - `STATE-00`: revisar escopo, riscos, arquitetura, ADRs e backlog.
 - `STATE-01`: repetir onboarding, build e testes de clone limpo.
 - `STATE-02`: walkthrough de threats, providers, catálogo, formatos, fontes e rollback.
-- `STATE-03`: revisar bancos/categorias/documentos, snapshots, bindings, geração e recuperação.
+- `STATE-03`: revisar bancos/categorias/documentos, snapshots, os dois domínios
+  de digest, journal de observações, geração, novo registro de rollback e
+  recuperação.
 - `STATE-04`: administração, sync oficial, perguntas por banco/formato/idioma,
   recuperação unificada,
   citações no idioma original, sem evidência e falhas.
@@ -284,6 +286,7 @@ Human Gate.
   ausência de mistura, contraste, freshness, teclado, reflow, citações e
   erros.
 - `STATE-06`: fluxo PDF/CSV local/oficial, restart e configuração de ambiente.
-- `STATE-07`: amostra por banco/documento/formato e pelos quatro pares `pt-BR`/`en-GB`, SSRF,
-  stale, ataque, carga e rollback.
+- `STATE-07`: amostra por banco/documento/formato e pelos quatro pares
+  `pt-BR`/`en-GB`, SSRF, stale, mismatch/rebinding de observação, ataque, carga
+  e rollback sem replay de freshness.
 - `STATE-08`: egress, deploy, smoke, health e recuperação.

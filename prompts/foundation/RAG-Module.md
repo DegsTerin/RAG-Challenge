@@ -2,8 +2,9 @@
 
 ## Status
 
-Contrato arquitetural proposto para o MVP e sua evolução. Nenhum pipeline,
-provider, índice, corpus ou modelo está implementado ou ativo.
+Contrato arquitetural vigente para o MVP e sua evolução, reconciliado com os
+ADRs aceitos. Nenhum pipeline, provider, índice, corpus ou modelo está
+implementado ou ativo.
 
 ## Objetivo e limites
 
@@ -146,9 +147,14 @@ logicalArtifactDigest
 ```
 
 O `activeDocumentSetDigest` cobre a lista ordinal de banco/revisão,
-documento/versão e formato. O `sourceBindingSetDigest` cobre origem, trust,
-registro de fonte, snapshot e observação aplicáveis, inclusive para que a
-proveniência local permaneça explícita.
+documento/versão e formato. O `sourceBindingSetDigest` cobre a projeção
+generation-bound ordinal de banco/revisão, documento/versão/formato,
+`sourceAdapterId`, trust, registro de fonte imutável/versionado e snapshot
+imutável. `sourceObservationId` é excluído de `sourceBindingSetDigest`,
+`generationSpecDigest`, digest do manifesto completo e `IndexGenerationId`.
+A sobreposição entre os dois digests é deliberada: um prova o conjunto de
+documentos e o outro prova origem, trust, registro e snapshot materializados
+nos artefatos e citações.
 
 `generationSpecDigest` é o SHA-256 da representação canônica dos sete primeiros
 campos do manifesto e identifica a especificação de build. O candidato usa um
@@ -163,6 +169,14 @@ serialização UTF-8 e ordenação ordinal de conjuntos. O
 mesmos artefatos lógicos produzem a mesma identidade; outputs diferentes nunca
 colidem sob um ID já finalizado. `createdAt`, status operacional e observações
 de freshness são metadados fora do digest de conteúdo.
+
+O binding completo pertence ao registro de ativação e é protegido por
+`activationBindingSetDigest`. Esse digest cobre a mesma projeção ordinal de
+fonte e acrescenta `sourceObservationId`; usa domínio canônico versionado
+distinto, propriedades fixas, UTF-8, ordem ordinal e null inequívoco. Alterar
+somente a observação muda o digest do registro, mas não os digests do
+manifesto nem `IndexGenerationId`. Alterar snapshot, adapter, trust, registro
+imutável, documento ou compatibilidade exige nova geração.
 
 O `STATE-03` fecha staging e finalização idempotentes. A ativação só admite
 manifesto finalizado após conferir contagens, digest dos payloads produzidos e
@@ -199,7 +213,7 @@ silenciosa de artefatos incompatíveis.
 | `IDocumentParser` | Transformar bytes validados em unidades textuais e localização. |
 | `IChunkingStrategy` | Produzir chunks determinísticos e versionados. |
 | `IEmbeddingProvider` | Gerar vetores com descriptor de modelo e dimensão. |
-| `IVectorStore` | Escrever gerações imutáveis e consultar por `VectorSearchRequest` com `CorpusId`, `IndexGenerationId` e filtros administrativos opcionais; provar hard pre-filter antes do top-k e não gerir ativação. |
+| `IVectorStore` | Escrever gerações imutáveis e consultar por `VectorSearchRequest` com `CorpusId`, `IndexGenerationId`, seletores generation-bound elegíveis e filtros administrativos opcionais; provar hard pre-filter antes do top-k e não gerir ativação. |
 | `ILanguageModel` | Gerar resposta limitada ao prompt e às evidências. |
 | `IDocumentContentStore` | Persistir e reabrir bytes imutáveis content-addressed de versões locais e snapshots oficiais. |
 | `IDocumentCatalog` | Persistir identidades, versões, proveniência e estado. |
@@ -236,11 +250,12 @@ recordRevision
 previousRecordRevision?
 indexGenerationId
 catalogueRevision
+activationBindingSetDigest
 documentBindings[]
   databaseProductId/databaseProductRevision
   documentId/documentVersion/documentFormat
   sourceTrustClass/sourceAdapterId
-  officialSourceRegistrationId?/snapshotId?/observationId?
+  officialSourceRegistrationId?/sourceSnapshotId?/sourceObservationId?
 generationActivatedAt
 recordUpdatedAt
 ```
@@ -248,12 +263,21 @@ recordUpdatedAt
 O compare-and-swap altera o registro inteiro em uma transação do plano de
 controle que também preserva as representações completas anterior e nova no
 histórico versionado de ativação e grava o evento de auditoria sanitizado. Cada
-binding é ordenado ordinalmente e coberto pelos digests do manifesto.
-Observações e snapshots oficiais já devem existir imutavelmente antes da
-transação. Falha ou conflito deixa registro e histórico anteriores intactos;
-conteúdo, observações e vetores candidatos permanecem órfãos auditáveis até
-cleanup explícito. A consulta lê o registro corrente uma vez e não combina a
-geração com estado de catálogo ou “última observação” obtidos separadamente.
+binding é ordenado ordinalmente. `activeDocumentSetDigest` e
+`sourceBindingSetDigest`, sem observação, precisam corresponder ao manifesto;
+`activationBindingSetDigest`, com observação, precisa corresponder ao registro.
+Cada observação oficial já deve existir imutavelmente e nomear o mesmo registro
+e snapshot do binding antes da transação. Falha ou conflito deixa registro e
+histórico anteriores intactos; conteúdo, observações e vetores candidatos
+permanecem órfãos auditáveis até cleanup explícito. A consulta lê o registro
+corrente uma vez e não combina a geração com estado de catálogo ou “última
+observação” obtidos separadamente.
+
+`catalogueRevision` identifica o snapshot imutável do catálogo que integra a
+especificação da geração. O journal append-only de observações possui revisão
+própria. Rebinding de freshness avança o journal e `recordRevision`, nunca a
+`catalogueRevision`; versão transacional interna de uma linha também não se
+confunde com essa revisão canônica.
 
 ## Fontes locais e externas
 
@@ -322,9 +346,11 @@ Sincronização oficial é um caso de uso administrativo manual por registro:
    aprovado preservando host/SNI, sem egress lateral da validação TLS;
 3. fazer request condicional usando os validators do binding ativo e persistir
    os validators enviados/recebidos e o status; redirects ficam desativados;
-4. em `304` ou hash idêntico, persistir observação imutável e atualizar somente
-   o binding correspondente por compare-and-swap quando ele já referenciar o
-   snapshot e a geração compatíveis; caso contrário, reconstruir candidata;
+4. em `304` ou hash idêntico, persistir observação imutável e, somente quando
+   ela nomear o mesmo registro imutável e snapshot do manifesto ativo, criar
+   nova revisão completa do registro com `sourceObservationId` e
+   `activationBindingSetDigest` recalculado; publicar por compare-and-swap com
+   auditoria atômica ou falhar fechado;
 5. para conteúdo novo, baixar para quarentena, limitar bytes e trabalho de
    parser, validar PDF/CSV, calcular hash, persistir/reabrir o snapshot e criar
    uma versão documental `Candidate`;
@@ -336,8 +362,10 @@ Uma resposta autoritativa `404`/`410`, quando assim definida pela política da
 fonte, cria observação `Withdrawn` vinculada ao snapshot ativo. Uma operação
 administrativa explícita e auditada cria observação `Deactivated` sem fetch.
 Nos dois casos, o compare-and-swap muda somente o binding do registro
-compatível e preserva geração/snapshot quando o documento deixa de ser
-elegível apenas por freshness; nenhuma reindexação ocorre. Falha
+compatível, o digest/revisão do registro e a auditoria. Preserva manifesto,
+`sourceBindingSetDigest`, `generationSpecDigest`, `IndexGenerationId`,
+`catalogueRevision`, `generationActivatedAt` e snapshot quando o documento
+deixa de ser elegível apenas por freshness; nenhuma reindexação ocorre. Falha
 transitória de DNS/transporte/`5xx` registra a tentativa, mas não substitui uma
 observação `Current`; o snapshot passa a `Stale` pelo `maxAge`. Voltar a
 `Current` exige nova sincronização/revalidação elegível e, após
@@ -360,7 +388,7 @@ O MVP mantém o fluxo simples:
 4. construir uma geração única com todos os chunks elegíveis e metadados de
    banco, documento, formato, origem e confiança;
 5. validar manifesto, referências reabríveis, compatibilidade, elegibilidade,
-   cobertura e smoke queries;
+   cobertura, os dois domínios de binding e smoke queries;
 6. trocar por compare-and-swap o `CorpusActivationRecord` completo no
    `IIndexGenerationStore`, incluindo todos os bindings documentais;
 7. manter a geração ativa e ao menos uma geração anterior validada até cleanup
@@ -383,7 +411,8 @@ Invariantes da geração conjunta:
 - a saída do último documento ativo exige desativação explícita e atômica do
   banco;
 - `VectorSearchRequest` exige `CorpusId` e `IndexGenerationId`; filtros
-  administrativos declarados também são aplicados antes do top-k;
+  administrativos declarados e os seletores de bindings elegíveis derivados do
+  registro resolvido também são aplicados antes do top-k;
 - post-filter depois de busca global é violação de contrato;
 - rollback troca a geração inteira; rollback parcial cria uma nova candidata;
 - freshness oficial é metadado revalidado fora do índice e não volta a
@@ -413,15 +442,25 @@ Requisitos:
 
 ## Rollback
 
-Rollback de índice usa como alvo uma revisão anterior completa e preservada do
-`CorpusActivationRecord`, ainda compatível e verificada, e cria a nova revisão
-corrente por compare-and-swap. Não edita vetores no lugar nem combina a
-geração anterior com um vínculo oficial arbitrário.
+Rollback de índice usa como alvo uma geração anterior preservada, validada e
+sua projeção generation-bound completa. A operação nunca restaura bytes de um
+`CorpusActivationRecord` histórico. Ela constrói nova revisão corrente,
+recalcula `activationBindingSetDigest` e publica por compare-and-swap. Não edita
+vetores no lugar nem combina a geração anterior com um vínculo oficial
+arbitrário.
+
+Para cada registro/snapshot oficial do alvo, a transação administrativa recebe
+e valida explicitamente uma observação append-only já existente, compatível e
+elegível pela política atual; não seleciona “a mais recente” implicitamente. Se
+o conjunto não mantiver cada banco ativo com evidência elegível, o rollback é
+rejeitado sem alterar o registro corrente. Observações históricas nunca têm
+timestamp, `maxAge` ou estado reescritos; corrigir uma observação exige novo
+append e nova revisão de ativação.
 
 Rollback de documento seleciona uma versão anterior e cria nova candidata para
 o manifesto completo. Uma geração anterior só pode ser reativada quando o
-conjunto completo de bancos/documentos, a chave de compatibilidade e todas as
-observações de freshness elegíveis correspondem exatamente ao alvo; reativação
+conjunto generation-bound completo e a chave de compatibilidade correspondem
+ao alvo e as observações selecionadas satisfazem a política atual; reativação
 nunca torna snapshot antigo novamente `Current`.
 
 Rollback de aplicação, configuração, catálogo e índice são procedimentos
@@ -436,10 +475,12 @@ Ativação e retorno devem testar:
 2. compare-and-swap do registro inteiro para a candidata validada;
 3. rejeição segura em conflito de concorrência;
 4. consulta usando somente a geração resolvida;
-5. compare-and-swap de retorno para a anterior;
-6. atomicidade entre geração, snapshot, observação e evento de auditoria;
+5. construção e compare-and-swap de novo registro apontando para a geração
+   anterior, com observações compatíveis e atualmente elegíveis;
+6. validação dos digests do documento, da fonte generation-bound e do binding
+   completo, com atomicidade entre registro, observação e evento de auditoria;
 7. crash antes, durante e depois de cada fronteira de persistência;
-8. preservação do registro completo anterior no histórico de ativação;
+8. preservação dos registros completos históricos sem replay de freshness;
 9. auditoria de ator, motivo, origem, alvo e resultado.
 
 ## Múltiplos acervos futuros
@@ -464,12 +505,13 @@ O MVP fixa um único corpus por configuração e não expõe administração rem
 - Resolver o `CorpusActivationRecord` uma única vez no início da consulta.
 - Resolver todos os bindings ativos/current e a cobertura antes de gerar o
   query embedding ou chamar qualquer provider.
-- Usar `CorpusId` e `IndexGenerationId` resolvidos em um
+- Usar `CorpusId`, `IndexGenerationId` e os seletores generation-bound dos
+  bindings elegíveis, todos derivados do registro resolvido, em um
   `VectorSearchRequest` durante toda recuperação, validação e citação; nenhuma
   etapa relê silenciosamente o registro.
 - Usar top-k e thresholds definidos por avaliação, não por palpite.
-- Aplicar `CorpusId`, `IndexGenerationId` e filtros administrativos opcionais
-  antes do top-k/ranking.
+- Aplicar `CorpusId`, `IndexGenerationId`, bindings elegíveis e filtros
+  administrativos opcionais antes do top-k/ranking.
 - Separar claramente instruções confiáveis de evidências não confiáveis.
 - Instruir o modelo a gerar a resposta exatamente em `questionLanguage`,
   mesmo quando `contentLanguage` das evidências for diferente.
@@ -597,14 +639,25 @@ Antes de homologar um provider ou versão:
 - busca adversarial com chunks de outra geração e, quando aplicável, de outro
   corpus pontuando acima dos corretos, provando isolamento antes do top-k;
 - SSRF, redirect, domínio/path, tamanho e freshness da fonte oficial;
-- `304` ou hash idêntico atualiza a observação de revalidação sem criar novo
-  snapshot ou índice somente quando o registro ativo já referencia o snapshot
-  compatível;
+- vetores canônicos provam que mudar somente `sourceObservationId` altera
+  `activationBindingSetDigest`, sem alterar `sourceBindingSetDigest`,
+  `generationSpecDigest` ou `IndexGenerationId`; mudar snapshot, adapter,
+  trust ou registro imutável exige geração nova;
+- `304` ou hash idêntico atualiza observação e cria nova revisão completa do
+  registro sem novo snapshot ou índice somente quando a observação nomeia o
+  registro/snapshot compatível; os campos preservados e alterados seguem
+  ADR-0007;
+- mismatch entre observação e registro/snapshot falha antes da ativação; retry
+  depois de conflito é idempotente e não usa “última observação” implícita;
 - degradação de uma fonte enquanto outras permanecem servíveis, seguida de
   revalidação `304`, preservando snapshot e restaurando elegibilidade sem
   mistura de geração;
-- crash antes, durante e depois da ativação, provando atomicidade do
+- crash antes, durante e depois do append da observação, cálculo dos digests,
+  auditoria e compare-and-swap, provando atomicidade do
   `CorpusActivationRecord`;
+- rollback cria registro novo com observações compatíveis e elegíveis, preserva
+  históricos e falha fechado quando a invariante de evidência não pode ser
+  satisfeita;
 - operação: latência, falha, rate limit e custo;
 - regressão entre versões de documento, prompt, modelo e índice.
 

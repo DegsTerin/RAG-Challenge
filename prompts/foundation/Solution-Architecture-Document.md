@@ -196,10 +196,11 @@ Portas candidatas:
 
 Contratos carregam `CancellationToken`, limites e resultados tipados.
 `IVectorStore` recebe um `VectorSearchRequest` com `CorpusId`,
-`IndexGenerationId`, vetor de consulta, limites e filtros administrativos
-opcionais por banco/documento. O adapter prova hard pre-filter de corpus,
-geração e filtros antes do top-k ou usa partição física equivalente; post-filter
-de busca global não satisfaz o contrato. Ele não possui autoridade de ativação.
+`IndexGenerationId`, vetor de consulta, limites, seletores generation-bound dos
+bindings elegíveis e filtros administrativos opcionais por banco/documento. O
+adapter prova hard pre-filter de corpus, geração, bindings elegíveis e filtros
+antes do top-k ou usa partição física equivalente; post-filter de busca global
+não satisfaz o contrato. Ele não possui autoridade de ativação.
 
 `IDocumentContentStore` persiste e reabre bytes imutáveis endereçados por
 conteúdo. `IDocumentCatalog` mantém identidades e referências, e
@@ -207,7 +208,9 @@ conteúdo. `IDocumentCatalog` mantém identidades e referências, e
 `CorpusActivationRecord`, que vincula atomicamente a geração ativa e um
 conjunto ordenado de bindings de banco, documento, versão, snapshot e observação
 aplicável. Revisões completas anterior e nova ficam no histórico versionado da
-mesma transação; `Active` e `Retained` são projeções, não autoridades paralelas.
+mesma transação; `sourceBindingSetDigest` protege a projeção generation-bound
+sem observação e `activationBindingSetDigest` protege o binding completo.
+`Active` e `Retained` são projeções, não autoridades paralelas.
 
 ### Application
 
@@ -382,10 +385,12 @@ ao `STATE-03`.
 
 A candidata contém um conjunto ordenado de todos os bancos e documentos que se
 pretende ativar. Atualizações são serializadas por corpus; o vector store deve
-filtrar `CorpusId`, `IndexGenerationId` e quaisquer filtros administrativos
-declarados antes do top-k. Rollback troca o manifesto inteiro. Desativar ou
-remover o último documento ativo exige desativar explicitamente o banco na
-mesma operação atômica.
+filtrar `CorpusId`, `IndexGenerationId`, bindings elegíveis e quaisquer filtros
+administrativos declarados antes do top-k. Rollback seleciona uma geração
+retida inteira, mas cria nova revisão do registro com observações compatíveis e
+atualmente elegíveis, sem restaurar freshness histórica. Desativar ou remover o
+último documento ativo exige desativar explicitamente o banco na mesma operação
+atômica.
 
 ## Fluxo de consulta
 

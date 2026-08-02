@@ -2,10 +2,10 @@
 
 ## Versão atual
 
-- Versão: `4.9.0`
+- Versão: `4.9.1`
 - Data: 2026-08-02
-- Status: ADR-0007 aceito; reconciliação semântica e nova auditoria ainda
-  pendentes; Automatic Quality Gate de `STATE-02` permanece `REPROVADO`
+- Status: ADR-0007 aceito e baseline semântica reconciliada; nova auditoria
+  ainda pendente; Automatic Quality Gate de `STATE-02` permanece `REPROVADO`
 - Escopo: 13 arquivos ativos em `prompts/`
 
 A versão do corpus é independente da versão futura do software.
@@ -19,6 +19,33 @@ A versão do corpus é independente da versão futura do software.
 
 Toda alteração atualiza este arquivo e, quando necessário,
 [`../Start-Here.md`](../Start-Here.md).
+
+## 4.9.1 — 2026-08-02
+
+- Aplica, sob autoridade separada, a semântica aceita do ADR-0007 à baseline
+  limpa `main@9aa90c012e3bc973330f5a79678fc358c81809df`, corpus `4.9.0`.
+- Reconciliam-se ADR-0002, contratos canônicos e módulo RAG para excluir
+  `sourceObservationId` da identidade da geração e proteger o binding completo
+  por `activationBindingSetDigest` no registro de ativação.
+- Separam-se `catalogueRevision`, revisão do journal de observações e revisão
+  transacional; `304`/hash idêntico preserva manifesto e geração e cria nova
+  revisão íntegra do registro.
+- Rollback passa a construir registro novo para geração retida e validada, com
+  observações explicitamente selecionadas, compatíveis e atualmente elegíveis,
+  sem replay de freshness histórica.
+- Arquitetura da solução, requisitos, lifecycle, Quality Gates, roadmap,
+  backlog, threat model e template de alteração de corpus rastreiam os dois
+  digests, mismatch, filtros de bindings elegíveis, idempotência e crash
+  boundaries.
+- Atualizam-se relatório, índices e estado factual sem alegar implementação,
+  teste de runtime ou disposição dos achados históricos.
+- Classifica-se como `PATCH`: a mudança torna corrente uma autoridade já
+  aceita, sem nova capacidade, alteração de lifecycle ou escopo funcional.
+- A validação dirigida do diff não repete o Automatic Quality Gate. O gate
+  permanece `REPROVADO`, Human Gate permanece `PENDENTE` e `STATE-03` continua
+  sem autorização.
+- Não autoriza implementação, rede, provider, conta, GitHub, OCI,
+  DB-Notifier, publicação ou deploy.
 
 ## 4.9.0 — 2026-08-02
 

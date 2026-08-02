@@ -3,10 +3,10 @@
 ## Purpose, responsibility and authority
 
 This document defines the canonical application, provider and public contract
-semantics accepted for `STATE-02 ARCHITECTURE`. It refines accepted ADR-0002
-and ADR-0006 without implementing types, schemas or endpoints. Acceptance
-freezes the architecture semantics; it does not prove or authorise an
-implementation.
+semantics accepted for `STATE-02 ARCHITECTURE`. It refines accepted ADR-0002,
+ADR-0006 and corrective ADR-0007 without implementing types, schemas or
+endpoints. Acceptance freezes the architecture semantics; it does not prove or
+authorise an implementation.
 
 The contracts preserve inward dependencies: Domain owns identities and
 invariants; Application owns ports, use cases and failure semantics;
@@ -42,7 +42,7 @@ Infrastructure owns adapters; Server owns HTTP mapping and composition.
 | `ContentObjectId` | Lower-case SHA-256 identity for immutable reopened bytes. |
 | `SupportedLanguage` | Closed enum backed by exact tags `pt-BR` or `en-GB`; no neutral, inferred or fallback value. |
 | `SourceTrustClass` | Closed enum `LocalAuthorised` or `OfficialExternal`. |
-| `OfficialSourceRegistrationId` | Trusted administrative record containing one exact canonical allowlisted URL and policy reference. |
+| `OfficialSourceRegistrationId` | Identity of an immutable/versioned trusted administrative record containing one exact canonical allowlisted URL and policy reference. |
 | `OfficialSnapshotId` | Immutable source key, canonical URL and content hash identity. |
 | `OfficialObservationId` | Append-only revalidation/freshness observation identity. |
 | `CandidateBuildId` | Temporary random/ULID-style build identity; never queryable. |
@@ -112,9 +112,10 @@ Chunk(ParsedDocumentArtifact, NormalisationPolicy, ChunkingPolicy)
 ```
 
 Output is deterministic for the complete input descriptors. Every chunk
-contains corpus, database/revision, document/version/format, trust,
-inherited `contentLanguage`, stable order, format-specific location, text hash
-and policy versions.
+contains corpus, database/revision, document/version/format, source adapter,
+trust, official registration/snapshot identities when applicable, inherited
+`contentLanguage`, stable order, format-specific location, text hash and policy
+versions.
 
 ## Provider ports
 
@@ -155,13 +156,17 @@ IndexGenerationId
 QueryVector with expected dimensions
 TopK in range 1..8
 MinimumScorePolicyVersion
+EligibleGenerationBindingSelectors from the resolved activation record
 Optional authorised database/document filters
 ```
 
-The adapter hard-filters corpus, generation and any declared administrative
-filters before ranking/top-k or uses an equivalent physical partition. It
-returns the selectors used so Application can validate them. It has no
-activate/deactivate API.
+Each eligible selector is the generation-bound source projection defined below
+and therefore contains no observation identity. Application derives the set by
+evaluating the observations in the one activation record resolved at query
+start; a caller cannot expand it. The adapter hard-filters corpus, generation,
+eligible selectors and any declared administrative filters before ranking/top-k
+or uses an equivalent physical partition. It returns the selectors used so
+Application can validate them. It has no activate/deactivate API.
 
 ### `ILanguageModel`
 
@@ -229,6 +234,62 @@ preserves complete previous/new revisions and writes sanitised audit. It fails
 without changing authority if expected revision, manifest validation or audit
 write fails.
 
+## Canonical binding integrity domains
+
+The generation-bound source projection contains these fields in this fixed
+order:
+
+```text
+databaseProductId
+databaseProductRevision
+documentId
+documentVersion
+documentFormat
+sourceAdapterId
+sourceTrustClass
+officialSourceRegistrationId?
+sourceSnapshotId?
+```
+
+`sourceBindingSetDigest` is the lower-case SHA-256 digest of the ordered set of
+those projections. `sourceObservationId` is excluded from this digest,
+`generationSpecDigest`, the complete manifest digest and
+`IndexGenerationId`.
+
+The activation-bound projection appends `sourceObservationId?` after those
+nine fields. `activationBindingSetDigest` is the lower-case SHA-256 digest of
+the ordered set of complete projections and belongs only to the activation
+record and audit history.
+
+Both domains use a distinct version discriminator and the same deterministic
+token encoding: UTF-8 without BOM; fixed field order; bindings sorted by the
+ordinal value of their generation-bound fields with null before non-null;
+duplicate generation-bound projections rejected; and every token encoded as
+its invariant decimal UTF-8 byte length, `:`, then its bytes, with null encoded
+as `-1:`. The first token is respectively
+`rag-challenge/source-binding-set/v1` or
+`rag-challenge/activation-binding-set/v1`, followed by the binding count and
+then each binding's fields. This length-prefix scheme supplies unambiguous null,
+empty-string and record boundaries. `STATE-03` must publish executable golden
+vectors for both domains before persistence is accepted.
+
+Before compare-and-swap, Application must:
+
+1. recompute `activeDocumentSetDigest` from the proposed bindings and match the
+   referenced finalised manifest;
+2. recompute the generation-bound `sourceBindingSetDigest`, excluding
+   observations, and match that manifest;
+3. recompute `activationBindingSetDigest`, including observations, and match
+   the proposed record; and
+4. verify that every referenced append-only observation exists and names the
+   same immutable registration and snapshot as its official binding.
+
+The operation fails without changing the current record when any projection,
+observation relation, manifest state, audit write or expected revision fails.
+`catalogueRevision` identifies the immutable generation-bound catalogue
+snapshot. An observation-only append advances the separate observation journal
+and activation `recordRevision`, never `catalogueRevision`.
+
 ## Canonical activation record
 
 ```text
@@ -238,6 +299,7 @@ CorpusActivationRecord
   previousRecordRevision?
   indexGenerationId
   catalogueRevision
+  activationBindingSetDigest
   documentBindings[]       # ordinal canonical ordering
     databaseProductId
     databaseProductRevision
@@ -256,8 +318,19 @@ CorpusActivationRecord
 The active record is read once at query start. Retrieval, per-binding freshness
 checks, response coverage and citations use only identities from that snapshot.
 No component combines it with separately fetched catalogue state or a
-"latest" observation. Every active database has at least one active/elegible
+"latest" observation. Every active database has at least one active/eligible
 document binding.
+
+A `304`, identical-content revalidation, authoritative withdrawal or explicit
+source deactivation for the same immutable registration/snapshot appends an
+observation and creates a new complete record revision. It changes
+`recordRevision`, `previousRecordRevision`, `recordUpdatedAt`, the affected
+`sourceObservationId` and `activationBindingSetDigest`. It preserves manifest
+bytes, `indexGenerationId`, `sourceBindingSetDigest`,
+`generationSpecDigest`, `catalogueRevision` and `generationActivatedAt`.
+Content/snapshot, adapter, trust, immutable registration,
+document membership/version/format or `IndexCompatibilityKey` changes require
+a new finalised candidate generation.
 
 ## Application use cases
 
@@ -265,7 +338,7 @@ document binding.
 |---|---|
 | `BuildCorpusIndex` | Produces a validated immutable generation; does not activate. |
 | `ActivateIndexGeneration` | Compare-and-swap of the complete activation record and audit. |
-| `RollbackIndexGeneration` | Creates a new record revision targeting a complete retained record. |
+| `RollbackIndexGeneration` | Creates a new record revision targeting a retained, validated generation and its generation-bound projection, with explicitly selected compatible and currently eligible observations; it never replays a retained record byte for byte. |
 | `AdministerDatabaseProduct` | Adds/versions/activates/deactivates/logically removes a database under catalogue invariants. |
 | `AdministerDocument` | Adds/versions/activates/deactivates/logically removes a PDF/CSV document under retention and last-document invariants. |
 | `RegisterOfficialSource` | Creates/versions a trusted exact-URL registration; does not enable egress or activate content. |
@@ -419,7 +492,7 @@ database/document binding remains servable; `Unready` is HTTP 503.
 | `synchronise-official` | source-registration ID, reason, operation ID | Observation/snapshot outcome and rebuild requirement. |
 | `build-index` | corpus ID, reason, operation ID | Candidate or finalised generation identity; never activates. |
 | `activate-generation` | generation ID, expected record revision, reason, operation ID | New activation record revision. |
-| `rollback-generation` | retained record revision, expected current revision, reason, operation ID | New current record revision targeting complete retained state. |
+| `rollback-generation` | retained generation ID, explicit compatible observation selections, expected current revision, reason, operation ID | New current record revision targeting the retained generation, or invariant/eligibility conflict without authority change. |
 
 Commands use typed exit categories: `0` success, `2` invalid input, `3`
 configuration/authority denied, `4` conflict, `5` dependency unavailable and
@@ -449,9 +522,21 @@ structured stderr/audit without secret content.
   adapters.
 - Architecture tests for inward dependencies and SDK/type isolation.
 - OpenAPI snapshot and compatibility tests.
-- Adversarial vector tests proving corpus/generation and any declared
-  database/document pre-filter before top-k.
-- Crash/concurrency tests for every compare-and-swap boundary.
+- Canonical golden vectors for both binding digests, including a case where
+  only `sourceObservationId` changes: only `activationBindingSetDigest` may
+  change. Snapshot, adapter, trust or immutable registration changes must
+  change `sourceBindingSetDigest` and require a new generation.
+- Adversarial vector tests proving corpus/generation, eligible
+  generation-binding selectors and any declared database/document pre-filter
+  before top-k.
+- Crash/concurrency tests around observation append, both digest validations,
+  audit and every compare-and-swap boundary; retry is idempotent and cannot
+  select a query-time "latest observation".
+- Rebinding tests prove the exact permitted field changes for `304`/identical
+  hash and reject an observation for another registration or snapshot.
+- Rollback tests construct a new record, preserve historical records, bind only
+  explicitly selected compatible/currently eligible observations and fail
+  closed when the active-database/evidence invariant cannot be met.
 - Negative tests for unknown request fields, bounds, stale source, policy
   violations, invalid provider responses and citation forgery.
 - Catalogue lifecycle tests for 51 unique initial identities, 54 category

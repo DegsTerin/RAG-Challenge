@@ -2,7 +2,7 @@
 
 ## Status
 
-Este índice descreve o corpus documental vigente `4.9.0`. A baseline `3.4.0`
+Este índice descreve o corpus documental vigente `4.9.1`. A baseline `3.4.0`
 encerrou o Human Gate de `STATE-00 DISCOVERY`; o `GATE-B01
 ARCHITECTURE_BOOTSTRAP_DECISION` aprovou o ADR-0001 e a licença MIT. O
 ADR-0003 aceito posteriormente substitui seu registro, preserva todas as
@@ -21,7 +21,7 @@ Quality Gate por `AQG-S02-001` (P1), `AQG-S02-002` (P2) e `AQG-S02-003`
 implementação. Relatórios de estado são evidências históricas; o presente
 factual pertence a
 [`Current-State.md`](../prompts/state/Current-State.md).
-O corpus `4.9.0` preserva o contrato bilíngue de consulta de `4.3.0`, a
+O corpus `4.9.1` preserva o contrato bilíngue de consulta de `4.3.0`, a
 localização `pt-BR`/`en-GB` de `4.4.0`, os temas `Light` e `Dark` de `4.5.0` e
 a ausência de tetos de sistemas/páginas de `4.6.0`. Ele também formaliza o
 catálogo inicial de 51 bancos, PDF/CSV sem cardinalidade fixa por banco e a
@@ -29,8 +29,10 @@ recuperação unificada de todos os documentos ativos. O incremento `4.8.0`
 registra as quatro aceitações arquiteturais; o `4.8.1` reconcilia
 factualmente `AQG-S02-002` e `AQG-S02-003` e registra a proposta do ADR-0007.
 O incremento `4.9.0` registra a aceitação explícita do ADR-0007, sem executar
-a reconciliação semântica rastreada nem repetir a auditoria. O Automatic
-Quality Gate permanece `REPROVADO`; nenhuma dessas mudanças autoriza
+a reconciliação semântica rastreada nem repetir a auditoria. O `4.9.1` aplica
+essa semântica a ADR-0002, contratos, RAG, requisitos, lifecycle, gates,
+roadmap e threat model. O Automatic Quality Gate permanece `REPROVADO` até uma
+nova auditoria separadamente autorizada; nenhuma dessas mudanças autoriza
 implementação, Human Gate ou `STATE-03`.
 
 ## Comece aqui
@@ -65,7 +67,7 @@ implementação, Human Gate ou `STATE-03`.
 - [ADR-0005 — MVP Providers, Persistence and OCI Deployment](architecture/ADR-0005-MVP-Providers-Persistence-And-OCI-Deployment.md)
 - [ADR-0006 — Security, Egress, Administration and HTTP Contracts](architecture/ADR-0006-Security-Egress-Administration-And-HTTP-Contracts.md)
 - [ADR-0007 — Generation Identity and Freshness Observation Rebinding](architecture/ADR-0007-Generation-Identity-And-Freshness-Observation-Rebinding.md)
-  (`accepted`; semantic reconciliation and renewed audit remain pending)
+  (`accepted`; semantic reconciliation applied; renewed audit pending)
 - [Contratos canônicos de STATE-02](architecture/STATE-02-Canonical-Contracts.md)
 - [Threat model de STATE-02](security/STATE-02-Threat-Model.md)
 

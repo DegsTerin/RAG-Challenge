@@ -12,6 +12,9 @@
 - Supersedes: the observation-inclusive generation-identity and
   exact-record rollback clauses of
   [ADR-0002](ADR-0002-RAG-Lifecycle-Providers-And-Source-Separation.md)
+- Reconciled: 2026-08-02 from clean
+  `main@9aa90c012e3bc973330f5a79678fc358c81809df`, corpus `4.9.0`; the
+  documentary correction is corpus `4.9.1`
 
 ## Context
 
@@ -162,8 +165,9 @@ these steps:
 
 The operation preserves `IndexGenerationId`, manifest bytes,
 `generationSpecDigest`, `sourceBindingSetDigest`, `catalogueRevision` and
-`generationActivatedAt`. It changes `recordRevision`, `recordUpdatedAt`, the
-affected `sourceObservationId` and `activationBindingSetDigest`.
+`generationActivatedAt`. It changes `recordRevision`,
+`previousRecordRevision`, `recordUpdatedAt`, the affected
+`sourceObservationId` and `activationBindingSetDigest`.
 
 If content, snapshot identity, source adapter, trust class, immutable source
 registration, document set or any `IndexCompatibilityKey` input changes, a
@@ -271,8 +275,8 @@ canonical integrity value covering the complete active binding set.
 
 This ADR was accepted before implementation, so it is a documentary
 compatibility correction with no runtime data migration. The following
-accepted-baseline documents must be reconciled in one separately authorised
-change before another combined audit:
+accepted-baseline documents were reconciled in one separately authorised
+corpus `4.9.1` change before another combined audit:
 
 | Artefact | Required reconciliation |
 |---|---|
@@ -285,9 +289,10 @@ change before another combined audit:
 | Threat model | Add the binding-digest and mismatch checks to the affected threats/test groups without claiming implementation. |
 | Architecture report | Record the owner decision and the exact post-decision reconciliation/validation evidence. |
 
-Until those edits are completed and a separately authorised combined audit
-passes, the Automatic Quality Gate remains `REPROVADO` and `STATE-03` remains
-unauthorised.
+The edits are now complete. Their directed documentary validation is not a
+repeat or disposition of the Automatic Quality Gate. Until a separately
+authorised combined audit passes, that gate remains `REPROVADO` and
+`STATE-03` remains unauthorised.
 
 ## Acceptance checks
 
@@ -317,5 +322,8 @@ unauthorised.
 The product owner explicitly accepted ADR-0007 on 2026-08-02 with the exact
 decision `ADR-0007: ACEITAR.`. The acceptance makes this ADR the authority for
 the corrected generation/activation identity and rollback clauses, but does
-not by itself reconcile the affected documents, dispose of `AQG-S02-001`,
-repeat the Automatic Quality Gate or authorise any implementation.
+not by itself dispose of `AQG-S02-001`, repeat the Automatic Quality Gate or
+authorise any implementation. The separately authorised corpus `4.9.1`
+reconciliation applied these semantics to the affected documentary baseline;
+its finding disposition still belongs only to a future authorised combined
+audit.

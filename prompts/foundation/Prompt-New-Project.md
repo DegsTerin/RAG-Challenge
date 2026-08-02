@@ -195,7 +195,7 @@ concorrência são controles operacionais e não limites do catálogo.
 | `RNF-002` | Configuração é tipada, validada no startup e falha fechada. |
 | `RNF-003` | Segredos não entram no repositório, logs, respostas ou evidências. |
 | `RNF-004` | Operações externas têm timeout, cancelamento e limites de tamanho/custo. |
-| `RNF-005` | Documento, conteúdo bruto, snapshot, chunk, provider e índice têm proveniência, identidade e versão rastreáveis; bytes imutáveis permanecem reabríveis enquanto forem necessários para rebuild ou rollback. |
+| `RNF-005` | Documento, conteúdo bruto, snapshot, chunk, provider e índice têm proveniência, identidade e versão rastreáveis. A identidade da geração cobre o binding de fonte sem observação; cada revisão do registro de ativação cobre separadamente o binding completo com `sourceObservationId`. Bytes imutáveis permanecem reabríveis enquanto forem necessários para rebuild ou rollback. |
 | `RNF-006` | Logs são estruturados, sanitizados e correlacionáveis. |
 | `RNF-007` | O produto diferencia indisponibilidade, conteúdo inválido e evidência insuficiente. |
 | `RNF-008` | Testes são determinísticos e não exigem serviços pagos na suíte padrão. |
@@ -218,7 +218,7 @@ concorrência são controles operacionais e não limites do catálogo.
 | `AC-MVP-002` | Cada documento autorizado é persistido/reaberto por hash, processado e incorporado a uma candidata validada; staging parcial permanece não consultável. |
 | `AC-MVP-003` | Perguntas representativas aprovadas recuperam citações corretas. |
 | `AC-MVP-004` | Perguntas fora do acervo não recebem resposta factual inventada. |
-| `AC-MVP-005` | Mudança de banco ou documento cria candidata validada e ativa atomicamente o manifesto completo com todos os bindings documentais aplicáveis, preservando revisão anterior elegível e rollback testado. |
+| `AC-MVP-005` | Mudança de banco ou documento cria candidata validada e ativa atomicamente o manifesto completo com todos os bindings documentais aplicáveis. A ativação valida `activeDocumentSetDigest`, o `sourceBindingSetDigest` generation-bound e o `activationBindingSetDigest` completo; preserva geração anterior elegível e testa rollback por novo registro, sem replay de freshness histórica. |
 | `AC-MVP-006` | Nenhum secret ou material local ignorado integra o repositório. |
 | `AC-MVP-007` | Os checks automáticos aplicáveis ao estado são aprovados. |
 | `AC-MVP-008` | A aplicação é executada em OCI com link ou evidência visual sanitizada. |
@@ -227,7 +227,7 @@ concorrência são controles operacionais e não limites do catálogo.
 | `AC-MVP-011` | A API expõe consulta, health e artefato OpenAPI v1 versionados, com configuração fail-closed, limites, cancelamento, metadados reproduzíveis, erros canônicos e diagnóstico sanitizado; compatibilidade do contrato é testada. |
 | `AC-MVP-012` | Testes de arquitetura e contrato demonstram que Domain/Application não dependem de SDKs ou adapters concretos e que providers são compostos pelas bordas. |
 | `AC-MVP-013` | O repositório público possui estrutura compreensível e histórico incremental de commits, sem secrets ou materiais locais ignorados. |
-| `AC-MVP-014` | A sincronização autorizada de cada fonte allowlisted produz snapshot/observação versionados; alteração de conteúdo exige candidata, enquanto `304`/hash idêntico pode atualizar somente o binding de observação compatível. Citações expõem fonte, URL pública quando aplicável, snapshot e frescor. |
+| `AC-MVP-014` | A sincronização autorizada de cada fonte allowlisted produz snapshot/observação versionados. Alteração de conteúdo exige candidata; `304`/hash idêntico para o mesmo registro/snapshot cria nova revisão completa do registro e `activationBindingSetDigest`, mas preserva manifesto, `sourceBindingSetDigest`, `generationSpecDigest`, `IndexGenerationId`, `catalogueRevision` e `generationActivatedAt`. Mismatch falha fechado; citações expõem fonte, URL pública quando aplicável, snapshot e frescor. |
 | `AC-MVP-015` | Cada fonte externa rejeita domínio, IP, porta, path, query, resposta DNS mista, redirect ou destino TLS lateral fora de sua política. Consulta não faz fetch e considera somente documentos ativos/current, expondo cobertura degradada sem fallback silencioso. |
 | `AC-MVP-016` | Perguntas declaradas como `pt-BR` recebem respostas em `pt-BR`, perguntas declaradas como `en-GB` recebem respostas em `en-GB`, e citações não traduzem título, seção, trecho ou outro conteúdo proveniente da fonte. Testes determinísticos cobrem `pt-BR→pt-BR`, `en-GB→en-GB`, `pt-BR→en-GB` e `en-GB→pt-BR` entre idioma da pergunta e idioma da evidência. |
 | `AC-MVP-017` | A pessoa consegue alternar explicitamente a interface entre `pt-BR` e `en-GB`; labels, instruções, validações e estados pertencentes ao produto usam integralmente o idioma visual selecionado. Testes de componente e fluxo cobrem cada idioma da interface combinado com cada `questionLanguage`, sem traduzir citações. |
@@ -276,8 +276,10 @@ concorrência são controles operacionais e não limites do catálogo.
   permanecem não verificados.
 - O dataset de avaliação e os thresholds de recuperação/groundedness ainda
   precisam ser materializados antes da primeira campanha pontuada.
-- `AQG-S02-001` ainda exige decisão explícita sobre o ADR corretivo proposto e
-  reconciliação dos contratos antes de nova auditoria combinada.
+- ADR-0007 foi aceito e sua semântica foi reconciliada nos contratos
+  documentais. `AQG-S02-001` e o resultado reprovado permanecem históricos até
+  nova auditoria combinada separadamente autorizada; essa correção não é
+  evidência de implementação.
 
 Esses itens distinguem decisões arquiteturais aceitas de evidência,
 implementação e autoridade externa ainda ausentes.

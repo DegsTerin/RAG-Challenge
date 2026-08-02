@@ -437,7 +437,9 @@ não constitui Human Gate. Cada estado exige decisão separada.
 - Content object ID e armazenamento:
 - Parser e chunking:
 - Document set digest:
-- Official snapshot set digest:
+- Source binding set digest generation-bound:
+- Activation binding set digest com observação:
+- Catalogue revision e observation-journal revision:
 - Manifest schema version e generation spec digest:
 - Candidate build ID:
 - Chunk/vector counts e logical artifact digest:
@@ -450,8 +452,9 @@ não constitui Human Gate. Cada estado exige decisão separada.
 - Geração anterior preservada:
 - Activation record esperado/novo:
 - Snapshot/observação oficial vinculados:
+- Campos preservados/alterados em rebinding de observação:
 - Ativação transacional e auditoria:
-- Rollback target:
+- Rollback target e nova revisão construída:
 - Falhas/limitações:
 - Evidência:
 

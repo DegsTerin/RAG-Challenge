@@ -125,7 +125,12 @@ Entregáveis:
 - manifesto canônico versionado, staging/finalização idempotentes, digest e
   contagens dos artefatos lógicos e identidade determinística da geração
   finalizada;
-- `CorpusActivationRecord` e algoritmo transacional de ativação/rollback;
+- `sourceBindingSetDigest` generation-bound sem observação,
+  `activationBindingSetDigest` do binding completo e vetores canônicos de ambos;
+- revisão própria do journal append-only de observações, separada de
+  `catalogueRevision` e da revisão transacional interna;
+- `CorpusActivationRecord` e algoritmo transacional de ativação/rollback por
+  construção de nova revisão, sem replay de registro histórico;
 - retenção do conteúdo bruto alcançável e cleanup de órfãos;
 - fixtures determinísticas.
 
@@ -137,6 +142,10 @@ Aceite:
   digest/contagens/readback antes da ativação;
 - secrets não integram o modelo;
 - geração parcial ou observação não vinculada nunca fica ativa;
+- mismatch entre observação e registro/snapshot falha fechado; mudança apenas
+  de `sourceObservationId` altera somente o digest/revisão de ativação;
+- rollback liga observações explicitamente selecionadas, compatíveis e
+  atualmente elegíveis, sem reviver freshness histórica;
 - todo documento ativo integra o manifesto; origem/trust integram identidade,
   digest e citação sem formar corpora mutuamente exclusivos;
 - migrations e recuperação são verificáveis;
@@ -168,7 +177,12 @@ Aceite:
 - providers não vazam para o núcleo;
 - falhas são tipadas e sanitizadas;
 - hard pre-filter integra o contrato do vector store e precede o top-k;
+- o hard pre-filter inclui os bindings generation-bound elegíveis derivados do
+  único registro de ativação resolvido pela consulta;
 - geração anterior sobrevive a falha de reconstrução;
+- `304`/hash idêntico compatível cria nova revisão íntegra do registro,
+  preserva manifesto/geração/`catalogueRevision` e rejeita mismatch antes do
+  compare-and-swap;
 - falha/stale de uma fonte reduz cobertura explicitamente sem apresentar outra
   origem como substituta;
 - perguntas sem evidência recusam;

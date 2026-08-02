@@ -89,6 +89,12 @@ proprietários.
   identidade/freshness e rollback, mas não autoriza nem executa a
   reconciliação semântica rastreada, não dispõe `AQG-S02-001` e não repete o
   Automatic Quality Gate.
+- Reconciliação semântica de `STATE-02`: em 2026-08-02, a partir de
+  `main@9aa90c012e3bc973330f5a79678fc358c81809df`, corpus `4.9.0`, a
+  semântica aceita do ADR-0007 foi aplicada transversalmente ao baseline
+  documental como corpus `4.9.1`. O trabalho não repetiu o Automatic Quality
+  Gate: o resultado continua `REPROVADO`, e nenhum achado histórico recebeu
+  nova disposição.
 - ADR-0001: `superseded` pelo ADR-0003, após aceitação original no
   `GATE-B01`; ADR-0002: `accepted`; ADR-0003: `accepted` pela solicitação
   humana explícita de renomear o projeto para `RAG-Challenge`, incorporando
@@ -103,7 +109,7 @@ proprietários.
   a política de idioma acrescentou o 21º documento público por incremento
   versionado, e o ADR-0003 acrescentou o 22º.
 - A baseline aprovada no Human Gate de `STATE-00` permanece `3.4.0`.
-- O corpus de instruções vigente possui versão `4.9.0` e 13 arquivos em
+- O corpus de instruções vigente possui versão `4.9.1` e 13 arquivos em
   `prompts/`.
 - Visão, requisitos, arquitetura, RAG, segurança, qualidade, lifecycle,
   roadmap, backlog, estado, histórico e templates estão documentados.
@@ -190,10 +196,19 @@ proprietários.
 - O corpus `4.9.0` registra a aceitação explícita do ADR-0007. A decisão torna
   autoritativa a separação entre identidade de geração e identidade do
   registro de ativação e substitui somente as cláusulas conflitantes de
-  identidade e rollback do ADR-0002. ADR-0002, contratos canônicos, módulo
-  RAG, requisitos, lifecycle, Quality Gates, roadmap e threat model ainda não
-  receberam a reconciliação semântica; `AQG-S02-001` e o gate permanecem
-  abertos até essa correção e uma nova auditoria separadamente autorizada.
+  identidade e rollback do ADR-0002. Nesse snapshot, a reconciliação semântica
+  ainda estava pendente e o gate continuava reprovado.
+- O corpus `4.9.1` aplica a reconciliação aceita: `sourceBindingSetDigest`
+  exclui `sourceObservationId`; `activationBindingSetDigest` protege o binding
+  completo; `catalogueRevision` fica separado do journal de observações;
+  `304`/hash idêntico preserva manifesto e geração; consulta filtra bindings
+  elegíveis antes do top-k; rollback constrói registro novo com observações
+  compatíveis e atualmente elegíveis. ADR-0002, contratos canônicos,
+  arquitetura da solução, módulo RAG, requisitos, lifecycle, Quality Gates,
+  roadmap, threat model e registros factuais agora convergem. A validação
+  dirigida não repetiu o gate nem comprovou implementação; `AQG-S02-001`
+  continua sem nova disposição até a auditoria combinada separadamente
+  autorizada.
 - A arquitetura adota princípios compatíveis com o DB-Notifier sem criar
   referência ou dependência entre os projetos.
 - O Human Gate de `STATE-00` foi confirmado na conversa coordenadora que
@@ -299,7 +314,8 @@ proprietários.
 - Ciclo Candidate/Active/Deactivated/Removed para bancos e documentos,
   versionamento manual e nova geração candidata.
 - Conteúdo bruto imutável/reabrível, staging não consultável, manifesto final
-  íntegro e ativação/rollback pelo registro completo versionado.
+  íntegro, digest generation-bound separado do digest completo de ativação e
+  ativação/rollback por nova revisão do registro completo versionado.
 - Contrato HTTP/OpenAPI v1 versionado pertencente ao RAG-Challenge; adapters
   consumidores permanecem fora deste repositório.
 - Execução local e futuro deploy OCI.
@@ -320,10 +336,9 @@ autorizada.
 
 ## Evidências e decisões futuras pendentes
 
-1. Reconciliar ADR-0002, contratos, RAG, requisitos, lifecycle, Quality Gates,
-   roadmap e threat model com os dois domínios de digest aceitos no ADR-0007;
-   depois autorizar e repetir a auditoria combinada sobre baseline limpa antes
-   de preparar qualquer Human Gate. As fontes de `AQG-S02-002` e
+1. Autorizar e repetir a auditoria combinada sobre a baseline limpa já
+   reconciliada com os dois domínios de digest do ADR-0007 antes de preparar
+   qualquer Human Gate. As fontes de `AQG-S02-002` e
    `AQG-S02-003` já receberam reconciliação factual, ainda sem nova disposição
    de gate.
 2. Fornecer ou autorizar documentos PDF/CSV, direitos, proveniência e idioma
@@ -349,11 +364,10 @@ autorizada.
 
 ## Próxima autoridade
 
-Preparar e autorizar separadamente a reconciliação documental semântica
-identificada pelo ADR-0007 aceito; somente depois dessa correção pode ser
-autorizada uma nova auditoria combinada sobre baseline limpa. Fatos dependentes
-de conta, entitlement, capacidade, spike ou runtime permanecem para
-autoridades futuras próprias e não substituem essa correção. O Human Gate e o
+Autorizar separadamente uma nova auditoria combinada sobre a baseline limpa
+reconciliada. Fatos dependentes de conta, entitlement, capacidade, spike ou
+runtime permanecem para autoridades futuras próprias e não substituem essa
+correção. O Human Gate e o
 encerramento de `STATE-02` continuam exigindo novo Automatic Quality Gate
 aprovado e resumo completo próprios. `STATE-03`, GitHub, OCI, publicação,
 deploy, demais ações externas e mudanças no DB-Notifier continuam sem

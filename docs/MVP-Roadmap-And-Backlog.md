@@ -177,9 +177,14 @@ Critério: implementação pode começar sem decisão material em aberto.
   revalidação e freshness.
 - Modelar especificação e manifesto final canônicos, staging não consultável,
   digest/contagens dos artefatos lógicos, identidade determinística da geração
-  finalizada e separação entre snapshot selecionado e freshness.
+  finalizada, `sourceBindingSetDigest` generation-bound sem observação e
+  separação entre snapshot selecionado e freshness.
 - Modelar estados de build e as projeções `Active`/`Retained` derivadas do
   `CorpusActivationRecord` e de seu histórico completo.
+- Modelar `activationBindingSetDigest` para o binding completo com observação e
+  journal/revisão de observações separado de `catalogueRevision`.
+- Publicar vetores canônicos dos dois digests, com null/order/versionamento
+  inequívocos, e provar as três validações antes do compare-and-swap.
 - Definir constraints, índices, UTC e concorrência.
 
 Critério: modelo não contém secret nem SDK/provider type.
@@ -190,6 +195,11 @@ Critério: modelo não contém secret nem SDK/provider type.
 - Testar create/upgrade/failure/rollback.
 - Provar compare-and-swap atômico do registro completo de geração, bindings de
   bancos/documentos/snapshots/observações e auditoria.
+- Testar append de observação, cálculo dos dois digests, auditoria e conflito em
+  cada fronteira; retry é idempotente e não seleciona “última observação”.
+- Rollback cria nova revisão para geração retida e validada, com observações
+  explicitamente selecionadas, compatíveis e atualmente elegíveis; nunca
+  restaura registro/freshness histórico byte a byte.
 - Preservar e reabrir bytes content-addressed alcançáveis; limpar somente
   órfãos comprovados após retenção.
 - Preservar a geração ativa e ao menos uma geração anterior validada até
@@ -207,8 +217,10 @@ anterior é testado.
 - Persistir e reabrir por hash os bytes locais/oficiais antes de ativar e
   registrar status e validators HTTP enviados/recebidos em cada observação.
 - Em `304` ou hash idêntico, registrar nova observação de revalidação sem
-  criar snapshot ou índice somente se o registro ativo já referenciar o
-  snapshot compatível; caso contrário, reconstruir de forma controlada.
+  criar snapshot ou índice somente se ela nomear o mesmo registro imutável e
+  snapshot do manifesto ativo; criar nova revisão completa e
+  `activationBindingSetDigest`, preservar os campos generation-bound definidos
+  pelo ADR-0007 e rejeitar mismatch antes do compare-and-swap.
 - Extrair PDF e CSV por adapters próprios.
 - Normalizar e produzir chunks de forma determinística.
 - Persistir bytes brutos, metadados e hashes de forma idempotente.
@@ -223,7 +235,8 @@ preserva snapshots, documentos e geração ativos.
 - Incluir banco, documento, formato, origem e trust em identidade, digest e
   metadados vetoriais.
 - Exigir `CorpusId` e `IndexGenerationId` no contrato de busca e provar
-  hard pre-filter desses IDs e de filtros administrativos opcionais.
+  hard pre-filter desses IDs, dos bindings generation-bound elegíveis derivados
+  do registro resolvido e de filtros administrativos opcionais.
 - Finalizar digest/contagens/readback, derivar `IndexGenerationId`, validar o
   manifesto final e ativar.
 - Reexecutar idempotentemente sem promover candidato parcial.
@@ -235,8 +248,8 @@ Critério: conteúdo idêntico não cria inconsistência; falha não substitui a
 - Validar pergunta.
 - Validar `questionLanguage=pt-BR|en-GB` antes de qualquer provider e exigir
   que a geração use esse mesmo idioma na resposta.
-- Resolver todos os documentos ativos/current e aplicar filtros autorizados
-  antes do top-k.
+- Resolver uma única revisão do registro, avaliar suas observações e aplicar os
+  bindings generation-bound elegíveis e filtros autorizados antes do top-k.
 - Recuperar evidências em todo o conjunto ativo e expor cobertura/proveniência.
 - Gerar resposta constrained.
 - Validar citações.
@@ -307,7 +320,8 @@ Critério: clone limpo reproduz o caminho documentado.
 - Testar SSRF, DNS rebinding, respostas mistas, pinning IP/Host/SNI, redirect,
   path, media type, bytes descomprimidos, autenticação recusada, ausência de
   egress AIA/CRL/OCSP, stale e isolamento.
-- Testar crash em cada fronteira de ativação, rollback e acessibilidade.
+- Testar crash em cada fronteira de append da observação, digest, auditoria,
+  ativação, rollback por novo registro e acessibilidade.
 
 Critério: thresholds prévios e nenhum P0/P1 residual.
 
@@ -353,7 +367,7 @@ Critério: checklist oficial completo.
 | `BL-M11` | Execução local reproduzível. | S06 |
 | `BL-M12` | Deploy em OCI e evidência. | S08 |
 | `BL-M13` | README final com exemplos reais. | S08 |
-| `BL-M14` | Preservar uma geração anterior elegível e testar ativação/rollback atômicos do `CorpusActivationRecord` por compare-and-swap. | S03/S04/S07 |
+| `BL-M14` | Preservar uma geração anterior elegível; testar os digests separados, rebinding de observação e ativação/rollback atômicos por novo `CorpusActivationRecord` em compare-and-swap, sem replay de freshness histórica. | S03/S04/S07 |
 | `BL-M15` | Sincronizar registros oficiais PDF/CSV allowlisted com pinning DNS/IP, snapshot, freshness e cobertura explícita. | S02–S08 |
 | `BL-M16` | Suportar e homologar perguntas/respostas em `pt-BR` e `en-GB`, inclusive recuperação cruzada e preservação do idioma original das citações. | S02/S04/S07 |
 | `BL-M17` | Localizar a interface em `pt-BR` e `en-GB`, com seletor explícito, independência da consulta e testes de acessibilidade nos dois idiomas. | S05/S07 |

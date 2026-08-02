@@ -1858,3 +1858,76 @@ contém somente fatos cronológicos.
   semântica rastreada pelo ADR-0007 aceito; depois, obter autoridade também
   separada para nova auditoria combinada sobre baseline limpa. `STATE-03`
   permanece sem autorização.
+
+## 2026-08-02 — Semântica aceita do ADR-0007 reconciliada sem repetir o gate
+
+- Estado anterior e resultante: `STATE-02 ARCHITECTURE` ativo; Automatic
+  Quality Gate `REPROVADO`; Human Gate `PENDENTE`; sem transição.
+- Baseline confirmada antes da releitura e da escrita: branch `main`, commit
+  `9aa90c012e3bc973330f5a79678fc358c81809df`, corpus `4.9.0`, working tree
+  limpa e ADR-0007 com status `accepted`.
+- Autoridade humana exata:
+
+  ```text
+  Objetivo autorizado: aplicar localmente a semântica aceita do ADR-0007 em
+  ADR-0002, contratos canônicos, módulo RAG, requisitos, lifecycle, Quality
+  Gates, roadmap, threat model e registros factuais necessários; validar o diff
+  documental e criar commit focado.
+  ```
+
+- Identidade da geração: ADR-0002, contratos e módulo RAG agora excluem
+  `sourceObservationId` de `sourceBindingSetDigest`, `generationSpecDigest`,
+  digest do manifesto completo e `IndexGenerationId`. A projeção
+  generation-bound conserva banco/revisão, documento/versão/formato, adapter,
+  trust, registro oficial imutável/versionado e snapshot imutável.
+- Integridade da ativação: `CorpusActivationRecord` passa a registrar
+  `activationBindingSetDigest` sobre o binding completo com observação. Os dois
+  domínios usam versões canônicas distintas, UTF-8, ordem fixa/ordinal e null
+  inequívoco; `STATE-03` deve materializar vetores executáveis.
+- Validação transacional: antes do compare-and-swap, a Application confere
+  `activeDocumentSetDigest` e `sourceBindingSetDigest` contra o manifesto,
+  confere `activationBindingSetDigest` contra o registro e prova que cada
+  observação nomeia o mesmo registro/snapshot imutável. Mismatch falha fechado.
+- Revisões e revalidação: `catalogueRevision` permanece generation-bound e
+  separado do journal de observações e da revisão transacional. `304`/hash
+  idêntico compatível cria nova revisão completa e digest de ativação, mas
+  preserva manifesto, geração, digest de especificação/fonte,
+  `catalogueRevision` e `generationActivatedAt`.
+- Consulta e proveniência: uma consulta resolve um registro, avalia somente as
+  observações nele vinculadas e envia ao vector store os bindings
+  generation-bound elegíveis como hard pre-filter anterior ao top-k; não existe
+  leitura implícita de “última observação”.
+- Rollback: a geração retida/validada e sua projeção generation-bound formam o
+  alvo, mas a operação constrói registro novo com observações explicitamente
+  selecionadas, compatíveis e atualmente elegíveis. Registro e freshness
+  históricos nunca são reproduzidos byte a byte; invariante de evidência
+  insatisfeita preserva o registro corrente.
+- Rastreabilidade: `RNF-005`, `AC-MVP-005`, `AC-MVP-014`, arquitetura da
+  solução, lifecycle, Quality Gates, S03/S04/S07, `BL-M14`, template de corpus,
+  threats `003`, `004`, `011`, `012`, `013`, `021`, `024`, `034` e grupos de
+  teste associados foram reconciliados sem mudar os limites de catálogo,
+  PDF/CSV, providers, persistência, OCI, segurança ou egress.
+- Corpus: `4.9.1` (`PATCH`) porque torna corrente uma autoridade arquitetural
+  já aceita, sem nova capacidade, alteração de lifecycle ou escopo funcional.
+  Permanecem 13 arquivos ativos em `prompts/`.
+- Verificação dirigida anterior a esta entrada: PowerShell `7.6.4`, Git
+  `2.55.0.windows.3` e ripgrep `15.2.0` em `<rag-challenge-root>`;
+  `eng/check-repository.ps1` com exit `0` para 84 arquivos não ignorados;
+  `git diff --check` com exit `0`; assertions semânticas com exit `0` para 17
+  paths, 25 RF, 18 RNF, 20 critérios, 19 itens Must, 36 threats e 15 grupos de
+  segurança. Os checks foram repetidos depois desta entrada sobre o diff
+  completo; não constituem Automatic Quality Gate.
+- Limitações: nenhum código, migration, store, parser, provider, conta, corpus,
+  índice, build, teste de runtime, benchmark, backup, restore, IAM, rede ou
+  recurso externo foi implementado, acessado ou executado.
+- Escopo negativo preservado: nenhuma repetição do Automatic Quality Gate,
+  solicitação de Human Gate, autorização de `STATE-03`, GitHub, OCI,
+  DB-Notifier, publicação ou deploy.
+- Quality Gate: permanece `REPROVADO`. A fonte documental de `AQG-S02-001`
+  agora está corrigida, assim como já estavam as fontes de `AQG-S02-002` e
+  `AQG-S02-003`, mas somente nova auditoria combinada separadamente autorizada
+  pode dar disposição aos achados.
+- Human Gate: permanece `PENDENTE`, não solicitado e indisponível enquanto o
+  Automatic Quality Gate estiver reprovado.
+- Próxima condição: autoridade separada para nova auditoria combinada sobre a
+  baseline limpa reconciliada. `STATE-03` permanece sem autorização.

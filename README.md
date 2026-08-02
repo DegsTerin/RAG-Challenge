@@ -20,10 +20,10 @@ em linguagem natural, com respostas fundamentadas e referências às fontes.
 > um achado P2 e um P3 documentais. O Human Gate permanece pendente e
 > `STATE-03` não está autorizado. O pacote corretivo posterior registrou o
 > ADR-0007, e o proprietário o aceitou explicitamente em 2026-08-02 para
-> corrigir o modelo decisório do P1. A reconciliação semântica correspondente
-> ainda não foi autorizada ou executada; as fontes do P2/P3 já foram
-> reconciliadas factualmente, mas a auditoria não foi repetida e o resultado
-> do gate continua `REPROVADO`.
+> corrigir o modelo decisório do P1. O corpus `4.9.1` aplicou a reconciliação
+> semântica correspondente aos documentos aceitos; as fontes do P2/P3 também
+> estão reconciliadas factualmente. A auditoria não foi repetida, nenhum achado
+> recebeu nova disposição e o resultado do gate continua `REPROVADO`.
 
 ## Problema
 

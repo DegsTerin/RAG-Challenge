@@ -25,6 +25,7 @@ deployment, CD and DB-Notifier changes.
 | Combined-audit result commit | `9707b87d75a6acb14c8993ff0283a4221bc6c762` |
 | Corrective proposal baseline | `9707b87d75a6acb14c8993ff0283a4221bc6c762` |
 | ADR-0007 decision baseline | `664187c6926be5ce4bef3734603f8d936626d535` |
+| ADR-0007 semantic-reconciliation baseline | `9aa90c012e3bc973330f5a79678fc358c81809df` |
 | External-verification baseline | `8ba91889c0517d78747ae2980fb766c36268edf6` |
 | External-verification completion baseline | `f1066c3509f5f48d4fe6e21c9e36403e642c1431` |
 | Direct-URL verification resumption baseline | `e80f8c41bea3f28deff3d8cdccafccbca5dcc016` |
@@ -32,6 +33,7 @@ deployment, CD and DB-Notifier changes.
 | Entry instruction corpus | `4.1.0` |
 | Corrective proposal corpus | `4.8.1` |
 | ADR-0007 decision corpus | `4.9.0` |
+| ADR-0007 semantic-reconciliation corpus | `4.9.1` |
 | Entry working tree | Clean |
 | Runtime preflight | `NÃO APLICÁVEL` |
 
@@ -180,7 +182,7 @@ and requested separately.
 
 | Area | Accepted selection | Decision/evidence state |
 |---|---|---|
-| RAG lifecycle and source separation | One logical corpus, data-driven catalogue, unified active-document retrieval and ordered activation bindings | ADR-0002 `accepted`; implementation and executable evidence remain absent. |
+| RAG lifecycle and source separation | One logical corpus, data-driven catalogue, unified active-document retrieval and ordered activation bindings | ADR-0002 `accepted` as amended by accepted ADR-0007; implementation and executable evidence remain absent. |
 | Catalogue/documents | Initial 51 unique products, 9 categories, 54 assignments; any number of PDF/CSV documents per database | Owner-decided contract; no product document is acquired, validated, indexed or active, and rights remain per-document evidence. |
 | Official sources | Any number of compatible exact allowlisted registrations; PostgreSQL 18 A4 PDF is the first verified candidate | ADR-0004 `accepted`; only PostgreSQL URL/media/size/redirect/licence/robots/local TLS facts are verified. No other source or egress is authorised. |
 | Parsers | Conditional PdfPig PDF candidate plus a separate CSV adapter | ADR-0005 `accepted`; PdfPig 0.1.15 public facts are recorded, CSV package/version is unselected, and both require executable quality/security evidence. |
@@ -219,7 +221,8 @@ those facts nor authorises executable work.
 - database/category/document identity, lifecycle and provenance contracts;
 - source, parser, chunker, embedding, vector, language-model and persistence
   ports;
-- complete ordered-binding `CorpusActivationRecord` compare-and-swap semantics;
+- separate generation-bound and complete activation-binding digests, with
+  complete ordered-binding `CorpusActivationRecord` compare-and-swap semantics;
 - query request/response and citation v1;
 - explicit `questionLanguage`, `answerLanguage` and citation
   `contentLanguage` semantics for `pt-BR` and `en-GB`;
@@ -718,12 +721,104 @@ ADR-0007 has one `accepted` status, one acceptance date and no `proposed`
 status; the State Transition Log changed only by append; and ADR-0002,
 canonical contracts and the RAG module have zero pre-reconciliation diff.
 
+## ADR-0007 semantic reconciliation
+
+### Authority, baseline and scope
+
+The owner authorised this local documentary reconciliation on clean
+`main@9aa90c012e3bc973330f5a79678fc358c81809df`, corpus `4.9.0`. The authority
+applies accepted ADR-0007 semantics to ADR-0002, canonical contracts, the RAG
+module, requirements, lifecycle, Quality Gates, roadmap, threat model and the
+necessary factual records. It expressly excludes implementation, a repeated
+Automatic Quality Gate, a Human Gate request, `STATE-03`, network/provider/
+account access, GitHub, OCI, DB-Notifier, publication and deployment.
+
+This documentary correction is corpus `4.9.1` (`PATCH`): it makes existing
+accepted authority internally current without adding a capability, changing a
+lifecycle boundary or claiming executable behaviour.
+
+### Reconciled canonical semantics
+
+- `sourceBindingSetDigest` covers the ordered generation-bound projection of
+  database/document identity and revision, document format, source adapter,
+  trust class, immutable/versioned official registration and immutable
+  snapshot. `sourceObservationId` is excluded from that digest,
+  `generationSpecDigest`, the complete manifest digest and
+  `IndexGenerationId`.
+- `activationBindingSetDigest` is stored with every complete activation-record
+  revision and covers the same projection plus `sourceObservationId`. The two
+  domains have distinct version discriminators, fixed UTF-8 field encoding,
+  ordinal order and unambiguous null handling; `STATE-03` must materialise
+  golden vectors.
+- Before compare-and-swap, Application validates
+  `activeDocumentSetDigest` and the generation-bound
+  `sourceBindingSetDigest` against the finalised manifest, validates
+  `activationBindingSetDigest` against the proposed record, and proves every
+  observation names the binding's immutable registration and snapshot.
+- `catalogueRevision` remains the immutable generation-bound catalogue
+  snapshot. An observation-only append advances the observation journal and
+  activation-record revision, not that catalogue revision or a generation ID.
+- A compatible `304` or identical hash appends an observation and creates a
+  new complete activation-record revision. It changes `recordRevision`,
+  `previousRecordRevision`, `recordUpdatedAt`, the affected
+  `sourceObservationId` and `activationBindingSetDigest`; it preserves
+  manifest bytes, `sourceBindingSetDigest`, `generationSpecDigest`,
+  `IndexGenerationId`, `catalogueRevision` and `generationActivatedAt`.
+- Withdrawal or source deactivation can use the same observation-only record
+  transition. Query resolves one activation record, derives eligible
+  generation-bound binding selectors from its observations and requires the
+  vector store to hard-filter them before ranking/top-k. It never reads a
+  separate "latest observation".
+- Content/snapshot, source adapter, trust, immutable registration, document
+  membership/version/format or compatibility changes require a new candidate
+  generation.
+- Rollback targets a retained, validated generation and its generation-bound
+  projection but constructs a new complete record. Explicitly selected
+  observations must be compatible and currently eligible; historical record
+  bytes and freshness are never replayed. Failure of the active-database and
+  eligible-evidence invariant leaves the current record unchanged.
+
+### Traceability and limits
+
+ADR-0002 is marked as amended only for the clauses superseded by ADR-0007.
+The contracts, routed solution architecture, RAG module, `RNF-005`,
+`AC-MVP-005`, `AC-MVP-014`, lifecycle, Quality Gates, S03/S04/S07 roadmap
+work, `BL-M14` and the affected threat/test IDs now require the same
+dual-digest, revalidation, pre-filter and new-record rollback model. The
+corpus-change template records both digest domains and revision scopes.
+
+No type, migration, store, provider, parser, index, corpus or runtime test was
+implemented or executed. The directed checks for this reconciliation validate
+documentary structure, traceability and diff consistency only; they are not a
+new Automatic Quality Gate and cannot dispose any historical finding.
+
+Directed validation from `<rag-challenge-root>` used PowerShell `7.6.4`, Git
+`2.55.0.windows.3` and ripgrep `15.2.0`. At
+`2026-08-02T05:21:42.2850391Z`, the semantic assertions passed across 17
+changed paths before the append-only state record: both digest names and the
+corrected observation boundary were present in every owning semantic artefact;
+the canonical domain versions, eligible-binding pre-filter, exact revalidation
+field set, mismatch/idempotency and new-record rollback assertions passed; and
+the existing counts remained 25 functional requirements, 18 non-functional
+requirements, 20 acceptance criteria, 19 Must backlog items, 36 threats and 15
+security-test groups. `eng/check-repository.ps1` returned exit `0` for 84
+non-ignored files, and `git diff --check` returned exit `0`. These checks are
+repeated after the factual record below is appended.
+
+After the append-only state record, the full check set was repeated at
+`2026-08-02T05:24:01.9744437Z`. The repository audit and
+`git diff --check` again returned exit `0`; the semantic/traceability script
+returned exit `0` for all 18 changed paths with the same requirement, backlog,
+threat and security-test counts, and separately confirmed that the State
+Transition Log retained its entire prior content unchanged before the new
+entry.
+
 ## Current gate assessment
 
 Automatic Quality Gate for `STATE-02`: `REPROVADO`. The combined audit was
 executed against the accepted baseline and found one P1, one P2 and one P3
-finding. Accepted ADR-0007 corrects the decision model for `AQG-S02-001`, but
-the affected accepted documents have not been reconciled. The source text for
+finding. Accepted ADR-0007 and corpus `4.9.1` now correct and reconcile the
+documentary decision model for `AQG-S02-001`. The source text for
 `AQG-S02-002` and `AQG-S02-003` is factually reconciled. No finding has a new
 gate disposition until a separately authorised combined audit evaluates the
 complete corrected baseline.

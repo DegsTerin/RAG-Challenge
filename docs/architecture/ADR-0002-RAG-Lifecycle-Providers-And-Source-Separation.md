@@ -8,6 +8,10 @@
 - Owners: RAG-Challenge RAG / data / security architecture
 - STATE-02 review: accepted independently from ADR-0004, ADR-0005 and
   ADR-0006; acceptance does not authorise implementation or lifecycle progress
+- Amended by: accepted
+  [ADR-0007](ADR-0007-Generation-Identity-And-Freshness-Observation-Rebinding.md),
+  which supersedes only the observation-inclusive generation-identity and
+  exact-record rollback clauses
 
 ## Context
 
@@ -61,8 +65,11 @@ The accepted decision is:
   immutable index-generation manifest.
 - Make the index-generation store the sole system of record for a
   `CorpusActivationRecord` that atomically binds the active generation,
-  catalogue revision and ordinal set of active database/document/source,
-  snapshot and freshness identities. Query-time policy evaluates each binding.
+  generation-bound catalogue revision and ordinal set of active
+  database/document/source, snapshot and observation identities. The manifest
+  protects the generation-bound projection and the record separately protects
+  the complete projection including observations. Query-time policy evaluates
+  each binding.
   The vector store reads and writes immutable generations only by explicit
   `IndexGenerationId` and never owns activation.
 - Treat `Active` and `Retained` as projections of the current activation
@@ -94,9 +101,11 @@ The accepted decision is:
 - Keep snapshot content immutable. Store revalidation, freshness and source
   state as separate append-only observations, including validators sent,
   response status and ETag/Last-Modified observed; a `304` or identical
-  content hash updates only the observation binding without creating a
+  content hash creates a new complete activation-record revision with the new
+  observation binding and `activationBindingSetDigest`, without creating a
   snapshot or index generation when the active record already references that
-  compatible snapshot. Otherwise rebuild a candidate generation.
+  compatible registration and snapshot. Otherwise fail closed or rebuild a
+  candidate generation as required by the changed generation-bound input.
 - Query all active/current document bindings by default. Do not expose user
   URLs, generic crawling or public authority-bearing catalogue fields. Report
   provenance and partial coverage explicitly rather than silently substituting
@@ -104,12 +113,18 @@ The accepted decision is:
 - Build a coherent candidate generation containing the intended complete
   catalogue set. Serialise content mutations by corpus, validate the complete
   set and roll back the generation as a whole.
-- Require `VectorSearchRequest` to carry `CorpusId` and `IndexGenerationId`.
-  Optional explicit database/document filters, if later exposed, apply before
-  top-k. A global search followed by post-filtering violates the port contract.
-- Reactivate a previous generation only when the complete binding set and
-  compatibility key match the intended target. A partial document rollback
-  always creates a new candidate.
+- Require `VectorSearchRequest` to carry `CorpusId`, `IndexGenerationId` and
+  the eligible generation-bound binding selectors derived from the one
+  activation record resolved at query start. Optional explicit
+  database/document filters, if later exposed, also apply before top-k. A
+  global search followed by post-filtering violates the port contract.
+- Roll back to a previous retained, validated generation only by constructing
+  a new complete activation-record revision. Its generation-bound projection
+  and compatibility key must match the target manifest, and each official
+  binding must use an explicitly selected existing observation that is
+  compatible and eligible under current policy. Never replay an old activation
+  record byte for byte. A partial document rollback always creates a new
+  candidate.
 - Evaluate official freshness outside the vector index. Rollback never marks
   an old snapshot fresh without a real revalidation.
 - Preserve provenance in every citation and return
@@ -150,8 +165,24 @@ activation status and freshness observations remain outside the identity.
 orphan cleanup; a partial candidate never becomes queryable.
 
 `activeDocumentSetDigest` covers ordered database/document identities,
-revisions, versions and formats. `sourceBindingSetDigest` covers ordered trust,
-adapter, source-registration, snapshot and observation identities.
+revisions, versions and formats. `sourceBindingSetDigest` covers the ordered
+generation-bound projection: database/document identities, revisions,
+versions and formats, source adapter, trust class, immutable/versioned source
+registration and immutable snapshot. `sourceObservationId` is excluded from
+`sourceBindingSetDigest`, `generationSpecDigest`, the complete manifest digest
+and `IndexGenerationId`.
+
+Every `CorpusActivationRecord` additionally stores
+`activationBindingSetDigest`, which covers the same ordered projection plus
+the applicable `sourceObservationId`. Both digests use distinct, explicitly
+versioned canonical UTF-8 representations with fixed property order, ordinal
+binding order and unambiguous null handling. Before compare-and-swap,
+Application recomputes `activeDocumentSetDigest` and
+`sourceBindingSetDigest` against the finalised manifest, recomputes
+`activationBindingSetDigest` against the proposed record, and verifies that
+each official observation names the same immutable registration and snapshot.
+An observation-only append advances the observation journal and activation
+record revision, not the generation-bound `catalogueRevision`.
 `IndexCompatibilityKey` is a digest over canonical, non-secret parser,
 normalisation, chunker and embedding-adapter versions/configuration
 descriptors; embedding provider, model revision, dimensions and vector
@@ -237,6 +268,9 @@ tests; production adapters are added only when needed.
 - A failed candidate generation leaves the complete activation record
   unchanged. Activation changes generation, catalogue revision, every binding
   and the sanitised audit record atomically in the control-plane transaction.
+- Observation-only rebinding changes the complete record, its
+  `activationBindingSetDigest` and the sanitised audit atomically while
+  preserving the referenced manifest and generation identity.
 
 ## Compatibility and migration
 
@@ -250,9 +284,10 @@ tests; production adapters are added only when needed.
   `maxAge`, withdrawal/deactivation state and citation freshness.
 - Policy-authoritative `404`/`410` creates a `Withdrawn` observation, while an
   explicit audited administrative action creates `Deactivated`. A
-  compare-and-swap updates only the observation binding for the compatible
-  active generation/snapshot; transient transport/`5xx` failures do not
-  replace a `Current` observation and freshness expires through `maxAge`.
+  compare-and-swap publishes a new complete activation-record revision and
+  digest for the compatible active registration/snapshot; transient
+  transport/`5xx` failures do not replace a `Current` observation and
+  freshness expires through `maxAge`.
 - A future DB-Notifier adapter consumes query and citation contracts without
   knowing provider implementations. The adapter is owned and gated by
   DB-Notifier. The RAG-Challenge-owned v1 response includes typed outcome,
@@ -278,24 +313,38 @@ tests; production adapters are added only when needed.
 - Generation activation uses compare-and-swap of the complete
   `CorpusActivationRecord`; failed builds, audit failure and concurrency
   conflicts preserve generation and all document/source bindings. The
-  complete preceding activation revision remains a rollback target.
-- Activation and return to the retained previous generation are tested,
+  retained, validated generation and its generation-bound projection remain a
+  rollback target; historical freshness bindings are not replayed.
+- Activation and return to the retained previous generation are tested by
+  constructing a new record with compatible, currently eligible observations,
   including crash before, during and after every persistence boundary.
 - A configuration mismatch returns a typed unavailable/incompatible result.
 - A query without supporting evidence returns `INSUFFICIENT_EVIDENCE`.
 - Citations contain corpus, database, generation, document, version, format,
   trust and location identity; official citations also contain canonical URL,
   snapshot and freshness.
-- Retrieval proves hard pre-filtering of `CorpusId`, `IndexGenerationId` and
-  any explicit administrative filters before top-k. Adversarial tests place
-  higher-scoring chunks in the wrong generation, database and, when
-  applicable, corpus.
+- Retrieval proves hard pre-filtering of `CorpusId`, `IndexGenerationId`, the
+  eligible generation-binding selectors derived from the one resolved
+  activation record, and any explicit administrative filters before top-k.
+  Adversarial tests place higher-scoring chunks in an ineligible binding, the
+  wrong generation, database and, when applicable, corpus.
 - Stale, withdrawn or unavailable official content is excluded before
   retrieval/LLM and reported as degraded coverage without a silent substitute.
 - A `304` or identical content hash appends a revalidation observation without
   creating a new snapshot or index generation only when the active record
-  already references that compatible snapshot; the observation records
-  request/response validators and status.
+  already references that compatible registration/snapshot. It creates a new
+  complete activation-record revision and `activationBindingSetDigest` while
+  preserving manifest bytes, `sourceBindingSetDigest`,
+  `generationSpecDigest`, `IndexGenerationId`, `catalogueRevision` and
+  `generationActivatedAt`; the observation records request/response validators
+  and status.
+- Canonical vectors prove that changing only `sourceObservationId` changes
+  `activationBindingSetDigest` but not `sourceBindingSetDigest`,
+  `generationSpecDigest` or `IndexGenerationId`; a snapshot, adapter, trust or
+  immutable registration change does change generation identity.
+- An observation naming another registration or snapshot is rejected before
+  compare-and-swap, and retry after conflict is idempotent without a
+  query-time "latest observation" lookup.
 - A document update while another official source is stale preserves every
   unaffected binding; an eligible `304` can restore availability without
   mixing generations.
