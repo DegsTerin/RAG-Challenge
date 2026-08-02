@@ -6,6 +6,7 @@ using Microsoft.EntityFrameworkCore;
 
 using RagChallenge.Application.Persistence;
 using RagChallenge.Domain.CorpusCatalog;
+using RagChallenge.Domain.IndexingRetrieval;
 
 namespace RagChallenge.Infrastructure.Persistence;
 
@@ -147,14 +148,14 @@ public sealed class SqliteVectorIndexStore(SqliteStoreOptions options)
         await transaction.CommitAsync(cancellationToken).ConfigureAwait(false);
     }
 
-    public async Task MarkValidatedAsync(
+    public async Task<FinalisedIndexGenerationManifest> FinaliseCandidateAsync(
         CandidateBuildId candidateBuildId,
-        IndexGenerationId indexGenerationId,
+        IndexGenerationSpecification specification,
         DateTimeOffset validatedAt,
         CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(candidateBuildId);
-        ArgumentNullException.ThrowIfNull(indexGenerationId);
+        ArgumentNullException.ThrowIfNull(specification);
         EnsureUtc(validatedAt, nameof(validatedAt));
 
         await using var context = options.CreateVectorContext();
@@ -166,27 +167,79 @@ public sealed class SqliteVectorIndexStore(SqliteStoreOptions options)
             cancellationToken).ConfigureAwait(false) ??
             throw new KeyNotFoundException("The vector candidate does not exist.");
 
+        if (!string.Equals(build.CorpusId, specification.CorpusId.Value, StringComparison.Ordinal) ||
+            !string.Equals(
+                build.IndexCompatibilityKey,
+                specification.IndexCompatibilityKey.Value,
+                StringComparison.Ordinal))
+        {
+            throw new ArgumentException(
+                "A generation specification must match the candidate corpus and compatibility key.",
+                nameof(specification));
+        }
+
+        if (string.Equals(build.Status, "Failed", StringComparison.Ordinal))
+        {
+            throw new InvalidOperationException(
+                "A Failed vector build cannot be finalised.");
+        }
+
+        var chunkRows = await context.VectorChunks.AsNoTracking()
+            .Where(row => row.CandidateBuildId == candidateBuildId.Value)
+            .OrderBy(row => row.ChunkOrdinal)
+            .ToArrayAsync(cancellationToken)
+            .ConfigureAwait(false);
+
+        if (chunkRows.LongLength != build.ExpectedChunkCount)
+        {
+            throw new InvalidOperationException(
+                "A vector candidate cannot be finalised before its exact chunk count is durable.");
+        }
+
+        var artifacts = chunkRows
+            .Select(row => ToLogicalArtifact(row, build.VectorDimensions))
+            .ToArray();
+        var manifest = IndexGenerationCanonicalizer.CreateFinalisedManifest(
+            specification,
+            artifacts);
+
+        if (string.Equals(build.Status, "Validated", StringComparison.Ordinal))
+        {
+            if (!string.Equals(
+                    build.IndexGenerationId,
+                    manifest.IndexGenerationId.Value,
+                    StringComparison.Ordinal))
+            {
+                throw new InvalidOperationException(
+                    "A validated candidate cannot be finalised with different canonical content.");
+            }
+
+            await transaction.CommitAsync(cancellationToken).ConfigureAwait(false);
+            return manifest;
+        }
+
         if (!string.Equals(build.Status, "Candidate", StringComparison.Ordinal))
         {
             throw new InvalidOperationException(
                 "Only a Candidate vector build can become Validated.");
         }
 
-        var chunkCount = await context.VectorChunks.LongCountAsync(
+        build.Status = "Validated";
+        build.IndexGenerationId = manifest.IndexGenerationId.Value;
+        build.ValidatedAtUtc = FormatUtc(validatedAt);
+        await context.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
+        var durableCount = await context.VectorChunks.LongCountAsync(
             row => row.CandidateBuildId == candidateBuildId.Value,
             cancellationToken).ConfigureAwait(false);
 
-        if (chunkCount != build.ExpectedChunkCount)
+        if (durableCount != manifest.ChunkCount)
         {
             throw new InvalidOperationException(
-                "A vector candidate cannot be validated before its exact chunk count is durable.");
+                "Finalisation readback did not preserve the canonical chunk count.");
         }
 
-        build.Status = "Validated";
-        build.IndexGenerationId = indexGenerationId.Value;
-        build.ValidatedAtUtc = FormatUtc(validatedAt);
-        await context.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
         await transaction.CommitAsync(cancellationToken).ConfigureAwait(false);
+        return manifest;
     }
 
     public async Task MarkFailedAsync(
@@ -279,19 +332,52 @@ public sealed class SqliteVectorIndexStore(SqliteStoreOptions options)
             .ToArray();
     }
 
-    internal async Task<bool> IsValidatedGenerationAsync(
+    internal async Task<bool> MatchesFinalisedGenerationAsync(
         CandidateBuildId candidateBuildId,
-        IndexGenerationId indexGenerationId,
-        long expectedChunkCount,
+        FinalisedIndexGenerationManifest manifest,
         CancellationToken cancellationToken)
     {
         await using var context = options.CreateVectorContext();
-        return await context.VectorBuilds.AsNoTracking().AnyAsync(
+        var build = await context.VectorBuilds.AsNoTracking().SingleOrDefaultAsync(
             row => row.CandidateBuildId == candidateBuildId.Value &&
                 row.Status == "Validated" &&
-                row.IndexGenerationId == indexGenerationId.Value &&
-                row.ExpectedChunkCount == expectedChunkCount,
+                row.IndexGenerationId == manifest.IndexGenerationId.Value &&
+                row.ExpectedChunkCount == manifest.ChunkCount,
             cancellationToken).ConfigureAwait(false);
+
+        if (build is null ||
+            !string.Equals(
+                build.CorpusId,
+                manifest.CorpusId.Value,
+                StringComparison.Ordinal) ||
+            !string.Equals(
+                build.IndexCompatibilityKey,
+                manifest.IndexCompatibilityKey.Value,
+                StringComparison.Ordinal))
+        {
+            return false;
+        }
+
+        var chunkRows = await context.VectorChunks.AsNoTracking()
+            .Where(row => row.CandidateBuildId == candidateBuildId.Value)
+            .OrderBy(row => row.ChunkOrdinal)
+            .ToArrayAsync(cancellationToken)
+            .ConfigureAwait(false);
+        var artifacts = chunkRows
+            .Select(row => ToLogicalArtifact(row, build.VectorDimensions))
+            .ToArray();
+        var specification = new IndexGenerationSpecification(
+            manifest.ManifestSchemaVersion,
+            manifest.CorpusId,
+            manifest.CorpusRevision,
+            manifest.CatalogueRevision,
+            manifest.ActiveDocumentSetDigest,
+            manifest.SourceBindingSetDigest,
+            manifest.IndexCompatibilityKey);
+        return IndexGenerationCanonicalizer.Matches(
+            manifest,
+            specification,
+            artifacts);
     }
 
     internal async Task<bool> DeleteGenerationIfPresentAsync(
@@ -402,6 +488,17 @@ public sealed class SqliteVectorIndexStore(SqliteStoreOptions options)
 
         return vector;
     }
+
+    private static LogicalIndexArtifact ToLogicalArtifact(
+        VectorChunkRow row,
+        int dimensions) =>
+        new(
+            row.ChunkOrdinal,
+            new DocumentId(row.DocumentId),
+            new DocumentVersionNumber(row.DocumentVersion),
+            new LogicalArtifactDigest(row.ChunkDigest),
+            row.ChunkText,
+            DecodeVector(row.Vector, dimensions));
 
     private static double CalculateNorm(ReadOnlySpan<float> vector)
     {

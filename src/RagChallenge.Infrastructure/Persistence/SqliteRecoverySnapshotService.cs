@@ -1,4 +1,5 @@
 // Purpose: Creates and verifies isolated point-in-time recovery snapshots of both SQLite stores and immutable content under a control-plane maintenance lease.
+using System.Buffers.Binary;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
@@ -7,6 +8,7 @@ using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 
 using RagChallenge.Domain.CorpusCatalog;
+using RagChallenge.Domain.IndexingRetrieval;
 
 namespace RagChallenge.Infrastructure.Persistence;
 
@@ -301,7 +303,8 @@ public sealed class SqliteRecoverySnapshotService(SqliteStoreOptions options)
                 failures,
                 cancellationToken).ConfigureAwait(false);
         }
-        catch (SqliteException exception)
+        catch (Exception exception) when (
+            exception is SqliteException or ArgumentException or InvalidDataException)
         {
             failures.Add($"authority link could not be verified: {exception.Message}");
         }
@@ -564,41 +567,146 @@ public sealed class SqliteRecoverySnapshotService(SqliteStoreOptions options)
         await vectors.OpenAsync(cancellationToken).ConfigureAwait(false);
         await using var activeCommand = control.CreateCommand();
         activeCommand.CommandText = """
-            SELECT ar.index_generation_id
+            SELECT gm.candidate_build_id,
+                   gm.manifest_schema_version,
+                   gm.corpus_id,
+                   gm.corpus_revision,
+                   gm.catalogue_revision,
+                   gm.active_document_set_digest,
+                   gm.source_binding_set_digest,
+                   gm.index_compatibility_key,
+                   gm.generation_spec_digest,
+                   gm.chunk_count,
+                   gm.vector_count,
+                   gm.logical_artifact_digest,
+                   gm.generation_content_digest,
+                   gm.index_generation_id
             FROM activation_heads AS ah
             JOIN activation_records AS ar
               ON ar.corpus_id = ah.corpus_id
-             AND ar.record_revision = ah.record_revision;
+             AND ar.record_revision = ah.record_revision
+            JOIN generation_manifests AS gm
+              ON gm.corpus_id = ar.corpus_id
+             AND gm.index_generation_id = ar.index_generation_id;
             """;
-        var activeGenerations = new List<string>();
+        var activeGenerations = new List<ActiveGenerationEvidence>();
         await using (var reader = await activeCommand
             .ExecuteReaderAsync(cancellationToken)
             .ConfigureAwait(false))
         {
             while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
             {
-                activeGenerations.Add(reader.GetString(0));
+                var manifest = new FinalisedIndexGenerationManifest(
+                    reader.GetInt32(1),
+                    new CorpusId(reader.GetString(2)),
+                    new CorpusRevision(reader.GetInt64(3)),
+                    new CatalogueRevision(reader.GetInt64(4)),
+                    new ActiveDocumentSetDigest(reader.GetString(5)),
+                    new SourceBindingSetDigest(reader.GetString(6)),
+                    new IndexCompatibilityKey(reader.GetString(7)),
+                    new GenerationSpecDigest(reader.GetString(8)),
+                    reader.GetInt64(9),
+                    reader.GetInt64(10),
+                    new LogicalArtifactDigest(reader.GetString(11)),
+                    new GenerationContentDigest(reader.GetString(12)),
+                    new IndexGenerationId(reader.GetString(13)));
+                activeGenerations.Add(new ActiveGenerationEvidence(
+                    new CandidateBuildId(reader.GetString(0)),
+                    manifest));
             }
         }
 
-        foreach (var generationId in activeGenerations)
+        foreach (var evidence in activeGenerations)
         {
-            await using var vectorCommand = vectors.CreateCommand();
-            vectorCommand.CommandText = """
-                SELECT COUNT(*)
+            await using var buildCommand = vectors.CreateCommand();
+            buildCommand.CommandText = """
+                SELECT candidate_build_id,
+                       corpus_id,
+                       index_compatibility_key,
+                       vector_dimensions,
+                       expected_chunk_count
                 FROM vector_builds
                 WHERE status = 'Validated'
                   AND index_generation_id = $generationId;
                 """;
-            vectorCommand.Parameters.AddWithValue("$generationId", generationId);
-            var count = (long)(await vectorCommand
-                .ExecuteScalarAsync(cancellationToken)
-                .ConfigureAwait(false) ?? 0L);
+            buildCommand.Parameters.AddWithValue(
+                "$generationId",
+                evidence.Manifest.IndexGenerationId.Value);
+            await using var buildReader = await buildCommand
+                .ExecuteReaderAsync(cancellationToken)
+                .ConfigureAwait(false);
 
-            if (count != 1)
+            if (!await buildReader.ReadAsync(cancellationToken).ConfigureAwait(false))
             {
                 failures.Add(
-                    $"active generation {generationId} has no unique validated vector build");
+                    $"active generation {evidence.Manifest.IndexGenerationId.Value} has no validated vector build");
+                continue;
+            }
+
+            var candidateBuildId = buildReader.GetString(0);
+            var corpusId = buildReader.GetString(1);
+            var compatibilityKey = buildReader.GetString(2);
+            var dimensions = buildReader.GetInt32(3);
+            var expectedChunkCount = buildReader.GetInt64(4);
+
+            if (await buildReader.ReadAsync(cancellationToken).ConfigureAwait(false) ||
+                candidateBuildId != evidence.CandidateBuildId.Value ||
+                corpusId != evidence.Manifest.CorpusId.Value ||
+                compatibilityKey != evidence.Manifest.IndexCompatibilityKey.Value ||
+                expectedChunkCount != evidence.Manifest.ChunkCount)
+            {
+                failures.Add(
+                    $"active generation {evidence.Manifest.IndexGenerationId.Value} has inconsistent vector-build identity");
+                continue;
+            }
+
+            await buildReader.DisposeAsync().ConfigureAwait(false);
+            await using var chunkCommand = vectors.CreateCommand();
+            chunkCommand.CommandText = """
+                SELECT chunk_ordinal,
+                       document_id,
+                       document_version,
+                       chunk_digest,
+                       chunk_text,
+                       vector
+                FROM vector_chunks
+                WHERE candidate_build_id = $candidateBuildId
+                ORDER BY chunk_ordinal;
+                """;
+            chunkCommand.Parameters.AddWithValue("$candidateBuildId", candidateBuildId);
+            var artifacts = new List<LogicalIndexArtifact>();
+            await using (var chunkReader = await chunkCommand
+                .ExecuteReaderAsync(cancellationToken)
+                .ConfigureAwait(false))
+            {
+                while (await chunkReader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    artifacts.Add(new LogicalIndexArtifact(
+                        chunkReader.GetInt64(0),
+                        new DocumentId(chunkReader.GetString(1)),
+                        new DocumentVersionNumber(chunkReader.GetInt64(2)),
+                        new LogicalArtifactDigest(chunkReader.GetString(3)),
+                        chunkReader.GetString(4),
+                        DecodeVector((byte[])chunkReader[5], dimensions)));
+                }
+            }
+
+            var specification = new IndexGenerationSpecification(
+                evidence.Manifest.ManifestSchemaVersion,
+                evidence.Manifest.CorpusId,
+                evidence.Manifest.CorpusRevision,
+                evidence.Manifest.CatalogueRevision,
+                evidence.Manifest.ActiveDocumentSetDigest,
+                evidence.Manifest.SourceBindingSetDigest,
+                evidence.Manifest.IndexCompatibilityKey);
+
+            if (!IndexGenerationCanonicalizer.Matches(
+                    evidence.Manifest,
+                    specification,
+                    artifacts))
+            {
+                failures.Add(
+                    $"active generation {evidence.Manifest.IndexGenerationId.Value} failed canonical readback");
             }
         }
 
@@ -617,6 +725,25 @@ public sealed class SqliteRecoverySnapshotService(SqliteStoreOptions options)
         {
             failures.Add("vectors.db contains prohibited active-authority tables");
         }
+    }
+
+    private static float[] DecodeVector(byte[] bytes, int dimensions)
+    {
+        if (bytes.Length != dimensions * sizeof(float))
+        {
+            throw new InvalidDataException(
+                "A recovered vector does not match its declared dimensions.");
+        }
+
+        var vector = new float[dimensions];
+
+        for (var index = 0; index < dimensions; index++)
+        {
+            vector[index] = BinaryPrimitives.ReadSingleLittleEndian(
+                bytes.AsSpan(index * sizeof(float), sizeof(float)));
+        }
+
+        return vector;
     }
 
     private static bool IsValidManifestEntry(RecoveryFile file)
@@ -711,4 +838,8 @@ public sealed class SqliteRecoverySnapshotService(SqliteStoreOptions options)
         string RelativePath,
         long ByteLength,
         string Sha256);
+
+    private sealed record ActiveGenerationEvidence(
+        CandidateBuildId CandidateBuildId,
+        FinalisedIndexGenerationManifest Manifest);
 }

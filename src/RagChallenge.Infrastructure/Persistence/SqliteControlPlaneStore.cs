@@ -414,10 +414,9 @@ public sealed class SqliteControlPlaneStore(SqliteStoreOptions options)
 
         var vectorStore = new SqliteVectorIndexStore(options);
 
-        if (!await vectorStore.IsValidatedGenerationAsync(
+        if (!await vectorStore.MatchesFinalisedGenerationAsync(
                 request.CandidateBuildId,
-                request.Manifest.IndexGenerationId,
-                request.Manifest.ChunkCount,
+                request.Manifest,
                 cancellationToken).ConfigureAwait(false))
         {
             return new StoreMutationResult(StoreMutationOutcome.ValidationFailed, 0);
@@ -478,7 +477,12 @@ public sealed class SqliteControlPlaneStore(SqliteStoreOptions options)
             .ToHashSet();
 
         if (request.Bindings.Any(binding =>
-            !activeKeys.Contains((binding.DocumentId.Value, binding.DocumentVersion.Value))))
+                !activeKeys.Contains((binding.DocumentId.Value, binding.DocumentVersion.Value))) ||
+            !await AreBindingContentsReopenableAsync(
+                context,
+                request.Manifest.CorpusId,
+                request.Bindings,
+                cancellationToken).ConfigureAwait(false))
         {
             return new StoreMutationResult(StoreMutationOutcome.ValidationFailed, 0);
         }
@@ -607,11 +611,22 @@ public sealed class SqliteControlPlaneStore(SqliteStoreOptions options)
         }
 
         var vectorStore = new SqliteVectorIndexStore(options);
+        var manifest = ControlPlaneMapping.ToDomain(manifestRow);
 
-        if (!await vectorStore.IsValidatedGenerationAsync(
+        if (!await vectorStore.MatchesFinalisedGenerationAsync(
                 new CandidateBuildId(manifestRow.CandidateBuildId),
-                request.ProposedRecord.IndexGenerationId,
-                manifestRow.ChunkCount,
+                manifest,
+                cancellationToken).ConfigureAwait(false))
+        {
+            return new ActivationMutationResult(
+                StoreMutationOutcome.ValidationFailed,
+                currentRecord);
+        }
+
+        if (!await AreBindingContentsReopenableAsync(
+                context,
+                request.ProposedRecord.CorpusId,
+                request.ProposedRecord.DocumentBindings,
                 cancellationToken).ConfigureAwait(false))
         {
             return new ActivationMutationResult(
@@ -634,7 +649,7 @@ public sealed class SqliteControlPlaneStore(SqliteStoreOptions options)
             ControlPlaneMapping.ToDomain);
         var validation = ActivationRecordValidator.ValidateForCompareAndSwap(
             currentRecord,
-            ControlPlaneMapping.ToDomain(manifestRow),
+            manifest,
             request.ProposedRecord,
             request.RequiredCompatibilityKey,
             observations,
@@ -930,6 +945,61 @@ public sealed class SqliteControlPlaneStore(SqliteStoreOptions options)
         row.SourceTrustClass == document.SourceTrustClass.ToString() &&
         row.OfficialRegistrationId == document.OfficialSourceRegistrationId?.Value &&
         row.OfficialSnapshotId == document.OfficialSnapshotId?.Value;
+
+    private async Task<bool> AreBindingContentsReopenableAsync(
+        ControlPlaneDbContext context,
+        CorpusId corpusId,
+        IEnumerable<DocumentBinding> bindings,
+        CancellationToken cancellationToken)
+    {
+        var requestedBindings = bindings
+            .Select(binding => (binding.DocumentId.Value, binding.DocumentVersion.Value))
+            .Distinct()
+            .ToArray();
+        var documentRows = await context.DocumentVersions.AsNoTracking()
+            .Where(row => row.CorpusId == corpusId.Value)
+            .Select(row => new
+            {
+                row.DocumentId,
+                row.DocumentVersion,
+                row.ContentSha256,
+            })
+            .ToArrayAsync(cancellationToken)
+            .ConfigureAwait(false);
+        var contentByDocument = documentRows.ToDictionary(
+            row => (row.DocumentId, row.DocumentVersion),
+            row => row.ContentSha256);
+        var contentIds = new HashSet<string>(StringComparer.Ordinal);
+
+        foreach (var binding in requestedBindings)
+        {
+            if (!contentByDocument.TryGetValue(binding, out var contentId))
+            {
+                return false;
+            }
+
+            contentIds.Add(contentId);
+        }
+
+        var contentStore = new ImmutableContentStore(options);
+
+        try
+        {
+            foreach (var contentId in contentIds)
+            {
+                await using var content = await contentStore.OpenReadAsync(
+                    new ContentObjectId(contentId),
+                    cancellationToken).ConfigureAwait(false);
+            }
+        }
+        catch (Exception exception) when (
+            exception is IOException or InvalidDataException or UnauthorizedAccessException)
+        {
+            return false;
+        }
+
+        return true;
+    }
 
     private static async Task<CorpusActivationRecord?> ReadActiveActivationAsync(
         ControlPlaneDbContext context,

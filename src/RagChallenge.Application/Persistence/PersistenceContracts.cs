@@ -163,9 +163,9 @@ public interface IVectorIndexStore
         IReadOnlyCollection<VectorChunkWrite> chunks,
         CancellationToken cancellationToken = default);
 
-    Task MarkValidatedAsync(
+    Task<FinalisedIndexGenerationManifest> FinaliseCandidateAsync(
         CandidateBuildId candidateBuildId,
-        IndexGenerationId indexGenerationId,
+        IndexGenerationSpecification specification,
         DateTimeOffset validatedAt,
         CancellationToken cancellationToken = default);
 
