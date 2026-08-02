@@ -24,6 +24,10 @@ public sealed record RecoveryVerificationResult(
 public sealed class SqliteRecoverySnapshotService(SqliteStoreOptions options)
 {
     private static readonly TimeSpan LeaseDuration = TimeSpan.FromMinutes(10);
+    private static readonly IReadOnlyList<string> MissingManifestFailures =
+        Array.AsReadOnly(new[] { "recovery-manifest.json is missing" });
+    private static readonly IReadOnlyList<string> UnsupportedManifestFailures =
+        Array.AsReadOnly(new[] { "manifest schema version is unsupported" });
     private static readonly JsonSerializerOptions JsonOptions = new()
     {
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
@@ -208,7 +212,7 @@ public sealed class SqliteRecoverySnapshotService(SqliteStoreOptions options)
         {
             return new RecoveryVerificationResult(
                 IsValid: false,
-                ["recovery-manifest.json is missing"]);
+                MissingManifestFailures);
         }
 
         RecoveryManifest? manifest;
@@ -225,14 +229,14 @@ public sealed class SqliteRecoverySnapshotService(SqliteStoreOptions options)
         {
             return new RecoveryVerificationResult(
                 IsValid: false,
-                [$"manifest JSON is invalid: {exception.Message}"]);
+                new[] { $"manifest JSON is invalid: {exception.Message}" });
         }
 
         if (manifest is null || manifest.SchemaVersion != 1 || manifest.Files is null)
         {
             return new RecoveryVerificationResult(
                 IsValid: false,
-                ["manifest schema version is unsupported"]);
+                UnsupportedManifestFailures);
         }
 
         var relativePaths = manifest.Files

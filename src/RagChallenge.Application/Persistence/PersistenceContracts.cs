@@ -39,7 +39,8 @@ public sealed class ActivationMutationResult
         Outcome = outcome;
         CurrentRecord = currentRecord;
         ValidationFailures = Array.AsReadOnly(
-            validationFailures?.Distinct().ToArray() ?? []);
+            validationFailures?.Distinct().ToArray() ??
+                Array.Empty<ActivationValidationFailure>());
     }
 
     public StoreMutationOutcome Outcome { get; }

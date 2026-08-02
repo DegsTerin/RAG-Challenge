@@ -92,7 +92,10 @@ public sealed class SqliteStorageMaintenance(SqliteStoreOptions options)
             if (string.Equals(operation.Status, "Applied", StringComparison.Ordinal))
             {
                 await transaction.CommitAsync(cancellationToken).ConfigureAwait(false);
-                return new CleanupPlan([], [], AlreadyApplied: true);
+                return new CleanupPlan(
+                    Array.Empty<IndexGenerationId>(),
+                    Array.Empty<ContentObjectId>(),
+                    AlreadyApplied: true);
             }
 
             if (!string.Equals(operation.Status, "InProgress", StringComparison.Ordinal))
