@@ -2270,3 +2270,39 @@ contém somente fatos cronológicos.
 - Próxima condição: executar e verificar sequencialmente `S03-B1` a `S03-B5`,
   registrar relatório factual e parar antes de qualquer gate ou promoção.
 - Aprovador: proprietário do RAG-Challenge.
+
+## 2026-08-02 — Fechamento materializado de S03-B reconciliado
+
+- Estado anterior: `S03-B0` aprovado para o conjunto conservador de 42
+  nupkgs; execução de `S03-B1` interrompida ao observar 40 packages no
+  `project.assets.json` de `net10.0` mais a ferramenta local
+  `dotnet-ef 10.0.10`, totalizando 41 itens materializados.
+- Baseline de retomada confirmada: branch `main`, commit
+  `381d1cd297580476e461a242ce5b66c4884e521b`, corpus `4.9.1` e working tree
+  contendo somente as sete entradas preservadas da interrupção de `S03-B1`.
+- Autoridade humana exata:
+
+  ```text
+  Continue nesta conversa o trabalho do RAG-Challenge.
+
+  Aceito a distinção factual entre o conjunto conservador de supply chain de 42 nupkgs verificados e o fechamento efetivamente materializado para net10.0, composto por 40 packages de projeto e pela ferramenta local dotnet-ef 10.0.10, totalizando 41 itens. Aceito que System.Memory 4.5.3 permaneça somente como evidência conservadora verificada, sem pin, referência ou restauração forçada, pois o NuGet não o incluiu no project.assets.json de net10.0.
+
+  Autorizo retomar sequencialmente S03-B a partir de main@381d1cd297580476e461a242ce5b66c4884e521b e da working tree interrompida, preservando exclusivamente as alterações já autorizadas. Registre primeiro a divergência factual no relatório e no estado vigente. Depois, conclua S03-B1 com locked restore e validação dos quatro lockfiles realmente afetados. Somente se essas verificações forem aprovadas, prossiga sequencialmente com S03-B2 a S03-B5 no envelope já autorizado.
+
+  Não adicione System.Memory nem qualquer outra dependência, não amplie versões ou escopo e preserve todas as condições de parada e todo o escopo negativo vigente. Não execute Automatic Quality Gate, Human Gate, encerramento de STATE-03 ou entrada em STATE-04.
+  ```
+
+- Decisão: distinguir formalmente o conjunto conservador de evidência de
+  supply chain do fechamento materializado pelo NuGet para `net10.0`;
+  `System.Memory 4.5.3` não integra o grafo materializado e não será pinado,
+  referenciado ou restaurado à força.
+- Condição de retomada: concluir `S03-B1` com locked restore e validação dos
+  quatro lockfiles realmente afetados antes de iniciar `S03-B2`.
+- Escopo negativo preservado: nenhuma dependência ou versão adicional,
+  provider, conta, corpus real, fonte oficial do produto, armazenamento
+  operacional, GitHub, OCI, publicação, deploy, DB-Notifier, Automatic
+  Quality Gate, Human Gate, encerramento de `STATE-03` ou entrada em
+  `STATE-04`.
+- Estado resultante: `STATE-03` permanece ativo e aberto; `S03-B1` pode ser
+  retomado sequencialmente sob a reconciliação aceita.
+- Aprovador: proprietário do RAG-Challenge.

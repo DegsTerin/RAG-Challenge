@@ -13,10 +13,11 @@ proprietários.
   2026-07-31; entrada em `STATE-02 ARCHITECTURE` autorizada em 2026-07-31,
   com execução documental e local, sequencial, dos lotes `S02-A` e `S02-B`;
   `STATE-02` encerrado após Human Gate aprovado sem ressalvas em 2026-08-02;
-  entrada em `STATE-03 DATA_AND_INDEX_MODELING` autorizada em 2026-08-02,
-  exclusivamente para registro append-only e execução local, sequencial, do
-  lote `S03-A`; `S03-B` permanece bloqueado até decisão separada sobre
-  dependências, restore/instalação, lockfiles, migrations e stores.
+  entrada em `STATE-03 DATA_AND_INDEX_MODELING` autorizada em 2026-08-02;
+  `S03-A` concluído; `S03-B` autorizado para execução local e sequencial após
+  aprovação de supply chain e reconciliação humana explícita entre 42 nupkgs
+  conservadoramente verificados e 40 packages materializados para `net10.0`
+  mais a ferramenta local `dotnet-ef 10.0.10`.
 - Escopo concluído de `STATE-01`: registrar a entrada e executar localmente,
   de forma sequencial, os lotes `S01-A`, `S01-B` e `S01-C`, sem lógica RAG ou
   funcional. A autoridade adicional de 2026-07-30 permite exclusivamente
@@ -112,6 +113,23 @@ proprietários.
   variação local de verificação; os pins do repositório permanecem em
   `24.18.0`/npm `11.16.0`. O agregado `eng/ci.ps1 -Offline` não foi executado
   porque faria restore e `npm ci`, ações bloqueadas com `S03-B`.
+- Autoridade de `S03-B`: registrada no commit
+  `381d1cd297580476e461a242ce5b66c4884e521b` após repetição aprovada de
+  `S03-B0`. O conjunto conservador de supply chain contém 42 nupkgs, todos
+  verificados por SHA-512 do catálogo, repository signature, advisory e
+  licença. O asset Linux ARM64 é ELF64 AArch64 e contém SQLite `3.53.3`.
+- Reconciliação do fechamento: o restore real de `net10.0` materializou 40
+  packages no `project.assets.json` e instalou separadamente a ferramenta
+  local `dotnet-ef 10.0.10`, totalizando 41 itens. `System.Memory 4.5.3`,
+  declarado somente no grupo `.NETStandard2.0` de `SQLitePCLRaw.core 2.1.12`,
+  permaneceu evidência conservadora verificada e não foi pinado, referenciado
+  ou materializado. O proprietário aceitou explicitamente essa distinção e
+  autorizou retomar `S03-B1` na working tree interrompida.
+- Estado de execução de `S03-B1`: `Directory.Packages.props`, o projeto de
+  Infrastructure, o tool manifest local e quatro lockfiles dependentes estão
+  alterados dentro do conjunto autorizado; o locked restore e a validação
+  final desses lockfiles ainda precisam ser concluídos antes de `S03-B2`.
+  Não existem migrations ou databases rastreados.
 - Lote corretivo de `STATE-02`: sobre
   `main@9707b87d75a6acb14c8993ff0283a4221bc6c762`, corpus `4.8.0`, foi
   preparado o ADR-0007, recomendando separar identidade de geração
@@ -410,12 +428,14 @@ autorizada.
 
 ## Próxima autoridade
 
-`S03-A` está concluído e verificado dentro do envelope registrado, sem
-executar o Automatic Quality Gate de `STATE-03`. A próxima execução possível
-de `S03-B` exige decisão separada sobre o conjunto e as versões exatas das
-dependências, verificação de supply chain, restore/instalação, lockfiles,
-migrations e stores. O estado não pode ser encerrado nem promover `STATE-04`
-sem os entregáveis restantes, Automatic Quality Gate, relatório factual,
-resumo completo e Human Gate separados. Rede, providers, contas, corpus real,
-fontes oficiais, armazenamento operacional, GitHub, OCI, publicação, deploy,
-demais ações externas e mudanças no DB-Notifier continuam sem autorização.
+`S03-A` está concluído e verificado. `S03-B0` foi aprovado e a diferença entre
+o conjunto conservador de 42 nupkgs e o fechamento materializado de 41 itens
+foi aceita explicitamente. A autoridade corrente permite concluir
+sequencialmente `S03-B1` e, somente após locked restore e validação dos quatro
+lockfiles afetados, executar `S03-B2` a `S03-B5`. O estado não pode ser
+encerrado nem promover `STATE-04` sem os entregáveis restantes, Automatic
+Quality Gate, relatório factual, resumo completo e Human Gate separados.
+Rede fora das fontes primárias já autorizadas para supply chain, providers,
+contas, corpus real, fontes oficiais do produto, armazenamento operacional,
+GitHub, OCI, publicação, deploy, demais ações externas e mudanças no
+DB-Notifier continuam sem autorização.
