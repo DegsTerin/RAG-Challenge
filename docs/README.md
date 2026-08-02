@@ -2,42 +2,20 @@
 
 ## Status
 
-Este índice descreve o corpus documental vigente `4.9.1`. A baseline `3.4.0`
-encerrou o Human Gate de `STATE-00 DISCOVERY`; o `GATE-B01
-ARCHITECTURE_BOOTSTRAP_DECISION` aprovou o ADR-0001 e a licença MIT. O
-ADR-0003 aceito posteriormente substitui seu registro, preserva todas as
-decisões não relacionadas a nomenclatura e adota a nova identidade. O
-ADR-0002 e ADR-0004 a ADR-0006 foram aceitos explicitamente e de forma
-independente em 2026-08-01, e `STATE-01 PROJECT_SETUP` está encerrado com
-Automatic Quality Gate e Human Gate
-aprovados. `STATE-02 ARCHITECTURE` também está encerrado após seus gates
-automático e humano aprovados; seus pacotes documentais `S02-A` e `S02-B`
-foram preparados e a verificação pública autorizada foi
-reconciliada. Fatos dependentes de conta ou runtime continuam pendentes. A
-auditoria combinada da baseline aceita permaneceu pendente até sua autorização
-separada e foi executada depois sobre
-`main@a01a765d177efb6c4013c6846c5f54c8adbe7e0f` e reprovou o Automatic
-Quality Gate por `AQG-S02-001` (P1), `AQG-S02-002` (P2) e `AQG-S02-003`
-(P3). Nenhum ADR foi aceito por implicação, e a aceitação não autoriza
-implementação. Relatórios de estado são evidências históricas; o presente
-factual pertence a
+Este índice descreve o corpus documental vigente `4.9.1`. `STATE-00`,
+`GATE-B01`, `STATE-01` e `STATE-02` estão encerrados com os respectivos gates
+aprovados, e ADR-0002 a ADR-0007 têm o status factual indicado no índice de
+arquitetura. O proprietário autorizou a entrada em `STATE-03
+DATA_AND_INDEX_MODELING` em 2026-08-02 somente para a execução local e
+sequencial de `S03-A`.
+
+O modelo lógico, as invariantes, os vetores canônicos e as fixtures de `S03-A`
+estão registrados no relatório e no dicionário abaixo. `S03-B` permanece
+bloqueado: não existem novas dependências, migrations ou stores persistentes.
+O Automatic Quality Gate, o Human Gate, o encerramento de `STATE-03` e a
+entrada em `STATE-04` também permanecem pendentes. Relatórios são evidência
+histórica; o presente factual pertence a
 [`Current-State.md`](../prompts/state/Current-State.md).
-O corpus `4.9.1` preserva o contrato bilíngue de consulta de `4.3.0`, a
-localização `pt-BR`/`en-GB` de `4.4.0`, os temas `Light` e `Dark` de `4.5.0` e
-a ausência de tetos de sistemas/páginas de `4.6.0`. Ele também formaliza o
-catálogo inicial de 51 bancos, PDF/CSV sem cardinalidade fixa por banco e a
-recuperação unificada de todos os documentos ativos. O incremento `4.8.0`
-registra as quatro aceitações arquiteturais; o `4.8.1` reconcilia
-factualmente `AQG-S02-002` e `AQG-S02-003` e registra a proposta do ADR-0007.
-O incremento `4.9.0` registra a aceitação explícita do ADR-0007, sem executar
-a reconciliação semântica rastreada nem repetir a auditoria. O `4.9.1` aplica
-essa semântica a ADR-0002, contratos, RAG, requisitos, lifecycle, gates,
-roadmap e threat model. A nova auditoria combinada sobre
-`main@3978a17201cf5f6ac4ddc189862736fc3646457b`, corpus `4.9.1`, aprovou o
-Automatic Quality Gate, dispôs `AQG-S02-001` a `AQG-S02-003` como
-`RESOLVIDOS` e não encontrou novo achado classificado. O proprietário aprovou
-o Human Gate de `STATE-02` sem ressalvas em 2026-08-02, encerrando o estado
-documental. A decisão não autoriza implementação nem entrada em `STATE-03`.
 
 ## Comece aqui
 
@@ -57,6 +35,8 @@ documental. A decisão não autoriza implementação nem entrada em `STATE-03`.
    evidência factual e Automatic Quality Gate do setup.
 9. [`STATE-02-Architecture-Report.md`](STATE-02-Architecture-Report.md):
    execução factual, propostas e bloqueios do estado de arquitetura.
+10. [`STATE-03-Data-And-Index-Modeling-Report.md`](STATE-03-Data-And-Index-Modeling-Report.md):
+    execução factual parcial de `S03-A` e bloqueio explícito de `S03-B`.
 
 ## Produto e arquitetura
 
@@ -73,6 +53,7 @@ documental. A decisão não autoriza implementação nem entrada em `STATE-03`.
 - [ADR-0007 — Generation Identity and Freshness Observation Rebinding](architecture/ADR-0007-Generation-Identity-And-Freshness-Observation-Rebinding.md)
   (`accepted`; semantic reconciliation applied; renewed audit approved)
 - [Contratos canônicos de STATE-02](architecture/STATE-02-Canonical-Contracts.md)
+- [Dicionário lógico de dados e índice de S03-A](data/STATE-03-S03-A-Data-Dictionary.md)
 - [Threat model de STATE-02](security/STATE-02-Threat-Model.md)
 
 ## Governança

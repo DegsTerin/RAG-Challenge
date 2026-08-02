@@ -4,30 +4,15 @@ Assistente RAG independente para consultar documentação sobre bancos de dados
 em linguagem natural, com respostas fundamentadas e referências às fontes.
 
 > Status em 2026-08-02: `STATE-00 DISCOVERY`, `GATE-B01
-> ARCHITECTURE_BOOTSTRAP_DECISION` e `STATE-01 PROJECT_SETUP` estão
-> encerrados. O Automatic Quality Gate e o Human Gate de `STATE-01` foram
-> aprovados, e `STATE-02 ARCHITECTURE` também está encerrado após seus gates
-> automático e humano aprovados. O scaffold .NET, as fronteiras, os testes
-> estruturais e a definição de CI existem sem lógica RAG. Não existe produto
-> funcional ou deploy, e nenhuma decisão de ADR decorre implicitamente da
-> entrada no estado. A verificação pública autorizada foi reconciliada, e o
-> proprietário aceitou explicitamente e de forma independente ADR-0002 e
-> ADR-0004 a ADR-0006 sobre a baseline documental `4.7.0`. A aceitação não
-> autoriza implementação nem comprova fatos de conta ou runtime. A auditoria
-> combinada posterior foi executada sobre
-> `main@a01a765d177efb6c4013c6846c5f54c8adbe7e0f` e reprovou o Automatic
-> Quality Gate por um conflito P1 na identidade de geração/observação, além de
-> um achado P2 e um P3 documentais. O Human Gate permanece pendente e
-> `STATE-03` não está autorizado. O pacote corretivo posterior registrou o
-> ADR-0007, e o proprietário o aceitou explicitamente em 2026-08-02 para
-> corrigir o modelo decisório do P1. O corpus `4.9.1` aplicou a reconciliação
-> semântica correspondente aos documentos aceitos; as fontes do P2/P3 também
-> estão reconciliadas factualmente. A nova auditoria combinada sobre
-> `main@3978a17201cf5f6ac4ddc189862736fc3646457b`, corpus `4.9.1`, aprovou o
-> Automatic Quality Gate, dispôs `AQG-S02-001` a `AQG-S02-003` como
-> `RESOLVIDOS` e não encontrou novo P0, P1, P2 ou P3. O proprietário aprovou
-> o Human Gate de `STATE-02` sem ressalvas em 2026-08-02, encerrando o estado
-> documental. `STATE-03` continua sem autorização de entrada.
+> ARCHITECTURE_BOOTSTRAP_DECISION`, `STATE-01 PROJECT_SETUP` e `STATE-02
+> ARCHITECTURE` estão encerrados com seus gates aprovados. `STATE-03
+> DATA_AND_INDEX_MODELING` está ativo somente para o lote local e sequencial
+> `S03-A`: o modelo em memória, os dois domínios canônicos de digest, as
+> validações pré-CAS, as invariantes de ativação/retenção/rollback e as
+> fixtures determinísticas existem sem persistência. `S03-B`, dependências,
+> migrations, stores, Automatic Quality Gate, Human Gate, encerramento do
+> estado e entrada em `STATE-04` permanecem pendentes ou bloqueados. Não
+> existe produto RAG funcional, corpus real, publicação ou deploy.
 
 ## Problema
 
@@ -199,8 +184,11 @@ decisão explícita e adapter compatível.
 └── .gitignore
 ```
 
-Esses projetos contêm somente marcadores de boundary, composição mínima,
-health e verificações estruturais autorizadas para `STATE-01`.
+Além dos artefatos de bootstrap, Domain e Application contêm o modelo lógico
+em memória autorizado para `S03-A`, documentado no
+[`dicionário de dados`](docs/data/STATE-03-S03-A-Data-Dictionary.md). Ainda não
+existem migrations, stores persistentes, parsers, providers, recuperação RAG
+ou administração funcional.
 
 ## Governança
 

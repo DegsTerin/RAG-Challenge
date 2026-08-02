@@ -1,0 +1,39 @@
+{
+  "schemaVersion": 1,
+  "bindings": [
+    {
+      "databaseProductId": "redis",
+      "databaseProductRevision": 2,
+      "documentId": "redis-command-reference",
+      "documentVersion": 4,
+      "documentFormat": "Csv",
+      "sourceAdapterId": "official-static-document",
+      "sourceTrustClass": "OfficialExternal",
+      "officialSourceRegistrationId": "official-redis-docs-v1",
+      "sourceSnapshotId": "snapshot-redis-20260801",
+      "sourceObservationId": "observation-redis-20260802"
+    },
+    {
+      "databaseProductId": "postgresql",
+      "databaseProductRevision": 1,
+      "documentId": "postgresql-admin-guide",
+      "documentVersion": 3,
+      "documentFormat": "Pdf",
+      "sourceAdapterId": "local-directory",
+      "sourceTrustClass": "LocalAuthorised",
+      "officialSourceRegistrationId": null,
+      "sourceSnapshotId": null,
+      "sourceObservationId": null
+    }
+  ],
+  "sourceBindingSet": {
+    "domain": "rag-challenge/source-binding-set/v1",
+    "canonicalText": "35:rag-challenge/source-binding-set/v11:210:postgresql1:122:postgresql-admin-guide1:33:Pdf15:local-directory15:LocalAuthorised-1:-1:5:redis1:223:redis-command-reference1:43:Csv24:official-static-document16:OfficialExternal22:official-redis-docs-v123:snapshot-redis-20260801",
+    "sha256": "ee8e7c778ea739a3ac30828755844c9ed8f2ece00ecd2634a8a2119a9da8fa86"
+  },
+  "activationBindingSet": {
+    "domain": "rag-challenge/activation-binding-set/v1",
+    "canonicalText": "39:rag-challenge/activation-binding-set/v11:210:postgresql1:122:postgresql-admin-guide1:33:Pdf15:local-directory15:LocalAuthorised-1:-1:-1:5:redis1:223:redis-command-reference1:43:Csv24:official-static-document16:OfficialExternal22:official-redis-docs-v123:snapshot-redis-2026080126:observation-redis-20260802",
+    "sha256": "1ef036df206037b97f92e550ee21ff17e2d0505407c97a3a28a7014ec72c29e5"
+  }
+}

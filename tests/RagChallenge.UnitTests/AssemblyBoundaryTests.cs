@@ -1,4 +1,4 @@
-// Purpose: Verifies that the empty core scaffold exposes only canonical assembly markers and no premature product types.
+// Purpose: Verifies canonical core assembly identity and the approved inward Application-to-Domain relationship.
 namespace RagChallenge.UnitTests;
 
 public sealed class AssemblyBoundaryTests

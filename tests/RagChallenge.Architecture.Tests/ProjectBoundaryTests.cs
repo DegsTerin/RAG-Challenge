@@ -83,6 +83,27 @@ public sealed class ProjectBoundaryTests
         }
     }
 
+    [Theory]
+    [InlineData("src/RagChallenge.Domain/RagChallenge.Domain.csproj")]
+    [InlineData("src/RagChallenge.Application/RagChallenge.Application.csproj")]
+    public void CoreProjectsDeclareNoPackageOrPersistenceDependency(
+        string relativeProjectPath)
+    {
+        var repositoryRoot = RepositoryLayout.FindRoot();
+        var projectPath = Path.Combine(
+            repositoryRoot,
+            relativeProjectPath.Replace('/', Path.DirectorySeparatorChar));
+        var project = XDocument.Load(projectPath);
+        var content = File.ReadAllText(projectPath);
+
+        Assert.Empty(project.Descendants("PackageReference"));
+        Assert.DoesNotContain(
+            "EntityFramework",
+            content,
+            StringComparison.OrdinalIgnoreCase);
+        Assert.DoesNotContain("SQLite", content, StringComparison.OrdinalIgnoreCase);
+    }
+
     [Fact]
     public void ProductionTypesRemainInsideTheirOwningRootNamespaces()
     {
