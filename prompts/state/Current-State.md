@@ -14,10 +14,8 @@ proprietários.
   com execução documental e local, sequencial, dos lotes `S02-A` e `S02-B`;
   `STATE-02` encerrado após Human Gate aprovado sem ressalvas em 2026-08-02;
   entrada em `STATE-03 DATA_AND_INDEX_MODELING` autorizada em 2026-08-02;
-  `S03-A` concluído; `S03-B` autorizado para execução local e sequencial após
-  aprovação de supply chain e reconciliação humana explícita entre 42 nupkgs
-  conservadoramente verificados e 40 packages materializados para `net10.0`
-  mais a ferramenta local `dotnet-ef 10.0.10`.
+  `S03-A` e `S03-B0` a `S03-B5` concluídos; Automatic Quality Gate e Human
+  Gate de `STATE-03` permanecem pendentes e separados.
 - Escopo concluído de `STATE-01`: registrar a entrada e executar localmente,
   de forma sequencial, os lotes `S01-A`, `S01-B` e `S01-C`, sem lógica RAG ou
   funcional. A autoridade adicional de 2026-07-30 permite exclusivamente
@@ -136,15 +134,18 @@ proprietários.
   recuperação e o caso funcional sintético de 10.000 vetores por 1.536
   dimensões. A finalização canônica calcula digests de especificação,
   artefatos lógicos e manifesto completo a partir do readback do SQLite.
-- Bloqueio de `S03-B5`: sobre `main@8b3a6ac8ddf0fdd92995fe73db32b56f81ae1036`,
-  preflight sem processo pertencente ao produto, locked restore, auditoria de
-  vulnerabilidades, format e build foram aprovados. O EF descobriu e aplicou,
-  reverteu e reaplicou a migration de Vector, mas informou zero migrations
-  para `ControlPlaneDbContext` e mudanças pendentes no modelo de controle,
-  embora migration, designer e snapshot rastreados existam. A execução parou;
-  a causa não foi determinada nem corrigida. O diretório temporário com os
-  dois DBs não produtivos foi removido. `S03-B5` permanece incompleto, sem
-  Automatic Quality Gate ou Human Gate.
+- Execução de `S03-B5`: a divergência anterior de descoberta da migration de
+  Control não se reproduziu após clean e build Release novos sobre
+  `main@c72c8b967667f72e8971f4887174585d3640a36e`. A evidência é compatível
+  com output incremental stale usado por `--no-build`, sem provar causa
+  histórica mais profunda e sem exigir alteração de model, migration,
+  snapshot ou contrato. Control e Vector passaram list, apply, rollback para
+  zero, reapply e pending-model check em stores temporários separados, depois
+  removidos. O agregado offline passou 82 testes .NET, cobertura de 94,83% de
+  linhas e 72,34% de branches, lint, typecheck, dois testes e build do
+  Dashboard, auditoria de 130 arquivos e diff hygiene. A consulta NuGet
+  vigente não encontrou package vulnerável. `S03-B5` e S03-B estão concluídos;
+  isso não executa Automatic Quality Gate nem Human Gate.
 - Lote corretivo de `STATE-02`: sobre
   `main@9707b87d75a6acb14c8993ff0283a4221bc6c762`, corpus `4.8.0`, foi
   preparado o ADR-0007, recomendando separar identidade de geração
@@ -340,6 +341,10 @@ proprietários.
   build Release, 15 testes e cobertura de 88% de linhas/100% de branches.
   `S03-A` foi verificado sem restore ou instalação: 68 testes aprovados e
   cobertura de 95,55% de linhas/89,93% de branches.
+- `S03-B5` repetiu o agregado offline com 82 testes aprovados, cobertura de
+  94,83% de linhas/72,34% de branches e migrations Control/Vector sem mudança
+  pendente. O CI normaliza explicitamente para LF somente os sete lockfiles
+  NuGet rastreados que o restore pode reserializar no Windows.
 - O Dashboard possui `package-lock.json` v3 e passou clean install sem
   lifecycle scripts, lint, dois testes estruturais, typecheck e build Vite.
 - As auditorias npm e .NET não encontraram vulnerabilidades nas fontes atuais.
@@ -431,9 +436,10 @@ autorizada.
 5. Homologar desempenho e capacidade do `SqliteExactVectorStore`; a fixture
    funcional de 10.000 × 1.536 passou, mas não é benchmark, SLA ou teto de
    produto.
-6. Completar a verificação de migrations e testar restart/crash boundaries;
-   concorrência, corrupção, backup e recuperação isolada já possuem evidência
-   local sintética, sem representar armazenamento operacional.
+6. Testar process-crash boundaries no `STATE-07`;
+   migrations, concorrência, corrupção, backup e recuperação isolada já
+   possuem evidência local sintética, sem representar armazenamento
+   operacional.
 7. Verificar capacidade, entitlement, IAM, restore, custo e cobrança reais da
    tenancy OCI; as fontes públicas ainda divergem sobre a franquia gratuita.
 8. Materializar `rag-eval-catalogue-v1`, a rubrica e thresholds antes de cada
@@ -445,11 +451,10 @@ autorizada.
 
 ## Próxima autoridade
 
-`S03-A` e `S03-B0` a `S03-B4` estão concluídos. `S03-B5` parou na divergência
-de descoberta/snapshot da migration de Control e requer nova autorização
-explícita de retomada para diagnóstico, correção e repetição integral. O estado
-não pode ser encerrado nem promover `STATE-04` sem `S03-B5`, Automatic Quality
-Gate, relatório factual, resumo completo e Human Gate separados.
+`S03-A` e `S03-B0` a `S03-B5` estão concluídos. A próxima ação possível é uma
+Automatic Quality Gate separadamente autorizada sobre a baseline limpa. O
+estado não pode ser encerrado nem promover `STATE-04` sem essa auditoria,
+resumo completo e Human Gate separado.
 Rede fora das fontes primárias já autorizadas para supply chain, providers,
 contas, corpus real, fontes oficiais do produto, armazenamento operacional,
 GitHub, OCI, publicação, deploy, demais ações externas e mudanças no

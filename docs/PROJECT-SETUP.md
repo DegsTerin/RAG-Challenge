@@ -94,6 +94,11 @@ The full local/CI entry point is:
 Use `./eng/ci.ps1 -Offline` only when both dependency caches and both lockfile
 sets are already complete.
 
+NuGet can reserialise tracked `packages.lock.json` files with platform line
+endings during restore on Windows. The CI entry point reports and normalises
+only those tracked generated files to the repository's UTF-8/LF convention
+before hygiene checks; locked restore still rejects dependency-graph changes.
+
 ## Setup host
 
 The API host exposes only dependency-free liveness and readiness endpoints.

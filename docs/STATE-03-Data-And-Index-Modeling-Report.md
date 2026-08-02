@@ -3,21 +3,22 @@
 ## Report status
 
 - Lifecycle state: `STATE-03 DATA_AND_INDEX_MODELING` active.
-- Executed increment: `S03-A`, `S03-B0`, `S03-B1`, `S03-B2`, `S03-B3` and
-  `S03-B4` complete; `S03-B5` stopped on a migration-discovery divergence.
+- Executed increment: `S03-A` and `S03-B0` through `S03-B5` complete.
 - Entry baseline: `main@35b67c194f6ea2459833420b8bc2143fadfe75df`.
 - Instruction corpus: `4.9.1`.
 - Entry authority recorded locally: commit `5efaa37`.
 - S03-A implementation recorded locally: commit `ace780a`.
 - S03-B resumption baseline: `main@381d1cd297580476e461a242ce5b66c4884e521b`.
+- S03-B5 diagnostic resumption baseline:
+  `main@c72c8b967667f72e8971f4887174585d3640a36e`.
 - Report date: 2026-08-02.
 - Automatic Quality Gate: pending and not inferred from the checks below.
 - Human Gate: pending.
 - State closure and entry into `STATE-04`: not authorised.
 
-This is a factual partial-state execution report. It does not claim that
-`STATE-03` or S03-B is complete. S03-B5 is stopped; no Automatic Quality Gate
-or Human Gate has been executed or inferred.
+This is a factual increment-completion report. It records S03-B as complete
+but does not close `STATE-03`; no Automatic Quality Gate or Human Gate has
+been executed or inferred.
 
 ## Authority and preconditions
 
@@ -185,7 +186,7 @@ cleanup, audit, isolated recovery and corruption detection. A synthetic
 finalisation and exact-search readback; it is not performance homologation or a
 product ceiling.
 
-## S03-B5 stop condition
+## S03-B5 stop and authorised resumption
 
 S03-B5 began from clean `main@8b3a6ac8ddf0fdd92995fe73db32b56f81ae1036`.
 Runtime preflight found no RAG-Challenge-owned process. Locked restore passed,
@@ -218,30 +219,58 @@ The temporary migration sequence then diverged:
 - the exact temporary directory, containing only the two non-production DB
   files, was verified under the system temporary root and removed.
 
-This is a mandatory migration stop. The cause has not been determined and no
-repair was attempted under the stop condition. S03-B5 therefore remains
-incomplete.
+This was a mandatory migration stop. No repair was attempted in that stopped
+execution and no result was inferred from it.
+
+The owner subsequently authorised immediate resumption in the current
+conversation with `Pode fazer agora?`, after the intended S03-B scope and
+runtime preflight had been stated. The resumed execution started from clean
+`main@c72c8b967667f72e8971f4887174585d3640a36e`; runtime preflight again found
+zero RAG-Challenge-owned processes and zero owned listeners.
+
+A fresh clean and Release build made both tracked migrations discoverable.
+The complete temporary sequence then passed independently for Control and
+Vector: list, apply, rollback to zero, reapply and
+`has-pending-model-changes`. Control discovered
+`20260802171743_InitialControlPlane`; Vector discovered
+`20260802171400_InitialVectorStore`; neither context had a pending model
+change. The resulting non-production files were 380,928-byte `control.db` and
+49,152-byte `vectors.db`; their validated temporary directory was removed.
+
+The earlier divergence did not reproduce after the clean rebuild. The
+observed evidence is consistent with stale incremental Release output used by
+`--no-build`; it does not prove a deeper historical root cause. No migration,
+snapshot, model or persistence contract required correction.
+
+The first resumed `eng/ci.ps1 -Offline` run passed restore, format, Release
+build, all 82 .NET tests, coverage and all Dashboard checks, then stopped when
+the repository audit detected that Windows NuGet restore had rewritten the
+seven tracked `packages.lock.json` files with CRLF. The CI entry point now
+normalises only those tracked generated lockfiles to UTF-8/LF after locked
+restore and reports every affected path. The repeated aggregate passed with
+82/82 .NET tests, 94.83% line coverage (8,481/8,943), 72.34% branch coverage
+(688/951), two Dashboard tests, lint, typecheck, Vite build, repository audit
+for 130 non-ignored files and diff hygiene. A current NuGet vulnerability
+query reported no vulnerable direct or transitive package in any project.
+Node.js `24.18.1` remained the previously accepted local verification
+variance; repository pins remain `24.18.0` and npm `11.16.0`.
 
 ## Deferred and blocked work
 
-Resolve the Control migration-discovery/model-snapshot divergence under a new
-explicit resumption, then repeat the complete temporary migration sequence and
-all B5 checks. No B5 result may be inferred from the earlier B2 migration run.
-
-The following also remain prohibited or unperformed: provider calls, accounts,
-real product corpus, official-source synchronisation,
-operational storage, GitHub or OCI mutation, publication, deployment,
-DB-Notifier integration, `STATE-04` entry, Automatic Quality Gate, Human Gate
-and `STATE-03` closure.
+S03-B has no remaining implementation item. Automatic Quality Gate, Human
+Gate, `STATE-03` closure and entry into `STATE-04` remain separate and
+unauthorised. Provider calls, accounts, real product corpus, official-source
+synchronisation, operational storage, GitHub or OCI mutation, publication,
+deployment and DB-Notifier integration also remain prohibited.
 
 ## Risks and limitations
 
 | Item | Current disposition |
 |---|---|
-| Physical enforcement of logical uniqueness and relationships | Model and DDL are implemented, but Control migration discovery failed in B5 and blocks acceptance. |
+| Physical enforcement of logical uniqueness and relationships | Model, DDL and both fresh migration cycles passed locally in non-production temporary stores. |
 | Atomic current-record CAS, audit and history | Temporary integration tests passed, including concurrent one-winner CAS; process-crash injection was not performed. |
 | Durable immutable content, readback and cleanup | Temporary tests passed for publication, reopen hash, reachability, cleanup and corruption; no operational store or real corpus was used. |
-| Migration and recovery verification | Vector migration and isolated recovery tests passed; final Control migration discovery failed and remains blocking. |
+| Migration and recovery verification | Fresh Control and Vector apply/rollback/reapply and pending-model checks passed; isolated recovery tests passed. The earlier stale-output inference remains unproven. |
 | Canonical manifest/spec/artifact serialisers | Implemented and tested from ordered logical SQLite readback; no adapter/provider output was used. |
 | Real catalogue documents and licence evidence | No real corpus was used; selection and ingestion remain future authorised work. |
 
@@ -254,7 +283,7 @@ in reverse dependency order; append-only lifecycle evidence must remain.
 
 ## Lifecycle conclusion
 
-S03-A and S03-B0 through S03-B4 are implemented within `STATE-03`. S03-B5 is
-blocked by the Control migration-discovery divergence and is not complete.
-This does not close the state. Automatic Quality Gate, Human Gate and
-`STATE-04` remain pending and unauthorised.
+S03-A and S03-B0 through S03-B5 are implemented and verified within
+`STATE-03`. This completes the authorised S03-B increment but does not close
+the state. Automatic Quality Gate, Human Gate and `STATE-04` remain pending
+and unauthorised.

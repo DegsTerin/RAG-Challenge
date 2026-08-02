@@ -2342,3 +2342,63 @@ contém somente fatos cronológicos.
   deploy ou DB-Notifier foi usado ou alterado.
 - Aprovador da autoridade de execução interrompida: proprietário do
   RAG-Challenge.
+
+## 2026-08-02 — S03-B5 retomado e concluído sem promover STATE-03
+
+- Estado anterior: `STATE-03 DATA_AND_INDEX_MODELING` ativo; `S03-A` e
+  `S03-B0` a `S03-B4` concluídos; `S03-B5` interrompido pela divergência de
+  descoberta/snapshot da migration de Control.
+- Baseline de retomada: branch `main`, commit
+  `c72c8b967667f72e8971f4887174585d3640a36e`, corpus `4.9.1`, working tree
+  limpa.
+- Autoridade humana exata, emitida após a apresentação do escopo de retomada:
+
+  ```text
+  Pode fazer agora?
+  ```
+
+- Interpretação limitada da autoridade: diagnosticar a divergência, corrigir
+  somente o necessário e repetir integralmente `S03-B5`; Automatic Quality
+  Gate, Human Gate, encerramento de `STATE-03` e entrada em `STATE-04`
+  permaneceram fora do escopo.
+- Runtime preflight: zero processos e zero listeners pertencentes ao
+  RAG-Challenge; nada foi encerrado.
+- Diagnóstico observado: após clean e build Release novos, o EF descobriu as
+  migrations Control `20260802171743_InitialControlPlane` e Vector
+  `20260802171400_InitialVectorStore`. A divergência anterior não se
+  reproduziu; a evidência é compatível com output incremental stale consumido
+  por `--no-build`, sem provar causa histórica mais profunda.
+- Verificação de migrations: os dois contextos passaram sequencialmente
+  list, apply, rollback para zero, reapply e
+  `has-pending-model-changes`, sem mudança pendente. `control.db` possuía
+  380.928 bytes e `vectors.db`, 49.152 bytes; o diretório temporário validado
+  foi removido.
+- Correção de tooling: o primeiro `eng/ci.ps1 -Offline` retomado passou os
+  checks funcionais e parou na auditoria porque NuGet reserializou os sete
+  lockfiles rastreados com CRLF no Windows. O entry point passou a reportar e
+  normalizar somente esses arquivos gerados para UTF-8/LF depois do locked
+  restore, sem ocultar mudança lógica do grafo.
+- Verificação agregada repetida: `eng/ci.ps1 -Offline` retornou exit code `0`;
+  82 testes .NET aprovados (56 unitários, 10 de arquitetura e 16 de
+  integração), cobertura de 94,83% de linhas (8.481/8.943) e 72,34% de
+  branches (688/951), lint, typecheck, dois testes e build Vite aprovados,
+  auditoria do repositório aprovada para 130 arquivos não ignorados e diff
+  hygiene aprovado. Node.js `24.18.1` permaneceu somente como variação local
+  anteriormente aceita; os pins não mudaram.
+- Auditoria de dependências: a consulta vigente à fonte NuGet autorizada não
+  encontrou package direto ou transitivo vulnerável em nenhum projeto; não
+  houve alteração de package, versão ou lockfile lógico.
+- Resultado: `S03-B5` e o incremento `S03-B` estão concluídos. Nenhuma
+  migration foi aplicada a armazenamento operacional; os stores foram
+  exclusivamente temporários e não produtivos.
+- Limitações preservadas: não houve process-crash injection, benchmark/SLA,
+  provider, conta, corpus real, fonte oficial do produto, armazenamento
+  operacional, GitHub, OCI, publicação, deploy ou DB-Notifier.
+- Quality Gate de `STATE-03`: `PENDENTE` e não executado.
+- Human Gate de `STATE-03`: `PENDENTE` e não solicitado.
+- Estado resultante: `STATE-03` permanece ativo e aberto; entrada em
+  `STATE-04` continua não autorizada.
+- Próxima condição: obter autoridade separada para executar o Automatic
+  Quality Gate de `STATE-03` sobre baseline limpa; somente depois preparar o
+  resumo completo do Human Gate.
+- Aprovador da retomada: proprietário do RAG-Challenge.

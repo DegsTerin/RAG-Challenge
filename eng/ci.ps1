@@ -21,6 +21,34 @@ function Assert-LastExitCode {
     }
 }
 
+function Convert-NuGetLockFileLineEndings {
+    $trackedLockFiles = & git ls-files -- "*packages.lock.json"
+    Assert-LastExitCode "Tracked NuGet lockfile discovery"
+
+    $utf8WithoutBom = [System.Text.UTF8Encoding]::new($false)
+    $normalisedFiles = [System.Collections.Generic.List[string]]::new()
+
+    foreach ($relativePath in $trackedLockFiles) {
+        $absolutePath = Join-Path $repositoryRoot $relativePath
+        $content = [System.IO.File]::ReadAllText($absolutePath)
+        $normalisedContent = $content.Replace("`r`n", "`n").Replace("`r", "`n")
+
+        if ($content -cne $normalisedContent) {
+            [System.IO.File]::WriteAllText(
+                $absolutePath,
+                $normalisedContent,
+                $utf8WithoutBom)
+            $normalisedFiles.Add($relativePath)
+        }
+    }
+
+    if ($normalisedFiles.Count -gt 0) {
+        Write-Output (
+            "Normalised NuGet lockfiles to repository LF endings: " +
+            ($normalisedFiles -join ", "))
+    }
+}
+
 Push-Location $repositoryRoot
 
 try {
@@ -34,6 +62,8 @@ try {
         dotnet restore RAG-Challenge.sln --locked-mode
         Assert-LastExitCode ".NET restore"
     }
+
+    Convert-NuGetLockFileLineEndings
 
     dotnet format RAG-Challenge.sln --verify-no-changes --no-restore
     Assert-LastExitCode ".NET format verification"
