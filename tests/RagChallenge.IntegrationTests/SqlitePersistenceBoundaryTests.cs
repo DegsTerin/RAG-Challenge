@@ -6,6 +6,7 @@ using Microsoft.Data.Sqlite;
 
 using RagChallenge.Application.Persistence;
 using RagChallenge.Domain.CorpusCatalog;
+using RagChallenge.Domain.IndexingRetrieval;
 using RagChallenge.Infrastructure.Persistence;
 
 namespace RagChallenge.IntegrationTests;
@@ -163,17 +164,86 @@ public sealed class SqlitePersistenceBoundaryTests
                 new float[] { 1, 0, 0 },
                 maximumResults: 1));
 
-        await fixture.VectorStore.MarkValidatedAsync(
+        var activeDigest = BindingDigestCanonicalizer
+            .CanonicaliseActiveDocumentSet([binding])
+            .Digest;
+        var sourceDigest = BindingDigestCanonicalizer
+            .CanonicaliseSourceBindingSet([binding])
+            .Digest;
+        var specification = new IndexGenerationSpecification(
+            1,
+            SqlitePersistenceFixture.CorpusId,
+            new CorpusRevision(1),
+            new CatalogueRevision(1),
+            activeDigest,
+            sourceDigest,
+            SqlitePersistenceFixture.CompatibilityKey);
+        var manifest = await fixture.VectorStore.FinaliseCandidateAsync(
             candidate,
-            unvalidatedId,
+            specification,
             SqlitePersistenceFixture.At(2));
+        var idempotentReplay = await fixture.VectorStore.FinaliseCandidateAsync(
+            candidate,
+            specification,
+            SqlitePersistenceFixture.At(3));
         var hits = await fixture.VectorStore.SearchExactAsync(
-            unvalidatedId,
+            manifest.IndexGenerationId,
             new float[] { 1, 0, 0 },
             maximumResults: 1);
         var hit = Assert.Single(hits);
+        Assert.Equal(manifest.IndexGenerationId, idempotentReplay.IndexGenerationId);
         Assert.Equal(0, hit.ChunkOrdinal);
         Assert.Equal(1, hit.Score, precision: 12);
+    }
+
+    [Fact]
+    public async Task GenerationCommitRejectsVectorPayloadChangedAfterFinalisation()
+    {
+        await using var fixture = await SqlitePersistenceFixture.CreateAsync();
+        var (_, binding) = await fixture.CommitLocalCatalogueAsync();
+        var candidate = new CandidateBuildId("candidate-corruption");
+        await fixture.VectorStore.CreateCandidateAsync(
+            candidate,
+            SqlitePersistenceFixture.CorpusId,
+            SqlitePersistenceFixture.CompatibilityKey,
+            vectorDimensions: 3,
+            expectedChunkCount: 1,
+            SqlitePersistenceFixture.At(2));
+        await fixture.VectorStore.AddChunksAsync(
+            candidate,
+            [new VectorChunkWrite(
+                0,
+                binding.DocumentId,
+                binding.DocumentVersion,
+                new LogicalArtifactDigest(SqlitePersistenceFixture.Hash("corruption-chunk")),
+                "corruption sentinel",
+                new float[] { 1, 2, 3 })]);
+        var manifest = await fixture.VectorStore.FinaliseCandidateAsync(
+            candidate,
+            new IndexGenerationSpecification(
+                1,
+                SqlitePersistenceFixture.CorpusId,
+                new CorpusRevision(1),
+                new CatalogueRevision(1),
+                BindingDigestCanonicalizer.CanonicaliseActiveDocumentSet([binding]).Digest,
+                BindingDigestCanonicalizer.CanonicaliseSourceBindingSet([binding]).Digest,
+                SqlitePersistenceFixture.CompatibilityKey),
+            SqlitePersistenceFixture.At(2));
+        await ExecuteAsync(
+            fixture.Options.VectorDatabasePath,
+            "UPDATE vector_chunks SET vector = zeroblob(length(vector));");
+
+        var result = await fixture.ControlStore.CommitGenerationAsync(
+            new GenerationCommitRequest(
+                new OperationId("generation-corruption-rejected"),
+                candidate,
+                manifest,
+                [binding],
+                SqlitePersistenceFixture.At(2)));
+
+        Assert.Equal(StoreMutationOutcome.ValidationFailed, result.Outcome);
+        Assert.Equal(0, await fixture.ScalarAsync(
+            "SELECT COUNT(*) FROM generation_manifests;"));
     }
 
     private static async Task<string?> ReadPragmaAsync(string path, string sql)
@@ -213,6 +283,16 @@ public sealed class SqlitePersistenceBoundaryTests
         return Convert.ToInt64(
             await command.ExecuteScalarAsync(),
             CultureInfo.InvariantCulture);
+    }
+
+    private static async Task ExecuteAsync(string path, string sql)
+    {
+        await using var connection = new SqliteConnection(
+            $"Data Source={path};Mode=ReadWrite;Cache=Private");
+        await connection.OpenAsync();
+        await using var command = connection.CreateCommand();
+        command.CommandText = sql;
+        _ = await command.ExecuteNonQueryAsync();
     }
 
     private static SqliteConnection OpenReadOnly(string path) =>

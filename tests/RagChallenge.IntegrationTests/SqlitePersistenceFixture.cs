@@ -117,8 +117,6 @@ internal sealed class SqlitePersistenceFixture : IAsyncDisposable
         long chunkCount = 1)
     {
         var bindings = new[] { binding };
-        var contentDigest = new GenerationContentDigest(Hash($"generation:{seed}"));
-        var generationId = new IndexGenerationId($"idxgen-{contentDigest.Value}");
         var candidateId = new CandidateBuildId($"candidate-{seed}");
         await VectorStore.CreateCandidateAsync(
             candidateId,
@@ -141,21 +139,18 @@ internal sealed class SqlitePersistenceFixture : IAsyncDisposable
                     new float[] { 1, ordinal + 1, seed.Length })]);
         }
 
-        await VectorStore.MarkValidatedAsync(candidateId, generationId, At(2));
-        var manifest = new FinalisedIndexGenerationManifest(
+        var specification = new IndexGenerationSpecification(
             manifestSchemaVersion: 1,
             CorpusId,
             new CorpusRevision(1),
             new CatalogueRevision(1),
             BindingDigestCanonicalizer.CanonicaliseActiveDocumentSet(bindings).Digest,
             BindingDigestCanonicalizer.CanonicaliseSourceBindingSet(bindings).Digest,
-            CompatibilityKey,
-            new GenerationSpecDigest(Hash($"specification:{seed}")),
-            chunkCount,
-            vectorCount: chunkCount,
-            new LogicalArtifactDigest(Hash($"logical:{seed}")),
-            contentDigest,
-            generationId);
+            CompatibilityKey);
+        var manifest = await VectorStore.FinaliseCandidateAsync(
+            candidateId,
+            specification,
+            At(2));
         var commit = await ControlStore.CommitGenerationAsync(
             new GenerationCommitRequest(
                 new OperationId($"generation-{seed}"),

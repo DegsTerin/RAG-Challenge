@@ -5,6 +5,7 @@ using Microsoft.Data.Sqlite;
 
 using RagChallenge.Application.Persistence;
 using RagChallenge.Domain.CorpusCatalog;
+using RagChallenge.Domain.IndexingRetrieval;
 
 namespace RagChallenge.IntegrationTests;
 
@@ -19,8 +20,6 @@ public sealed class SqliteVectorScaleTests
     {
         await using var fixture = await SqlitePersistenceFixture.CreateAsync();
         var candidateId = new CandidateBuildId("candidate-scale-fixture");
-        var generationId = new IndexGenerationId(
-            $"idxgen-{SqlitePersistenceFixture.Hash("scale-generation")}");
         await fixture.VectorStore.CreateCandidateAsync(
             candidateId,
             SqlitePersistenceFixture.CorpusId,
@@ -52,14 +51,21 @@ public sealed class SqliteVectorScaleTests
             await fixture.VectorStore.AddChunksAsync(candidateId, batch);
         }
 
-        await fixture.VectorStore.MarkValidatedAsync(
+        var manifest = await fixture.VectorStore.FinaliseCandidateAsync(
             candidateId,
-            generationId,
+            new IndexGenerationSpecification(
+                1,
+                SqlitePersistenceFixture.CorpusId,
+                new CorpusRevision(1),
+                new CatalogueRevision(1),
+                new ActiveDocumentSetDigest(SqlitePersistenceFixture.Hash("scale-documents")),
+                new SourceBindingSetDigest(SqlitePersistenceFixture.Hash("scale-sources")),
+                SqlitePersistenceFixture.CompatibilityKey),
             SqlitePersistenceFixture.At(2));
         var query = new float[Dimensions];
         query[0] = 1;
         var hits = await fixture.VectorStore.SearchExactAsync(
-            generationId,
+            manifest.IndexGenerationId,
             query,
             maximumResults: 3);
 

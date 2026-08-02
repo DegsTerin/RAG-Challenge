@@ -64,6 +64,64 @@ public sealed class SqliteActivationLifecycleTests
     }
 
     [Fact]
+    public async Task CasRejectsContentThatIsNoLongerReopenableByItsSha256Identity()
+    {
+        await using var fixture = await SqlitePersistenceFixture.CreateAsync();
+        var (catalogue, binding) = await fixture.CommitLocalCatalogueAsync();
+        var manifest = await fixture.CommitGenerationAsync(binding, "content-readback");
+        var contentObjectId = Assert.Single(catalogue.DocumentVersions).ContentObjectId;
+        var objectPath = Path.Combine(
+            fixture.Options.ContentStoreRoot,
+            "objects",
+            contentObjectId.Value[..2],
+            $"{contentObjectId.Value}.bin");
+        await File.WriteAllTextAsync(objectPath, "corrupted after generation finalisation");
+        var initial = ActivationRecordFactory.CreateInitial(
+            manifest,
+            [binding],
+            SqlitePersistenceFixture.At(2));
+
+        var result = await ActivateAsync(
+            fixture,
+            "activation-content-rejected",
+            ActivationMutationKind.Initial,
+            expectedRevision: 0,
+            initial,
+            SqlitePersistenceFixture.At(2));
+
+        Assert.Equal(StoreMutationOutcome.ValidationFailed, result.Outcome);
+        Assert.Null(await fixture.ControlStore.ReadActiveActivationAsync(
+            SqlitePersistenceFixture.CorpusId));
+    }
+
+    [Fact]
+    public async Task CasRejectsVectorPayloadChangedAfterManifestCommit()
+    {
+        await using var fixture = await SqlitePersistenceFixture.CreateAsync();
+        var (_, binding) = await fixture.CommitLocalCatalogueAsync();
+        var manifest = await fixture.CommitGenerationAsync(binding, "vector-readback");
+        await ExecuteAsync(
+            fixture.Options.VectorDatabasePath,
+            "UPDATE vector_chunks SET vector = zeroblob(length(vector));");
+        var initial = ActivationRecordFactory.CreateInitial(
+            manifest,
+            [binding],
+            SqlitePersistenceFixture.At(2));
+
+        var result = await ActivateAsync(
+            fixture,
+            "activation-vector-rejected",
+            ActivationMutationKind.Initial,
+            expectedRevision: 0,
+            initial,
+            SqlitePersistenceFixture.At(2));
+
+        Assert.Equal(StoreMutationOutcome.ValidationFailed, result.Outcome);
+        Assert.Null(await fixture.ControlStore.ReadActiveActivationAsync(
+            SqlitePersistenceFixture.CorpusId));
+    }
+
+    [Fact]
     public async Task ConcurrentCasRetentionCleanupRollbackAndRecoveryRemainAuditable()
     {
         await using var fixture = await SqlitePersistenceFixture.CreateAsync();
@@ -428,5 +486,15 @@ public sealed class SqliteActivationLifecycleTests
         return Convert.ToInt64(
             await command.ExecuteScalarAsync(),
             CultureInfo.InvariantCulture);
+    }
+
+    private static async Task ExecuteAsync(string path, string sql)
+    {
+        await using var connection = new SqliteConnection(
+            $"Data Source={path};Mode=ReadWrite;Cache=Private");
+        await connection.OpenAsync();
+        await using var command = connection.CreateCommand();
+        command.CommandText = sql;
+        _ = await command.ExecuteNonQueryAsync();
     }
 }
