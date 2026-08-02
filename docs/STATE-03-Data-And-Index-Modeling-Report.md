@@ -3,20 +3,21 @@
 ## Report status
 
 - Lifecycle state: `STATE-03 DATA_AND_INDEX_MODELING` active.
-- Executed increment: `S03-A` complete; `S03-B0` complete; `S03-B1` resumed
-  after an owner-approved closure reconciliation.
+- Executed increment: `S03-A`, `S03-B0`, `S03-B1`, `S03-B2`, `S03-B3` and
+  `S03-B4` complete; `S03-B5` stopped on a migration-discovery divergence.
 - Entry baseline: `main@35b67c194f6ea2459833420b8bc2143fadfe75df`.
 - Instruction corpus: `4.9.1`.
 - Entry authority recorded locally: commit `5efaa37`.
 - S03-A implementation recorded locally: commit `ace780a`.
+- S03-B resumption baseline: `main@381d1cd297580476e461a242ce5b66c4884e521b`.
 - Report date: 2026-08-02.
 - Automatic Quality Gate: pending and not inferred from the checks below.
 - Human Gate: pending.
 - State closure and entry into `STATE-04`: not authorised.
 
 This is a factual partial-state execution report. It does not claim that
-`STATE-03` is complete. S03-B is authorised only within its recorded local,
-sequential envelope and its physical persistence work is not yet complete.
+`STATE-03` or S03-B is complete. S03-B5 is stopped; no Automatic Quality Gate
+or Human Gate has been executed or inferred.
 
 ## Authority and preconditions
 
@@ -48,17 +49,19 @@ owned listeners, so nothing was stopped.
 
 ## Layering evidence
 
-- `RagChallenge.Domain` contains pure logical values, invariant-bearing records
-  and canonical digest calculation.
-- `RagChallenge.Application` contains activation-record construction and
-  pre-CAS policy validation.
-- `RagChallenge.Infrastructure` was not changed.
-- Existing architecture tests confirm inward project references and prohibit
-  outer framework/provider dependencies in Domain and Application.
-- No `PackageReference`, central package version, lockfile, migration or store
-  was added or changed.
+- `RagChallenge.Domain` contains provider-neutral logical values, invariant
+  records and canonical digest calculation, including canonical generation
+  specification, logical-artefact and complete-manifest identity.
+- `RagChallenge.Application` owns the persistence ports, explicit mutation
+  outcomes, activation construction and pre-CAS policy validation.
+- `RagChallenge.Infrastructure` implements EF Core/SQLite contexts,
+  migrations, control/vector/content stores, cleanup and recovery.
+- Architecture tests continue to enforce inward project references and
+  prohibit EF Core, SQLite and outer providers in Domain and Application.
+- A compiler-generated namespace violation discovered during B5 was corrected
+  in `8b3a6ac`; the targeted architecture suite then passed 10/10.
 
-## Security and data-protection review
+## S03-A security and data-protection review
 
 - Inputs remain bounded typed metadata; no document body, prompt, answer,
   secret, credential or connection string is present in the model or fixtures.
@@ -71,7 +74,7 @@ owned listeners, so nothing was stopped.
   record boundaries.
 - No network, provider, account, official source or real corpus was accessed.
 
-## Verification evidence
+## S03-A verification evidence
 
 All commands were run locally from the repository root on 2026-08-02. The
 final evidence table is populated only with observed results. The environment
@@ -129,14 +132,104 @@ working tree. The accepted limitations remain: X.509 revocation was checked
 offline, and no cryptographic source-to-nupkg link or reproducible build was
 proved.
 
+## Implemented S03-B1 to S03-B4 result
+
+S03-B1 completed a locked restore with the accepted graph: 40 project packages
+for `net10.0` plus local tool `dotnet-ef 10.0.10`. `System.Memory` was absent.
+Only the four expected dependent lockfiles changed. The dependency declaration
+and lockfile increment is `e12fff2`.
+
+S03-B2 added separate EF Core models and initial migrations for `control.db`
+and `vectors.db` in `2a2e7e0`. `control.db` contains the authoritative corpus,
+catalogue revisions, immutable document/content identities, official-source
+registrations and snapshots, observation journal, final manifests, activation
+history and head, retention, operations, audit and maintenance leases.
+`vectors.db` contains only rebuildable candidate builds and chunks; it has no
+activation or retention authority. Foreign keys, check constraints, partial
+unique indexes, WAL, `synchronous=FULL`, `foreign_keys=ON`,
+`trusted_schema=OFF` and a bounded busy timeout are configured.
+
+S03-B3 added Application-owned persistence ports and local Infrastructure
+implementations in `43a4627`. Catalogue and observation writes use expected
+revisions. Activation uses an immediate SQLite transaction, expected-record
+CAS, the three independent binding digest checks, explicit observation
+relations, full vector/content readback, durable history and audit. Retention
+has one `Active`, at most one `Previous`, a minimum 14-day previous window and
+expired `Hold` rows removable only through a leased, audited manual cleanup.
+Rollback creates a new activation revision and can target only the retained,
+currently eligible `Previous` generation.
+
+The immutable content store publishes same-volume quarantine files atomically
+under lower-case SHA-256 paths, never overwrites, bounds writes, rejects
+reparse traversal and verifies SHA-256 on every reopen. Recovery uses SQLite
+online backup, copies content into a new isolated root, records per-file hashes
+and lengths, verifies database integrity/foreign keys, active authority links,
+canonical vector readback and absence of active-authority tables in
+`vectors.db`. Recovery and cleanup are leased and audited.
+
+Cross-cutting review found that the initial vector API accepted a caller-made
+generation identity. Commits `b0d9325` and `7a7b545` corrected and tested this:
+finalisation now computes versioned canonical `generationSpecDigest`, ordered
+logical artefact digest, complete manifest digest and `IndexGenerationId` from
+SQLite readback. Same inputs finalise idempotently; text, vector or specification
+changes produce a different identity. Manifest commit, CAS and recovery reject
+canonical readback divergence.
+
+S03-B4 is covered by deterministic temporary-store tests in `e3a079a` and
+`7a7b545`. Observed scenarios include schema authority separation, constraints,
+content idempotence and corruption, candidate isolation, exact search,
+three-digest failure, missing and current observations, concurrent CAS with one
+winner, bounded retention, replacement, rollback by new revision, expired-hold
+cleanup, audit, isolated recovery and corruption detection. A synthetic
+10,000-chunk by 1,536-dimension fixture completed functional write,
+finalisation and exact-search readback; it is not performance homologation or a
+product ceiling.
+
+## S03-B5 stop condition
+
+S03-B5 began from clean `main@8b3a6ac8ddf0fdd92995fe73db32b56f81ae1036`.
+Runtime preflight found no RAG-Challenge-owned process. Locked restore passed,
+reconfirmed 40 materialised project packages, no `System.Memory`, bundle
+`SQLitePCLRaw.bundle_e_sqlite3 2.1.12` and EF Core SQLite `10.0.10`, with no
+tracked change. The current NuGet vulnerability query reported no vulnerable
+package in any project. Format verification and Release build passed with zero
+warnings and errors.
+
+The first aggregate test attempt passed 56 unit tests and 16 integration tests
+but failed one of 10 architecture tests because a C# collection expression
+emitted a helper type outside the owning root namespace. The source form was
+replaced without semantic change; Release build and the targeted architecture
+suite then passed with 10/10. The full aggregate was not repeated after the
+later migration stop, so these component results do not constitute the
+Automatic Quality Gate.
+
+The temporary migration sequence then diverged:
+
+- `dotnet-ef migrations list` reported no migrations for
+  `ControlPlaneDbContext`, although the tracked control migration, designer
+  metadata and model snapshot exist;
+- the Vector context discovered `20260802171400_InitialVectorStore`, and its
+  apply, rollback-to-zero and reapply operations succeeded in the temporary
+  store;
+- Control database update reported no migrations and created no authoritative
+  schema;
+- `has-pending-model-changes` for Control returned exit code 1;
+- Vector pending-model verification and the remaining B5 checks were not run;
+- the exact temporary directory, containing only the two non-production DB
+  files, was verified under the system temporary root and removed.
+
+This is a mandatory migration stop. The cause has not been determined and no
+repair was attempted under the stop condition. S03-B5 therefore remains
+incomplete.
+
 ## Deferred and blocked work
 
-S03-B1 is authorised to complete only after a locked restore confirms the
-accepted 40-package project graph and the four genuinely affected lockfiles.
-S03-B2 through S03-B5 remain sequenced behind that check and have not started.
+Resolve the Control migration-discovery/model-snapshot divergence under a new
+explicit resumption, then repeat the complete temporary migration sequence and
+all B5 checks. No B5 result may be inferred from the earlier B2 migration run.
 
-The following also remain prohibited or unperformed: network access, provider
-calls, accounts, real product corpus, official-source synchronisation,
+The following also remain prohibited or unperformed: provider calls, accounts,
+real product corpus, official-source synchronisation,
 operational storage, GitHub or OCI mutation, publication, deployment,
 DB-Notifier integration, `STATE-04` entry, Automatic Quality Gate, Human Gate
 and `STATE-03` closure.
@@ -145,26 +238,23 @@ and `STATE-03` closure.
 
 | Item | Current disposition |
 |---|---|
-| Physical enforcement of logical uniqueness and relationships | Authorised for sequenced S03-B work; no DDL exists yet. |
-| Atomic current-record CAS, audit and history | Application preconditions are modelled; transaction implementation and crash evidence have not yet been produced. |
-| Durable immutable content, readback and cleanup | Reachability is modelled; no content store exists. |
-| Migration and recovery verification | Not tested and not authorised in S03-A. |
-| Canonical manifest/spec/artifact serialisers beyond the two binding domains | Their typed digests and identity constraints are modelled; physical finalisation remains future work. |
+| Physical enforcement of logical uniqueness and relationships | Model and DDL are implemented, but Control migration discovery failed in B5 and blocks acceptance. |
+| Atomic current-record CAS, audit and history | Temporary integration tests passed, including concurrent one-winner CAS; process-crash injection was not performed. |
+| Durable immutable content, readback and cleanup | Temporary tests passed for publication, reopen hash, reachability, cleanup and corruption; no operational store or real corpus was used. |
+| Migration and recovery verification | Vector migration and isolated recovery tests passed; final Control migration discovery failed and remains blocking. |
+| Canonical manifest/spec/artifact serialisers | Implemented and tested from ordered logical SQLite readback; no adapter/provider output was used. |
 | Real catalogue documents and licence evidence | No real corpus was used; selection and ingestion remain future authorised work. |
 
 ## Rollback of this local increment
 
-There is no operational data or deployment to roll back. If the owner rejects
-the S03-A implementation before later persistence depends on it, the focused
-local implementation commit can be reverted with an ordinary forward Git
-revert. The append-only lifecycle entry remains historical evidence and must
-not be silently deleted or rewritten.
+There is no operational data or deployment to roll back. The exact temporary
+migration store was removed. If the owner rejects the S03-B implementation,
+its focused local commits can be reverted through ordinary forward Git reverts
+in reverse dependency order; append-only lifecycle evidence must remain.
 
 ## Lifecycle conclusion
 
-S03-A is implemented and verified within `STATE-03`; S03-B0 is approved and
-the package-resolution distinction is explicitly accepted. S03-B1 through
-S03-B5 still need to complete sequentially. This does not close the state. A
-future Automatic Quality Gate must assess the complete authorised STATE-03
-deliverables and factual report before a separate complete Human Gate summary
-can request closure.
+S03-A and S03-B0 through S03-B4 are implemented within `STATE-03`. S03-B5 is
+blocked by the Control migration-discovery divergence and is not complete.
+This does not close the state. Automatic Quality Gate, Human Gate and
+`STATE-04` remain pending and unauthorised.

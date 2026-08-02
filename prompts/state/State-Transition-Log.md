@@ -2306,3 +2306,39 @@ contém somente fatos cronológicos.
 - Estado resultante: `STATE-03` permanece ativo e aberto; `S03-B1` pode ser
   retomado sequencialmente sob a reconciliação aceita.
 - Aprovador: proprietário do RAG-Challenge.
+
+## 2026-08-02 — S03-B5 interrompido por divergência de migration de Control
+
+- Estado anterior: `S03-B1` a `S03-B4` executados sequencialmente após a
+  reconciliação humana do fechamento de packages; `S03-B5` pendente.
+- Baseline factual do início de `S03-B5`: branch `main`, commit
+  `8b3a6ac8ddf0fdd92995fe73db32b56f81ae1036`, corpus `4.9.1`, working tree
+  limpa e zero processos pertencentes ao RAG-Challenge.
+- Evidência aprovada antes da divergência: locked restore com 40 packages de
+  projeto, ausência de `System.Memory`, ferramenta local `dotnet-ef 10.0.10`,
+  nenhum package vulnerável reportado pela fonte NuGet vigente, format sem
+  mudança e build Release sem warnings ou errors.
+- Evidência de testes: 56 testes unitários e 16 de integração aprovados. A
+  primeira passagem encontrou um tipo auxiliar do compilador fora do namespace
+  raiz; a correção local focada foi registrada em `8b3a6ac` e a repetição
+  dirigida aprovou 10/10 testes de arquitetura. O agregado completo não foi
+  repetido depois da condição de parada.
+- Divergência bloqueante: `dotnet-ef migrations list` informou zero migrations
+  para `ControlPlaneDbContext`, apesar de migration, designer com atributos e
+  snapshot rastreados. A migration `20260802171400_InitialVectorStore` foi
+  descoberta e passou apply, rollback para zero e reapply no store temporário;
+  o contexto de Control informou mudanças pendentes no modelo e retornou exit
+  code 1. A verificação de modelo pendente de Vector e os demais checks de
+  `S03-B5` não foram executados.
+- Disposição: execução interrompida sem diagnóstico corretivo, sem mudança de
+  migration e sem inferir resultado de gate. O diretório temporário validado,
+  contendo somente `control.db` e `vectors.db` não produtivos, foi removido.
+- Estado resultante: `STATE-03` permanece ativo e aberto; `S03-B5` está
+  incompleto e bloqueado até nova autoridade humana explícita para retomada.
+  Automatic Quality Gate, Human Gate, encerramento de `STATE-03` e entrada em
+  `STATE-04` permanecem não executados e não autorizados.
+- Escopo negativo preservado: nenhum provider, conta, corpus real, fonte
+  oficial do produto, armazenamento operacional, GitHub, OCI, publicação,
+  deploy ou DB-Notifier foi usado ou alterado.
+- Aprovador da autoridade de execução interrompida: proprietário do
+  RAG-Challenge.

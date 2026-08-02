@@ -125,11 +125,26 @@ proprietários.
   permaneceu evidência conservadora verificada e não foi pinado, referenciado
   ou materializado. O proprietário aceitou explicitamente essa distinção e
   autorizou retomar `S03-B1` na working tree interrompida.
-- Estado de execução de `S03-B1`: `Directory.Packages.props`, o projeto de
-  Infrastructure, o tool manifest local e quatro lockfiles dependentes estão
-  alterados dentro do conjunto autorizado; o locked restore e a validação
-  final desses lockfiles ainda precisam ser concluídos antes de `S03-B2`.
-  Não existem migrations ou databases rastreados.
+- Execução de `S03-B1` a `S03-B4`: `S03-B1` concluiu locked restore com 40
+  packages materializados, ferramenta `dotnet-ef 10.0.10`, ausência de
+  `System.Memory` e exatamente quatro lockfiles afetados. `S03-B2` registrou
+  os modelos físicos e migrations iniciais separados de `control.db` e
+  `vectors.db`. `S03-B3` implementou ports em Application e stores locais em
+  Infrastructure para autoridade de controle, vetores derivados, conteúdo
+  imutável, CAS, retenção, cleanup e recuperação. `S03-B4` adicionou fixtures
+  e testes determinísticos, inclusive concorrência, rollback, corrupção,
+  recuperação e o caso funcional sintético de 10.000 vetores por 1.536
+  dimensões. A finalização canônica calcula digests de especificação,
+  artefatos lógicos e manifesto completo a partir do readback do SQLite.
+- Bloqueio de `S03-B5`: sobre `main@8b3a6ac8ddf0fdd92995fe73db32b56f81ae1036`,
+  preflight sem processo pertencente ao produto, locked restore, auditoria de
+  vulnerabilidades, format e build foram aprovados. O EF descobriu e aplicou,
+  reverteu e reaplicou a migration de Vector, mas informou zero migrations
+  para `ControlPlaneDbContext` e mudanças pendentes no modelo de controle,
+  embora migration, designer e snapshot rastreados existam. A execução parou;
+  a causa não foi determinada nem corrigida. O diretório temporário com os
+  dois DBs não produtivos foi removido. `S03-B5` permanece incompleto, sem
+  Automatic Quality Gate ou Human Gate.
 - Lote corretivo de `STATE-02`: sobre
   `main@9707b87d75a6acb14c8993ff0283a4221bc6c762`, corpus `4.8.0`, foi
   preparado o ADR-0007, recomendando separar identidade de geração
@@ -315,10 +330,10 @@ proprietários.
   `8c347c0fa73fead3e03a1eb979deba9fe3617379`.
 - Existem `RAG-Challenge.sln`, quatro projetos .NET de produção sob o prefixo
   `RagChallenge`, um boundary React/TypeScript para o Dashboard e três
-  projetos .NET de testes, conforme o ADR-0003, que incorpora as decisões
-  não relacionadas a nomenclatura do ADR-0001. Além de markers, composição de
-  setup e health, Domain e Application contêm o modelo lógico e a política
-  em memória autorizados para `S03-A`; não existe backend RAG funcional.
+  projetos .NET de testes, conforme o ADR-0003. Domain e Application contêm o
+  modelo, as identidades canônicas e os ports de persistência; Infrastructure
+  contém a persistência SQLite local de `S03-B`. Não existe fluxo funcional de
+  ingestão, recuperação RAG, geração ou API do `STATE-04`.
 - SDK .NET `10.0.302`, C# `14.0`, Node.js `24.18.0` e npm `11.16.0` estão
   fixados. NuGet usa gestão central e sete lockfiles reproduzidos offline.
 - O gate histórico de setup aprovou restore .NET offline locked, format,
@@ -413,10 +428,12 @@ autorizada.
    primária e spikes de compatibilidade, qualidade e segurança autorizados.
 4. Verificar tier, entitlement, spend limit e controles da conta OpenAI, além
    da recuperação/geração bilíngue, antes de usar ou anunciar os providers.
-5. Provar o envelope representativo de `SqliteExactVectorStore`; 10.000 chunks
-   continua ponto inicial de benchmark, não teto de produto.
-6. Testar concorrência, restart, corrupção, backup consistente e restore de
-   SQLite/filesystem sem tratar as metas condicionais como SLA comprovado.
+5. Homologar desempenho e capacidade do `SqliteExactVectorStore`; a fixture
+   funcional de 10.000 × 1.536 passou, mas não é benchmark, SLA ou teto de
+   produto.
+6. Completar a verificação de migrations e testar restart/crash boundaries;
+   concorrência, corrupção, backup e recuperação isolada já possuem evidência
+   local sintética, sem representar armazenamento operacional.
 7. Verificar capacidade, entitlement, IAM, restore, custo e cobrança reais da
    tenancy OCI; as fontes públicas ainda divergem sobre a franquia gratuita.
 8. Materializar `rag-eval-catalogue-v1`, a rubrica e thresholds antes de cada
@@ -428,13 +445,11 @@ autorizada.
 
 ## Próxima autoridade
 
-`S03-A` está concluído e verificado. `S03-B0` foi aprovado e a diferença entre
-o conjunto conservador de 42 nupkgs e o fechamento materializado de 41 itens
-foi aceita explicitamente. A autoridade corrente permite concluir
-sequencialmente `S03-B1` e, somente após locked restore e validação dos quatro
-lockfiles afetados, executar `S03-B2` a `S03-B5`. O estado não pode ser
-encerrado nem promover `STATE-04` sem os entregáveis restantes, Automatic
-Quality Gate, relatório factual, resumo completo e Human Gate separados.
+`S03-A` e `S03-B0` a `S03-B4` estão concluídos. `S03-B5` parou na divergência
+de descoberta/snapshot da migration de Control e requer nova autorização
+explícita de retomada para diagnóstico, correção e repetição integral. O estado
+não pode ser encerrado nem promover `STATE-04` sem `S03-B5`, Automatic Quality
+Gate, relatório factual, resumo completo e Human Gate separados.
 Rede fora das fontes primárias já autorizadas para supply chain, providers,
 contas, corpus real, fontes oficiais do produto, armazenamento operacional,
 GitHub, OCI, publicação, deploy, demais ações externas e mudanças no
