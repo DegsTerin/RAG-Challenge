@@ -2177,3 +2177,96 @@ contém somente fatos cronológicos.
 - Próxima condição: decisão humana separada sobre o conjunto e as versões
   exatas de dependências e sobre a execução restrita de `S03-B`.
 - Aprovador da variação local: proprietário do RAG-Challenge.
+
+## 2026-08-02 — S03-B autorizado após nova aprovação de supply chain
+
+- Estado anterior: `STATE-03 DATA_AND_INDEX_MODELING` ativo; `S03-A`
+  concluído; `S03-B`, Automatic Quality Gate, Human Gate, encerramento e
+  `STATE-04` bloqueados.
+- Baseline confirmada antes do registro: branch `main`, commit
+  `7e56569cab214f95a1af1a4df46019efb4a5a3fe`, corpus `4.9.1` e working tree
+  limpa.
+- Autoridade humana exata:
+
+  ```text
+  Continue nesta conversa o trabalho do RAG-Challenge.
+
+  Autorizo uma nova execução local e sequencial de S03-B sobre a baseline
+  main@7e56569cab214f95a1af1a4df46019efb4a5a3fe, corpus 4.9.1,
+  exclusivamente no envelope decisório apresentado nesta resposta.
+
+  O conjunto exato autorizado é:
+  - Microsoft.EntityFrameworkCore.Sqlite 10.0.10;
+  - Microsoft.EntityFrameworkCore.Design 10.0.10 com PrivateAssets=all;
+  - Microsoft.Data.Sqlite.Core 10.0.10;
+  - pin central transitivo SQLitePCLRaw.bundle_e_sqlite3 2.1.12;
+  - ferramenta local dotnet-ef 10.0.10.
+
+  Aceito como limitações factuais que a verificação de revogação X.509 foi
+  mantida offline e que não foi provada uma ligação criptográfica ou build
+  reproduzível entre os commits dos mantenedores e os nupkgs. Esta aceitação não
+  dispensa hash, repository signature, advisory, licença, fechamento transitivo,
+  asset Linux ARM64 ou qualquer outra condição de parada.
+
+  Antes de escrever no repositório, reconfirme branch, HEAD, corpus, working
+  tree, estado factual e autoridade e execute novamente S03-B0. Autorize HTTPS
+  somente para a fonte NuGet configurada e para fontes primárias dos
+  mantenedores. Revalide as 42 versões esperadas, SHA-512 do catálogo,
+  repository signatures, índice vigente de certificados, advisories, licenças e
+  o asset linux-arm64 com SQLite 3.53.3. Pare se houver qualquer divergência ou
+  se o fechamento real diferir.
+
+  Somente se S03-B0 for aprovado, altere Directory.Packages.props,
+  RagChallenge.Infrastructure.csproj, o tool manifest local e apenas os
+  lockfiles realmente afetados; restaure e instale localmente somente as versões
+  exatas; crie e aplique migrations apenas em stores temporários não produtivos;
+  e execute sequencialmente S03-B1 a S03-B5 no envelope já apresentado.
+
+  Implemente control.db como autoridade única de catálogo, manifesto, ativação,
+  histórico, auditoria e retenção; vectors.db como store derivado sem autoridade
+  ativa; e content store imutável por SHA-256. Preserve CAS por revisão
+  esperada, três digests, observações explícitas, uma geração anterior por janela
+  mínima de 14 dias, cleanup manual auditado, rollback por nova revisão e
+  recuperação isolada.
+
+  Não use providers, contas, corpus real, fontes oficiais, armazenamento
+  operacional, GitHub, OCI, publicação, deploy ou DB-Notifier. Não execute
+  Automatic Quality Gate, Human Gate, encerramento de STATE-03 ou entrada em
+  STATE-04. Pare diante de qualquer divergência de pacote, lockfile, migration,
+  constraint, atomicidade, path safety, teste ou autoridade.
+  ```
+
+- S03-B0 repetido antes deste registro: `APROVADO`. O fechamento compatível
+  com `net10.0` contém exatamente 42 versões e 89 relações de dependência;
+  nenhum package esperado ficou ausente ou inalcançável.
+- Supply chain observada: 42/42 hashes SHA-512 iguais ao catálogo NuGet;
+  42/42 nupkgs com repository signature válida em modo de revogação offline;
+  índice NuGet com `allRepositorySigned=true`, três certificados históricos e
+  um certificado vigente; zero advisory aplicável; 38 licenças MIT e quatro
+  Apache-2.0.
+- Asset nativo: `runtimes/linux-arm64/native/libe_sqlite3.so` presente como
+  ELF64 little-endian AArch64, com 1.534.296 bytes, SHA-256
+  `707fff6b18c1f083158e7a543c8d2545d5485f547ffd96db29679a95f52878d5`,
+  SQLite `3.53.3` e source ID
+  `2026-06-26 20:14:12 d4c0e51e4aeb96955b99185ab9cde75c339e2c29c3f3f12428d364a10d782c62`.
+- Fontes: única fonte NuGet configurada
+  `https://api.nuget.org/v3/index.json`; catálogo, índice de assinaturas e
+  advisories do NuGet; advisory e tag `v2.1.12` do mantenedor; página primária
+  de CVEs do SQLite.
+- Limitações aceitas e preservadas: revogação X.509 verificada offline; nenhuma
+  ligação criptográfica ou reprodução de build entre os commits dos
+  mantenedores e os nupkgs foi provada.
+- Runtime preflight após S03-B0: zero processos executáveis pertencentes ao
+  RAG-Challenge e nada encerrado.
+- Decisão: executar localmente e de modo sequencial `S03-B1` a `S03-B5`
+  somente com o conjunto exato autorizado e apenas após este registro.
+- Escopo negativo preservado: nenhuma ampliação de pacote ou versão, provider,
+  conta, corpus real, fonte oficial, armazenamento operacional, GitHub, OCI,
+  publicação, deploy, DB-Notifier, Automatic Quality Gate, Human Gate,
+  encerramento de `STATE-03` ou entrada em `STATE-04`.
+- Estado resultante: `STATE-03` permanece ativo e aberto; `S03-B` está
+  autorizado para a execução local delimitada; os gates e a transição
+  subsequente continuam bloqueados.
+- Próxima condição: executar e verificar sequencialmente `S03-B1` a `S03-B5`,
+  registrar relatório factual e parar antes de qualquer gate ou promoção.
+- Aprovador: proprietário do RAG-Challenge.
