@@ -2,7 +2,8 @@
 
 ## Report status
 
-- Lifecycle state: `STATE-03 DATA_AND_INDEX_MODELING` active.
+- Lifecycle state: `STATE-03 DATA_AND_INDEX_MODELING` closed after Human Gate
+  approval without reservations.
 - Executed increment: `S03-A` and `S03-B0` through `S03-B5` complete.
 - Entry baseline: `main@35b67c194f6ea2459833420b8bc2143fadfe75df`.
 - Instruction corpus: `4.9.1`.
@@ -14,12 +15,15 @@
 - Report date: 2026-08-02.
 - Automatic Quality Gate: `APROVADO` on
   `main@3d0731fdf3f5004fb185dc760b5f74e4d73b4aa5`.
-- Human Gate: pending.
-- State closure and entry into `STATE-04`: not authorised.
+- Human Gate: `APROVADO` without reservations on
+  `main@a88dc1f296bb9117dd8e869b83d1665cee99634f`.
+- State closure: `STATE-03` closed on 2026-08-02.
+- Entry into `STATE-04`: not authorised.
 
 This is a factual increment and audit report. It records S03-B as complete and
-the Automatic Quality Gate as approved, but does not close `STATE-03`; no
-Human Gate has been executed or inferred.
+the Automatic Quality Gate and Human Gate as approved. The explicit Human Gate
+decision closes only `STATE-03` and grants no authority for `STATE-04` or any
+external action.
 
 ## Authority and preconditions
 
@@ -290,13 +294,33 @@ scale, and absence of real corpus/provider/operational-store evidence remain
 explicit limitations assigned to their later owning states; none is a
 `STATE-03` gate failure.
 
+## Human Gate
+
+The owner reviewed the complete current-baseline summary in the same
+conversation, including the Automatic Quality Gate evidence collected on
+`main@3d0731fdf3f5004fb185dc760b5f74e4d73b4aa5`, the evidence-recording
+baseline `main@a88dc1f296bb9117dd8e869b83d1665cee99634f`, deliverables,
+verification results, limitations, residual risks, negative scope and
+rollback. The owner then supplied the canonical confirmation phrase:
+
+```text
+Confirmo a decisão acima exclusivamente para STATE-03
+```
+
+Human Gate result: `APROVADO` without reservations on 2026-08-02. The
+decision closes only `STATE-03`; it does not authorise entry into `STATE-04`,
+provider or corpus use, official-source access, GitHub, OCI, publication,
+deployment or any other external action. Runtime preflight was not applicable
+to this documentation-only Human Gate recording.
+
 ## Deferred and blocked work
 
 S03-B has no remaining implementation item and the Automatic Quality Gate is
-approved. Human Gate, `STATE-03` closure and entry into `STATE-04` remain
-separate and unauthorised. Provider calls, accounts, real product corpus,
-official-source synchronisation, operational storage, GitHub or OCI mutation,
-publication, deployment and DB-Notifier integration also remain prohibited.
+approved. The Human Gate is approved without reservations and `STATE-03` is
+closed. Entry into `STATE-04` remains separate and unauthorised. Provider
+calls, accounts, real product corpus, official-source synchronisation,
+operational storage, GitHub or OCI mutation, publication, deployment and
+DB-Notifier integration also remain prohibited.
 
 ## Risks and limitations
 
@@ -319,6 +343,6 @@ in reverse dependency order; append-only lifecycle evidence must remain.
 ## Lifecycle conclusion
 
 S03-A and S03-B0 through S03-B5 are implemented and verified within
-`STATE-03`; its Automatic Quality Gate is approved with no finding. This does
-not close the state. Human Gate remains pending, and `STATE-04` remains
-unauthorised.
+`STATE-03`; its Automatic Quality Gate is approved with no finding and its
+Human Gate is approved without reservations. `STATE-03` is closed.
+`STATE-04` remains unauthorised.

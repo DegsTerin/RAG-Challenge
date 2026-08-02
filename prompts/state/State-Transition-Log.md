@@ -2463,3 +2463,40 @@ contém somente fatos cronológicos.
 - Próxima condição: apresentar o resumo completo da baseline vigente e obter
   a frase canônica do Human Gate exclusivamente para `STATE-03`.
 - Autorizador do gate: proprietário do RAG-Challenge.
+
+## 2026-08-02 — Human Gate de STATE-03 aprovado sem ressalvas
+
+- Estado anterior: `STATE-03 DATA_AND_INDEX_MODELING` ativo; `S03-A` e
+  `S03-B0` a `S03-B5` concluídos; Automatic Quality Gate aprovado; Human Gate
+  pendente.
+- Baseline da decisão: branch `main`, commit
+  `a88dc1f296bb9117dd8e869b83d1665cee99634f`, corpus `4.9.1`, working tree
+  limpa. A execução do Automatic Quality Gate foi auditada sobre
+  `main@3d0731fdf3f5004fb185dc760b5f74e4d73b4aa5`; o commit da decisão apenas
+  registrou sua evidência factual.
+- Resumo completo apresentado na mesma conversa: entregáveis de `S03-A` e
+  `S03-B0` a `S03-B5`; resultado automático `APROVADO` com P0 `0`, P1 `0`,
+  P2 `0` e P3 `0`; 82 testes .NET; cobertura de 94,83% de linhas e 72,34% de
+  branches; Dashboard aprovado; migrations Control e Vector repetidas apenas
+  em stores temporários removidos; limitações, riscos residuais, escopo
+  negativo e rollback.
+- Confirmação humana exata:
+
+  ```text
+  Confirmo a decisão acima exclusivamente para STATE-03
+  ```
+
+- Decisão: Human Gate de `STATE-03` `APROVADO` sem ressalvas.
+- Runtime preflight: `NOT_APPLICABLE`; o registro do Human Gate altera somente
+  documentação e memória de lifecycle, sem validar ou mudar comportamento
+  executável.
+- Estado resultante: `STATE-03 DATA_AND_INDEX_MODELING` encerrado.
+- Limite da decisão: a confirmação se aplica exclusivamente a `STATE-03` e
+  não autoriza entrada ou execução de `STATE-04`.
+- Escopo externo preservado: nenhum provider, conta, corpus real, fonte
+  oficial, rede, GitHub, OCI, publicação, deploy, armazenamento operacional ou
+  DB-Notifier foi acessado ou autorizado.
+- Próxima condição: apresentar uma proposta completa e limitada de entrada em
+  `STATE-04 BACKEND_IMPLEMENTATION` e obter autorização humana explícita e
+  separada antes de qualquer execução.
+- Aprovador: proprietário do RAG-Challenge.
