@@ -6,8 +6,8 @@ em linguagem natural, com respostas fundamentadas e referências às fontes.
 > Status em 2026-08-02: `STATE-00 DISCOVERY`, `GATE-B01
 > ARCHITECTURE_BOOTSTRAP_DECISION` e `STATE-01 PROJECT_SETUP` estão
 > encerrados. O Automatic Quality Gate e o Human Gate de `STATE-01` foram
-> aprovados, e `STATE-02 ARCHITECTURE` está ativo para trabalho documental e
-> local nos lotes `S02-A` e `S02-B`. O scaffold .NET, as fronteiras, os testes
+> aprovados, e `STATE-02 ARCHITECTURE` também está encerrado após seus gates
+> automático e humano aprovados. O scaffold .NET, as fronteiras, os testes
 > estruturais e a definição de CI existem sem lógica RAG. Não existe produto
 > funcional ou deploy, e nenhuma decisão de ADR decorre implicitamente da
 > entrada no estado. A verificação pública autorizada foi reconciliada, e o
@@ -25,8 +25,9 @@ em linguagem natural, com respostas fundamentadas e referências às fontes.
 > estão reconciliadas factualmente. A nova auditoria combinada sobre
 > `main@3978a17201cf5f6ac4ddc189862736fc3646457b`, corpus `4.9.1`, aprovou o
 > Automatic Quality Gate, dispôs `AQG-S02-001` a `AQG-S02-003` como
-> `RESOLVIDOS` e não encontrou novo P0, P1, P2 ou P3. O Human Gate permanece
-> `PENDENTE`, não foi solicitado, e `STATE-03` continua sem autorização.
+> `RESOLVIDOS` e não encontrou novo P0, P1, P2 ou P3. O proprietário aprovou
+> o Human Gate de `STATE-02` sem ressalvas em 2026-08-02, encerrando o estado
+> documental. `STATE-03` continua sem autorização de entrada.
 
 ## Problema
 

@@ -10,8 +10,9 @@ decisões não relacionadas a nomenclatura e adota a nova identidade. O
 ADR-0002 e ADR-0004 a ADR-0006 foram aceitos explicitamente e de forma
 independente em 2026-08-01, e `STATE-01 PROJECT_SETUP` está encerrado com
 Automatic Quality Gate e Human Gate
-aprovados. `STATE-02 ARCHITECTURE` está ativo; seus pacotes documentais
-`S02-A` e `S02-B` foram preparados e a verificação pública autorizada foi
+aprovados. `STATE-02 ARCHITECTURE` também está encerrado após seus gates
+automático e humano aprovados; seus pacotes documentais `S02-A` e `S02-B`
+foram preparados e a verificação pública autorizada foi
 reconciliada. Fatos dependentes de conta ou runtime continuam pendentes. A
 auditoria combinada da baseline aceita permaneceu pendente até sua autorização
 separada e foi executada depois sobre
@@ -34,9 +35,9 @@ essa semântica a ADR-0002, contratos, RAG, requisitos, lifecycle, gates,
 roadmap e threat model. A nova auditoria combinada sobre
 `main@3978a17201cf5f6ac4ddc189862736fc3646457b`, corpus `4.9.1`, aprovou o
 Automatic Quality Gate, dispôs `AQG-S02-001` a `AQG-S02-003` como
-`RESOLVIDOS` e não encontrou novo achado classificado. O Human Gate permanece
-`PENDENTE` e não solicitado; nenhuma dessas mudanças autoriza implementação ou
-`STATE-03`.
+`RESOLVIDOS` e não encontrou novo achado classificado. O proprietário aprovou
+o Human Gate de `STATE-02` sem ressalvas em 2026-08-02, encerrando o estado
+documental. A decisão não autoriza implementação nem entrada em `STATE-03`.
 
 ## Comece aqui
 

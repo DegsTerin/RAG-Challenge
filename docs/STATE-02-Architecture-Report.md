@@ -905,7 +905,49 @@ observed zero new P0, P1, P2 or P3 findings. The approval applies to the
 documentary architecture baseline only and does not convert any accepted
 decision into implementation or runtime evidence.
 
-Human Gate for `STATE-02`: `PENDENTE` and not requested by this audit.
+Human Gate for `STATE-02`: `APROVADO` without reservations on 2026-08-02,
+after the complete current-baseline summary and critical documentary samples
+were presented to the product owner.
 
-`STATE-02 ARCHITECTURE` remains active. `STATE-03 DATA_AND_INDEX_MODELING` is
-not authorised.
+`STATE-02 ARCHITECTURE` is closed. `STATE-03 DATA_AND_INDEX_MODELING` is not
+authorised.
+
+## 2026-08-02 Human Gate decision
+
+- State: `STATE-02 ARCHITECTURE`.
+- Decision baseline: clean `main` at
+  `6e61c4cf4429e2a62145d43bec3783146f01e37f`, instruction corpus `4.9.1`.
+- Validator and date: RAG-Challenge product owner, 2026-08-02.
+- Automatic report reviewed: the renewed combined audit was `APROVADO`,
+  disposed `AQG-S02-001`, `AQG-S02-002` and `AQG-S02-003` as `RESOLVED`, and
+  observed zero new P0, P1, P2 or P3 findings.
+- Critical samples reviewed: the 51/54/9 catalogue and PDF/CSV lifecycle; the
+  PostgreSQL source candidate; conditional parser, OpenAI, SQLite/vector and
+  OCI selections; four deny-by-default egress profiles; 36 threats and 15
+  security-test groups; bilingual query/provenance semantics; separate
+  generation/activation digest domains; exact revalidation transitions;
+  eligible-binding hard pre-filtering; and freshness-safe new-record rollback.
+- Samples not repeated: no executable parser, provider, account, corpus,
+  index, backup, restore, IAM, egress, OCI or user-interface sample exists at
+  this state. Repeating those behaviours was not applicable to this
+  documentary Human Gate and would require later-state authority.
+- Experience and messages: the reviewed architecture distinguishes planned,
+  accepted, implemented and tested status; degraded coverage and insufficient
+  evidence remain explicit contract outcomes; interface language and theme
+  decisions remain independent and unimplemented.
+- Security and authority: accepted TLS, provider-disclosure and conditional
+  OCI risk boundaries neither prove controls nor enable egress. No network,
+  provider, account, GitHub, OCI, publication, deployment or DB-Notifier
+  action is included.
+- Accepted limitations and residual risks: exact PDF/CSV packages, parser
+  quality/security, product documents and rights, evaluation data, provider
+  entitlement/spend/bilingual behaviour, exact-vector capacity,
+  backup/restore, OCI tenancy/IAM/billing and all runtime threat controls
+  remain evidence for their owning later states.
+- Reservations: none.
+- Decision: `APROVADO` without reservations.
+- Unambiguous confirmation:
+  `Confirmo a decisão acima exclusivamente para STATE-02`.
+- Lifecycle effect: `STATE-02` is closed. Entry into `STATE-03` requires a
+  separate explicit owner authorisation and was not granted by this Human
+  Gate.

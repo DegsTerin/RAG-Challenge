@@ -1998,3 +1998,57 @@ contém somente fatos cronológicos.
 - Próxima condição: autoridade separada do proprietário para preparar e
   apresentar o resumo completo do Human Gate de `STATE-02`. A aprovação
   automática não promove o lifecycle; `STATE-03` permanece sem autorização.
+
+## 2026-08-02 — Human Gate de STATE-02 aprovado
+
+- Estado anterior: `STATE-02 ARCHITECTURE` ativo; Automatic Quality Gate
+  `APROVADO`; Human Gate `PENDENTE`.
+- Baseline confirmada: branch `main`, commit
+  `6e61c4cf4429e2a62145d43bec3783146f01e37f`, corpus `4.9.1` e working tree
+  limpa.
+- Pré-condições: resumo completo vigente apresentado na mesma conversa,
+  incluindo relatório automático, disposição de `AQG-S02-001` a
+  `AQG-S02-003`, amostras críticas, limitações, riscos residuais, condições
+  pendentes, escopo negativo e decisão recomendada.
+- Autoridade humana exata:
+
+  ```text
+  Confirmo a decisão acima exclusivamente para STATE-02
+  ```
+
+- Decisão: Human Gate `APROVADO` sem ressalvas, exclusivamente para
+  `STATE-02 ARCHITECTURE`.
+- Entregáveis aceitos: ADR-0002 e ADR-0004 a ADR-0007; contratos canônicos;
+  threat model; catálogo inicial 51/54/9; lifecycle PDF/CSV; fontes oficiais;
+  providers/persistência/OCI condicionais; quatro perfis de egress; contratos
+  bilíngues, de proveniência, ativação, readiness, OpenAPI e rollback.
+- Evidências aceitas: nova auditoria combinada `APROVADA`; cinco ADRs aceitos
+  com autoridade única; 84 arquivos não ignorados, 31 Markdown e 143 links
+  locais; 25 RF, 18 RNF, 20 critérios, 19 itens Must, 36 threats e 15 grupos
+  de testes; `AQG-S02-001`, `AQG-S02-002` e `AQG-S02-003` `RESOLVIDOS`; zero
+  novo P0, P1, P2 ou P3.
+- Amostras críticas revisadas: catálogo/formatos/fontes; decisões condicionais
+  de parser, OpenAI, SQLite/vector e OCI; threat model e egress deny-by-default;
+  contrato bilíngue/proveniência; dois domínios de digest; revalidação
+  `304`/hash idêntico; hard pre-filter; e rollback por registro novo sem replay
+  de freshness.
+- Amostras não repetidas: nenhum comportamento executável de parser, provider,
+  conta, corpus, índice, backup, restore, IAM, egress, OCI ou interface existe
+  em `STATE-02`; sua execução não era aplicável ao Human Gate documental e
+  permanece dependente de estados e autoridades futuros.
+- Limitações e riscos aceitos: packages PDF/CSV, qualidade/segurança dos
+  parsers, documentos/direitos do produto, dataset de avaliação, conta e
+  comportamento bilíngue dos providers, capacidade do vector store,
+  backup/restore, tenancy/IAM/cobrança OCI e efetividade dos 36 controles
+  permanecem não verificados. Riscos residuais aceitos não habilitam egress
+  nem provam controles.
+- Escopo negativo preservado: nenhuma entrada em `STATE-03`, implementação,
+  migration, build, parser, provider, conta, corpus, índice, rede, GitHub, OCI,
+  publicação, deploy, DB-Notifier ou ação externa.
+- Automatic Quality Gate: `APROVADO` para a baseline documental reconciliada.
+- Human Gate: `APROVADO` sem ressalvas por confirmação inequívoca.
+- Estado resultante: `STATE-02 ARCHITECTURE` encerrado; `STATE-03
+  DATA_AND_INDEX_MODELING` permanece sem autorização de entrada.
+- Próxima condição: preparar resumo de prontidão e obter autorização humana
+  separada e explícita para qualquer entrada em `STATE-03`.
+- Aprovador: proprietário do RAG-Challenge.

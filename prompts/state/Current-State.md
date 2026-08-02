@@ -11,7 +11,9 @@ proprietários.
   ARCHITECTURE_BOOTSTRAP_DECISION` aprovado e encerrado; `STATE-01
   PROJECT_SETUP` encerrado após Human Gate aprovado sem ressalvas em
   2026-07-31; entrada em `STATE-02 ARCHITECTURE` autorizada em 2026-07-31,
-  com execução documental e local, sequencial, dos lotes `S02-A` e `S02-B`.
+  com execução documental e local, sequencial, dos lotes `S02-A` e `S02-B`;
+  `STATE-02` encerrado após Human Gate aprovado sem ressalvas em 2026-08-02;
+  entrada em `STATE-03 DATA_AND_INDEX_MODELING` não autorizada.
 - Escopo concluído de `STATE-01`: registrar a entrada e executar localmente,
   de forma sequencial, os lotes `S01-A`, `S01-B` e `S01-C`, sem lógica RAG ou
   funcional. A autoridade adicional de 2026-07-30 permite exclusivamente
@@ -76,8 +78,12 @@ proprietários.
   `main@3978a17201cf5f6ac4ddc189862736fc3646457b`, corpus `4.9.1`.
   `AQG-S02-001` (P1), `AQG-S02-002` (P2) e `AQG-S02-003` (P3), registrados
   historicamente pela auditoria anterior, foram dispostos como `RESOLVIDOS`;
-  a nova auditoria não encontrou novo P0, P1, P2 ou P3. Human Gate de
-  `STATE-02`: `PENDENTE` e não solicitado.
+  a nova auditoria não encontrou novo P0, P1, P2 ou P3.
+- Human Gate de `STATE-02`: `APROVADO` sem ressalvas em 2026-08-02 sobre
+  `main@6e61c4cf4429e2a62145d43bec3783146f01e37f`, corpus `4.9.1`, após
+  revisão do relatório automático, das amostras críticas, limitações, riscos
+  residuais, condições pendentes e escopo negativo. A decisão encerra somente
+  `STATE-02` e não autoriza entrada em `STATE-03`.
 - Lote corretivo de `STATE-02`: sobre
   `main@9707b87d75a6acb14c8993ff0283a4221bc6c762`, corpus `4.8.0`, foi
   preparado o ADR-0007, recomendando separar identidade de geração
@@ -220,6 +226,11 @@ proprietários.
   combinada posterior dispôs `AQG-S02-001`, `AQG-S02-002` e `AQG-S02-003`
   como `RESOLVIDOS` e aprovou a baseline documental, sem comprovar
   implementação.
+- O Human Gate de `STATE-02` foi confirmado na mesma conversa que apresentou
+  o resumo completo da baseline vigente `main@6e61c4c`, corpus `4.9.1`. A
+  decisão aceitou a arquitetura documental sem ressalvas, preservou todas as
+  limitações e riscos residuais declarados e não autorizou `STATE-03` ou ação
+  externa.
 - A arquitetura adota princípios compatíveis com o DB-Notifier sem criar
   referência ou dependência entre os projetos.
 - O Human Gate de `STATE-00` foi confirmado na conversa coordenadora que
@@ -347,37 +358,33 @@ autorizada.
 
 ## Evidências e decisões futuras pendentes
 
-1. Preparar e apresentar o resumo completo do Human Gate de `STATE-02` somente
-   sob autoridade separada do proprietário. A auditoria atual não solicitou o
-   gate e não registrou decisão humana.
-2. Fornecer ou autorizar documentos PDF/CSV, direitos, proveniência e idioma
+1. Fornecer ou autorizar documentos PDF/CSV, direitos, proveniência e idioma
    para cada banco antes de sua ativação.
-3. Validar e ativar individualmente novos registros de fonte oficial; a
+2. Validar e ativar individualmente novos registros de fonte oficial; a
    aceitação arquitetural não autoriza URL, rede, download ou crawling.
-4. Selecionar versões exatas dos packages PDF/CSV somente após verificação
+3. Selecionar versões exatas dos packages PDF/CSV somente após verificação
    primária e spikes de compatibilidade, qualidade e segurança autorizados.
-5. Verificar tier, entitlement, spend limit e controles da conta OpenAI, além
+4. Verificar tier, entitlement, spend limit e controles da conta OpenAI, além
    da recuperação/geração bilíngue, antes de usar ou anunciar os providers.
-6. Provar o envelope representativo de `SqliteExactVectorStore`; 10.000 chunks
+5. Provar o envelope representativo de `SqliteExactVectorStore`; 10.000 chunks
    continua ponto inicial de benchmark, não teto de produto.
-7. Testar concorrência, restart, corrupção, backup consistente e restore de
+6. Testar concorrência, restart, corrupção, backup consistente e restore de
    SQLite/filesystem sem tratar as metas condicionais como SLA comprovado.
-8. Verificar capacidade, entitlement, IAM, restore, custo e cobrança reais da
+7. Verificar capacidade, entitlement, IAM, restore, custo e cobrança reais da
    tenancy OCI; as fontes públicas ainda divergem sobre a franquia gratuita.
-9. Materializar `rag-eval-catalogue-v1`, a rubrica e thresholds antes de cada
+8. Materializar `rag-eval-catalogue-v1`, a rubrica e thresholds antes de cada
    execução pontuada, preservando a matriz `pt-BR`/`en-GB` aceita.
-10. Decidir no `STATE-05` idioma inicial da interface, persistência da
+9. Decidir no `STATE-05` idioma inicial da interface, persistência da
    preferência e fallback; o conjunto `pt-BR`/`en-GB` já está decidido.
-11. Decidir no `STATE-05` tema inicial, eventual preferência do sistema,
+10. Decidir no `STATE-05` tema inicial, eventual preferência do sistema,
     persistência e fallback; o conjunto `Light`/`Dark` já está decidido.
 
 ## Próxima autoridade
 
-Uma solicitação separada do proprietário pode autorizar a preparação e
-apresentação do resumo completo do Human Gate de `STATE-02` sobre a baseline
-vigente. A auditoria aprovada não solicita nem decide esse gate. Fatos
-dependentes de conta, entitlement, capacidade, spike ou runtime permanecem
-para autoridades futuras próprias. `STATE-03`, GitHub, OCI, publicação,
-deploy, demais ações externas e mudanças no DB-Notifier continuam sem
-autorização; qualquer transição ainda exige Human Gate explícito, registro
-append-only e autoridade própria.
+Uma solicitação separada do proprietário pode preparar a prontidão e decidir
+explicitamente a entrada em `STATE-03 DATA_AND_INDEX_MODELING`. O encerramento
+de `STATE-02` satisfaz a pré-condição de lifecycle, mas não concede entrada
+automática, implementação ou qualquer ação externa. Fatos dependentes de
+conta, entitlement, capacidade, spike ou runtime permanecem para autoridades
+futuras próprias. `STATE-03`, GitHub, OCI, publicação, deploy, demais ações
+externas e mudanças no DB-Notifier continuam sem autorização.
