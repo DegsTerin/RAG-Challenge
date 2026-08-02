@@ -14,7 +14,11 @@ em linguagem natural, com respostas fundamentadas e referências às fontes.
 > proprietário aceitou explicitamente e de forma independente ADR-0002 e
 > ADR-0004 a ADR-0006 sobre a baseline documental `4.7.0`. A aceitação não
 > autoriza implementação nem comprova fatos de conta ou runtime. A auditoria
-> combinada e os gates restantes de `STATE-02` continuam pendentes.
+> combinada posterior foi executada sobre
+> `main@a01a765d177efb6c4013c6846c5f54c8adbe7e0f` e reprovou o Automatic
+> Quality Gate por um conflito P1 na identidade de geração/observação, além de
+> um achado P2 e um P3 documentais. O Human Gate permanece pendente e
+> `STATE-03` não está autorizado.
 
 ## Problema
 

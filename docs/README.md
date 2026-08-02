@@ -12,10 +12,14 @@ independente em 2026-08-01, e `STATE-01 PROJECT_SETUP` está encerrado com
 Automatic Quality Gate e Human Gate
 aprovados. `STATE-02 ARCHITECTURE` está ativo; seus pacotes documentais
 `S02-A` e `S02-B` foram preparados e a verificação pública autorizada foi
-reconciliada. Fatos dependentes de conta ou runtime e a auditoria combinada da
-baseline aceita continuam pendentes. Nenhum ADR foi aceito por implicação, e
-a aceitação não autoriza implementação. Relatórios de estado são evidências
-históricas; o presente factual pertence a
+reconciliada. Fatos dependentes de conta ou runtime continuam pendentes. A
+auditoria combinada da baseline aceita permaneceu pendente até sua autorização
+separada e foi executada depois sobre
+`main@a01a765d177efb6c4013c6846c5f54c8adbe7e0f` e reprovou o Automatic
+Quality Gate por `AQG-S02-001` (P1), `AQG-S02-002` (P2) e `AQG-S02-003`
+(P3). Nenhum ADR foi aceito por implicação, e a aceitação não autoriza
+implementação. Relatórios de estado são evidências históricas; o presente
+factual pertence a
 [`Current-State.md`](../prompts/state/Current-State.md).
 O corpus `4.8.0` preserva o contrato bilíngue de consulta de `4.3.0`, a
 localização `pt-BR`/`en-GB` de `4.4.0`, os temas `Light` e `Dark` de `4.5.0` e
@@ -23,7 +27,8 @@ a ausência de tetos de sistemas/páginas de `4.6.0`. Ele também formaliza o
 catálogo inicial de 51 bancos, PDF/CSV sem cardinalidade fixa por banco e a
 recuperação unificada de todos os documentos ativos. O incremento `4.8.0`
 registra as quatro aceitações arquiteturais sem alterar o lifecycle, executar
-auditoria combinada ou produzir evidência de implementação.
+auditoria combinada ou produzir evidência de implementação. A auditoria
+posterior não altera a versão `4.8.0`; registra o resultado factual do gate.
 
 ## Comece aqui
 

@@ -1687,3 +1687,55 @@ contém somente fatos cronológicos.
 - Próxima condição: autorização separada para executar a auditoria combinada
   de `STATE-02` sobre a baseline aceita; somente seu resultado pode preparar o
   resumo completo do Automatic Quality Gate.
+
+## 2026-08-01 — Auditoria combinada de STATE-02 executada e reprovada
+
+- Estado anterior e resultante: `STATE-02 ARCHITECTURE` ativo; Automatic
+  Quality Gate `BLOQUEADO` antes da execução e `REPROVADO` depois dela; Human
+  Gate `PENDENTE`; sem transição.
+- Baseline confirmada antes da inspeção e novamente antes do registro: branch
+  `main`, commit `a01a765d177efb6c4013c6846c5f54c8adbe7e0f`, corpus `4.8.0`
+  e working tree limpa.
+- Autoridade: solicitação explícita do proprietário para executar localmente a
+  auditoria combinada da baseline arquitetural aceita, registrar o resultado
+  documental e criar commit focado, sem Human Gate ou progressão de estado.
+- Escopo: inspeção e verificações documentais locais de rastreabilidade e
+  consistência entre ADRs aceitos, contratos, threat model, relatório,
+  lifecycle, requisitos, RAG, segurança, estado e histórico.
+- Escopo negativo preservado: nenhuma implementação, rede, provider, conta,
+  GitHub, OCI, publicação, deploy, DB-Notifier, Human Gate ou autorização de
+  `STATE-03`.
+- Runtime preflight: `NÃO APLICÁVEL`; trabalho exclusivamente documental e
+  local, sem inspeção ou encerramento de processos.
+- Verificações mecânicas aprovadas: 83 arquivos não ignorados, 30 Markdown com
+  H1 e fences válidos, 131 links locais, 13 arquivos em `prompts/`, UTF-8/LF,
+  newline final, whitespace, marcadores não resolvidos, padrões comuns de
+  secret e `git diff --check`; quatro ADRs com um status `accepted`, data e
+  autoridade; catálogo idêntico 51/54/9; 25 RF, 18 RNF, 20 critérios de
+  aceitação, 19 itens Must, 36 ameaças e 15 grupos de testes.
+- `AQG-S02-001` — P1: ADR-0002 inclui a identidade da observação de freshness
+  em `sourceBindingSetDigest`, que participa da identidade da geração, mas
+  também exige trocar somente o binding para uma nova observação após `304` ou
+  hash idêntico, sem nova geração. As duas regras não definem um manifesto e
+  um `CorpusActivationRecord` simultaneamente coerentes.
+- `AQG-S02-002` — P2: `THR-S02-008`, `THR-S02-014` e `THR-S02-015` ainda
+  apresentam como pendentes decisões de risco que a aceitação explícita dos
+  ADRs já registrou; controles de runtime e egress continuam não implementados
+  e não autorizados.
+- `AQG-S02-003` — P3: documentos propostos preservados do `STATE-00` ainda
+  exibem boundary físico e status de escolhas superados pelos ADRs aceitos.
+  A precedência vigente evita autoridade concorrente, mas o drift aumenta o
+  risco de leitura e implementação incorretas.
+- Limitações: nenhuma fonte pública foi reconsultada; nenhum package, parser,
+  provider, conta, corpus, índice, benchmark, backup, restore, IAM ou runtime
+  foi executado. Fatos condicionais permanecem condicionais e não foram
+  tratados como falha automática da auditoria documental.
+- Quality Gate: `REPROVADO` para `STATE-02`, com zero P0, um P1, um P2 e um P3.
+- Validação do registro: exatamente sete arquivos documentais alterados; audit
+  do repositório aprovado para 83 arquivos não ignorados, 30 Markdown, 138
+  links locais, H1 e fences; `git diff --check` aprovado.
+- Human Gate: permanece `PENDENTE`, não foi solicitado e não pode ser
+  preparado enquanto o Automatic Quality Gate estiver reprovado.
+- Próxima condição: ADR corretivo aceito para `AQG-S02-001`, reconciliação de
+  `AQG-S02-002` e `AQG-S02-003` e nova auditoria combinada autorizada sobre
+  baseline limpa. `STATE-03` permanece sem autorização.

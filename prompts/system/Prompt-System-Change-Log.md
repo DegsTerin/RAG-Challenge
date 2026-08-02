@@ -5,7 +5,7 @@
 - Versão: `4.8.0`
 - Data: 2026-08-01
 - Status: ADR-0002 e ADR-0004 a ADR-0006 aceitos; `STATE-02` ativo e
-  auditoria combinada pendente
+  Automatic Quality Gate `REPROVADO` após a auditoria combinada
 - Escopo: 13 arquivos ativos em `prompts/`
 
 A versão do corpus é independente da versão futura do software.

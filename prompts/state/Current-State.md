@@ -35,9 +35,10 @@ proprietários.
   bancos, 9 categorias, 54 associações, PDF/CSV e recuperação unificada foi
   formalizada como corpus `4.7.0` (`MINOR`). A aceitação humana explícita e
   independente de ADR-0002 e ADR-0004 a ADR-0006 foi registrada como corpus
-  `4.8.0` (`MINOR`); a auditoria combinada de `STATE-02` permanece pendente.
-  Nenhum desses incrementos transitou o lifecycle ou aceitou ADR por
-  implicação.
+  `4.8.0` (`MINOR`). A auditoria combinada posterior foi executada sobre
+  `main@a01a765d177efb6c4013c6846c5f54c8adbe7e0f` e resultou
+  `REPROVADA`, com um achado P1, um P2 e um P3. Nenhum desses incrementos
+  transitou o lifecycle ou aceitou ADR por implicação.
 - Human Gate de `STATE-00`: `APROVADO` sem ressalvas em 2026-07-30.
 - `GATE-B01`: `APROVADO` sem ressalvas em 2026-07-30.
 - Transição para `STATE-01 PROJECT_SETUP`: autorizada em 2026-07-30.
@@ -66,9 +67,14 @@ proprietários.
   explicitamente e de forma independente ADR-0002 e ADR-0004 a ADR-0006 sobre
   `main@39e2f803bf73cb4e2b59e56a0596e2858a3aed51`, corpus `4.7.0`; nenhuma
   escolha decorreu de outra e nada foi implementado por implicação.
-- Automatic Quality Gate de `STATE-02`: `BLOQUEADO` até autorização e execução
-  da auditoria combinada da baseline aceita. Human Gate de `STATE-02`:
-  `PENDENTE` e ainda não pode ser solicitado.
+- Automatic Quality Gate de `STATE-02`: `REPROVADO` após a auditoria combinada
+  da baseline aceita. `AQG-S02-001` identifica contradição P1 entre a inclusão
+  da observação de freshness no digest/identidade da geração e a troca somente
+  do binding de observação sem nova geração. `AQG-S02-002` registra como P2
+  três riscos ainda marcados como decisão humana pendente apesar da aceitação
+  explícita, e `AQG-S02-003` registra como P3 drift de status em documentos
+  propostos do `STATE-00`. Human Gate de `STATE-02`: `PENDENTE` e não pode ser
+  solicitado com o gate automático reprovado.
 - ADR-0001: `superseded` pelo ADR-0003, após aceitação original no
   `GATE-B01`; ADR-0002: `accepted`; ADR-0003: `accepted` pela solicitação
   humana explícita de renomear o projeto para `RAG-Challenge`, incorporando
@@ -151,6 +157,12 @@ proprietários.
   instance principal somente-leitura, divulgação limitada à OpenAI e bloqueio
   de nova indexação diante de drift do alias mutável. A aceitação não instala,
   executa, testa ou autoriza nenhum desses componentes.
+- A auditoria combinada autorizada de `STATE-02` confirmou a baseline
+  mecânica — 83 arquivos não ignorados, 30 Markdown, 13 arquivos em
+  `prompts/`, catálogo idêntico 51/54/9, 25 RF, 18 RNF, 20 critérios, 19 itens
+  Must, 36 ameaças e 15 grupos de testes —, mas reprovou o gate por
+  `AQG-S02-001` (P1), `AQG-S02-002` (P2) e `AQG-S02-003` (P3). Nenhum achado
+  foi corrigido silenciosamente.
 - A arquitetura adota princípios compatíveis com o DB-Notifier sem criar
   referência ou dependência entre os projetos.
 - O Human Gate de `STATE-00` foi confirmado na conversa coordenadora que
@@ -277,34 +289,37 @@ autorizada.
 
 ## Evidências e decisões futuras pendentes
 
-1. Fornecer ou autorizar documentos PDF/CSV, direitos, proveniência e idioma
+1. Resolver `AQG-S02-001` por ADR corretivo aceito, reconciliar
+   `AQG-S02-002` e `AQG-S02-003` e repetir a auditoria combinada sobre baseline
+   limpa antes de preparar qualquer Human Gate.
+2. Fornecer ou autorizar documentos PDF/CSV, direitos, proveniência e idioma
    para cada banco antes de sua ativação.
-2. Validar e ativar individualmente novos registros de fonte oficial; a
+3. Validar e ativar individualmente novos registros de fonte oficial; a
    aceitação arquitetural não autoriza URL, rede, download ou crawling.
-3. Selecionar versões exatas dos packages PDF/CSV somente após verificação
+4. Selecionar versões exatas dos packages PDF/CSV somente após verificação
    primária e spikes de compatibilidade, qualidade e segurança autorizados.
-4. Verificar tier, entitlement, spend limit e controles da conta OpenAI, além
+5. Verificar tier, entitlement, spend limit e controles da conta OpenAI, além
    da recuperação/geração bilíngue, antes de usar ou anunciar os providers.
-5. Provar o envelope representativo de `SqliteExactVectorStore`; 10.000 chunks
+6. Provar o envelope representativo de `SqliteExactVectorStore`; 10.000 chunks
    continua ponto inicial de benchmark, não teto de produto.
-6. Testar concorrência, restart, corrupção, backup consistente e restore de
+7. Testar concorrência, restart, corrupção, backup consistente e restore de
    SQLite/filesystem sem tratar as metas condicionais como SLA comprovado.
-7. Verificar capacidade, entitlement, IAM, restore, custo e cobrança reais da
+8. Verificar capacidade, entitlement, IAM, restore, custo e cobrança reais da
    tenancy OCI; as fontes públicas ainda divergem sobre a franquia gratuita.
-8. Materializar `rag-eval-catalogue-v1`, a rubrica e thresholds antes de cada
+9. Materializar `rag-eval-catalogue-v1`, a rubrica e thresholds antes de cada
    execução pontuada, preservando a matriz `pt-BR`/`en-GB` aceita.
-9. Decidir no `STATE-05` idioma inicial da interface, persistência da
+10. Decidir no `STATE-05` idioma inicial da interface, persistência da
    preferência e fallback; o conjunto `pt-BR`/`en-GB` já está decidido.
-10. Decidir no `STATE-05` tema inicial, eventual preferência do sistema,
+11. Decidir no `STATE-05` tema inicial, eventual preferência do sistema,
     persistência e fallback; o conjunto `Light`/`Dark` já está decidido.
 
 ## Próxima autoridade
 
-Autorizar separadamente a auditoria combinada da baseline com ADR-0002 e
-ADR-0004 a ADR-0006 aceitos. A aceitação atual não autoriza essa auditoria.
-Fatos dependentes de conta, entitlement, capacidade, spike ou runtime
-permanecem para autoridades futuras próprias e não bloqueiam o registro das
-decisões arquiteturais. O Human Gate e o encerramento de `STATE-02` continuam
-exigindo Automatic Quality Gate e resumo completos próprios. `STATE-03`,
-GitHub, OCI, publicação, deploy, demais ações externas e mudanças no
-DB-Notifier continuam sem autorização.
+Preparar e decidir explicitamente um ADR corretivo que resolva
+`AQG-S02-001`, reconciliar os dois achados documentais restantes e autorizar
+uma nova auditoria combinada sobre baseline limpa. Fatos dependentes de conta,
+entitlement, capacidade, spike ou runtime permanecem para autoridades futuras
+próprias e não substituem essa correção. O Human Gate e o encerramento de
+`STATE-02` continuam exigindo novo Automatic Quality Gate aprovado e resumo
+completo próprios. `STATE-03`, GitHub, OCI, publicação, deploy, demais ações
+externas e mudanças no DB-Notifier continuam sem autorização.

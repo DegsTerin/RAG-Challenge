@@ -396,16 +396,168 @@ a resource, executes the combined audit, requests the Human Gate or authorises
 | Corpus `4.7.0` catalogue/document reconciliation | Directed local validation passed for exactly 22 authorised files: 51 unique names/54 assignments/9 categories in vision and ADR-0004; 25 RF, 18 RNF, 20 acceptance criteria, 19 Must backlog IDs, 36 threat IDs and 15 security-test groups; four ADRs remain `proposed`; H1/fences/local links, LF/final newline, table structure and `git diff --check` passed. This was not the combined `STATE-02` audit. |
 | Corpus `4.8.0` ADR decision registration | Directed local validation passed for exactly 13 changed files: all four ADRs have one `accepted` status, acceptance date and decision authority; 51/54/9 catalogue and requirement/threat counts remain intact; H1/fences/tables/local links, UTF-8/LF and `git diff --check` passed. This was not the combined `STATE-02` audit. |
 
+## Combined accepted-baseline audit
+
+### Authority, baseline and method
+
+The owner separately authorised the combined local documentary audit and its
+factual registration, with no network, provider, account, GitHub, OCI,
+publication, deployment, DB-Notifier change, Human Gate request or `STATE-03`
+authority.
+
+The audit started from clean `main` at
+`a01a765d177efb6c4013c6846c5f54c8adbe7e0f`, instruction corpus `4.8.0`.
+The first recorded command instant was `2026-08-02T01:00:11.7558597Z`, which
+was 2026-08-01 in the owner timezone. PowerShell `7.6.4`, Git
+`2.55.0.windows.3` and ripgrep `15.2.0` performed the local checks from the
+repository root.
+
+The audit read the complete governing, lifecycle, state/history, accepted-ADR,
+contract, threat, report, requirement, RAG, security, roadmap, language and
+corpus-version documents. It then traced the accepted semantics rather than
+relying only on keyword or count agreement. Runtime preflight remained
+`NÃO APLICÁVEL` because no executable behaviour was changed or validated.
+
+### Results by gate
+
+| Gate area | Result | Observed evidence |
+|---|---|---|
+| Baseline and authority | `APROVADO` | Branch, commit, corpus and clean working tree matched the authorised baseline before inspection and again before recording. |
+| Repository structure and hygiene | `APROVADO` | `eng/check-repository.ps1` passed for 83 non-ignored files; 30 Markdown files each had one H1 and balanced fences; 131 local Markdown links resolved; no unresolved marker was found; `git diff --check` passed. |
+| ADR decision state | `APROVADO` | ADR-0002 and ADR-0004 to ADR-0006 each contain one `accepted` status, one 2026-08-01 acceptance field and one decision-authority field. |
+| Catalogue, requirements and test traceability | `APROVADO` | The vision and ADR-0004 contain identical ordered catalogues with 51 unique products, 54 assignments and 9 categories; only Redis, SAP HANA and SingleStore occur twice. Counts are 25 RF, 18 RNF, 20 acceptance criteria, 19 Must backlog items, 36 unique threats and 15 unique security-test groups. |
+| PDF/CSV, provider, persistence and OCI qualification | `APROVADO` for documentary qualification | PDF/CSV adapters, conditional package selection, bounded OpenAI disclosure, local exact-vector persistence and conditional OCI targets remain explicitly distinguished from installation, account, runtime, capacity, IAM, cost and restore evidence. |
+| Activation, freshness and generation identity | `REPROVADO` | `AQG-S02-001` leaves the accepted activation and manifest semantics internally contradictory. |
+| Threat and risk-decision status | `REPROVADO` | `AQG-S02-002` leaves three risk-register statuses inconsistent with the accepted ADR decisions. |
+| Routed foundation-document currency | `REPROVADO` | `AQG-S02-003` leaves low-severity proposal/status drift in documents routed as current high-level context. |
+| Executable, provider, account and remote checks | `NÃO APLICÁVEL` | The authorised audit was local and documentary. No build, parser spike, provider call, account access, source fetch, OCI action or external mutation was performed. |
+
+### Classified findings
+
+#### `AQG-S02-001` — `P1 Alta` — observation identity contradicts freshness-only rebinding
+
+[Accepted ADR-0002](architecture/ADR-0002-RAG-Lifecycle-Providers-And-Source-Separation.md)
+places `sourceBindingSetDigest` in the canonical build specification and
+therefore in `generationSpecDigest` and the final `IndexGenerationId`. It also
+states that `sourceBindingSetDigest` covers the official observation
+identities. The [RAG module](../prompts/foundation/RAG-Module.md) confirms that
+every ordered activation binding is covered by the manifest digests.
+
+The same accepted decision requires a `304` or identical content hash to append
+a new observation and update only the observation binding, without creating a
+new index generation. It also says that freshness observations remain outside
+generation identity. These rules cannot all hold simultaneously: changing
+`sourceObservationId` either changes the digest and generation identity or
+leaves the activation record pointing to a binding not represented by the
+active manifest digest.
+
+Impact: `STATE-03` cannot define one deterministic compare-and-swap and
+manifest-validation algorithm from the accepted semantics. An implementation
+could reject a valid revalidation, silently break digest coverage or serve
+freshness/provenance metadata that no longer agrees with the active generation.
+This affects the core rollback and provenance integrity boundary, so it blocks
+the Automatic Quality Gate.
+
+Reproduction: trace ADR-0002's `304` rule, seven-field build specification,
+full-manifest generation identity and observation-inclusive
+`sourceBindingSetDigest`, then compare them with the observation-only
+compare-and-swap in the RAG module and the `sourceObservationId` binding in the
+[canonical activation record](architecture/STATE-02-Canonical-Contracts.md).
+
+Required correction: a later accepted ADR must choose one coherent identity
+model. It can either keep revalidation observations outside generation
+identity and define the exact snapshot/source fields covered by the manifest,
+or keep observation identity in the digest and require a newly finalised
+manifest/generation identity for each rebinding. The correction must reconcile
+ADR-0002, the RAG module, canonical contracts, acceptance criteria, threat
+model and rollback semantics before the combined audit is repeated.
+
+#### `AQG-S02-002` — `P2 Média` — accepted residual-risk decisions remain marked pending
+
+The [threat model](security/STATE-02-Threat-Model.md) states that its
+residual-risk boundaries were included in the explicit ADR acceptance, and
+the accepted ADR/report evidence confirms owner acceptance of the local-only
+TLS revocation residual and bounded OpenAI disclosure/residency model. However,
+`THR-S02-008` still says the revocation risk needs an owner decision, while
+`THR-S02-014` and `THR-S02-015` still say they are blocked by an owner
+disclosure/risk decision.
+
+Impact: a Human Gate summary derived from the threat register would
+misrepresent which security decisions are complete and which implementation,
+account and runtime controls remain open. The register must distinguish an
+accepted architecture risk boundary from unimplemented mitigations and
+separately unauthorised egress.
+
+Required correction: reconcile those three residual statuses and the risk
+acceptance section with the accepted ADR authority, without claiming that any
+control was implemented or that provider use is authorised.
+
+#### `AQG-S02-003` — `P3 Baixa` — routed proposal documents retain superseded decision status
+
+The `STATE-00` foundation documents are explicitly marked as proposals and the
+accepted ADRs have higher precedence, so they do not create a competing
+architecture authority. The routed
+[solution architecture](../prompts/foundation/Solution-Architecture-Document.md),
+[vision and requirements](../prompts/foundation/Prompt-New-Project.md) and
+[security policy](../prompts/governance/Security-And-Access.md) nevertheless
+remain current high-level context while showing a separate
+`RagChallenge.Rag.Abstractions` project, describing the administration/TLS
+choices as still belonging to `STATE-02`, and listing provider, persistence
+and OCI selection as pending without the accepted conditional qualification.
+
+Impact: a reader can reach stale status or physical-boundary guidance before
+following the ADR links. Current State and the architecture pack prevent an
+authority ambiguity, but the drift increases implementation and maintenance
+risk.
+
+Required correction: preserve the existing `pt-BR` language and historical
+proposal context while adding concise accepted-baseline qualifications or
+replacing superseded status wording. This is a documentary reconciliation,
+not authority to implement the decisions.
+
+No P0 finding was observed. The audit did not silently correct any finding.
+
+### Limitations and residual risks
+
+- Existing public-source evidence was reviewed locally and was not re-fetched;
+  network access was explicitly prohibited.
+- Exact PDF/CSV package versions, parser quality/security, OpenAI account tier,
+  entitlement, spend controls and bilingual behaviour remain unverified.
+- The representative `SqliteExactVectorStore` envelope, restart, concurrency,
+  corruption, application-consistent backup and restore remain untested.
+- OCI tenancy capacity, entitlement, IAM enforcement, effective billing,
+  egress and recovery remain unverified.
+- No authorised product corpus, per-document rights set, evaluation dataset or
+  active index exists. These remain later activation and execution inputs, not
+  evidence supplied by this documentary audit.
+- The 36 threat controls remain design requirements until their owning states
+  implement and test them. Accepted risk boundaries do not enable egress or
+  make those controls effective.
+
+### Pending conditions
+
+1. Accept a corrective ADR that resolves `AQG-S02-001` without weakening
+   provenance, rollback or activation atomicity.
+2. Reconcile `AQG-S02-002` and `AQG-S02-003` while preserving factual
+   limitations and the existing language of `STATE-00` documents.
+3. Repeat the combined local documentary audit on a named clean baseline and
+   record its result before any Human Gate summary is prepared.
+
+The result-registration diff changed exactly seven documentary files. The
+post-registration repository audit passed for the same 83 non-ignored files,
+30 Markdown files, 138 resolving local links, one H1 per Markdown file,
+balanced fences and no unresolved marker; `git diff --check` also passed.
+
 ## Current gate assessment
 
-Automatic Quality Gate for `STATE-02`: `BLOQUEADO`. Public external facts in
-the authorised scope are reconciled and ADR-0002 plus ADR-0004 to ADR-0006 are
-accepted. The combined documents must still be audited against the accepted
-baseline under separate authority; this decision-registration increment does
-not execute or replace that audit.
+Automatic Quality Gate for `STATE-02`: `REPROVADO`. The combined audit was
+executed against the accepted baseline and found one P1, one P2 and one P3
+finding. `AQG-S02-001` is the blocking contract defect; the remaining findings
+also require reconciliation or an applicable recorded disposition before a
+new audit.
 
 Human Gate for `STATE-02`: `PENDENTE` and must not be requested while the
-Automatic Quality Gate is blocked.
+Automatic Quality Gate has result `REPROVADO`.
 
 `STATE-02 ARCHITECTURE` remains active. `STATE-03 DATA_AND_INDEX_MODELING` is
 not authorised.

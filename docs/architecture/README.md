@@ -177,7 +177,10 @@ Dashboard -- versioned HTTP --> API
 - OCI tenancy capacity, entitlement, IAM enforcement, effective billing and
   restore evidence for the accepted conditional target.
 - The extensible evaluation dataset and thresholds frozen before scored runs.
-- The separately authorised combined `STATE-02` audit before any Human Gate.
+- An accepted corrective ADR for `AQG-S02-001`, reconciliation of
+  `AQG-S02-002` and `AQG-S02-003`, and a new separately authorised combined
+  `STATE-02` audit before any Human Gate.
 
-These inputs do not reopen the accepted architecture unless evidence requires
-a material change.
+`AQG-S02-001` is evidence that requires a material change through a later ADR;
+the other inputs do not reopen the accepted architecture merely by remaining
+conditional or unverified.
