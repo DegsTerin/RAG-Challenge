@@ -2,14 +2,15 @@
 
 ## Purpose, responsibility and authority
 
-This document is the proposed security threat model for the RAG-Challenge
-MVP. It identifies assets, trust boundaries, abuse cases, controls and required
-evidence before implementation. It does not prove a control, accept residual
-risk, enable network access or authorise an external action.
+This document is the architecture-stage security threat model accepted for the
+RAG-Challenge MVP. It identifies assets, trust boundaries, abuse cases,
+controls and required evidence before implementation. It does not prove a
+control, enable network access or authorise an external action.
 
-Security-And-Access remains the policy authority. ADR-0006 owns the proposed
+Security-And-Access remains the policy authority. Accepted ADR-0006 owns the
 egress, administration and HTTP decisions; this model tests those decisions
-against concrete threats.
+against concrete threats. Its recorded residual-risk boundaries were included
+in the explicit ADR acceptance, while runtime controls remain unverified.
 
 ## Scope
 
@@ -83,10 +84,11 @@ output and local file content remain untrusted after crossing their boundary.
 - The external AI provider's current terms permit the approved data classes.
 - The chosen OCI shape and volume meet durability and performance needs.
 - The operating-system trust store can validate the official source without
-  lateral certificate downloads under the proposed policy.
+  lateral certificate downloads under the accepted policy.
 
-These are not accepted facts. Failure of an assumption blocks the dependent
-ADR rather than weakening a control.
+ADR acceptance does not verify these assumptions as facts. Failure of an
+assumption blocks the dependent candidate or activation and may require an ADR
+change rather than weakening a control.
 
 ## Threat register
 
@@ -217,5 +219,5 @@ an external action by itself.
   public contract, administration surface or deployment boundary.
 - Link implementation tests to threat and security-test IDs.
 - Keep observed evidence in the owning state report rather than rewriting a
-  proposed control as already effective.
+  documented control as already effective.
 - Preserve historical residual decisions append-only.

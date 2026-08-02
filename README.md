@@ -10,11 +10,11 @@ em linguagem natural, com respostas fundamentadas e referências às fontes.
 > local nos lotes `S02-A` e `S02-B`. O scaffold .NET, as fronteiras, os testes
 > estruturais e a definição de CI existem sem lógica RAG. Não existe produto
 > funcional ou deploy, e nenhuma decisão de ADR decorre implicitamente da
-> entrada no estado. Os pacotes de decisão e contratos foram preparados como
-> propostas, e a verificação pública autorizada foi reconciliada. ADR-0002 e
-> ADR-0004 a ADR-0006, a baseline resultante de suas decisões e o Automatic
-> Quality Gate de `STATE-02` continuam pendentes; fatos dependentes de conta ou
-> runtime permanecem para autoridades futuras próprias.
+> entrada no estado. A verificação pública autorizada foi reconciliada, e o
+> proprietário aceitou explicitamente e de forma independente ADR-0002 e
+> ADR-0004 a ADR-0006 sobre a baseline documental `4.7.0`. A aceitação não
+> autoriza implementação nem comprova fatos de conta ou runtime. A auditoria
+> combinada e os gates restantes de `STATE-02` continuam pendentes.
 
 ## Problema
 

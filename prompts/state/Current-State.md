@@ -33,9 +33,11 @@ proprietários.
   e 120 páginas foi formalizada como corpus `4.6.0` (`MINOR`), com validação
   documental direcionada. A reconciliação posterior do catálogo inicial de 51
   bancos, 9 categorias, 54 associações, PDF/CSV e recuperação unificada foi
-  formalizada como corpus `4.7.0` (`MINOR`); a auditoria combinada de
-  `STATE-02` permanece pendente. Nenhum desses incrementos transitou o
-  lifecycle ou aceitou ADR por implicação.
+  formalizada como corpus `4.7.0` (`MINOR`). A aceitação humana explícita e
+  independente de ADR-0002 e ADR-0004 a ADR-0006 foi registrada como corpus
+  `4.8.0` (`MINOR`); a auditoria combinada de `STATE-02` permanece pendente.
+  Nenhum desses incrementos transitou o lifecycle ou aceitou ADR por
+  implicação.
 - Human Gate de `STATE-00`: `APROVADO` sem ressalvas em 2026-07-30.
 - `GATE-B01`: `APROVADO` sem ressalvas em 2026-07-30.
 - Transição para `STATE-01 PROJECT_SETUP`: autorizada em 2026-07-30.
@@ -52,25 +54,27 @@ proprietários.
   serviço pago, GitHub, OCI, publicação, deploy ou mudança no DB-Notifier.
 - Execução de `STATE-02`: pacote documental sequencial de `S02-A` e `S02-B`
   preparado no commit `979677fa1f4d7324340b8be15d88eb8b5b802a1a` em
-  2026-07-31, com ADR-0002 e ADR-0004 a ADR-0006 ainda `proposed`, contratos
-  canônicos, threat model e relatório factual. A verificação pública
+  2026-07-31, com contratos canônicos, threat model e relatório factual. A
+  verificação pública
   autorizada foi registrada nos commits
   `f1066c3509f5f48d4fe6e21c9e36403e642c1431`,
   `e80f8c41bea3f28deff3d8cdccafccbca5dcc016` e
   `9cc62746ea2ba861676a2d5bfee317eaf66dad7c`: nenhum item de fonte primária
   pública permanece pendente no escopo autorizado. Fatos dependentes de
   conta, entitlement, capacidade ou execução continuam não verificados e
-  exigem autoridade futura própria; nenhuma escolha foi aceita por
-  implicação.
-- Automatic Quality Gate de `STATE-02`: `BLOQUEADO` até decisões humanas
-  explícitas de ADR-0002 e ADR-0004 a ADR-0006, reconciliação da baseline
-  aceita/rejeitada e auditoria combinada dos documentos resultantes. Human
-  Gate de `STATE-02`: `PENDENTE` e ainda não pode ser solicitado.
+  exigem autoridade futura própria. Em 2026-08-01, o proprietário aceitou
+  explicitamente e de forma independente ADR-0002 e ADR-0004 a ADR-0006 sobre
+  `main@39e2f803bf73cb4e2b59e56a0596e2858a3aed51`, corpus `4.7.0`; nenhuma
+  escolha decorreu de outra e nada foi implementado por implicação.
+- Automatic Quality Gate de `STATE-02`: `BLOQUEADO` até autorização e execução
+  da auditoria combinada da baseline aceita. Human Gate de `STATE-02`:
+  `PENDENTE` e ainda não pode ser solicitado.
 - ADR-0001: `superseded` pelo ADR-0003, após aceitação original no
-  `GATE-B01`; ADR-0002: `proposed`; ADR-0003: `accepted` pela solicitação
+  `GATE-B01`; ADR-0002: `accepted`; ADR-0003: `accepted` pela solicitação
   humana explícita de renomear o projeto para `RAG-Challenge`, incorporando
   sem alteração todas as decisões não relacionadas a nomenclatura do
-  ADR-0001; ADR-0004, ADR-0005 e ADR-0006: `proposed`.
+  ADR-0001; ADR-0004, ADR-0005 e ADR-0006: `accepted` por decisões humanas
+  explícitas e independentes em 2026-08-01.
 
 ## Baseline documental
 
@@ -78,13 +82,13 @@ proprietários.
   a política de idioma acrescentou o 21º documento público por incremento
   versionado, e o ADR-0003 acrescentou o 22º.
 - A baseline aprovada no Human Gate de `STATE-00` permanece `3.4.0`.
-- O corpus de instruções vigente possui versão `4.7.0` e 13 arquivos em
+- O corpus de instruções vigente possui versão `4.8.0` e 13 arquivos em
   `prompts/`.
 - Visão, requisitos, arquitetura, RAG, segurança, qualidade, lifecycle,
   roadmap, backlog, estado, histórico e templates estão documentados.
-- `STATE-02` acrescentou seis artefatos técnicos propostos: três ADRs, um
-  contrato canônico, um threat model e um relatório de execução. Eles não são
-  decisões aceitas nem evidência de implementação.
+- `STATE-02` acrescentou seis artefatos técnicos: três novos ADRs, um contrato
+  canônico, um threat model e um relatório de execução. ADR-0002 e os três
+  novos ADRs estão aceitos; os artefatos não são evidência de implementação.
 - A auditoria do pacote proposto confirmou 83 arquivos não ignorados, 30
   Markdown, links e formato válidos, quatro ADRs com status `proposed`, 30 IDs
   de ameaça e 12 grupos de testes de segurança. As verificações posteriores
@@ -139,8 +143,14 @@ proprietários.
   ativos/current participam da recuperação unificada, enquanto origem
   local/oficial permanece proveniência. Itens compatíveis são administráveis
   sem hard-code, código ou ADR por item; novas classes de integração conservam
-  decisão própria. Nada foi implementado, ingerido, indexado ou ativado, e os
-  quatro ADRs permanecem propostos.
+  decisão própria. Nada foi implementado, ingerido, indexado ou ativado; nesse
+  incremento, os quatro ADRs ainda permaneceram propostos.
+- O corpus `4.8.0` registra a aceitação explícita e independente dos quatro
+  ADRs sobre a baseline reconciliada. ADR-0005 conserva OCI, versões de
+  packages e metas operacionais como condicionais, com backup consistente,
+  instance principal somente-leitura, divulgação limitada à OpenAI e bloqueio
+  de nova indexação diante de drift do alias mutável. A aceitação não instala,
+  executa, testa ou autoriza nenhum desses componentes.
 - A arquitetura adota princípios compatíveis com o DB-Notifier sem criar
   referência ou dependência entre os projetos.
 - O Human Gate de `STATE-00` foi confirmado na conversa coordenadora que
@@ -265,59 +275,36 @@ proprietários.
 Nenhuma dessas capacidades está implementada, testada, implantada ou
 autorizada.
 
-## Decisões pendentes
+## Evidências e decisões futuras pendentes
 
-1. Decidir ADR-0002 explicitamente.
-2. Aceitar, rejeitar ou alterar o catálogo 51/54/9, o ciclo administrativo,
-   PDF/CSV, licenças por documento e avaliação extensível reconciliados no
-   ADR-0004. Os antigos tetos e o PDF único não integram a baseline atual.
-3. Aceitar, rejeitar ou alterar a primeira fonte PostgreSQL 18 candidata e a
-   política aplicável a registros oficiais compatíveis, frequência
-   manual, `maxAge`, limites, trust e risco residual de revogação TLS; URL,
-   media type, tamanho, licença, robots e TLS local foram verificados no
-   escopo público autorizado.
-4. Aceitar, rejeitar ou alterar PdfPig 0.1.15 condicionado, o parser CSV ainda
-   sem package selecionado, normalização e `paragraph-window-v1`; qualidade e
-   segurança dependem de spikes futuros separadamente autorizados.
-5. Aceitar, rejeitar ou alterar OpenAI `text-embedding-3-small`, incluindo o
-   risco de alias mutável e a obrigação de passar a recuperação cruzada
-   `pt-BR`/`en-GB`; tier, entitlement, limites da conta futura e desempenho
-   bilíngue não foram verificados.
-6. Aceitar, rejeitar ou alterar `SqliteExactVectorStore`; 10.000 chunks é ponto
-   inicial de benchmark, não teto, e a prova de desempenho pertence a teste
-   futuro sobre catálogo representativo.
-7. Aceitar, rejeitar ou alterar OpenAI `gpt-4.1-mini-2025-04-14`, retenção,
-   divulgação de dados, ausência documentada de residência brasileira e a
-   obrigação de responder em `questionLanguage`; elegibilidade, controles da
-   conta futura e desempenho bilíngue não foram verificados.
-8. Decidir SQLite/filesystem duráveis, retenção, backup consistente e rollback.
-9. Aceitar, rejeitar ou alterar o alvo OCI condicional em `sa-saopaulo-1`, A1
-   ARM64 1 OCPU/6 GiB, volume inicial 50 GiB, backup regional diário/pré-mudança,
-   retenção 14 dias, RPO 24 h, objetivo de restauração 8 h, Secret Management
-   e instance principal somente-leitura; capacidade, entitlement, IAM, restore
-   e cobrança reais não foram verificados, e fontes públicas divergem sobre a
-   franquia gratuita.
-10. Decidir dataset extensível `rag-eval-catalogue-v1`, rubrica e thresholds,
-    preservando a matriz `pt-BR`/`en-GB` já decidida para perguntas,
-    respostas e idioma original das citações.
-11. Decidir ADR-0006, incluindo egress, risco residual de revogação TLS,
-    administração, falhas/readiness e compatibilidade OpenAPI.
-12. Decidir no `STATE-05` o idioma inicial da interface, a persistência da
-    preferência e o comportamento de fallback; o conjunto suportado
-    `pt-BR`/`en-GB` e sua independência do idioma da consulta já estão
-    decididos.
-13. Decidir no `STATE-05` o tema inicial, eventual preferência do sistema,
-    persistência e fallback; o conjunto suportado `Light`/`Dark` e sua
-    independência dos idiomas já estão decididos.
+1. Fornecer ou autorizar documentos PDF/CSV, direitos, proveniência e idioma
+   para cada banco antes de sua ativação.
+2. Validar e ativar individualmente novos registros de fonte oficial; a
+   aceitação arquitetural não autoriza URL, rede, download ou crawling.
+3. Selecionar versões exatas dos packages PDF/CSV somente após verificação
+   primária e spikes de compatibilidade, qualidade e segurança autorizados.
+4. Verificar tier, entitlement, spend limit e controles da conta OpenAI, além
+   da recuperação/geração bilíngue, antes de usar ou anunciar os providers.
+5. Provar o envelope representativo de `SqliteExactVectorStore`; 10.000 chunks
+   continua ponto inicial de benchmark, não teto de produto.
+6. Testar concorrência, restart, corrupção, backup consistente e restore de
+   SQLite/filesystem sem tratar as metas condicionais como SLA comprovado.
+7. Verificar capacidade, entitlement, IAM, restore, custo e cobrança reais da
+   tenancy OCI; as fontes públicas ainda divergem sobre a franquia gratuita.
+8. Materializar `rag-eval-catalogue-v1`, a rubrica e thresholds antes de cada
+   execução pontuada, preservando a matriz `pt-BR`/`en-GB` aceita.
+9. Decidir no `STATE-05` idioma inicial da interface, persistência da
+   preferência e fallback; o conjunto `pt-BR`/`en-GB` já está decidido.
+10. Decidir no `STATE-05` tema inicial, eventual preferência do sistema,
+    persistência e fallback; o conjunto `Light`/`Dark` já está decidido.
 
 ## Próxima autoridade
 
-Submeter ADR-0002 e ADR-0004 a ADR-0006 a decisões humanas explícitas de
-aceitação, rejeição ou alteração, sem inferir uma decisão a partir de outra.
-Depois, reconciliar a baseline escolhida e executar a auditoria combinada
-exigida pelo Automatic Quality Gate. Fatos dependentes de conta, entitlement,
-capacidade, spike ou runtime permanecem para autoridades futuras próprias e
-não bloqueiam a decisão documental por ausência de fonte pública. O Human Gate
-e o encerramento de `STATE-02` continuarão exigindo Automatic Quality Gate e
-resumo completos próprios. GitHub, OCI, publicação, deploy, demais ações
-externas e mudanças no DB-Notifier continuam sem autorização.
+Autorizar separadamente a auditoria combinada da baseline com ADR-0002 e
+ADR-0004 a ADR-0006 aceitos. A aceitação atual não autoriza essa auditoria.
+Fatos dependentes de conta, entitlement, capacidade, spike ou runtime
+permanecem para autoridades futuras próprias e não bloqueiam o registro das
+decisões arquiteturais. O Human Gate e o encerramento de `STATE-02` continuam
+exigindo Automatic Quality Gate e resumo completos próprios. `STATE-03`,
+GitHub, OCI, publicação, deploy, demais ações externas e mudanças no
+DB-Notifier continuam sem autorização.

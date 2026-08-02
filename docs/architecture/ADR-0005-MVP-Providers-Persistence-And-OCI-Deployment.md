@@ -1,7 +1,11 @@
 # ADR-0005 — MVP Providers, Persistence and OCI Deployment
 
-- Status: proposed
+- Status: accepted
 - Date: 2026-07-31
+- Accepted: 2026-08-01
+- Decision authority: explicit product-owner acceptance of the reconciled
+  conditional wording on baseline
+  `main@39e2f803bf73cb4e2b59e56a0596e2858a3aed51`, corpus `4.7.0`
 - Owners: RAG-Challenge architecture, data and operations
 - State: `STATE-02 ARCHITECTURE`
 - Verification status: public primary-source verification completed on
@@ -11,12 +15,12 @@
 
 ## Purpose and authority
 
-This ADR proposes one implementation for each replaceable MVP capability and
-one durable deployment shape. It does not install a package, call a provider,
-create an OCI resource, approve spend or accept itself. Bounded direct-URL
-read-only verification was completed on 2026-07-31. The proposal remains
-undecided, and tenancy-specific facts and executable evidence remain pending
-where stated below.
+This ADR selects a conditional implementation direction for each replaceable
+MVP capability and one durable deployment shape. Acceptance does not install a
+package, call a provider, create an OCI resource or approve spend. Bounded
+direct-URL read-only verification was completed on 2026-07-31;
+tenancy-specific facts, exact package versions and executable evidence remain
+conditional or pending where stated below.
 
 ## Context
 
@@ -30,9 +34,9 @@ and exact vector search remain the simplest candidates, but their suitability
 is conditional on representative capacity evidence. A managed vector service
 would add data egress, credentials, tenancy and lifecycle coordination.
 
-## Proposed decision
+## Decision
 
-If accepted after verification:
+The accepted decision is:
 
 ### PDF and CSV parsing and normalisation
 
@@ -40,7 +44,8 @@ If accepted after verification:
 - The official NuGet package ID is `PdfPig`. The live registry index lists
   `0.1.15`, published on 2026-06-25, as the newest stable version and
   `0.1.16-alpha-*` as pre-release builds. Treat `0.1.15` only as the current
-  verified stable candidate; this proposed ADR does not select or install it.
+  verified stable candidate; this ADR does not select or install an exact
+  package version before the required spike.
 - The NuGet gallery and source repository identify Apache-2.0 as the licence.
   Registry metadata for `0.1.15` identifies repository commit
   `f131f642976936e06ee91cb19d3ed728f9dd18b6` and target groups for .NET 6.0,
@@ -177,9 +182,9 @@ default or with `store=true`, while approved Zero Data Retention forces
 residency require eligibility and contractual approval. The selected
 embedding and language-model services support United States and European
 regional processing, but Brazil is not a listed data-residency region. The
-proposal must therefore assume the default abuse-monitoring retention and no
-Brazilian residency unless separately contracted. The owner must explicitly
-accept that disclosure/residency model; no fallback model is active.
+decision therefore assumes the default abuse-monitoring retention and no
+Brazilian residency unless separately contracted. The acceptance explicitly
+includes that disclosure/residency model; no fallback model is active.
 
 Across indexing, authorised document chunks may cumulatively disclose the full
 active public/authorised corpus to the embedding service. At query time, only
@@ -326,8 +331,9 @@ availability domain; actual tenancy limits remain authoritative. It also
 publishes a 200 GiB aggregate block-volume allowance for Trial and limits of
 10 virtual vaults per region, 150 secrets and 40 versions per secret for
 Always Free or Trial, versus 5,000 secrets and 60 versions per secret for paid
-accounts. The candidate fits the public compute defaults but storage size and
-backup retention remain undecided.
+accounts. The candidate fits the public compute defaults; the 50 GiB planning
+size and 14-day backup retention are accepted conditional targets rather than
+verified tenancy capabilities.
 
 [Block Volume documentation](https://docs.oracle.com/en-us/iaas/Content/Block/Concepts/overview.htm)
 states that volumes persist independently of instances, remain accessible
@@ -370,7 +376,7 @@ The following bounded read-only evidence was observed on 2026-07-31:
 | OpenAI data controls | Public policy verified | Default no-training, up-to-30-day abuse monitoring, endpoint application-state behaviour, ZDR/MAM eligibility and regional storage/processing support are documented. Brazil is not a listed residency region; account eligibility and any modified-retention agreement are unverified without login or contract. |
 | OpenAI .NET SDK | Public metadata verified | The official repository and NuGet catalogue identify stable candidate `OpenAI` 2.12.0, MIT, with `net10.0`, `EmbeddingClient` and `ResponsesClient`. No package was selected, downloaded or installed. |
 | OCI region, shape, limits and prices | Verified with account boundary | Public documentation verifies the region, one-AD topology, valid A1 configuration, default limits and price rates. The two current official free-allowance sources conflict, and actual entitlement/capacity is tenancy-specific. |
-| OCI storage, Secret Management and endpoints | Public facts verified | Durability, regional backups, storage prices, vault/secret limits and the four exact Sao Paulo service endpoints are documented. Backup target/retention and runtime IAM remain undecided and untested. |
+| OCI storage, Secret Management and endpoints | Public facts verified | Durability, regional backups, storage prices, vault/secret limits and the four exact Sao Paulo service endpoints are documented. The target/retention and read-only instance-principal direction are accepted conditionally; runtime IAM, consistency and restore remain untested. |
 
 This resumed round used direct HTTPS requests only, disabled redirects and did
 not use general web search. Same-allowlisted-host redirects from obsolete
@@ -408,7 +414,7 @@ pre-registered performance threshold for the active catalogue.
 
 ### Local embedding and language models
 
-Not selected for the first proposal. They avoid data egress but increase
+Not selected for the accepted MVP direction. They avoid data egress but increase
 model-distribution, licence, memory, CPU and OCI capacity risks. They remain
 the preferred fallback if provider data terms or recurring cost are rejected.
 
@@ -464,14 +470,16 @@ conflict with the accepted lifecycle model.
 - Current primary evidence verifies parser/package licence and provider/model
   contracts, dimensions, endpoints, data controls, pricing, public quotas,
   SDK metadata and OCI candidate facts within the unauthenticated scope.
-- The owner explicitly accepts or changes the mutable embedding alias, default
-  provider retention/disclosure, absence of Brazilian data residency, public
-  pricing and account-specific quota boundary.
-- The owner resolves the OCI free-allowance source conflict without assuming
-  zero cost, accepts the one-AD/capacity risk and selects block-volume size,
-  independent regional backup target, retention and restore objective.
-- The owner selects the exact OCI secret mechanism and runtime retrieval/IAM
-  design; documentation evidence does not create a vault or grant access.
+- The acceptance explicitly includes the mutable embedding alias controls,
+  default provider retention/disclosure, absence of verified Brazilian data
+  residency, public pricing and the account-specific quota boundary.
+- The acceptance preserves the conflicting OCI free-allowance evidence,
+  rejects any assumption of zero cost, accepts the one-AD/capacity risk and
+  keeps the 50 GiB volume plus backup/retention/restore targets conditional.
+- The accepted secret direction is OCI Secret Management with a
+  software-protected virtual-vault key and read-only instance-principal access
+  only to configured secret bundles; documentation evidence does not create a
+  vault or grant access.
 - Disposable authorised spikes confirm PDF/CSV extraction quality, embedding
   dimensions, structured model output and vector-store performance against a
   representative catalogue; no spike artefact becomes product implementation.

@@ -1633,3 +1633,57 @@ contém somente fatos cronológicos.
 - Próxima condição: decisões humanas explícitas e independentes sobre
   ADR-0002 e ADR-0004 a ADR-0006 na baseline reconciliada, seguidas somente
   depois pela auditoria combinada separadamente autorizada.
+
+## 2026-08-01 — ADR-0002 e ADR-0004 a ADR-0006 aceitos no corpus 4.8.0
+
+- Estado anterior e resultante: `STATE-02 ARCHITECTURE` ativo; Automatic
+  Quality Gate `BLOQUEADO`; Human Gate `PENDENTE`; sem transição.
+- Baseline decisória confirmada: branch `main`, commit
+  `39e2f803bf73cb4e2b59e56a0596e2858a3aed51`, corpus `4.7.0` e working tree
+  limpa antes do registro.
+- Autoridade humana explícita:
+
+  ```text
+  Confirmo as seguintes decisões explícitas e independentes sobre a baseline main@39e2f803bf73cb4e2b59e56a0596e2858a3aed51, corpus 4.7.0:
+
+  ADR-0002: ACEITAR.
+  ADR-0004: ACEITAR.
+  ADR-0005: ACEITAR a redação reconciliada, incluindo a natureza condicional de OCI, versões de packages e metas operacionais; a consistência de backup; a autenticação por instance principal com acesso somente de leitura; os limites de divulgação à OpenAI; e o tratamento do alias mutável.
+  ADR-0006: ACEITAR.
+
+  Nenhuma decisão decorre de outra. Estas decisões não autorizam implementação, auditoria combinada, Human Gate, STATE-03, rede, providers, GitHub, OCI, publicação, deploy ou alteração no DB-Notifier.
+  ```
+
+- Decisão: ADR-0002, ADR-0004, ADR-0005 e ADR-0006 passam de `proposed` para
+  `accepted`, cada um por autoridade independente.
+- ADR-0005: a aceitação preserva packages e OCI como candidatos condicionais,
+  metas operacionais não comprovadas, backup consistente por recovery set,
+  instance principal com leitura somente dos secret bundles configurados,
+  divulgação externa limitada a dados públicos/autorizados e detecção/bloqueio
+  de drift do alias de embedding.
+- Autoridade resultante: contratos canônicos e threat model tornam-se a
+  baseline arquitetural aceita; nenhum tipo, schema, endpoint ou controle é
+  considerado implementado ou testado.
+- Fatos não verificados: exact package versions, extração PDF/CSV, conta e
+  entitlement OpenAI, desempenho bilíngue, vector benchmark, capacidade/custo
+  OCI, IAM, backup consistente, restore e runtime permanecem condicionais ou
+  pendentes conforme os ADRs.
+- Escopo negativo preservado: nenhuma implementação, auditoria combinada,
+  Human Gate, transição, rede, download, provider, GitHub, OCI, publicação,
+  deploy ou mudança no DB-Notifier.
+- SemVer: corpus `4.8.0` (`MINOR`) porque quatro propostas passam a autoridade
+  arquitetural aceita sem alterar precedência, estados ou lifecycle; permanecem
+  13 arquivos ativos em `prompts/`.
+- Runtime preflight: `NÃO APLICÁVEL`; trabalho exclusivamente documental e
+  local, sem inspeção ou encerramento de processos.
+- Verificações dirigidas: exatamente 13 arquivos documentais; quatro ADRs com
+  status único `accepted`, data e autoridade; corpus `4.8.0`; catálogo 51/54/9;
+  25 RF, 18 RNF, 20 critérios de aceitação, 19 itens Must, 36 ameaças e 15
+  grupos de testes; H1, fences, tabelas, links locais, UTF-8/LF, newline final
+  e `git diff --check` aprovados. A auditoria combinada não foi executada.
+- Quality Gate: Automatic Quality Gate de `STATE-02` permanece `BLOQUEADO`;
+  a auditoria combinada da baseline aceita não foi autorizada nem executada.
+- Human Gate: permanece `PENDENTE` e não foi solicitado.
+- Próxima condição: autorização separada para executar a auditoria combinada
+  de `STATE-02` sobre a baseline aceita; somente seu resultado pode preparar o
+  resumo completo do Automatic Quality Gate.

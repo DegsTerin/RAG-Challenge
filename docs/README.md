@@ -2,26 +2,28 @@
 
 ## Status
 
-Este índice descreve o corpus documental vigente `4.7.0`. A baseline `3.4.0`
+Este índice descreve o corpus documental vigente `4.8.0`. A baseline `3.4.0`
 encerrou o Human Gate de `STATE-00 DISCOVERY`; o `GATE-B01
 ARCHITECTURE_BOOTSTRAP_DECISION` aprovou o ADR-0001 e a licença MIT. O
 ADR-0003 aceito posteriormente substitui seu registro, preserva todas as
 decisões não relacionadas a nomenclatura e adota a nova identidade. O
-ADR-0002 e ADR-0004 a ADR-0006 permanecem propostos, e `STATE-01
-PROJECT_SETUP` está encerrado com Automatic Quality Gate e Human Gate
+ADR-0002 e ADR-0004 a ADR-0006 foram aceitos explicitamente e de forma
+independente em 2026-08-01, e `STATE-01 PROJECT_SETUP` está encerrado com
+Automatic Quality Gate e Human Gate
 aprovados. `STATE-02 ARCHITECTURE` está ativo; seus pacotes documentais
 `S02-A` e `S02-B` foram preparados e a verificação pública autorizada foi
-reconciliada. Decisões humanas de ADR, fatos dependentes de conta ou runtime e
-a auditoria combinada da baseline escolhida continuam pendentes. Nenhum ADR
-foi aceito por implicação. Relatórios de estado são evidências históricas; o
-presente factual pertence a
+reconciliada. Fatos dependentes de conta ou runtime e a auditoria combinada da
+baseline aceita continuam pendentes. Nenhum ADR foi aceito por implicação, e
+a aceitação não autoriza implementação. Relatórios de estado são evidências
+históricas; o presente factual pertence a
 [`Current-State.md`](../prompts/state/Current-State.md).
-O corpus `4.7.0` preserva o contrato bilíngue de consulta de `4.3.0`, a
+O corpus `4.8.0` preserva o contrato bilíngue de consulta de `4.3.0`, a
 localização `pt-BR`/`en-GB` de `4.4.0`, os temas `Light` e `Dark` de `4.5.0` e
 a ausência de tetos de sistemas/páginas de `4.6.0`. Ele também formaliza o
 catálogo inicial de 51 bancos, PDF/CSV sem cardinalidade fixa por banco e a
-recuperação unificada de todos os documentos ativos. Nenhuma dessas decisões
-altera o lifecycle ou aceita um ADR proposto.
+recuperação unificada de todos os documentos ativos. O incremento `4.8.0`
+registra as quatro aceitações arquiteturais sem alterar o lifecycle, executar
+auditoria combinada ou produzir evidência de implementação.
 
 ## Comece aqui
 

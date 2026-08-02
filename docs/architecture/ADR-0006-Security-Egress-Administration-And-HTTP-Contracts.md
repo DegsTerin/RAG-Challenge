@@ -1,7 +1,10 @@
 # ADR-0006 — Security, Egress, Administration and HTTP Contracts
 
-- Status: proposed
+- Status: accepted
 - Date: 2026-07-31
+- Accepted: 2026-08-01
+- Decision authority: explicit product-owner acceptance on baseline
+  `main@39e2f803bf73cb4e2b59e56a0596e2858a3aed51`, corpus `4.7.0`
 - Owners: RAG-Challenge security, API and operations
 - State: `STATE-02 ARCHITECTURE`
 - Dependencies: ADR-0002, ADR-0004 and ADR-0005
@@ -12,10 +15,10 @@
 
 ## Purpose and authority
 
-This ADR proposes the fail-closed security profiles, local administration
-surface and public HTTP compatibility policy for the MVP. It does not enable
-egress, create credentials, expose administration, call a source/provider or
-accept itself.
+This ADR defines the fail-closed security profiles, local administration
+surface and public HTTP compatibility policy for the MVP. Acceptance does not
+enable egress, create credentials, expose administration or call a
+source/provider.
 
 ## Context
 
@@ -32,17 +35,17 @@ Brazilian Portuguese (`pt-BR`) and British English (`en-GB`). Each request
 declares the question language, the answer uses that same language, and
 source-derived citation text remains in the source language. Tests cover
 same-language and both cross-language directions. This decision does not
-select the Dashboard language and does not accept the remaining proposals in
-this ADR.
+select the Dashboard language and did not at that time accept the remaining
+decisions in this ADR.
 A later, separate owner decision selected `pt-BR` and `en-GB` as the supported
 Dashboard languages; the HTTP query contract still does not choose between
 them.
 A further independent owner decision selected `Light` and `Dark` as the
 supported Dashboard themes; the HTTP query contract does not choose a theme.
 
-## Proposed decision
+## Decision
 
-If accepted:
+The accepted decision is:
 
 ### Egress profiles
 
@@ -54,12 +57,12 @@ in one profile grants no access through another.
 - Candidate destination: exact DNS host `api.openai.com`, port `443`, HTTPS
   only.
 - Permit only `POST /v1/embeddings` and `POST /v1/responses`. The official
-  model pages and API references verify both routes for the proposed models.
+  model pages and API references verify both routes for the selected models.
   No batch, chat-completions, files, tools or model-list path is required by
   the MVP.
 - The candidate host was not contacted. Its authority and paths were observed
   only as text in documentation retrieved from `developers.openai.com`; this
-  verifies the proposed allowlist but does not enable it.
+  verifies the accepted allowlist but does not enable it.
 - Reject userinfo, non-default ports, redirects, proxies and ambient
   credentials.
 - Send only bounded authorised chunks for indexing, the bounded question for
@@ -99,7 +102,7 @@ in one profile grants no access through another.
 - `robots.txt` does not disallow the exact documentation path. Direct TLS
   negotiated TLS 1.3 and an offline four-element chain validated using local
   trust with certificate downloads disabled and revocation `NoCheck`. This
-  supports the proposed no-lateral-download policy while retaining its
+  supports the accepted no-lateral-download policy while retaining its
   explicit offline-revocation and future-clean-environment risks.
 
 #### `OCI_RUNTIME_EGRESS`
@@ -346,8 +349,9 @@ polling.
 - Administration tests prove OS identity capture, enable flag, reason,
   idempotency, Candidate/Active/Deactivated/Removed transitions, last-document
   invariant, lease conflict, audit failure and absence of HTTP routes.
-- The owner explicitly accepts the offline revocation residual risk, all
-  externally disclosed data categories, up-to-30-day default abuse monitoring
-  and absence of Brazilian provider data residency, or selects a separately
-  verified alternative.
+- The acceptance explicitly includes the offline revocation residual risk,
+  bounded externally disclosed data categories, up-to-30-day default abuse
+  monitoring and absence of verified Brazilian provider data residency; a
+  later alternative still requires separate verification and an architectural
+  change when material.
 - Acceptance does not enable egress or create an external resource.

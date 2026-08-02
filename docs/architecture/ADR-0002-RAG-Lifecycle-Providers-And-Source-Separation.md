@@ -1,10 +1,13 @@
 # ADR-0002 — RAG Lifecycle, Provider Boundaries and Source Separation
 
-- Status: proposed
+- Status: accepted
 - Date: 2026-07-29
+- Accepted: 2026-08-01
+- Decision authority: explicit product-owner acceptance on baseline
+  `main@39e2f803bf73cb4e2b59e56a0596e2858a3aed51`, corpus `4.7.0`
 - Owners: RAG-Challenge RAG / data / security architecture
-- STATE-02 review: prepared for explicit human decision; entry into the state
-  did not accept or reject this ADR
+- STATE-02 review: accepted independently from ADR-0004, ADR-0005 and
+  ADR-0006; acceptance does not authorise implementation or lifecycle progress
 
 ## Context
 
@@ -33,7 +36,7 @@ owner-controlled source.
 
 ## Decision
 
-If accepted:
+The accepted decision is:
 
 - Define typed ports for catalogue/document administration, local document
   sources, official-source synchronisation, PDF/CSV parsers, chunker,
@@ -307,7 +310,7 @@ tests; production adapters are added only when needed.
   healthy active-document path globally unready.
 - Architecture tests prevent direct controller-to-provider coupling.
 
-## Related STATE-02 proposals
+## Related STATE-02 decisions and artefacts
 
 - [ADR-0004 — MVP Catalogue, Governed Documents, Official Sources and Evaluation](ADR-0004-MVP-Corpus-Official-Source-And-Evaluation.md)
 - [ADR-0005 — MVP Providers, Persistence and OCI Deployment](ADR-0005-MVP-Providers-Persistence-And-OCI-Deployment.md)
@@ -315,5 +318,5 @@ tests; production adapters are added only when needed.
 - [STATE-02 Canonical Contracts](STATE-02-Canonical-Contracts.md)
 - [STATE-02 Threat Model](../security/STATE-02-Threat-Model.md)
 
-These documents refine this proposal but do not alter its status or provide
-implementation evidence.
+These documents refine this decision but do not provide implementation or
+runtime evidence.

@@ -2,10 +2,10 @@
 
 ## Versão atual
 
-- Versão: `4.7.0`
+- Versão: `4.8.0`
 - Data: 2026-08-01
-- Status: catálogo inicial 51/54/9, PDF/CSV e recuperação unificada
-  reconciliados; `STATE-02` ativo e decisões de ADR pendentes
+- Status: ADR-0002 e ADR-0004 a ADR-0006 aceitos; `STATE-02` ativo e
+  auditoria combinada pendente
 - Escopo: 13 arquivos ativos em `prompts/`
 
 A versão do corpus é independente da versão futura do software.
@@ -19,6 +19,34 @@ A versão do corpus é independente da versão futura do software.
 
 Toda alteração atualiza este arquivo e, quando necessário,
 [`../Start-Here.md`](../Start-Here.md).
+
+## 4.8.0 — 2026-08-01
+
+- Registra a aceitação humana explícita e independente de ADR-0002, ADR-0004,
+  ADR-0005 e ADR-0006 sobre
+  `main@39e2f803bf73cb4e2b59e56a0596e2858a3aed51`, corpus `4.7.0`.
+- Preserva no ADR-0005 a natureza condicional de OCI, versões de packages e
+  metas operacionais, além de consistência de backup, instance principal
+  somente-leitura, divulgação limitada à OpenAI e controle do alias mutável.
+- Promove contratos canônicos e threat model de propostas preparadas para a
+  baseline arquitetural aceita, sem apresentá-los como implementação ou teste.
+- Mantém fatos de conta, entitlement, capacidade, packages, spikes, IAM,
+  restore, custo e runtime como não verificados ou condicionais conforme os
+  ADRs.
+- Remove somente o bloqueio de decisão arquitetural; a auditoria combinada
+  permanece separadamente não autorizada, o Automatic Quality Gate continua
+  `BLOQUEADO` e o Human Gate permanece `PENDENTE`.
+- Classifica a alteração como `MINOR` porque quatro propostas passam a
+  autoridade arquitetural aceita sem alterar estados, precedência ou
+  lifecycle.
+- A validação dirigida confirma exatamente 13 arquivos alterados, quatro ADRs
+  com status único `accepted`, data e autoridade; corpus `4.8.0`; catálogo
+  51/54/9; contagens de requisitos/ameaças preservadas; e Markdown, links,
+  tabelas, UTF-8/LF e `git diff --check` válidos. Ela não executa a auditoria
+  combinada de `STATE-02`.
+- Não autoriza implementação, rede, download, providers, GitHub, OCI,
+  publicação, deploy, DB-Notifier, auditoria combinada, Human Gate ou
+  `STATE-03`.
 
 ## 4.7.0 — 2026-08-01
 

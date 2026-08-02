@@ -7,15 +7,18 @@ DISCOVERY` and the active `STATE-02 ARCHITECTURE`. ADR-0001 was accepted by
 `GATE-B01` on 2026-07-30 and was later
 superseded by accepted ADR-0003. ADR-0003 incorporates every non-naming
 ADR-0001 decision unchanged and replaces its naming provisions. ADR-0002 and
-ADR-0004 to ADR-0006 remain proposed. Acceptance records a decision but does
-not authorise implementation or prove runtime behaviour.
+ADR-0004 to ADR-0006 were accepted explicitly and independently by the owner
+on 2026-08-01 against
+`main@39e2f803bf73cb4e2b59e56a0596e2858a3aed51`, corpus `4.7.0`.
+Acceptance records architecture authority but does not authorise
+implementation or prove runtime behaviour.
 
 The owner has independently fixed the query-language boundary to `pt-BR` and
 `en-GB`: answers use the declared question language and source-derived
-citations retain their original language. This does not accept a proposed ADR
-or determine the Dashboard language. A later independent owner decision
-selected `pt-BR` and `en-GB` as the supported Dashboard languages; the visual
-selection remains independent from the query language.
+citations retain their original language. That constraint did not at the time
+accept an ADR or determine the Dashboard language. A later independent owner
+decision selected `pt-BR` and `en-GB` as the supported Dashboard languages;
+the visual selection remains independent from the query language.
 
 The owner also selected `Light` and `Dark` as the supported Dashboard themes.
 Theme state remains independent from interface and query languages and is not
@@ -26,8 +29,9 @@ products, 9 categories and 54 many-to-many assignments. Every active database
 has at least one active PDF or CSV document; any number of additional compatible
 documents may be administered without a hard-coded list, code change or ADR per
 item. All active documents participate in unified retrieval, while local or
-official origin remains explicit provenance. This decision does not accept the
-four proposed ADRs or authorise implementation.
+official origin remains explicit provenance. This constraint was established
+independently before the four ADRs were later accepted and does not authorise
+implementation.
 
 The architecture follows DB-Notifier principles where they are proportional
 to the RAG-Challenge: inward dependencies, provider-neutral contracts,
@@ -133,16 +137,17 @@ Dashboard -- versioned HTTP --> API
 - [ADR-0001 — Runtime Stack and Modular Monolith](ADR-0001-Runtime-Stack-And-Modular-Monolith.md)
   (`superseded` by ADR-0003)
 - [ADR-0002 — RAG Lifecycle, Provider Boundaries and Source Separation](ADR-0002-RAG-Lifecycle-Providers-And-Source-Separation.md)
-  (`proposed`)
+  (`accepted`)
 - [ADR-0003 — Product and Technical Naming](ADR-0003-Product-And-Technical-Naming.md)
   (`accepted`; current bootstrap decision record)
 - [ADR-0004 — MVP Catalogue, Governed Documents, Official Sources and Evaluation](ADR-0004-MVP-Corpus-Official-Source-And-Evaluation.md)
-  (`proposed`; public source facts reconciled, human decision pending)
+  (`accepted`; every actual document/source still requires its own evidence
+  and activation)
 - [ADR-0005 — MVP Providers, Persistence and OCI Deployment](ADR-0005-MVP-Providers-Persistence-And-OCI-Deployment.md)
-  (`proposed`; public provider/package/OCI facts reconciled, account and
-  runtime evidence deferred)
+  (`accepted`; package versions, OCI targets and operational evidence remain
+  conditional as recorded)
 - [ADR-0006 — Security, Egress, Administration and HTTP Contracts](ADR-0006-Security-Egress-Administration-And-HTTP-Contracts.md)
-  (`proposed`; public endpoint evidence reconciled, human decision pending)
+  (`accepted`; profiles remain disabled and untested)
 
 ## STATE-02 design artefacts
 
@@ -157,23 +162,22 @@ Dashboard -- versioned HTTP --> API
 - [Quality Gates](../../prompts/governance/Quality-Gates.md)
 - [MVP Roadmap and Backlog](../MVP-Roadmap-And-Backlog.md)
 
-## Decisions still required
+## Remaining evidence and activation inputs
 
-- Corpus licence and provenance in `STATE-02`; the repository licence is MIT
-  as recorded by `GATE-B01`.
-- Initial documents, licences and languages for every database product.
-- Acceptance or revision of the verified first PostgreSQL source candidate and
-  the policy for subsequent compatible registrations, including licence basis,
-  `maxAge`, egress limits and residual TLS risk.
-- Parser, chunking, embedding, vector-store and language-model selections;
-  account entitlement and runtime evidence require later authority.
-- Persistence technology for raw content, catalogue and vector index,
-  including deployment durability and retention.
-- Managed-vector-store data policy and egress, if a local adapter is not
-  selected.
-- OCI shape, storage, independent backup, secrets, domain/TLS and operating
-  budget; tenancy capacity, entitlement and effective billing remain later
-  account-specific evidence.
-- Evaluation dataset and thresholds.
+- Actual initial PDF/CSV documents, per-document rights, provenance and
+  language evidence before any database product becomes active.
+- Evidence and explicit activation for each additional official source
+  registration; no generic URL or crawling authority exists.
+- Exact PDF/CSV package versions and disposable extraction/security spikes
+  required by accepted ADR-0005.
+- OpenAI account entitlement, limits, spend controls and the accepted
+  bilingual evaluation before provider use.
+- Representative exact-vector performance, persistence restart, backup
+  consistency and restore evidence.
+- OCI tenancy capacity, entitlement, IAM enforcement, effective billing and
+  restore evidence for the accepted conditional target.
+- The extensible evaluation dataset and thresholds frozen before scored runs.
+- The separately authorised combined `STATE-02` audit before any Human Gate.
 
-These decisions belong to the authorised state that owns them.
+These inputs do not reopen the accepted architecture unless evidence requires
+a material change.

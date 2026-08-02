@@ -2,10 +2,11 @@
 
 ## Purpose, responsibility and authority
 
-This document defines the proposed canonical application, provider and public
-contract semantics for `STATE-02 ARCHITECTURE`. It refines ADR-0002 and
-ADR-0006 without implementing types, schemas or endpoints. Every contract is
-proposed until its owning ADR is explicitly accepted.
+This document defines the canonical application, provider and public contract
+semantics accepted for `STATE-02 ARCHITECTURE`. It refines accepted ADR-0002
+and ADR-0006 without implementing types, schemas or endpoints. Acceptance
+freezes the architecture semantics; it does not prove or authorise an
+implementation.
 
 The contracts preserve inward dependencies: Domain owns identities and
 invariants; Application owns ports, use cases and failure semantics;

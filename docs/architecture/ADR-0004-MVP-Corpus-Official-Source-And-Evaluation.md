@@ -1,7 +1,10 @@
 # ADR-0004 — MVP Catalogue, Governed Documents, Official Sources and Evaluation
 
-- Status: proposed
+- Status: accepted
 - Date: 2026-07-31
+- Accepted: 2026-08-01
+- Decision authority: explicit product-owner acceptance on baseline
+  `main@39e2f803bf73cb4e2b59e56a0596e2858a3aed51`, corpus `4.7.0`
 - Owners: RAG-Challenge product, RAG evaluation and security
 - State: `STATE-02 ARCHITECTURE`
 - Verification status: substantially complete only for the first PostgreSQL
@@ -11,11 +14,10 @@
 
 ## Purpose and authority
 
-This ADR proposes the governed knowledge sources and pre-registered evaluation
-baseline for the MVP. It does not license content, approve an external URL,
-authorise network access or accept itself. The product owner must decide the
-ADR explicitly. Every actual document/source must also pass the evidence gate
-below under separate authority before activation.
+This ADR defines the governed knowledge sources and pre-registered evaluation
+baseline for the MVP. Acceptance does not license content, approve an external
+URL or authorise network access. Every actual document/source must also pass
+the evidence gate below under separate authority before activation.
 
 ## Context
 
@@ -36,9 +38,9 @@ On 2026-08-01, the owner explicitly selected Brazilian Portuguese (`pt-BR`)
 and British English (`en-GB`) for questions and answers. An answer uses the
 declared question language; source-derived citation text remains in its
 original language. Deterministic tests cover same-language retrieval and both
-cross-language directions. This constraint is accepted independently of the
-corpus, source, licence and threshold proposals below, does not decide the
-Dashboard language and does not accept this ADR as a whole.
+cross-language directions. This constraint was accepted independently of the
+corpus, source, licence and threshold decisions below, did not at that time
+decide the Dashboard language or accept this ADR as a whole.
 A later, separate owner decision selected `pt-BR` and `en-GB` as the supported
 Dashboard languages without coupling them to the query-language matrix.
 
@@ -49,9 +51,9 @@ database systems and 120 pages. Each published corpus version remains finite
 and records its actual system and page counts, but the product contract sets no
 maximum for either count. Operational capacity, parser safety and resource
 budgets must be validated against the selected corpus rather than used to
-exclude systems or pages by a fixed product rule. This constraint is accepted
-independently of the source, licence and evaluation proposals below and does
-not accept this ADR as a whole.
+exclude systems or pages by a fixed product rule. This constraint was accepted
+independently of the source, licence and evaluation decisions below and did
+not at that time accept this ADR as a whole.
 
 ## Owner-decided catalogue and document constraint
 
@@ -68,12 +70,12 @@ indexing and explicit administrative activation make them queryable.
 Deactivation preserves history/provenance, removal is a logical auditable
 tombstone, and physical deletion follows retention. Removing the last active
 document requires explicit atomic deactivation of its database. These
-constraints do not accept this ADR as a whole or authorise implementation,
-network access or source synchronisation.
+constraints did not at that time accept this ADR as a whole and do not
+authorise implementation, network access or source synchronisation.
 
-## Proposed decision
+## Decision
 
-If accepted after verification:
+The accepted decision is:
 
 ### Canonical catalogue and governed documents
 
@@ -152,14 +154,14 @@ PostgreSQL 18 as the current manual and links an A4 PDF. The
 [PostgreSQL Licence](https://www.postgresql.org/about/licence/) expressly
 covers use, copy, modification and distribution of the software and its
 documentation, subject to retaining the required notices. This supplies the
-proposed use-right basis but does not waive attribution/notice handling.
+accepted use-right basis but does not waive attribution/notice handling.
 
 The [published robots policy](https://www.postgresql.org/robots.txt) returned
 `200` without redirect and does not disallow the versioned documentation PDF
 path. The [official policies index](https://www.postgresql.org/about/policies/)
 does not list a separate general terms-of-use policy, and targeted official
 search found no download-rate guidance. Therefore the PostgreSQL Licence is
-the published use-right basis, while the proposed once-per-24-hours limit is a
+the published use-right basis, while the accepted once-per-24-hours limit is a
 project restraint rather than a publisher commitment.
 
 A direct TLS check resolved three public addresses, negotiated TLS 1.3 and
@@ -232,8 +234,8 @@ another source:
 2. the official publisher controls the host and path;
 3. the current licence and terms permit the intended download, local snapshot,
    parsing, indexing, quotation and citation;
-4. robots and published rate guidance permit the proposed manual frequency;
-5. the response is an anonymous PDF within the proposed limits;
+4. robots and published rate guidance permit the accepted manual frequency;
+5. the response is an anonymous PDF within the accepted limits;
 6. certificate validation can operate with the no-lateral-egress TLS policy;
 7. a sanitised record captures date, status, media type, size, validators and
    evidence references without downloading into the repository.
@@ -245,7 +247,7 @@ Evidence status on 2026-07-31:
 | 1 | Verified | Exact URL returned without redirect. |
 | 2 | Verified | The official documentation index and PDF use the exact `www.postgresql.org` authority and versioned path. |
 | 3 | Verified with qualification | The PostgreSQL Licence supplies the use/copy basis and required notices; the official policies index lists no separate general terms-of-use policy. |
-| 4 | Verified with qualification | `robots.txt` does not disallow the exact path; no publisher download-rate guidance was located, so the proposed daily ceiling remains a project-owned conservative limit. |
+| 4 | Verified with qualification | `robots.txt` does not disallow the exact path; no publisher download-rate guidance was located, so the accepted daily ceiling remains a project-owned conservative limit. |
 | 5 | Verified | Anonymous PDF, `application/pdf`, 15,771,040 bytes and valid leading signature. |
 | 6 | Verified locally | TLS 1.3 and a four-element offline chain validated with certificate downloads disabled and revocation `NoCheck`; clean-environment and OCI reproduction remain later acceptance tests. |
 | 7 | Verified | This ADR and the state report contain the sanitised response record and primary-source references; no snapshot was retained. |
@@ -315,8 +317,8 @@ more clearly while remaining separate from the software licence.
 
 ## Acceptance checks
 
-- The owner explicitly decides this ADR after the seven external verification
-  items have evidence.
+- The explicit acceptance follows reconciliation of the seven external
+  verification items for the first PostgreSQL source candidate.
 - The catalogue contains exactly the 51 approved unique names and 54 category
   assignments for its initial revision; no abbreviated example list replaces
   it.
