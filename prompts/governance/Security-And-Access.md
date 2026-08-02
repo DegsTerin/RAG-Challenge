@@ -48,9 +48,10 @@ Os materiais do Challenge permitem consulta aberta. Portanto:
 - a rota de pergunta pode ser anônima, com limites e proteção contra abuso;
 - administração de bancos/documentos/fontes, ingestão, ativação, rollback e
   configuração não são operações públicas anônimas;
-- no `STATE-02`, deve ser escolhida uma superfície administrativa local não
-  pública; ela usa identidade do sistema operacional, permissões mínimas,
-  motivo obrigatório, idempotência e auditoria sanitizada;
+- o ADR-0006 aceito escolheu uma superfície administrativa local não pública
+  no modo one-shot do host principal; ela usa identidade do sistema
+  operacional, permissões mínimas, motivo obrigatório, idempotência e
+  auditoria sanitizada, ainda sem implementação;
 - o startup apenas verifica e carrega a geração ativa; mutação exige modo
   administrativo one-shot explicitamente configurado e invocado;
 - sincronização oficial usa a mesma superfície administrativa; consulta
@@ -136,9 +137,10 @@ Egress é dividido em quatro políticas independentes:
 
 ### `AI_PROVIDER_EGRESS`
 
-Fica deny by default até que o `STATE-02` selecione o provider e o owner
-autorize seu uso. Um provider local pode manter essa política sem destinos
-externos. Para provider externo:
+Permanece deny by default. O ADR-0005 aceito selecionou os providers externos
+condicionais e o limite de divulgação, mas não autorizou egress, uso de conta
+ou execução. Um provider local futuro pode manter essa política sem destinos
+externos. Para o provider externo aceito:
 
 - somente endpoints e portas explicitamente allowlisted;
 - revisão documentada de retenção, uso para treino, residência, termos,
@@ -215,11 +217,12 @@ autorizados permanece bloqueado. A política é validada no ambiente alvo.
   original para Host, SNI e validação do certificado, sem nova resolução por
   hostname durante a conexão.
 - Validação de certificado não pode criar egress AIA, CRL, OCSP ou outro
-  destino fora de política. O `STATE-02` deve decidir trust, revogação,
-  downloads de cadeia e eventual provisão/atualização de material; qualquer
-  destino auxiliar exige allowlist e autoridade próprias. Configuração ausente
-  falha fechada, e a política escolhida deve ser provada em clone local limpo e
-  OCI sem afrouxamento silencioso.
+  destino fora de política. O ADR-0006 aceito escolheu trust local, downloads
+  de cadeia e revogação online desativados e aceitou o risco residual de
+  revogação; qualquer destino auxiliar continua exigindo allowlist, decisão e
+  autoridade próprias. Configuração ausente falha fechada, e a política
+  escolhida ainda deve ser implementada e provada em clone local limpo e OCI
+  sem afrouxamento silencioso.
 - Redirects desativados no MVP. Habilitação futura exige nova decisão,
   allowlist e validação/pinning completo a cada salto.
 - Sem proxy, cookies ou credenciais ambientais por padrão.

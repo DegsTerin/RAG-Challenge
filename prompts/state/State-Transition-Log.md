@@ -1739,3 +1739,75 @@ contém somente fatos cronológicos.
 - Próxima condição: ADR corretivo aceito para `AQG-S02-001`, reconciliação de
   `AQG-S02-002` e `AQG-S02-003` e nova auditoria combinada autorizada sobre
   baseline limpa. `STATE-03` permanece sem autorização.
+
+## 2026-08-02 — Pacote corretivo de STATE-02 preparado sem decisão de ADR
+
+- Estado anterior e resultante: `STATE-02 ARCHITECTURE` ativo; Automatic
+  Quality Gate `REPROVADO`; Human Gate `PENDENTE`; sem transição.
+- Baseline confirmada antes da releitura e da escrita: branch `main`, commit
+  `9707b87d75a6acb14c8993ff0283a4221bc6c762`, corpus `4.8.0` e working tree
+  limpa.
+- Autoridade humana exata:
+
+  ```text
+  Objetivo autorizado: preparar localmente um pacote de decisão para um novo ADR
+  corretivo que resolva AQG-S02-001 e definir a reconciliação factual de
+  AQG-S02-002 e AQG-S02-003. Registrar a proposta documental e criar commit
+  focado, parando antes de qualquer decisão de aceitação.
+  ```
+
+- Autoridade preservada: ADR-0002 e ADR-0004 a ADR-0006 permanecem aceitos;
+  a auditoria combinada permanece reprovada. A solicitação não aceita ou
+  rejeita o novo ADR nem autoriza a repetição do gate.
+- Proposta: ADR-0007 criado com status `proposed`. Ele compara três modelos e
+  recomenda manter `sourceObservationId` fora de
+  `sourceBindingSetDigest`, `generationSpecDigest` e `IndexGenerationId`,
+  protegendo o binding completo por `activationBindingSetDigest` no
+  `CorpusActivationRecord`.
+- Semântica proposta: `304`/hash idêntico preserva manifesto,
+  `catalogueRevision`, `generationActivatedAt` e geração, mas cria nova
+  revisão/digest do registro de ativação. Conteúdo/snapshot/trust/adapter/
+  registro imutável/documento/compatibilidade alterados exigem candidata nova.
+  Rollback cria registro novo com observação atualmente compatível e nunca
+  restaura freshness histórica.
+- Alternativas: incluir observação na identidade é coerente somente criando
+  nova geração para toda revalidação, com churn não recomendado; mutação ou
+  binding sem digest foi rejeitado por quebrar identidade, proveniência ou
+  integridade.
+- `AQG-S02-002`: threat model reconciliado para registrar como aceitos os
+  boundaries residuais de TLS e divulgação, mantendo implementação, conta,
+  egress, orçamento, aviso e evidência abertos.
+- `AQG-S02-003`: visão, arquitetura e segurança existentes foram preservadas
+  em `pt-BR` e reconciliadas com o mapa físico do ADR-0003, abstrações RAG em
+  Application, persistência em Infrastructure e status aceito/condicional de
+  administração, providers, TLS, persistência e OCI.
+- Limite decisório: ADR-0002, contratos canônicos e módulo RAG não receberam a
+  semântica proposta antes da decisão humana. O ADR-0007 rastreia as mudanças
+  necessárias nesses artefatos, requisitos, lifecycle, Quality Gates,
+  roadmap, threat model e rollback caso seja aceito.
+- Corpus: `4.8.1` (`PATCH`) por corrigir status factual e registrar uma
+  proposta compatível sem alterar autoridade, lifecycle ou semântica aceita.
+  Permanecem 13 arquivos em `prompts/`.
+- Verificações dirigidas: PowerShell `7.6.4`, Git
+  `2.55.0.windows.3` e ripgrep `15.2.0` em `<rag-challenge-root>`;
+  `eng/check-repository.ps1` e `git diff --check` com exit `0`; 84 arquivos
+  não ignorados, 31 Markdown, 13 prompts e 142 links locais; um status
+  `proposed` no ADR-0007; zero frase stale alvo; zero mudança pré-decisão em
+  ADR-0002, contratos canônicos ou módulo RAG. A validação foi repetida após
+  este registro; não constituiu Automatic Quality Gate.
+- Limitações: nenhuma implementação, build, parser, provider, conta, corpus,
+  índice, benchmark, backup, restore, IAM, rede ou recurso externo foi
+  executado. Os achados históricos não foram reclassificados por inferência.
+- Escopo negativo preservado: nenhuma decisão de ADR, repetição do Automatic
+  Quality Gate, Human Gate, `STATE-03`, GitHub, OCI, publicação, deploy,
+  DB-Notifier ou ação externa.
+- Quality Gate: permanece `REPROVADO`; `AQG-S02-001` continua aberto até
+  decisão e reconciliação semântica. As fontes de `AQG-S02-002` e
+  `AQG-S02-003` estão factualmente reconciliadas, com disposição pendente da
+  próxima auditoria combinada.
+- Human Gate: permanece `PENDENTE`, não solicitado e indisponível enquanto o
+  Automatic Quality Gate estiver reprovado.
+- Próxima condição: decisão humana explícita e independente sobre ADR-0007.
+  Se aceito, executar a reconciliação semântica rastreada e somente depois
+  obter autoridade separada para nova auditoria combinada sobre baseline
+  limpa. `STATE-03` permanece sem autorização.

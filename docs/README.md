@@ -2,7 +2,7 @@
 
 ## Status
 
-Este índice descreve o corpus documental vigente `4.8.0`. A baseline `3.4.0`
+Este índice descreve o corpus documental vigente `4.8.1`. A baseline `3.4.0`
 encerrou o Human Gate de `STATE-00 DISCOVERY`; o `GATE-B01
 ARCHITECTURE_BOOTSTRAP_DECISION` aprovou o ADR-0001 e a licença MIT. O
 ADR-0003 aceito posteriormente substitui seu registro, preserva todas as
@@ -21,14 +21,15 @@ Quality Gate por `AQG-S02-001` (P1), `AQG-S02-002` (P2) e `AQG-S02-003`
 implementação. Relatórios de estado são evidências históricas; o presente
 factual pertence a
 [`Current-State.md`](../prompts/state/Current-State.md).
-O corpus `4.8.0` preserva o contrato bilíngue de consulta de `4.3.0`, a
+O corpus `4.8.1` preserva o contrato bilíngue de consulta de `4.3.0`, a
 localização `pt-BR`/`en-GB` de `4.4.0`, os temas `Light` e `Dark` de `4.5.0` e
 a ausência de tetos de sistemas/páginas de `4.6.0`. Ele também formaliza o
 catálogo inicial de 51 bancos, PDF/CSV sem cardinalidade fixa por banco e a
 recuperação unificada de todos os documentos ativos. O incremento `4.8.0`
-registra as quatro aceitações arquiteturais sem alterar o lifecycle, executar
-auditoria combinada ou produzir evidência de implementação. A auditoria
-posterior não altera a versão `4.8.0`; registra o resultado factual do gate.
+registra as quatro aceitações arquiteturais; o `4.8.1` reconcilia
+factualmente `AQG-S02-002` e `AQG-S02-003` e registra o ADR-0007 apenas como
+proposta para `AQG-S02-001`. O Automatic Quality Gate permanece `REPROVADO`;
+nenhuma dessas mudanças autoriza implementação, Human Gate ou `STATE-03`.
 
 ## Comece aqui
 
@@ -61,6 +62,8 @@ posterior não altera a versão `4.8.0`; registra o resultado factual do gate.
 - [ADR-0004 — MVP Catalogue, Governed Documents, Official Sources and Evaluation](architecture/ADR-0004-MVP-Corpus-Official-Source-And-Evaluation.md)
 - [ADR-0005 — MVP Providers, Persistence and OCI Deployment](architecture/ADR-0005-MVP-Providers-Persistence-And-OCI-Deployment.md)
 - [ADR-0006 — Security, Egress, Administration and HTTP Contracts](architecture/ADR-0006-Security-Egress-Administration-And-HTTP-Contracts.md)
+- [ADR-0007 — Generation Identity and Freshness Observation Rebinding](architecture/ADR-0007-Generation-Identity-And-Freshness-Observation-Rebinding.md)
+  (`proposed`)
 - [Contratos canônicos de STATE-02](architecture/STATE-02-Canonical-Contracts.md)
 - [Threat model de STATE-02](security/STATE-02-Threat-Model.md)
 

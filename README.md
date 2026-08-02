@@ -3,7 +3,7 @@
 Assistente RAG independente para consultar documentação sobre bancos de dados
 em linguagem natural, com respostas fundamentadas e referências às fontes.
 
-> Status em 2026-08-01: `STATE-00 DISCOVERY`, `GATE-B01
+> Status em 2026-08-02: `STATE-00 DISCOVERY`, `GATE-B01
 > ARCHITECTURE_BOOTSTRAP_DECISION` e `STATE-01 PROJECT_SETUP` estão
 > encerrados. O Automatic Quality Gate e o Human Gate de `STATE-01` foram
 > aprovados, e `STATE-02 ARCHITECTURE` está ativo para trabalho documental e
@@ -18,7 +18,10 @@ em linguagem natural, com respostas fundamentadas e referências às fontes.
 > `main@a01a765d177efb6c4013c6846c5f54c8adbe7e0f` e reprovou o Automatic
 > Quality Gate por um conflito P1 na identidade de geração/observação, além de
 > um achado P2 e um P3 documentais. O Human Gate permanece pendente e
-> `STATE-03` não está autorizado.
+> `STATE-03` não está autorizado. O pacote corretivo posterior registrou o
+> ADR-0007 como `proposed` para resolver o P1 e reconciliou factualmente as
+> fontes do P2/P3, sem aceitar o novo ADR nem repetir a auditoria; portanto o
+> resultado do gate continua `REPROVADO`.
 
 ## Problema
 

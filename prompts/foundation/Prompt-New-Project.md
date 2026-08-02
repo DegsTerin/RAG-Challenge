@@ -255,20 +255,29 @@ concorrência são controles operacionais e não limites do catálogo.
   preferência do sistema, persistência e fallback permanecem detalhes futuros
   do frontend.
 
-## Limitações e decisões pendentes
+## Limitações e evidências pendentes
 
-- Licença do repositório e do acervo.
-- Documentos iniciais de cada banco, suas licenças e idiomas.
-- Registros de fontes oficiais, URLs canônicas, termos/licenças, maxAge e
-  limites individuais.
-- Provider de embeddings, armazenamento vetorial e LLM.
-- Persistência durável e retenção dos bytes documentais, catálogo e índice
-  entre reinicializações.
-- Política de egress e tratamento de dados caso o vector store selecionado
-  seja externo.
-- Serviço OCI e região alvo.
-- Orçamento e limites dos providers externos.
-- Dataset de avaliação e thresholds de recuperação/groundedness.
+- A licença MIT do repositório foi aceita e materializada. ADR-0004 aceitou
+  `CC BY 4.0` para documentos autorais futuros, mas nenhum documento inicial
+  de produto, concessão de licença, idioma ou direito por banco foi
+  materializado.
+- PostgreSQL 18 é a primeira fonte oficial candidata verificada. Cada registro
+  adicional ainda exige URL canônica, termos/licença, `maxAge`, limites,
+  autoridade de rede e ativação próprios.
+- ADR-0005 aceitou condicionalmente OpenAI para embeddings e LLM,
+  `SqliteExactVectorStore`, EF Core SQLite e filesystem content-addressed.
+  Versões exatas de packages, conta, entitlement, custo, qualidade bilíngue,
+  desempenho, restart, backup e restore permanecem sem evidência executável.
+- ADR-0006 aceitou as quatro políticas de egress deny-by-default e o limite de
+  divulgação. Nenhum egress, provider, conta ou destino está habilitado por
+  essa decisão.
+- ADR-0005 aceitou condicionalmente o alvo OCI em `sa-saopaulo-1`; capacidade,
+  entitlement, IAM, cobrança, consistência de backup e restore da tenancy
+  permanecem não verificados.
+- O dataset de avaliação e os thresholds de recuperação/groundedness ainda
+  precisam ser materializados antes da primeira campanha pontuada.
+- `AQG-S02-001` ainda exige decisão explícita sobre o ADR corretivo proposto e
+  reconciliação dos contratos antes de nova auditoria combinada.
 
-Essas decisões devem ser resolvidas no estado proprietário; não são
-implementação implícita.
+Esses itens distinguem decisões arquiteturais aceitas de evidência,
+implementação e autoridade externa ainda ausentes.

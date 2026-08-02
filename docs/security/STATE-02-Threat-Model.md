@@ -10,7 +10,9 @@ control, enable network access or authorise an external action.
 Security-And-Access remains the policy authority. Accepted ADR-0006 owns the
 egress, administration and HTTP decisions; this model tests those decisions
 against concrete threats. Its recorded residual-risk boundaries were included
-in the explicit ADR acceptance, while runtime controls remain unverified.
+in the explicit ADR acceptance. That acceptance settles the architecture risk
+boundary only: runtime controls, account facts, egress authority and test
+evidence remain unverified or absent as stated below.
 
 ## Scope
 
@@ -101,14 +103,14 @@ change rather than weakening a control.
 | `THR-S02-005` | User supplies URL/host/provider/model through query JSON. | SSRF, cost abuse or authority expansion. | Closed schema; reject unknown fields; trusted configuration only. | S04. | Open. |
 | `THR-S02-006` | DNS rebinding or mixed A/AAAA reaches loopback, private or metadata service. | Internal service access or credential theft. | Atomic address-set rejection; resolve each connection; connect to approved IP; no second resolution. | S04/S07. | Open. |
 | `THR-S02-007` | HTTP redirect escapes the approved official source. | SSRF or unauthorised content. | Automatic redirects disabled; any future hop needs a new decision. | S04/S07. | Open. |
-| `THR-S02-008` | TLS chain validation fetches AIA/CRL/OCSP laterally. | Hidden egress and policy bypass. | Disable certificate downloads and online revocation; local trust only; test zero auxiliary connection. | S04/S07. | Residual revocation risk needs owner decision. |
+| `THR-S02-008` | TLS chain validation fetches AIA/CRL/OCSP laterally. | Hidden egress and policy bypass. | Disable certificate downloads and online revocation; local trust only; test zero auxiliary connection. | S04/S07. | Architecture residual accepted; control and clean-environment evidence open. |
 | `THR-S02-009` | Malicious/compressed PDF or oversized/malformed CSV exhausts CPU, memory, disk or parser. | Denial of service or parser exploit. | Signature/structure/media/page/row/column/cell/byte/time limits; quarantine; no active content/formula execution; dependency review. | S04/S07. | Open. |
 | `THR-S02-010` | Path traversal, symlink or reparse point escapes local/content root. | Read/write of unrelated files. | Canonical root containment; open-handle checks where supported; no caller paths; deny links/reparse points. | S04/S07. | Open. |
 | `THR-S02-011` | Partial candidate becomes queryable or replaces active generation. | Corrupt/mixed answers and lost rollback. | Candidate identity only; final digest/count/readback; single activation authority; compare-and-swap. | S03/S04/S07. | Open. |
 | `THR-S02-012` | Concurrent catalogue/sync/build/rollback loses an update. | Split-brain catalogue/generation/bindings. | Per-corpus lease; expected record revision; complete transaction/history/audit. | S03/S04/S07. | Open. |
 | `THR-S02-013` | Cleanup removes active/retained content or only rollback target. | Irrecoverable service loss. | Reachability check; retention window; explicit audited cleanup; restore test. | S03/S07. | Open. |
-| `THR-S02-014` | External embedding discloses the whole authorised corpus over batches. | Third-party disclosure, terms/privacy breach. | Public/authorised corpus only; provider/data decision; minimal metadata; explicit AI egress and budget. | S02 decision; S07 evidence. | Blocked by owner disclosure/risk decision. |
-| `THR-S02-015` | External LLM receives confidential question or excessive evidence. | User/corpus data disclosure. | Explicit no-confidential-content notice; minimum passages; provider terms; bounded request. | S02/S05/S07. | Blocked by owner disclosure/risk decision. |
+| `THR-S02-014` | External embedding discloses the whole authorised corpus over batches. | Third-party disclosure, terms/privacy breach. | Public/authorised corpus only; provider/data decision; minimal metadata; explicit AI egress and budget. | S02 decision; S07 evidence. | Disclosure boundary accepted; account, egress, budget and runtime evidence open. |
+| `THR-S02-015` | External LLM receives confidential question or excessive evidence. | User/corpus data disclosure. | Explicit no-confidential-content notice; minimum passages; provider terms; bounded request. | S02/S05/S07. | Disclosure boundary accepted; user notice, account, egress and runtime evidence open. |
 | `THR-S02-016` | Provider credential leaks to Git, client, logs or errors. | Account abuse and cost. | Secret store; server-only injection; scanning; redaction; least-privilege key; rotation procedure. | S04/S06/S08. | Open. |
 | `THR-S02-017` | Anonymous query floods provider or exhausts budget. | Cost and availability loss. | Body/question/context limits; per-client/global rate/concurrency; deadlines; monetary circuit breaker. | S04/S07/S08. | Open. |
 | `THR-S02-018` | Provider response or exception injects sensitive details into Problem Details/logs. | Secret, endpoint or data leakage. | Adapter classification; allowlisted public fields; generic details; no raw payload/stack. | S04/S07. | Open. |
@@ -199,19 +201,33 @@ succeeds; a deterministic status allows safe operator recovery.
 
 ## Risk acceptance boundaries
 
-The following require explicit owner decisions and cannot be inferred from the
-`STATE-02` entry:
+Explicit owner acceptance of ADR-0005 and ADR-0006 settled these architecture
+boundaries on 2026-08-01:
 
-- external disclosure of corpus chunks and user questions;
-- current provider terms, retention/training posture and budget;
-- local-only TLS revocation policy residual risk;
-- each official-source licence/terms and synchronisation frequency;
-- OCI region, cost, public exposure and backup retention;
-- any P0/P1 residual finding.
+- bounded disclosure of authorised corpus chunks and user questions to the
+  selected OpenAI embedding and language-model candidates;
+- the documented public provider retention/training/residency posture, subject
+  to future account and contract verification;
+- local-only TLS validation with certificate downloads and online revocation
+  disabled, including its residual revocation risk;
+- the conditional OCI region, exposure, backup-retention and cost direction
+  recorded by ADR-0005.
+
+The following remain separate evidence or authority requirements and were not
+resolved merely by accepting those boundaries:
+
+- account entitlement, spend limits, effective provider terms and enabled AI
+  egress;
+- implementation and clean local/OCI evidence for zero lateral TLS traffic;
+- each actual official-source licence/terms, synchronisation frequency and
+  network authority;
+- tenancy-specific OCI capacity, billing, IAM, backup consistency and restore
+  evidence;
+- disposition of any later P0/P1 residual finding.
 
 P2/P3 findings may be accepted only with owner, expiry/review date, scope and
 compensating control recorded in the state report. No risk acceptance enables
-an external action by itself.
+an external action by itself or proves a control effective.
 
 ## Review and maintenance
 

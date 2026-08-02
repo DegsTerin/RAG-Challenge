@@ -2,10 +2,13 @@
 
 ## Status
 
-Baseline proposta no `STATE-00 DISCOVERY`. Os detalhes que exigem decisão
-formal estão nos ADRs em
-[`../../docs/architecture/`](../../docs/architecture/README.md). Proposta
-documental não representa implementação, teste, deploy ou homologação.
+Baseline de alto nível proposta no `STATE-00 DISCOVERY` e reconciliada com as
+decisões arquiteturais aceitas até `STATE-02 ARCHITECTURE`. O mapa físico
+vigente pertence ao ADR-0003, que incorpora as decisões não relacionadas a
+nomenclatura do ADR-0001; o lifecycle RAG e as seleções condicionais pertencem
+ao ADR-0002 e aos ADR-0004 a ADR-0006. Os ADRs estão indexados em
+[`../../docs/architecture/`](../../docs/architecture/README.md). Esta visão não
+representa implementação, teste, deploy ou homologação.
 
 ## Princípios
 
@@ -55,22 +58,19 @@ mesmo deploy. Isso reduz operação sem acoplar a interface aos casos de uso.
 RagChallenge.Domain
         ^
         |
-RagChallenge.Rag.Abstractions
-        ^
-        |
 RagChallenge.Application
+(inclui as abstrações RAG)
         ^
         |
-Infrastructure / Persistence / API
+RagChallenge.Infrastructure / RagChallenge.Server.Api
 
 RagChallenge.Dashboard.Web -- versioned HTTP --> RagChallenge.Server.Api
 ```
 
 - `RagChallenge.Domain` possui identidades, versões, estados e invariantes.
-- `RagChallenge.Rag.Abstractions` possui contratos RAG e depende apenas da
-  semântica canônica necessária.
-- `RagChallenge.Application` implementa casos de uso e orquestra portas.
-- Infrastructure e Persistence implementam adapters.
+- `RagChallenge.Application` possui os contratos RAG, implementa casos de uso
+  e orquestra portas; referencia somente Domain.
+- `RagChallenge.Infrastructure` implementa adapters e persistência.
 - API é composition root e não contém regras de negócio.
 - Dashboard não possui referência de código ao Application; consome somente
   contratos HTTP versionados.
@@ -93,11 +93,11 @@ IDs não devem ser reutilizados com outro significado.
 rótulo foi corrigido antes do Human Gate para deixar explícito que o
 RAG-Challenge é owner do contrato e não do adapter consumidor.
 
-## Estrutura candidata para o `STATE-01`
+## Mapa físico aceito no bootstrap
 
-Esta árvore não é autoridade de scaffold. Ela só poderá orientar `STATE-01`
-se o ADR-0001 for aceito no `GATE-B01`, o mapa físico de projetos for
-registrado e a entrada no estado receber autorização separada.
+O `GATE-B01` aceitou o mapa físico depois incorporado pelo ADR-0003. A
+estrutura abaixo registra esse boundary vigente; não autoriza lógica funcional
+nem afirma que as capacidades descritas neste documento estejam implementadas.
 
 ```text
 /
@@ -115,10 +115,8 @@ registrado e a entrada no estado receber autorização separada.
 ├── prompts/
 ├── src/
 │   ├── RagChallenge.Domain/
-│   ├── RagChallenge.Rag.Abstractions/
 │   ├── RagChallenge.Application/
 │   ├── RagChallenge.Infrastructure/
-│   ├── RagChallenge.Persistence.Sqlite/
 │   ├── RagChallenge.Server.Api/
 │   └── RagChallenge.Dashboard.Web/
 └── tests/
@@ -127,18 +125,13 @@ registrado e a entrada no estado receber autorização separada.
     └── RagChallenge.IntegrationTests/
 ```
 
-Se autorizada, a fase cria apenas scaffold, configuração, checks e hosts
-mínimos. Não implementa ingestão, recuperação ou geração. Cada assembly deve
-possuir responsabilidade e boundary de dependência ou teste distintos. No
-`GATE-B01`, `RagChallenge.Rag.Abstractions` poderá ser combinado com
-`RagChallenge.Application`, e `RagChallenge.Persistence.Sqlite` com
-`RagChallenge.Infrastructure`, se a separação física não se justificar. As
-fronteiras conceituais permanecem mesmo quando dois papéis compartilham um
-assembly. O mesmo gate registra o mapa
-`CH-MOD-* → namespace/pasta/projeto`, dependências permitidas e testes de
-arquitetura. Também decide se a administração one-shot usa um modo explícito
-do host principal ou justifica um projeto `RagChallenge.Tools.Admin`; a escolha
-da identidade e das permissões continua pertencendo ao `STATE-02`.
+O scaffold de `STATE-01` materializou somente configuração, checks, hosts
+mínimos e marcadores de boundary. Não implementou ingestão, recuperação ou
+geração. As abstrações RAG permanecem conceitualmente separadas dentro de
+`RagChallenge.Application`, e a persistência dentro de
+`RagChallenge.Infrastructure`. A administração usa o modo one-shot explícito
+do host principal; ADR-0006 aceitou sua identidade local, permissões, motivo,
+idempotência e auditoria, ainda sem implementação.
 
 ## Convenções de nomenclatura
 
@@ -185,7 +178,7 @@ Conceitos candidatos:
 
 O Domain não conhece caminhos de arquivo, PDF, SQL, HTTP, SDKs ou modelos.
 
-### RAG abstractions
+### RAG abstractions em Application
 
 Portas candidatas:
 
@@ -240,8 +233,8 @@ não ocorre no fluxo de pergunta.
 ### Infrastructure e Persistence
 
 - Um adapter concreto por porta no MVP.
-- SQLite candidato apenas para catálogo, metadados e histórico local; a
-  decisão final pertence ao `STATE-02`.
+- ADR-0005 aceitou EF Core SQLite para catálogo, metadados e histórico local,
+  de forma condicional às versões exatas, implementação e evidência futura.
 - O armazenamento bruto é durável, content-addressed e separado do catálogo;
   filesystem local é candidato para o MVP, com caminho durável equivalente no
   alvo OCI. Vector store não substitui os bytes necessários a rebuild,
@@ -268,12 +261,13 @@ Contratos conceituais, ainda não implementados:
 | `GET /api/v1/health/ready` | Informar prontidão e dependências sem segredos. |
 
 Ingestão, sincronização oficial, ativação e rollback não serão endpoints
-públicos anônimos no MVP. Poderão ser executados somente por uma superfície
-local não pública escolhida no `STATE-02`. A operação identifica o operador ou
-ambiente por identidade do sistema operacional, usa permissões mínimas, exige
-motivo, é idempotente e gera auditoria sanitizada. O startup apenas carrega e
-verifica a geração ativa; não ingere, sincroniza, ativa nem executa rollback,
-salvo em modo administrativo one-shot explicitamente configurado e invocado.
+públicos anônimos no MVP. ADR-0006 aceitou a superfície local não pública no
+modo administrativo one-shot do host principal. A operação identifica o
+operador ou ambiente por identidade do sistema operacional, usa permissões
+mínimas, exige motivo, é idempotente e gera auditoria sanitizada. O startup
+apenas carrega e verifica a geração ativa; não ingere, sincroniza, ativa nem
+executa rollback, salvo nesse modo explicitamente configurado e invocado. A
+decisão não é evidência de implementação.
 
 O contrato público inicial para consumidores externos é HTTP/OpenAPI v1,
 pertence ao RAG-Challenge e não expõe entidades Domain nem portas de provider.

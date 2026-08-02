@@ -22,11 +22,14 @@ deployment, CD and DB-Notifier changes.
 | Entry registration commit | `e9175b193b98bd0d8f464be7ed129da5af2de6aa` |
 | Architecture decision-package commit | `979677fa1f4d7324340b8be15d88eb8b5b802a1a` |
 | Architecture acceptance baseline | `39e2f803bf73cb4e2b59e56a0596e2858a3aed51` |
+| Combined-audit result commit | `9707b87d75a6acb14c8993ff0283a4221bc6c762` |
+| Corrective proposal baseline | `9707b87d75a6acb14c8993ff0283a4221bc6c762` |
 | External-verification baseline | `8ba91889c0517d78747ae2980fb766c36268edf6` |
 | External-verification completion baseline | `f1066c3509f5f48d4fe6e21c9e36403e642c1431` |
 | Direct-URL verification resumption baseline | `e80f8c41bea3f28deff3d8cdccafccbca5dcc016` |
 | Branch | `main` |
-| Instruction corpus | `4.1.0` |
+| Entry instruction corpus | `4.1.0` |
+| Corrective proposal corpus | `4.8.1` |
 | Entry working tree | Clean |
 | Runtime preflight | `NÃO APLICÁVEL` |
 
@@ -547,6 +550,130 @@ The result-registration diff changed exactly seven documentary files. The
 post-registration repository audit passed for the same 83 non-ignored files,
 30 Markdown files, 138 resolving local links, one H1 per Markdown file,
 balanced fences and no unresolved marker; `git diff --check` also passed.
+
+## Corrective decision package
+
+### Authority and baseline
+
+The owner authorised a local documentary package on clean
+`main@9707b87d75a6acb14c8993ff0283a4221bc6c762`, corpus `4.8.0`, to propose a
+corrective ADR for `AQG-S02-001` and factually reconcile `AQG-S02-002` and
+`AQG-S02-003`. The authority expressly excluded acceptance or rejection of the
+new ADR, a repeated Automatic Quality Gate, a Human Gate, `STATE-03`,
+implementation, network/provider/account access and external mutation.
+
+The package introduces
+[ADR-0007](architecture/ADR-0007-Generation-Identity-And-Freshness-Observation-Rebinding.md)
+with status `proposed`. Committing or reviewing that document does not alter
+accepted ADR-0002.
+
+### Identity models compared
+
+| Model | Coherence | Consequence | Assessment |
+|---|---|---|---|
+| Separate generation and activation identities | `sourceBindingSetDigest` covers source/trust/registration/snapshot; a new `activationBindingSetDigest` also covers `sourceObservationId`. | `304` changes the activation record without changing manifest or vectors. | Recommended: preserves deterministic artefact identity and append-only freshness integrity. |
+| Observation-inclusive generation identity | `sourceObservationId` remains in `sourceBindingSetDigest`. | Every `304`, identical hash, withdrawal or observation-only change finalises another manifest and `IndexGenerationId`, even if vectors are reused. | Coherent but not recommended: freshness is conflated with derived artefacts and creates avoidable churn. |
+| Mutable or undigested observation binding | Manifest/record is mutated in place or the observation is excluded from every canonical digest. | Identity or activation integrity becomes unverifiable. | Rejected. |
+
+ADR-0007 recommends the first model. Its exact canonical boundary is:
+
+- `sourceBindingSetDigest` covers the ordinal generation-bound projection of
+  database/document identity, source adapter, trust class, immutable/versioned
+  source registration and immutable snapshot;
+- `sourceObservationId` is excluded from the manifest,
+  `generationSpecDigest` and `IndexGenerationId`;
+- `activationBindingSetDigest` covers the complete ordinal activation binding,
+  including `sourceObservationId`, and is stored/audited with every complete
+  `CorpusActivationRecord` revision;
+- appending an observation advances the observation journal and activation
+  revision, not the generation-bound `catalogueRevision`.
+
+A compatible `304` or identical hash therefore preserves manifest bytes,
+`sourceBindingSetDigest`, `generationSpecDigest`, `IndexGenerationId`,
+`catalogueRevision` and `generationActivatedAt`. It changes
+`sourceObservationId`, `activationBindingSetDigest`, `recordRevision` and
+`recordUpdatedAt` through compare-and-swap. New content, snapshot, trust,
+adapter, immutable source registration, document membership/version/format or
+compatibility input still requires a new candidate generation.
+
+Rollback targets a retained validated generation but constructs a new
+activation-record revision with observations that are compatible and eligible
+under current policy. It never replays an old record byte for byte, rewrites an
+observation or makes an expired snapshot fresh. The operation fails closed if
+the target would violate the active-database/evidence invariant.
+
+### Cross-cutting impact trace
+
+| Area | Current impact | Required action if ADR-0007 is accepted |
+|---|---|---|
+| ADR-0002 | Contains the conflicting observation-inclusive digest and exact-record rollback wording. | Supersede only those clauses; preserve all other accepted lifecycle/provider decisions. |
+| Canonical contracts | Defines `sourceObservationId` but no record-level digest. | Add `activationBindingSetDigest`, three projection validations and the exact `304` field transition. |
+| RAG module | Says all bindings are manifest-covered while freshness is outside generation identity. | Separate the two digests and the observation-journal/catalogue revisions; use freshness-safe new-record rollback. |
+| Requirements | `RNF-005`, `AC-MVP-005` and `AC-MVP-014` express traceability, complete activation and observation-only rebinding without naming both integrity domains. | Refine those outcomes without weakening provenance or rollback. |
+| Lifecycle and Quality Gates | `STATE-03`/`STATE-04` require bindings/digests and `304`, but not their exact split. | Require canonical vectors, observation compatibility and rollback that cannot revive freshness. |
+| Roadmap/backlog | S03/S04 and `BL-M14` assume a complete record and observation rebinding. | Add the record digest and new-record rollback checks. |
+| Threat model | Generation mixing, stale coverage, partial activation, concurrency, cleanup and rollback threats depend on the boundary. | Link the corrected digest/mismatch tests to the existing affected threat and security-test IDs. |
+
+No semantic edit in that table is applied before an explicit ADR-0007
+decision and follow-on authority.
+
+### Factual reconciliation of the remaining findings
+
+`AQG-S02-002` source text is reconciled without changing a risk decision:
+
+- `THR-S02-008` now records the accepted local-only TLS residual boundary and
+  keeps implementation plus clean-environment evidence open;
+- `THR-S02-014` and `THR-S02-015` now record the accepted disclosure boundary
+  while keeping account, egress, budget, user-notice and runtime evidence open;
+- the risk-acceptance section distinguishes the 2026-08-01 architecture
+  decisions from authority/evidence still required for external execution.
+
+`AQG-S02-003` source text is reconciled while preserving the existing
+Brazilian Portuguese and `STATE-00` proposal context:
+
+- the solution architecture now points to the accepted ADR-0003 physical map,
+  places RAG abstractions in Application and persistence in Infrastructure,
+  and records the accepted one-shot administration and conditional SQLite
+  direction without claiming implementation;
+- the vision now distinguishes accepted provider/persistence/OCI/egress
+  decisions from missing documents, account, package, performance, IAM,
+  backup, restore and evaluation evidence;
+- Security and Access now records the accepted administration, provider and
+  local-only TLS boundaries while preserving deny-by-default egress and future
+  test requirements.
+
+These source corrections remove the identified stale decision labels. They do
+not change the historical finding, pass the failed gate or prove a control.
+Their disposition remains subject to the next separately authorised combined
+audit.
+
+### Package status and validation boundary
+
+- ADR-0007: `proposed`; no owner decision recorded.
+- `AQG-S02-001`: open and blocking until a corrective ADR is accepted and the
+  accepted semantic documents are reconciled.
+- `AQG-S02-002` and `AQG-S02-003`: source documents factually reconciled;
+  audit disposition pending the next combined gate.
+- Automatic Quality Gate: not repeated and remains `REPROVADO`.
+- Human Gate: not requested and remains `PENDENTE`.
+- `STATE-03`: not authorised.
+
+Directed validation of this proposal package is documentary diff validation,
+not an Automatic Quality Gate. From `<rag-challenge-root>` at
+`2026-08-02T03:55:59.7207833Z`, PowerShell `7.6.4`, Git
+`2.55.0.windows.3` and ripgrep `15.2.0` produced these observed results:
+
+| Check | Exit/result |
+|---|---|
+| `eng/check-repository.ps1` | Exit `0`; 84 non-ignored files passed format, local-link, ignored-material and common-secret checks. |
+| `git diff --check` | Exit `0`. |
+| Directed Markdown/ADR/reconciliation script | Exit `0`; 84 non-ignored files, 31 Markdown, 13 prompt files and 142 local Markdown links; one ADR-0007 `proposed` status; zero stale target phrases; zero pre-decision changes to ADR-0002, canonical contracts or the RAG module. |
+
+After the append-only record was added, the checks were repeated at
+`2026-08-02T03:59:10.4784506Z` with the same successful counts and results;
+the directed scope check also confirmed exactly 12 changed documentary paths.
+No build, runtime, provider, account, network or remote check is part of this
+package.
 
 ## Current gate assessment
 

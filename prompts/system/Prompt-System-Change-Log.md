@@ -2,10 +2,10 @@
 
 ## Versão atual
 
-- Versão: `4.8.0`
-- Data: 2026-08-01
-- Status: ADR-0002 e ADR-0004 a ADR-0006 aceitos; `STATE-02` ativo e
-  Automatic Quality Gate `REPROVADO` após a auditoria combinada
+- Versão: `4.8.1`
+- Data: 2026-08-02
+- Status: ADR-0007 proposto; `AQG-S02-002` e `AQG-S02-003` reconciliados nas
+  fontes; Automatic Quality Gate de `STATE-02` permanece `REPROVADO`
 - Escopo: 13 arquivos ativos em `prompts/`
 
 A versão do corpus é independente da versão futura do software.
@@ -19,6 +19,39 @@ A versão do corpus é independente da versão futura do software.
 
 Toda alteração atualiza este arquivo e, quando necessário,
 [`../Start-Here.md`](../Start-Here.md).
+
+## 4.8.1 — 2026-08-02
+
+- Registra o ADR-0007 como proposta corretiva de `AQG-S02-001`, sem decisão
+  humana e sem alterar ainda a autoridade aceita do ADR-0002.
+- Compara o modelo recomendado de identidades separadas com o modelo que gera
+  novo `IndexGenerationId` para cada observação e rejeita mutação ou binding
+  sem digest.
+- Recomenda manter `sourceObservationId` fora de `sourceBindingSetDigest`,
+  `generationSpecDigest` e `IndexGenerationId`, acrescentando
+  `activationBindingSetDigest` ao registro completo de ativação.
+- Define, apenas para futura aceitação, que `304`/hash idêntico preserva
+  manifesto, `catalogueRevision` e geração, mas cria nova revisão/digest do
+  registro; rollback constrói novo registro com observação atualmente
+  compatível e nunca restaura freshness histórica.
+- Reconcilia `AQG-S02-002` no threat model: os riscos de revogação TLS e
+  divulgação OpenAI passam a distinguir a boundary arquitetural já aceita de
+  controles, conta, egress e evidência ainda ausentes.
+- Reconcilia `AQG-S02-003` nos documentos existentes do `STATE-00`, preservando
+  `pt-BR`: mapa físico do ADR-0003, abstrações RAG em Application,
+  persistência em Infrastructure e status aceito/condicional de administração,
+  TLS, providers, persistência e OCI.
+- Classifica a alteração como `PATCH`: corrige status factual e prepara uma
+  decisão compatível, sem aceitar o ADR proposto, mudar lifecycle ou alterar a
+  semântica aceita antes da decisão.
+- Mantém 13 arquivos ativos em `prompts/`; o Automatic Quality Gate não foi
+  repetido, permanece `REPROVADO`, e o Human Gate e `STATE-03` continuam sem
+  autorização.
+- A validação dirigida do pacote é documental e não substitui a auditoria
+  combinada; seus resultados observados ficam registrados no relatório e no
+  histórico append-only.
+- Não autoriza implementação, rede, provider, conta, GitHub, OCI,
+  DB-Notifier, publicação ou deploy.
 
 ## 4.8.0 — 2026-08-01
 
