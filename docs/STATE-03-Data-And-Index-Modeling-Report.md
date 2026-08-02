@@ -7,6 +7,7 @@
 - Entry baseline: `main@35b67c194f6ea2459833420b8bc2143fadfe75df`.
 - Instruction corpus: `4.9.1`.
 - Entry authority recorded locally: commit `5efaa37`.
+- S03-A implementation recorded locally: commit `ace780a`.
 - Report date: 2026-08-02.
 - Automatic Quality Gate: pending and not inferred from the checks below.
 - Human Gate: pending.
@@ -128,8 +129,8 @@ not be silently deleted or rewritten.
 
 ## Lifecycle conclusion
 
-S03-A is implemented and is being verified within `STATE-03`; this does not
-close the state. A separate decision is required before any S03-B action. A
+S03-A is implemented and verified within `STATE-03`; this does not close the
+state. A separate decision is required before any S03-B action. A
 future Automatic Quality Gate must assess the complete authorised STATE-03
 deliverables and factual report before a separate complete Human Gate summary
 can request closure.

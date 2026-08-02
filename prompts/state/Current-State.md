@@ -96,6 +96,22 @@ proprietários.
   pré-CAS, invariantes de ativação/retenção/rollback e fixtures
   determinísticas. `S03-B`, migrations, stores persistentes, novas
   dependências e instalação permanecem sem autorização.
+- Execução de `S03-A`: concluída localmente no commit
+  `ace780a25edb2749046e9897b8af36e0719e3e54` com modelo lógico em Domain,
+  construção e validação pré-CAS em Application, dicionário permanente,
+  vetores canônicos executáveis, fixtures 51/54/9 e invariantes de staging,
+  ativação, observação, retenção e rollback. Infrastructure, projetos,
+  dependências e lockfiles não foram alterados; não existem migration ou
+  store persistente.
+- Verificação de `S03-A`: format e build Release sem restore aprovados; 68
+  testes aprovados (53 unitários, 10 de arquitetura e 5 de integração), com
+  cobertura de 95,55% de linhas e 89,93% de branches; lint, typecheck, 2
+  testes e build do Dashboard também aprovados sobre a instalação existente;
+  auditoria aprovada para 104 arquivos não ignorados e diff hygiene aprovado.
+  O proprietário aceitou explicitamente Node.js `24.18.1` somente como
+  variação local de verificação; os pins do repositório permanecem em
+  `24.18.0`/npm `11.16.0`. O agregado `eng/ci.ps1 -Offline` não foi executado
+  porque faria restore e `npm ci`, ações bloqueadas com `S03-B`.
 - Lote corretivo de `STATE-02`: sobre
   `main@9707b87d75a6acb14c8993ff0283a4221bc6c762`, corpus `4.8.0`, foi
   preparado o ADR-0007, recomendando separar identidade de geração
@@ -153,8 +169,8 @@ proprietários.
   sem substituir decisões humanas.
 - A auditoria do corpus `4.1.0` confirmou 22 documentos, 114 links locais
   válidos, 20 RF, 14 RNF, 15 critérios de aceitação, 31 itens de backlog, 8
-  módulos, 13 riscos, formato consistente e rastreabilidade. A implementação
-  existente continua limitada ao scaffold entregue pelo `STATE-01`
+  módulos, 13 riscos, formato consistente e rastreabilidade. Naquele snapshot,
+  a implementação ainda estava limitada ao scaffold entregue pelo `STATE-01`
   encerrado.
 - O corpus `4.2.0` acrescenta a `AGENTS.md` regras permanentes de eficiência
   decisória e proporcionalidade: identificar a entrega antes da coleta,
@@ -258,9 +274,9 @@ proprietários.
 - A aprovação de `GATE-B01` não criou licença, solution ou projetos, não
   aceitou o ADR-0002 e não autorizou `STATE-01`.
 - Git local existe. A reorganização de governança `4.2.1` foi executada
-  sequencialmente na conversa coordenadora, sem lanes paralelas.
-- A execução foi exclusivamente documental; runtime preflight permaneceu
-  `NÃO APLICÁVEL`, sem inspeção ou encerramento de processos.
+  sequencialmente na conversa coordenadora, sem lanes paralelas; aquela
+  execução foi exclusivamente documental e seu runtime preflight permaneceu
+  `NÃO APLICÁVEL`.
 - A política, o enforcement, o roteamento, os critérios e os templates de
   continuidade permanecem vigentes em suas autoridades temáticas; o snapshot
   não os redefine.
@@ -282,14 +298,15 @@ proprietários.
 - Existem `RAG-Challenge.sln`, quatro projetos .NET de produção sob o prefixo
   `RagChallenge`, um boundary React/TypeScript para o Dashboard e três
   projetos .NET de testes, conforme o ADR-0003, que incorpora as decisões
-  não relacionadas a nomenclatura do ADR-0001. Eles contêm somente markers,
-  composição de setup, health e verificações estruturais; nenhuma lógica RAG
-  ou funcional.
+  não relacionadas a nomenclatura do ADR-0001. Além de markers, composição de
+  setup e health, Domain e Application contêm o modelo lógico e a política
+  em memória autorizados para `S03-A`; não existe backend RAG funcional.
 - SDK .NET `10.0.302`, C# `14.0`, Node.js `24.18.0` e npm `11.16.0` estão
   fixados. NuGet usa gestão central e sete lockfiles reproduzidos offline.
-- Restore .NET offline locked, format, build Release, 15 testes e cobertura
-  mesclada foram aprovados; cobertura observada: 88% de linhas e 100% de
-  branches.
+- O gate histórico de setup aprovou restore .NET offline locked, format,
+  build Release, 15 testes e cobertura de 88% de linhas/100% de branches.
+  `S03-A` foi verificado sem restore ou instalação: 68 testes aprovados e
+  cobertura de 95,55% de linhas/89,93% de branches.
 - O Dashboard possui `package-lock.json` v3 e passou clean install sem
   lifecycle scripts, lint, dois testes estruturais, typecheck e build Vite.
 - As auditorias npm e .NET não encontraram vulnerabilidades nas fontes atuais.
@@ -317,8 +334,8 @@ proprietários.
 - O pipeline CI está definido localmente, com menor privilégio e sem deploy;
   não foi executado no GitHub.
 - O arquivo `LICENSE` materializa a licença MIT aprovada.
-- Não existem API funcional, ingestão, recuperação, banco, vector store,
-  modelo, corpus, container, infraestrutura ou deploy.
+- Não existem API funcional, ingestão, recuperação, banco persistente, vector
+  store, corpus real, container, infraestrutura operacional ou deploy.
 - Nenhum recurso OCI ou GitHub foi criado ou alterado.
 - O DB-Notifier permaneceu somente leitura.
 
@@ -393,12 +410,12 @@ autorizada.
 
 ## Próxima autoridade
 
-`STATE-03 DATA_AND_INDEX_MODELING` está ativo somente para a execução local e
-sequencial de `S03-A` dentro do envelope registrado. `S03-B` exige decisão
-separada sobre o conjunto e as versões exatas das dependências, verificação de
-supply chain, restore/instalação, lockfiles, migrations e stores. O estado não
-pode ser encerrado nem promover `STATE-04` sem os entregáveis restantes,
-Automatic Quality Gate, relatório factual, resumo completo e Human Gate
-separados. Rede, providers, contas, corpus real, fontes oficiais,
-armazenamento operacional, GitHub, OCI, publicação, deploy, demais ações
-externas e mudanças no DB-Notifier continuam sem autorização.
+`S03-A` está concluído e verificado dentro do envelope registrado, sem
+executar o Automatic Quality Gate de `STATE-03`. A próxima execução possível
+de `S03-B` exige decisão separada sobre o conjunto e as versões exatas das
+dependências, verificação de supply chain, restore/instalação, lockfiles,
+migrations e stores. O estado não pode ser encerrado nem promover `STATE-04`
+sem os entregáveis restantes, Automatic Quality Gate, relatório factual,
+resumo completo e Human Gate separados. Rede, providers, contas, corpus real,
+fontes oficiais, armazenamento operacional, GitHub, OCI, publicação, deploy,
+demais ações externas e mudanças no DB-Notifier continuam sem autorização.

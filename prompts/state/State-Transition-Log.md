@@ -2122,3 +2122,58 @@ contém somente fatos cronológicos.
 - Próxima condição: concluir e verificar `S03-A`; depois, obter decisão
   separada para qualquer execução de `S03-B`.
 - Aprovador da entrada: proprietário do RAG-Challenge.
+
+## 2026-08-02 — S03-A concluído sem promover STATE-03
+
+- Estado anterior: `STATE-03 DATA_AND_INDEX_MODELING` ativo somente para
+  `S03-A`; `S03-B`, Automatic Quality Gate, Human Gate, encerramento e
+  `STATE-04` bloqueados.
+- Baseline de execução: entrada append-only registrada no commit
+  `5efaa37d2e3e6533d54dafece34158dd5f4adbd1`, derivado da baseline autorizada
+  `main@35b67c194f6ea2459833420b8bc2143fadfe75df`, corpus `4.9.1`.
+- Runtime preflight: zero processos e zero listeners pertencentes ao
+  RAG-Challenge; nada foi encerrado.
+- Divergência externa observada: Node.js instalado `24.18.1`, enquanto
+  `.nvmrc` e `package.json` fixam `24.18.0`. A execução parou antes do commit
+  até autoridade humana explícita; nenhum pin foi alterado e nenhuma
+  instalação foi feita.
+- Autoridade humana adicional exata:
+
+  ```text
+  Autorizo excepcionalmente concluir o S03-A usando Node.js 24.18.1 somente para as verificações locais, mantendo os pins vigentes em 24.18.0 e registrando a divergência factual no relatório. Não autoriza instalação, alteração de dependências ou lockfiles, S03-B, Automatic Quality Gate, Human Gate, encerramento de STATE-03 ou entrada em STATE-04. Preserve todo o escopo negativo vigente.
+  ```
+
+- Resultado implementado: modelo e dicionário lógico do catálogo; identidades,
+  estados, relações e constraints; revisões separadas; serialização canônica;
+  golden vectors dos domínios `sourceBindingSetDigest` e
+  `activationBindingSetDigest`; três validações pré-CAS; invariantes de
+  staging, ativação, retenção e rollback; fixtures determinísticas 51/54/9.
+- Fronteiras: Domain contém valores, registros e digests puros; Application
+  contém construção de revisões e validação pré-CAS; Infrastructure não foi
+  alterada. Nenhum projeto, package, lockfile, migration ou store foi criado
+  ou modificado.
+- Commit funcional: `ace780a25edb2749046e9897b8af36e0719e3e54`
+  (`feat(model): implement state 03 s03-a`).
+- Verificações finais, executadas localmente sem restore ou instalação:
+  format aprovado; build Release aprovado com zero warning/erro; 68 testes
+  aprovados e nenhum falhou ou foi ignorado; cobertura 95,55% de linhas
+  (1051/1100) e 89,93% de branches (268/298); Dashboard lint, typecheck, 2
+  testes e build aprovados sob a variação Node.js `24.18.1`; auditoria do
+  repositório aprovada para 104 arquivos não ignorados; `git diff --check`
+  aprovado.
+- Verificação não executada: `eng/ci.ps1 -Offline`, pois o agregado executa
+  restore .NET e `npm ci`; essas ações permanecem bloqueadas com `S03-B`. Seus
+  componentes autorizados foram executados individualmente sem restore ou
+  instalação.
+- Escopo negativo preservado: nenhuma rede, provider, conta, corpus real,
+  fonte oficial, armazenamento operacional, GitHub, OCI, publicação, deploy,
+  DB-Notifier, `S03-B`, Automatic Quality Gate, Human Gate, encerramento de
+  `STATE-03` ou entrada em `STATE-04`.
+- Quality Gate de `STATE-03`: `PENDENTE`; as verificações de S03-A não o
+  substituem.
+- Human Gate de `STATE-03`: `PENDENTE` e não solicitado.
+- Estado resultante: `S03-A` concluído; `STATE-03` permanece ativo e aberto;
+  `S03-B` continua sem autorização.
+- Próxima condição: decisão humana separada sobre o conjunto e as versões
+  exatas de dependências e sobre a execução restrita de `S03-B`.
+- Aprovador da variação local: proprietário do RAG-Challenge.
