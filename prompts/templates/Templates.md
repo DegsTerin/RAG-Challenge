@@ -20,8 +20,9 @@ claras no corpo da resposta. Literais técnicos preservam a grafia canônica.
 
 - Solicitação: `concluída` / `parcial` / `bloqueada` — resultado concreto;
   pendências com nomes e quantidade exatos, ou `0`
-- Próximo trabalho recomendado: uma entrega concreta; responsável; condição
-  ou autoridade necessária
+- Próximo trabalho recomendado: uma entrega concreta diretamente relacionada
+  à solicitação atual; responsável; condição ou autoridade necessária; ou
+  `nenhum — a solicitação atual não exige trabalho adicional`
 - Estado/gate: posição atual; próximo estado ou gate; condição de entrada, ou
   `sem mudança`
 - Sua ação agora: ação imediata exata, ou `nenhuma`
@@ -32,6 +33,11 @@ claras no corpo da resposta. Literais técnicos preservam a grafia canônica.
 - Raciocínio recomendado: `<NÍVEL> — <JUSTIFICATIVA>. Alternativa:
   <FALLBACK>`
 - Paralelismo: `<CLASSIFICAÇÃO> — <MOTIVO>`
+
+Todos os campos permanecem no limite temático da solicitação atual. Não usar o
+handoff para reintroduzir o próximo estado geral, backlog, melhoria opcional ou
+assunto anterior quando eles não forem necessários para responder, concluir
+ou desbloquear o pedido presente.
 
 ### Valores aceitos
 

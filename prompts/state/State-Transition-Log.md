@@ -2500,3 +2500,30 @@ contém somente fatos cronológicos.
   `STATE-04 BACKEND_IMPLEMENTATION` e obter autorização humana explícita e
   separada antes de qualquer execução.
 - Aprovador: proprietário do RAG-Challenge.
+
+## 2026-08-03 — Correção do isolamento temático de respostas e handoffs
+
+- Estado anterior: `STATE-03 DATA_AND_INDEX_MODELING` encerrado; entrada em
+  `STATE-04` não autorizada; corpus `4.9.1`.
+- Baseline: branch `main`, commit
+  `a146deda762e9d39cef0f5518fac6b6e8886d261`, working tree limpa.
+- Autoridade do proprietário: `Corrigir isso, pois não é a primeira vez` após
+  apontar que a resposta havia misturado a decisão específica sobre hospedagem
+  com outro assunto do projeto.
+- Mudança: corpo e handoff passam a compartilhar o limite temático do pedido
+  atual; follow-up estreito não reintroduz lifecycle, backlog, melhoria
+  opcional ou tópico anterior por implicação.
+- Formato: `Próximo trabalho recomendado` aceita a ausência canônica quando
+  não houver entrega diretamente relacionada; `Estado/gate` usa `sem mudança`
+  quando a transição não for material para o tema.
+- Corpus resultante: `4.9.2` (`PATCH`).
+- Runtime preflight: `NOT_APPLICABLE`; a correção altera somente instruções e
+  memória documental.
+- Escopo negativo: nenhum código de produto, dependência, runtime, provider,
+  corpus real, fonte oficial, GitHub, OCI, publicação, deploy, DB-Notifier,
+  gate ou transição foi executado ou autorizado.
+- Estado resultante: sem mudança; `STATE-03` permanece encerrado e a entrada
+  em `STATE-04` permanece não autorizada.
+- Próxima condição: nenhuma decorrente desta correção; cada solicitação futura
+  será tratada apenas no próprio limite temático.
+- Aprovador: proprietário do RAG-Challenge.

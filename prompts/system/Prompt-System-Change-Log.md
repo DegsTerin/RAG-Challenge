@@ -2,10 +2,10 @@
 
 ## Versão atual
 
-- Versão: `4.9.1`
-- Data: 2026-08-02
-- Status: ADR-0007 aceito, baseline semântica reconciliada e nova auditoria
-  combinada `APROVADA`; Human Gate de `STATE-02` permanece `PENDENTE`
+- Versão: `4.9.2`
+- Data: 2026-08-03
+- Status: isolamento temático do handoff corrigido; `STATE-03` encerrado e
+  entrada em `STATE-04` não autorizada
 - Escopo: 13 arquivos ativos em `prompts/`
 
 A versão do corpus é independente da versão futura do software.
@@ -19,6 +19,27 @@ A versão do corpus é independente da versão futura do software.
 
 Toda alteração atualiza este arquivo e, quando necessário,
 [`../Start-Here.md`](../Start-Here.md).
+
+## 4.9.2 — 2026-08-03
+
+- Corrige uma falha recorrente em que respostas de confirmação ou
+  esclarecimento reintroduziam o próximo estado geral do projeto no corpo ou
+  no handoff, misturando assuntos que o proprietário não pediu.
+- Torna o pedido atual e explícito o limite temático comum do corpo e do
+  handoff; um follow-up estreito não reativa lifecycle, backlog ou melhoria
+  opcional por implicação.
+- Restringe `Próximo trabalho recomendado` a uma entrega diretamente
+  relacionada à solicitação atual e introduz a ausência canônica
+  `nenhum — a solicitação atual não exige trabalho adicional`.
+- Restringe a exposição de próximo estado/gate aos casos em que ela é material
+  para o tema atual e exige `sem mudança` nos demais casos.
+- Preserva o formato de encerramento, roteamento, autoridade, Human Gates,
+  lifecycle, paralelismo e política de idioma; não altera escopo funcional do
+  produto.
+- Classifica-se como `PATCH`: a alteração corrige a aplicação da semântica já
+  pretendida de não misturar trabalho, sem criar capacidade ou estado.
+- Não autoriza implementação, entrada em `STATE-04`, rede, provider, GitHub,
+  OCI, publicação, deploy ou mudança no DB-Notifier.
 
 ## 4.9.1 — 2026-08-02
 

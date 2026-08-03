@@ -244,16 +244,24 @@ Follow the continuity, vocabulary, reasoning and parallel-work policy in
 compact `pt-BR` format in
 [`prompts/templates/Templates.md`](prompts/templates/Templates.md). The final
 hand-off states the request result and exact pending work; one next deliverable,
-owner and condition; lifecycle position and next entry condition; the owner's
-immediate action; conversation route, target and reason; copy-ready text when
-required; reasoning level, justification and fallback; and the parallel-work
-classification and reason.
+owner and condition when that deliverable is directly related to the current
+request, or its explicit absence otherwise; lifecycle position and next entry
+condition when relevant; the owner's immediate action; conversation route,
+target and reason; copy-ready text when required; reasoning level,
+justification and fallback; and the parallel-work classification and reason.
 
 Keep those concepts separate. A future deliverable, state/gate, owner action
 and conversation route neither substitute for one another nor grant
 authority. Use conditional fields only when applicable, do not repeat body
 content merely to lengthen the hand-off and never treat naming a next stage as
 authorisation to enter it.
+
+Keep the entire answer and its hand-off inside the topical boundary of the
+owner's current explicit request. A clarification, confirmation or narrowed
+follow-up does not authorise reintroducing the repository's overall next
+lifecycle step, an unrelated backlog item or an optional improvement. Do not
+invent owner work to populate a required field: when no directly related next
+deliverable exists, state its absence using the canonical template form.
 
 Use only `CONTINUE_CURRENT`, `START_NEW` or `RETURN_TO_EXISTING` as defined by
 Governance. Never claim to open, rename or switch conversations, invent an

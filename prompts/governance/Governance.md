@@ -112,6 +112,15 @@ trabalho, lifecycle, ação humana e roteamento, e fornece uma mensagem completa
 em `pt-BR` dentro do próprio encerramento quando a continuidade exigir que o
 proprietário copie e envie texto.
 
+O limite temático da resposta é o pedido atual e explícito do proprietário.
+Pergunta de confirmação, esclarecimento, correção ou follow-up restrito não
+reativa por si só o próximo estado do projeto, backlog futuro, melhoria
+opcional ou assunto anteriormente discutido. Corpo e handoff respondem ao
+mesmo tema; só introduzem trabalho adicional quando ele decorre diretamente
+da solicitação atual ou é necessário para concluí-la ou desbloqueá-la. Quando
+o proprietário estreitar o tema ou apontar mistura de assuntos, aplicar
+imediatamente o recorte mais estreito e não repetir a derivação rejeitada.
+
 Atualizações intermediárias dentro da mesma solicitação não são novos
 handoffs. Elas permanecem breves, limitadas a progresso, evidência observada,
 premissa não bloqueante ou bloqueio, e cada uma acrescenta informação
@@ -129,12 +138,16 @@ Usar estes termos sem intercâmbio:
 - `Solicitação`: combina situação (`concluída`, `parcial` ou `bloqueada`),
   resultado concreto e pendências da solicitação atual; não inclui backlog
   futuro, outro gate ou melhoria opcional;
-- `Próximo trabalho recomendado`: uma única entrega concreta que pode ocorrer
-  depois desta resposta, com responsável e condição/autoridade; não é a ação
-  de navegação do proprietário nem autorização ou transição automática;
+- `Próximo trabalho recomendado`: uma única entrega concreta diretamente
+  relacionada à solicitação atual que pode ocorrer depois desta resposta, com
+  responsável e condição/autoridade; não é a ação de navegação do
+  proprietário nem autorização ou transição automática. Quando nenhuma
+  entrega relacionada existir, usar `nenhum — a solicitação atual não exige
+  trabalho adicional` e não buscar um item no lifecycle ou backlog apenas para
+  preencher o campo;
 - `Estado/gate`: posição atual do lifecycle, próximo estado ou gate nomeado e
-  condição de entrada; informar `sem mudança` quando não houver transição
-  aplicável;
+  condição de entrada somente quando material para o pedido atual; informar
+  `sem mudança` quando não houver transição aplicável ao tema;
 - `Sua ação agora`: somente a resposta, decisão, autorização, dado ou
   navegação que o proprietário precisa executar imediatamente; usar `nenhuma`
   quando o projeto puder aguardar;
@@ -154,8 +167,8 @@ próximo trabalho recomendado, estado/gate ou ação do proprietário.
 
 Aplicar a situação da solicitação:
 
-- `concluída`: pendências `0`; o próximo trabalho é recomendação futura, não
-  restante da solicitação;
+- `concluída`: pendências `0`; o próximo trabalho, quando existir dentro do
+  mesmo limite temático, é recomendação futura e não restante da solicitação;
 - `parcial`: pendências listam o que falta na solicitação; o próximo trabalho
   é o primeiro item pendente;
 - `bloqueada`: pendências identificam o bloqueio; o próximo trabalho é a
@@ -233,6 +246,12 @@ válida quando nenhuma continuidade útil depende de envio. Campos condicionais
 ausentes não são substituídos por listas repetitivas de `nenhum`.
 `Sua ação agora: nenhuma` é incompatível com qualquer instrução para iniciar,
 retomar ou enviar mensagem a outra conversa.
+
+Quando não houver entrega posterior diretamente relacionada, declarar
+`Próximo trabalho recomendado: nenhum — a solicitação atual não exige trabalho
+adicional`. Essa ausência é preferível a importar o próximo estado geral do
+projeto, criar uma decisão para o proprietário ou transformar uma resposta
+informativa em autorização implícita.
 
 O formato padrão agrupa dados relacionados em linhas compactas: rota, target,
 título quando aplicável e motivo em `Conversa recomendada`; nível,
