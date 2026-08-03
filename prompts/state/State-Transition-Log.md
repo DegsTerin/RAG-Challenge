@@ -2527,3 +2527,55 @@ contém somente fatos cronológicos.
 - Próxima condição: nenhuma decorrente desta correção; cada solicitação futura
   será tratada apenas no próprio limite temático.
 - Aprovador: proprietário do RAG-Challenge.
+
+## 2026-08-03 — Entrada em STATE-04 registrada sem lote executável
+
+- Estado anterior: `STATE-03 DATA_AND_INDEX_MODELING` encerrado após
+  Automatic Quality Gate aprovado sem achados e Human Gate aprovado sem
+  ressalvas; entrada em `STATE-04` não autorizada.
+- Baseline confirmada antes do registro: `Get-Location`
+  `C:\Projects\RAG-Challenge`; Git top-level
+  `C:/Projects/RAG-Challenge`; Git directory
+  `C:/Projects/RAG-Challenge/.git`; branch `main`; commit
+  `e62fbc4da7e580dc1f5449689699374e42ea8ab4`; corpus `4.9.2`; working tree
+  limpa.
+- Proposta revisada: objetivo, lotes sequenciais `S04-A` a `S04-D`,
+  entregáveis, dependências, verificações, critérios de aceite, riscos,
+  rollback, escopo permitido, escopo negativo e condições de parada foram
+  apresentados na mesma conversa. A proposta não constituiu autoridade de
+  entrada ou execução.
+- Autoridade humana exata:
+
+  ```text
+  Autorizo exclusivamente o registro documental da entrada do RAG-Challenge em STATE-04 BACKEND_IMPLEMENTATION sobre a baseline main@e62fbc4da7e580dc1f5449689699374e42ea8ab4, corpus 4.9.2 e working tree limpa.
+
+  Antes de agir, reconfirme Get-Location, Git top-level, Git directory, branch main, HEAD e working tree; releia AGENTS.md, prompts/Start-Here.md, prompts/state/Current-State.md, prompts/governance/Governance.md, prompts/governance/Lifecycle.md, prompts/governance/Quality-Gates.md e a proposta apresentada nesta conversa.
+
+  Registre a entrada somente em prompts/state/Current-State.md e, de forma append-only, em prompts/state/State-Transition-Log.md. O estado resultante deve ser STATE-04 ativo, sem lote de implementação autorizado. Valide idioma, links, UTF-8/LF, whitespace, diff e coerência factual; depois crie um commit local focal com a mensagem `docs(state): enter state 04 backend implementation`. Reconfirme a baseline final e pare.
+
+  Esta autorização não permite executar S04-A, S04-B, S04-C ou S04-D; alterar código, dependências, packages, lockfiles, migrations, contratos ou ADRs; acessar rede, provider, conta, secret, corpus real ou fonte oficial; usar armazenamento operacional; alterar Dashboard, GitHub, OCI ou DB-Notifier; publicar ou realizar deploy. Qualquer execução de STATE-04 exigirá autorização humana explícita e separada após o registro da entrada e o fechamento das dependências aplicáveis.
+  ```
+
+- Interpretação limitada da autoridade: registrar somente a entrada do
+  estado em `Current-State.md` e neste histórico append-only, validar o
+  incremento e criar um commit local focal. A entrada não concede autoridade
+  implícita a nenhum lote, gate, ADR, ação executável ou ação externa.
+- Runtime preflight: `NOT_APPLICABLE`; o registro altera somente documentação
+  e memória de lifecycle, sem alterar ou validar comportamento executável.
+- Mudanças: o snapshot factual registra `STATE-04 BACKEND_IMPLEMENTATION`
+  ativo sem lote autorizado; esta entrada preserva a autoridade, a baseline,
+  o escopo negativo e a condição de continuidade.
+- Escopo negativo preservado: nenhuma execução de `S04-A`, `S04-B`, `S04-C`
+  ou `S04-D`; nenhum código, dependência, package, lockfile, migration,
+  contrato, ADR, rede, provider, conta, secret, corpus real, fonte oficial,
+  armazenamento operacional, Dashboard, GitHub, OCI, publicação, deploy ou
+  DB-Notifier foi acessado, alterado ou autorizado.
+- Automatic Quality Gate de `STATE-04`: `PENDENTE` e não executado.
+- Human Gate de `STATE-04`: `PENDENTE` e não solicitado.
+- Estado resultante: `STATE-04 BACKEND_IMPLEMENTATION` ativo exclusivamente
+  pelo registro documental de entrada; nenhum lote de implementação está
+  autorizado.
+- Próxima condição: fechar as dependências aplicáveis sob autoridade própria
+  e obter autorização humana explícita e separada para o lote ou envelope
+  sequencial pretendido antes de qualquer execução.
+- Aprovador da entrada: proprietário do RAG-Challenge.

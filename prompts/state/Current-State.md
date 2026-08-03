@@ -16,7 +16,9 @@ proprietários.
   entrada em `STATE-03 DATA_AND_INDEX_MODELING` autorizada em 2026-08-02;
   `S03-A` e `S03-B0` a `S03-B5` concluídos; Automatic Quality Gate de
   `STATE-03` aprovado sem achados; `STATE-03` encerrado após Human Gate
-  aprovado sem ressalvas em 2026-08-02; entrada em `STATE-04` não autorizada.
+  aprovado sem ressalvas em 2026-08-02; entrada em `STATE-04
+  BACKEND_IMPLEMENTATION` autorizada e registrada em 2026-08-03, sem lote de
+  implementação autorizado.
 - Escopo concluído de `STATE-01`: registrar a entrada e executar localmente,
   de forma sequencial, os lotes `S01-A`, `S01-B` e `S01-C`, sem lógica RAG ou
   funcional. A autoridade adicional de 2026-07-30 permite exclusivamente
@@ -165,6 +167,14 @@ proprietários.
   negativo e rollback. A frase canônica foi `Confirmo a decisão acima
   exclusivamente para STATE-03`. A decisão encerra somente `STATE-03` e não
   autoriza entrada em `STATE-04` nem qualquer ação externa.
+- Transição para `STATE-04 BACKEND_IMPLEMENTATION`: autorizada e registrada
+  em 2026-08-03 sobre `main@e62fbc4da7e580dc1f5449689699374e42ea8ab4`,
+  corpus `4.9.2` e working tree limpa. A autoridade permite somente atualizar
+  o snapshot factual e o histórico append-only e criar o commit local focal
+  desse registro. `S04-A`, `S04-B`, `S04-C` e `S04-D`, código, dependências,
+  packages, lockfiles, migrations, contratos, ADRs, rede, providers, contas,
+  secrets, corpus real, fontes oficiais, armazenamento operacional, Dashboard,
+  GitHub, OCI, publicação, deploy e DB-Notifier permanecem sem autorização.
 - Lote corretivo de `STATE-02`: sobre
   `main@9707b87d75a6acb14c8993ff0283a4221bc6c762`, corpus `4.8.0`, foi
   preparado o ADR-0007, recomendando separar identidade de geração
@@ -476,11 +486,11 @@ autorizada.
 
 ## Próxima autoridade
 
-`S03-A`, `S03-B0` a `S03-B5`, o Automatic Quality Gate e o Human Gate estão
-concluídos e aprovados; `STATE-03` está encerrado. A próxima ação possível é
-preparar uma proposta completa e limitada de entrada em `STATE-04`; a entrada
-e qualquer execução desse estado exigem autorização humana explícita e
-separada.
+`STATE-04 BACKEND_IMPLEMENTATION` está ativo exclusivamente pelo registro
+documental de entrada. Nenhum lote `S04-A`, `S04-B`, `S04-C` ou `S04-D` está
+autorizado. Antes de qualquer execução, as dependências aplicáveis devem ser
+fechadas sob autoridade própria, e o lote ou envelope sequencial pretendido
+deve receber autorização humana explícita e separada.
 Rede fora das fontes primárias já autorizadas para supply chain, providers,
 contas, corpus real, fontes oficiais do produto, armazenamento operacional,
 GitHub, OCI, publicação, deploy, demais ações externas e mudanças no
