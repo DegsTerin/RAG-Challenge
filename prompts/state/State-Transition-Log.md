@@ -2579,3 +2579,54 @@ contém somente fatos cronológicos.
   e obter autorização humana explícita e separada para o lote ou envelope
   sequencial pretendido antes de qualquer execução.
 - Aprovador da entrada: proprietário do RAG-Challenge.
+
+## 2026-08-04 — S04-A0 encerrado; execução interrompida antes do pin offline
+
+- Estado anterior: `STATE-04 BACKEND_IMPLEMENTATION` ativo somente pelo
+  registro documental de entrada; nenhum lote executável autorizado.
+- Baseline inicial confirmada: branch `main`, commit
+  `fe6c9028f061a7f0a98fc3debecffb0de3ad69bc`, corpus `4.9.2`, working tree
+  limpa.
+- Autoridade do proprietário: encerrar documentalmente `S04-A0`, fixar
+  offline `PdfPig` `0.1.15` e `CsvHelper` `33.1.0`, executar sequencialmente
+  `S04-A` a `S04-D` e, somente depois, o Automatic Quality Gate de
+  `STATE-04`. `Sylvan.Data.Csv` `1.4.4` permanece fallback não selecionado.
+- Decisão de `S04-A0`: `PdfPig` `0.1.15` e `CsvHelper` `33.1.0` são os
+  candidatos selecionados condicionalmente para desenvolvimento local; o
+  provider OpenAI deve usar adapter HTTP direto, sem packages `OpenAI` ou
+  `System.ClientModel`.
+- Gates preservados: hash integral do nupkg contra o valor publicado; hash do
+  nupkg no cache contra o hash integral; `contentHash` do lockfile contra o
+  signed content hash preservado; identidade, versão, grafo, TFM e assets
+  exatos; assinatura `CONDITIONAL_REVOCATION_NOT_CURRENT`.
+- Limitação aceita: as fontes primárias consultadas não definem completamente
+  `packages.lock.json` `contentHash`, signed content hash e `.nupkg.sha512`.
+  A aceitação vale exclusivamente para desenvolvimento local de `STATE-04`,
+  não estabelece semântica normativa do NuGet e não aprova produção.
+- Evidência durável: hashes, evidência observada, limitações, riscos, primeiro
+  gate runtime e retenção estão no
+  [relatório de STATE-04](../../docs/STATE-04-Backend-Implementation-Report.md).
+- Bloqueio observado antes do pin: a fonte offline preservada contém somente
+  os três packages candidatos de parsing. Os lockfiles vigentes do produto
+  exigem dependências .NET adicionais; rede e acesso ao cache NuGet global
+  estavam explicitamente proibidos. Um restore isolado válido não poderia ser
+  concluído com a fonte autorizada.
+- Ação executada: somente o fechamento documental e sanitizado de `S04-A0`.
+  Nenhum PackageReference, versão central, lockfile, código, teste ou contrato
+  foi alterado, e nenhum `dotnet`, restore, build, loading ou teste foi
+  iniciado.
+- Runtime preflight: `NOT_APPLICABLE` para este incremento exclusivamente
+  documental; nenhum processo ou listener foi inspecionado.
+- Estado resultante: `STATE-04 BACKEND_IMPLEMENTATION` permanece ativo;
+  `S04-A` a `S04-D` e o Automatic Quality Gate possuem autoridade sequencial,
+  mas permanecem não executados e condicionados a uma fonte offline isolada
+  completa.
+- Próxima condição: autoridade explícita para semear um cache novo, de forma
+  somente leitura e allowlisted, a partir dos packages já fixados no cache
+  global, ou para obter uma fonte offline exata equivalente. A autoridade
+  sequencial preservada pode ser retomada somente após essa precondição e a
+  reconciliação da baseline.
+- Escopo negativo preservado: sem rede, provider, conta, secret, corpus real,
+  fonte oficial real do produto, GitHub, OCI, Dashboard, DB-Notifier,
+  publicação, deploy, Human Gate ou estado posterior.
+- Aprovador: proprietário do RAG-Challenge.

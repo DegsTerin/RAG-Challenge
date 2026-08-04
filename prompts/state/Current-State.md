@@ -1,6 +1,6 @@
 # Estado Atual
 
-Este documento é o snapshot factual vigente do workspace em 2026-08-03. Ele
+Este documento é o snapshot factual vigente do workspace em 2026-08-04. Ele
 não concede autoridade. Evolução e decisões no contexto original pertencem ao
 [`State-Transition-Log.md`](State-Transition-Log.md) e aos relatórios
 proprietários.
@@ -17,8 +17,23 @@ proprietários.
   `S03-A` e `S03-B0` a `S03-B5` concluídos; Automatic Quality Gate de
   `STATE-03` aprovado sem achados; `STATE-03` encerrado após Human Gate
   aprovado sem ressalvas em 2026-08-02; entrada em `STATE-04
-  BACKEND_IMPLEMENTATION` autorizada e registrada em 2026-08-03, sem lote de
-  implementação autorizado.
+  BACKEND_IMPLEMENTATION` autorizada e registrada em 2026-08-03. O
+  proprietário autorizou em 2026-08-04 o fechamento de `S04-A0`, o pin
+  offline dos dois parsers selecionados, a execução sequencial de `S04-A` a
+  `S04-D` e, depois, o Automatic Quality Gate de `STATE-04`. `S04-A0` foi
+  encerrado documentalmente, mas a execução parou antes do pin porque a fonte
+  offline isolada não contém as dependências .NET já fixadas pelo produto e a
+  autoridade proíbe rede e acesso ao cache NuGet global.
+- Fechamento de `S04-A0`: `PdfPig` `0.1.15` e `CsvHelper` `33.1.0` foram
+  selecionados condicionalmente para desenvolvimento local;
+  `Sylvan.Data.Csv` `1.4.4` permanece fallback não selecionado e não
+  autorizável por substituição automática. O adapter OpenAI será HTTP direto,
+  sem package `OpenAI` ou `System.ClientModel`. Hashes, gates, limitações,
+  evidências e o bloqueio pré-pin estão registrados no
+  [relatório de STATE-04](../../docs/STATE-04-Backend-Implementation-Report.md).
+  A assinatura dos parsers permanece
+  `CONDITIONAL_REVOCATION_NOT_CURRENT`, e a semântica incompleta dos domínios
+  de hash NuGet foi aceita somente para desenvolvimento local em `STATE-04`.
 - Escopo concluído de `STATE-01`: registrar a entrada e executar localmente,
   de forma sequencial, os lotes `S01-A`, `S01-B` e `S01-C`, sem lógica RAG ou
   funcional. A autoridade adicional de 2026-07-30 permite exclusivamente
@@ -464,8 +479,9 @@ autorizada.
    para cada banco antes de sua ativação.
 2. Validar e ativar individualmente novos registros de fonte oficial; a
    aceitação arquitetural não autoriza URL, rede, download ou crawling.
-3. Selecionar versões exatas dos packages PDF/CSV somente após verificação
-   primária e spikes de compatibilidade, qualidade e segurança autorizados.
+3. Resolver sob autoridade própria a fonte offline isolada das dependências
+   .NET já fixadas; só então aplicar os pins condicionais de `PdfPig` `0.1.15`
+   e `CsvHelper` `33.1.0` e executar o primeiro gate runtime sintético.
 4. Verificar tier, entitlement, spend limit e controles da conta OpenAI, além
    da recuperação/geração bilíngue, antes de usar ou anunciar os providers.
 5. Homologar desempenho e capacidade do `SqliteExactVectorStore`; a fixture
@@ -486,12 +502,24 @@ autorizada.
 
 ## Próxima autoridade
 
-`STATE-04 BACKEND_IMPLEMENTATION` está ativo exclusivamente pelo registro
-documental de entrada. Nenhum lote `S04-A`, `S04-B`, `S04-C` ou `S04-D` está
-autorizado. Antes de qualquer execução, as dependências aplicáveis devem ser
-fechadas sob autoridade própria, e o lote ou envelope sequencial pretendido
-deve receber autorização humana explícita e separada.
-Rede fora das fontes primárias já autorizadas para supply chain, providers,
-contas, corpus real, fontes oficiais do produto, armazenamento operacional,
-GitHub, OCI, publicação, deploy, demais ações externas e mudanças no
-DB-Notifier continuam sem autorização.
+`STATE-04 BACKEND_IMPLEMENTATION` está ativo. O fechamento documental de
+`S04-A0`, o pin offline de `PdfPig` `0.1.15` e `CsvHelper` `33.1.0`, a
+execução sequencial de `S04-A` a `S04-D` e o Automatic Quality Gate posterior
+foram autorizados pelo proprietário em 2026-08-04, mas a execução parou antes
+do pin e de qualquer mudança em código: a fonte offline preservada contém
+somente os packages candidatos de parsing, enquanto um restore isolado do
+produto também exige as dependências já registradas nos lockfiles vigentes.
+
+A próxima autoridade necessária deve permitir exclusivamente uma forma
+verificável de completar a fonte offline isolada: cópia somente leitura das
+identidades e versões já fixadas a partir do cache NuGet global para um cache
+de tarefa novo, sem escrita ou restore no cache global, ou um feed/download
+offline exato alternativo. Depois dessa precondição e da reconciliação da
+baseline, o envelope sequencial já autorizado pode prosseguir; isso não
+autoriza reduzir gates nem ampliar packages, versões, contratos, arquitetura
+ou ações externas.
+
+Rede, providers, contas, secrets, corpus real, fontes oficiais reais do
+produto, armazenamento operacional, GitHub, OCI, Dashboard, publicação,
+deploy, Human Gate, estados posteriores e mudanças no DB-Notifier continuam
+sem autorização.
