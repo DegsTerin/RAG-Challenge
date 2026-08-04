@@ -73,6 +73,46 @@ public sealed record ObservationCommitRequest(
     DateTimeOffset CommittedAt,
     string? AuditDetailsDigest = null);
 
+public sealed record ObservationRebindCommitRequest(
+    OperationId OperationId,
+    CorpusId CorpusId,
+    DocumentId DocumentId,
+    DocumentVersionNumber DocumentVersion,
+    OfficialSourceObservation Observation,
+    long ExpectedJournalRevision,
+    long ExpectedActivationRevision,
+    DateTimeOffset CommittedAt,
+    string? AuditDetailsDigest = null);
+
+public sealed class ObservationRebindMutationResult
+{
+    public ObservationRebindMutationResult(
+        StoreMutationOutcome outcome,
+        long currentJournalRevision,
+        CorpusActivationRecord? currentRecord,
+        bool activationRecordRebound,
+        IEnumerable<ActivationValidationFailure>? validationFailures = null)
+    {
+        Outcome = outcome;
+        CurrentJournalRevision = currentJournalRevision;
+        CurrentRecord = currentRecord;
+        ActivationRecordRebound = activationRecordRebound;
+        ValidationFailures = Array.AsReadOnly(
+            validationFailures?.Distinct().ToArray() ??
+                Array.Empty<ActivationValidationFailure>());
+    }
+
+    public StoreMutationOutcome Outcome { get; }
+
+    public long CurrentJournalRevision { get; }
+
+    public CorpusActivationRecord? CurrentRecord { get; }
+
+    public bool ActivationRecordRebound { get; }
+
+    public ReadOnlyCollection<ActivationValidationFailure> ValidationFailures { get; }
+}
+
 public sealed record GenerationCommitRequest(
     OperationId OperationId,
     CandidateBuildId CandidateBuildId,
@@ -103,6 +143,10 @@ public interface IControlPlaneStore
 
     Task<StoreMutationResult> AppendObservationAsync(
         ObservationCommitRequest request,
+        CancellationToken cancellationToken = default);
+
+    Task<ObservationRebindMutationResult> AppendObservationWithActivationRebindAsync(
+        ObservationRebindCommitRequest request,
         CancellationToken cancellationToken = default);
 
     Task<StoreMutationResult> CommitGenerationAsync(

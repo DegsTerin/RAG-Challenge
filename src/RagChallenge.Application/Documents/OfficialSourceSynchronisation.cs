@@ -53,7 +53,7 @@ public sealed class OfficialFetchResult
                 nameof(mediaType));
         }
 
-        if (lastModified?.Offset != TimeSpan.Zero)
+        if (lastModified is not null && lastModified.Value.Offset != TimeSpan.Zero)
         {
             throw new ArgumentException(
                 "Official Last-Modified instants must be expressed in UTC.",
@@ -111,7 +111,8 @@ public sealed record OfficialSynchronisationRequest(
     TimeSpan MaxAge,
     OfficialSourceSnapshot? CurrentSnapshot = null,
     string? CurrentEtag = null,
-    DateTimeOffset? CurrentLastModified = null);
+    DateTimeOffset? CurrentLastModified = null,
+    long ExpectedActivationRevision = 0);
 
 public sealed class OfficialSynchronisationResult
 {
@@ -186,7 +187,7 @@ public sealed class OfficialSourceSynchronisationService
                     "An unchanged or withdrawn observation requires a current snapshot.");
             }
 
-            var terminalObservation = await AppendObservationAsync(
+            var terminalObservation = await AppendObservationWithRebindAsync(
                 request,
                 request.CurrentSnapshot,
                 fetch,
@@ -217,7 +218,7 @@ public sealed class OfficialSourceSynchronisationService
 
         if (request.CurrentSnapshot?.ContentObjectId == ingestion.Content.ContentObjectId)
         {
-            var unchangedObservation = await AppendObservationAsync(
+            var unchangedObservation = await AppendObservationWithRebindAsync(
                 request,
                 request.CurrentSnapshot,
                 fetch,
@@ -279,7 +280,56 @@ public sealed class OfficialSourceSynchronisationService
         OfficialObservationState state,
         CancellationToken cancellationToken)
     {
-        var observation = new OfficialSourceObservation(
+        var observation = CreateObservation(request, snapshot, state);
+        var commit = await controlPlaneStore.AppendObservationAsync(
+            new ObservationCommitRequest(
+                request.ObservationAuditContext.OperationId,
+                request.CorpusId,
+                observation,
+                request.ExpectedJournalRevision,
+                request.ObservationAuditContext.RequestedAt,
+                CreateObservationAuditDigest(request, snapshot, fetch)),
+            cancellationToken).ConfigureAwait(false);
+        EnsureApplied(commit, "official observation");
+        return observation;
+    }
+
+    private async Task<OfficialSourceObservation> AppendObservationWithRebindAsync(
+        OfficialSynchronisationRequest request,
+        OfficialSourceSnapshot snapshot,
+        OfficialFetchResult fetch,
+        OfficialObservationState state,
+        CancellationToken cancellationToken)
+    {
+        var observation = CreateObservation(request, snapshot, state);
+        var commit = await controlPlaneStore.AppendObservationWithActivationRebindAsync(
+            new ObservationRebindCommitRequest(
+                request.ObservationAuditContext.OperationId,
+                request.CorpusId,
+                request.ChunkingContext.DocumentId,
+                request.ChunkingContext.DocumentVersion,
+                observation,
+                request.ExpectedJournalRevision,
+                request.ExpectedActivationRevision,
+                request.ObservationAuditContext.RequestedAt,
+                CreateObservationAuditDigest(request, snapshot, fetch)),
+            cancellationToken).ConfigureAwait(false);
+
+        if (commit.Outcome is not StoreMutationOutcome.Applied and
+            not StoreMutationOutcome.AlreadyApplied)
+        {
+            throw new InvalidOperationException(
+                "The official observation and any required activation rebinding were not committed.");
+        }
+
+        return observation;
+    }
+
+    private static OfficialSourceObservation CreateObservation(
+        OfficialSynchronisationRequest request,
+        OfficialSourceSnapshot snapshot,
+        OfficialObservationState state) =>
+        new(
             request.ObservationId,
             request.Registration.Id,
             snapshot.Id,
@@ -287,7 +337,12 @@ public sealed class OfficialSourceSynchronisationService
             state,
             request.ObservationAuditContext.RequestedAt,
             request.MaxAge);
-        var auditDigest = request.ObservationAuditContext.CreateDigest(
+
+    private static string CreateObservationAuditDigest(
+        OfficialSynchronisationRequest request,
+        OfficialSourceSnapshot snapshot,
+        OfficialFetchResult fetch) =>
+        request.ObservationAuditContext.CreateDigest(
             request.Registration.Id.Value,
             snapshot.Id.Value,
             fetch.StatusCode.ToString(System.Globalization.CultureInfo.InvariantCulture),
@@ -299,18 +354,6 @@ public sealed class OfficialSourceSynchronisationService
             fetch.LastModified?.ToString(
                 "O",
                 System.Globalization.CultureInfo.InvariantCulture) ?? "");
-        var commit = await controlPlaneStore.AppendObservationAsync(
-            new ObservationCommitRequest(
-                request.ObservationAuditContext.OperationId,
-                request.CorpusId,
-                observation,
-                request.ExpectedJournalRevision,
-                request.ObservationAuditContext.RequestedAt,
-                auditDigest),
-            cancellationToken).ConfigureAwait(false);
-        EnsureApplied(commit, "official observation");
-        return observation;
-    }
 
     private static void ValidateRequest(OfficialSynchronisationRequest request)
     {
@@ -324,7 +367,9 @@ public sealed class OfficialSourceSynchronisationService
         ArgumentNullException.ThrowIfNull(request.ObservationAuditContext);
         ArgumentNullException.ThrowIfNull(request.ObservationId);
 
-        if (request.ExpectedJournalRevision < 0 || request.MaxAge <= TimeSpan.Zero)
+        if (request.ExpectedJournalRevision < 0 ||
+            request.ExpectedActivationRevision < 0 ||
+            request.MaxAge <= TimeSpan.Zero)
         {
             throw new ArgumentOutOfRangeException(nameof(request));
         }

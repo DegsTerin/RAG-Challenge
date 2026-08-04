@@ -384,6 +384,332 @@ public sealed class SqliteControlPlaneStore(SqliteStoreOptions options)
             request.Observation.JournalRevision.Value);
     }
 
+    public async Task<ObservationRebindMutationResult> AppendObservationWithActivationRebindAsync(
+        ObservationRebindCommitRequest request,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(request);
+        ArgumentNullException.ThrowIfNull(request.OperationId);
+        ArgumentNullException.ThrowIfNull(request.CorpusId);
+        ArgumentNullException.ThrowIfNull(request.DocumentId);
+        ArgumentNullException.ThrowIfNull(request.DocumentVersion);
+        ArgumentNullException.ThrowIfNull(request.Observation);
+        ControlPlaneMapping.EnsureUtc(request.CommittedAt, nameof(request));
+        EnsureExpectedRevision(
+            request.ExpectedJournalRevision,
+            request.Observation.JournalRevision.Value);
+
+        if (request.ExpectedActivationRevision < 0)
+        {
+            throw new ArgumentOutOfRangeException(
+                nameof(request),
+                request.ExpectedActivationRevision,
+                "An expected activation revision cannot be negative.");
+        }
+
+        var maxAgeSeconds = GetWholeMaxAgeSeconds(request.Observation, nameof(request));
+
+        await using var context = options.CreateControlContext();
+        await using var transaction = await BeginImmediateAsync(
+            context,
+            cancellationToken).ConfigureAwait(false);
+        var existingOperation = await context.AdminOperations.AsNoTracking()
+            .SingleOrDefaultAsync(
+                row => row.OperationId == request.OperationId.Value,
+                cancellationToken).ConfigureAwait(false);
+
+        if (existingOperation is not null)
+        {
+            var replay = await ReadExactObservationRebindReplayAsync(
+                context,
+                request,
+                existingOperation,
+                cancellationToken).ConfigureAwait(false);
+            await transaction.CommitAsync(cancellationToken).ConfigureAwait(false);
+            return replay;
+        }
+
+        if (await HasBlockingLeaseAsync(
+                context,
+                request.CorpusId,
+                request.OperationId,
+                request.CommittedAt,
+                cancellationToken).ConfigureAwait(false))
+        {
+            var active = await ReadActiveActivationAsync(
+                context,
+                request.CorpusId,
+                cancellationToken).ConfigureAwait(false);
+            var journalRevision = await ReadObservationJournalRevisionAsync(
+                context,
+                request.CorpusId,
+                cancellationToken).ConfigureAwait(false);
+            return new ObservationRebindMutationResult(
+                StoreMutationOutcome.RetentionConflict,
+                journalRevision,
+                active,
+                activationRecordRebound: false);
+        }
+
+        var journalHead = await context.ObservationJournalHeads.SingleOrDefaultAsync(
+            row => row.CorpusId == request.CorpusId.Value,
+            cancellationToken).ConfigureAwait(false);
+        var currentJournalRevision = journalHead?.JournalRevision ?? 0;
+
+        if (currentJournalRevision != request.ExpectedJournalRevision)
+        {
+            var active = await ReadActiveActivationAsync(
+                context,
+                request.CorpusId,
+                cancellationToken).ConfigureAwait(false);
+            return new ObservationRebindMutationResult(
+                StoreMutationOutcome.RevisionConflict,
+                currentJournalRevision,
+                active,
+                activationRecordRebound: false);
+        }
+
+        var activationHead = await context.ActivationHeads.AsNoTracking()
+            .SingleOrDefaultAsync(
+                row => row.CorpusId == request.CorpusId.Value,
+                cancellationToken).ConfigureAwait(false);
+        var currentActivationRevision = activationHead?.RecordRevision ?? 0;
+
+        if (currentActivationRevision != request.ExpectedActivationRevision)
+        {
+            var active = await ReadActiveActivationAsync(
+                context,
+                request.CorpusId,
+                cancellationToken).ConfigureAwait(false);
+            return new ObservationRebindMutationResult(
+                StoreMutationOutcome.RevisionConflict,
+                currentJournalRevision,
+                active,
+                activationRecordRebound: false);
+        }
+
+        var snapshot = await context.OfficialSourceSnapshots.AsNoTracking()
+            .SingleOrDefaultAsync(
+                row => row.CorpusId == request.CorpusId.Value &&
+                    row.SnapshotId == request.Observation.SnapshotId.Value,
+                cancellationToken).ConfigureAwait(false);
+
+        if (snapshot is null ||
+            !string.Equals(
+                snapshot.RegistrationId,
+                request.Observation.RegistrationId.Value,
+                StringComparison.Ordinal))
+        {
+            var active = await ReadActiveActivationAsync(
+                context,
+                request.CorpusId,
+                cancellationToken).ConfigureAwait(false);
+            return new ObservationRebindMutationResult(
+                StoreMutationOutcome.NotFound,
+                currentJournalRevision,
+                active,
+                activationRecordRebound: false);
+        }
+
+        if (await context.SourceObservations.AsNoTracking().AnyAsync(
+                row => row.CorpusId == request.CorpusId.Value &&
+                    row.ObservationId == request.Observation.Id.Value,
+                cancellationToken).ConfigureAwait(false))
+        {
+            var active = await ReadActiveActivationAsync(
+                context,
+                request.CorpusId,
+                cancellationToken).ConfigureAwait(false);
+            return new ObservationRebindMutationResult(
+                StoreMutationOutcome.ValidationFailed,
+                currentJournalRevision,
+                active,
+                activationRecordRebound: false,
+                new[] { ActivationValidationFailure.ObservationBindingMismatch });
+        }
+
+        var currentRecord = await ReadActiveActivationAsync(
+            context,
+            request.CorpusId,
+            cancellationToken).ConfigureAwait(false);
+        var targetBindings = currentRecord?.DocumentBindings
+            .Where(binding =>
+                binding.DocumentId == request.DocumentId &&
+                binding.DocumentVersion == request.DocumentVersion)
+            .ToArray() ?? [];
+
+        if (targetBindings.Length > 1)
+        {
+            return new ObservationRebindMutationResult(
+                StoreMutationOutcome.ValidationFailed,
+                currentJournalRevision,
+                currentRecord,
+                activationRecordRebound: false,
+                new[] { ActivationValidationFailure.DuplicateActiveDocumentProjection });
+        }
+
+        CorpusActivationRecord? proposedRecord = null;
+
+        if (targetBindings.Length == 1)
+        {
+            var target = targetBindings[0];
+            var targetFailures = new List<ActivationValidationFailure>();
+
+            if (target.SourceTrustClass != SourceTrustClass.OfficialExternal)
+            {
+                targetFailures.Add(ActivationValidationFailure.ObservationBindingMismatch);
+            }
+
+            if (target.OfficialSourceRegistrationId != request.Observation.RegistrationId)
+            {
+                targetFailures.Add(ActivationValidationFailure.ObservationRegistrationMismatch);
+            }
+
+            if (target.OfficialSnapshotId != request.Observation.SnapshotId)
+            {
+                targetFailures.Add(ActivationValidationFailure.ObservationSnapshotMismatch);
+            }
+
+            if (targetFailures.Count > 0)
+            {
+                return new ObservationRebindMutationResult(
+                    StoreMutationOutcome.ValidationFailed,
+                    currentJournalRevision,
+                    currentRecord,
+                    activationRecordRebound: false,
+                    targetFailures);
+            }
+
+            proposedRecord = ActivationRecordFactory.RebindObservation(
+                currentRecord!,
+                request.DocumentId,
+                request.DocumentVersion,
+                request.Observation,
+                request.CommittedAt);
+            var validation = await ValidateObservationRebindAsync(
+                context,
+                currentRecord!,
+                proposedRecord,
+                request.Observation,
+                cancellationToken).ConfigureAwait(false);
+
+            if (!validation.IsValid)
+            {
+                return new ObservationRebindMutationResult(
+                    StoreMutationOutcome.ValidationFailed,
+                    currentJournalRevision,
+                    currentRecord,
+                    activationRecordRebound: false,
+                    validation.Failures);
+            }
+        }
+
+        AddOperation(
+            context,
+            request.OperationId,
+            request.CorpusId,
+            "ObservationRebind",
+            request.ExpectedActivationRevision,
+            request.CommittedAt);
+        context.SourceObservations.Add(new SourceObservationRow
+        {
+            CorpusId = request.CorpusId.Value,
+            ObservationId = request.Observation.Id.Value,
+            RegistrationId = request.Observation.RegistrationId.Value,
+            SnapshotId = request.Observation.SnapshotId.Value,
+            JournalRevision = request.Observation.JournalRevision.Value,
+            State = request.Observation.State.ToString(),
+            RevalidatedAtUtc = ControlPlaneMapping.FormatUtc(
+                request.Observation.RevalidatedAt),
+            MaxAgeSeconds = maxAgeSeconds,
+            OperationId = request.OperationId.Value,
+        });
+
+        if (journalHead is null)
+        {
+            context.ObservationJournalHeads.Add(new ObservationJournalHeadRow
+            {
+                CorpusId = request.CorpusId.Value,
+                JournalRevision = request.Observation.JournalRevision.Value,
+                RowRevision = 1,
+            });
+        }
+        else
+        {
+            journalHead.JournalRevision = request.Observation.JournalRevision.Value;
+            journalHead.RowRevision = checked(journalHead.RowRevision + 1);
+        }
+
+        var activationRecordRebound = proposedRecord is not null;
+        var eventType = activationRecordRebound
+            ? "ObservationRebound"
+            : "ObservationAppended";
+        var resultRevision = proposedRecord?.RecordRevision.Value ??
+            request.Observation.JournalRevision.Value;
+
+        if (proposedRecord is not null)
+        {
+            context.ActivationRecords.Add(new ActivationRecordRow
+            {
+                CorpusId = proposedRecord.CorpusId.Value,
+                RecordRevision = proposedRecord.RecordRevision.Value,
+                PreviousRecordRevision = proposedRecord.PreviousRecordRevision?.Value,
+                IndexGenerationId = proposedRecord.IndexGenerationId.Value,
+                CatalogueRevision = proposedRecord.CatalogueRevision.Value,
+                ActivationBindingSetDigest = proposedRecord.ActivationBindingSetDigest.Value,
+                GenerationActivatedAtUtc = ControlPlaneMapping.FormatUtc(
+                    proposedRecord.GenerationActivatedAt),
+                RecordUpdatedAtUtc = ControlPlaneMapping.FormatUtc(
+                    proposedRecord.RecordUpdatedAt),
+                MutationKind = ActivationMutationKind.ObservationRebind.ToString(),
+                OperationId = request.OperationId.Value,
+            });
+            context.ActivationBindings.AddRange(
+                proposedRecord.DocumentBindings.Select(binding =>
+                    ControlPlaneMapping.ToActivationBindingRow(
+                        proposedRecord.CorpusId,
+                        proposedRecord.RecordRevision,
+                        binding)));
+        }
+
+        await context.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
+
+        if (proposedRecord is not null)
+        {
+            var affected = await context.Database.ExecuteSqlInterpolatedAsync(
+                $"""
+                UPDATE activation_heads
+                SET record_revision = {proposedRecord.RecordRevision.Value},
+                    row_revision = row_revision + 1
+                WHERE corpus_id = {request.CorpusId.Value}
+                  AND record_revision = {request.ExpectedActivationRevision};
+                """,
+                cancellationToken).ConfigureAwait(false);
+
+            if (affected != 1)
+            {
+                throw new InvalidOperationException(
+                    "The activation head changed during its immediate observation-rebind transaction.");
+            }
+        }
+
+        CompleteOperation(
+            context,
+            request.OperationId,
+            request.CorpusId,
+            eventType,
+            resultRevision,
+            request.CommittedAt,
+            request.AuditDetailsDigest);
+        await context.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
+        await transaction.CommitAsync(cancellationToken).ConfigureAwait(false);
+        return new ObservationRebindMutationResult(
+            StoreMutationOutcome.Applied,
+            request.Observation.JournalRevision.Value,
+            proposedRecord ?? currentRecord,
+            activationRecordRebound);
+    }
+
     public async Task<StoreMutationResult> CommitGenerationAsync(
         GenerationCommitRequest request,
         CancellationToken cancellationToken = default)
@@ -763,6 +1089,214 @@ public sealed class SqliteControlPlaneStore(SqliteStoreOptions options)
             context,
             corpusId,
             cancellationToken).ConfigureAwait(false);
+    }
+
+    private async Task<(bool IsValid, IReadOnlyCollection<ActivationValidationFailure> Failures)>
+        ValidateObservationRebindAsync(
+            ControlPlaneDbContext context,
+            CorpusActivationRecord currentRecord,
+            CorpusActivationRecord proposedRecord,
+            OfficialSourceObservation newObservation,
+            CancellationToken cancellationToken)
+    {
+        var manifestRow = await context.GenerationManifests.AsNoTracking()
+            .SingleOrDefaultAsync(
+                row => row.CorpusId == proposedRecord.CorpusId.Value &&
+                    row.IndexGenerationId == proposedRecord.IndexGenerationId.Value,
+                cancellationToken).ConfigureAwait(false);
+
+        if (manifestRow is null)
+        {
+            return (false, new[] { ActivationValidationFailure.GenerationMismatch });
+        }
+
+        var manifest = ControlPlaneMapping.ToDomain(manifestRow);
+        var vectorStore = new SqliteVectorIndexStore(options);
+
+        if (!await vectorStore.MatchesFinalisedGenerationAsync(
+                new CandidateBuildId(manifestRow.CandidateBuildId),
+                manifest,
+                cancellationToken).ConfigureAwait(false) ||
+            !await AreBindingContentsReopenableAsync(
+                context,
+                proposedRecord.CorpusId,
+                proposedRecord.DocumentBindings,
+                cancellationToken).ConfigureAwait(false))
+        {
+            return (false, new[] { ActivationValidationFailure.GenerationMismatch });
+        }
+
+        var existingObservationIds = proposedRecord.DocumentBindings
+            .Where(binding =>
+                binding.SourceObservationId is not null &&
+                binding.SourceObservationId != newObservation.Id)
+            .Select(binding => binding.SourceObservationId!.Value)
+            .Distinct(StringComparer.Ordinal)
+            .ToArray();
+        var observationRows = await context.SourceObservations.AsNoTracking()
+            .Where(row => row.CorpusId == proposedRecord.CorpusId.Value &&
+                existingObservationIds.Contains(row.ObservationId))
+            .ToArrayAsync(cancellationToken)
+            .ConfigureAwait(false);
+        var observations = observationRows.ToDictionary(
+            row => new OfficialObservationId(row.ObservationId),
+            ControlPlaneMapping.ToDomain);
+        observations.Add(newObservation.Id, newObservation);
+        var validation = ActivationRecordValidator.ValidateForCompareAndSwap(
+            currentRecord,
+            manifest,
+            proposedRecord,
+            manifest.IndexCompatibilityKey,
+            observations,
+            proposedRecord.RecordUpdatedAt);
+        return (validation.IsValid, validation.Failures);
+    }
+
+    private static async Task<ObservationRebindMutationResult>
+        ReadExactObservationRebindReplayAsync(
+            ControlPlaneDbContext context,
+            ObservationRebindCommitRequest request,
+            AdminOperationRow existingOperation,
+            CancellationToken cancellationToken)
+    {
+        EnsureOperationIdentity(existingOperation, "ObservationRebind");
+
+        if (existingOperation.ExpectedRevision != request.ExpectedActivationRevision ||
+            ControlPlaneMapping.ParseUtc(existingOperation.RequestedAtUtc) != request.CommittedAt ||
+            existingOperation.ResultRevision is null)
+        {
+            throw new InvalidOperationException(
+                "An observation-rebind operation identity was reused with different intent.");
+        }
+
+        var observationRow = await context.SourceObservations.AsNoTracking()
+            .SingleOrDefaultAsync(
+                row => row.CorpusId == request.CorpusId.Value &&
+                    row.OperationId == request.OperationId.Value,
+                cancellationToken).ConfigureAwait(false);
+
+        if (observationRow is null ||
+            request.Observation.JournalRevision.Value !=
+                request.ExpectedJournalRevision + 1 ||
+            !ObservationMatches(observationRow, request.Observation))
+        {
+            throw new InvalidOperationException(
+                "An observation-rebind operation identity was reused with different observation data.");
+        }
+
+        var auditEvent = await context.AuditEvents.AsNoTracking().SingleOrDefaultAsync(
+            row => row.CorpusId == request.CorpusId.Value &&
+                row.OperationId == request.OperationId.Value,
+            cancellationToken).ConfigureAwait(false);
+        var rebound = string.Equals(
+            auditEvent?.EventType,
+            "ObservationRebound",
+            StringComparison.Ordinal);
+
+        if (auditEvent is null ||
+            (!rebound && !string.Equals(
+                auditEvent.EventType,
+                "ObservationAppended",
+                StringComparison.Ordinal)) ||
+            ControlPlaneMapping.ParseUtc(auditEvent.OccurredAtUtc) != request.CommittedAt ||
+            !string.Equals(
+                auditEvent.DetailsDigest,
+                BuildAuditDetailsDigest(
+                    request.CorpusId,
+                    request.OperationId,
+                    auditEvent.EventType,
+                    existingOperation.ResultRevision.Value,
+                    request.CommittedAt,
+                    request.AuditDetailsDigest),
+                StringComparison.Ordinal))
+        {
+            throw new InvalidOperationException(
+                "An observation-rebind operation identity was reused with different audit data.");
+        }
+
+        if (rebound)
+        {
+            var historicalRecordMatches = await context.ActivationRecords.AsNoTracking()
+                .AnyAsync(
+                    row => row.CorpusId == request.CorpusId.Value &&
+                        row.RecordRevision == existingOperation.ResultRevision.Value &&
+                        row.OperationId == request.OperationId.Value &&
+                        row.MutationKind == "ObservationRebind",
+                    cancellationToken).ConfigureAwait(false);
+            var historicalBindingMatches = await context.ActivationBindings.AsNoTracking()
+                .AnyAsync(
+                    row => row.CorpusId == request.CorpusId.Value &&
+                        row.RecordRevision == existingOperation.ResultRevision.Value &&
+                        row.DocumentId == request.DocumentId.Value &&
+                        row.DocumentVersion == request.DocumentVersion.Value &&
+                        row.SourceObservationId == request.Observation.Id.Value,
+                    cancellationToken).ConfigureAwait(false);
+
+            if (!historicalRecordMatches || !historicalBindingMatches)
+            {
+                throw new InvalidOperationException(
+                    "The persisted observation-rebind evidence is incomplete.");
+            }
+        }
+        else if (existingOperation.ResultRevision != request.Observation.JournalRevision.Value)
+        {
+            throw new InvalidOperationException(
+                "The persisted observation-append revision is inconsistent.");
+        }
+
+        var active = await ReadActiveActivationAsync(
+            context,
+            request.CorpusId,
+            cancellationToken).ConfigureAwait(false);
+        var journalRevision = await ReadObservationJournalRevisionAsync(
+            context,
+            request.CorpusId,
+            cancellationToken).ConfigureAwait(false);
+        return new ObservationRebindMutationResult(
+            StoreMutationOutcome.AlreadyApplied,
+            journalRevision,
+            active,
+            rebound);
+    }
+
+    private static async Task<long> ReadObservationJournalRevisionAsync(
+        ControlPlaneDbContext context,
+        CorpusId corpusId,
+        CancellationToken cancellationToken) =>
+        await context.ObservationJournalHeads.AsNoTracking()
+            .Where(row => row.CorpusId == corpusId.Value)
+            .Select(row => (long?)row.JournalRevision)
+            .SingleOrDefaultAsync(cancellationToken)
+            .ConfigureAwait(false) ?? 0;
+
+    private static bool ObservationMatches(
+        SourceObservationRow row,
+        OfficialSourceObservation observation) =>
+        string.Equals(row.ObservationId, observation.Id.Value, StringComparison.Ordinal) &&
+        string.Equals(
+            row.RegistrationId,
+            observation.RegistrationId.Value,
+            StringComparison.Ordinal) &&
+        string.Equals(row.SnapshotId, observation.SnapshotId.Value, StringComparison.Ordinal) &&
+        row.JournalRevision == observation.JournalRevision.Value &&
+        string.Equals(row.State, observation.State.ToString(), StringComparison.Ordinal) &&
+        ControlPlaneMapping.ParseUtc(row.RevalidatedAtUtc) == observation.RevalidatedAt &&
+        row.MaxAgeSeconds == GetWholeMaxAgeSeconds(observation, nameof(observation));
+
+    private static long GetWholeMaxAgeSeconds(
+        OfficialSourceObservation observation,
+        string parameterName)
+    {
+        var seconds = observation.MaxAge.TotalSeconds;
+
+        if (seconds != Math.Truncate(seconds) || seconds > long.MaxValue)
+        {
+            throw new ArgumentException(
+                "Observation maxAge must contain a whole number of seconds.",
+                parameterName);
+        }
+
+        return checked((long)seconds);
     }
 
     private static async Task AddCatalogueSnapshotAsync(
@@ -1242,15 +1776,13 @@ public sealed class SqliteControlPlaneStore(SqliteStoreOptions options)
         operation.Status = "Applied";
         operation.ResultRevision = resultRevision;
         operation.CompletedAtUtc = ControlPlaneMapping.FormatUtc(occurredAt);
-        var auditMaterial = string.Join(
-            '\n',
-            corpusId.Value,
-            operationId.Value,
+        var detailsDigest = BuildAuditDetailsDigest(
+            corpusId,
+            operationId,
             eventType,
-            resultRevision.ToString(System.Globalization.CultureInfo.InvariantCulture),
-            ControlPlaneMapping.FormatUtc(occurredAt),
-            ValidateSupplementalDigest(supplementalDetailsDigest));
-        var detailsDigest = Sha256(auditMaterial);
+            resultRevision,
+            occurredAt,
+            supplementalDetailsDigest);
         var eventId = $"audit-{Sha256($"{operationId.Value}\n{eventType}")}";
         context.AuditEvents.Add(new AuditEventRow
         {
@@ -1261,6 +1793,25 @@ public sealed class SqliteControlPlaneStore(SqliteStoreOptions options)
             OccurredAtUtc = ControlPlaneMapping.FormatUtc(occurredAt),
             DetailsDigest = detailsDigest,
         });
+    }
+
+    private static string BuildAuditDetailsDigest(
+        CorpusId corpusId,
+        OperationId operationId,
+        string eventType,
+        long resultRevision,
+        DateTimeOffset occurredAt,
+        string? supplementalDetailsDigest)
+    {
+        var auditMaterial = string.Join(
+            '\n',
+            corpusId.Value,
+            operationId.Value,
+            eventType,
+            resultRevision.ToString(System.Globalization.CultureInfo.InvariantCulture),
+            ControlPlaneMapping.FormatUtc(occurredAt),
+            ValidateSupplementalDigest(supplementalDetailsDigest));
+        return Sha256(auditMaterial);
     }
 
     private static async Task<SqliteTransaction> BeginImmediateAsync(

@@ -18,6 +18,7 @@ public enum ActivationValidationFailure
     SourceBindingSetDigestMismatch,
     ActivationBindingSetDigestMismatch,
     DuplicateActiveDocumentProjection,
+    ObservationBindingMismatch,
     ObservationMissing,
     ObservationRegistrationMismatch,
     ObservationSnapshotMismatch,
