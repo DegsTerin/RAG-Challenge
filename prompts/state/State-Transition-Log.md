@@ -2676,3 +2676,32 @@ contém somente fatos cronológicos.
   fonte oficial real, GitHub, OCI, Dashboard, DB-Notifier, publicação, deploy,
   Human Gate ou estado posterior.
 - Aprovador: proprietário do RAG-Challenge.
+
+## 2026-08-04 — S04-A concluído localmente com fixtures sintéticas
+
+- Estado anterior: pins aprovados e `S04-A` em execução sequencial.
+- Escopo implementado: administração de revisões de catálogo com expected
+  revision, contexto de auditoria bounded e idempotência; ingestão PDF/CSV em
+  conteúdo imutável reaberto por hash; parsing e chunks determinísticos; sync
+  oficial por transporte falso; snapshots e observações append-only.
+- Segurança: os parsers recebem somente streams em memória; URL é resolvida
+  exclusivamente do registro confiável; inputs e outputs são limitados;
+  reason, validators e status contribuem somente para digest de auditoria;
+  falha de parsing ocorre antes do commit de snapshot/observação.
+- Idempotência: bytes repetidos reutilizam o mesmo objeto; replay da operação
+  de catálogo retorna `AlreadyApplied`; hash oficial idêntico cria nova
+  observação sem novo snapshot. A deduplicação no mesmo DbContext foi
+  corrigida para aceitar dois documentos referenciando o mesmo conteúdo.
+- Evidência integrada: conteúdo local repetido produziu o mesmo hash/chunks;
+  o primeiro sync criou um snapshot; o segundo criou somente uma observação;
+  conteúdo CSV malformado não alterou a contagem de snapshots ou observações.
+- Verificação: format check aprovado; build Release com zero warnings e zero
+  erros; 84 testes aprovados, sendo 56 unitários, 10 de arquitetura e 18 de
+  integração.
+- Fontes: somente fixtures sintéticas e transporte falso em processo; nenhum
+  listener, rede, provider ou fonte oficial real foi acessado.
+- Estado resultante: `S04-A` concluído; `S04-B` é o próximo lote sequencial.
+- Escopo negativo preservado: sem migration, package adicional, provider,
+  corpus real, GitHub, OCI, Dashboard, DB-Notifier, publicação, deploy, Human
+  Gate ou estado posterior.
+- Aprovador: proprietário do RAG-Challenge.

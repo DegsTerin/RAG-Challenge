@@ -24,7 +24,9 @@ proprietários.
   encerrado documentalmente. A precondição da fonte offline incompleta foi
   resolvida por seed somente leitura e allowlisted para um cache isolado; os
   pins foram aplicados, o restore locked passou e o primeiro gate runtime
-  sintético de `S04-A` foi aprovado. `S04-A` está em execução sequencial.
+  sintético de `S04-A` foi aprovado. `S04-A` concluiu administração, ingestão
+  PDF/CSV, sync por transporte falso, snapshots, chunks e idempotência;
+  `S04-B` é o próximo lote sequencial.
 - Fechamento de `S04-A0`: `PdfPig` `0.1.15` e `CsvHelper` `33.1.0` foram
   selecionados condicionalmente para desenvolvimento local;
   `Sylvan.Data.Csv` `1.4.4` permanece fallback não selecionado e não
@@ -480,8 +482,9 @@ autorizada.
    para cada banco antes de sua ativação.
 2. Validar e ativar individualmente novos registros de fonte oficial; a
    aceitação arquitetural não autoriza URL, rede, download ou crawling.
-3. Concluir `S04-A` a `S04-D` sequencialmente sob o envelope autorizado e
-   executar o Automatic Quality Gate somente após os quatro lotes.
+3. Concluir `S04-B` a `S04-D` sequencialmente sob o envelope autorizado e
+   executar o Automatic Quality Gate somente após os quatro lotes; `S04-A`
+   está concluído.
 4. Verificar tier, entitlement, spend limit e controles da conta OpenAI, além
    da recuperação/geração bilíngue, antes de usar ou anunciar os providers.
 5. Homologar desempenho e capacidade do `SqliteExactVectorStore`; a fixture
@@ -509,9 +512,9 @@ foram autorizados pelo proprietário em 2026-08-04. A fonte offline isolada foi
 completada por cópia somente leitura e allowlisted das identidades e versões
 já fixadas, sem alterar o cache global. `PdfPig` `0.1.15` e `CsvHelper`
 `33.1.0` foram fixados com grafo aplicável vazio, restore locked e hashes
-aprovados; o primeiro gate runtime sintético passou. `S04-A` pode continuar e
-deve preceder estritamente `S04-B`, `S04-C`, `S04-D` e o Automatic Quality
-Gate.
+aprovados; o primeiro gate runtime sintético passou. `S04-A` foi concluído e
+`S04-B` pode começar, devendo preceder estritamente `S04-C`, `S04-D` e o
+Automatic Quality Gate.
 
 Nenhuma nova autoridade é necessária para o restante desse envelope enquanto
 baseline, packages, versões, arquitetura, contratos e escopo negativo

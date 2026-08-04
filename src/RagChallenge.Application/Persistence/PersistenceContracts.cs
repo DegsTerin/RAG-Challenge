@@ -54,28 +54,32 @@ public sealed record CatalogueCommitRequest(
     OperationId OperationId,
     CatalogueSnapshot Snapshot,
     long ExpectedCurrentRevision,
-    DateTimeOffset CommittedAt);
+    DateTimeOffset CommittedAt,
+    string? AuditDetailsDigest = null);
 
 public sealed record OfficialSourceCommitRequest(
     OperationId OperationId,
     CorpusId CorpusId,
     OfficialSourceRegistration Registration,
     OfficialSourceSnapshot Snapshot,
-    DateTimeOffset CommittedAt);
+    DateTimeOffset CommittedAt,
+    string? AuditDetailsDigest = null);
 
 public sealed record ObservationCommitRequest(
     OperationId OperationId,
     CorpusId CorpusId,
     OfficialSourceObservation Observation,
     long ExpectedJournalRevision,
-    DateTimeOffset CommittedAt);
+    DateTimeOffset CommittedAt,
+    string? AuditDetailsDigest = null);
 
 public sealed record GenerationCommitRequest(
     OperationId OperationId,
     CandidateBuildId CandidateBuildId,
     FinalisedIndexGenerationManifest Manifest,
     IReadOnlyCollection<DocumentBinding> Bindings,
-    DateTimeOffset FinalisedAt);
+    DateTimeOffset FinalisedAt,
+    string? AuditDetailsDigest = null);
 
 public sealed record ActivationCompareExchangeRequest(
     OperationId OperationId,
@@ -84,7 +88,8 @@ public sealed record ActivationCompareExchangeRequest(
     CorpusActivationRecord ProposedRecord,
     IndexCompatibilityKey RequiredCompatibilityKey,
     DateTimeOffset EvaluatedAt,
-    TimeSpan PreviousGenerationRetention);
+    TimeSpan PreviousGenerationRetention,
+    string? AuditDetailsDigest = null);
 
 public interface IControlPlaneStore
 {

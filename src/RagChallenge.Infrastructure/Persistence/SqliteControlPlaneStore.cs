@@ -123,7 +123,8 @@ public sealed class SqliteControlPlaneStore(SqliteStoreOptions options)
             request.Snapshot.CorpusId,
             "CatalogueCommitted",
             request.Snapshot.Revision.Value,
-            request.CommittedAt);
+            request.CommittedAt,
+            request.AuditDetailsDigest);
         await context.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
         await transaction.CommitAsync(cancellationToken).ConfigureAwait(false);
         return new StoreMutationResult(
@@ -248,7 +249,8 @@ public sealed class SqliteControlPlaneStore(SqliteStoreOptions options)
             request.CorpusId,
             "OfficialSourceCommitted",
             request.Registration.Revision.Value,
-            request.CommittedAt);
+            request.CommittedAt,
+            request.AuditDetailsDigest);
         await context.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
         await transaction.CommitAsync(cancellationToken).ConfigureAwait(false);
         return new StoreMutationResult(
@@ -373,7 +375,8 @@ public sealed class SqliteControlPlaneStore(SqliteStoreOptions options)
             request.CorpusId,
             "ObservationAppended",
             request.Observation.JournalRevision.Value,
-            request.CommittedAt);
+            request.CommittedAt,
+            request.AuditDetailsDigest);
         await context.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
         await transaction.CommitAsync(cancellationToken).ConfigureAwait(false);
         return new StoreMutationResult(
@@ -507,7 +510,8 @@ public sealed class SqliteControlPlaneStore(SqliteStoreOptions options)
             request.Manifest.CorpusId,
             "GenerationCommitted",
             request.Manifest.CatalogueRevision.Value,
-            request.FinalisedAt);
+            request.FinalisedAt,
+            request.AuditDetailsDigest);
         await context.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
         await transaction.CommitAsync(cancellationToken).ConfigureAwait(false);
         return new StoreMutationResult(
@@ -740,7 +744,8 @@ public sealed class SqliteControlPlaneStore(SqliteStoreOptions options)
             request.ProposedRecord.CorpusId,
             $"Activation{request.MutationKind}Applied",
             request.ProposedRecord.RecordRevision.Value,
-            request.EvaluatedAt);
+            request.EvaluatedAt,
+            request.AuditDetailsDigest);
         await context.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
         await transaction.CommitAsync(cancellationToken).ConfigureAwait(false);
         return new ActivationMutationResult(
@@ -911,9 +916,11 @@ public sealed class SqliteControlPlaneStore(SqliteStoreOptions options)
         DateTimeOffset registeredAt,
         CancellationToken cancellationToken)
     {
-        var existing = await context.ContentObjects.SingleOrDefaultAsync(
-            row => row.ContentSha256 == contentSha256,
-            cancellationToken).ConfigureAwait(false);
+        var existing = context.ContentObjects.Local.SingleOrDefault(
+            row => row.ContentSha256 == contentSha256) ??
+            await context.ContentObjects.SingleOrDefaultAsync(
+                row => row.ContentSha256 == contentSha256,
+                cancellationToken).ConfigureAwait(false);
 
         if (existing is null)
         {
@@ -1227,7 +1234,8 @@ public sealed class SqliteControlPlaneStore(SqliteStoreOptions options)
         CorpusId corpusId,
         string eventType,
         long resultRevision,
-        DateTimeOffset occurredAt)
+        DateTimeOffset occurredAt,
+        string? supplementalDetailsDigest)
     {
         var operation = context.AdminOperations.Local.Single(
             row => row.OperationId == operationId.Value);
@@ -1240,7 +1248,8 @@ public sealed class SqliteControlPlaneStore(SqliteStoreOptions options)
             operationId.Value,
             eventType,
             resultRevision.ToString(System.Globalization.CultureInfo.InvariantCulture),
-            ControlPlaneMapping.FormatUtc(occurredAt));
+            ControlPlaneMapping.FormatUtc(occurredAt),
+            ValidateSupplementalDigest(supplementalDetailsDigest));
         var detailsDigest = Sha256(auditMaterial);
         var eventId = $"audit-{Sha256($"{operationId.Value}\n{eventType}")}";
         context.AuditEvents.Add(new AuditEventRow
@@ -1280,4 +1289,23 @@ public sealed class SqliteControlPlaneStore(SqliteStoreOptions options)
         Convert.ToHexString(
             SHA256.HashData(Encoding.UTF8.GetBytes(value)))
             .ToLowerInvariant();
+
+    private static string ValidateSupplementalDigest(string? value)
+    {
+        if (value is null)
+        {
+            return "none";
+        }
+
+        if (value.Length != 64 || value.Any(character =>
+                character is not (>= '0' and <= '9') and
+                    not (>= 'a' and <= 'f')))
+        {
+            throw new ArgumentException(
+                "A supplemental audit digest must be lowercase SHA-256.",
+                nameof(value));
+        }
+
+        return value;
+    }
 }

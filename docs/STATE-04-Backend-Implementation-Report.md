@@ -179,6 +179,35 @@ and CSV inputs were rejected by explicit adapter guards, the CSV formula
 `=1+1` remained literal and no unexpected package assembly or filesystem
 side effect was observed.
 
+## S04-A outcome
+
+`S04-A` completed locally with provider-neutral Application use cases and
+outer parser/storage adapters:
+
+- local PDF/CSV ingestion writes immutable SHA-256-addressed content, reopens
+  and revalidates it before parsing, then emits deterministic traceable chunks;
+- catalogue administration requires bounded actor, command, reason, operation
+  and UTC context, commits by expected revision and records only a digest of
+  the supplemental audit material;
+- the fake official-source transport receives a trusted immutable
+  registration rather than public URL authority and applies the same parser,
+  byte and chunk limits;
+- changed content creates an immutable snapshot and append-only observation;
+  an identical content hash or `NotModified` response creates only a new
+  observation against the existing snapshot;
+- response status and sent/received validators contribute to the durable audit
+  digest without persisting raw values in the schema;
+- parse failure occurs before snapshot or observation commit and cannot
+  replace active state;
+- repeated content and operation identities are idempotent. A store defect
+  found by the test was corrected so two documents in the same catalogue
+  revision may safely reference one already tracked content object.
+
+The S04-A verification passed format checking, a zero-warning Release build
+and 84 tests: 56 unit, 10 architecture and 18 integration. All sources and
+fixtures were synthetic and the official transport was an in-process fake;
+no listener or network request was used.
+
 ## Retention and risk
 
 - Preserve all temporary `S04-A0` evidence until separate cleanup authority.
@@ -188,5 +217,5 @@ side effect was observed.
   prove current online revocation, Linux ARM64 runtime behaviour, production
   suitability, parser quality over a real corpus or provider behaviour.
 - The consolidated `S04-A` to `S04-D` authority is being consumed
-  sequentially. The parser gate permits `S04-A` to continue; no later state or
-  Human Gate is implied.
+  sequentially. `S04-A` is complete and permits `S04-B` to start; no later
+  state or Human Gate is implied.
