@@ -1,4 +1,4 @@
-// Purpose: Identifies the Infrastructure boundary and its approved inward references without selecting any concrete adapter.
+// Purpose: Identifies the Infrastructure boundary and its approved inward references for structural verification.
 using System.Reflection;
 
 namespace RagChallenge.Infrastructure;

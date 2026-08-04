@@ -1,4 +1,4 @@
-// Purpose: Marks the versioned public-contract namespace while keeping functional schemas and consumer adapters out of project setup.
+// Purpose: Marks the versioned public-contract namespace for contract and architecture verification.
 namespace RagChallenge.Server.Api.Contracts.V1;
 
 public static class ContractsAssemblyMarker;

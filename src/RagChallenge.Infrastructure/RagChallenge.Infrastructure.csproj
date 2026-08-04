@@ -1,6 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
-  <!-- Defines replaceable outer adapters without selecting persistence or RAG providers during setup. -->
+  <!-- Hosts the selected persistence, parsing, provider and official-source adapters outside the inner layers. -->
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
     <AssemblyName>RagChallenge.Infrastructure</AssemblyName>

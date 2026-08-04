@@ -1,4 +1,4 @@
-// Purpose: Records the setup-only composition boundary; it proves inward assembly ownership without enabling product operations.
+// Purpose: Records the approved host composition boundary for structural verification without exposing implementation services.
 using System.Reflection;
 
 namespace RagChallenge.Server.Api.OperationsGovernance;

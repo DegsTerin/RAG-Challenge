@@ -1,6 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
-  <!-- Verifies setup-host integration artefacts without accessing external services or implementing product flows. -->
+  <!-- Verifies local backend workflows, persistence, contracts and host boundaries with synthetic fixtures and no external services. -->
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
     <AssemblyName>RagChallenge.IntegrationTests</AssemblyName>

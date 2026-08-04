@@ -1,6 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
-  <!-- Verifies framework-neutral scaffold invariants without introducing functional behaviour. -->
+  <!-- Verifies Domain, Application and isolated adapter behaviour without external services or operational data. -->
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
     <AssemblyName>RagChallenge.UnitTests</AssemblyName>
