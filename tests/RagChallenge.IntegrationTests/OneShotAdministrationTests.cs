@@ -508,7 +508,7 @@ public sealed class OneShotAdministrationTests
     }
 
     [Fact]
-    public async Task AuditWriteFailureRollsBackTheMutationAndReleasesTheLease()
+    public async Task AuditWriteFailureIsDependencyUnavailableAndRollsBackTheMutation()
     {
         using var root = TemporaryAdministrationRoot.Create();
         var options = root.CreateStoreOptions();
@@ -572,8 +572,16 @@ public sealed class OneShotAdministrationTests
             journal,
             () => Now.AddMinutes(30));
 
-        Assert.Equal((int)AdministrationExitCode.UnexpectedFailure, result.ExitCode);
-        Assert.Equal((int)AdministrationExitCode.UnexpectedFailure, replay.ExitCode);
+        Assert.Equal((int)AdministrationExitCode.DependencyUnavailable, result.ExitCode);
+        Assert.Equal((int)AdministrationExitCode.DependencyUnavailable, replay.ExitCode);
+        Assert.Contains(
+            "CH_ADMIN_DEPENDENCY_UNAVAILABLE",
+            result.Error,
+            StringComparison.Ordinal);
+        Assert.DoesNotContain(
+            "synthetic administrative audit failure",
+            result.Error,
+            StringComparison.OrdinalIgnoreCase);
         Assert.Equal(0, await ScalarAsync(options, "SELECT COUNT(*) FROM catalogue_heads;"));
         Assert.Equal(0, await ScalarAsync(options, "SELECT COUNT(*) FROM admin_operations;"));
         Assert.Equal(0, await ScalarAsync(options, "SELECT COUNT(*) FROM administration_leases;"));
@@ -581,7 +589,88 @@ public sealed class OneShotAdministrationTests
             1,
             await ScalarAsync(
                 options,
-                "SELECT COUNT(*) FROM administration_command_journal WHERE status = 'Completed' AND exit_category = 10;"));
+                "SELECT COUNT(*) FROM administration_command_journal WHERE status = 'Completed' AND exit_category = 5;"));
+    }
+
+    [Fact]
+    public async Task OperationalFailuresUseCanonicalPhaseExitCategories()
+    {
+        using var root = TemporaryAdministrationRoot.Create();
+        await File.WriteAllTextAsync(Path.Combine(root.InputRoot, "input.json"), "{}");
+        var configuration = Configuration(true, root.InputRoot, root.StoreRoot);
+        var identity = new StubIdentity("os-sha256:" + new string('a', 64));
+
+        var missingInput = await RunAsync(
+            MutationArguments("add-database", "missing-input", "missing.json"),
+            configuration,
+            identity,
+            new RecordingLeaseManager(),
+            new RecordingExecutor(),
+            new RecordingJournal());
+        AssertCanonicalFailure(
+            missingInput,
+            AdministrationExitCode.InvalidInput,
+            "CH_ADMIN_INPUT_REJECTED");
+
+        var journalUnavailable = await RunAsync(
+            MutationArguments("add-database", "journal-unavailable", "input.json"),
+            configuration,
+            identity,
+            new RecordingLeaseManager(),
+            new RecordingExecutor(),
+            new RecordingJournal
+            {
+                BeginFailure = new IOException("Sensitive journal detail."),
+            });
+        AssertCanonicalFailure(
+            journalUnavailable,
+            AdministrationExitCode.DependencyUnavailable,
+            "CH_ADMIN_DEPENDENCY_UNAVAILABLE");
+
+        var leaseUnavailable = await RunAsync(
+            MutationArguments("add-database", "lease-unavailable", "input.json"),
+            configuration,
+            identity,
+            new RecordingLeaseManager
+            {
+                AcquireFailure = new IOException("Sensitive lease detail."),
+            },
+            new RecordingExecutor(),
+            new RecordingJournal());
+        AssertCanonicalFailure(
+            leaseUnavailable,
+            AdministrationExitCode.DependencyUnavailable,
+            "CH_ADMIN_DEPENDENCY_UNAVAILABLE");
+
+        var executorUnavailable = await RunAsync(
+            MutationArguments("add-database", "executor-unavailable", "input.json"),
+            configuration,
+            identity,
+            new RecordingLeaseManager(),
+            new RecordingExecutor
+            {
+                ExecuteFailure = new IOException("Sensitive executor detail."),
+            },
+            new RecordingJournal());
+        AssertCanonicalFailure(
+            executorUnavailable,
+            AdministrationExitCode.DependencyUnavailable,
+            "CH_ADMIN_DEPENDENCY_UNAVAILABLE");
+
+        var operationConflict = await RunAsync(
+            MutationArguments("add-database", "operation-conflict", "input.json"),
+            configuration,
+            identity,
+            new RecordingLeaseManager(),
+            new RecordingExecutor
+            {
+                ExecuteFailure = new InvalidOperationException("Sensitive conflict detail."),
+            },
+            new RecordingJournal());
+        AssertCanonicalFailure(
+            operationConflict,
+            AdministrationExitCode.Conflict,
+            "CH_ADMIN_OPERATION_CONFLICT");
     }
 
     [Fact]
@@ -1239,6 +1328,16 @@ public sealed class OneShotAdministrationTests
         return new RunResult(exitCode, output.ToString(), error.ToString());
     }
 
+    private static void AssertCanonicalFailure(
+        RunResult result,
+        AdministrationExitCode expectedExitCode,
+        string expectedResultCode)
+    {
+        Assert.Equal((int)expectedExitCode, result.ExitCode);
+        Assert.Contains(expectedResultCode, result.Error, StringComparison.Ordinal);
+        Assert.DoesNotContain("Sensitive", result.Error, StringComparison.OrdinalIgnoreCase);
+    }
+
     private static IConfiguration Configuration(
         bool enabled,
         string? inputRoot = null,
@@ -1371,6 +1470,8 @@ public sealed class OneShotAdministrationTests
 
         internal bool FailRelease { get; set; }
 
+        internal Exception? AcquireFailure { get; set; }
+
         internal List<AdministrationLeaseRequest> Acquisitions { get; } = [];
 
         internal List<(CorpusId CorpusId, OperationId OperationId)> Releases { get; } = [];
@@ -1380,6 +1481,12 @@ public sealed class OneShotAdministrationTests
             CancellationToken cancellationToken = default)
         {
             Acquisitions.Add(request);
+
+            if (AcquireFailure is not null)
+            {
+                throw AcquireFailure;
+            }
+
             return Task.FromResult(NextOutcome);
         }
 
@@ -1403,6 +1510,8 @@ public sealed class OneShotAdministrationTests
     {
         internal List<OneShotAdministrativeCommand> Commands { get; } = [];
 
+        internal Exception? ExecuteFailure { get; set; }
+
         public AdministrativeCommandIdentifiers DescribeIntent(
             string command,
             CorpusId corpusId,
@@ -1414,6 +1523,12 @@ public sealed class OneShotAdministrationTests
             CancellationToken cancellationToken = default)
         {
             Commands.Add(command);
+
+            if (ExecuteFailure is not null)
+            {
+                throw ExecuteFailure;
+            }
+
             return Task.FromResult(new AdministrativeExecutionResult(
                 AdministrativeExecutionOutcome.Applied,
                 "CH_ADMIN_APPLIED",
@@ -1426,10 +1541,17 @@ public sealed class OneShotAdministrationTests
         private readonly Dictionary<string, (AdministrationJournalIntent Intent,
             AdministrationJournalResult? Result)> entries = new(StringComparer.Ordinal);
 
+        internal Exception? BeginFailure { get; set; }
+
         public Task<AdministrationJournalBeginResult> BeginAsync(
             AdministrationJournalIntent intent,
             CancellationToken cancellationToken = default)
         {
+            if (BeginFailure is not null)
+            {
+                throw BeginFailure;
+            }
+
             if (!entries.TryGetValue(intent.OperationId.Value, out var entry))
             {
                 entries.Add(intent.OperationId.Value, (intent, null));

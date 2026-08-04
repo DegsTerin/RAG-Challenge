@@ -3,6 +3,7 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
 
+using Microsoft.Data.Sqlite;
 using Microsoft.Extensions.Configuration;
 
 using RagChallenge.Application.Administration;
@@ -27,6 +28,15 @@ internal enum AdministrativeExecutionOutcome
     AlreadyApplied,
     Rejected,
     Unavailable,
+}
+
+internal enum AdministrationExecutionPhase
+{
+    Input,
+    Journal,
+    Lease,
+    Execution,
+    Output,
 }
 
 internal sealed record AdministrativeExecutionResult(
@@ -181,7 +191,22 @@ internal static class OneShotAdministrationHost
             return (int)AdministrationExitCode.ConfigurationOrAuthorityDenied;
         }
 
-        var actor = identityProvider.GetOpaqueIdentifier();
+        string? actor;
+
+        try
+        {
+            actor = identityProvider.GetOpaqueIdentifier();
+        }
+        catch (Exception exception) when (
+            exception is ArgumentException or InvalidOperationException or
+                IOException or UnauthorizedAccessException)
+        {
+            await WriteFailureAsync(
+                error,
+                AdministrationExitCode.ConfigurationOrAuthorityDenied,
+                "CH_ADMIN_IDENTITY_UNAVAILABLE").ConfigureAwait(false);
+            return (int)AdministrationExitCode.ConfigurationOrAuthorityDenied;
+        }
 
         if (string.IsNullOrWhiteSpace(actor))
         {
@@ -197,6 +222,7 @@ internal static class OneShotAdministrationHost
         CorpusId? corpusId = null;
         OperationId? operationId = null;
         var ownsLease = false;
+        var phase = AdministrationExecutionPhase.Input;
 
         try
         {
@@ -241,6 +267,7 @@ internal static class OneShotAdministrationHost
                     FallbackSourceIdentifiers(corpusId, invocation.InputPath),
                     [],
                     requestedAt);
+                phase = AdministrationExecutionPhase.Journal;
                 var rejectedBegin = await journal.BeginAsync(
                     journalIntent,
                     cancellationToken).ConfigureAwait(false);
@@ -274,10 +301,12 @@ internal static class OneShotAdministrationHost
                     AdministrationJournalResultOutcome.Rejected,
                     "CH_ADMIN_INPUT_REJECTED",
                     AdministrationExitCode.InvalidInput);
+                phase = AdministrationExecutionPhase.Journal;
                 await journal.CompleteAsync(
                     rejection,
                     CompletionInstant(rejectedBegin.StartedAt, utcNow()),
                     cancellationToken).ConfigureAwait(false);
+                phase = AdministrationExecutionPhase.Output;
                 await WriteFailureAsync(
                     error,
                     AdministrationExitCode.InvalidInput,
@@ -295,6 +324,7 @@ internal static class OneShotAdministrationHost
                 identifiers.SourceIdentifiers,
                 identifiers.TargetIdentifiers,
                 requestedAt);
+            phase = AdministrationExecutionPhase.Journal;
             var journalBegin = await journal.BeginAsync(journalIntent, cancellationToken)
                 .ConfigureAwait(false);
             var audit = new AdministrativeAuditContext(
@@ -314,6 +344,7 @@ internal static class OneShotAdministrationHost
 
             if (journalBegin.Outcome == AdministrationJournalBeginOutcome.CompletedReplay)
             {
+                phase = AdministrationExecutionPhase.Output;
                 return await WriteCompletedReplayAsync(
                     output,
                     error,
@@ -323,6 +354,7 @@ internal static class OneShotAdministrationHost
 
             if (AdministrativeCommands.IsMutation(invocation.Command))
             {
+                phase = AdministrationExecutionPhase.Lease;
                 var lease = await leaseManager.AcquireAsync(
                     new AdministrationLeaseRequest(
                         corpusId,
@@ -338,10 +370,12 @@ internal static class OneShotAdministrationHost
                         AdministrationJournalResultOutcome.Rejected,
                         "CH_ADMIN_LEASE_CONFLICT",
                         AdministrationExitCode.Conflict);
+                    phase = AdministrationExecutionPhase.Journal;
                     await journal.CompleteAsync(
                         conflict,
                         CompletionInstant(requestedAt, utcNow()),
                         cancellationToken).ConfigureAwait(false);
+                    phase = AdministrationExecutionPhase.Output;
                     await WriteFailureAsync(
                         error,
                         AdministrationExitCode.Conflict,
@@ -352,6 +386,7 @@ internal static class OneShotAdministrationHost
                 ownsLease = true;
             }
 
+            phase = AdministrationExecutionPhase.Execution;
             var result = await executor.ExecuteAsync(command, cancellationToken)
                 .ConfigureAwait(false);
             var exitCode = MapExitCode(result.Outcome);
@@ -359,11 +394,13 @@ internal static class OneShotAdministrationHost
 
             if (result.JournalCompletionRecorded)
             {
+                phase = AdministrationExecutionPhase.Journal;
                 await journal.VerifyCompletedAsync(completion, cancellationToken)
                     .ConfigureAwait(false);
             }
             else
             {
+                phase = AdministrationExecutionPhase.Journal;
                 await journal.CompleteAsync(
                     completion,
                     CompletionInstant(requestedAt, utcNow()),
@@ -374,6 +411,7 @@ internal static class OneShotAdministrationHost
             {
                 try
                 {
+                    phase = AdministrationExecutionPhase.Lease;
                     await leaseManager.ReleaseAsync(corpusId, operationId, cancellationToken)
                         .ConfigureAwait(false);
                     ownsLease = false;
@@ -387,10 +425,12 @@ internal static class OneShotAdministrationHost
 
             if (exitCode == AdministrationExitCode.Success)
             {
+                phase = AdministrationExecutionPhase.Output;
                 await WriteSuccessAsync(output, command, result).ConfigureAwait(false);
             }
             else
             {
+                phase = AdministrationExecutionPhase.Output;
                 await WriteFailureAsync(error, exitCode, result.ResultCode)
                     .ConfigureAwait(false);
             }
@@ -405,9 +445,7 @@ internal static class OneShotAdministrationHost
                 "CH_ADMIN_OPERATION_CONFLICT").ConfigureAwait(false);
             return (int)AdministrationExitCode.Conflict;
         }
-        catch (Exception exception) when (
-            exception is ArgumentException or InvalidDataException or JsonException or
-                IOException or UnauthorizedAccessException)
+        catch (Exception exception) when (IsInputFailure(exception, phase))
         {
             await TryCompleteFailureAsync(
                 journal,
@@ -421,6 +459,36 @@ internal static class OneShotAdministrationHost
                 AdministrationExitCode.InvalidInput,
                 "CH_ADMIN_INPUT_REJECTED").ConfigureAwait(false);
             return (int)AdministrationExitCode.InvalidInput;
+        }
+        catch (InvalidOperationException) when (phase == AdministrationExecutionPhase.Execution)
+        {
+            await TryCompleteFailureAsync(
+                journal,
+                journalIntent,
+                AdministrationJournalResultOutcome.Rejected,
+                "CH_ADMIN_OPERATION_CONFLICT",
+                AdministrationExitCode.Conflict,
+                utcNow).ConfigureAwait(false);
+            await WriteFailureAsync(
+                error,
+                AdministrationExitCode.Conflict,
+                "CH_ADMIN_OPERATION_CONFLICT").ConfigureAwait(false);
+            return (int)AdministrationExitCode.Conflict;
+        }
+        catch (Exception exception) when (IsDependencyFailure(exception, phase))
+        {
+            await TryCompleteFailureAsync(
+                journal,
+                journalIntent,
+                AdministrationJournalResultOutcome.Unavailable,
+                "CH_ADMIN_DEPENDENCY_UNAVAILABLE",
+                AdministrationExitCode.DependencyUnavailable,
+                utcNow).ConfigureAwait(false);
+            await WriteFailureAsync(
+                error,
+                AdministrationExitCode.DependencyUnavailable,
+                "CH_ADMIN_DEPENDENCY_UNAVAILABLE").ConfigureAwait(false);
+            return (int)AdministrationExitCode.DependencyUnavailable;
         }
         catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
         {
@@ -469,6 +537,37 @@ internal static class OneShotAdministrationHost
                 }
             }
         }
+    }
+
+    private static bool IsInputFailure(
+        Exception exception,
+        AdministrationExecutionPhase phase) =>
+        (exception is ArgumentException or InvalidDataException or JsonException &&
+            phase is AdministrationExecutionPhase.Input or
+                AdministrationExecutionPhase.Execution) ||
+        (exception is IOException or UnauthorizedAccessException &&
+            phase == AdministrationExecutionPhase.Input);
+
+    private static bool IsDependencyFailure(
+        Exception exception,
+        AdministrationExecutionPhase phase) =>
+        (phase is AdministrationExecutionPhase.Journal or
+            AdministrationExecutionPhase.Lease or
+            AdministrationExecutionPhase.Execution) &&
+        (exception is IOException or UnauthorizedAccessException or TimeoutException ||
+            HasSqliteCause(exception));
+
+    private static bool HasSqliteCause(Exception exception)
+    {
+        for (var current = exception; current is not null; current = current.InnerException)
+        {
+            if (current is SqliteException)
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     private static bool TryParseInvocation(
