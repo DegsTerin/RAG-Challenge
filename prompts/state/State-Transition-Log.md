@@ -2761,3 +2761,31 @@ contém somente fatos cronológicos.
   corpus real, GitHub, OCI, Dashboard, DB-Notifier, publicação, deploy, Human
   Gate ou estado posterior.
 - Aprovador: proprietário do RAG-Challenge.
+
+## 2026-08-04 — S04-D concluído com API pública v1 fail-closed
+
+- Estado anterior: `S04-C` concluído; `S04-D` era o próximo lote sequencial.
+- Superfície: somente `POST /api/v1/questions`, `GET /api/v1/health/live` e
+  `GET /api/v1/health/ready`; administração, provider, URL, modelo, adapter e
+  estado do Dashboard não são autoridade pública.
+- Contrato: OpenAPI 3.1 v1 versionado; request/response, citações, cobertura,
+  readiness e Problem Details possuem schemas transport-only e rejeitam
+  campos desconhecidos.
+- Limites: 8 KiB por body, 4 KiB UTF-8 por pergunta, deadline de 25 segundos,
+  cancelamento propagado, máximo de 20 consultas concorrentes e token bucket
+  de 30 por minuto por chave derivada, com burst 10 e fila zero.
+- Falhas e health: taxonomia pública mapeada para códigos `CH_*` sanitizados;
+  liveness não depende de serviço externo e readiness fica `Unready` até uma
+  composição explícita fornecer probe sanitizado completo.
+- Providers: adapters OpenAI por HTTP direto, sem `OpenAI` ou
+  `System.ClientModel`, com rotas exatas, JSON limitado, `store=false`, sem
+  redirects, proxy ou decompression. Somente handler falso foi exercitado.
+- Verificação: 27 testes focais aprovados; build Release com zero warnings e
+  zero erros; suíte completa com 118 testes aprovados — 67 unitários, 10 de
+  arquitetura e 41 de integração.
+- Estado resultante: `S04-D` concluído; o Automatic Quality Gate de `STATE-04`
+  é a próxima ação autorizada e deve preceder qualquer decisão humana.
+- Escopo negativo preservado: sem rede, provider real, conta, secret, corpus
+  real, fonte oficial real, GitHub, OCI, Dashboard, DB-Notifier, publicação,
+  deploy, Human Gate ou estado posterior.
+- Aprovador: proprietário do RAG-Challenge.

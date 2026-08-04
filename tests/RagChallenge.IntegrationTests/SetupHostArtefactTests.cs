@@ -1,9 +1,11 @@
 // Purpose: Verifies setup-host configuration and health mappings without starting listeners or contacting external services.
 using System.Text.Json;
 
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.DependencyInjection;
 
+using RagChallenge.Server.Api.Contracts.V1;
 using RagChallenge.Server.Api.OperationsGovernance;
 
 namespace RagChallenge.IntegrationTests;
@@ -31,8 +33,8 @@ public sealed class SetupHostArtefactTests
     }
 
     [Theory]
-    [InlineData("/health/live")]
-    [InlineData("/health/ready")]
+    [InlineData(HealthEndpoints.LivenessRoute)]
+    [InlineData(HealthEndpoints.ReadinessRoute)]
     public async Task SetupHostMapsDependencyFreeHealthEndpoints(string route)
     {
         await using var app = SetupHost.Build([]);
@@ -43,6 +45,42 @@ public sealed class SetupHostArtefactTests
             .ToArray();
 
         Assert.Contains(route, mappedRoutes);
+    }
+
+    [Fact]
+    public async Task ReadinessFailsClosedUntilQueryCapabilityIsConfigured()
+    {
+        await using var app = SetupHost.Build([]);
+        var probe = app.Services.GetRequiredService<IQueryReadinessProbe>();
+        var context = CreateContext(app.Services);
+        var result = await HealthEndpoints.ReadyAsync(probe, CancellationToken.None);
+        await result.ExecuteAsync(context);
+
+        Assert.Equal(StatusCodes.Status503ServiceUnavailable, context.Response.StatusCode);
+        context.Response.Body.Position = 0;
+        using var response = await JsonDocument.ParseAsync(context.Response.Body);
+        Assert.Equal("Unready", response.RootElement.GetProperty("status").GetString());
+        Assert.Equal(
+            "unconfigured",
+            response.RootElement.GetProperty("configurationRevision").GetString());
+    }
+
+    [Fact]
+    public async Task ReadinessAcceptsAnExplicitQueryComposition()
+    {
+        await using var app = SetupHost.Build(
+            [],
+            services => services.AddSingleton<IQueryReadinessProbe, ReadyQueryProbe>());
+        var probe = app.Services.GetRequiredService<IQueryReadinessProbe>();
+        var context = CreateContext(app.Services);
+        var result = await HealthEndpoints.ReadyAsync(probe, CancellationToken.None);
+        await result.ExecuteAsync(context);
+
+        Assert.Equal(StatusCodes.Status200OK, context.Response.StatusCode);
+        context.Response.Body.Position = 0;
+        using var response = await JsonDocument.ParseAsync(context.Response.Body);
+        Assert.Equal("Degraded", response.RootElement.GetProperty("status").GetString());
+        Assert.Equal(1, response.RootElement.GetProperty("eligibleDocumentCount").GetInt32());
     }
 
     [Fact]
@@ -94,5 +132,32 @@ public sealed class SetupHostArtefactTests
 
         throw new DirectoryNotFoundException(
             "The RAG-Challenge repository root could not be located.");
+    }
+
+    private static DefaultHttpContext CreateContext(IServiceProvider services)
+    {
+        var context = new DefaultHttpContext
+        {
+            RequestServices = services,
+        };
+        context.Response.Body = new MemoryStream();
+        return context;
+    }
+
+    private sealed class ReadyQueryProbe : IQueryReadinessProbe
+    {
+        public ValueTask<ReadinessV1> CheckAsync(
+            DateTimeOffset observedAt,
+            CancellationToken cancellationToken = default) =>
+            ValueTask.FromResult(new ReadinessV1(
+                "Degraded",
+                ActiveDatabaseCount: 1,
+                EligibleDocumentCount: 1,
+                DegradedDocumentCount: 1,
+                SourceStates: [new SanitisedSourceStateV1("source-1", "Stale")],
+                ActiveGenerationId: "idxgen-synthetic",
+                ConfigurationRevision: "configuration-1",
+                Checks: [new SanitisedCapabilityCheckV1("query-runtime", "Available")],
+                observedAt));
     }
 }

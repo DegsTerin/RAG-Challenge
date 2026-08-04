@@ -277,6 +277,39 @@ metadata envelope before recomputing canonical generation identity. Format
 checking, a zero-warning Release build and 96 tests passed: 67 unit, 10
 architecture and 19 integration.
 
+## S04-D outcome
+
+`S04-D` completed the bounded public HTTP v1 surface and its provider adapters
+without enabling external access:
+
+- `POST /api/v1/questions` accepts only corpus identity, canonical
+  `questionLanguage` and a bounded question; strict JSON rejects unknown URL,
+  provider, adapter, model, theme and interface-authority fields;
+- the endpoint applies an 8 KiB request-body limit, the Application-owned
+  4 KiB UTF-8 question limit, a 25-second linked deadline, cancellation, a
+  20-query process ceiling and a 30-per-minute token bucket with burst 10;
+- completed answers and explicit insufficient-evidence outcomes map to the
+  versioned response contract, while the full public Application failure
+  taxonomy maps to sanitised RFC 9457 Problem Details with stable `CH_*`
+  codes and correlation identity;
+- `GET /api/v1/health/live` remains dependency-free. `GET
+  /api/v1/health/ready` returns the sanitised readiness contract and fails
+  closed until an explicit local composition supplies the control-store,
+  activation, document, vector and provider-circuit probe;
+- the repository-owned OpenAPI 3.1 v1 artefact includes only the three public
+  routes and transport schemas, with no Domain entities, administration
+  operation, provider authority or Dashboard state;
+- the OpenAI embedding and Responses adapters use direct HTTP only, exact
+  approved routes, bounded JSON, structured answer output, provider-side
+  storage disabled and handlers with redirects, proxies and automatic
+  decompression disabled. They are not enabled by the default composition.
+
+The focused API, health and direct-HTTP contract set passed 27 tests through
+in-process services and a fake `HttpMessageHandler`. The complete Release
+suite then passed 118 tests: 67 unit, 10 architecture and 41 integration. The
+Release build completed with zero warnings and zero errors. No listener,
+provider, network request, external source or real corpus was used.
+
 ## Retention and risk
 
 - Preserve all temporary `S04-A0` evidence until separate cleanup authority.
@@ -285,6 +318,7 @@ architecture and 19 integration.
 - The retained evidence is exploratory and workstation-local. It does not
   prove current online revocation, Linux ARM64 runtime behaviour, production
   suitability, parser quality over a real corpus or provider behaviour.
-- The consolidated `S04-A` to `S04-D` authority is being consumed
-  sequentially. `S04-A`, `S04-B` and `S04-C` are complete and permit `S04-D`
-  to start; no later state or Human Gate is implied.
+- The consolidated `S04-A` to `S04-D` authority has been consumed
+  sequentially. All four lots are complete and permit only the separately
+  named Automatic Quality Gate that follows; no later state or Human Gate is
+  implied.

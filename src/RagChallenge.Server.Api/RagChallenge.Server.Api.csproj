@@ -1,6 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk.Web">
 
-  <!-- Hosts composition and health only; functional API and administrative operations remain out of scope. -->
+  <!-- Hosts the versioned public query contract and health surface; administration remains outside HTTP. -->
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
     <AssemblyName>RagChallenge.Server.Api</AssemblyName>

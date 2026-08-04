@@ -1,0 +1,532 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "RAG-Challenge Public Query API",
+    "version": "1.0.0"
+  },
+  "paths": {
+    "/api/v1/questions": {
+      "post": {
+        "operationId": "askQuestionV1",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/QueryRequestV1"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Answered or InsufficientEvidence completion.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/QueryResponseV1"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "429": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "500": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "503": {
+            "$ref": "#/components/responses/Problem"
+          }
+        }
+      }
+    },
+    "/api/v1/health/live": {
+      "get": {
+        "operationId": "getLivenessV1",
+        "responses": {
+          "200": {
+            "description": "The process can respond without an external dependency.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LivenessV1"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/health/ready": {
+      "get": {
+        "operationId": "getReadinessV1",
+        "responses": {
+          "200": {
+            "description": "The configured query capability can attempt to serve requests.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReadinessV1"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "The configured query capability cannot serve requests.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReadinessV1"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "responses": {
+      "Problem": {
+        "description": "Sanitised RFC 9457 Problem Details.",
+        "content": {
+          "application/problem+json": {
+            "schema": {
+              "$ref": "#/components/schemas/ProblemDetails"
+            }
+          }
+        }
+      }
+    },
+    "schemas": {
+      "LivenessV1": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "status"
+        ],
+        "properties": {
+          "status": {
+            "type": "string",
+            "const": "Live"
+          }
+        }
+      },
+      "ReadinessV1": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "status",
+          "activeDatabaseCount",
+          "eligibleDocumentCount",
+          "degradedDocumentCount",
+          "sourceStates",
+          "configurationRevision",
+          "checks",
+          "observedAt"
+        ],
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": [
+              "Ready",
+              "Degraded",
+              "Unready"
+            ]
+          },
+          "activeDatabaseCount": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "eligibleDocumentCount": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "degradedDocumentCount": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "sourceStates": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SanitisedSourceStateV1"
+            }
+          },
+          "activeGenerationId": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "configurationRevision": {
+            "type": "string"
+          },
+          "checks": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SanitisedCapabilityCheckV1"
+            }
+          },
+          "observedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "SanitisedSourceStateV1": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "sourceId",
+          "state"
+        ],
+        "properties": {
+          "sourceId": {
+            "type": "string"
+          },
+          "state": {
+            "type": "string"
+          }
+        }
+      },
+      "SanitisedCapabilityCheckV1": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "capability",
+          "state"
+        ],
+        "properties": {
+          "capability": {
+            "type": "string"
+          },
+          "state": {
+            "type": "string"
+          }
+        }
+      },
+      "QueryRequestV1": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "corpusId",
+          "questionLanguage",
+          "question"
+        ],
+        "properties": {
+          "corpusId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 128
+          },
+          "questionLanguage": {
+            "type": "string",
+            "enum": [
+              "pt-BR",
+              "en-GB"
+            ]
+          },
+          "question": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 4096
+          }
+        }
+      },
+      "QueryResponseV1": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "outcome",
+          "answerLanguage",
+          "citations",
+          "evidenceCoverage",
+          "indexGenerationId",
+          "retrievalPolicyVersion",
+          "promptVersion",
+          "languageModelDescriptor",
+          "correlationId"
+        ],
+        "properties": {
+          "outcome": {
+            "type": "string",
+            "enum": [
+              "Answered",
+              "InsufficientEvidence"
+            ]
+          },
+          "answerLanguage": {
+            "type": "string",
+            "enum": [
+              "pt-BR",
+              "en-GB"
+            ]
+          },
+          "answer": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "citations": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CitationV1"
+            }
+          },
+          "evidenceCoverage": {
+            "$ref": "#/components/schemas/EvidenceCoverageV1"
+          },
+          "indexGenerationId": {
+            "type": "string"
+          },
+          "retrievalPolicyVersion": {
+            "type": "string"
+          },
+          "promptVersion": {
+            "type": "string"
+          },
+          "languageModelDescriptor": {
+            "$ref": "#/components/schemas/LanguageModelDescriptorV1"
+          },
+          "correlationId": {
+            "type": "string"
+          }
+        }
+      },
+      "CitationV1": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "corpusId",
+          "indexGenerationId",
+          "databaseProductId",
+          "databaseProductRevision",
+          "documentId",
+          "documentVersion",
+          "documentFormat",
+          "contentLanguage",
+          "chunkId",
+          "sourceAdapterId",
+          "sourceTrustClass",
+          "excerpt",
+          "columns",
+          "sourceFreshness"
+        ],
+        "properties": {
+          "corpusId": {
+            "type": "string"
+          },
+          "indexGenerationId": {
+            "type": "string"
+          },
+          "databaseProductId": {
+            "type": "string"
+          },
+          "databaseProductRevision": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "documentId": {
+            "type": "string"
+          },
+          "documentVersion": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "documentFormat": {
+            "type": "string",
+            "enum": [
+              "Pdf",
+              "Csv"
+            ]
+          },
+          "contentLanguage": {
+            "type": "string",
+            "enum": [
+              "pt-BR",
+              "en-GB"
+            ]
+          },
+          "chunkId": {
+            "type": "string"
+          },
+          "sourceAdapterId": {
+            "type": "string"
+          },
+          "sourceTrustClass": {
+            "type": "string",
+            "enum": [
+              "LocalAuthorised",
+              "OfficialExternal"
+            ]
+          },
+          "excerpt": {
+            "type": "string"
+          },
+          "title": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "pageStart": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "minimum": 1
+          },
+          "pageEnd": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "minimum": 1
+          },
+          "recordStart": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "minimum": 1
+          },
+          "recordEnd": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "minimum": 1
+          },
+          "columns": {
+            "type": "array",
+            "maxItems": 64,
+            "items": {
+              "type": "string"
+            }
+          },
+          "canonicalUrl": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "sourceSnapshotId": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "revalidatedAt": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "sourceFreshness": {
+            "type": "string"
+          }
+        }
+      },
+      "EvidenceCoverageV1": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "activeDatabaseCount",
+          "activeDocumentCount",
+          "eligibleDatabaseCount",
+          "eligibleDocumentCount",
+          "degradedSources"
+        ],
+        "properties": {
+          "activeDatabaseCount": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "activeDocumentCount": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "eligibleDatabaseCount": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "eligibleDocumentCount": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "degradedSources": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "LanguageModelDescriptorV1": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "providerId",
+          "modelId",
+          "modelRevision"
+        ],
+        "properties": {
+          "providerId": {
+            "type": "string"
+          },
+          "modelId": {
+            "type": "string"
+          },
+          "modelRevision": {
+            "type": "string"
+          }
+        }
+      },
+      "ProblemDetails": {
+        "type": "object",
+        "required": [
+          "type",
+          "title",
+          "status",
+          "detail",
+          "code",
+          "correlationId"
+        ],
+        "properties": {
+          "type": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "status": {
+            "type": "integer"
+          },
+          "detail": {
+            "type": "string"
+          },
+          "instance": {
+            "type": "string"
+          },
+          "code": {
+            "type": "string",
+            "pattern": "^CH_[A-Z0-9_]+$"
+          },
+          "correlationId": {
+            "type": "string"
+          },
+          "retryAfterSeconds": {
+            "type": "integer",
+            "minimum": 1
+          }
+        }
+      }
+    }
+  }
+}

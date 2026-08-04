@@ -227,9 +227,12 @@ public enum QueryFailureKind
     CorpusUnavailable,
     SourceUnavailable,
     SourceStale,
+    SourcePolicyViolation,
     EmbeddingUnavailable,
     IndexUnavailable,
     LanguageModelUnavailable,
+    RateLimited,
+    ConfigurationInvalid,
     OperationCancelled,
     UnexpectedFailure,
 }
@@ -298,6 +301,14 @@ public sealed record QueryExecutionResult(
         new(Completion: null, failure);
 }
 
+public interface IQuestionAnsweringService
+{
+    Task<QueryExecutionResult> AskAsync(
+        QueryRequest request,
+        DateTimeOffset observedAt,
+        CancellationToken cancellationToken = default);
+}
+
 public sealed class ProviderStageUnavailableException : Exception
 {
     public ProviderStageUnavailableException(string stage, string message)
@@ -314,7 +325,7 @@ public sealed class ProviderStageUnavailableException : Exception
     public string Stage { get; }
 }
 
-public sealed class QuestionAnsweringService
+public sealed class QuestionAnsweringService : IQuestionAnsweringService
 {
     public const string RetrievalPolicyVersion = "retrieval-v1";
     public const string PromptVersion = "grounded-answer-v1";

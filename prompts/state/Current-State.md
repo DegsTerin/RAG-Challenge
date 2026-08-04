@@ -30,7 +30,11 @@ proprietários.
   finalização canônica, commit, ativação CAS, hard pre-filter e replay
   idempotente; `S04-C` concluiu recuperação sobre uma única revisão ativa,
   elegibilidade/freshness, recusa, resposta grounded, citações e a matriz
-  `pt-BR`/`en-GB`; `S04-D` é o próximo lote sequencial.
+  `pt-BR`/`en-GB`; `S04-D` concluiu API pública v1, OpenAPI versionado,
+  health fail-closed, Problem Details, limites, cancelamento, rate limit e os
+  adapters OpenAI por HTTP direto exercitados somente com handler falso. Os
+  quatro lotes estão concluídos e o Automatic Quality Gate de `STATE-04` é a
+  próxima ação autorizada.
 - Fechamento de `S04-A0`: `PdfPig` `0.1.15` e `CsvHelper` `33.1.0` foram
   selecionados condicionalmente para desenvolvimento local;
   `Sylvan.Data.Csv` `1.4.4` permanece fallback não selecionado e não
@@ -486,9 +490,8 @@ autorizada.
    para cada banco antes de sua ativação.
 2. Validar e ativar individualmente novos registros de fonte oficial; a
    aceitação arquitetural não autoriza URL, rede, download ou crawling.
-3. Concluir `S04-B` a `S04-D` sequencialmente sob o envelope autorizado e
-   executar o Automatic Quality Gate somente após os quatro lotes; `S04-A`
-   está concluído.
+3. Executar o Automatic Quality Gate de `STATE-04` sobre os quatro lotes
+   concluídos; nenhuma chamada externa ou Human Gate faz parte dessa execução.
 4. Verificar tier, entitlement, spend limit e controles da conta OpenAI, além
    da recuperação/geração bilíngue, antes de usar ou anunciar os providers.
 5. Homologar desempenho e capacidade do `SqliteExactVectorStore`; a fixture
@@ -516,9 +519,10 @@ foram autorizados pelo proprietário em 2026-08-04. A fonte offline isolada foi
 completada por cópia somente leitura e allowlisted das identidades e versões
 já fixadas, sem alterar o cache global. `PdfPig` `0.1.15` e `CsvHelper`
 `33.1.0` foram fixados com grafo aplicável vazio, restore locked e hashes
-aprovados; o primeiro gate runtime sintético passou. `S04-A` foi concluído e
-`S04-B` pode começar, devendo preceder estritamente `S04-C`, `S04-D` e o
-Automatic Quality Gate.
+aprovados; o primeiro gate runtime sintético passou. `S04-A`, `S04-B`, `S04-C`
+e `S04-D` foram concluídos sequencialmente. O Automatic Quality Gate de
+`STATE-04` é a próxima e última ação do envelope autorizado antes da parada
+para decisão humana separada.
 
 Nenhuma nova autoridade é necessária para o restante desse envelope enquanto
 baseline, packages, versões, arquitetura, contratos e escopo negativo

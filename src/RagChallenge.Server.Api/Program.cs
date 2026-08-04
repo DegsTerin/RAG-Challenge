@@ -1,4 +1,4 @@
-// Purpose: Hosts setup-only composition and dependency-free health endpoints; RAG, persistence, administration, and external access are excluded.
+// Purpose: Hosts the bounded public query API and health endpoints; administration and external access remain disabled unless separately composed.
 using RagChallenge.Server.Api.OperationsGovernance;
 
 var app = SetupHost.Build(args);
