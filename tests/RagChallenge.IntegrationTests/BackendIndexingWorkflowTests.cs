@@ -5,6 +5,7 @@ using RagChallenge.Application.IndexingRetrieval;
 using RagChallenge.Application.Persistence;
 using RagChallenge.Domain.CorpusCatalog;
 using RagChallenge.Domain.IndexingRetrieval;
+using RagChallenge.Infrastructure.Documents;
 using RagChallenge.Infrastructure.Persistence;
 
 namespace RagChallenge.IntegrationTests;
@@ -39,6 +40,7 @@ public sealed class BackendIndexingWorkflowTests
                 new Dictionary<string, string>()),
         };
         var bindings = new[] { binding };
+        var compatibilityProfile = CreateCompatibilityProfile(descriptor);
         var specification = new IndexGenerationSpecification(
             1,
             SqlitePersistenceFixture.CorpusId,
@@ -46,18 +48,39 @@ public sealed class BackendIndexingWorkflowTests
             new CatalogueRevision(1),
             BindingDigestCanonicalizer.CanonicaliseActiveDocumentSet(bindings).Digest,
             BindingDigestCanonicalizer.CanonicaliseSourceBindingSet(bindings).Digest,
-            SqlitePersistenceFixture.CompatibilityKey);
+            compatibilityProfile.Key);
         var request = new CorpusIndexingRequest(
             new CandidateBuildId("candidate-backend-indexing"),
             specification,
-            [new IndexDocumentInput(binding, SupportedLanguage.EnGb, chunks)],
+            [new IndexDocumentInput(
+                binding,
+                SupportedLanguage.EnGb,
+                chunks,
+                PdfPigDocumentParser.CompatibilityDescriptor,
+                compatibilityProfile.ChunkingPolicy)],
             descriptor,
+            compatibilityProfile,
             Audit("generation-backend-indexing", "index-generation", 2),
             SqlitePersistenceFixture.At(3));
         var service = new CorpusIndexingService(
             new DeterministicEmbeddingProvider(descriptor),
             fixture.VectorStore,
             fixture.ControlStore);
+        var incompatibleRequest = request with
+        {
+            Documents =
+            [
+                new IndexDocumentInput(
+                    binding,
+                    SupportedLanguage.EnGb,
+                    chunks,
+                    "unapproved-parser/1",
+                    compatibilityProfile.ChunkingPolicy),
+            ],
+        };
+
+        await Assert.ThrowsAsync<ArgumentException>(() =>
+            service.BuildAsync(incompatibleRequest));
 
         var built = await service.BuildAsync(request);
 
@@ -133,6 +156,17 @@ public sealed class BackendIndexingWorkflowTests
             command,
             "synthetic indexing workflow verification",
             SqlitePersistenceFixture.At(hour));
+
+    private static IndexCompatibilityProfile CreateCompatibilityProfile(
+        EmbeddingProviderDescriptor embeddingDescriptor) =>
+        new(
+            [
+                PdfPigDocumentParser.CompatibilityDescriptor,
+                CsvHelperDocumentParser.CompatibilityDescriptor,
+            ],
+            new ChunkingPolicy(),
+            embeddingDescriptor,
+            "sqlite-exact-vector-store/1;schema=1;distance=cosine;algorithm=exact-scan;vector=float32");
 
     private sealed class DeterministicEmbeddingProvider(
         EmbeddingProviderDescriptor descriptor) : IEmbeddingProvider

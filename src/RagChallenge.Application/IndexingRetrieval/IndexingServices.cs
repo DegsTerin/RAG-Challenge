@@ -127,7 +127,9 @@ public sealed class IndexDocumentInput
     public IndexDocumentInput(
         DocumentBinding binding,
         SupportedLanguage contentLanguage,
-        IReadOnlyCollection<DocumentChunk> chunks)
+        IReadOnlyCollection<DocumentChunk> chunks,
+        string parserDescriptor,
+        ChunkingPolicy chunkingPolicy)
     {
         Binding = binding ?? throw new ArgumentNullException(nameof(binding));
 
@@ -147,6 +149,10 @@ public sealed class IndexDocumentInput
         }
 
         Chunks = Array.AsReadOnly(chunks.OrderBy(chunk => chunk.Ordinal).ToArray());
+        ArgumentException.ThrowIfNullOrWhiteSpace(parserDescriptor);
+        ParserDescriptor = parserDescriptor;
+        ChunkingPolicy = chunkingPolicy ??
+            throw new ArgumentNullException(nameof(chunkingPolicy));
     }
 
     public DocumentBinding Binding { get; }
@@ -154,6 +160,10 @@ public sealed class IndexDocumentInput
     public SupportedLanguage ContentLanguage { get; }
 
     public ReadOnlyCollection<DocumentChunk> Chunks { get; }
+
+    public string ParserDescriptor { get; }
+
+    public ChunkingPolicy ChunkingPolicy { get; }
 }
 
 public sealed record CorpusIndexingRequest(
@@ -161,6 +171,7 @@ public sealed record CorpusIndexingRequest(
     IndexGenerationSpecification Specification,
     IReadOnlyCollection<IndexDocumentInput> Documents,
     EmbeddingProviderDescriptor ExpectedEmbeddingDescriptor,
+    IndexCompatibilityProfile CompatibilityProfile,
     AdministrativeAuditContext AuditContext,
     DateTimeOffset ValidatedAt,
     int MaximumEmbeddingBatchUtf8Bytes = 1_048_576);
@@ -326,14 +337,19 @@ public sealed class CorpusIndexingService(
         ArgumentNullException.ThrowIfNull(request.Specification);
         ArgumentNullException.ThrowIfNull(request.Documents);
         ArgumentNullException.ThrowIfNull(request.ExpectedEmbeddingDescriptor);
+        ArgumentNullException.ThrowIfNull(request.CompatibilityProfile);
         ArgumentNullException.ThrowIfNull(request.AuditContext);
 
         if (request.ValidatedAt.Offset != TimeSpan.Zero ||
             request.ValidatedAt < request.AuditContext.RequestedAt ||
-            request.Documents.Count == 0)
+            request.Documents.Count == 0 ||
+            request.ExpectedEmbeddingDescriptor !=
+                request.CompatibilityProfile.EmbeddingDescriptor ||
+            request.Specification.IndexCompatibilityKey !=
+                request.CompatibilityProfile.Key)
         {
             throw new ArgumentException(
-                "An indexing request requires ordered UTC instants and at least one document.",
+                "An indexing request requires ordered UTC instants, documents and an exact compatibility profile.",
                 nameof(request));
         }
 
@@ -341,6 +357,14 @@ public sealed class CorpusIndexingService(
 
         if (bindings.Select(binding => (binding.DocumentId, binding.DocumentVersion))
                 .Distinct().Count() != bindings.Length ||
+            request.Documents.Any(document =>
+                !request.CompatibilityProfile.ParserDescriptors.Contains(
+                    document.ParserDescriptor,
+                    StringComparer.Ordinal) ||
+                !string.Equals(
+                    document.ChunkingPolicy.CompatibilityDescriptor,
+                    request.CompatibilityProfile.ChunkingPolicy.CompatibilityDescriptor,
+                    StringComparison.Ordinal)) ||
             BindingDigestCanonicalizer.CanonicaliseActiveDocumentSet(bindings).Digest !=
                 request.Specification.ActiveDocumentSetDigest ||
             BindingDigestCanonicalizer.CanonicaliseSourceBindingSet(bindings).Digest !=

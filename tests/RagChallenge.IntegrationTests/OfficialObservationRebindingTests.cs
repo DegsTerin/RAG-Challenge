@@ -292,7 +292,7 @@ public sealed class OfficialObservationRebindingTests
             DocumentFormat.Csv,
             source.OfficialContext,
             new ParserPolicy(131_072, 32, 131_072, 32, 16_384),
-            new ChunkingPolicy(128),
+            new ChunkingPolicy(128, 16, 160),
             MaximumByteLength: 131_072,
             Audit($"unused-snapshot-{operationId}", at),
             Audit(operationId, at),

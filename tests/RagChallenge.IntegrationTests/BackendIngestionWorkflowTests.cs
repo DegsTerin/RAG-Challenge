@@ -229,7 +229,7 @@ public sealed class BackendIngestionWorkflowTests
                 content,
                 MaximumByteLength: 131_072,
                 new ParserPolicy(131_072, 32, 131_072, 32, 16_384),
-                new ChunkingPolicy(128),
+                new ChunkingPolicy(128, 16, 160),
                 context));
     }
 
@@ -250,7 +250,7 @@ public sealed class BackendIngestionWorkflowTests
             DocumentFormat.Csv,
             context,
             new ParserPolicy(131_072, 32, 131_072, 32, 16_384),
-            new ChunkingPolicy(128),
+            new ChunkingPolicy(128, 16, 160),
             MaximumByteLength: 131_072,
             Audit(snapshotOperationId, "synchronise-official", "Create snapshot.", at),
             Audit(observationOperationId, "synchronise-official", "Append observation.", at),

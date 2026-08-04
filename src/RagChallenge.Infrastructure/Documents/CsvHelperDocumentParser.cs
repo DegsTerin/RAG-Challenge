@@ -12,6 +12,9 @@ namespace RagChallenge.Infrastructure.Documents;
 
 public sealed class CsvHelperDocumentParser : IDocumentParser
 {
+    public const string CompatibilityDescriptor =
+        "csvhelper/33.1.0;encoding=utf-8-strict;delimiter=comma;header=required;quote=double;escape=double-double;newline=crlf-lf-cr;formula=literal;shape=strict-v1";
+
     private static readonly UTF8Encoding StrictUtf8 = new(
         encoderShouldEmitUTF8Identifier: false,
         throwOnInvalidBytes: true);
@@ -129,7 +132,7 @@ public sealed class CsvHelperDocumentParser : IDocumentParser
 
             return new ParsedDocumentArtifact(
                 DocumentFormat.Csv,
-                "CsvHelper/33.1.0",
+                CompatibilityDescriptor,
                 units);
         }
         catch (DocumentParseException)

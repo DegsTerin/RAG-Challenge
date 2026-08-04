@@ -57,6 +57,7 @@ public sealed class ParserAdapterRuntimeGateTests
             writable: false))
         {
             var result = await parser.ParseAsync(stream, PdfPolicy);
+            Assert.Equal(PdfPigDocumentParser.CompatibilityDescriptor, result.ParserDescriptor);
             Assert.Single(result.Units);
             Assert.Equal(1, result.Units[0].PageNumber);
             Assert.Contains("ONEPAGE", result.Units[0].Text, StringComparison.Ordinal);
@@ -102,6 +103,7 @@ public sealed class ParserAdapterRuntimeGateTests
             writable: false))
         {
             var result = await parser.ParseAsync(stream, CsvPolicy);
+            Assert.Equal(CsvHelperDocumentParser.CompatibilityDescriptor, result.ParserDescriptor);
             var row = Assert.Single(result.Units);
             Assert.Equal("vírgula, preservada e \"aspas\"", row.Columns["description"]);
         }

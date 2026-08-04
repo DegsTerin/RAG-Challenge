@@ -43,7 +43,7 @@ public sealed class BackendEndToEndWorkflowTests
             source,
             MaximumByteLength: 131_072,
             new ParserPolicy(131_072, 32, 131_072, 32, 16_384),
-            new ChunkingPolicy(128),
+            new ChunkingPolicy(128, 16, 160),
             context));
 
         var category = new DatabaseCategory(
@@ -100,6 +100,7 @@ public sealed class BackendEndToEndWorkflowTests
             "fake",
             "grounded-v1",
             "fixture-1");
+        var compatibilityProfile = CreateCompatibilityProfile(embeddingDescriptor);
         var specification = new IndexGenerationSpecification(
             manifestSchemaVersion: 1,
             SqlitePersistenceFixture.CorpusId,
@@ -107,7 +108,7 @@ public sealed class BackendEndToEndWorkflowTests
             new CatalogueRevision(1),
             BindingDigestCanonicalizer.CanonicaliseActiveDocumentSet(bindings).Digest,
             BindingDigestCanonicalizer.CanonicaliseSourceBindingSet(bindings).Digest,
-            SqlitePersistenceFixture.CompatibilityKey);
+            compatibilityProfile.Key);
         var embedding = new DeterministicEmbeddingProvider(embeddingDescriptor);
         var indexing = new CorpusIndexingService(
             embedding,
@@ -116,8 +117,14 @@ public sealed class BackendEndToEndWorkflowTests
         var built = await indexing.BuildAsync(new CorpusIndexingRequest(
             new CandidateBuildId("candidate-end-to-end"),
             specification,
-            [new IndexDocumentInput(binding, SupportedLanguage.EnGb, ingested.Chunks)],
+            [new IndexDocumentInput(
+                binding,
+                SupportedLanguage.EnGb,
+                ingested.Chunks,
+                ingested.ParsedArtifact.ParserDescriptor,
+                compatibilityProfile.ChunkingPolicy)],
             embeddingDescriptor,
+            compatibilityProfile,
             Audit("generation-end-to-end", "index-generation", 2),
             SqlitePersistenceFixture.At(2)));
         var activation = await new GenerationActivationService(fixture.ControlStore)
@@ -173,6 +180,17 @@ public sealed class BackendEndToEndWorkflowTests
             command,
             "synthetic end-to-end workflow verification",
             SqlitePersistenceFixture.At(day));
+
+    private static IndexCompatibilityProfile CreateCompatibilityProfile(
+        EmbeddingProviderDescriptor embeddingDescriptor) =>
+        new(
+            [
+                PdfPigDocumentParser.CompatibilityDescriptor,
+                CsvHelperDocumentParser.CompatibilityDescriptor,
+            ],
+            new ChunkingPolicy(),
+            embeddingDescriptor,
+            "sqlite-exact-vector-store/1;schema=1;distance=cosine;algorithm=exact-scan;vector=float32");
 
     private sealed class DeterministicEmbeddingProvider(
         EmbeddingProviderDescriptor descriptor) : IEmbeddingProvider

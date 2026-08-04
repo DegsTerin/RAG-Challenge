@@ -10,6 +10,9 @@ namespace RagChallenge.Infrastructure.Documents;
 
 public sealed class PdfPigDocumentParser : IDocumentParser
 {
+    public const string CompatibilityDescriptor =
+        "pdfpig/0.1.15;format=pdf;envelope=pdf-header-eof-v1;text=page-text;pages=preserved";
+
     private static readonly byte[] PdfSignature = Encoding.ASCII.GetBytes("%PDF-");
     private static readonly byte[] EndOfFileMarker = Encoding.ASCII.GetBytes("%%EOF");
 
@@ -74,7 +77,7 @@ public sealed class PdfPigDocumentParser : IDocumentParser
 
             return new ParsedDocumentArtifact(
                 DocumentFormat.Pdf,
-                "PdfPig/0.1.15",
+                CompatibilityDescriptor,
                 units);
         }
         catch (DocumentParseException)
