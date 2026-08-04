@@ -92,7 +92,112 @@ public sealed class OpenAiHttpAdapterContractTests
         Assert.False(body.RootElement.TryGetProperty("previous_response_id", out _));
         Assert.Equal("json_schema", body.RootElement.GetProperty("text")
             .GetProperty("format").GetProperty("type").GetString());
+        Assert.Equal(512, body.RootElement.GetProperty("max_output_tokens").GetInt32());
         Assert.Equal(1, handler.CallCount);
+    }
+
+    [Theory]
+    [InlineData("{\"model\":\"text-embedding-3-small\"}")]
+    [InlineData("{\"model\":\"unexpected-model\",\"data\":[{\"index\":0,\"embedding\":[1,0,0]},{\"index\":1,\"embedding\":[0,1,0]}]}")]
+    [InlineData("{\"model\":\"text-embedding-3-small\",\"data\":[{\"index\":0,\"embedding\":[1,0,0]},{\"index\":0,\"embedding\":[0,1,0]}]}")]
+    [InlineData("{\"model\":\"text-embedding-3-small\",\"data\":[{\"index\":0,\"embedding\":[1,0,0]},{\"index\":2,\"embedding\":[0,1,0]}]}")]
+    [InlineData("{\"model\":\"text-embedding-3-small\",\"data\":[{\"index\":0,\"embedding\":[1,0]},{\"index\":1,\"embedding\":[0,1,0]}]}")]
+    public async Task EmbeddingAdapterRejectsMalformedOrMisalignedResponses(string responseJson)
+    {
+        using var client = CreateClient(new RecordingHandler(responseJson));
+        var adapter = new OpenAiHttpEmbeddingProvider(client, Credential);
+        var request = new EmbeddingBatchRequest(
+            new EmbeddingProviderDescriptor(
+                "openai",
+                "text-embedding-3-small",
+                "text-embedding-3-small",
+                dimensions: 3),
+            new List<string> { "first", "second" },
+            maximumUtf8Bytes: 4096);
+
+        var failure = await Assert.ThrowsAsync<ProviderStageUnavailableException>(
+            () => adapter.EmbedAsync(request));
+
+        Assert.Equal("embedding", failure.Stage);
+        Assert.Equal("The embedding provider response was invalid.", failure.Message);
+        Assert.DoesNotContain("unexpected-model", failure.Message, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public async Task TransportAndHttpPolicyFailuresAreTypedAndSanitised()
+    {
+        using var transportClient = CreateClient(new FailingHandler(
+            new HttpRequestException("sensitive transport detail")));
+        var transportAdapter = new OpenAiHttpEmbeddingProvider(
+            transportClient,
+            Credential);
+        var request = new EmbeddingBatchRequest(
+            new EmbeddingProviderDescriptor(
+                "openai",
+                "text-embedding-3-small",
+                "text-embedding-3-small",
+                dimensions: 3),
+            new List<string> { "synthetic" },
+            maximumUtf8Bytes: 4096);
+
+        var transportFailure = await Assert.ThrowsAsync<ProviderStageUnavailableException>(
+            () => transportAdapter.EmbedAsync(request));
+        Assert.Equal("embedding", transportFailure.Stage);
+        Assert.DoesNotContain("sensitive", transportFailure.Message, StringComparison.Ordinal);
+
+        using var statusClient = CreateClient(new RecordingHandler(
+            "{\"private\":\"response\"}",
+            HttpStatusCode.TooManyRequests));
+        var statusAdapter = new OpenAiHttpEmbeddingProvider(statusClient, Credential);
+        var statusFailure = await Assert.ThrowsAsync<ProviderStageUnavailableException>(
+            () => statusAdapter.EmbedAsync(request));
+        Assert.Equal("embedding", statusFailure.Stage);
+        Assert.DoesNotContain("private", statusFailure.Message, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public async Task ResponseAdapterRejectsUnexpectedModelAndMalformedStructuredOutput()
+    {
+        var response = JsonSerializer.Serialize(new
+        {
+            model = "unexpected-model",
+            output = new[]
+            {
+                new
+                {
+                    type = "message",
+                    content = new[] { new { type = "output_text", text = "{}" } },
+                },
+            },
+        });
+        using var client = CreateClient(new RecordingHandler(response));
+        var adapter = new OpenAiHttpLanguageModel(
+            client,
+            Credential,
+            new LanguageModelDescriptor(
+                "openai",
+                "gpt-4.1-mini-2025-04-14",
+                "gpt-4.1-mini-2025-04-14"));
+        var request = new GroundedGenerationRequest(
+            "Trusted instruction.",
+            "prompt-v1",
+            "Question?",
+            SupportedLanguage.EnGb,
+            new[]
+            {
+                new GroundedEvidence(
+                    "chunk-allowed",
+                    "Synthetic evidence.",
+                    SupportedLanguage.EnGb),
+            },
+            maximumOutputCharacters: 1024);
+
+        var failure = await Assert.ThrowsAsync<ProviderStageUnavailableException>(
+            () => adapter.GenerateAsync(request));
+
+        Assert.Equal("generation", failure.Stage);
+        Assert.Equal("The language-model provider response was invalid.", failure.Message);
+        Assert.DoesNotContain("unexpected-model", failure.Message, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -129,7 +234,9 @@ public sealed class OpenAiHttpAdapterContractTests
         return ValueTask.FromResult("<synthetic-credential>");
     }
 
-    private sealed class RecordingHandler(string responseJson) : HttpMessageHandler
+    private sealed class RecordingHandler(
+        string responseJson,
+        HttpStatusCode statusCode = HttpStatusCode.OK) : HttpMessageHandler
     {
         public int CallCount { get; private set; }
 
@@ -147,10 +254,18 @@ public sealed class OpenAiHttpAdapterContractTests
             Method = request.Method;
             Uri = request.RequestUri;
             RequestBody = await request.Content!.ReadAsStringAsync(cancellationToken);
-            return new HttpResponseMessage(HttpStatusCode.OK)
+            return new HttpResponseMessage(statusCode)
             {
                 Content = new StringContent(responseJson, Encoding.UTF8, "application/json"),
             };
         }
+    }
+
+    private sealed class FailingHandler(Exception failure) : HttpMessageHandler
+    {
+        protected override Task<HttpResponseMessage> SendAsync(
+            HttpRequestMessage request,
+            CancellationToken cancellationToken) =>
+            Task.FromException<HttpResponseMessage>(failure);
     }
 }

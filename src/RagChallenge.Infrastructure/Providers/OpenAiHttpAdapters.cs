@@ -56,9 +56,10 @@ public sealed class OpenAiHttpEmbeddingProvider : IEmbeddingProvider
             }),
         };
         message.Headers.Authorization = new AuthenticationHeaderValue("Bearer", key);
-        using var response = await httpClient.SendAsync(
+        using var response = await SendAsync(
+            "embedding",
+            httpClient,
             message,
-            HttpCompletionOption.ResponseHeadersRead,
             cancellationToken).ConfigureAwait(false);
         var bytes = await ReadBoundedJsonAsync(
             "embedding",
@@ -67,35 +68,74 @@ public sealed class OpenAiHttpEmbeddingProvider : IEmbeddingProvider
             cancellationToken)
             .ConfigureAwait(false);
 
-        if (response.StatusCode != HttpStatusCode.OK)
-        {
-            throw new ProviderStageUnavailableException(
-                "embedding",
-                "The embedding provider returned a non-success status.");
-        }
-
         try
         {
             using var document = JsonDocument.Parse(bytes);
             var root = document.RootElement;
-            var observedModel = root.GetProperty("model").GetString() ??
-                throw new JsonException("Embedding model is missing.");
-            var data = root.GetProperty("data").EnumerateArray()
-                .OrderBy(element => element.GetProperty("index").GetInt32())
-                .ToArray();
-            var vectors = data.Select(element =>
-                (ReadOnlyMemory<float>)element.GetProperty("embedding")
-                    .EnumerateArray().Select(value => value.GetSingle()).ToArray()).ToArray();
+            var observedModel = ReadRequiredString(root, "model");
+
+            if (!string.Equals(
+                    observedModel,
+                    request.ExpectedDescriptor.ModelRevision,
+                    StringComparison.Ordinal))
+            {
+                throw new JsonException("Embedding model revision is unexpected.");
+            }
+
+            if (!root.TryGetProperty("data", out var dataElement) ||
+                dataElement.ValueKind != JsonValueKind.Array)
+            {
+                throw new JsonException("Embedding data is missing.");
+            }
+
+            var data = dataElement.EnumerateArray().ToArray();
+
+            if (data.Length != request.Inputs.Count)
+            {
+                throw new JsonException("Embedding result count is unexpected.");
+            }
+
+            var vectors = new ReadOnlyMemory<float>[data.Length];
+            var seen = new bool[data.Length];
+
+            foreach (var element in data)
+            {
+                if (element.ValueKind != JsonValueKind.Object ||
+                    !element.TryGetProperty("index", out var indexElement) ||
+                    !indexElement.TryGetInt32(out var index) ||
+                    index < 0 || index >= data.Length || seen[index] ||
+                    !element.TryGetProperty("embedding", out var embeddingElement) ||
+                    embeddingElement.ValueKind != JsonValueKind.Array)
+                {
+                    throw new JsonException("Embedding indexes are invalid.");
+                }
+
+                var values = embeddingElement.EnumerateArray()
+                    .Select(value => value.GetSingle())
+                    .ToArray();
+
+                if (values.Length != request.ExpectedDescriptor.Dimensions ||
+                    values.Any(value => !float.IsFinite(value)))
+                {
+                    throw new JsonException("Embedding dimensions are invalid.");
+                }
+
+                seen[index] = true;
+                vectors[index] = values;
+            }
+
+            if (seen.Any(value => !value))
+            {
+                throw new JsonException("Embedding indexes are incomplete.");
+            }
+
             return new EmbeddingBatchResult(
-                new EmbeddingProviderDescriptor(
-                    "openai",
-                    observedModel,
-                    observedModel,
-                    request.ExpectedDescriptor.Dimensions),
+                request.ExpectedDescriptor,
                 vectors);
         }
         catch (Exception exception) when (
-            exception is JsonException or InvalidOperationException or FormatException)
+            exception is JsonException or InvalidOperationException or FormatException or
+                OverflowException)
         {
             throw new ProviderStageUnavailableException(
                 "embedding",
@@ -141,14 +181,45 @@ public sealed class OpenAiHttpEmbeddingProvider : IEmbeddingProvider
         return key;
     }
 
+    internal static async Task<HttpResponseMessage> SendAsync(
+        string stage,
+        HttpClient client,
+        HttpRequestMessage request,
+        CancellationToken cancellationToken)
+    {
+        try
+        {
+            return await client.SendAsync(
+                request,
+                HttpCompletionOption.ResponseHeadersRead,
+                cancellationToken).ConfigureAwait(false);
+        }
+        catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested)
+        {
+            throw new ProviderStageUnavailableException(
+                stage,
+                "The provider request exceeded its time budget.");
+        }
+        catch (HttpRequestException)
+        {
+            throw new ProviderStageUnavailableException(
+                stage,
+                "The provider transport is unavailable.");
+        }
+    }
+
     internal static async Task<byte[]> ReadBoundedJsonAsync(
         string stage,
         HttpResponseMessage response,
         int maximumBytes,
         CancellationToken cancellationToken)
     {
-        if (response.Headers.Location is not null ||
-            response.Content.Headers.ContentType?.MediaType is not "application/json" ||
+        if (response.StatusCode != HttpStatusCode.OK ||
+            response.Headers.Location is not null ||
+            !string.Equals(
+                response.Content.Headers.ContentType?.MediaType,
+                "application/json",
+                StringComparison.OrdinalIgnoreCase) ||
             response.Content.Headers.ContentLength > maximumBytes)
         {
             throw new ProviderStageUnavailableException(
@@ -156,29 +227,63 @@ public sealed class OpenAiHttpEmbeddingProvider : IEmbeddingProvider
                 "The provider response violated HTTP policy.");
         }
 
-        await using var stream = await response.Content.ReadAsStreamAsync(cancellationToken)
-            .ConfigureAwait(false);
-        using var output = new MemoryStream();
-        var buffer = new byte[16 * 1024];
-
-        while (true)
+        try
         {
-            var read = await stream.ReadAsync(buffer, cancellationToken).ConfigureAwait(false);
+            await using var stream = await response.Content.ReadAsStreamAsync(cancellationToken)
+                .ConfigureAwait(false);
+            using var output = new MemoryStream();
+            var buffer = new byte[16 * 1024];
 
-            if (read == 0)
+            while (true)
             {
-                return output.ToArray();
-            }
+                var read = await stream.ReadAsync(buffer, cancellationToken).ConfigureAwait(false);
 
-            if (output.Length + read > maximumBytes)
-            {
-                throw new ProviderStageUnavailableException(
-                    stage,
-                    "The provider response exceeded its byte limit.");
-            }
+                if (read == 0)
+                {
+                    return output.ToArray();
+                }
 
-            output.Write(buffer, 0, read);
+                if (output.Length + read > maximumBytes)
+                {
+                    throw new ProviderStageUnavailableException(
+                        stage,
+                        "The provider response exceeded its byte limit.");
+                }
+
+                output.Write(buffer, 0, read);
+            }
         }
+        catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested)
+        {
+            throw new ProviderStageUnavailableException(
+                stage,
+                "The provider response exceeded its time budget.");
+        }
+        catch (HttpRequestException)
+        {
+            throw new ProviderStageUnavailableException(
+                stage,
+                "The provider response transport is unavailable.");
+        }
+        catch (IOException)
+        {
+            throw new ProviderStageUnavailableException(
+                stage,
+                "The provider response could not be read.");
+        }
+    }
+
+    internal static string ReadRequiredString(JsonElement element, string propertyName)
+    {
+        if (element.ValueKind != JsonValueKind.Object ||
+            !element.TryGetProperty(propertyName, out var property) ||
+            property.ValueKind != JsonValueKind.String)
+        {
+            throw new JsonException("A required provider field is missing.");
+        }
+
+        return property.GetString() ??
+            throw new JsonException("A required provider field is null.");
     }
 }
 
@@ -199,6 +304,16 @@ public sealed class OpenAiHttpLanguageModel : ILanguageModel
             throw new ArgumentNullException(nameof(credentialSource));
         this.expectedDescriptor = expectedDescriptor ??
             throw new ArgumentNullException(nameof(expectedDescriptor));
+
+        if (!string.Equals(
+                expectedDescriptor.ProviderId,
+                "openai",
+                StringComparison.Ordinal))
+        {
+            throw new ArgumentException(
+                "The OpenAI adapter requires the OpenAI provider descriptor.",
+                nameof(expectedDescriptor));
+        }
     }
 
     public async Task<GroundedGenerationResult> GenerateAsync(
@@ -229,7 +344,8 @@ public sealed class OpenAiHttpLanguageModel : ILanguageModel
                 model = expectedDescriptor.ModelId,
                 store = false,
                 temperature = 0,
-                max_output_tokens = request.MaximumOutputCharacters,
+                max_output_tokens = ConvertCharacterBudgetToTokenBudget(
+                    request.MaximumOutputCharacters),
                 input = new object[]
                 {
                     new
@@ -256,9 +372,10 @@ public sealed class OpenAiHttpLanguageModel : ILanguageModel
             }),
         };
         message.Headers.Authorization = new AuthenticationHeaderValue("Bearer", key);
-        using var response = await httpClient.SendAsync(
+        using var response = await OpenAiHttpEmbeddingProvider.SendAsync(
+            "generation",
+            httpClient,
             message,
-            HttpCompletionOption.ResponseHeadersRead,
             cancellationToken).ConfigureAwait(false);
         var bytes = await OpenAiHttpEmbeddingProvider.ReadBoundedJsonAsync(
             "generation",
@@ -266,50 +383,116 @@ public sealed class OpenAiHttpLanguageModel : ILanguageModel
             2 * 1024 * 1024,
             cancellationToken).ConfigureAwait(false);
 
-        if (response.StatusCode != HttpStatusCode.OK)
-        {
-            throw new ProviderStageUnavailableException(
-                "generation",
-                "The language-model provider returned a non-success status.");
-        }
-
         try
         {
             using var document = JsonDocument.Parse(bytes);
             var root = document.RootElement;
-            var observedModel = root.GetProperty("model").GetString() ??
-                throw new JsonException("Response model is missing.");
-            var outputText = root.GetProperty("output").EnumerateArray()
-                .SelectMany(item => item.GetProperty("content").EnumerateArray())
-                .Single(item => item.GetProperty("type").GetString() == "output_text")
-                .GetProperty("text").GetString() ??
-                throw new JsonException("Structured output text is missing.");
+            var observedModel = OpenAiHttpEmbeddingProvider.ReadRequiredString(root, "model");
+
+            if (!string.Equals(
+                    observedModel,
+                    expectedDescriptor.ModelRevision,
+                    StringComparison.Ordinal) ||
+                !root.TryGetProperty("output", out var outputElement) ||
+                outputElement.ValueKind != JsonValueKind.Array)
+            {
+                throw new JsonException("The response model or output is unexpected.");
+            }
+
+            var outputItems = outputElement.EnumerateArray().ToArray();
+
+            if (outputItems.Length != 1 ||
+                OpenAiHttpEmbeddingProvider.ReadRequiredString(outputItems[0], "type") != "message" ||
+                !outputItems[0].TryGetProperty("content", out var contentElement) ||
+                contentElement.ValueKind != JsonValueKind.Array)
+            {
+                throw new JsonException("The structured response output is invalid.");
+            }
+
+            var contentItems = contentElement.EnumerateArray().ToArray();
+
+            if (contentItems.Length != 1 ||
+                OpenAiHttpEmbeddingProvider.ReadRequiredString(contentItems[0], "type") !=
+                    "output_text")
+            {
+                throw new JsonException("The structured response content is invalid.");
+            }
+
+            var outputText = OpenAiHttpEmbeddingProvider.ReadRequiredString(
+                contentItems[0],
+                "text");
             using var structured = JsonDocument.Parse(outputText);
-            var answerLanguage = structured.RootElement.GetProperty("answerLanguage")
-                .GetString() switch
+            var structuredRoot = structured.RootElement;
+            var propertyNames = structuredRoot.ValueKind == JsonValueKind.Object
+                ? structuredRoot.EnumerateObject()
+                    .Select(property => property.Name)
+                    .ToHashSet(StringComparer.Ordinal)
+                : new HashSet<string>(StringComparer.Ordinal);
+
+            if (!propertyNames.SetEquals(
+                    ["answerLanguage", "answer", "citedChunkIds"]))
+            {
+                throw new JsonException("The structured answer schema is invalid.");
+            }
+
+            var answerLanguage = OpenAiHttpEmbeddingProvider.ReadRequiredString(
+                structuredRoot,
+                "answerLanguage") switch
             {
                 "pt-BR" => SupportedLanguage.PtBr,
                 "en-GB" => SupportedLanguage.EnGb,
                 _ => throw new JsonException("Answer language is unsupported."),
             };
-            var answer = structured.RootElement.GetProperty("answer").GetString() ??
-                throw new JsonException("Answer is missing.");
-            var cited = structured.RootElement.GetProperty("citedChunkIds")
-                .EnumerateArray().Select(item => item.GetString() ?? string.Empty).ToArray();
+            var answer = OpenAiHttpEmbeddingProvider.ReadRequiredString(
+                structuredRoot,
+                "answer");
+
+            if (answerLanguage != request.QuestionLanguage ||
+                string.IsNullOrWhiteSpace(answer) ||
+                answer.Length > request.MaximumOutputCharacters ||
+                !structuredRoot.TryGetProperty("citedChunkIds", out var citedElement) ||
+                citedElement.ValueKind != JsonValueKind.Array)
+            {
+                throw new JsonException("The structured answer values are invalid.");
+            }
+
+            var cited = citedElement.EnumerateArray()
+                .Select(item => item.ValueKind == JsonValueKind.String
+                    ? item.GetString()
+                    : null)
+                .ToArray();
+            var allowedChunkIds = request.Evidence
+                .Select(item => item.ChunkId)
+                .ToHashSet(StringComparer.Ordinal);
+
+            if (cited.Any(item => string.IsNullOrWhiteSpace(item) ||
+                    item!.Length > 128 || item.Any(char.IsControl) ||
+                    !allowedChunkIds.Contains(item)) ||
+                cited.Distinct(StringComparer.Ordinal).Count() != cited.Length)
+            {
+                throw new JsonException("The structured citations are invalid.");
+            }
+
             return new GroundedGenerationResult(
-                new LanguageModelDescriptor("openai", observedModel, observedModel),
+                expectedDescriptor,
                 answerLanguage,
                 answer,
-                cited);
+                cited.Select(item => item!).ToArray());
         }
         catch (Exception exception) when (
-            exception is JsonException or InvalidOperationException)
+            exception is JsonException or InvalidOperationException or FormatException)
         {
             throw new ProviderStageUnavailableException(
                 "generation",
                 "The language-model provider response was invalid.");
         }
     }
+
+    internal static int ConvertCharacterBudgetToTokenBudget(int maximumOutputCharacters) =>
+        Math.Clamp(
+            checked((maximumOutputCharacters + 1) / 2),
+            256,
+            8192);
 
     private static readonly object ResponseSchema = new
     {
