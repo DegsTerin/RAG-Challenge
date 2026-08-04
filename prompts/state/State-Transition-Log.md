@@ -2630,3 +2630,49 @@ contém somente fatos cronológicos.
   fonte oficial real do produto, GitHub, OCI, Dashboard, DB-Notifier,
   publicação, deploy, Human Gate ou estado posterior.
 - Aprovador: proprietário do RAG-Challenge.
+
+## 2026-08-04 — Cache offline semeado; pins e primeiro gate runtime aprovados
+
+- Estado anterior: `STATE-04 BACKEND_IMPLEMENTATION` ativo, `S04-A0`
+  encerrado documentalmente e execução interrompida antes do pin por fonte
+  offline incompleta.
+- Baseline inicial: branch `main`, commit
+  `1bb4368ff59521ab61b0d9224b806805e84c6287`, corpus `4.9.2`, working tree
+  limpa.
+- Autoridade: acesso somente leitura aos paths determinísticos das identidades
+  e versões não-project já registradas nos lockfiles; cópia para cache de
+  tarefa isolado; pins de `PdfPig` `0.1.15` e `CsvHelper` `33.1.0`; retomada
+  sequencial do envelope de `STATE-04` somente após aprovação do seed.
+- Seed observado: 53 pares package/versão, 2.189 arquivos e 370.721.153 bytes
+  foram copiados e comparados por SHA-256. Nupkg, `.nupkg.sha512`, NuSpec,
+  metadados de cache, identidade, versão, content hash, estrutura expandida e
+  ausência de reparse points foram validados. O cache global não foi alterado.
+- Fonte dos parsers: continha exclusivamente os nupkgs preservados de
+  `PdfPig` `0.1.15` e `CsvHelper` `33.1.0`; `Sylvan.Data.Csv` não foi copiado,
+  referenciado, restaurado ou instalado.
+- Restore offline: somente os dois parsers foram acrescentados à união de 53
+  packages preexistentes. O grafo aplicável de cada parser ficou vazio;
+  `PdfPig` selecionou os sete assets previamente inventariados de `lib/net8.0`
+  e `CsvHelper` selecionou `lib/net9.0/CsvHelper.dll`. O segundo restore
+  locked não alterou os sete lockfiles.
+- Gates de hash: `RAW_NUPKG_HASH`, `CACHE_NUPKG_HASH`,
+  `SIGNED_CONTENT_HASH` e `LOCK_CONTENT_HASH` passaram em seus domínios
+  independentes; assinatura permanece
+  `CONDITIONAL_REVOCATION_NOT_CURRENT`.
+- Primeiro gate de `S04-A`: adapters limitados a streams em memória passaram
+  PDFs válidos de uma e duas páginas, PDF truncado, PDF oversize, CSV quoted
+  UTF-8, fórmula literal `=1+1`, aspas malformadas e CSV oversize. Entradas
+  oversize foram recusadas antes da leitura pelo parser, inputs malformados
+  foram recusados por guards explícitos e nenhuma assembly externa ou escrita
+  inesperada foi observada.
+- Verificação: format check aprovado; build Release com zero warnings e zero
+  erros; 83 testes aprovados, sendo 56 unitários, 10 de arquitetura e 17 de
+  integração.
+- Runtime preflight: aprovado antes do primeiro `dotnet`, sem processo ou
+  listener RAG-Challenge encontrado ou encerrado.
+- Estado resultante: pins aplicados; `S04-A` em execução sequencial. `S04-B`,
+  `S04-C`, `S04-D` e Automatic Quality Gate permanecem pendentes e ordenados.
+- Escopo negativo preservado: sem rede, provider, conta, secret, corpus real,
+  fonte oficial real, GitHub, OCI, Dashboard, DB-Notifier, publicação, deploy,
+  Human Gate ou estado posterior.
+- Aprovador: proprietário do RAG-Challenge.

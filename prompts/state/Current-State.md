@@ -21,15 +21,16 @@ proprietários.
   proprietário autorizou em 2026-08-04 o fechamento de `S04-A0`, o pin
   offline dos dois parsers selecionados, a execução sequencial de `S04-A` a
   `S04-D` e, depois, o Automatic Quality Gate de `STATE-04`. `S04-A0` foi
-  encerrado documentalmente, mas a execução parou antes do pin porque a fonte
-  offline isolada não contém as dependências .NET já fixadas pelo produto e a
-  autoridade proíbe rede e acesso ao cache NuGet global.
+  encerrado documentalmente. A precondição da fonte offline incompleta foi
+  resolvida por seed somente leitura e allowlisted para um cache isolado; os
+  pins foram aplicados, o restore locked passou e o primeiro gate runtime
+  sintético de `S04-A` foi aprovado. `S04-A` está em execução sequencial.
 - Fechamento de `S04-A0`: `PdfPig` `0.1.15` e `CsvHelper` `33.1.0` foram
   selecionados condicionalmente para desenvolvimento local;
   `Sylvan.Data.Csv` `1.4.4` permanece fallback não selecionado e não
   autorizável por substituição automática. O adapter OpenAI será HTTP direto,
   sem package `OpenAI` ou `System.ClientModel`. Hashes, gates, limitações,
-  evidências e o bloqueio pré-pin estão registrados no
+  evidências, resolução do bloqueio pré-pin e gate runtime estão registrados no
   [relatório de STATE-04](../../docs/STATE-04-Backend-Implementation-Report.md).
   A assinatura dos parsers permanece
   `CONDITIONAL_REVOCATION_NOT_CURRENT`, e a semântica incompleta dos domínios
@@ -479,9 +480,8 @@ autorizada.
    para cada banco antes de sua ativação.
 2. Validar e ativar individualmente novos registros de fonte oficial; a
    aceitação arquitetural não autoriza URL, rede, download ou crawling.
-3. Resolver sob autoridade própria a fonte offline isolada das dependências
-   .NET já fixadas; só então aplicar os pins condicionais de `PdfPig` `0.1.15`
-   e `CsvHelper` `33.1.0` e executar o primeiro gate runtime sintético.
+3. Concluir `S04-A` a `S04-D` sequencialmente sob o envelope autorizado e
+   executar o Automatic Quality Gate somente após os quatro lotes.
 4. Verificar tier, entitlement, spend limit e controles da conta OpenAI, além
    da recuperação/geração bilíngue, antes de usar ou anunciar os providers.
 5. Homologar desempenho e capacidade do `SqliteExactVectorStore`; a fixture
@@ -505,19 +505,18 @@ autorizada.
 `STATE-04 BACKEND_IMPLEMENTATION` está ativo. O fechamento documental de
 `S04-A0`, o pin offline de `PdfPig` `0.1.15` e `CsvHelper` `33.1.0`, a
 execução sequencial de `S04-A` a `S04-D` e o Automatic Quality Gate posterior
-foram autorizados pelo proprietário em 2026-08-04, mas a execução parou antes
-do pin e de qualquer mudança em código: a fonte offline preservada contém
-somente os packages candidatos de parsing, enquanto um restore isolado do
-produto também exige as dependências já registradas nos lockfiles vigentes.
+foram autorizados pelo proprietário em 2026-08-04. A fonte offline isolada foi
+completada por cópia somente leitura e allowlisted das identidades e versões
+já fixadas, sem alterar o cache global. `PdfPig` `0.1.15` e `CsvHelper`
+`33.1.0` foram fixados com grafo aplicável vazio, restore locked e hashes
+aprovados; o primeiro gate runtime sintético passou. `S04-A` pode continuar e
+deve preceder estritamente `S04-B`, `S04-C`, `S04-D` e o Automatic Quality
+Gate.
 
-A próxima autoridade necessária deve permitir exclusivamente uma forma
-verificável de completar a fonte offline isolada: cópia somente leitura das
-identidades e versões já fixadas a partir do cache NuGet global para um cache
-de tarefa novo, sem escrita ou restore no cache global, ou um feed/download
-offline exato alternativo. Depois dessa precondição e da reconciliação da
-baseline, o envelope sequencial já autorizado pode prosseguir; isso não
-autoriza reduzir gates nem ampliar packages, versões, contratos, arquitetura
-ou ações externas.
+Nenhuma nova autoridade é necessária para o restante desse envelope enquanto
+baseline, packages, versões, arquitetura, contratos e escopo negativo
+permanecerem reconciliados. Qualquer condição de parada expressa exige nova
+decisão humana.
 
 Rede, providers, contas, secrets, corpus real, fontes oficiais reais do
 produto, armazenamento operacional, GitHub, OCI, Dashboard, publicação,

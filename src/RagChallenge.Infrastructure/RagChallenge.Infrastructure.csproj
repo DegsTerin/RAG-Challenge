@@ -11,9 +11,11 @@
     <ProjectReference Include="..\RagChallenge.Domain\RagChallenge.Domain.csproj" />
   </ItemGroup>
   <ItemGroup>
+    <PackageReference Include="CsvHelper" />
     <PackageReference Include="Microsoft.Data.Sqlite.Core" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Design" PrivateAssets="all" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" />
+    <PackageReference Include="PdfPig" />
   </ItemGroup>
 
 </Project>

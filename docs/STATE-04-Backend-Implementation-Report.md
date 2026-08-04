@@ -125,7 +125,7 @@ A valid-case failure requires rollback of the pin and stops the sequence. If
 a malformed input is accepted, the owning adapter requires an explicit guard.
 CsvHelper must not be replaced automatically by Sylvan.
 
-## Blocking precondition discovered before pin
+## Offline pin precondition and resolution
 
 The preserved offline source contains the three parser nupkgs and their
 metadata, but it does not contain the repository's already locked .NET
@@ -136,8 +136,8 @@ one of the following currently unauthorised actions:
   cache; or
 - an exact, separately authorised offline feed or download operation.
 
-Network use and global-cache access are both prohibited by the current
-authority. Consequently:
+Network use and global-cache access were both prohibited by the initial
+authority. Consequently, at that point:
 
 - no parser PackageReference or central version pin was added;
 - no product lockfile was changed;
@@ -150,6 +150,35 @@ useful evidence and could not meet the owner's isolation gate. Execution must
 resume only after the offline dependency source is complete under explicit
 authority and the initial baseline is reconciled.
 
+The owner subsequently authorised read-only, allowlisted seeding from the
+existing global NuGet cache into a new task-isolated cache. The seed copied
+exactly 53 non-project package/version pairs already present in the seven
+tracked lockfiles, comprising 2,189 files and 370,721,153 bytes. Every copied
+file matched its source SHA-256, each nupkg matched its cache SHA-512, each
+cache metadata content hash matched the tracked lockfile and no reparse point
+or unexpected expanded file was accepted. The global cache was not changed.
+
+PdfPig and CsvHelper came exclusively from their preserved D1 nupkgs. The
+isolated local source contained exactly those two files and did not contain
+Sylvan. An offline restore and a second `--locked-mode` restore then passed:
+
+- only `CsvHelper` `33.1.0` and `PdfPig` `0.1.15` were added to the 53-package
+  baseline union;
+- both selected parser entries have an empty applicable dependency graph;
+- CsvHelper selected `lib/net9.0/CsvHelper.dll`;
+- PdfPig selected the seven previously inventoried `lib/net8.0` assemblies;
+- raw, cache, signed-content and lock-content hash gates remained independent
+  and matched their expected values;
+- HTTP and plug-in caches remained empty and restored assets contained no
+  network source.
+
+The central exact pins and Infrastructure references were applied. The first
+`S04-A` runtime gate passed all required synthetic PDF and CSV cases in
+memory. Oversized inputs were rejected before any parser read, malformed PDF
+and CSV inputs were rejected by explicit adapter guards, the CSV formula
+`=1+1` remained literal and no unexpected package assembly or filesystem
+side effect was observed.
+
 ## Retention and risk
 
 - Preserve all temporary `S04-A0` evidence until separate cleanup authority.
@@ -158,6 +187,6 @@ authority and the initial baseline is reconciled.
 - The retained evidence is exploratory and workstation-local. It does not
   prove current online revocation, Linux ARM64 runtime behaviour, production
   suitability, parser quality over a real corpus or provider behaviour.
-- The consolidated `S04-A` to `S04-D` authority remains unconsumed. Its
-  sequence may resume after the dependency-source precondition is resolved;
-  no later state or Human Gate is implied.
+- The consolidated `S04-A` to `S04-D` authority is being consumed
+  sequentially. The parser gate permits `S04-A` to continue; no later state or
+  Human Gate is implied.
