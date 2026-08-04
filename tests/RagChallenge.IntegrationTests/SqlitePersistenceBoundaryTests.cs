@@ -421,6 +421,113 @@ public sealed class SqlitePersistenceBoundaryTests
             "SELECT COUNT(*) FROM generation_manifests;"));
     }
 
+    [Fact]
+    public async Task DurableOperationReplaysRequireTheExactPersistedIntent()
+    {
+        await using var fixture = await SqlitePersistenceFixture.CreateAsync();
+        var (_, binding) = await fixture.CommitLocalCatalogueAsync();
+        var officialBytes = Encoding.UTF8.GetBytes("exact replay official snapshot");
+        await using var officialStream = new MemoryStream(officialBytes, writable: false);
+        var officialContent = await fixture.ContentStore.PutAsync(
+            officialStream,
+            officialBytes.Length);
+        var registration = new OfficialSourceRegistration(
+            new OfficialSourceRegistrationId("exact-replay-registration"),
+            new SourceRegistrationRevision(1),
+            binding.DatabaseProductId,
+            binding.DocumentId,
+            new SourceAdapterId("exact-replay-adapter"),
+            "https://maintainer.example/exact-replay.pdf",
+            CatalogueItemStatus.Active);
+        var snapshot = new OfficialSourceSnapshot(
+            new OfficialSnapshotId("exact-replay-snapshot"),
+            registration.Id,
+            officialContent.ContentObjectId,
+            officialContent.ByteLength,
+            "application/pdf",
+            SqlitePersistenceFixture.At(2));
+        var officialRequest = new OfficialSourceCommitRequest(
+            new OperationId("exact-replay-official"),
+            SqlitePersistenceFixture.CorpusId,
+            registration,
+            snapshot,
+            SqlitePersistenceFixture.At(2));
+
+        Assert.Equal(
+            StoreMutationOutcome.Applied,
+            (await fixture.ControlStore.CommitOfficialSourceAsync(officialRequest)).Outcome);
+        Assert.Equal(
+            StoreMutationOutcome.AlreadyApplied,
+            (await fixture.ControlStore.CommitOfficialSourceAsync(officialRequest)).Outcome);
+        var divergentSnapshot = new OfficialSourceSnapshot(
+            snapshot.Id,
+            snapshot.RegistrationId,
+            snapshot.ContentObjectId,
+            snapshot.ByteLength,
+            "application/octet-stream",
+            snapshot.RetrievedAt);
+        await Assert.ThrowsAsync<InvalidOperationException>(() =>
+            fixture.ControlStore.CommitOfficialSourceAsync(
+                officialRequest with { Snapshot = divergentSnapshot }));
+
+        var observation = new OfficialSourceObservation(
+            new OfficialObservationId("exact-replay-observation"),
+            registration.Id,
+            snapshot.Id,
+            new ObservationJournalRevision(1),
+            OfficialObservationState.Current,
+            SqlitePersistenceFixture.At(2),
+            TimeSpan.FromDays(7));
+        var observationRequest = new ObservationCommitRequest(
+            new OperationId("exact-replay-observation-append"),
+            SqlitePersistenceFixture.CorpusId,
+            observation,
+            ExpectedJournalRevision: 0,
+            SqlitePersistenceFixture.At(2));
+
+        Assert.Equal(
+            StoreMutationOutcome.Applied,
+            (await fixture.ControlStore.AppendObservationAsync(observationRequest)).Outcome);
+        Assert.Equal(
+            StoreMutationOutcome.AlreadyApplied,
+            (await fixture.ControlStore.AppendObservationAsync(observationRequest)).Outcome);
+        var divergentObservation = new OfficialSourceObservation(
+            observation.Id,
+            observation.RegistrationId,
+            observation.SnapshotId,
+            observation.JournalRevision,
+            OfficialObservationState.Stale,
+            observation.RevalidatedAt,
+            observation.MaxAge);
+        await Assert.ThrowsAsync<InvalidOperationException>(() =>
+            fixture.ControlStore.AppendObservationAsync(
+                observationRequest with { Observation = divergentObservation }));
+
+        var manifest = await fixture.CommitGenerationAsync(binding, "exact-replay");
+        var generationRequest = new GenerationCommitRequest(
+            new OperationId("generation-exact-replay"),
+            new CandidateBuildId("candidate-exact-replay"),
+            manifest,
+            [binding],
+            SqlitePersistenceFixture.At(2));
+
+        Assert.Equal(
+            StoreMutationOutcome.AlreadyApplied,
+            (await fixture.ControlStore.CommitGenerationAsync(generationRequest)).Outcome);
+        await Assert.ThrowsAsync<InvalidOperationException>(() =>
+            fixture.ControlStore.CommitGenerationAsync(
+                generationRequest with
+                {
+                    CandidateBuildId = new CandidateBuildId("candidate-divergent-replay"),
+                }));
+        Assert.Equal(1, await fixture.ScalarAsync(
+            "SELECT COUNT(*) FROM official_source_snapshots;"));
+        Assert.Equal(1, await fixture.ScalarAsync(
+            "SELECT COUNT(*) FROM source_observations;"));
+        Assert.Equal(1, await fixture.ScalarAsync(
+            "SELECT COUNT(*) FROM generation_manifests;"));
+    }
+
     private static async Task<string?> ReadPragmaAsync(string path, string sql)
     {
         await using var connection = OpenReadOnly(path);

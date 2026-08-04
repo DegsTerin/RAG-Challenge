@@ -301,16 +301,20 @@ public sealed class SqliteControlPlaneStore(SqliteStoreOptions options)
         await using var transaction = await BeginImmediateAsync(
             context,
             cancellationToken).ConfigureAwait(false);
-        var idempotent = await GetIdempotentResultAsync(
-            context,
-            request.OperationId,
-            "OfficialSourceCommit",
-            cancellationToken).ConfigureAwait(false);
+        var existingOperation = await context.AdminOperations.AsNoTracking()
+            .SingleOrDefaultAsync(
+                row => row.OperationId == request.OperationId.Value,
+                cancellationToken).ConfigureAwait(false);
 
-        if (idempotent is not null)
+        if (existingOperation is not null)
         {
+            var replay = await ReadExactOfficialSourceReplayAsync(
+                context,
+                request,
+                existingOperation,
+                cancellationToken).ConfigureAwait(false);
             await transaction.CommitAsync(cancellationToken).ConfigureAwait(false);
-            return idempotent;
+            return replay;
         }
 
         if (await HasBlockingLeaseAsync(
@@ -436,16 +440,21 @@ public sealed class SqliteControlPlaneStore(SqliteStoreOptions options)
         await using var transaction = await BeginImmediateAsync(
             context,
             cancellationToken).ConfigureAwait(false);
-        var idempotent = await GetIdempotentResultAsync(
-            context,
-            request.OperationId,
-            "ObservationAppend",
-            cancellationToken).ConfigureAwait(false);
+        var existingOperation = await context.AdminOperations.AsNoTracking()
+            .SingleOrDefaultAsync(
+                row => row.OperationId == request.OperationId.Value,
+                cancellationToken).ConfigureAwait(false);
 
-        if (idempotent is not null)
+        if (existingOperation is not null)
         {
+            var replay = await ReadExactObservationReplayAsync(
+                context,
+                request,
+                existingOperation,
+                checked((long)maxAgeSeconds),
+                cancellationToken).ConfigureAwait(false);
             await transaction.CommitAsync(cancellationToken).ConfigureAwait(false);
-            return idempotent;
+            return replay;
         }
 
         if (await HasBlockingLeaseAsync(
@@ -893,6 +902,26 @@ public sealed class SqliteControlPlaneStore(SqliteStoreOptions options)
             return new StoreMutationResult(StoreMutationOutcome.ValidationFailed, 0);
         }
 
+        await using var context = options.CreateControlContext();
+        await using var transaction = await BeginImmediateAsync(
+            context,
+            cancellationToken).ConfigureAwait(false);
+        var existingOperation = await context.AdminOperations.AsNoTracking()
+            .SingleOrDefaultAsync(
+                row => row.OperationId == request.OperationId.Value,
+                cancellationToken).ConfigureAwait(false);
+
+        if (existingOperation is not null)
+        {
+            var replay = await ReadExactGenerationReplayAsync(
+                context,
+                request,
+                existingOperation,
+                cancellationToken).ConfigureAwait(false);
+            await transaction.CommitAsync(cancellationToken).ConfigureAwait(false);
+            return replay;
+        }
+
         var vectorStore = new SqliteVectorIndexStore(options);
 
         if (!await vectorStore.MatchesFinalisedGenerationAsync(
@@ -901,22 +930,6 @@ public sealed class SqliteControlPlaneStore(SqliteStoreOptions options)
                 cancellationToken).ConfigureAwait(false))
         {
             return new StoreMutationResult(StoreMutationOutcome.ValidationFailed, 0);
-        }
-
-        await using var context = options.CreateControlContext();
-        await using var transaction = await BeginImmediateAsync(
-            context,
-            cancellationToken).ConfigureAwait(false);
-        var idempotent = await GetIdempotentResultAsync(
-            context,
-            request.OperationId,
-            "GenerationCommit",
-            cancellationToken).ConfigureAwait(false);
-
-        if (idempotent is not null)
-        {
-            await transaction.CommitAsync(cancellationToken).ConfigureAwait(false);
-            return idempotent;
         }
 
         if (await HasBlockingLeaseAsync(
@@ -1908,27 +1921,243 @@ public sealed class SqliteControlPlaneStore(SqliteStoreOptions options)
         }
     }
 
-    private static async Task<StoreMutationResult?> GetIdempotentResultAsync(
+    private static async Task<StoreMutationResult> ReadExactOfficialSourceReplayAsync(
         ControlPlaneDbContext context,
-        OperationId operationId,
-        string expectedKind,
+        OfficialSourceCommitRequest request,
+        AdminOperationRow operation,
         CancellationToken cancellationToken)
     {
-        var existing = await context.AdminOperations.AsNoTracking()
-            .SingleOrDefaultAsync(
-                row => row.OperationId == operationId.Value,
-                cancellationToken).ConfigureAwait(false);
+        EnsureOperationIdentity(operation, "OfficialSourceCommit");
+        var resultRevision = request.Registration.Revision.Value;
 
-        if (existing is null)
+        if (!string.Equals(operation.CorpusId, request.CorpusId.Value, StringComparison.Ordinal) ||
+            operation.ExpectedRevision is null ||
+            (operation.ExpectedRevision != resultRevision - 1 &&
+                operation.ExpectedRevision != resultRevision) ||
+            operation.ResultRevision != resultRevision ||
+            operation.CompletedAtUtc is null ||
+            ControlPlaneMapping.ParseUtc(operation.RequestedAtUtc) != request.CommittedAt ||
+            ControlPlaneMapping.ParseUtc(operation.CompletedAtUtc) != request.CommittedAt)
         {
-            return null;
+            throw new InvalidOperationException(
+                "An official-source operation identity was reused with different intent.");
         }
 
-        EnsureOperationIdentity(existing, expectedKind);
-        return new StoreMutationResult(
-            StoreMutationOutcome.AlreadyApplied,
-            existing.ResultRevision ?? 0);
+        var registration = await context.OfficialSourceRegistrations.AsNoTracking()
+            .SingleOrDefaultAsync(
+                row => row.CorpusId == request.CorpusId.Value &&
+                    row.RegistrationId == request.Registration.Id.Value &&
+                    row.RegistrationRevision == request.Registration.Revision.Value,
+                cancellationToken).ConfigureAwait(false);
+        var snapshot = await context.OfficialSourceSnapshots.AsNoTracking()
+            .SingleOrDefaultAsync(
+                row => row.CorpusId == request.CorpusId.Value &&
+                    row.SnapshotId == request.Snapshot.Id.Value,
+                cancellationToken).ConfigureAwait(false);
+        var content = await context.ContentObjects.AsNoTracking()
+            .SingleOrDefaultAsync(
+                row => row.ContentSha256 == request.Snapshot.ContentObjectId.Value,
+                cancellationToken).ConfigureAwait(false);
+        var audit = await context.AuditEvents.AsNoTracking().SingleOrDefaultAsync(
+            row => row.CorpusId == request.CorpusId.Value &&
+                row.OperationId == request.OperationId.Value,
+            cancellationToken).ConfigureAwait(false);
+        var expectedAuditDigest = BuildAuditDetailsDigest(
+            request.CorpusId,
+            request.OperationId,
+            "OfficialSourceCommitted",
+            resultRevision,
+            request.CommittedAt,
+            request.AuditDetailsDigest);
+
+        if (registration is null ||
+            !OfficialSourceRegistrationMatches(registration, request.Registration) ||
+            snapshot is null ||
+            !string.Equals(snapshot.RegistrationId, request.Registration.Id.Value, StringComparison.Ordinal) ||
+            snapshot.RegistrationRevision != request.Registration.Revision.Value ||
+            !string.Equals(snapshot.ContentSha256, request.Snapshot.ContentObjectId.Value, StringComparison.Ordinal) ||
+            snapshot.ByteLength != request.Snapshot.ByteLength ||
+            !string.Equals(snapshot.MediaType, request.Snapshot.MediaType, StringComparison.Ordinal) ||
+            ControlPlaneMapping.ParseUtc(snapshot.RetrievedAtUtc) != request.Snapshot.RetrievedAt ||
+            content is null || content.ByteLength != request.Snapshot.ByteLength ||
+            audit is null ||
+            !string.Equals(audit.EventType, "OfficialSourceCommitted", StringComparison.Ordinal) ||
+            ControlPlaneMapping.ParseUtc(audit.OccurredAtUtc) != request.CommittedAt ||
+            !string.Equals(audit.DetailsDigest, expectedAuditDigest, StringComparison.Ordinal))
+        {
+            throw new InvalidOperationException(
+                "The persisted official-source replay evidence differs from the requested intent.");
+        }
+
+        return new StoreMutationResult(StoreMutationOutcome.AlreadyApplied, resultRevision);
     }
+
+    private static async Task<StoreMutationResult> ReadExactObservationReplayAsync(
+        ControlPlaneDbContext context,
+        ObservationCommitRequest request,
+        AdminOperationRow operation,
+        long maxAgeSeconds,
+        CancellationToken cancellationToken)
+    {
+        EnsureOperationIdentity(operation, "ObservationAppend");
+        var resultRevision = request.Observation.JournalRevision.Value;
+
+        if (!string.Equals(operation.CorpusId, request.CorpusId.Value, StringComparison.Ordinal) ||
+            operation.ExpectedRevision != request.ExpectedJournalRevision ||
+            operation.ResultRevision != resultRevision ||
+            operation.CompletedAtUtc is null ||
+            ControlPlaneMapping.ParseUtc(operation.RequestedAtUtc) != request.CommittedAt ||
+            ControlPlaneMapping.ParseUtc(operation.CompletedAtUtc) != request.CommittedAt)
+        {
+            throw new InvalidOperationException(
+                "An observation operation identity was reused with different intent.");
+        }
+
+        var observation = await context.SourceObservations.AsNoTracking()
+            .SingleOrDefaultAsync(
+                row => row.OperationId == request.OperationId.Value,
+                cancellationToken).ConfigureAwait(false);
+        var audit = await context.AuditEvents.AsNoTracking().SingleOrDefaultAsync(
+            row => row.CorpusId == request.CorpusId.Value &&
+                row.OperationId == request.OperationId.Value,
+            cancellationToken).ConfigureAwait(false);
+        var expectedAuditDigest = BuildAuditDetailsDigest(
+            request.CorpusId,
+            request.OperationId,
+            "ObservationAppended",
+            resultRevision,
+            request.CommittedAt,
+            request.AuditDetailsDigest);
+
+        if (observation is null ||
+            !string.Equals(observation.CorpusId, request.CorpusId.Value, StringComparison.Ordinal) ||
+            !string.Equals(observation.ObservationId, request.Observation.Id.Value, StringComparison.Ordinal) ||
+            !string.Equals(observation.RegistrationId, request.Observation.RegistrationId.Value, StringComparison.Ordinal) ||
+            !string.Equals(observation.SnapshotId, request.Observation.SnapshotId.Value, StringComparison.Ordinal) ||
+            observation.JournalRevision != resultRevision ||
+            !string.Equals(observation.State, request.Observation.State.ToString(), StringComparison.Ordinal) ||
+            ControlPlaneMapping.ParseUtc(observation.RevalidatedAtUtc) != request.Observation.RevalidatedAt ||
+            observation.MaxAgeSeconds != maxAgeSeconds ||
+            audit is null ||
+            !string.Equals(audit.EventType, "ObservationAppended", StringComparison.Ordinal) ||
+            ControlPlaneMapping.ParseUtc(audit.OccurredAtUtc) != request.CommittedAt ||
+            !string.Equals(audit.DetailsDigest, expectedAuditDigest, StringComparison.Ordinal))
+        {
+            throw new InvalidOperationException(
+                "The persisted observation replay evidence differs from the requested intent.");
+        }
+
+        return new StoreMutationResult(StoreMutationOutcome.AlreadyApplied, resultRevision);
+    }
+
+    private static async Task<StoreMutationResult> ReadExactGenerationReplayAsync(
+        ControlPlaneDbContext context,
+        GenerationCommitRequest request,
+        AdminOperationRow operation,
+        CancellationToken cancellationToken)
+    {
+        EnsureOperationIdentity(operation, "GenerationCommit");
+        var resultRevision = request.Manifest.CatalogueRevision.Value;
+
+        if (!string.Equals(operation.CorpusId, request.Manifest.CorpusId.Value, StringComparison.Ordinal) ||
+            operation.ExpectedRevision != resultRevision ||
+            operation.ResultRevision != resultRevision ||
+            operation.CompletedAtUtc is null ||
+            ControlPlaneMapping.ParseUtc(operation.RequestedAtUtc) != request.FinalisedAt ||
+            ControlPlaneMapping.ParseUtc(operation.CompletedAtUtc) != request.FinalisedAt)
+        {
+            throw new InvalidOperationException(
+                "A generation operation identity was reused with different intent.");
+        }
+
+        var manifest = await context.GenerationManifests.AsNoTracking()
+            .SingleOrDefaultAsync(
+                row => row.OperationId == request.OperationId.Value,
+                cancellationToken).ConfigureAwait(false);
+        var bindings = await context.GenerationManifestBindings.AsNoTracking()
+            .Where(row => row.CorpusId == request.Manifest.CorpusId.Value &&
+                row.IndexGenerationId == request.Manifest.IndexGenerationId.Value)
+            .ToArrayAsync(cancellationToken).ConfigureAwait(false);
+        var requestedBindings = request.Bindings.Select(ToReplayBindingKey).ToHashSet();
+        var persistedBindings = bindings.Select(ToReplayBindingKey).ToHashSet();
+        var audit = await context.AuditEvents.AsNoTracking().SingleOrDefaultAsync(
+            row => row.CorpusId == request.Manifest.CorpusId.Value &&
+                row.OperationId == request.OperationId.Value,
+            cancellationToken).ConfigureAwait(false);
+        var expectedAuditDigest = BuildAuditDetailsDigest(
+            request.Manifest.CorpusId,
+            request.OperationId,
+            "GenerationCommitted",
+            resultRevision,
+            request.FinalisedAt,
+            request.AuditDetailsDigest);
+
+        if (manifest is null ||
+            !GenerationManifestMatches(manifest, request) ||
+            bindings.Length != request.Bindings.Count ||
+            requestedBindings.Count != request.Bindings.Count ||
+            !persistedBindings.SetEquals(requestedBindings) ||
+            audit is null ||
+            !string.Equals(audit.EventType, "GenerationCommitted", StringComparison.Ordinal) ||
+            ControlPlaneMapping.ParseUtc(audit.OccurredAtUtc) != request.FinalisedAt ||
+            !string.Equals(audit.DetailsDigest, expectedAuditDigest, StringComparison.Ordinal))
+        {
+            throw new InvalidOperationException(
+                "The persisted generation replay evidence differs from the requested intent.");
+        }
+
+        return new StoreMutationResult(StoreMutationOutcome.AlreadyApplied, resultRevision);
+    }
+
+    private static bool GenerationManifestMatches(
+        GenerationManifestRow row,
+        GenerationCommitRequest request) =>
+        string.Equals(row.CorpusId, request.Manifest.CorpusId.Value, StringComparison.Ordinal) &&
+        string.Equals(row.IndexGenerationId, request.Manifest.IndexGenerationId.Value, StringComparison.Ordinal) &&
+        string.Equals(row.CandidateBuildId, request.CandidateBuildId.Value, StringComparison.Ordinal) &&
+        row.ManifestSchemaVersion == request.Manifest.ManifestSchemaVersion &&
+        row.CorpusRevision == request.Manifest.CorpusRevision.Value &&
+        row.CatalogueRevision == request.Manifest.CatalogueRevision.Value &&
+        string.Equals(row.ActiveDocumentSetDigest, request.Manifest.ActiveDocumentSetDigest.Value, StringComparison.Ordinal) &&
+        string.Equals(row.SourceBindingSetDigest, request.Manifest.SourceBindingSetDigest.Value, StringComparison.Ordinal) &&
+        string.Equals(row.IndexCompatibilityKey, request.Manifest.IndexCompatibilityKey.Value, StringComparison.Ordinal) &&
+        string.Equals(row.GenerationSpecDigest, request.Manifest.GenerationSpecDigest.Value, StringComparison.Ordinal) &&
+        row.ChunkCount == request.Manifest.ChunkCount &&
+        row.VectorCount == request.Manifest.VectorCount &&
+        string.Equals(row.LogicalArtifactDigest, request.Manifest.LogicalArtifactDigest.Value, StringComparison.Ordinal) &&
+        string.Equals(row.GenerationContentDigest, request.Manifest.GenerationContentDigest.Value, StringComparison.Ordinal) &&
+        ControlPlaneMapping.ParseUtc(row.FinalisedAtUtc) == request.FinalisedAt &&
+        string.Equals(row.OperationId, request.OperationId.Value, StringComparison.Ordinal);
+
+    private static (string ProductId, long ProductRevision, string DocumentId, long DocumentVersion,
+        string DocumentFormat, string SourceAdapterId, string SourceTrustClass,
+        string? OfficialRegistrationId, string? OfficialSnapshotId) ToReplayBindingKey(
+        DocumentBinding binding) =>
+        (
+            binding.DatabaseProductId.Value,
+            binding.DatabaseProductRevision.Value,
+            binding.DocumentId.Value,
+            binding.DocumentVersion.Value,
+            binding.DocumentFormat.ToString(),
+            binding.SourceAdapterId.Value,
+            binding.SourceTrustClass.ToString(),
+            binding.OfficialSourceRegistrationId?.Value,
+            binding.OfficialSnapshotId?.Value);
+
+    private static (string ProductId, long ProductRevision, string DocumentId, long DocumentVersion,
+        string DocumentFormat, string SourceAdapterId, string SourceTrustClass,
+        string? OfficialRegistrationId, string? OfficialSnapshotId) ToReplayBindingKey(
+        GenerationManifestBindingRow binding) =>
+        (
+            binding.ProductId,
+            binding.ProductRevision,
+            binding.DocumentId,
+            binding.DocumentVersion,
+            binding.DocumentFormat,
+            binding.SourceAdapterId,
+            binding.SourceTrustClass,
+            binding.OfficialRegistrationId,
+            binding.OfficialSnapshotId);
 
     private static async Task<StoreMutationResult> ReadExactCatalogueReplayAsync(
         ControlPlaneDbContext context,
