@@ -47,10 +47,11 @@ proprietários.
   (`b875eac6e9ce4c72783d4e4bb72a59686ca58248`), administração one-shot
   governada com journal durável (`ac34c085a499a34ea8ee1c9106675482e38790c3`)
   e esta reconciliação documental. As correções executáveis estão
-  implementadas e os documentos factuais foram reconciliados, mas a disposição
-  dos quatro achados permanece pendente do Automatic Quality Gate corretivo e
-  da retomada integral da auditoria. Isso não reabre o lifecycle, não altera o
-  Human Gate histórico e não autoriza `STATE-05`.
+  implementadas e os documentos factuais foram reconciliados. O Automatic
+  Quality Gate corretivo foi aprovado sobre
+  `main@114ea6f7f76936dac991553588660fc986bd0f10`; a disposição dos quatro
+  achados permanece pendente da retomada integral da auditoria. Isso não reabre
+  o lifecycle, não altera o Human Gate histórico e não autoriza `STATE-05`.
 - Fechamento de `S04-A0`: `PdfPig` `0.1.15` e `CsvHelper` `33.1.0` foram
   selecionados condicionalmente para desenvolvimento local;
   `Sylvan.Data.Csv` `1.4.4` permanece fallback não selecionado e não
@@ -226,9 +227,11 @@ proprietários.
   `a674560ed1093e96d533012f1b11a292c3f641b5`,
   `b875eac6e9ce4c72783d4e4bb72a59686ca58248` e
   `ac34c085a499a34ea8ee1c9106675482e38790c3`; C4 reconcilia os registros
-  factuais. Automatic Quality Gate corretivo e auditoria completa permanecem
-  pendentes e são obrigatórios antes da disposição dos achados. Nenhum novo
-  Human Gate foi executado.
+  factuais. O Automatic Quality Gate corretivo foi `APROVADO` sobre
+  `main@114ea6f7f76936dac991553588660fc986bd0f10`, com 150 testes aplicáveis,
+  92,26% de linhas e 65,07% de branches; a auditoria completa permanece
+  pendente e obrigatória antes da disposição dos achados. Nenhum novo Human
+  Gate foi executado.
 - Human Gate de `STATE-03`: `APROVADO` sem ressalvas em 2026-08-02 sobre
   `main@a88dc1f296bb9117dd8e869b83d1665cee99634f`, corpus `4.9.1`, após
   revisão, na mesma conversa, do resumo completo da baseline vigente, dos
@@ -539,10 +542,10 @@ autorizada.
    para cada banco antes de sua ativação.
 2. Validar e ativar individualmente novos registros de fonte oficial; a
    aceitação arquitetural não autoriza URL, rede, download ou crawling.
-3. Concluir o Automatic Quality Gate corretivo e a auditoria completa de
-   `STATE-04`, dispondo `AUD-S04-001` a `AUD-S04-004`; somente depois preparar
-   uma proposta limitada de entrada em `STATE-05` e obter autorização humana
-   explícita e separada antes de qualquer alteração de frontend.
+3. Concluir a auditoria completa de `STATE-04`, dispondo `AUD-S04-001` a
+   `AUD-S04-004`; somente depois preparar uma proposta limitada de entrada em
+   `STATE-05` e obter autorização humana explícita e separada antes de qualquer
+   alteração de frontend.
 4. Verificar tier, entitlement, spend limit e controles da conta OpenAI, além
    da recuperação/geração bilíngue, antes de usar ou anunciar os providers.
 5. Homologar desempenho e capacidade do `SqliteExactVectorStore`; a fixture
@@ -580,10 +583,10 @@ o estado com as limitações e os riscos residuais já registrados.
 A auditoria local posterior identificou `AUD-S04-001` a `AUD-S04-004`.
 `S04-CORR-01` implementou o rebinding transacional de observações, alinhou o
 chunking integral, materializou a administração one-shot governada e
-reconciliou a memória documental. A disposição dos achados depende do
-Automatic Quality Gate corretivo e da auditoria completa já autorizados. O
-lifecycle permanece encerrado no mesmo ponto enquanto essas validações não
-concedem nem substituem autoridade de entrada em estado posterior.
+reconciliou a memória documental. O Automatic Quality Gate corretivo foi
+aprovado; a disposição dos achados depende da auditoria completa já autorizada.
+O lifecycle permanece encerrado no mesmo ponto enquanto essa validação não
+concede nem substitui autoridade de entrada em estado posterior.
 
 Qualquer entrada em `STATE-05 FRONTEND_IMPLEMENTATION` exige proposta e
 autorização humana explícita e separada. O Human Gate de `STATE-04` não concede

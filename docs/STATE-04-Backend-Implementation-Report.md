@@ -404,6 +404,39 @@ deployment. The NuGet signature status remains
 retained, and the existing real-provider, Linux ARM64 runtime, listener E2E,
 performance and operational limitations continue to apply.
 
+## Corrective Automatic Quality Gate
+
+The corrective Automatic Quality Gate was executed locally and offline on
+2026-08-04 over `main@114ea6f7f76936dac991553588660fc986bd0f10`, Git tree
+`b4d14fab9346574d7db7d92c11ca1e5c0ee363d4`, corpus `4.9.2` and a clean
+working tree.
+
+| Gate | Result | Observed evidence |
+| --- | --- | --- |
+| Authority and corrective sequence | `APPROVED` | C1, C2, C3 and C4 are isolated in commits `a674560ed1093e96d533012f1b11a292c3f641b5`, `b875eac6e9ce4c72783d4e4bb72a59686ca58248`, `ac34c085a499a34ea8ee1c9106675482e38790c3` and `114ea6f7f76936dac991553588660fc986bd0f10`. No package, provider, later state or external action was added. |
+| Runtime preflight | `APPROVED` | The directed preflight found no RAG-Challenge-owned `dotnet` or server process and no owned listener. Generic and unrelated processes were not inspected or stopped. |
+| Offline restore, format and build | `APPROVED` | Seven lockfiles remained byte-stable after locked restore from a cleared-source configuration and isolated cache. Format verification passed. The .NET SDK 10.0.302 Release build completed with zero warnings and zero errors in an isolated artefact root. |
+| Unit, integration and architecture | `APPROVED` | 150 applicable tests passed: 74 unit, 67 integration and 9 architecture; zero failed or skipped in the accepted runs. The Dashboard-specific architecture test was `NOT_APPLICABLE` under the explicit negative scope. |
+| Coverage | `APPROVED` | Merged Cobertura coverage was 92.26% of lines (16,580/17,970) and 65.07% of branches (2,079/3,195), above the 70% and 45% floors. |
+| Corrective behaviour | `APPROVED` | Tests cover transactional observation rebinding and injected failures; complete `paragraph-window-v1`; strict one-shot commands; exact replay and divergent intent; lifecycle isolation; leases; durable journal success/refusal/unavailability/failure; migration upgrade; and absence of administrative HTTP routes. |
+| Migrations | `APPROVED` | Control and vector contexts report no pending model changes. The journal migration creates exactly one table and no columns outside it; both corrective `Up` migrations contain no destructive operation. The initial-to-latest upgrade and backfill are integration-tested. |
+| Parsers and lock hashes | `APPROVED_WITH_ACCEPTED_LIMITATION` | Raw D1 and isolated-cache nupkg SHA-512 values for `PdfPig` 0.1.15 and `CsvHelper` 33.1.0 match the accepted values. Lock content hashes match in every occurrence and each parser has no applicable dependency. Signature status remains `CONDITIONAL_REVOCATION_NOT_CURRENT`. |
+| API, configuration and repository hygiene | `APPROVED` | OpenAPI retains exactly three public routes and SHA-256 `D6A686B94C926914BEB28B437F464430A01DE6560C2E2D476CF5C36025813E34`; no administrative HTTP route was found. A strict local audit of 161 non-Dashboard files passed UTF-8/LF, newline, whitespace, local links, ignored private material and apparent-secret checks. The Git tree remained clean. |
+| External and Dashboard validation | `NOT_APPLICABLE` | No network, provider, account, real corpus, official source, listener, Dashboard, GitHub, OCI, DB-Notifier, publication or deployment was used. |
+
+The first isolated unit-test invocation was invalid as gate evidence because
+the alternate artefact root was not an ancestor of two tracked deterministic
+fixtures. It produced 72 passes and two fixture-not-found errors before any
+product assertion failed. The fixtures were copied into the temporary mirror,
+verified byte-for-byte by SHA-256, and the accepted coverage invocation then
+passed all 74 unit tests. No source, test or product behaviour was changed.
+
+The overall corrective Automatic Quality Gate result is `APPROVED`, with no
+P0 or P1 finding and no open gate failure. `AUD-S04-001` to `AUD-S04-004` are
+`CORRECTED_PENDING_AUDIT_DISPOSITION`; only the resumed complete audit may
+classify them as resolved. This gate does not rerun the Human Gate, reopen
+`STATE-04` or authorise `STATE-05`.
+
 ## Retention and risk
 
 - Preserve all temporary `S04-A0` evidence until separate cleanup authority.
@@ -414,6 +447,6 @@ performance and operational limitations continue to apply.
   suitability, parser quality over a real corpus or provider behaviour.
 - The consolidated `S04-A` to `S04-D` authority has been consumed
   sequentially; its Automatic Quality Gate and subsequent Human Gate are
-  approved with the documented limitations. The later corrective increment is
-  pending its Automatic Quality Gate and resumed audit. `STATE-04` remains
-  closed and no later state is authorised.
+  approved with the documented limitations. The later corrective increment
+  passed its Automatic Quality Gate and is pending the resumed audit.
+  `STATE-04` remains closed and no later state is authorised.

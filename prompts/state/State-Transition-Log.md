@@ -2920,3 +2920,48 @@ contém somente fatos cronológicos.
   corretivo é a próxima etapa autorizada; Human Gate não foi repetido e
   `STATE-05` continua sem autorização.
 - Aprovador: proprietário do RAG-Challenge.
+
+## 2026-08-04 — Automatic Quality Gate corretivo de STATE-04 aprovado
+
+- Baseline auditada: `main@114ea6f7f76936dac991553588660fc986bd0f10`,
+  Git tree `b4d14fab9346574d7db7d92c11ca1e5c0ee363d4`, corpus `4.9.2` e working
+  tree limpa.
+- Sequência corretiva: C1, C2, C3 e C4 preservados nos commits focais
+  `a674560ed1093e96d533012f1b11a292c3f641b5`,
+  `b875eac6e9ce4c72783d4e4bb72a59686ca58248`,
+  `ac34c085a499a34ea8ee1c9106675482e38790c3` e
+  `114ea6f7f76936dac991553588660fc986bd0f10`.
+- Preflight e isolamento: nenhum processo ou listener RAG-Challenge estava
+  ativo; restore, cache, CLI home, resultados e artefatos ficaram isolados e
+  sem fonte NuGet ou proxy.
+- Build e testes: format aprovado; build Release no SDK .NET `10.0.302` com
+  zero warnings e zero erros; 150 testes aplicáveis aprovados — 74 unitários,
+  67 de integração e 9 de arquitetura — sem falha ou skip. O teste exclusivo
+  do Dashboard foi `NÃO APLICÁVEL`.
+- Cobertura: 92,26% de linhas (16.580/17.970) e 65,07% de branches
+  (2.079/3.195), acima dos pisos de 70% e 45%.
+- Migrations: Control e Vector sem mudança de modelo pendente; upgrade e
+  backfill aprovados por integração; migration do journal limitada a uma nova
+  tabela e sem operação destrutiva no `Up`.
+- Supply chain: hashes raw D1/cache e content hashes dos lockfiles de `PdfPig`
+  `0.1.15` e `CsvHelper` `33.1.0` aprovados; grafo aplicável vazio; nenhuma
+  mudança de package no incremento. Assinatura permanece
+  `CONDITIONAL_REVOCATION_NOT_CURRENT`.
+- Contratos e higiene: OpenAPI conserva três rotas e SHA-256
+  `D6A686B94C926914BEB28B437F464430A01DE6560C2E2D476CF5C36025813E34`;
+  nenhuma rota HTTP administrativa foi encontrada; 161 arquivos fora do
+  Dashboard passaram encoding, whitespace, links, material privado e busca de
+  secrets aparentes; working tree final limpa.
+- Limitação de orquestração: uma primeira execução unitária com artefatos fora
+  da árvore não localizou duas fixtures rastreadas e não foi aceita como
+  evidência. As duas cópias temporárias foram verificadas por SHA-256 e a
+  execução válida posterior aprovou 74/74 sem alterar produto ou teste.
+- Resultado: `APROVADO`, sem P0/P1 ou falha de gate. `AUD-S04-001` a
+  `AUD-S04-004` estão `CORRIGIDOS_PENDENTES_DE_DISPOSIÇÃO`; a auditoria
+  completa retomada é a próxima etapa autorizada e única que pode encerrá-los.
+- Lifecycle: `STATE-04` permanece encerrado; Human Gate não foi repetido;
+  `STATE-05` continua sem autorização.
+- Escopo negativo preservado: sem rede, provider, conta, secret, corpus real,
+  fonte oficial real, listener, Dashboard, GitHub, OCI, DB-Notifier,
+  publicação ou deploy.
+- Aprovador: proprietário do RAG-Challenge.
