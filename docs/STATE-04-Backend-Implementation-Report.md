@@ -3,11 +3,11 @@
 ## Purpose and boundary
 
 This report is the durable, sanitised record for `STATE-04
-BACKEND_IMPLEMENTATION`. It records the dependency assessment completed by
-`S04-A0`, the selected parsing candidates, the accepted limitations and the
-precondition that stopped the first implementation increment. It is evidence,
-not an independent authority to install a package, execute a later state or
-perform an external action.
+BACKEND_IMPLEMENTATION`. It records the `S04-A0` dependency assessment and
+resolution, selected parsing packages, accepted limitations, sequential
+implementation of `S04-A` through `S04-D` and the Automatic Quality Gate. It
+is evidence, not an independent authority to install a package, execute a
+later state or perform an external action.
 
 Temporary packages, raw catalogue and registration responses, restored
 assemblies, caches, launchers, raw logs and local paths remain outside the
@@ -19,6 +19,9 @@ their cleanup.
 - Initial baseline: branch `main`, commit
   `fe6c9028f061a7f0a98fc3debecffb0de3ad69bc`, corpus `4.9.2`, clean working
   tree.
+- Consolidated implementation baseline: branch `main`, commit
+  `1bb4368ff59521ab61b0d9224b806805e84c6287`, corpus `4.9.2`, clean working
+  tree, subject to initial revalidation and cache-seed approval.
 - State position: `STATE-04 BACKEND_IMPLEMENTATION` active.
 - Owner authority dated 2026-08-04: close `S04-A0`, pin the selected parsers,
   execute `S04-A` through `S04-D` sequentially and then execute the
@@ -26,8 +29,10 @@ their cleanup.
 - Negative authority: no network, external provider, account, secret, real
   corpus, real official product source, GitHub, OCI, Dashboard, DB-Notifier,
   publication, deployment, Human Gate or entry into a later lifecycle state.
-- Runtime preflight for this documentation-only increment:
-  `NOT_APPLICABLE`; no product process or listener was inspected or started.
+- Runtime preflight was `NOT_APPLICABLE` for documentary and cache-seed work.
+  The targeted implementation preflight was applied before the first
+  executable project action and found no RAG-Challenge-owned process or
+  listener requiring termination.
 
 ## S04-A0 outcome
 
@@ -310,6 +315,52 @@ suite then passed 118 tests: 67 unit, 10 architecture and 41 integration. The
 Release build completed with zero warnings and zero errors. No listener,
 provider, network request, external source or real corpus was used.
 
+## Automatic Quality Gate
+
+The `STATE-04` Automatic Quality Gate was executed locally and offline on
+2026-08-04 over implementation baseline
+`main@7f236542133719481a02f507cf802a1dd385f328`, whose Git tree is
+`8ef34586d567008510d2d633a927ebc9a9d7f766`.
+
+| Gate | Result | Observed evidence |
+| --- | --- | --- |
+| Authority and sequence | `APPROVED` | Five implementation commits preserve the authorised order: parser pin, `S04-A`, `S04-B`, `S04-C` and `S04-D`; a sixth focal test commit resolves the gate finding below. No later state or external action was executed. |
+| Runtime preflight | `APPROVED` | The targeted preflight was applied before the executable sequence; no RAG-Challenge-owned process or listener required termination. No server listener was started by the gate. |
+| Formatting and build | `APPROVED` | `dotnet format --verify-no-changes --no-restore` passed. The .NET 10.0.302 Release build completed with zero warnings and zero errors using the isolated offline cache. |
+| Unit, architecture and integration | `APPROVED` | 119 tests passed: 67 unit, 10 architecture and 42 integration; zero failed or skipped. |
+| Coverage | `APPROVED` | Merged Cobertura coverage was 92.37% of lines (10,441/11,303) and 65.73% of branches (1,260/1,917), above the 70% and 45% floors. |
+| STATE-04 functional scope | `APPROVED` | Tests cover catalogue administration, bounded PDF/CSV ingestion, fake official sync, immutable snapshots, idempotency, candidate indexing, hard pre-filter, CAS activation, retrieval, refusal, bilingual evidence, citations, OpenAPI, health, failures and direct-HTTP provider contracts. One synthetic CSV corpus now crosses ingestion, catalogue commit, index build, activation, query, grounded generation and citation reconstruction in one test. |
+| Parser supply chain and locks | `APPROVED_WITH_ACCEPTED_LIMITATION` | Selected D1 nupkg raw hashes were revalidated. Seven tracked lockfiles preserve the accepted signed/lock hashes, exact versions and empty parser dependency graphs. Signature status remains `CONDITIONAL_REVOCATION_NOT_CURRENT`; the accepted NuGet hash-semantics limitation remains local-development-only. |
+| API and egress boundary | `APPROVED` | OpenAPI contains exactly the three approved routes and has SHA-256 `D6A686B94C926914BEB28B437F464430A01DE6560C2E2D476CF5C36025813E34`. External composition remains disabled; HTTP adapters were exercised only through a fake handler. |
+| Repository hygiene and security | `APPROVED` | A scoped audit excluding the explicitly out-of-scope Dashboard passed for 148 non-ignored files: strict UTF-8/LF, final newline, whitespace, local links, ignored private material and apparent secret assignments. No source or lock reference to Sylvan, `OpenAI` or `System.ClientModel` was found. |
+| Dashboard and external validation | `NOT_APPLICABLE` | Dashboard access, network, real providers, real corpus, official sources, GitHub, OCI, DB-Notifier, publication and deployment were explicitly outside this gate. |
+
+The overall Automatic Quality Gate result is `APPROVED`, with zero open
+findings. `AQG-S04-001` was classified `P2 Medium` because the first audit pass
+found stage-specific coverage but no single test crossing the complete
+synthetic backend flow. The authorised local correction added that test and
+the repeated build, complete suite and coverage gate passed; the finding is
+`RESOLVED`. No P0, P1 or P3 finding was identified. This result does not
+execute or imply the Human Gate and does not authorise entry into `STATE-05`.
+
+### Residual limitations and risks
+
+- Online certificate revocation and a current online advisory query were not
+  performed; parser signature status remains conditional.
+- The primary sources reviewed for NuGet did not normatively reconcile every
+  observed lock, signed-content and cache-hash domain. The owner accepted this
+  only for local `STATE-04` development.
+- Parser runtime behaviour was proved on the local Windows environment with
+  synthetic fixtures. Linux ARM64 evidence remains compile/cross-publish only.
+- Provider contracts were proved with deterministic fakes. Account
+  entitlement, model availability, spend controls, real latency and provider
+  output remain unverified and require separate authority.
+- No real corpus, source licence activation, real official synchronisation,
+  listener-level HTTP E2E, benchmark, deployment or operational recovery was
+  tested. Those remain owned by later authorised states and external gates.
+- The default host remains deliberately unready until an explicit valid local
+  store, activation, vector and provider-circuit composition is supplied.
+
 ## Retention and risk
 
 - Preserve all temporary `S04-A0` evidence until separate cleanup authority.
@@ -319,6 +370,5 @@ provider, network request, external source or real corpus was used.
   prove current online revocation, Linux ARM64 runtime behaviour, production
   suitability, parser quality over a real corpus or provider behaviour.
 - The consolidated `S04-A` to `S04-D` authority has been consumed
-  sequentially. All four lots are complete and permit only the separately
-  named Automatic Quality Gate that follows; no later state or Human Gate is
-  implied.
+  sequentially and its Automatic Quality Gate is approved. Human review is
+  pending; no later state or Human Gate is implied.

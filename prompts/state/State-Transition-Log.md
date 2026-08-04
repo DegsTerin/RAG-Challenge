@@ -2789,3 +2789,39 @@ contém somente fatos cronológicos.
   real, fonte oficial real, GitHub, OCI, Dashboard, DB-Notifier, publicação,
   deploy, Human Gate ou estado posterior.
 - Aprovador: proprietário do RAG-Challenge.
+
+## 2026-08-04 — Automatic Quality Gate de STATE-04 aprovado
+
+- Baseline auditada: `main@7f236542133719481a02f507cf802a1dd385f328`,
+  corpus `4.9.2` e Git tree
+  `8ef34586d567008510d2d633a927ebc9a9d7f766`.
+- Sequência confirmada: pin de parsers, `S04-A`, `S04-B`, `S04-C` e `S04-D`
+  foram integrados em cinco commits focais e na ordem autorizada; um sexto
+  commit focal contém somente a correção de evidência do gate.
+- Build e testes: format aprovado; build Release no SDK .NET `10.0.302` com
+  zero warnings e zero erros; 119 testes aprovados — 67 unitários, 10 de
+  arquitetura e 42 de integração.
+- Cobertura: 92,37% de linhas (10.441/11.303) e 65,73% de branches
+  (1.260/1.917), acima dos pisos de 70% e 45%.
+- Supply chain: hashes raw dos dois nupkgs selecionados revalidados; sete
+  lockfiles preservam versões e content hashes aceitos; nenhum package
+  Sylvan, `OpenAI` ou `System.ClientModel` foi referenciado. Revogação de
+  assinatura permanece `CONDITIONAL_REVOCATION_NOT_CURRENT`.
+- Contratos: OpenAPI contém exatamente as três rotas aprovadas e possui
+  SHA-256 `D6A686B94C926914BEB28B437F464430A01DE6560C2E2D476CF5C36025813E34`;
+  API, health, falhas `CH_*`, limites e adapters HTTP fake passaram.
+- Higiene: auditoria local de 148 arquivos não ignorados e fora do Dashboard
+  aprovou UTF-8/LF, newline final, whitespace, links, material privado e busca
+  de secrets aparentes. Dashboard permaneceu fora do escopo explícito.
+- Achado: `AQG-S04-001` (P2) identificou ausência inicial de um teste único
+  que atravessasse o fluxo sintético completo. O teste foi acrescentado sob a
+  autoridade corretiva local, passou e tornou o achado `RESOLVIDO`.
+- Resultado: `APROVADO`, sem achados abertos; nenhum P0, P1 ou P3 foi
+  identificado.
+- Limitações: sem rede, revogação atual, provider real, corpus real, fonte
+  oficial real, runtime Linux ARM64, listener E2E, benchmark, GitHub, OCI,
+  Dashboard, DB-Notifier, publicação ou deploy.
+- Estado resultante: `STATE-04 BACKEND_IMPLEMENTATION` permanece ativo; Human
+  Gate pendente. Não houve entrada em `STATE-05`.
+- Resultado automático: emitido pelo processo local de Quality Gate sob
+  autoridade do proprietário; decisão humana não executada.

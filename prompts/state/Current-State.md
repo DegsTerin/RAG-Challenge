@@ -33,8 +33,10 @@ proprietários.
   `pt-BR`/`en-GB`; `S04-D` concluiu API pública v1, OpenAPI versionado,
   health fail-closed, Problem Details, limites, cancelamento, rate limit e os
   adapters OpenAI por HTTP direto exercitados somente com handler falso. Os
-  quatro lotes estão concluídos e o Automatic Quality Gate de `STATE-04` é a
-  próxima ação autorizada.
+  quatro lotes estão concluídos. O Automatic Quality Gate de `STATE-04` foi
+  aprovado sem achados abertos; `AQG-S04-001` (P2) foi resolvido por um teste
+  integrado do fluxo sintético completo. O Human Gate permanece pendente e
+  nenhum estado posterior foi autorizado.
 - Fechamento de `S04-A0`: `PdfPig` `0.1.15` e `CsvHelper` `33.1.0` foram
   selecionados condicionalmente para desenvolvimento local;
   `Sylvan.Data.Csv` `1.4.4` permanece fallback não selecionado e não
@@ -186,6 +188,15 @@ proprietários.
   aprovou 82 testes, 94,83% de linhas, 72,34% de branches, Dashboard e
   auditoria de 130 arquivos. Nenhum arquivo rastreado foi alterado durante a
   coleta; os stores temporários foram removidos. Human Gate não foi executado.
+- Automatic Quality Gate de `STATE-04`: `APROVADO` sobre
+  `main@7f236542133719481a02f507cf802a1dd385f328`, corpus `4.9.2`, com zero
+  achados abertos. `AQG-S04-001` (P2), ausência inicial de uma prova única do
+  fluxo sintético ingestão→ativação→consulta, foi `RESOLVIDO`. O gate offline
+  aprovou format, build Release sem warnings, 119 testes, 92,37% de linhas,
+  65,73% de branches, arquitetura,
+  contratos, integração, parsers, hashes, lockfiles, OpenAPI, falhas, health,
+  segurança e higiene. Dashboard e validações externas foram `NÃO
+  APLICÁVEIS` pelo escopo negativo explícito. Human Gate não foi executado.
 - Human Gate de `STATE-03`: `APROVADO` sem ressalvas em 2026-08-02 sobre
   `main@a88dc1f296bb9117dd8e869b83d1665cee99634f`, corpus `4.9.1`, após
   revisão, na mesma conversa, do resumo completo da baseline vigente, dos
@@ -490,8 +501,8 @@ autorizada.
    para cada banco antes de sua ativação.
 2. Validar e ativar individualmente novos registros de fonte oficial; a
    aceitação arquitetural não autoriza URL, rede, download ou crawling.
-3. Executar o Automatic Quality Gate de `STATE-04` sobre os quatro lotes
-   concluídos; nenhuma chamada externa ou Human Gate faz parte dessa execução.
+3. Revisar o resumo completo do Automatic Quality Gate de `STATE-04` e tomar
+   a decisão humana separada; a aprovação automática não encerra o estado.
 4. Verificar tier, entitlement, spend limit e controles da conta OpenAI, além
    da recuperação/geração bilíngue, antes de usar ou anunciar os providers.
 5. Homologar desempenho e capacidade do `SqliteExactVectorStore`; a fixture
@@ -521,13 +532,12 @@ já fixadas, sem alterar o cache global. `PdfPig` `0.1.15` e `CsvHelper`
 `33.1.0` foram fixados com grafo aplicável vazio, restore locked e hashes
 aprovados; o primeiro gate runtime sintético passou. `S04-A`, `S04-B`, `S04-C`
 e `S04-D` foram concluídos sequencialmente. O Automatic Quality Gate de
-`STATE-04` é a próxima e última ação do envelope autorizado antes da parada
-para decisão humana separada.
+`STATE-04` foi aprovado sem achados abertos; a execução parou antes do Human
+Gate.
 
-Nenhuma nova autoridade é necessária para o restante desse envelope enquanto
-baseline, packages, versões, arquitetura, contratos e escopo negativo
-permanecerem reconciliados. Qualquer condição de parada expressa exige nova
-decisão humana.
+O próximo ato possível é exclusivamente a revisão e decisão do Human Gate de
+`STATE-04`, mediante confirmação humana explícita depois do resumo completo.
+Essa decisão não autoriza por si só a entrada em `STATE-05`.
 
 Rede, providers, contas, secrets, corpus real, fontes oficiais reais do
 produto, armazenamento operacional, GitHub, OCI, Dashboard, publicação,
