@@ -1,5 +1,6 @@
 // Purpose: Implements the rebuildable exact-vector candidate store; it validates immutable builds but never decides or persists the active generation.
 using System.Buffers.Binary;
+using System.Linq.Expressions;
 
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
@@ -56,12 +57,31 @@ public sealed class SqliteVectorIndexStore(SqliteStoreOptions options)
             context,
             cancellationToken).ConfigureAwait(false);
 
-        if (await context.VectorBuilds.AnyAsync(
-                row => row.CandidateBuildId == candidateBuildId.Value,
-                cancellationToken).ConfigureAwait(false))
+        var existing = await context.VectorBuilds.SingleOrDefaultAsync(
+            row => row.CandidateBuildId == candidateBuildId.Value,
+            cancellationToken).ConfigureAwait(false);
+
+        if (existing is not null)
         {
-            throw new InvalidOperationException(
-                "A vector candidate with this identity already exists.");
+            if (!string.Equals(existing.CorpusId, corpusId.Value, StringComparison.Ordinal) ||
+                !string.Equals(
+                    existing.IndexCompatibilityKey,
+                    indexCompatibilityKey.Value,
+                    StringComparison.Ordinal) ||
+                existing.VectorDimensions != vectorDimensions ||
+                existing.ExpectedChunkCount != expectedChunkCount ||
+                !string.Equals(
+                    existing.CreatedAtUtc,
+                    FormatUtc(createdAt),
+                    StringComparison.Ordinal) ||
+                string.Equals(existing.Status, "Failed", StringComparison.Ordinal))
+            {
+                throw new InvalidOperationException(
+                    "A vector candidate identity cannot be replayed with different immutable input.");
+            }
+
+            await transaction.CommitAsync(cancellationToken).ConfigureAwait(false);
+            return;
         }
 
         context.VectorBuilds.Add(new VectorBuildRow
@@ -113,25 +133,58 @@ public sealed class SqliteVectorIndexStore(SqliteStoreOptions options)
             cancellationToken).ConfigureAwait(false) ??
             throw new KeyNotFoundException("The vector candidate does not exist.");
 
-        if (!string.Equals(build.Status, "Candidate", StringComparison.Ordinal))
+        if (string.Equals(build.Status, "Failed", StringComparison.Ordinal))
         {
             throw new InvalidOperationException(
-                "Only a Candidate vector build accepts chunks.");
+                "A Failed vector build cannot accept chunks.");
+        }
+
+        var ordinals = chunks.Select(chunk => chunk.ChunkOrdinal).ToArray();
+        var existingChunks = await context.VectorChunks
+            .Where(row => row.CandidateBuildId == candidateBuildId.Value &&
+                ordinals.Contains(row.ChunkOrdinal))
+            .ToDictionaryAsync(row => row.ChunkOrdinal, cancellationToken)
+            .ConfigureAwait(false);
+        var newChunks = chunks
+            .Where(chunk => !existingChunks.ContainsKey(chunk.ChunkOrdinal))
+            .ToArray();
+
+        foreach (var chunk in chunks)
+        {
+            ValidateChunk(chunk, build.VectorDimensions);
+
+            if (existingChunks.TryGetValue(chunk.ChunkOrdinal, out var existingChunk) &&
+                !MatchesChunk(existingChunk, chunk))
+            {
+                throw new InvalidOperationException(
+                    "A vector chunk ordinal cannot be replayed with different content.");
+            }
+        }
+
+        if (string.Equals(build.Status, "Validated", StringComparison.Ordinal))
+        {
+            if (newChunks.Length != 0)
+            {
+                throw new InvalidOperationException(
+                    "A validated vector build cannot accept new chunks.");
+            }
+
+            await transaction.CommitAsync(cancellationToken).ConfigureAwait(false);
+            return;
         }
 
         var currentCount = await context.VectorChunks.LongCountAsync(
             row => row.CandidateBuildId == candidateBuildId.Value,
             cancellationToken).ConfigureAwait(false);
 
-        if (currentCount + chunks.Count > build.ExpectedChunkCount)
+        if (currentCount + newChunks.Length > build.ExpectedChunkCount)
         {
             throw new InvalidOperationException(
                 "A vector write would exceed the candidate manifest count.");
         }
 
-        foreach (var chunk in chunks)
+        foreach (var chunk in newChunks)
         {
-            ValidateChunk(chunk, build.VectorDimensions);
             context.VectorChunks.Add(new VectorChunkRow
             {
                 CandidateBuildId = candidateBuildId.Value,
@@ -147,6 +200,15 @@ public sealed class SqliteVectorIndexStore(SqliteStoreOptions options)
         await context.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
         await transaction.CommitAsync(cancellationToken).ConfigureAwait(false);
     }
+
+    private static bool MatchesChunk(
+        VectorChunkRow existing,
+        VectorChunkWrite proposed) =>
+        string.Equals(existing.DocumentId, proposed.DocumentId.Value, StringComparison.Ordinal) &&
+        existing.DocumentVersion == proposed.DocumentVersion.Value &&
+        string.Equals(existing.ChunkDigest, proposed.ChunkDigest.Value, StringComparison.Ordinal) &&
+        string.Equals(existing.ChunkText, proposed.ChunkText, StringComparison.Ordinal) &&
+        existing.Vector.AsSpan().SequenceEqual(EncodeVector(proposed.Vector.Span));
 
     public async Task<FinalisedIndexGenerationManifest> FinaliseCandidateAsync(
         CandidateBuildId candidateBuildId,
@@ -256,6 +318,12 @@ public sealed class SqliteVectorIndexStore(SqliteStoreOptions options)
             cancellationToken).ConfigureAwait(false) ??
             throw new KeyNotFoundException("The vector candidate does not exist.");
 
+        if (string.Equals(build.Status, "Validated", StringComparison.Ordinal))
+        {
+            await transaction.CommitAsync(cancellationToken).ConfigureAwait(false);
+            return;
+        }
+
         if (!string.Equals(build.Status, "Candidate", StringComparison.Ordinal))
         {
             throw new InvalidOperationException(
@@ -268,44 +336,54 @@ public sealed class SqliteVectorIndexStore(SqliteStoreOptions options)
     }
 
     public async Task<IReadOnlyList<VectorSearchHit>> SearchExactAsync(
-        IndexGenerationId indexGenerationId,
-        ReadOnlyMemory<float> queryVector,
-        int maximumResults,
+        VectorSearchRequest request,
         CancellationToken cancellationToken = default)
     {
-        ArgumentNullException.ThrowIfNull(indexGenerationId);
+        ArgumentNullException.ThrowIfNull(request);
 
-        if (maximumResults is <= 0 or > MaximumSearchResults)
+        if (request.MaximumResults > MaximumSearchResults)
         {
             throw new ArgumentOutOfRangeException(
-                nameof(maximumResults),
-                maximumResults,
+                nameof(request),
+                request.MaximumResults,
                 $"Exact search must request 1..{MaximumSearchResults} results.");
         }
 
+        var eligibleKeys = SelectEligibleDocumentVersions(request);
+
         await using var context = options.CreateVectorContext();
         var build = await context.VectorBuilds.AsNoTracking().SingleOrDefaultAsync(
-            row => row.IndexGenerationId == indexGenerationId.Value &&
+            row => row.IndexGenerationId == request.IndexGenerationId.Value &&
+                row.CorpusId == request.CorpusId.Value &&
                 row.Status == "Validated",
             cancellationToken).ConfigureAwait(false) ??
             throw new KeyNotFoundException(
-                "The requested generation is not a validated vector build.");
+                "The requested corpus generation is not a validated vector build.");
 
-        ValidateVector(queryVector.Span, build.VectorDimensions, nameof(queryVector));
-        var queryNorm = CalculateNorm(queryVector.Span);
+        ValidateVector(
+            request.QueryVector.Span,
+            build.VectorDimensions,
+            nameof(request));
+        var queryNorm = CalculateNorm(request.QueryVector.Span);
 
         if (queryNorm == 0)
         {
             throw new ArgumentException(
                 "An exact-search vector cannot have zero magnitude.",
-                nameof(queryVector));
+                nameof(request));
+        }
+
+        if (eligibleKeys.Count == 0)
+        {
+            return [];
         }
 
         var chunks = await context.VectorChunks.AsNoTracking()
             .Where(row => row.CandidateBuildId == build.CandidateBuildId)
+            .Where(CreateEligibleChunkPredicate(eligibleKeys))
             .ToArrayAsync(cancellationToken)
             .ConfigureAwait(false);
-        var scored = new List<VectorSearchHit>(chunks.Length);
+        var scored = new List<VectorSearchHit>();
 
         foreach (var row in chunks)
         {
@@ -313,7 +391,7 @@ public sealed class SqliteVectorIndexStore(SqliteStoreOptions options)
             var vectorNorm = CalculateNorm(vector);
             var score = vectorNorm == 0
                 ? 0
-                : CalculateDotProduct(queryVector.Span, vector) /
+                : CalculateDotProduct(request.QueryVector.Span, vector) /
                     (queryNorm * vectorNorm);
             scored.Add(new VectorSearchHit(
                 new CandidateBuildId(row.CandidateBuildId),
@@ -328,8 +406,51 @@ public sealed class SqliteVectorIndexStore(SqliteStoreOptions options)
         return scored
             .OrderByDescending(hit => hit.Score)
             .ThenBy(hit => hit.ChunkOrdinal)
-            .Take(maximumResults)
+            .Take(request.MaximumResults)
             .ToArray();
+    }
+
+    private static HashSet<(string DocumentId, long DocumentVersion)>
+        SelectEligibleDocumentVersions(VectorSearchRequest request)
+    {
+        var databaseFilters = request.DatabaseProductFilters
+            .Select(identifier => identifier.Value)
+            .ToHashSet(StringComparer.Ordinal);
+        var documentFilters = request.DocumentFilters
+            .Select(identifier => identifier.Value)
+            .ToHashSet(StringComparer.Ordinal);
+        var bindings = request.EligibleBindings.Where(binding =>
+            (databaseFilters.Count == 0 ||
+                databaseFilters.Contains(binding.DatabaseProductId.Value)) &&
+            (documentFilters.Count == 0 ||
+                documentFilters.Contains(binding.DocumentId.Value)));
+        return bindings
+            .Select(binding => (
+                binding.DocumentId.Value,
+                binding.DocumentVersion.Value))
+            .ToHashSet();
+    }
+
+    private static Expression<Func<VectorChunkRow, bool>> CreateEligibleChunkPredicate(
+        IReadOnlyCollection<(string DocumentId, long DocumentVersion)> eligibleKeys)
+    {
+        var row = Expression.Parameter(typeof(VectorChunkRow), "row");
+        Expression body = Expression.Constant(false);
+
+        foreach (var key in eligibleKeys)
+        {
+            var documentMatch = Expression.Equal(
+                Expression.Property(row, nameof(VectorChunkRow.DocumentId)),
+                Expression.Constant(key.DocumentId));
+            var versionMatch = Expression.Equal(
+                Expression.Property(row, nameof(VectorChunkRow.DocumentVersion)),
+                Expression.Constant(key.DocumentVersion));
+            body = Expression.OrElse(
+                body,
+                Expression.AndAlso(documentMatch, versionMatch));
+        }
+
+        return Expression.Lambda<Func<VectorChunkRow, bool>>(body, row);
     }
 
     internal async Task<bool> MatchesFinalisedGenerationAsync(

@@ -160,9 +160,12 @@ public sealed class SqlitePersistenceBoundaryTests
             $"idxgen-{SqlitePersistenceFixture.Hash("unvalidated")}");
         await Assert.ThrowsAsync<KeyNotFoundException>(() =>
             fixture.VectorStore.SearchExactAsync(
-                unvalidatedId,
-                new float[] { 1, 0, 0 },
-                maximumResults: 1));
+                new VectorSearchRequest(
+                    SqlitePersistenceFixture.CorpusId,
+                    unvalidatedId,
+                    new float[] { 1, 0, 0 },
+                    maximumResults: 1,
+                    [binding])));
 
         var activeDigest = BindingDigestCanonicalizer
             .CanonicaliseActiveDocumentSet([binding])
@@ -187,9 +190,12 @@ public sealed class SqlitePersistenceBoundaryTests
             specification,
             SqlitePersistenceFixture.At(3));
         var hits = await fixture.VectorStore.SearchExactAsync(
-            manifest.IndexGenerationId,
-            new float[] { 1, 0, 0 },
-            maximumResults: 1);
+            new VectorSearchRequest(
+                SqlitePersistenceFixture.CorpusId,
+                manifest.IndexGenerationId,
+                new float[] { 1, 0, 0 },
+                maximumResults: 1,
+                [binding]));
         var hit = Assert.Single(hits);
         Assert.Equal(manifest.IndexGenerationId, idempotentReplay.IndexGenerationId);
         Assert.Equal(0, hit.ChunkOrdinal);

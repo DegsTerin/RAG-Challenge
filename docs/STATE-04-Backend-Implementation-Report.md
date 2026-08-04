@@ -208,6 +208,37 @@ and 84 tests: 56 unit, 10 architecture and 18 integration. All sources and
 fixtures were synthetic and the official transport was an in-process fake;
 no listener or network request was used.
 
+## S04-B outcome
+
+`S04-B` completed the provider-neutral indexing and activation path without
+calling or packaging an external embedding provider:
+
+- `IEmbeddingProvider` owns bounded ordered batches and returns an observed
+  provider/model/revision/dimension descriptor; any descriptor, count,
+  ordering, dimension or finite-value divergence fails the candidate;
+- the indexing service orders generation-bound document metadata and chunks,
+  creates an inactive candidate, embeds through a deterministic test fake,
+  writes bounded batches and finalises only after exact durable readback;
+- the final manifest, canonical digests, bindings and embedding descriptor
+  digest are committed before activation; activation remains an explicit
+  compare-and-swap operation in the control plane;
+- exact replay of the same candidate, chunks, generation operation and
+  activation operation is idempotent, while any immutable-input divergence is
+  rejected;
+- vector search now requires `CorpusId`, `IndexGenerationId` and the eligible
+  generation-bound bindings. Explicit database/document filters are reduced
+  to exact document-version keys and translated into the SQLite query before
+  vectors are loaded or cosine ranking and top-k are applied;
+- the active binding preserves database, document version, format, adapter and
+  trust identity for later retrieval and citation mapping.
+
+The integrated workflow proved inactive staging, validated finalisation,
+manifest commit, initial activation, hard denial by a non-authorised database
+filter, corpus isolation and exact replay. Format checking, a zero-warning
+Release build and 85 tests passed: 56 unit, 10 architecture and 19 integration.
+The only embedding implementation exercised was an in-process deterministic
+fake; no provider, listener or network request was used.
+
 ## Retention and risk
 
 - Preserve all temporary `S04-A0` evidence until separate cleanup authority.
@@ -217,5 +248,5 @@ no listener or network request was used.
   prove current online revocation, Linux ARM64 runtime behaviour, production
   suitability, parser quality over a real corpus or provider behaviour.
 - The consolidated `S04-A` to `S04-D` authority is being consumed
-  sequentially. `S04-A` is complete and permits `S04-B` to start; no later
-  state or Human Gate is implied.
+  sequentially. `S04-A` and `S04-B` are complete and permit `S04-C` to start;
+  no later state or Human Gate is implied.

@@ -153,6 +153,66 @@ public sealed record VectorSearchHit(
     string ChunkText,
     double Score);
 
+public sealed class VectorSearchRequest
+{
+    public VectorSearchRequest(
+        CorpusId corpusId,
+        IndexGenerationId indexGenerationId,
+        ReadOnlyMemory<float> queryVector,
+        int maximumResults,
+        IReadOnlyCollection<DocumentBinding> eligibleBindings,
+        IReadOnlyCollection<DatabaseProductId>? databaseProductFilters = null,
+        IReadOnlyCollection<DocumentId>? documentFilters = null)
+    {
+        CorpusId = corpusId ?? throw new ArgumentNullException(nameof(corpusId));
+        IndexGenerationId = indexGenerationId ??
+            throw new ArgumentNullException(nameof(indexGenerationId));
+
+        if (queryVector.IsEmpty)
+        {
+            throw new ArgumentException(
+                "A vector search request requires a query vector.",
+                nameof(queryVector));
+        }
+
+        if (maximumResults is <= 0 or > 100)
+        {
+            throw new ArgumentOutOfRangeException(nameof(maximumResults));
+        }
+
+        ArgumentNullException.ThrowIfNull(eligibleBindings);
+
+        if (eligibleBindings.Count == 0)
+        {
+            throw new ArgumentException(
+                "A vector search request requires generation-bound eligible documents.",
+                nameof(eligibleBindings));
+        }
+
+        QueryVector = queryVector.ToArray();
+        MaximumResults = maximumResults;
+        EligibleBindings = Array.AsReadOnly(eligibleBindings.ToArray());
+        DatabaseProductFilters = Array.AsReadOnly(
+            databaseProductFilters?.Distinct().ToArray() ?? []);
+        DocumentFilters = Array.AsReadOnly(
+            documentFilters?.Distinct().ToArray() ?? []);
+    }
+
+    public CorpusId CorpusId { get; }
+
+    public IndexGenerationId IndexGenerationId { get; }
+
+    public ReadOnlyMemory<float> QueryVector { get; }
+
+    public int MaximumResults { get; }
+
+    public ReadOnlyCollection<DocumentBinding> EligibleBindings { get; }
+
+    public ReadOnlyCollection<DatabaseProductId> DatabaseProductFilters { get; }
+
+    public ReadOnlyCollection<DocumentId> DocumentFilters { get; }
+}
+
 public interface IVectorIndexStore
 {
     Task CreateCandidateAsync(
@@ -180,9 +240,7 @@ public interface IVectorIndexStore
         CancellationToken cancellationToken = default);
 
     Task<IReadOnlyList<VectorSearchHit>> SearchExactAsync(
-        IndexGenerationId indexGenerationId,
-        ReadOnlyMemory<float> queryVector,
-        int maximumResults,
+        VectorSearchRequest request,
         CancellationToken cancellationToken = default);
 }
 

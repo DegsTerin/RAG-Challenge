@@ -26,7 +26,9 @@ proprietários.
   pins foram aplicados, o restore locked passou e o primeiro gate runtime
   sintético de `S04-A` foi aprovado. `S04-A` concluiu administração, ingestão
   PDF/CSV, sync por transporte falso, snapshots, chunks e idempotência;
-  `S04-B` é o próximo lote sequencial.
+  `S04-B` concluiu embeddings por port com fake determinístico, staging,
+  finalização canônica, commit, ativação CAS, hard pre-filter e replay
+  idempotente; `S04-C` é o próximo lote sequencial.
 - Fechamento de `S04-A0`: `PdfPig` `0.1.15` e `CsvHelper` `33.1.0` foram
   selecionados condicionalmente para desenvolvimento local;
   `Sylvan.Data.Csv` `1.4.4` permanece fallback não selecionado e não

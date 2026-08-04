@@ -64,10 +64,21 @@ public sealed class SqliteVectorScaleTests
             SqlitePersistenceFixture.At(2));
         var query = new float[Dimensions];
         query[0] = 1;
+        var binding = new DocumentBinding(
+            new DatabaseProductId("db-scale"),
+            new DatabaseProductRevision(1),
+            new DocumentId("doc-scale"),
+            new DocumentVersionNumber(1),
+            DocumentFormat.Pdf,
+            new SourceAdapterId("local-scale"),
+            SourceTrustClass.LocalAuthorised);
         var hits = await fixture.VectorStore.SearchExactAsync(
-            manifest.IndexGenerationId,
-            query,
-            maximumResults: 3);
+            new VectorSearchRequest(
+                SqlitePersistenceFixture.CorpusId,
+                manifest.IndexGenerationId,
+                query,
+                maximumResults: 3,
+                [binding]));
 
         Assert.Equal(3, hits.Count);
         Assert.Equal(0, hits[0].ChunkOrdinal);

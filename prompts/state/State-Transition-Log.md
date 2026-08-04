@@ -2705,3 +2705,30 @@ contém somente fatos cronológicos.
   corpus real, GitHub, OCI, Dashboard, DB-Notifier, publicação, deploy, Human
   Gate ou estado posterior.
 - Aprovador: proprietário do RAG-Challenge.
+
+## 2026-08-04 — S04-B concluído com indexação e ativação determinísticas
+
+- Estado anterior: `S04-A` concluído; `S04-B` era o próximo lote sequencial.
+- Escopo implementado: port de embeddings com descritor observado, fake
+  determinístico, staging inativo, batches limitados, finalização canônica,
+  commit do manifesto e ativação explícita por compare-and-swap.
+- Hard pre-filter: a busca exige corpus, geração e bindings elegíveis; filtros
+  administrativos opcionais de database/documento são convertidos em pares
+  document/version e aplicados no SQLite antes de carregar vetores, ranquear
+  por cosine ou selecionar top-k.
+- Idempotência: candidato, chunks, commit de geração e ativação aceitam replay
+  exato; divergência de input imutável é rejeitada e nenhuma promoção parcial
+  substitui a ativação vigente.
+- Evidência integrada: staging permaneceu sem ativação; finalização e commit
+  precederam CAS; filtro não autorizado retornou vazio; corpus divergente foi
+  recusado; o replay preservou geração e revisão de ativação.
+- Verificação: format check aprovado; build Release com zero warnings e zero
+  erros; 85 testes aprovados, sendo 56 unitários, 10 de arquitetura e 19 de
+  integração.
+- Fontes: somente fake determinístico e dados sintéticos em processo; nenhum
+  listener, rede ou provider foi acessado.
+- Estado resultante: `S04-B` concluído; `S04-C` é o próximo lote sequencial.
+- Escopo negativo preservado: sem migration, package adicional, provider real,
+  corpus real, GitHub, OCI, Dashboard, DB-Notifier, publicação, deploy, Human
+  Gate ou estado posterior.
+- Aprovador: proprietário do RAG-Challenge.
