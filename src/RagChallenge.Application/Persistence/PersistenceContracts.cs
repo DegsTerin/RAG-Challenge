@@ -1,6 +1,7 @@
 // Purpose: Defines provider-neutral persistence ports and explicit outcomes owned by Application; SQLite, filesystems, and migrations remain Infrastructure details.
 using System.Collections.ObjectModel;
 
+using RagChallenge.Application.Administration;
 using RagChallenge.Application.IndexingRetrieval;
 using RagChallenge.Domain.CorpusCatalog;
 using RagChallenge.Domain.IndexingRetrieval;
@@ -55,7 +56,8 @@ public sealed record CatalogueCommitRequest(
     CatalogueSnapshot Snapshot,
     long ExpectedCurrentRevision,
     DateTimeOffset CommittedAt,
-    string? AuditDetailsDigest = null);
+    string? AuditDetailsDigest = null,
+    AdministrationJournalCompletion? JournalCompletion = null);
 
 public sealed record OfficialSourceCommitRequest(
     OperationId OperationId,
@@ -64,6 +66,14 @@ public sealed record OfficialSourceCommitRequest(
     OfficialSourceSnapshot Snapshot,
     DateTimeOffset CommittedAt,
     string? AuditDetailsDigest = null);
+
+public sealed record OfficialSourceRegistrationCommitRequest(
+    OperationId OperationId,
+    CorpusId CorpusId,
+    OfficialSourceRegistration Registration,
+    DateTimeOffset CommittedAt,
+    string? AuditDetailsDigest = null,
+    AdministrationJournalCompletion? JournalCompletion = null);
 
 public sealed record ObservationCommitRequest(
     OperationId OperationId,
@@ -129,12 +139,21 @@ public sealed record ActivationCompareExchangeRequest(
     IndexCompatibilityKey RequiredCompatibilityKey,
     DateTimeOffset EvaluatedAt,
     TimeSpan PreviousGenerationRetention,
-    string? AuditDetailsDigest = null);
+    string? AuditDetailsDigest = null,
+    AdministrationJournalCompletion? JournalCompletion = null);
 
 public interface IControlPlaneStore
 {
     Task<StoreMutationResult> CommitCatalogueAsync(
         CatalogueCommitRequest request,
+        CancellationToken cancellationToken = default);
+
+    Task<CatalogueSnapshot?> ReadCurrentCatalogueAsync(
+        CorpusId corpusId,
+        CancellationToken cancellationToken = default);
+
+    Task<StoreMutationResult> RegisterOfficialSourceAsync(
+        OfficialSourceRegistrationCommitRequest request,
         CancellationToken cancellationToken = default);
 
     Task<StoreMutationResult> CommitOfficialSourceAsync(

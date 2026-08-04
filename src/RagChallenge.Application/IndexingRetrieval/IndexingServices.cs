@@ -395,7 +395,8 @@ public sealed record GenerationActivationRequest(
     IReadOnlyCollection<DocumentBinding> Bindings,
     long ExpectedCurrentRevision,
     TimeSpan PreviousGenerationRetention,
-    AdministrativeAuditContext AuditContext);
+    AdministrativeAuditContext AuditContext,
+    AdministrationJournalCompletion? JournalCompletion = null);
 
 public sealed class GenerationActivationService(IControlPlaneStore controlPlaneStore)
 {
@@ -421,12 +422,12 @@ public sealed class GenerationActivationService(IControlPlaneStore controlPlaneS
         var current = await controlPlaneStore.ReadActiveActivationAsync(
             request.Manifest.CorpusId,
             cancellationToken).ConfigureAwait(false);
-        var mutationKind = current is null
+        var mutationKind = request.ExpectedCurrentRevision == 0
             ? ActivationMutationKind.Initial
             : ActivationMutationKind.Replacement;
         CorpusActivationRecord proposed;
 
-        if (current is null)
+        if (mutationKind == ActivationMutationKind.Initial)
         {
             proposed = ActivationRecordFactory.CreateInitial(
                 request.Manifest,
@@ -435,6 +436,13 @@ public sealed class GenerationActivationService(IControlPlaneStore controlPlaneS
         }
         else
         {
+            if (current is null)
+            {
+                return new ActivationMutationResult(
+                    StoreMutationOutcome.RevisionConflict,
+                    currentRecord: null);
+            }
+
             proposed = ActivationRecordFactory.CreateGenerationReplacement(
                 current,
                 request.Manifest,
@@ -454,7 +462,8 @@ public sealed class GenerationActivationService(IControlPlaneStore controlPlaneS
                 request.AuditContext.CreateDigest(
                     request.Manifest.IndexGenerationId.Value,
                     proposed.ActivationBindingSetDigest.Value,
-                    mutationKind.ToString())),
+                    mutationKind.ToString()),
+                request.JournalCompletion),
             cancellationToken).ConfigureAwait(false);
     }
 }

@@ -144,6 +144,56 @@ public sealed class BackendIndexingWorkflowTests
         Assert.Equal(built.Manifest.IndexGenerationId, replayedBuild.Manifest.IndexGenerationId);
         Assert.Equal(StoreMutationOutcome.AlreadyApplied, replayedActivation.Outcome);
         Assert.Equal(1, replayedActivation.CurrentRecord!.RecordRevision.Value);
+
+        var originalRecord = activated.CurrentRecord!;
+        var originalAuditDigest = activationRequest.AuditContext.CreateDigest(
+            built.Manifest.IndexGenerationId.Value,
+            originalRecord.ActivationBindingSetDigest.Value,
+            ActivationMutationKind.Initial.ToString());
+        var laterExactReplay = await fixture.ControlStore.CompareExchangeActivationAsync(
+            new ActivationCompareExchangeRequest(
+                activationRequest.AuditContext.OperationId,
+                ActivationMutationKind.Initial,
+                ExpectedCurrentRevision: 0,
+                originalRecord,
+                built.Manifest.IndexCompatibilityKey,
+                SqlitePersistenceFixture.At(10),
+                SqliteControlPlaneStore.MinimumPreviousGenerationRetention,
+                originalAuditDigest));
+        Assert.Equal(StoreMutationOutcome.AlreadyApplied, laterExactReplay.Outcome);
+
+        var divergentBinding = new DocumentBinding(
+            binding.DatabaseProductId,
+            binding.DatabaseProductRevision,
+            binding.DocumentId,
+            binding.DocumentVersion,
+            binding.DocumentFormat,
+            new SourceAdapterId("different-adapter"),
+            binding.SourceTrustClass);
+        var divergentDigest = BindingDigestCanonicalizer
+            .CanonicaliseActivationBindingSet([divergentBinding])
+            .Digest;
+        var divergentRecord = new CorpusActivationRecord(
+            originalRecord.CorpusId,
+            originalRecord.RecordRevision,
+            originalRecord.PreviousRecordRevision,
+            originalRecord.IndexGenerationId,
+            originalRecord.CatalogueRevision,
+            divergentDigest,
+            [divergentBinding],
+            originalRecord.GenerationActivatedAt,
+            originalRecord.RecordUpdatedAt);
+        await Assert.ThrowsAsync<InvalidOperationException>(() =>
+            fixture.ControlStore.CompareExchangeActivationAsync(
+                new ActivationCompareExchangeRequest(
+                    activationRequest.AuditContext.OperationId,
+                    ActivationMutationKind.Initial,
+                    ExpectedCurrentRevision: 0,
+                    divergentRecord,
+                    built.Manifest.IndexCompatibilityKey,
+                    SqlitePersistenceFixture.At(11),
+                    SqliteControlPlaneStore.MinimumPreviousGenerationRetention,
+                    originalAuditDigest)));
     }
 
     private static AdministrativeAuditContext Audit(

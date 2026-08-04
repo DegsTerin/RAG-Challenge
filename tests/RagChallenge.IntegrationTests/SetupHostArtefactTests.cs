@@ -28,8 +28,14 @@ public sealed class SetupHostArtefactTests
             .GetProperty("Setup")
             .GetProperty("AllowExternalServices")
             .GetBoolean();
+        var administrationEnabled = document.RootElement
+            .GetProperty("RagChallenge")
+            .GetProperty("Administration")
+            .GetProperty("Enabled")
+            .GetBoolean();
 
         Assert.False(allowExternalServices);
+        Assert.False(administrationEnabled);
     }
 
     [Theory]

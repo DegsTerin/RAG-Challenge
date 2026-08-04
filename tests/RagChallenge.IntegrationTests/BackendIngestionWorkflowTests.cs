@@ -97,11 +97,39 @@ public sealed class BackendIngestionWorkflowTests
             adminContext);
 
         var committed = await administration.ApplyAsync(adminRequest);
-        var replayed = await administration.ApplyAsync(adminRequest);
+        var replayed = await administration.ApplyAsync(adminRequest with
+        {
+            AuditContext = Audit(
+                "catalogue-ingestion-1",
+                "add-document",
+                "Register deterministic synthetic documents.",
+                SqlitePersistenceFixture.At(9)),
+        });
 
         Assert.Equal(StoreMutationOutcome.Applied, committed.Outcome);
         Assert.Equal(StoreMutationOutcome.AlreadyApplied, replayed.Outcome);
         Assert.Equal(1, await fixture.ScalarAsync("SELECT COUNT(*) FROM audit_events;"));
+        var divergentCatalogue = new CatalogueSnapshot(
+            SqlitePersistenceFixture.CorpusId,
+            new CatalogueRevision(1),
+            [category],
+            [new DatabaseProduct(
+                product.Id,
+                product.Revision,
+                "Divergent display name",
+                product.Status,
+                product.CategoryIds)],
+            [localDocument, officialCandidate]);
+        await Assert.ThrowsAsync<InvalidOperationException>(() =>
+            administration.ApplyAsync(adminRequest with
+            {
+                ProposedSnapshot = divergentCatalogue,
+                AuditContext = Audit(
+                    "catalogue-ingestion-1",
+                    "add-document",
+                    "Register deterministic synthetic documents.",
+                    SqlitePersistenceFixture.At(10)),
+            }));
 
         var registration = new OfficialSourceRegistration(
             registrationId,

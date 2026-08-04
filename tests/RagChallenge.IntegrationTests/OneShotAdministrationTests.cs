@@ -1,0 +1,1549 @@
+// Purpose: Proves the accepted one-shot command allowlist, fail-closed host separation, bounded local input, lease ownership, idempotent catalogue commit and absence of HTTP administration.
+using System.Text.Json;
+
+using Microsoft.AspNetCore.Routing;
+using Microsoft.Data.Sqlite;
+using Microsoft.Extensions.Configuration;
+
+using RagChallenge.Application.Administration;
+using RagChallenge.Application.Persistence;
+using RagChallenge.Domain.CorpusCatalog;
+using RagChallenge.Infrastructure.Persistence;
+using RagChallenge.Server.Api.OperationsGovernance;
+
+namespace RagChallenge.IntegrationTests;
+
+public sealed class OneShotAdministrationTests
+{
+    private static readonly DateTimeOffset Now =
+        new(2026, 8, 4, 16, 0, 0, TimeSpan.Zero);
+    private static readonly JsonSerializerOptions PlanJsonOptions = new()
+    {
+        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+    };
+
+    [Fact]
+    public async Task ExactCommandSetIsOneShotOnlyAndNeverMappedToHttp()
+    {
+        string[] expected =
+        [
+            "activate-database",
+            "activate-document",
+            "activate-generation",
+            "add-database",
+            "add-document",
+            "build-index",
+            "deactivate-database",
+            "deactivate-document",
+            "register-official-source",
+            "remove-database",
+            "remove-document",
+            "rollback-generation",
+            "status",
+            "synchronise-official",
+            "version-database",
+            "version-document",
+        ];
+
+        Assert.Equal(
+            expected,
+            AdministrativeCommands.Allowed.Order(StringComparer.Ordinal));
+        Assert.All(expected, command => Assert.True(
+            OneShotAdministrationHost.IsAdministrationMode(["admin", command])));
+
+        await using var app = SetupHost.Build([]);
+        var routes = ((IEndpointRouteBuilder)app).DataSources
+            .SelectMany(source => source.Endpoints)
+            .OfType<RouteEndpoint>()
+            .Select(endpoint => endpoint.RoutePattern.RawText ?? string.Empty)
+            .ToArray();
+        Assert.DoesNotContain(routes, route =>
+            route.Contains("admin", StringComparison.OrdinalIgnoreCase));
+    }
+
+    [Fact]
+    public async Task DisabledConfigurationStopsBeforeIdentityLeaseOrExecution()
+    {
+        var identity = new StubIdentity("os-sha256:" + new string('a', 64));
+        var lease = new RecordingLeaseManager();
+        var executor = new RecordingExecutor();
+
+        var result = await RunAsync(
+            StatusArguments("disabled-operation"),
+            Configuration(enabled: false),
+            identity,
+            lease,
+            executor);
+
+        Assert.Equal(
+            (int)AdministrationExitCode.ConfigurationOrAuthorityDenied,
+            result.ExitCode);
+        Assert.Equal(0, identity.CallCount);
+        Assert.Empty(lease.Acquisitions);
+        Assert.Empty(executor.Commands);
+        Assert.Contains("CH_ADMIN_DISABLED", result.Error, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public async Task AllMutatingCommandsRequireTheSameGovernedLeaseAndInputPath()
+    {
+        using var root = TemporaryAdministrationRoot.Create();
+        await File.WriteAllTextAsync(Path.Combine(root.InputRoot, "plan.json"), "{}");
+        var configuration = Configuration(
+            enabled: true,
+            root.InputRoot,
+            root.StoreRoot);
+
+        foreach (var command in AdministrativeCommands.Allowed.Where(
+                     AdministrativeCommands.IsMutation))
+        {
+            var lease = new RecordingLeaseManager();
+            var executor = new RecordingExecutor();
+            var result = await RunAsync(
+                MutationArguments(command, $"operation-{command}", "plan.json"),
+                configuration,
+                new StubIdentity("os-sha256:" + new string('b', 64)),
+                lease,
+                executor);
+
+            Assert.Equal((int)AdministrationExitCode.Success, result.ExitCode);
+            Assert.Single(lease.Acquisitions);
+            Assert.Single(lease.Releases);
+            var routed = Assert.Single(executor.Commands);
+            Assert.Equal(command, routed.Command);
+            Assert.Equal(
+                "os-sha256:" + new string('b', 64),
+                routed.AuditContext.ActorIdentifier);
+            Assert.Equal(
+                "Execute a bounded synthetic administration test.",
+                routed.AuditContext.Reason);
+            Assert.Matches("^[0-9a-f]{64}$", executor.Commands[0].InputSha256!);
+        }
+    }
+
+    [Fact]
+    public async Task LeaseConflictPreventsCommandExecution()
+    {
+        using var root = TemporaryAdministrationRoot.Create();
+        await File.WriteAllTextAsync(Path.Combine(root.InputRoot, "plan.json"), "{}");
+        var lease = new RecordingLeaseManager
+        {
+            NextOutcome = AdministrationLeaseOutcome.Conflict,
+        };
+        var executor = new RecordingExecutor();
+        var journal = new RecordingJournal();
+
+        var result = await RunAsync(
+            MutationArguments("add-database", "operation-conflict", "plan.json"),
+            Configuration(true, root.InputRoot, root.StoreRoot),
+            new StubIdentity("os-sha256:" + new string('c', 64)),
+            lease,
+            executor,
+            journal);
+        lease.NextOutcome = AdministrationLeaseOutcome.Acquired;
+        var replay = await RunAsync(
+            MutationArguments("add-database", "operation-conflict", "plan.json"),
+            Configuration(true, root.InputRoot, root.StoreRoot),
+            new StubIdentity("os-sha256:" + new string('c', 64)),
+            lease,
+            executor,
+            journal,
+            () => Now.AddMinutes(5));
+
+        Assert.Equal((int)AdministrationExitCode.Conflict, result.ExitCode);
+        Assert.Equal((int)AdministrationExitCode.Conflict, replay.ExitCode);
+        Assert.Empty(executor.Commands);
+        Assert.Single(lease.Acquisitions);
+        Assert.Empty(lease.Releases);
+    }
+
+    [Fact]
+    public async Task LeaseReleaseFailureCannotReplaceTheDurableCommandResult()
+    {
+        using var root = TemporaryAdministrationRoot.Create();
+        await File.WriteAllTextAsync(Path.Combine(root.InputRoot, "plan.json"), "{}");
+        var configuration = Configuration(true, root.InputRoot, root.StoreRoot);
+        var identity = new StubIdentity("os-sha256:" + new string('9', 64));
+        var lease = new RecordingLeaseManager { FailRelease = true };
+        var executor = new RecordingExecutor();
+        var journal = new RecordingJournal();
+        var arguments = MutationArguments(
+            "add-database",
+            "operation-release-failure",
+            "plan.json");
+
+        var first = await RunAsync(
+            arguments,
+            configuration,
+            identity,
+            lease,
+            executor,
+            journal);
+        var replay = await RunAsync(
+            arguments,
+            configuration,
+            identity,
+            lease,
+            executor,
+            journal,
+            () => Now.AddMinutes(1));
+
+        Assert.Equal((int)AdministrationExitCode.Success, first.ExitCode);
+        Assert.Equal((int)AdministrationExitCode.Success, replay.ExitCode);
+        Assert.Single(executor.Commands);
+        Assert.Single(lease.Acquisitions);
+        Assert.Equal(2, lease.Releases.Count);
+    }
+
+    [Fact]
+    public async Task RealCatalogueCommandCommitsOnceAndReplaysIdempotently()
+    {
+        using var root = TemporaryAdministrationRoot.Create();
+        var options = root.CreateStoreOptions();
+        await SqliteStoreProvisioner.ApplyMigrationsAsync(options);
+        const string input = """
+            {
+              "targetId": "database-one",
+              "expectedCurrentRevision": 0,
+              "revision": 1,
+              "categories": [
+                { "id": "relational", "displayName": "Relational databases" }
+              ],
+              "databaseProducts": [
+                {
+                  "id": "database-one",
+                  "revision": 1,
+                  "displayName": "Database One",
+                  "status": "Candidate",
+                  "categoryIds": ["relational"]
+                }
+              ],
+              "documentVersions": []
+            }
+            """;
+        await File.WriteAllTextAsync(Path.Combine(root.InputRoot, "add.json"), input);
+        var store = new SqliteControlPlaneStore(options);
+        var lease = new SqliteAdministrationLeaseManager(options);
+        var executor = new SqliteAdministrativeCommandExecutor(store);
+        var arguments = MutationArguments(
+            "add-database",
+            "operation-add-database",
+            "add.json");
+        var configuration = Configuration(true, root.InputRoot, root.StoreRoot);
+        var identity = new StubIdentity("os-sha256:" + new string('d', 64));
+
+        var journal = new SqliteAdministrationCommandJournal(options);
+        var first = await RunAsync(
+            arguments,
+            configuration,
+            identity,
+            lease,
+            executor,
+            journal);
+        var replay = await RunAsync(
+            arguments,
+            configuration,
+            identity,
+            lease,
+            executor,
+            journal,
+            () => Now.AddMinutes(10));
+        var mismatchedReplay = await RunAsync(
+            MutationArguments(
+                "version-database",
+                "operation-add-database",
+                "add.json"),
+            configuration,
+            identity,
+            lease,
+            executor,
+            journal);
+
+        Assert.Equal((int)AdministrationExitCode.Success, first.ExitCode);
+        Assert.Equal((int)AdministrationExitCode.Success, replay.ExitCode);
+        Assert.Equal(
+            (int)AdministrationExitCode.Conflict,
+            mismatchedReplay.ExitCode);
+        Assert.Contains("CH_ADMIN_APPLIED", first.Output, StringComparison.Ordinal);
+        Assert.Contains("CH_ADMIN_APPLIED", replay.Output, StringComparison.Ordinal);
+        var current = await store.ReadCurrentCatalogueAsync(new CorpusId("admin-corpus"));
+        Assert.NotNull(current);
+        Assert.Equal(1, current.Revision.Value);
+        Assert.Equal("database-one", Assert.Single(current.DatabaseProducts).Id.Value);
+        Assert.Equal(1, await ScalarAsync(options, "SELECT COUNT(*) FROM admin_operations;"));
+        Assert.Equal(1, await ScalarAsync(options, "SELECT COUNT(*) FROM audit_events;"));
+        Assert.Equal(
+            1,
+            await ScalarAsync(
+                options,
+                "SELECT COUNT(*) FROM administration_command_journal WHERE status = 'Completed';"));
+        Assert.Equal(0, await ScalarAsync(options, "SELECT COUNT(*) FROM administration_leases;"));
+    }
+
+    [Fact]
+    public async Task ResumedOperationUsesItsDurableStartForMutationIdentity()
+    {
+        using var root = TemporaryAdministrationRoot.Create();
+        var options = root.CreateStoreOptions();
+        await SqliteStoreProvisioner.ApplyMigrationsAsync(options);
+        const string input = """
+            {
+              "targetId": "database",
+              "expectedCurrentRevision": 0,
+              "revision": 1,
+              "categories": [
+                { "id": "category", "displayName": "Category" }
+              ],
+              "databaseProducts": [
+                {
+                  "id": "database",
+                  "revision": 1,
+                  "displayName": "Database",
+                  "status": "Candidate",
+                  "categoryIds": ["category"]
+                }
+              ],
+              "documentVersions": []
+            }
+            """;
+        var inputPath = Path.Combine(root.InputRoot, "resumed.json");
+        await File.WriteAllTextAsync(inputPath, input);
+        var bytes = await File.ReadAllBytesAsync(inputPath);
+        using var document = JsonDocument.Parse(bytes);
+        var store = new SqliteControlPlaneStore(options);
+        var executor = new SqliteAdministrativeCommandExecutor(store);
+        var journal = new SqliteAdministrationCommandJournal(options);
+        var corpusId = new CorpusId("admin-corpus");
+        var operationId = new OperationId("resumed-operation");
+        var actor = "os-sha256:" + new string('4', 64);
+        const string reason = "Execute a bounded synthetic administration test.";
+        var initialAudit = new AdministrativeAuditContext(
+            operationId,
+            actor,
+            "add-database",
+            reason,
+            Now);
+        var identifiers = executor.DescribeIntent(
+            "add-database",
+            corpusId,
+            document.RootElement.Clone());
+        var intent = new AdministrationJournalIntent(
+            operationId,
+            corpusId,
+            "add-database",
+            actor,
+            initialAudit.ReasonSha256,
+            Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(bytes))
+                .ToLowerInvariant(),
+            identifiers.SourceIdentifiers,
+            identifiers.TargetIdentifiers,
+            Now);
+        Assert.Equal(
+            AdministrationJournalBeginOutcome.Started,
+            (await journal.BeginAsync(intent)).Outcome);
+
+        var result = await RunAsync(
+            MutationArguments("add-database", operationId.Value, "resumed.json"),
+            Configuration(true, root.InputRoot, root.StoreRoot),
+            new StubIdentity(actor),
+            new SqliteAdministrationLeaseManager(options),
+            executor,
+            journal,
+            () => Now.AddHours(3));
+
+        Assert.Equal(0, result.ExitCode);
+        var expected = Now.ToString("O", System.Globalization.CultureInfo.InvariantCulture);
+        Assert.Equal(
+            expected,
+            await TextScalarAsync(
+                options,
+                "SELECT occurred_at_utc FROM audit_events WHERE operation_id = 'resumed-operation';"));
+        Assert.Equal(
+            expected,
+            await TextScalarAsync(
+                options,
+                "SELECT started_at_utc FROM administration_command_journal WHERE operation_id = 'resumed-operation';"));
+    }
+
+    [Fact]
+    public async Task StrictPayloadRejectsUnknownFieldsAndReleasesTheLease()
+    {
+        using var root = TemporaryAdministrationRoot.Create();
+        var options = root.CreateStoreOptions();
+        await SqliteStoreProvisioner.ApplyMigrationsAsync(options);
+        await File.WriteAllTextAsync(
+            Path.Combine(root.InputRoot, "unknown.json"),
+            """
+            {
+              "targetId": "database",
+              "expectedCurrentRevision": 0,
+              "revision": 1,
+              "categories": [],
+              "databaseProducts": [],
+              "documentVersions": [],
+              "unexpectedAuthority": true
+            }
+            """);
+
+        var result = await RunAsync(
+            MutationArguments("add-database", "operation-unknown", "unknown.json"),
+            Configuration(true, root.InputRoot, root.StoreRoot),
+            new StubIdentity("os-sha256:" + new string('e', 64)),
+            new SqliteAdministrationLeaseManager(options),
+            new SqliteAdministrativeCommandExecutor(new SqliteControlPlaneStore(options)),
+            new SqliteAdministrationCommandJournal(options));
+
+        Assert.Equal((int)AdministrationExitCode.InvalidInput, result.ExitCode);
+        Assert.Equal(0, await ScalarAsync(options, "SELECT COUNT(*) FROM administration_leases;"));
+        Assert.Equal(0, await ScalarAsync(options, "SELECT COUNT(*) FROM admin_operations;"));
+        Assert.Equal(
+            1,
+            await ScalarAsync(
+                options,
+                "SELECT COUNT(*) FROM administration_command_journal WHERE status = 'Completed' AND exit_category = 2;"));
+    }
+
+    [Fact]
+    public async Task MalformedPayloadIsDurablyRejectedAndDivergentReplayConflicts()
+    {
+        using var root = TemporaryAdministrationRoot.Create();
+        var options = root.CreateStoreOptions();
+        await SqliteStoreProvisioner.ApplyMigrationsAsync(options);
+        var path = Path.Combine(root.InputRoot, "malformed.json");
+        await File.WriteAllTextAsync(path, "{\"targetId\":\"database\"");
+        var arguments = MutationArguments(
+            "add-database",
+            "operation-malformed",
+            "malformed.json");
+        var configuration = Configuration(true, root.InputRoot, root.StoreRoot);
+        var identity = new StubIdentity("os-sha256:" + new string('5', 64));
+        var lease = new RecordingLeaseManager();
+        var executor = new RecordingExecutor();
+        var journal = new SqliteAdministrationCommandJournal(options);
+
+        var first = await RunAsync(
+            arguments,
+            configuration,
+            identity,
+            lease,
+            executor,
+            journal);
+        var replay = await RunAsync(
+            arguments,
+            configuration,
+            identity,
+            lease,
+            executor,
+            journal,
+            () => Now.AddMinutes(5));
+        await File.WriteAllTextAsync(path, "{\"targetId\":\"other\"");
+        var divergentReplay = await RunAsync(
+            arguments,
+            configuration,
+            identity,
+            lease,
+            executor,
+            journal,
+            () => Now.AddMinutes(10));
+
+        Assert.Equal((int)AdministrationExitCode.InvalidInput, first.ExitCode);
+        Assert.Equal((int)AdministrationExitCode.InvalidInput, replay.ExitCode);
+        Assert.Equal((int)AdministrationExitCode.Conflict, divergentReplay.ExitCode);
+        Assert.Empty(lease.Acquisitions);
+        Assert.Empty(executor.Commands);
+        Assert.Equal(
+            1,
+            await ScalarAsync(
+                options,
+                """
+                SELECT COUNT(*)
+                FROM administration_command_journal
+                WHERE status = 'Completed'
+                  AND exit_category = 2
+                  AND input_sha256 IS NOT NULL;
+                """));
+    }
+
+    [Fact]
+    public async Task BoundedInputRejectsTraversalOversizeAndDuplicatePropertiesBeforeLease()
+    {
+        using var root = TemporaryAdministrationRoot.Create();
+        await File.WriteAllTextAsync(
+            Path.Combine(root.Root, "outside.json"),
+            "{}");
+        await File.WriteAllBytesAsync(
+            Path.Combine(root.InputRoot, "oversize.json"),
+            new byte[checked((int)OneShotAdministrationHost.MaximumInputBytes + 1)]);
+        await File.WriteAllTextAsync(
+            Path.Combine(root.InputRoot, "duplicate.json"),
+            "{\"targetId\":\"database\",\"targetId\":\"database\"}");
+        var configuration = Configuration(true, root.InputRoot, root.StoreRoot);
+        var identity = new StubIdentity("os-sha256:" + new string('8', 64));
+        var lease = new RecordingLeaseManager();
+        var executor = new RecordingExecutor();
+        var journal = new RecordingJournal();
+        var cases = new[]
+        {
+            (Operation: "reject-traversal", Path: $"..{Path.DirectorySeparatorChar}outside.json"),
+            (Operation: "reject-oversize", Path: "oversize.json"),
+            (Operation: "reject-duplicate", Path: "duplicate.json"),
+        };
+
+        foreach (var item in cases)
+        {
+            var result = await RunAsync(
+                MutationArguments("add-database", item.Operation, item.Path),
+                configuration,
+                identity,
+                lease,
+                executor,
+                journal);
+
+            Assert.Equal((int)AdministrationExitCode.InvalidInput, result.ExitCode);
+            Assert.Contains("CH_ADMIN_INPUT_REJECTED", result.Error, StringComparison.Ordinal);
+        }
+
+        Assert.Empty(lease.Acquisitions);
+        Assert.Empty(executor.Commands);
+    }
+
+    [Fact]
+    public async Task AuditWriteFailureRollsBackTheMutationAndReleasesTheLease()
+    {
+        using var root = TemporaryAdministrationRoot.Create();
+        var options = root.CreateStoreOptions();
+        await SqliteStoreProvisioner.ApplyMigrationsAsync(options);
+        await File.WriteAllTextAsync(
+            Path.Combine(root.InputRoot, "audit-failure.json"),
+            """
+            {
+              "targetId": "database",
+              "expectedCurrentRevision": 0,
+              "revision": 1,
+              "categories": [
+                { "id": "category", "displayName": "Category" }
+              ],
+              "databaseProducts": [
+                {
+                  "id": "database",
+                  "revision": 1,
+                  "displayName": "Database",
+                  "status": "Candidate",
+                  "categoryIds": ["category"]
+                }
+              ],
+              "documentVersions": []
+            }
+            """);
+        await ExecuteSqlAsync(
+            options,
+            """
+            CREATE TRIGGER fail_admin_audit
+            BEFORE INSERT ON audit_events
+            BEGIN
+                SELECT RAISE(ABORT, 'synthetic administrative audit failure');
+            END;
+            """);
+
+        var arguments = MutationArguments(
+            "add-database",
+            "operation-audit-failure",
+            "audit-failure.json");
+        var configuration = Configuration(true, root.InputRoot, root.StoreRoot);
+        var identity = new StubIdentity("os-sha256:" + new string('f', 64));
+        var lease = new SqliteAdministrationLeaseManager(options);
+        var executor = new SqliteAdministrativeCommandExecutor(
+            new SqliteControlPlaneStore(options));
+        var journal = new SqliteAdministrationCommandJournal(options);
+        var result = await RunAsync(
+            arguments,
+            configuration,
+            identity,
+            lease,
+            executor,
+            journal);
+        await ExecuteSqlAsync(options, "DROP TRIGGER fail_admin_audit;");
+        var replay = await RunAsync(
+            arguments,
+            configuration,
+            identity,
+            lease,
+            executor,
+            journal,
+            () => Now.AddMinutes(30));
+
+        Assert.Equal((int)AdministrationExitCode.UnexpectedFailure, result.ExitCode);
+        Assert.Equal((int)AdministrationExitCode.UnexpectedFailure, replay.ExitCode);
+        Assert.Equal(0, await ScalarAsync(options, "SELECT COUNT(*) FROM catalogue_heads;"));
+        Assert.Equal(0, await ScalarAsync(options, "SELECT COUNT(*) FROM admin_operations;"));
+        Assert.Equal(0, await ScalarAsync(options, "SELECT COUNT(*) FROM administration_leases;"));
+        Assert.Equal(
+            1,
+            await ScalarAsync(
+                options,
+                "SELECT COUNT(*) FROM administration_command_journal WHERE status = 'Completed' AND exit_category = 10;"));
+    }
+
+    [Fact]
+    public async Task RealCatalogueCommandsEnforceExactLifecycleAndRejectCollateralChanges()
+    {
+        using var root = TemporaryAdministrationRoot.Create();
+        var options = root.CreateStoreOptions();
+        await SqliteStoreProvisioner.ApplyMigrationsAsync(options);
+        var store = new SqliteControlPlaneStore(options);
+        var lease = new SqliteAdministrationLeaseManager(options);
+        var journal = new SqliteAdministrationCommandJournal(options);
+        var executor = new SqliteAdministrativeCommandExecutor(store);
+        var configuration = Configuration(true, root.InputRoot, root.StoreRoot);
+        var identity = new StubIdentity("os-sha256:" + new string('1', 64));
+        var categories = new[] { new CategoryPlan("category", "Category") };
+
+        async Task<RunResult> ExecuteAsync(
+            string command,
+            string operationId,
+            CataloguePlan plan)
+        {
+            var fileName = $"{operationId}.json";
+            await File.WriteAllTextAsync(
+                Path.Combine(root.InputRoot, fileName),
+                JsonSerializer.Serialize(plan, PlanJsonOptions));
+            return await RunAsync(
+                MutationArguments(command, operationId, fileName),
+                configuration,
+                identity,
+                lease,
+                executor,
+                journal);
+        }
+
+        DatabaseProductPlan Product(
+            long revision,
+            string status,
+            string displayName = "Database") =>
+            new("database", revision, displayName, status, ["category"]);
+        DocumentPlan Document(
+            string id,
+            long version,
+            long productRevision,
+            string status,
+            char digestCharacter) =>
+            new(
+                id,
+                version,
+                "database",
+                productRevision,
+                "Pdf",
+                "en-GB",
+                status,
+                new string(digestCharacter, 64),
+                128,
+                "application/pdf",
+                "pdfpig",
+                "LocalAuthorised",
+                null,
+                null);
+
+        var documentOneCandidate = Document(
+            "document-one",
+            1,
+            1,
+            "Candidate",
+            'a');
+        var documentOneActive = documentOneCandidate with { Status = "Active" };
+        var documentOneDeactivated = documentOneCandidate with { Status = "Deactivated" };
+        var documentTwoCandidate = Document(
+            "document-two",
+            1,
+            1,
+            "Candidate",
+            'b');
+        var documentTwoActive = documentTwoCandidate with { Status = "Active" };
+        var documentTwoDeactivated = documentTwoCandidate with { Status = "Deactivated" };
+
+        Assert.Equal(0, (await ExecuteAsync(
+            "add-database",
+            "lifecycle-01-add-database",
+            new("database", null, 0, 1, categories, [Product(1, "Candidate")], [])))
+            .ExitCode);
+        Assert.Equal(0, (await ExecuteAsync(
+            "add-document",
+            "lifecycle-02-add-document-one",
+            new(
+                "document-one",
+                1,
+                1,
+                2,
+                categories,
+                [Product(1, "Candidate")],
+                [documentOneCandidate])))
+            .ExitCode);
+        Assert.Equal(0, (await ExecuteAsync(
+            "activate-database",
+            "lifecycle-03-activate-database",
+            new(
+                "database",
+                null,
+                2,
+                3,
+                categories,
+                [Product(1, "Active")],
+                [documentOneActive])))
+            .ExitCode);
+        Assert.Equal(0, (await ExecuteAsync(
+            "add-document",
+            "lifecycle-04-add-document-two",
+            new(
+                "document-two",
+                1,
+                3,
+                4,
+                categories,
+                [Product(1, "Active")],
+                [documentOneActive, documentTwoCandidate])))
+            .ExitCode);
+        Assert.Equal(0, (await ExecuteAsync(
+            "activate-document",
+            "lifecycle-05-activate-document-two",
+            new(
+                "document-two",
+                1,
+                4,
+                5,
+                categories,
+                [Product(1, "Active")],
+                [documentOneActive, documentTwoActive])))
+            .ExitCode);
+        Assert.Equal(0, (await ExecuteAsync(
+            "deactivate-document",
+            "lifecycle-06-deactivate-document-one",
+            new(
+                "document-one",
+                1,
+                5,
+                6,
+                categories,
+                [Product(1, "Active")],
+                [documentOneDeactivated, documentTwoActive])))
+            .ExitCode);
+
+        var lastDocumentRejection = await ExecuteAsync(
+            "deactivate-document",
+            "lifecycle-07-reject-last-document",
+            new(
+                "document-two",
+                1,
+                6,
+                7,
+                categories,
+                [Product(1, "Active")],
+                [documentOneDeactivated, documentTwoDeactivated]));
+        Assert.Equal((int)AdministrationExitCode.InvalidInput, lastDocumentRejection.ExitCode);
+
+        Assert.Equal(0, (await ExecuteAsync(
+            "deactivate-database",
+            "lifecycle-08-deactivate-database",
+            new(
+                "database",
+                null,
+                6,
+                7,
+                categories,
+                [Product(1, "Deactivated")],
+                [documentOneDeactivated, documentTwoDeactivated])))
+            .ExitCode);
+        var reboundDocumentOne = documentOneDeactivated with { DatabaseProductRevision = 2 };
+        var reboundDocumentTwo = documentTwoDeactivated with { DatabaseProductRevision = 2 };
+        Assert.Equal(0, (await ExecuteAsync(
+            "version-database",
+            "lifecycle-09-version-database",
+            new(
+                "database",
+                null,
+                7,
+                8,
+                categories,
+                [Product(2, "Candidate")],
+                [reboundDocumentOne, reboundDocumentTwo])))
+            .ExitCode);
+
+        var invalidActiveVersion = Document(
+            "document-one",
+            2,
+            2,
+            "Active",
+            'c');
+        var activeVersionRejection = await ExecuteAsync(
+            "version-document",
+            "lifecycle-10-reject-active-version",
+            new(
+                "document-one",
+                2,
+                8,
+                9,
+                categories,
+                [Product(2, "Candidate")],
+                [reboundDocumentOne, invalidActiveVersion, reboundDocumentTwo]));
+        Assert.Equal((int)AdministrationExitCode.InvalidInput, activeVersionRejection.ExitCode);
+
+        var documentOneVersionTwo = invalidActiveVersion with { Status = "Candidate" };
+        Assert.Equal(0, (await ExecuteAsync(
+            "version-document",
+            "lifecycle-11-version-document",
+            new(
+                "document-one",
+                2,
+                8,
+                9,
+                categories,
+                [Product(2, "Candidate")],
+                [reboundDocumentOne, documentOneVersionTwo, reboundDocumentTwo])))
+            .ExitCode);
+
+        var collateralRejection = await ExecuteAsync(
+            "version-document",
+            "lifecycle-12-reject-collateral",
+            new(
+                "document-two",
+                2,
+                9,
+                10,
+                categories,
+                [Product(2, "Candidate", "Changed without authority")],
+                [
+                    reboundDocumentOne,
+                    documentOneVersionTwo,
+                    reboundDocumentTwo,
+                    Document("document-two", 2, 2, "Candidate", 'd'),
+                ]));
+        Assert.Equal((int)AdministrationExitCode.InvalidInput, collateralRejection.ExitCode);
+
+        var current = await store.ReadCurrentCatalogueAsync(new CorpusId("admin-corpus"));
+        Assert.NotNull(current);
+        Assert.Equal(9, current.Revision.Value);
+        var product = Assert.Single(current.DatabaseProducts);
+        Assert.Equal(2, product.Revision.Value);
+        Assert.Equal(CatalogueItemStatus.Candidate, product.Status);
+        Assert.Equal(3, current.DocumentVersions.Count);
+        Assert.Equal(
+            12,
+            await ScalarAsync(
+                options,
+                "SELECT COUNT(*) FROM administration_command_journal WHERE status = 'Completed';"));
+        Assert.Equal(9, await ScalarAsync(options, "SELECT COUNT(*) FROM admin_operations;"));
+    }
+
+    [Fact]
+    public async Task OfficialRegistrationReplayIsExactAndAttemptTimeIndependent()
+    {
+        using var root = TemporaryAdministrationRoot.Create();
+        var options = root.CreateStoreOptions();
+        await SqliteStoreProvisioner.ApplyMigrationsAsync(options);
+        var store = new SqliteControlPlaneStore(options);
+        var corpusId = new CorpusId("admin-corpus");
+        var snapshot = new CatalogueSnapshot(
+            corpusId,
+            new CatalogueRevision(1),
+            [new DatabaseCategory(new DatabaseCategoryId("category"), "Category")],
+            [new DatabaseProduct(
+                new DatabaseProductId("database"),
+                new DatabaseProductRevision(1),
+                "Database",
+                CatalogueItemStatus.Candidate,
+                [new DatabaseCategoryId("category")])],
+            [new DocumentVersion(
+                new DocumentId("document"),
+                new DocumentVersionNumber(1),
+                new DatabaseProductId("database"),
+                new DatabaseProductRevision(1),
+                DocumentFormat.Csv,
+                SupportedLanguage.EnGb,
+                CatalogueItemStatus.Candidate,
+                new ContentObjectId(new string('e', 64)),
+                128,
+                "text/csv",
+                new SourceAdapterId("csvhelper"),
+                SourceTrustClass.LocalAuthorised)]);
+        Assert.Equal(
+            StoreMutationOutcome.Applied,
+            (await store.CommitCatalogueAsync(new CatalogueCommitRequest(
+                new OperationId("registration-prerequisite"),
+                snapshot,
+                0,
+                Now))).Outcome);
+        const string registration = """
+            {
+              "registrationId": "official-registration",
+              "revision": 1,
+              "databaseProductId": "database",
+              "documentId": "document",
+              "sourceAdapterId": "official-exact-http",
+              "canonicalHttpsUrl": "https://official.invalid/document.csv",
+              "status": "Candidate"
+            }
+            """;
+        const string divergentRegistration = """
+            {
+              "registrationId": "official-registration",
+              "revision": 1,
+              "databaseProductId": "database",
+              "documentId": "document",
+              "sourceAdapterId": "official-exact-http",
+              "canonicalHttpsUrl": "https://official.invalid/other.csv",
+              "status": "Candidate"
+            }
+            """;
+        await File.WriteAllTextAsync(
+            Path.Combine(root.InputRoot, "registration.json"),
+            registration);
+        await File.WriteAllTextAsync(
+            Path.Combine(root.InputRoot, "registration-divergent.json"),
+            divergentRegistration);
+        var configuration = Configuration(true, root.InputRoot, root.StoreRoot);
+        var identity = new StubIdentity("os-sha256:" + new string('2', 64));
+        var lease = new SqliteAdministrationLeaseManager(options);
+        var journal = new SqliteAdministrationCommandJournal(options);
+        var executor = new SqliteAdministrativeCommandExecutor(store);
+        var arguments = MutationArguments(
+            "register-official-source",
+            "registration-operation",
+            "registration.json");
+
+        var first = await RunAsync(
+            arguments,
+            configuration,
+            identity,
+            lease,
+            executor,
+            journal,
+            () => Now.AddMinutes(1));
+        var replay = await RunAsync(
+            arguments,
+            configuration,
+            identity,
+            lease,
+            executor,
+            journal,
+            () => Now.AddHours(2));
+        var divergent = await RunAsync(
+            MutationArguments(
+                "register-official-source",
+                "registration-operation",
+                "registration-divergent.json"),
+            configuration,
+            identity,
+            lease,
+            executor,
+            journal,
+            () => Now.AddHours(3));
+
+        Assert.Equal(0, first.ExitCode);
+        Assert.Equal(0, replay.ExitCode);
+        Assert.Equal((int)AdministrationExitCode.Conflict, divergent.ExitCode);
+        Assert.Contains("CH_ADMIN_APPLIED", replay.Output, StringComparison.Ordinal);
+        Assert.Contains("CH_ADMIN_OPERATION_CONFLICT", divergent.Error, StringComparison.Ordinal);
+        Assert.Equal(
+            1,
+            await ScalarAsync(options, "SELECT COUNT(*) FROM official_source_registrations;"));
+        Assert.Equal(
+            1,
+            await ScalarAsync(
+                options,
+                "SELECT COUNT(*) FROM administration_command_journal WHERE operation_id = 'registration-operation' AND status = 'Completed' AND exit_category = 0;"));
+    }
+
+    [Fact]
+    public async Task CatalogueCommandsRejectDocumentOwnershipTransferAndUnusedCategories()
+    {
+        using var root = TemporaryAdministrationRoot.Create();
+        var options = root.CreateStoreOptions();
+        await SqliteStoreProvisioner.ApplyMigrationsAsync(options);
+        var store = new SqliteControlPlaneStore(options);
+        var categories = new[]
+        {
+            new CategoryPlan("category-one", "Category one"),
+            new CategoryPlan("category-two", "Category two"),
+        };
+        var productOne = new DatabaseProductPlan(
+            "database-one",
+            1,
+            "Database one",
+            "Candidate",
+            ["category-one"]);
+        var productTwo = new DatabaseProductPlan(
+            "database-two",
+            1,
+            "Database two",
+            "Candidate",
+            ["category-two"]);
+        var documentOne = new DocumentPlan(
+            "document-one",
+            1,
+            "database-one",
+            1,
+            "Csv",
+            "en-GB",
+            "Candidate",
+            new string('7', 64),
+            64,
+            "text/csv",
+            "csvhelper",
+            "LocalAuthorised",
+            null,
+            null);
+        var prerequisite = new CatalogueSnapshot(
+            new CorpusId("admin-corpus"),
+            new CatalogueRevision(1),
+            categories.Select(category => new DatabaseCategory(
+                new DatabaseCategoryId(category.Id),
+                category.DisplayName)),
+            new[] { productOne, productTwo }.Select(product => new DatabaseProduct(
+                new DatabaseProductId(product.Id),
+                new DatabaseProductRevision(product.Revision),
+                product.DisplayName,
+                CatalogueItemStatus.Candidate,
+                product.CategoryIds.Select(id => new DatabaseCategoryId(id)))),
+            [new DocumentVersion(
+                new DocumentId(documentOne.Id),
+                new DocumentVersionNumber(documentOne.Version),
+                new DatabaseProductId(documentOne.DatabaseProductId),
+                new DatabaseProductRevision(documentOne.DatabaseProductRevision),
+                DocumentFormat.Csv,
+                SupportedLanguage.EnGb,
+                CatalogueItemStatus.Candidate,
+                new ContentObjectId(documentOne.ContentObjectId),
+                documentOne.ByteLength,
+                documentOne.MediaType,
+                new SourceAdapterId(documentOne.SourceAdapterId),
+                SourceTrustClass.LocalAuthorised)]);
+        Assert.Equal(
+            StoreMutationOutcome.Applied,
+            (await store.CommitCatalogueAsync(new CatalogueCommitRequest(
+                new OperationId("ownership-prerequisite"),
+                prerequisite,
+                0,
+                Now))).Outcome);
+        var configuration = Configuration(true, root.InputRoot, root.StoreRoot);
+        var identity = new StubIdentity("os-sha256:" + new string('6', 64));
+        var lease = new SqliteAdministrationLeaseManager(options);
+        var journal = new SqliteAdministrationCommandJournal(options);
+        var executor = new SqliteAdministrativeCommandExecutor(store);
+
+        var movedVersion = documentOne with
+        {
+            Version = 2,
+            DatabaseProductId = "database-two",
+            ContentObjectId = new string('8', 64),
+        };
+        var transfer = await ExecutePlanAsync(
+            "version-document",
+            "reject-document-transfer",
+            new CataloguePlan(
+                "document-one",
+                2,
+                1,
+                2,
+                categories,
+                [productOne, productTwo],
+                [documentOne, movedVersion]));
+        var productOneRevisionTwo = productOne with
+        {
+            Revision = 2,
+            CategoryIds = ["category-two"],
+        };
+        var reboundDocument = documentOne with { DatabaseProductRevision = 2 };
+        var unusedCategory = await ExecutePlanAsync(
+            "version-database",
+            "reject-unused-category",
+            new CataloguePlan(
+                "database-one",
+                null,
+                1,
+                2,
+                categories,
+                [productOneRevisionTwo, productTwo],
+                [reboundDocument]));
+
+        Assert.Equal((int)AdministrationExitCode.InvalidInput, transfer.ExitCode);
+        Assert.Equal((int)AdministrationExitCode.InvalidInput, unusedCategory.ExitCode);
+        Assert.Equal(1, (await store.ReadCurrentCatalogueAsync(
+            new CorpusId("admin-corpus")))!.Revision.Value);
+        Assert.Equal(
+            2,
+            await ScalarAsync(
+                options,
+                """
+                SELECT COUNT(*)
+                FROM administration_command_journal
+                WHERE status = 'Completed' AND exit_category = 2;
+                """));
+
+        async Task<RunResult> ExecutePlanAsync(
+            string command,
+            string operationId,
+            CataloguePlan plan)
+        {
+            var fileName = $"{operationId}.json";
+            await File.WriteAllTextAsync(
+                Path.Combine(root.InputRoot, fileName),
+                JsonSerializer.Serialize(plan, PlanJsonOptions));
+            return await RunAsync(
+                MutationArguments(command, operationId, fileName),
+                configuration,
+                identity,
+                lease,
+                executor,
+                journal);
+        }
+    }
+
+    [Fact]
+    public async Task StatusAndUnavailableResultsAreDurableExactReplays()
+    {
+        using var root = TemporaryAdministrationRoot.Create();
+        var options = root.CreateStoreOptions();
+        await SqliteStoreProvisioner.ApplyMigrationsAsync(options);
+        await File.WriteAllTextAsync(Path.Combine(root.InputRoot, "build.json"), "{}");
+        var store = new SqliteControlPlaneStore(options);
+        var journal = new SqliteAdministrationCommandJournal(options);
+        var executor = new SqliteAdministrativeCommandExecutor(store);
+        var lease = new RecordingLeaseManager();
+        var identity = new StubIdentity("os-sha256:" + new string('3', 64));
+        var configuration = Configuration(true, root.InputRoot, root.StoreRoot);
+
+        var status = await RunAsync(
+            StatusArguments("status-operation"),
+            configuration,
+            identity,
+            lease,
+            executor,
+            journal);
+        var statusReplay = await RunAsync(
+            StatusArguments("status-operation"),
+            configuration,
+            identity,
+            lease,
+            executor,
+            journal,
+            () => Now.AddHours(1));
+        var buildArguments = MutationArguments(
+            "build-index",
+            "build-unavailable-operation",
+            "build.json");
+        var unavailable = await RunAsync(
+            buildArguments,
+            configuration,
+            identity,
+            lease,
+            executor,
+            journal);
+        var unavailableReplay = await RunAsync(
+            buildArguments,
+            configuration,
+            identity,
+            lease,
+            executor,
+            journal,
+            () => Now.AddHours(2));
+
+        Assert.Equal(0, status.ExitCode);
+        Assert.Equal(0, statusReplay.ExitCode);
+        Assert.Contains("CH_ADMIN_STATUS_EMPTY", statusReplay.Output, StringComparison.Ordinal);
+        Assert.Equal((int)AdministrationExitCode.DependencyUnavailable, unavailable.ExitCode);
+        Assert.Equal(
+            (int)AdministrationExitCode.DependencyUnavailable,
+            unavailableReplay.ExitCode);
+        Assert.Contains(
+            "CH_ADMIN_CAPABILITY_NOT_COMPOSED",
+            unavailableReplay.Error,
+            StringComparison.Ordinal);
+        Assert.Single(lease.Acquisitions);
+        Assert.Single(lease.Releases);
+        Assert.Equal(
+            2,
+            await ScalarAsync(
+                options,
+                "SELECT COUNT(*) FROM administration_command_journal WHERE status = 'Completed';"));
+        Assert.Equal(
+            1,
+            await ScalarAsync(
+                options,
+                "SELECT COUNT(*) FROM administration_command_journal WHERE outcome = 'Unavailable' AND exit_category = 5;"));
+    }
+
+    [Fact]
+    public async Task DedicatedLeaseBlocksOtherMutationsAndAllowsItsOwner()
+    {
+        using var root = TemporaryAdministrationRoot.Create();
+        var options = root.CreateStoreOptions();
+        await SqliteStoreProvisioner.ApplyMigrationsAsync(options);
+        var lease = new SqliteAdministrationLeaseManager(options);
+        var corpusId = new CorpusId("lease-corpus");
+        var owner = new OperationId("lease-owner");
+        Assert.Equal(
+            AdministrationLeaseOutcome.Acquired,
+            await lease.AcquireAsync(new AdministrationLeaseRequest(
+                corpusId,
+                owner,
+                Now,
+                TimeSpan.FromMinutes(5))));
+        var snapshot = new CatalogueSnapshot(
+            corpusId,
+            new CatalogueRevision(1),
+            [new DatabaseCategory(new DatabaseCategoryId("category"), "Category")],
+            [new DatabaseProduct(
+                new DatabaseProductId("database"),
+                new DatabaseProductRevision(1),
+                "Database",
+                CatalogueItemStatus.Candidate,
+                [new DatabaseCategoryId("category")])],
+            []);
+        var store = new SqliteControlPlaneStore(options);
+
+        var blocked = await store.CommitCatalogueAsync(new(
+            new OperationId("other-operation"),
+            snapshot,
+            ExpectedCurrentRevision: 0,
+            Now));
+        var owned = await store.CommitCatalogueAsync(new(
+            owner,
+            snapshot,
+            ExpectedCurrentRevision: 0,
+            Now));
+
+        Assert.Equal(StoreMutationOutcome.RetentionConflict, blocked.Outcome);
+        Assert.Equal(StoreMutationOutcome.Applied, owned.Outcome);
+        await lease.ReleaseAsync(corpusId, owner);
+    }
+
+    private static async Task<RunResult> RunAsync(
+        string[] arguments,
+        IConfiguration configuration,
+        ILocalOperatingSystemIdentityProvider identity,
+        IAdministrationLeaseManager lease,
+        IOneShotAdministrativeCommandExecutor executor,
+        IAdministrationCommandJournal? journal = null,
+        Func<DateTimeOffset>? utcNow = null)
+    {
+        using var output = new StringWriter();
+        using var error = new StringWriter();
+        var exitCode = await OneShotAdministrationHost.RunAsync(
+            arguments,
+            configuration,
+            identity,
+            lease,
+            journal ?? new RecordingJournal(),
+            executor,
+            output,
+            error,
+            utcNow ?? (() => Now));
+        return new RunResult(exitCode, output.ToString(), error.ToString());
+    }
+
+    private static IConfiguration Configuration(
+        bool enabled,
+        string? inputRoot = null,
+        string? storeRoot = null) =>
+        new ConfigurationBuilder().AddInMemoryCollection(
+            new Dictionary<string, string?>
+            {
+                ["RagChallenge:Administration:Enabled"] = enabled.ToString(),
+                ["RagChallenge:Administration:InputRoot"] = inputRoot,
+                ["RagChallenge:Administration:StoreRoot"] = storeRoot,
+            }).Build();
+
+    private static string[] StatusArguments(string operationId) =>
+    [
+        "admin",
+        "status",
+        "--operation-id",
+        operationId,
+        "--corpus-id",
+        "admin-corpus",
+        "--reason",
+        "Inspect sanitised local status.",
+    ];
+
+    private static string[] MutationArguments(
+        string command,
+        string operationId,
+        string input) =>
+    [
+        "admin",
+        command,
+        "--operation-id",
+        operationId,
+        "--corpus-id",
+        "admin-corpus",
+        "--reason",
+        "Execute a bounded synthetic administration test.",
+        "--input",
+        input,
+    ];
+
+    private static async Task<long> ScalarAsync(SqliteStoreOptions options, string sql)
+    {
+        await using var connection = new SqliteConnection(
+            $"Data Source={options.ControlDatabasePath};Mode=ReadOnly;Cache=Private");
+        await connection.OpenAsync();
+        await using var command = connection.CreateCommand();
+        command.CommandText = sql;
+        return Convert.ToInt64(
+            await command.ExecuteScalarAsync(),
+            System.Globalization.CultureInfo.InvariantCulture);
+    }
+
+    private static async Task<string> TextScalarAsync(
+        SqliteStoreOptions options,
+        string sql)
+    {
+        await using var connection = new SqliteConnection(
+            $"Data Source={options.ControlDatabasePath};Mode=ReadOnly;Cache=Private");
+        await connection.OpenAsync();
+        await using var command = connection.CreateCommand();
+        command.CommandText = sql;
+        return Convert.ToString(
+            await command.ExecuteScalarAsync(),
+            System.Globalization.CultureInfo.InvariantCulture)!;
+    }
+
+    private static async Task ExecuteSqlAsync(SqliteStoreOptions options, string sql)
+    {
+        await using var connection = new SqliteConnection(
+            $"Data Source={options.ControlDatabasePath};Mode=ReadWrite;Cache=Private");
+        await connection.OpenAsync();
+        await using var command = connection.CreateCommand();
+        command.CommandText = sql;
+        _ = await command.ExecuteNonQueryAsync();
+    }
+
+    private sealed record RunResult(int ExitCode, string Output, string Error);
+
+    private sealed record CataloguePlan(
+        string TargetId,
+        long? TargetVersion,
+        long ExpectedCurrentRevision,
+        long Revision,
+        CategoryPlan[] Categories,
+        DatabaseProductPlan[] DatabaseProducts,
+        DocumentPlan[] DocumentVersions);
+
+    private sealed record CategoryPlan(string Id, string DisplayName);
+
+    private sealed record DatabaseProductPlan(
+        string Id,
+        long Revision,
+        string DisplayName,
+        string Status,
+        string[] CategoryIds);
+
+    private sealed record DocumentPlan(
+        string Id,
+        long Version,
+        string DatabaseProductId,
+        long DatabaseProductRevision,
+        string Format,
+        string ContentLanguage,
+        string Status,
+        string ContentObjectId,
+        long ByteLength,
+        string MediaType,
+        string SourceAdapterId,
+        string SourceTrustClass,
+        string? OfficialSourceRegistrationId,
+        string? OfficialSnapshotId);
+
+    private sealed class StubIdentity(string? identifier)
+        : ILocalOperatingSystemIdentityProvider
+    {
+        internal int CallCount { get; private set; }
+
+        public string? GetOpaqueIdentifier()
+        {
+            CallCount++;
+            return identifier;
+        }
+    }
+
+    private sealed class RecordingLeaseManager : IAdministrationLeaseManager
+    {
+        internal AdministrationLeaseOutcome NextOutcome { get; set; } =
+            AdministrationLeaseOutcome.Acquired;
+
+        internal bool FailRelease { get; set; }
+
+        internal List<AdministrationLeaseRequest> Acquisitions { get; } = [];
+
+        internal List<(CorpusId CorpusId, OperationId OperationId)> Releases { get; } = [];
+
+        public Task<AdministrationLeaseOutcome> AcquireAsync(
+            AdministrationLeaseRequest request,
+            CancellationToken cancellationToken = default)
+        {
+            Acquisitions.Add(request);
+            return Task.FromResult(NextOutcome);
+        }
+
+        public Task ReleaseAsync(
+            CorpusId corpusId,
+            OperationId operationId,
+            CancellationToken cancellationToken = default)
+        {
+            Releases.Add((corpusId, operationId));
+
+            if (FailRelease)
+            {
+                throw new IOException("Synthetic bounded lease-release failure.");
+            }
+
+            return Task.CompletedTask;
+        }
+    }
+
+    private sealed class RecordingExecutor : IOneShotAdministrativeCommandExecutor
+    {
+        internal List<OneShotAdministrativeCommand> Commands { get; } = [];
+
+        public AdministrativeCommandIdentifiers DescribeIntent(
+            string command,
+            CorpusId corpusId,
+            JsonElement? input) =>
+            new([$"corpus:{corpusId.Value}"], []);
+
+        public Task<AdministrativeExecutionResult> ExecuteAsync(
+            OneShotAdministrativeCommand command,
+            CancellationToken cancellationToken = default)
+        {
+            Commands.Add(command);
+            return Task.FromResult(new AdministrativeExecutionResult(
+                AdministrativeExecutionOutcome.Applied,
+                "CH_ADMIN_APPLIED",
+                ResultRevision: 1));
+        }
+    }
+
+    private sealed class RecordingJournal : IAdministrationCommandJournal
+    {
+        private readonly Dictionary<string, (AdministrationJournalIntent Intent,
+            AdministrationJournalResult? Result)> entries = new(StringComparer.Ordinal);
+
+        public Task<AdministrationJournalBeginResult> BeginAsync(
+            AdministrationJournalIntent intent,
+            CancellationToken cancellationToken = default)
+        {
+            if (!entries.TryGetValue(intent.OperationId.Value, out var entry))
+            {
+                entries.Add(intent.OperationId.Value, (intent, null));
+                return Task.FromResult(new AdministrationJournalBeginResult(
+                    AdministrationJournalBeginOutcome.Started,
+                    intent.IntentDigest,
+                    intent.StartedAt));
+            }
+
+            if (!string.Equals(
+                    entry.Intent.IntentDigest,
+                    intent.IntentDigest,
+                    StringComparison.Ordinal))
+            {
+                throw new AdministrationJournalConflictException(
+                    "The operation identity was reused with different intent.");
+            }
+
+            return Task.FromResult(new AdministrationJournalBeginResult(
+                entry.Result is null
+                    ? AdministrationJournalBeginOutcome.Resumed
+                    : AdministrationJournalBeginOutcome.CompletedReplay,
+                intent.IntentDigest,
+                entry.Intent.StartedAt,
+                entry.Result));
+        }
+
+        public Task CompleteAsync(
+            AdministrationJournalCompletion completion,
+            DateTimeOffset completedAt,
+            CancellationToken cancellationToken = default)
+        {
+            var entry = entries[completion.OperationId.Value];
+            var result = new AdministrationJournalResult(
+                completion.Outcome,
+                completion.ResultCode,
+                completion.ExitCategory,
+                completion.ResultRevision,
+                completedAt);
+
+            if (entry.Result is not null && entry.Result != result)
+            {
+                throw new AdministrationJournalConflictException(
+                    "The operation result differs from its durable result.");
+            }
+
+            entries[completion.OperationId.Value] = (entry.Intent, result);
+            return Task.CompletedTask;
+        }
+
+        public Task VerifyCompletedAsync(
+            AdministrationJournalCompletion completion,
+            CancellationToken cancellationToken = default)
+        {
+            if (!entries.TryGetValue(completion.OperationId.Value, out var entry) ||
+                entry.Result is null ||
+                entry.Result.Outcome != completion.Outcome ||
+                !string.Equals(
+                    entry.Result.ResultCode,
+                    completion.ResultCode,
+                    StringComparison.Ordinal) ||
+                entry.Result.ExitCategory != completion.ExitCategory ||
+                entry.Result.ResultRevision != completion.ResultRevision)
+            {
+                throw new AdministrationJournalConflictException(
+                    "The completed operation result is absent or different.");
+            }
+
+            return Task.CompletedTask;
+        }
+    }
+
+    private sealed class TemporaryAdministrationRoot : IDisposable
+    {
+        private TemporaryAdministrationRoot(string root)
+        {
+            Root = root;
+            StoreRoot = Path.Combine(root, "store");
+            InputRoot = Path.Combine(root, "input");
+            Directory.CreateDirectory(StoreRoot);
+            Directory.CreateDirectory(InputRoot);
+            Directory.CreateDirectory(Path.Combine(StoreRoot, "content"));
+        }
+
+        internal string Root { get; }
+
+        internal string StoreRoot { get; }
+
+        internal string InputRoot { get; }
+
+        internal static TemporaryAdministrationRoot Create()
+        {
+            var root = Path.Combine(
+                Path.GetTempPath(),
+                "rag-challenge-admin-tests",
+                Guid.NewGuid().ToString("N"));
+            Directory.CreateDirectory(root);
+            return new TemporaryAdministrationRoot(root);
+        }
+
+        internal SqliteStoreOptions CreateStoreOptions() =>
+            new(
+                Path.Combine(StoreRoot, "control.db"),
+                Path.Combine(StoreRoot, "vectors.db"),
+                Path.Combine(StoreRoot, "content"));
+
+        public void Dispose()
+        {
+            SqliteConnection.ClearAllPools();
+
+            if (Directory.Exists(Root))
+            {
+                Directory.Delete(Root, recursive: true);
+            }
+        }
+    }
+}

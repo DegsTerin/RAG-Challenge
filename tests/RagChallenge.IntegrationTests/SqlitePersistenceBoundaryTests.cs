@@ -3,6 +3,8 @@ using System.Globalization;
 using System.Text;
 
 using Microsoft.Data.Sqlite;
+using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 
 using RagChallenge.Application.Persistence;
 using RagChallenge.Domain.CorpusCatalog;
@@ -72,6 +74,139 @@ public sealed class SqlitePersistenceBoundaryTests
     }
 
     [Fact]
+    public async Task AdministrationMigrationsBackfillExistingCatalogueProjectionWithoutDataLoss()
+    {
+        var root = Path.Combine(
+            Path.GetTempPath(),
+            "rag-challenge-migration-upgrade-tests",
+            Guid.NewGuid().ToString("N"));
+        Directory.CreateDirectory(root);
+        var options = new SqliteStoreOptions(
+            Path.Combine(root, "control.db"),
+            Path.Combine(root, "vectors.db"),
+            Path.Combine(root, "content"));
+
+        try
+        {
+            await using (var context = options.CreateControlContext())
+            {
+                var migrator = context.Database.GetService<IMigrator>();
+                await migrator.MigrateAsync("20260802171743_InitialControlPlane");
+            }
+
+            await ExecuteAsync(
+                options.ControlDatabasePath,
+                """
+                INSERT INTO corpora
+                    (corpus_id, corpus_revision, created_at_utc)
+                VALUES
+                    ('upgrade-corpus', 1, '2026-08-04T12:00:00.0000000+00:00');
+
+                INSERT INTO admin_operations
+                    (operation_id, corpus_id, operation_kind, status,
+                     expected_revision, result_revision, requested_at_utc,
+                     completed_at_utc)
+                VALUES
+                    ('upgrade-catalogue', 'upgrade-corpus', 'CatalogueCommit',
+                     'Applied', 0, 1, '2026-08-04T12:00:00.0000000+00:00',
+                     '2026-08-04T12:00:00.0000000+00:00');
+
+                INSERT INTO content_objects
+                    (content_sha256, byte_length, registered_at_utc)
+                VALUES
+                    ('0000000000000000000000000000000000000000000000000000000000000000',
+                     1, '2026-08-04T12:00:00.0000000+00:00');
+
+                INSERT INTO database_categories
+                    (corpus_id, category_id, display_name)
+                VALUES
+                    ('upgrade-corpus', 'category-upgrade', 'Upgrade category');
+
+                INSERT INTO database_product_revisions
+                    (corpus_id, product_id, product_revision, display_name, status)
+                VALUES
+                    ('upgrade-corpus', 'database-upgrade', 1, 'Upgrade database',
+                     'Active');
+
+                INSERT INTO database_product_categories
+                    (corpus_id, product_id, product_revision, category_id)
+                VALUES
+                    ('upgrade-corpus', 'database-upgrade', 1, 'category-upgrade');
+
+                INSERT INTO document_versions
+                    (corpus_id, document_id, document_version, product_id,
+                     product_revision, document_format, content_language,
+                     content_sha256, byte_length, media_type, source_adapter_id,
+                     source_trust_class, official_registration_id,
+                     official_snapshot_id)
+                VALUES
+                    ('upgrade-corpus', 'document-upgrade', 1, 'database-upgrade',
+                     1, 'Pdf', 'en-GB',
+                     '0000000000000000000000000000000000000000000000000000000000000000',
+                     1, 'application/pdf', 'local-upgrade', 'LocalAuthorised',
+                     NULL, NULL);
+
+                INSERT INTO catalogue_revisions
+                    (corpus_id, catalogue_revision, created_at_utc, operation_id)
+                VALUES
+                    ('upgrade-corpus', 1,
+                     '2026-08-04T12:00:00.0000000+00:00', 'upgrade-catalogue');
+
+                INSERT INTO catalogue_revision_products
+                    (corpus_id, catalogue_revision, product_id, product_revision)
+                VALUES
+                    ('upgrade-corpus', 1, 'database-upgrade', 1);
+
+                INSERT INTO catalogue_revision_documents
+                    (corpus_id, catalogue_revision, document_id,
+                     document_version, status)
+                VALUES
+                    ('upgrade-corpus', 1, 'document-upgrade', 1, 'Active');
+
+                INSERT INTO catalogue_heads
+                    (corpus_id, catalogue_revision, row_revision)
+                VALUES
+                    ('upgrade-corpus', 1, 1);
+                """);
+
+            await using (var context = options.CreateControlContext())
+            {
+                var migrator = context.Database.GetService<IMigrator>();
+                await migrator.MigrateAsync();
+            }
+
+            var store = new SqliteControlPlaneStore(options);
+            var snapshot = Assert.IsType<CatalogueSnapshot>(
+                await store.ReadCurrentCatalogueAsync(new CorpusId("upgrade-corpus")));
+            var product = Assert.Single(snapshot.DatabaseProducts);
+            var document = Assert.Single(snapshot.DocumentVersions);
+
+            Assert.Equal(CatalogueItemStatus.Active, product.Status);
+            Assert.Equal("database-upgrade", document.DatabaseProductId.Value);
+            Assert.Equal(1, document.DatabaseProductRevision.Value);
+            Assert.Equal(2, await ScalarAsync(
+                options.ControlDatabasePath,
+                """
+                SELECT COUNT(*)
+                FROM sqlite_master
+                WHERE type = 'table'
+                  AND name IN (
+                    'administration_leases',
+                    'administration_command_journal');
+                """));
+        }
+        finally
+        {
+            SqliteConnection.ClearAllPools();
+
+            if (Directory.Exists(root))
+            {
+                Directory.Delete(root, recursive: true);
+            }
+        }
+    }
+
+    [Fact]
     public async Task ImmutableContentUsesSha256IdentityAndRejectsMismatches()
     {
         await using var fixture = await SqlitePersistenceFixture.CreateAsync();
@@ -113,6 +248,40 @@ public sealed class SqlitePersistenceBoundaryTests
         {
             await using var _ = await fixture.ContentStore.OpenReadAsync(first.ContentObjectId);
         });
+    }
+
+    [Fact]
+    public async Task CataloguePersistenceRejectsAnUnrecoverableUnusedCategory()
+    {
+        await using var fixture = await SqlitePersistenceFixture.CreateAsync();
+        var snapshot = new CatalogueSnapshot(
+            SqlitePersistenceFixture.CorpusId,
+            new CatalogueRevision(1),
+            [
+                new DatabaseCategory(
+                    new DatabaseCategoryId("category-assigned"),
+                    "Assigned category"),
+                new DatabaseCategory(
+                    new DatabaseCategoryId("category-unused"),
+                    "Unused category"),
+            ],
+            [new DatabaseProduct(
+                new DatabaseProductId("database"),
+                new DatabaseProductRevision(1),
+                "Database",
+                CatalogueItemStatus.Candidate,
+                [new DatabaseCategoryId("category-assigned")])],
+            []);
+
+        await Assert.ThrowsAsync<ArgumentException>(() =>
+            fixture.ControlStore.CommitCatalogueAsync(new CatalogueCommitRequest(
+                new OperationId("reject-unused-category"),
+                snapshot,
+                0,
+                SqlitePersistenceFixture.At(1))));
+        Assert.Equal(
+            0,
+            await fixture.ScalarAsync("SELECT COUNT(*) FROM catalogue_revisions;"));
     }
 
     [Fact]

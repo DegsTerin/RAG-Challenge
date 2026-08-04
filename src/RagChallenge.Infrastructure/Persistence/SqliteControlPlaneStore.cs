@@ -5,6 +5,7 @@ using System.Text;
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 
+using RagChallenge.Application.Administration;
 using RagChallenge.Application.IndexingRetrieval;
 using RagChallenge.Application.Persistence;
 using RagChallenge.Domain.CorpusCatalog;
@@ -29,22 +30,35 @@ public sealed class SqliteControlPlaneStore(SqliteStoreOptions options)
         ArgumentNullException.ThrowIfNull(request.OperationId);
         ArgumentNullException.ThrowIfNull(request.Snapshot);
         EnsureExpectedRevision(request.ExpectedCurrentRevision, request.Snapshot.Revision.Value);
+        EnsureRecoverableCatalogueCategoryProjection(request.Snapshot);
         ControlPlaneMapping.EnsureUtc(request.CommittedAt, nameof(request));
 
         await using var context = options.CreateControlContext();
         await using var transaction = await BeginImmediateAsync(
             context,
             cancellationToken).ConfigureAwait(false);
-        var idempotent = await GetIdempotentResultAsync(
-            context,
-            request.OperationId,
-            "CatalogueCommit",
-            cancellationToken).ConfigureAwait(false);
+        var existingOperation = await context.AdminOperations.AsNoTracking()
+            .SingleOrDefaultAsync(
+                row => row.OperationId == request.OperationId.Value,
+                cancellationToken).ConfigureAwait(false);
 
-        if (idempotent is not null)
+        if (existingOperation is not null)
         {
+            var replay = await ReadExactCatalogueReplayAsync(
+                context,
+                request,
+                existingOperation,
+                cancellationToken).ConfigureAwait(false);
+            EnsureJournalCompletionMatchesMutation(
+                request.JournalCompletion,
+                request.OperationId,
+                request.Snapshot.Revision.Value);
+            await SqliteAdministrationCommandJournal.VerifyCompletionAsync(
+                context,
+                request.JournalCompletion,
+                cancellationToken).ConfigureAwait(false);
             await transaction.CommitAsync(cancellationToken).ConfigureAwait(false);
-            return idempotent;
+            return replay;
         }
 
         var corpusId = request.Snapshot.CorpusId.Value;
@@ -125,11 +139,144 @@ public sealed class SqliteControlPlaneStore(SqliteStoreOptions options)
             request.Snapshot.Revision.Value,
             request.CommittedAt,
             request.AuditDetailsDigest);
+        EnsureJournalCompletionMatchesMutation(
+            request.JournalCompletion,
+            request.OperationId,
+            request.Snapshot.Revision.Value);
+        await SqliteAdministrationCommandJournal.ApplyCompletionAsync(
+            context,
+            request.JournalCompletion,
+            JournalCompletedAt(request.CommittedAt),
+            cancellationToken).ConfigureAwait(false);
         await context.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
         await transaction.CommitAsync(cancellationToken).ConfigureAwait(false);
         return new StoreMutationResult(
             StoreMutationOutcome.Applied,
             request.Snapshot.Revision.Value);
+    }
+
+    public async Task<CatalogueSnapshot?> ReadCurrentCatalogueAsync(
+        CorpusId corpusId,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(corpusId);
+        await using var context = options.CreateControlContext();
+        var head = await context.CatalogueHeads.AsNoTracking().SingleOrDefaultAsync(
+            row => row.CorpusId == corpusId.Value,
+            cancellationToken).ConfigureAwait(false);
+
+        if (head is null)
+        {
+            return null;
+        }
+
+        return await ReadCatalogueSnapshotAsync(
+            context,
+            corpusId,
+            head.CatalogueRevision,
+            cancellationToken).ConfigureAwait(false);
+    }
+
+    public async Task<StoreMutationResult> RegisterOfficialSourceAsync(
+        OfficialSourceRegistrationCommitRequest request,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(request);
+        ArgumentNullException.ThrowIfNull(request.OperationId);
+        ArgumentNullException.ThrowIfNull(request.CorpusId);
+        ArgumentNullException.ThrowIfNull(request.Registration);
+        ControlPlaneMapping.EnsureUtc(request.CommittedAt, nameof(request));
+        await using var context = options.CreateControlContext();
+        await using var transaction = await BeginImmediateAsync(
+            context,
+            cancellationToken).ConfigureAwait(false);
+        var existingOperation = await context.AdminOperations.AsNoTracking()
+            .SingleOrDefaultAsync(
+                row => row.OperationId == request.OperationId.Value,
+                cancellationToken).ConfigureAwait(false);
+
+        if (existingOperation is not null)
+        {
+            var replay = await ReadExactOfficialRegistrationReplayAsync(
+                context,
+                request,
+                existingOperation,
+                cancellationToken).ConfigureAwait(false);
+            EnsureJournalCompletionMatchesMutation(
+                request.JournalCompletion,
+                request.OperationId,
+                request.Registration.Revision.Value);
+            await SqliteAdministrationCommandJournal.VerifyCompletionAsync(
+                context,
+                request.JournalCompletion,
+                cancellationToken).ConfigureAwait(false);
+            await transaction.CommitAsync(cancellationToken).ConfigureAwait(false);
+            return replay;
+        }
+
+        if (await HasBlockingLeaseAsync(
+                context,
+                request.CorpusId,
+                request.OperationId,
+                request.CommittedAt,
+                cancellationToken).ConfigureAwait(false))
+        {
+            return new StoreMutationResult(StoreMutationOutcome.RetentionConflict, 0);
+        }
+
+        var priorRevision = await context.OfficialSourceRegistrations
+            .Where(row => row.CorpusId == request.CorpusId.Value &&
+                row.RegistrationId == request.Registration.Id.Value)
+            .Select(row => (long?)row.RegistrationRevision)
+            .MaxAsync(cancellationToken).ConfigureAwait(false) ?? 0;
+        var documentExists = await context.DocumentVersions.AnyAsync(
+            row => row.CorpusId == request.CorpusId.Value &&
+                row.DocumentId == request.Registration.DocumentId.Value &&
+                row.ProductId == request.Registration.DatabaseProductId.Value,
+            cancellationToken).ConfigureAwait(false);
+
+        if (!documentExists)
+        {
+            return new StoreMutationResult(StoreMutationOutcome.NotFound, priorRevision);
+        }
+
+        if (request.Registration.Revision.Value != priorRevision + 1)
+        {
+            return new StoreMutationResult(
+                StoreMutationOutcome.RevisionConflict,
+                priorRevision);
+        }
+
+        AddOperation(
+            context,
+            request.OperationId,
+            request.CorpusId,
+            "OfficialSourceRegistration",
+            priorRevision,
+            request.CommittedAt);
+        AddOfficialSourceRegistration(context, request.CorpusId, request.Registration);
+        CompleteOperation(
+            context,
+            request.OperationId,
+            request.CorpusId,
+            "OfficialSourceRegistered",
+            request.Registration.Revision.Value,
+            request.CommittedAt,
+            request.AuditDetailsDigest);
+        EnsureJournalCompletionMatchesMutation(
+            request.JournalCompletion,
+            request.OperationId,
+            request.Registration.Revision.Value);
+        await SqliteAdministrationCommandJournal.ApplyCompletionAsync(
+            context,
+            request.JournalCompletion,
+            JournalCompletedAt(request.CommittedAt),
+            cancellationToken).ConfigureAwait(false);
+        await context.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
+        await transaction.CommitAsync(cancellationToken).ConfigureAwait(false);
+        return new StoreMutationResult(
+            StoreMutationOutcome.Applied,
+            request.Registration.Revision.Value);
     }
 
     public async Task<StoreMutationResult> CommitOfficialSourceAsync(
@@ -183,14 +330,26 @@ public sealed class SqliteControlPlaneStore(SqliteStoreOptions options)
             return new StoreMutationResult(StoreMutationOutcome.NotFound, 0);
         }
 
-        var priorRevision = await context.OfficialSourceRegistrations
+        var latestRegistration = await context.OfficialSourceRegistrations.AsNoTracking()
             .Where(row => row.CorpusId == request.CorpusId.Value &&
                 row.RegistrationId == request.Registration.Id.Value)
-            .Select(row => (long?)row.RegistrationRevision)
-            .MaxAsync(cancellationToken)
-            .ConfigureAwait(false) ?? 0;
+            .OrderByDescending(row => row.RegistrationRevision)
+            .FirstOrDefaultAsync(cancellationToken).ConfigureAwait(false);
+        var priorRevision = latestRegistration?.RegistrationRevision ?? 0;
+        var registrationAlreadyCommitted =
+            priorRevision == request.Registration.Revision.Value;
 
-        if (request.Registration.Revision.Value != priorRevision + 1)
+        if (registrationAlreadyCommitted &&
+            !OfficialSourceRegistrationMatches(
+                latestRegistration!,
+                request.Registration))
+        {
+            throw new InvalidOperationException(
+                "An immutable official-source registration changed after persistence.");
+        }
+
+        if (!registrationAlreadyCommitted &&
+            request.Registration.Revision.Value != priorRevision + 1)
         {
             return new StoreMutationResult(
                 StoreMutationOutcome.RevisionConflict,
@@ -215,17 +374,10 @@ public sealed class SqliteControlPlaneStore(SqliteStoreOptions options)
             "OfficialSourceCommit",
             priorRevision,
             request.CommittedAt);
-        context.OfficialSourceRegistrations.Add(new OfficialSourceRegistrationRow
+        if (!registrationAlreadyCommitted)
         {
-            CorpusId = request.CorpusId.Value,
-            RegistrationId = request.Registration.Id.Value,
-            RegistrationRevision = request.Registration.Revision.Value,
-            ProductId = request.Registration.DatabaseProductId.Value,
-            DocumentId = request.Registration.DocumentId.Value,
-            SourceAdapterId = request.Registration.SourceAdapterId.Value,
-            CanonicalHttpsUrl = request.Registration.CanonicalHttpsUrl,
-            Status = request.Registration.Status.ToString(),
-        });
+            AddOfficialSourceRegistration(context, request.CorpusId, request.Registration);
+        }
         await AddOrValidateContentObjectAsync(
             context,
             request.Snapshot.ContentObjectId.Value,
@@ -882,10 +1034,18 @@ public sealed class SqliteControlPlaneStore(SqliteStoreOptions options)
 
         if (existingOperation is not null)
         {
-            EnsureOperationIdentity(existingOperation, "ActivationCAS");
-            var active = await ReadActiveActivationAsync(
+            var active = await ReadExactActivationReplayAsync(
                 context,
-                request.ProposedRecord.CorpusId,
+                request,
+                existingOperation,
+                cancellationToken).ConfigureAwait(false);
+            EnsureJournalCompletionMatchesMutation(
+                request.JournalCompletion,
+                request.OperationId,
+                request.ProposedRecord.RecordRevision.Value);
+            await SqliteAdministrationCommandJournal.VerifyCompletionAsync(
+                context,
+                request.JournalCompletion,
                 cancellationToken).ConfigureAwait(false);
             await transaction.CommitAsync(cancellationToken).ConfigureAwait(false);
             return new ActivationMutationResult(
@@ -1072,6 +1232,15 @@ public sealed class SqliteControlPlaneStore(SqliteStoreOptions options)
             request.ProposedRecord.RecordRevision.Value,
             request.EvaluatedAt,
             request.AuditDetailsDigest);
+        EnsureJournalCompletionMatchesMutation(
+            request.JournalCompletion,
+            request.OperationId,
+            request.ProposedRecord.RecordRevision.Value);
+        await SqliteAdministrationCommandJournal.ApplyCompletionAsync(
+            context,
+            request.JournalCompletion,
+            JournalCompletedAt(request.EvaluatedAt),
+            cancellationToken).ConfigureAwait(false);
         await context.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
         await transaction.CommitAsync(cancellationToken).ConfigureAwait(false);
         return new ActivationMutationResult(
@@ -1299,6 +1468,41 @@ public sealed class SqliteControlPlaneStore(SqliteStoreOptions options)
         return checked((long)seconds);
     }
 
+    private static void AddOfficialSourceRegistration(
+        ControlPlaneDbContext context,
+        CorpusId corpusId,
+        OfficialSourceRegistration registration) =>
+        context.OfficialSourceRegistrations.Add(new OfficialSourceRegistrationRow
+        {
+            CorpusId = corpusId.Value,
+            RegistrationId = registration.Id.Value,
+            RegistrationRevision = registration.Revision.Value,
+            ProductId = registration.DatabaseProductId.Value,
+            DocumentId = registration.DocumentId.Value,
+            SourceAdapterId = registration.SourceAdapterId.Value,
+            CanonicalHttpsUrl = registration.CanonicalHttpsUrl,
+            Status = registration.Status.ToString(),
+        });
+
+    private static bool OfficialSourceRegistrationMatches(
+        OfficialSourceRegistrationRow row,
+        OfficialSourceRegistration registration) =>
+        row.RegistrationRevision == registration.Revision.Value &&
+        string.Equals(row.ProductId, registration.DatabaseProductId.Value, StringComparison.Ordinal) &&
+        string.Equals(row.DocumentId, registration.DocumentId.Value, StringComparison.Ordinal) &&
+        string.Equals(row.SourceAdapterId, registration.SourceAdapterId.Value, StringComparison.Ordinal) &&
+        string.Equals(row.CanonicalHttpsUrl, registration.CanonicalHttpsUrl, StringComparison.Ordinal) &&
+        string.Equals(row.Status, registration.Status.ToString(), StringComparison.Ordinal);
+
+    private static SupportedLanguage ParseLanguage(string value) =>
+        value switch
+        {
+            "pt-BR" => SupportedLanguage.PtBr,
+            "en-GB" => SupportedLanguage.EnGb,
+            _ => throw new InvalidDataException(
+                "A persisted content language is outside the supported set."),
+        };
+
     private static async Task AddCatalogueSnapshotAsync(
         ControlPlaneDbContext context,
         CatalogueCommitRequest request,
@@ -1363,14 +1567,28 @@ public sealed class SqliteControlPlaneStore(SqliteStoreOptions options)
                             CategoryId = categoryId.Value,
                         }));
             }
-            else if (!string.Equals(
-                    existing.DisplayName,
-                    product.DisplayName,
-                    StringComparison.Ordinal) ||
-                !string.Equals(existing.Status, product.Status.ToString(), StringComparison.Ordinal))
+            else
             {
-                throw new InvalidOperationException(
-                    "An immutable database-product revision changed after persistence.");
+                var persistedCategoryIds = await context.DatabaseProductCategories
+                    .Where(row => row.CorpusId == corpusId &&
+                        row.ProductId == product.Id.Value &&
+                        row.ProductRevision == product.Revision.Value)
+                    .Select(row => row.CategoryId)
+                    .ToArrayAsync(cancellationToken).ConfigureAwait(false);
+                var requestedCategoryIds = product.CategoryIds
+                    .Select(categoryId => categoryId.Value)
+                    .Order(StringComparer.Ordinal);
+
+                if (!string.Equals(
+                        existing.DisplayName,
+                        product.DisplayName,
+                        StringComparison.Ordinal) ||
+                    !persistedCategoryIds.Order(StringComparer.Ordinal)
+                        .SequenceEqual(requestedCategoryIds))
+                {
+                    throw new InvalidOperationException(
+                        "An immutable database-product revision changed after persistence.");
+                }
             }
         }
 
@@ -1430,6 +1648,7 @@ public sealed class SqliteControlPlaneStore(SqliteStoreOptions options)
                     CatalogueRevision = request.Snapshot.Revision.Value,
                     ProductId = product.Id.Value,
                     ProductRevision = product.Revision.Value,
+                    Status = product.Status.ToString(),
                 }));
         context.CatalogueRevisionDocuments.AddRange(
             request.Snapshot.DocumentVersions.Select(document =>
@@ -1439,6 +1658,8 @@ public sealed class SqliteControlPlaneStore(SqliteStoreOptions options)
                     CatalogueRevision = request.Snapshot.Revision.Value,
                     DocumentId = document.Id.Value,
                     DocumentVersion = document.Version.Value,
+                    ProductId = document.DatabaseProductId.Value,
+                    ProductRevision = document.DatabaseProductRevision.Value,
                     Status = document.Status.ToString(),
                 }));
     }
@@ -1476,7 +1697,6 @@ public sealed class SqliteControlPlaneStore(SqliteStoreOptions options)
         DocumentVersionRow row,
         DocumentVersion document) =>
         row.ProductId == document.DatabaseProductId.Value &&
-        row.ProductRevision == document.DatabaseProductRevision.Value &&
         row.DocumentFormat == document.Format.ToString() &&
         row.ContentLanguage == document.ContentLanguage.ToCanonicalTag() &&
         row.ContentSha256 == document.ContentObjectId.Value &&
@@ -1710,6 +1930,394 @@ public sealed class SqliteControlPlaneStore(SqliteStoreOptions options)
             existing.ResultRevision ?? 0);
     }
 
+    private static async Task<StoreMutationResult> ReadExactCatalogueReplayAsync(
+        ControlPlaneDbContext context,
+        CatalogueCommitRequest request,
+        AdminOperationRow operation,
+        CancellationToken cancellationToken)
+    {
+        EnsureOperationIdentity(operation, "CatalogueCommit");
+
+        if (!string.Equals(
+            operation.CorpusId,
+                request.Snapshot.CorpusId.Value,
+                StringComparison.Ordinal) ||
+            operation.ExpectedRevision != request.ExpectedCurrentRevision ||
+            operation.ResultRevision != request.Snapshot.Revision.Value)
+        {
+            throw new InvalidOperationException(
+                "A catalogue operation identity was reused with different intent.");
+        }
+
+        var revisionExists = await context.CatalogueRevisions.AsNoTracking().AnyAsync(
+            row => row.CorpusId == request.Snapshot.CorpusId.Value &&
+                row.CatalogueRevision == request.Snapshot.Revision.Value &&
+                row.OperationId == request.OperationId.Value,
+            cancellationToken).ConfigureAwait(false);
+        var persistedSnapshot = revisionExists
+            ? await ReadCatalogueSnapshotAsync(
+                context,
+                request.Snapshot.CorpusId,
+                request.Snapshot.Revision.Value,
+                cancellationToken).ConfigureAwait(false)
+            : null;
+        var audit = await context.AuditEvents.AsNoTracking().SingleOrDefaultAsync(
+            row => row.CorpusId == request.Snapshot.CorpusId.Value &&
+                row.OperationId == request.OperationId.Value,
+            cancellationToken).ConfigureAwait(false);
+        var occurredAt = audit is null
+            ? default
+            : ControlPlaneMapping.ParseUtc(audit.OccurredAtUtc);
+        var expectedAuditDigest = BuildAuditDetailsDigest(
+            request.Snapshot.CorpusId,
+            request.OperationId,
+            "CatalogueCommitted",
+            request.Snapshot.Revision.Value,
+            occurredAt,
+            request.AuditDetailsDigest);
+
+        if (!revisionExists || persistedSnapshot is null ||
+            !CatalogueSnapshotMatches(persistedSnapshot, request.Snapshot) ||
+            audit is null ||
+            !string.Equals(audit.EventType, "CatalogueCommitted", StringComparison.Ordinal) ||
+            operation.CompletedAtUtc is null ||
+            ControlPlaneMapping.ParseUtc(operation.RequestedAtUtc) != occurredAt ||
+            ControlPlaneMapping.ParseUtc(operation.CompletedAtUtc) != occurredAt ||
+            !string.Equals(audit.DetailsDigest, expectedAuditDigest, StringComparison.Ordinal))
+        {
+            throw new InvalidOperationException(
+                "The persisted catalogue replay evidence differs from the requested intent.");
+        }
+
+        return new StoreMutationResult(
+            StoreMutationOutcome.AlreadyApplied,
+            request.Snapshot.Revision.Value);
+    }
+
+    private static async Task<CatalogueSnapshot?> ReadCatalogueSnapshotAsync(
+        ControlPlaneDbContext context,
+        CorpusId corpusId,
+        long catalogueRevision,
+        CancellationToken cancellationToken)
+    {
+        var revisionExists = await context.CatalogueRevisions.AsNoTracking().AnyAsync(
+            row => row.CorpusId == corpusId.Value &&
+                row.CatalogueRevision == catalogueRevision,
+            cancellationToken).ConfigureAwait(false);
+
+        if (!revisionExists)
+        {
+            return null;
+        }
+
+        var productLinks = await context.CatalogueRevisionProducts.AsNoTracking()
+            .Where(row => row.CorpusId == corpusId.Value &&
+                row.CatalogueRevision == catalogueRevision)
+            .ToArrayAsync(cancellationToken).ConfigureAwait(false);
+        var activeProductKeys = productLinks
+            .Select(row => (row.ProductId, row.ProductRevision))
+            .ToHashSet();
+        var productRows = await context.DatabaseProductRevisions.AsNoTracking()
+            .Where(row => row.CorpusId == corpusId.Value)
+            .ToArrayAsync(cancellationToken).ConfigureAwait(false);
+        var categoryLinks = await context.DatabaseProductCategories.AsNoTracking()
+            .Where(row => row.CorpusId == corpusId.Value)
+            .ToArrayAsync(cancellationToken).ConfigureAwait(false);
+        var categoryIds = categoryLinks
+            .Where(row => activeProductKeys.Contains((row.ProductId, row.ProductRevision)))
+            .Select(row => row.CategoryId)
+            .ToHashSet(StringComparer.Ordinal);
+        var categoryRows = await context.DatabaseCategories.AsNoTracking()
+            .Where(row => row.CorpusId == corpusId.Value &&
+                categoryIds.Contains(row.CategoryId))
+            .ToArrayAsync(cancellationToken).ConfigureAwait(false);
+        var products = productLinks.Select(link =>
+        {
+            var row = productRows.Single(item =>
+                item.ProductId == link.ProductId &&
+                item.ProductRevision == link.ProductRevision);
+            var categories = categoryLinks
+                .Where(item => item.ProductId == link.ProductId &&
+                    item.ProductRevision == link.ProductRevision)
+                .Select(item => new DatabaseCategoryId(item.CategoryId));
+            return new DatabaseProduct(
+                new DatabaseProductId(row.ProductId),
+                new DatabaseProductRevision(row.ProductRevision),
+                row.DisplayName,
+                Enum.Parse<CatalogueItemStatus>(link.Status, ignoreCase: false),
+                categories);
+        }).ToArray();
+        var documentLinks = await context.CatalogueRevisionDocuments.AsNoTracking()
+            .Where(row => row.CorpusId == corpusId.Value &&
+                row.CatalogueRevision == catalogueRevision)
+            .ToArrayAsync(cancellationToken).ConfigureAwait(false);
+        var documentRows = await context.DocumentVersions.AsNoTracking()
+            .Where(row => row.CorpusId == corpusId.Value)
+            .ToArrayAsync(cancellationToken).ConfigureAwait(false);
+        var documents = documentLinks.Select(link =>
+        {
+            var row = documentRows.Single(item =>
+                item.DocumentId == link.DocumentId &&
+                item.DocumentVersion == link.DocumentVersion);
+            return new DocumentVersion(
+                new DocumentId(row.DocumentId),
+                new DocumentVersionNumber(row.DocumentVersion),
+                new DatabaseProductId(link.ProductId),
+                new DatabaseProductRevision(link.ProductRevision),
+                Enum.Parse<DocumentFormat>(row.DocumentFormat, ignoreCase: false),
+                ParseLanguage(row.ContentLanguage),
+                Enum.Parse<CatalogueItemStatus>(link.Status, ignoreCase: false),
+                new ContentObjectId(row.ContentSha256),
+                row.ByteLength,
+                row.MediaType,
+                new SourceAdapterId(row.SourceAdapterId),
+                Enum.Parse<SourceTrustClass>(row.SourceTrustClass, ignoreCase: false),
+                row.OfficialRegistrationId is null
+                    ? null
+                    : new OfficialSourceRegistrationId(row.OfficialRegistrationId),
+                row.OfficialSnapshotId is null
+                    ? null
+                    : new OfficialSnapshotId(row.OfficialSnapshotId));
+        }).ToArray();
+        return new CatalogueSnapshot(
+            corpusId,
+            new CatalogueRevision(catalogueRevision),
+            categoryRows.Select(row => new DatabaseCategory(
+                new DatabaseCategoryId(row.CategoryId),
+                row.DisplayName)),
+            products,
+            documents);
+    }
+
+    private static bool CatalogueSnapshotMatches(
+        CatalogueSnapshot left,
+        CatalogueSnapshot right) =>
+        left.CorpusId == right.CorpusId &&
+        left.Revision == right.Revision &&
+        left.DatabaseCategories
+            .OrderBy(item => item.Id.Value, StringComparer.Ordinal)
+            .Select(item => $"{item.Id.Value}\n{item.DisplayName}")
+            .SequenceEqual(
+                right.DatabaseCategories
+                    .OrderBy(item => item.Id.Value, StringComparer.Ordinal)
+                    .Select(item => $"{item.Id.Value}\n{item.DisplayName}")) &&
+        left.DatabaseProducts
+            .OrderBy(item => item.Id.Value, StringComparer.Ordinal)
+            .Select(ProductProjection)
+            .SequenceEqual(
+                right.DatabaseProducts
+                    .OrderBy(item => item.Id.Value, StringComparer.Ordinal)
+                    .Select(ProductProjection)) &&
+        left.DocumentVersions
+            .OrderBy(item => item.Id.Value, StringComparer.Ordinal)
+            .ThenBy(item => item.Version.Value)
+            .Select(DocumentProjection)
+            .SequenceEqual(
+                right.DocumentVersions
+                    .OrderBy(item => item.Id.Value, StringComparer.Ordinal)
+                    .ThenBy(item => item.Version.Value)
+                    .Select(DocumentProjection));
+
+    private static string ProductProjection(DatabaseProduct product) =>
+        string.Join(
+            '\n',
+            product.Id.Value,
+            product.Revision.ToCanonicalString(),
+            product.DisplayName,
+            product.Status.ToString(),
+            string.Join(
+                ',',
+                product.CategoryIds
+                    .Select(item => item.Value)
+                    .Order(StringComparer.Ordinal)));
+
+    private static string DocumentProjection(DocumentVersion document) =>
+        string.Join(
+            '\n',
+            document.Id.Value,
+            document.Version.ToCanonicalString(),
+            document.DatabaseProductId.Value,
+            document.DatabaseProductRevision.ToCanonicalString(),
+            document.Format.ToString(),
+            document.ContentLanguage.ToCanonicalTag(),
+            document.Status.ToString(),
+            document.ContentObjectId.Value,
+            document.ByteLength.ToString(System.Globalization.CultureInfo.InvariantCulture),
+            document.MediaType,
+            document.SourceAdapterId.Value,
+            document.SourceTrustClass.ToString(),
+            document.OfficialSourceRegistrationId?.Value ?? "",
+            document.OfficialSnapshotId?.Value ?? "");
+
+    private static async Task<CorpusActivationRecord> ReadExactActivationReplayAsync(
+        ControlPlaneDbContext context,
+        ActivationCompareExchangeRequest request,
+        AdminOperationRow operation,
+        CancellationToken cancellationToken)
+    {
+        EnsureOperationIdentity(operation, "ActivationCAS");
+
+        if (!string.Equals(
+                operation.CorpusId,
+                request.ProposedRecord.CorpusId.Value,
+                StringComparison.Ordinal) ||
+            operation.ExpectedRevision != request.ExpectedCurrentRevision ||
+            operation.ResultRevision != request.ProposedRecord.RecordRevision.Value)
+        {
+            throw new InvalidOperationException(
+                "An activation operation identity was reused with different intent.");
+        }
+
+        var record = await context.ActivationRecords.AsNoTracking()
+            .SingleOrDefaultAsync(
+                row => row.OperationId == request.OperationId.Value,
+                cancellationToken).ConfigureAwait(false) ??
+            throw new InvalidOperationException(
+                "The persisted activation replay record is missing.");
+        var bindings = await context.ActivationBindings.AsNoTracking()
+            .Where(row => row.CorpusId == record.CorpusId &&
+                row.RecordRevision == record.RecordRevision)
+            .ToArrayAsync(cancellationToken).ConfigureAwait(false);
+        var persisted = ControlPlaneMapping.ToDomain(record, bindings);
+        var manifest = await context.GenerationManifests.AsNoTracking()
+            .SingleOrDefaultAsync(
+                row => row.CorpusId == record.CorpusId &&
+                    row.IndexGenerationId == record.IndexGenerationId,
+                cancellationToken).ConfigureAwait(false);
+        var audit = await context.AuditEvents.AsNoTracking().SingleOrDefaultAsync(
+            row => row.CorpusId == record.CorpusId &&
+                row.OperationId == request.OperationId.Value,
+            cancellationToken).ConfigureAwait(false);
+        var occurredAt = audit is null
+            ? default
+            : ControlPlaneMapping.ParseUtc(audit.OccurredAtUtc);
+        var expectedEventType = $"Activation{request.MutationKind}Applied";
+        var expectedAuditDigest = BuildAuditDetailsDigest(
+            request.ProposedRecord.CorpusId,
+            request.OperationId,
+            expectedEventType,
+            request.ProposedRecord.RecordRevision.Value,
+            occurredAt,
+            request.AuditDetailsDigest);
+
+        if (!ActivationRecordMatches(persisted, request.ProposedRecord) ||
+            !string.Equals(record.MutationKind, request.MutationKind.ToString(), StringComparison.Ordinal) ||
+            manifest is null ||
+            !string.Equals(
+                manifest.IndexCompatibilityKey,
+                request.RequiredCompatibilityKey.Value,
+                StringComparison.Ordinal) ||
+            audit is null ||
+            !string.Equals(audit.EventType, expectedEventType, StringComparison.Ordinal) ||
+            operation.CompletedAtUtc is null ||
+            ControlPlaneMapping.ParseUtc(operation.RequestedAtUtc) != occurredAt ||
+            ControlPlaneMapping.ParseUtc(operation.CompletedAtUtc) != occurredAt ||
+            !string.Equals(audit.DetailsDigest, expectedAuditDigest, StringComparison.Ordinal))
+        {
+            throw new InvalidOperationException(
+                "The persisted activation replay evidence differs from the requested intent.");
+        }
+
+        return persisted;
+    }
+
+    private static async Task<StoreMutationResult>
+        ReadExactOfficialRegistrationReplayAsync(
+            ControlPlaneDbContext context,
+            OfficialSourceRegistrationCommitRequest request,
+            AdminOperationRow operation,
+            CancellationToken cancellationToken)
+    {
+        EnsureOperationIdentity(operation, "OfficialSourceRegistration");
+        var expectedPriorRevision = request.Registration.Revision.Value - 1;
+
+        if (!string.Equals(operation.CorpusId, request.CorpusId.Value, StringComparison.Ordinal) ||
+            operation.ExpectedRevision != expectedPriorRevision ||
+            operation.ResultRevision != request.Registration.Revision.Value)
+        {
+            throw new InvalidOperationException(
+                "An official-source registration operation was reused with different intent.");
+        }
+
+        var registration = await context.OfficialSourceRegistrations.AsNoTracking()
+            .SingleOrDefaultAsync(
+                row => row.CorpusId == request.CorpusId.Value &&
+                    row.RegistrationId == request.Registration.Id.Value &&
+                    row.RegistrationRevision == request.Registration.Revision.Value,
+                cancellationToken).ConfigureAwait(false);
+        var audit = await context.AuditEvents.AsNoTracking().SingleOrDefaultAsync(
+            row => row.CorpusId == request.CorpusId.Value &&
+                row.OperationId == request.OperationId.Value,
+            cancellationToken).ConfigureAwait(false);
+        var occurredAt = audit is null
+            ? default
+            : ControlPlaneMapping.ParseUtc(audit.OccurredAtUtc);
+        var expectedAuditDigest = BuildAuditDetailsDigest(
+            request.CorpusId,
+            request.OperationId,
+            "OfficialSourceRegistered",
+            request.Registration.Revision.Value,
+            occurredAt,
+            request.AuditDetailsDigest);
+
+        if (registration is null ||
+            !OfficialSourceRegistrationMatches(registration, request.Registration) ||
+            audit is null ||
+            !string.Equals(audit.EventType, "OfficialSourceRegistered", StringComparison.Ordinal) ||
+            operation.CompletedAtUtc is null ||
+            ControlPlaneMapping.ParseUtc(operation.RequestedAtUtc) != occurredAt ||
+            ControlPlaneMapping.ParseUtc(operation.CompletedAtUtc) != occurredAt ||
+            !string.Equals(audit.DetailsDigest, expectedAuditDigest, StringComparison.Ordinal))
+        {
+            throw new InvalidOperationException(
+                "The persisted official-source registration evidence differs from the request.");
+        }
+
+        return new StoreMutationResult(
+            StoreMutationOutcome.AlreadyApplied,
+            request.Registration.Revision.Value);
+    }
+
+    private static bool ActivationRecordMatches(
+        CorpusActivationRecord left,
+        CorpusActivationRecord right) =>
+        left.CorpusId == right.CorpusId &&
+        left.RecordRevision == right.RecordRevision &&
+        left.PreviousRecordRevision == right.PreviousRecordRevision &&
+        left.IndexGenerationId == right.IndexGenerationId &&
+        left.CatalogueRevision == right.CatalogueRevision &&
+        left.ActivationBindingSetDigest == right.ActivationBindingSetDigest &&
+        left.GenerationActivatedAt == right.GenerationActivatedAt &&
+        left.RecordUpdatedAt == right.RecordUpdatedAt &&
+        left.DocumentBindings.SequenceEqual(right.DocumentBindings);
+
+    private static void EnsureJournalCompletionMatchesMutation(
+        AdministrationJournalCompletion? completion,
+        OperationId operationId,
+        long resultRevision)
+    {
+        if (completion is null)
+        {
+            return;
+        }
+
+        if (completion.OperationId != operationId ||
+            completion.Outcome != AdministrationJournalResultOutcome.Applied ||
+            !string.Equals(completion.ResultCode, "CH_ADMIN_APPLIED", StringComparison.Ordinal) ||
+            completion.ExitCategory != 0 ||
+            completion.ResultRevision != resultRevision)
+        {
+            throw new InvalidOperationException(
+                "The administrative journal completion does not match the committed mutation.");
+        }
+    }
+
+    private static DateTimeOffset JournalCompletedAt(DateTimeOffset startedAt)
+    {
+        var completedAt = DateTimeOffset.UtcNow;
+        return completedAt < startedAt ? startedAt : completedAt;
+    }
+
     private static async Task<bool> HasBlockingLeaseAsync(
         ControlPlaneDbContext context,
         CorpusId corpusId,
@@ -1717,13 +2325,20 @@ public sealed class SqliteControlPlaneStore(SqliteStoreOptions options)
         DateTimeOffset evaluatedAt,
         CancellationToken cancellationToken)
     {
-        var leases = await context.RecoveryLeases.AsNoTracking()
+        var recoveryLeases = await context.RecoveryLeases.AsNoTracking()
             .Where(row => row.CorpusId == corpusId.Value &&
                 row.OperationId != operationId.Value)
             .ToArrayAsync(cancellationToken)
             .ConfigureAwait(false);
-        return leases.Any(row =>
-            ControlPlaneMapping.ParseUtc(row.ExpiresAtUtc) > evaluatedAt);
+        var administrationLeases = await context.AdministrationLeases.AsNoTracking()
+            .Where(row => row.CorpusId == corpusId.Value &&
+                row.OperationId != operationId.Value)
+            .ToArrayAsync(cancellationToken)
+            .ConfigureAwait(false);
+        return recoveryLeases.Any(row =>
+                ControlPlaneMapping.ParseUtc(row.ExpiresAtUtc) > evaluatedAt) ||
+            administrationLeases.Any(row =>
+                ControlPlaneMapping.ParseUtc(row.ExpiresAtUtc) > evaluatedAt);
     }
 
     private static void EnsureOperationIdentity(
@@ -1738,6 +2353,24 @@ public sealed class SqliteControlPlaneStore(SqliteStoreOptions options)
         {
             throw new InvalidOperationException(
                 "An operation identity was reused for another or incomplete mutation.");
+        }
+    }
+
+    private static void EnsureRecoverableCatalogueCategoryProjection(
+        CatalogueSnapshot snapshot)
+    {
+        var categories = snapshot.DatabaseCategories
+            .Select(category => category.Id)
+            .ToHashSet();
+        var referenced = snapshot.DatabaseProducts
+            .SelectMany(product => product.CategoryIds)
+            .ToHashSet();
+
+        if (!categories.SetEquals(referenced))
+        {
+            throw new ArgumentException(
+                "Every persisted catalogue category must be assigned in the same snapshot.",
+                nameof(snapshot));
         }
     }
 

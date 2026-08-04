@@ -63,6 +63,12 @@ public sealed class ControlPlaneDbContext(DbContextOptions<ControlPlaneDbContext
 
     internal DbSet<RecoveryLeaseRow> RecoveryLeases => Set<RecoveryLeaseRow>();
 
+    internal DbSet<AdministrationLeaseRow> AdministrationLeases =>
+        Set<AdministrationLeaseRow>();
+
+    internal DbSet<AdministrationCommandJournalRow> AdministrationCommandJournal =>
+        Set<AdministrationCommandJournalRow>();
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         ConfigureCorpora(modelBuilder);
@@ -552,6 +558,49 @@ public sealed class ControlPlaneDbContext(DbContextOptions<ControlPlaneDbContext
             });
             entity.HasKey(row => new { row.CorpusId, row.LeaseName });
             entity.HasOne<AdminOperationRow>().WithMany().HasForeignKey(row => row.OperationId).OnDelete(DeleteBehavior.Restrict);
+        });
+
+        modelBuilder.Entity<AdministrationLeaseRow>(entity =>
+        {
+            entity.ToTable("administration_leases", table =>
+            {
+                table.HasCheckConstraint("ck_administration_leases_corpus", StableId("corpus_id"));
+                table.HasCheckConstraint("ck_administration_leases_operation", StableId("operation_id"));
+                table.HasCheckConstraint("ck_administration_leases_acquired_utc", UtcInstant("acquired_at_utc"));
+                table.HasCheckConstraint("ck_administration_leases_expires_utc", UtcInstant("expires_at_utc"));
+                table.HasCheckConstraint("ck_administration_leases_time_order", "expires_at_utc > acquired_at_utc");
+            });
+            entity.HasKey(row => row.CorpusId);
+            entity.HasIndex(row => row.OperationId).IsUnique();
+        });
+
+        modelBuilder.Entity<AdministrationCommandJournalRow>(entity =>
+        {
+            entity.ToTable("administration_command_journal", table =>
+            {
+                table.HasCheckConstraint("ck_administration_journal_operation", StableId("operation_id"));
+                table.HasCheckConstraint("ck_administration_journal_corpus", StableId("corpus_id"));
+                table.HasCheckConstraint("ck_administration_journal_command", "length(command) BETWEEN 1 AND 64 AND command NOT GLOB '*[^a-z0-9-]*'");
+                table.HasCheckConstraint("ck_administration_journal_actor", "length(actor_identifier) BETWEEN 1 AND 128 AND actor_identifier NOT GLOB '*[^A-Za-z0-9._:-]*'");
+                table.HasCheckConstraint("ck_administration_journal_reason", Sha256("reason_sha256"));
+                table.HasCheckConstraint("ck_administration_journal_input", "input_sha256 IS NULL OR " + Sha256("input_sha256"));
+                table.HasCheckConstraint("ck_administration_journal_intent", Sha256("intent_digest"));
+                table.HasCheckConstraint("ck_administration_journal_sources", "length(source_ids_json) BETWEEN 2 AND 4096");
+                table.HasCheckConstraint("ck_administration_journal_targets", "length(target_ids_json) BETWEEN 2 AND 4096");
+                table.HasCheckConstraint("ck_administration_journal_started_utc", UtcInstant("started_at_utc"));
+                table.HasCheckConstraint("ck_administration_journal_completed_utc", "completed_at_utc IS NULL OR " + UtcInstant("completed_at_utc"));
+                table.HasCheckConstraint("ck_administration_journal_time_order", "completed_at_utc IS NULL OR completed_at_utc >= started_at_utc");
+                table.HasCheckConstraint("ck_administration_journal_status", "status IN ('Started', 'Completed')");
+                table.HasCheckConstraint("ck_administration_journal_outcome", "outcome IS NULL OR outcome IN ('Applied', 'Rejected', 'Unavailable', 'Failed')");
+                table.HasCheckConstraint("ck_administration_journal_exit", "exit_category IS NULL OR exit_category IN (0, 2, 3, 4, 5, 10)");
+                table.HasCheckConstraint("ck_administration_journal_result_revision", "result_revision IS NULL OR result_revision >= 0");
+                table.HasCheckConstraint("ck_administration_journal_completion", "(status = 'Started' AND completed_at_utc IS NULL AND outcome IS NULL AND result_code IS NULL AND exit_category IS NULL AND result_revision IS NULL) OR (status = 'Completed' AND completed_at_utc IS NOT NULL AND outcome IS NOT NULL AND result_code IS NOT NULL AND exit_category IS NOT NULL)");
+            });
+            entity.HasKey(row => row.OperationId);
+            entity.HasIndex(row => new { row.CorpusId, row.StartedAtUtc });
+            entity.Property(row => row.SourceIdsJson).HasMaxLength(4096);
+            entity.Property(row => row.TargetIdsJson).HasMaxLength(4096);
+            entity.Property(row => row.ResultCode).HasMaxLength(128);
         });
     }
 

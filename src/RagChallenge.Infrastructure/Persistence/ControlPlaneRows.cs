@@ -103,6 +103,8 @@ internal sealed class CatalogueRevisionProductRow
     public required string ProductId { get; set; }
 
     public long ProductRevision { get; set; }
+
+    public required string Status { get; set; }
 }
 
 internal sealed class CatalogueRevisionDocumentRow
@@ -114,6 +116,10 @@ internal sealed class CatalogueRevisionDocumentRow
     public required string DocumentId { get; set; }
 
     public long DocumentVersion { get; set; }
+
+    public required string ProductId { get; set; }
+
+    public long ProductRevision { get; set; }
 
     public required string Status { get; set; }
 }
@@ -374,4 +380,50 @@ internal sealed class RecoveryLeaseRow
     public required string AcquiredAtUtc { get; set; }
 
     public required string ExpiresAtUtc { get; set; }
+}
+
+internal sealed class AdministrationLeaseRow
+{
+    public required string CorpusId { get; set; }
+
+    public required string OperationId { get; set; }
+
+    public required string AcquiredAtUtc { get; set; }
+
+    public required string ExpiresAtUtc { get; set; }
+}
+
+internal sealed class AdministrationCommandJournalRow
+{
+    public required string OperationId { get; set; }
+
+    public required string CorpusId { get; set; }
+
+    public required string Command { get; set; }
+
+    public required string ActorIdentifier { get; set; }
+
+    public required string ReasonSha256 { get; set; }
+
+    public string? InputSha256 { get; set; }
+
+    public required string SourceIdsJson { get; set; }
+
+    public required string TargetIdsJson { get; set; }
+
+    public required string StartedAtUtc { get; set; }
+
+    public string? CompletedAtUtc { get; set; }
+
+    public required string Status { get; set; }
+
+    public string? Outcome { get; set; }
+
+    public string? ResultCode { get; set; }
+
+    public int? ExitCategory { get; set; }
+
+    public long? ResultRevision { get; set; }
+
+    public required string IntentDigest { get; set; }
 }

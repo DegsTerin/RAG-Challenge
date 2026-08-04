@@ -124,6 +124,9 @@ public sealed class ProjectBoundaryTests
                 .Where(type => type != typeof(global::Program))
                 .Where(type =>
                     type.GetCustomAttribute<CompilerGeneratedAttribute>() is null)
+                .Where(type =>
+                    type.DeclaringType?.GetCustomAttribute<CompilerGeneratedAttribute>()
+                        is null)
                 .Where(type => type.Namespace is null ||
                     !type.Namespace.StartsWith(
                         "Coverlet.Core.Instrumentation.Tracker",
