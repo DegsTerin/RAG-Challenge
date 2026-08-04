@@ -35,8 +35,9 @@ proprietários.
   adapters OpenAI por HTTP direto exercitados somente com handler falso. Os
   quatro lotes estão concluídos. O Automatic Quality Gate de `STATE-04` foi
   aprovado sem achados abertos; `AQG-S04-001` (P2) foi resolvido por um teste
-  integrado do fluxo sintético completo. O Human Gate permanece pendente e
-  nenhum estado posterior foi autorizado.
+  integrado do fluxo sintético completo. O Human Gate de `STATE-04` foi
+  aprovado com as ressalvas documentadas em 2026-08-04; `STATE-04` está
+  encerrado e nenhum estado posterior foi autorizado.
 - Fechamento de `S04-A0`: `PdfPig` `0.1.15` e `CsvHelper` `33.1.0` foram
   selecionados condicionalmente para desenvolvimento local;
   `Sylvan.Data.Csv` `1.4.4` permanece fallback não selecionado e não
@@ -196,7 +197,15 @@ proprietários.
   65,73% de branches, arquitetura,
   contratos, integração, parsers, hashes, lockfiles, OpenAPI, falhas, health,
   segurança e higiene. Dashboard e validações externas foram `NÃO
-  APLICÁVEIS` pelo escopo negativo explícito. Human Gate não foi executado.
+  APLICÁVEIS` pelo escopo negativo explícito. O resultado automático não
+  executou o Human Gate.
+- Human Gate de `STATE-04`: `APROVADO COM RESSALVAS` em 2026-08-04 sobre
+  `main@6d141decdf5f40661bb9f408d6aa97f9f322cfcf`, corpus `4.9.2` e working
+  tree limpa, após a apresentação do resumo completo do gate, entregáveis,
+  amostras críticas, limitações, riscos, rollback e escopo negativo. A frase
+  canônica foi `Confirmo a decisão acima exclusivamente para STATE-04`. A
+  decisão encerra somente `STATE-04`; não autoriza entrada ou execução de
+  `STATE-05`, produção, ação externa ou limpeza das evidências temporárias.
 - Human Gate de `STATE-03`: `APROVADO` sem ressalvas em 2026-08-02 sobre
   `main@a88dc1f296bb9117dd8e869b83d1665cee99634f`, corpus `4.9.1`, após
   revisão, na mesma conversa, do resumo completo da baseline vigente, dos
@@ -501,8 +510,8 @@ autorizada.
    para cada banco antes de sua ativação.
 2. Validar e ativar individualmente novos registros de fonte oficial; a
    aceitação arquitetural não autoriza URL, rede, download ou crawling.
-3. Revisar o resumo completo do Automatic Quality Gate de `STATE-04` e tomar
-   a decisão humana separada; a aprovação automática não encerra o estado.
+3. Preparar uma proposta limitada de entrada em `STATE-05` e obter autorização
+   humana explícita e separada antes de qualquer alteração de frontend.
 4. Verificar tier, entitlement, spend limit e controles da conta OpenAI, além
    da recuperação/geração bilíngue, antes de usar ou anunciar os providers.
 5. Homologar desempenho e capacidade do `SqliteExactVectorStore`; a fixture
@@ -523,7 +532,9 @@ autorizada.
 
 ## Próxima autoridade
 
-`STATE-04 BACKEND_IMPLEMENTATION` está ativo. O fechamento documental de
+`STATE-04 BACKEND_IMPLEMENTATION` está encerrado após Automatic Quality Gate
+aprovado e Human Gate aprovado com as ressalvas documentadas em 2026-08-04. O
+fechamento documental de
 `S04-A0`, o pin offline de `PdfPig` `0.1.15` e `CsvHelper` `33.1.0`, a
 execução sequencial de `S04-A` a `S04-D` e o Automatic Quality Gate posterior
 foram autorizados pelo proprietário em 2026-08-04. A fonte offline isolada foi
@@ -532,14 +543,14 @@ já fixadas, sem alterar o cache global. `PdfPig` `0.1.15` e `CsvHelper`
 `33.1.0` foram fixados com grafo aplicável vazio, restore locked e hashes
 aprovados; o primeiro gate runtime sintético passou. `S04-A`, `S04-B`, `S04-C`
 e `S04-D` foram concluídos sequencialmente. O Automatic Quality Gate de
-`STATE-04` foi aprovado sem achados abertos; a execução parou antes do Human
-Gate.
+`STATE-04` foi aprovado sem achados abertos; o Human Gate subsequente aceitou
+o estado com as limitações e os riscos residuais já registrados.
 
-O próximo ato possível é exclusivamente a revisão e decisão do Human Gate de
-`STATE-04`, mediante confirmação humana explícita depois do resumo completo.
-Essa decisão não autoriza por si só a entrada em `STATE-05`.
+Qualquer entrada em `STATE-05 FRONTEND_IMPLEMENTATION` exige proposta e
+autorização humana explícita e separada. O Human Gate de `STATE-04` não concede
+essa autoridade.
 
 Rede, providers, contas, secrets, corpus real, fontes oficiais reais do
 produto, armazenamento operacional, GitHub, OCI, Dashboard, publicação,
-deploy, Human Gate, estados posteriores e mudanças no DB-Notifier continuam
-sem autorização.
+deploy, entrada ou execução de estados posteriores e mudanças no DB-Notifier
+continuam sem autorização.

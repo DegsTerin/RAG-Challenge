@@ -343,6 +343,20 @@ the repeated build, complete suite and coverage gate passed; the finding is
 `RESOLVED`. No P0, P1 or P3 finding was identified. This result does not
 execute or imply the Human Gate and does not authorise entry into `STATE-05`.
 
+## Human Gate
+
+The owner reviewed the complete current-baseline summary and confirmed the
+canonical phrase for `STATE-04` on 2026-08-04. The Human Gate result is
+`APPROVED_WITH_DOCUMENTED_CAVEATS` over
+`main@6d141decdf5f40661bb9f408d6aa97f9f322cfcf`, corpus `4.9.2` and a clean
+working tree.
+
+The decision accepts the delivered `STATE-04` scope and the residual
+limitations below. It closes `STATE-04 BACKEND_IMPLEMENTATION` only. It does
+not approve production use, remove the parser signature or NuGet hash-domain
+limitations, authorise cleanup of temporary evidence, or authorise entry into
+or execution of `STATE-05`.
+
 ### Residual limitations and risks
 
 - Online certificate revocation and a current online advisory query were not
@@ -370,5 +384,6 @@ execute or imply the Human Gate and does not authorise entry into `STATE-05`.
   prove current online revocation, Linux ARM64 runtime behaviour, production
   suitability, parser quality over a real corpus or provider behaviour.
 - The consolidated `S04-A` to `S04-D` authority has been consumed
-  sequentially and its Automatic Quality Gate is approved. Human review is
-  pending; no later state or Human Gate is implied.
+  sequentially; its Automatic Quality Gate and subsequent Human Gate are
+  approved with the documented limitations. `STATE-04` is closed and no later
+  state is authorised.

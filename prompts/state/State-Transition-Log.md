@@ -2825,3 +2825,59 @@ contém somente fatos cronológicos.
   Gate pendente. Não houve entrada em `STATE-05`.
 - Resultado automático: emitido pelo processo local de Quality Gate sob
   autoridade do proprietário; decisão humana não executada.
+
+## 2026-08-04 — Human Gate de STATE-04 aprovado com ressalvas documentadas
+
+- Estado anterior: `STATE-04 BACKEND_IMPLEMENTATION` ativo; `S04-A0`, pin de
+  parsers e `S04-A` a `S04-D` concluídos; Automatic Quality Gate `APROVADO`;
+  Human Gate `PENDENTE`.
+- Baseline da decisão: branch `main`, commit
+  `6d141decdf5f40661bb9f408d6aa97f9f322cfcf`, corpus `4.9.2` e working tree
+  limpa. O Automatic Quality Gate foi executado sobre
+  `main@7f236542133719481a02f507cf802a1dd385f328`; o commit posterior registrou
+  somente a evidência documental do gate.
+- Pré-condições: resumo completo apresentado na mesma conversa, incluindo
+  entregáveis de `S04-A0` e `S04-A` a `S04-D`, resultado automático, amostras
+  críticas, hashes e lockfiles, limitações, riscos residuais, rollback, escopo
+  negativo e decisão proposta.
+- Confirmação humana exata:
+
+  ```text
+  Confirmo a decisão acima exclusivamente para STATE-04
+  ```
+
+- Decisão: Human Gate de `STATE-04` `APROVADO COM RESSALVAS`, exclusivamente
+  para o escopo local e offline entregue pelo estado.
+- Entregáveis aceitos: parsers `PdfPig` `0.1.15` e `CsvHelper` `33.1.0` com
+  pins exatos; administração e ingestão PDF/CSV; sincronização manual por
+  transporte falso; snapshots, chunks e idempotência; indexação, hard
+  pre-filter, ativação CAS e embeddings fake; recuperação, recusa, respostas
+  grounded, citações e matriz `pt-BR`/`en-GB`; API v1, OpenAPI, Problem
+  Details, limites, cancelamento, rate limit, health e adapters OpenAI por HTTP
+  direto exercitados somente com fakes.
+- Evidências aceitas: build Release sem warnings ou erros; 119 testes — 67
+  unitários, 10 de arquitetura e 42 de integração — sem falha ou skip; 92,37%
+  de linhas e 65,73% de branches; fluxo sintético completo; OpenAPI com três
+  rotas; supply chain e sete lockfiles; higiene local; `AQG-S04-001` (P2)
+  `RESOLVIDO`; nenhum achado aberto.
+- Ressalvas aceitas: assinatura NuGet permanece
+  `CONDITIONAL_REVOCATION_NOT_CURRENT`; a relação normativa entre todos os
+  domínios de hash NuGet permanece incompleta e aceita somente para
+  desenvolvimento local; runtime Linux ARM64, provider/conta reais, corpus e
+  fontes oficiais reais, listener E2E, benchmark, deploy e recuperação
+  operacional não foram verificados; o host padrão permanece `Unready` sem
+  composição operacional explícita.
+- Retenção: todas as evidências temporárias permanecem preservadas; sua
+  limpeza exige autoridade posterior e separada. Nupkgs, catálogos brutos,
+  caches, assemblies restauradas, launchers, logs temporários e paths locais
+  continuam não versionáveis.
+- Runtime preflight: `NOT_APPLICABLE`; o registro altera somente documentação
+  e memória de lifecycle e não inspeciona nem muda comportamento executável.
+- Escopo negativo preservado: nenhuma entrada ou execução de `STATE-05`,
+  produção, rede, provider, conta, secret, corpus real, fonte oficial real,
+  GitHub, OCI, Dashboard, DB-Notifier, publicação, deploy ou ação externa.
+- Estado resultante: `STATE-04 BACKEND_IMPLEMENTATION` encerrado; `STATE-05
+  FRONTEND_IMPLEMENTATION` permanece sem autorização de entrada.
+- Próxima condição: preparar proposta limitada e obter autorização humana
+  explícita e separada para qualquer entrada em `STATE-05`.
+- Aprovador: proprietário do RAG-Challenge.
