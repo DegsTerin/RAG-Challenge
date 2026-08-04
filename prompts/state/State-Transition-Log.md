@@ -2732,3 +2732,32 @@ contém somente fatos cronológicos.
   corpus real, GitHub, OCI, Dashboard, DB-Notifier, publicação, deploy, Human
   Gate ou estado posterior.
 - Aprovador: proprietário do RAG-Challenge.
+
+## 2026-08-04 — S04-C concluído com recuperação grounded bilíngue
+
+- Estado anterior: `S04-B` concluído; `S04-C` era o próximo lote sequencial.
+- Escopo implementado: validação de pergunta/idioma; resolução única da revisão
+  ativa; elegibilidade por observação bound; recuperação em todo o conjunto
+  elegível; cobertura/proveniência; geração constrained; citações validadas;
+  recusa explícita por evidência insuficiente.
+- Integridade: o query path usa somente bindings e a observação nomeada no
+  `CorpusActivationRecord`; não lê “última observação”, não consulta fonte
+  oficial e não permite que pergunta, evidência ou modelo escolham autoridade.
+- Citações: são reconstruídas de metadados locais, preservam `contentLanguage`
+  e texto original e carregam identidade de corpus/geração/database/documento,
+  formato, trust e localização PDF/CSV; URL/snapshot/freshness aparecem somente
+  para origem oficial validada.
+- Compatibilidade física: localização do chunk foi codificada de forma bounded
+  na coluna derivada existente e decodificada no readback canônico e recovery;
+  nenhuma migration ou mudança de schema foi necessária.
+- Evidência: testes cobrem `pt-BR→pt-BR`, `en-GB→en-GB`, `pt-BR→en-GB` e
+  `en-GB→pt-BR`, origem local PDF/oficial CSV, injection tratada como dados,
+  evidência insuficiente, stale, provider down e citação não suportada.
+- Verificação: format check aprovado; build Release com zero warnings e zero
+  erros; 96 testes aprovados, sendo 67 unitários, 10 de arquitetura e 19 de
+  integração.
+- Estado resultante: `S04-C` concluído; `S04-D` é o próximo lote sequencial.
+- Escopo negativo preservado: sem package, migration, rede, provider real,
+  corpus real, GitHub, OCI, Dashboard, DB-Notifier, publicação, deploy, Human
+  Gate ou estado posterior.
+- Aprovador: proprietário do RAG-Challenge.

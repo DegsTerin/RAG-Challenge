@@ -192,7 +192,7 @@ public sealed class SqliteVectorIndexStore(SqliteStoreOptions options)
                 DocumentId = chunk.DocumentId.Value,
                 DocumentVersion = chunk.DocumentVersion.Value,
                 ChunkDigest = chunk.ChunkDigest.Value,
-                ChunkText = chunk.ChunkText,
+                ChunkText = StoredVectorChunkCodec.Encode(chunk),
                 Vector = EncodeVector(chunk.Vector.Span),
             });
         }
@@ -203,12 +203,19 @@ public sealed class SqliteVectorIndexStore(SqliteStoreOptions options)
 
     private static bool MatchesChunk(
         VectorChunkRow existing,
-        VectorChunkWrite proposed) =>
-        string.Equals(existing.DocumentId, proposed.DocumentId.Value, StringComparison.Ordinal) &&
-        existing.DocumentVersion == proposed.DocumentVersion.Value &&
-        string.Equals(existing.ChunkDigest, proposed.ChunkDigest.Value, StringComparison.Ordinal) &&
-        string.Equals(existing.ChunkText, proposed.ChunkText, StringComparison.Ordinal) &&
-        existing.Vector.AsSpan().SequenceEqual(EncodeVector(proposed.Vector.Span));
+        VectorChunkWrite proposed)
+    {
+        var decoded = StoredVectorChunkCodec.Decode(existing.ChunkText);
+        return string.Equals(existing.DocumentId, proposed.DocumentId.Value, StringComparison.Ordinal) &&
+            existing.DocumentVersion == proposed.DocumentVersion.Value &&
+            string.Equals(existing.ChunkDigest, proposed.ChunkDigest.Value, StringComparison.Ordinal) &&
+            string.Equals(decoded.Text, proposed.ChunkText, StringComparison.Ordinal) &&
+            decoded.ContentLanguage == proposed.ContentLanguage &&
+            decoded.PageNumber == proposed.PageNumber &&
+            decoded.RecordNumber == proposed.RecordNumber &&
+            ColumnsEqual(decoded.Columns, proposed.Columns) &&
+            existing.Vector.AsSpan().SequenceEqual(EncodeVector(proposed.Vector.Span));
+    }
 
     public async Task<FinalisedIndexGenerationManifest> FinaliseCandidateAsync(
         CandidateBuildId candidateBuildId,
@@ -387,6 +394,7 @@ public sealed class SqliteVectorIndexStore(SqliteStoreOptions options)
 
         foreach (var row in chunks)
         {
+            var decoded = StoredVectorChunkCodec.Decode(row.ChunkText);
             var vector = DecodeVector(row.Vector, build.VectorDimensions);
             var vectorNorm = CalculateNorm(vector);
             var score = vectorNorm == 0
@@ -399,8 +407,12 @@ public sealed class SqliteVectorIndexStore(SqliteStoreOptions options)
                 new DocumentId(row.DocumentId),
                 new DocumentVersionNumber(row.DocumentVersion),
                 new LogicalArtifactDigest(row.ChunkDigest),
-                row.ChunkText,
-                score));
+                decoded.Text,
+                score,
+                decoded.ContentLanguage,
+                decoded.PageNumber,
+                decoded.RecordNumber,
+                decoded.Columns));
         }
 
         return scored
@@ -544,14 +556,36 @@ public sealed class SqliteVectorIndexStore(SqliteStoreOptions options)
                 "A chunk ordinal cannot be negative.");
         }
 
-        if (chunk.ChunkText.Length > 1_048_576)
+        if (StoredVectorChunkCodec.Encode(chunk).Length > 1_048_576)
         {
             throw new ArgumentException(
-                "A chunk text cannot exceed 1,048,576 characters.",
+                "A stored chunk payload cannot exceed 1,048,576 characters.",
+                nameof(chunk));
+        }
+
+        if (chunk.PageNumber is <= 0 || chunk.RecordNumber is <= 0 ||
+            chunk.Columns?.Count > 64 ||
+            chunk.Columns?.Any(column =>
+                string.IsNullOrWhiteSpace(column.Key) ||
+                column.Key.Length > 256 ||
+                column.Value.Length > 4096) == true)
+        {
+            throw new ArgumentException(
+                "Chunk citation metadata is outside the bounded representation.",
                 nameof(chunk));
         }
 
         ValidateVector(chunk.Vector.Span, dimensions, nameof(chunk));
+    }
+
+    private static bool ColumnsEqual(
+        IReadOnlyDictionary<string, string> existing,
+        IReadOnlyDictionary<string, string>? proposed)
+    {
+        var proposedColumns = proposed ?? new Dictionary<string, string>();
+        return existing.Count == proposedColumns.Count && existing.All(pair =>
+            proposedColumns.TryGetValue(pair.Key, out var value) &&
+            string.Equals(value, pair.Value, StringComparison.Ordinal));
     }
 
     private static void ValidateVector(
@@ -612,14 +646,17 @@ public sealed class SqliteVectorIndexStore(SqliteStoreOptions options)
 
     private static LogicalIndexArtifact ToLogicalArtifact(
         VectorChunkRow row,
-        int dimensions) =>
-        new(
+        int dimensions)
+    {
+        var decoded = StoredVectorChunkCodec.Decode(row.ChunkText);
+        return new LogicalIndexArtifact(
             row.ChunkOrdinal,
             new DocumentId(row.DocumentId),
             new DocumentVersionNumber(row.DocumentVersion),
             new LogicalArtifactDigest(row.ChunkDigest),
-            row.ChunkText,
+            decoded.Text,
             DecodeVector(row.Vector, dimensions));
+    }
 
     private static double CalculateNorm(ReadOnlySpan<float> vector)
     {

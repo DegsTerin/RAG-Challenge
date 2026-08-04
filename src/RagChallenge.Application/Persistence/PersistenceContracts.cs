@@ -142,7 +142,11 @@ public sealed record VectorChunkWrite(
     DocumentVersionNumber DocumentVersion,
     LogicalArtifactDigest ChunkDigest,
     string ChunkText,
-    ReadOnlyMemory<float> Vector);
+    ReadOnlyMemory<float> Vector,
+    SupportedLanguage? ContentLanguage = null,
+    int? PageNumber = null,
+    long? RecordNumber = null,
+    IReadOnlyDictionary<string, string>? Columns = null);
 
 public sealed record VectorSearchHit(
     CandidateBuildId CandidateBuildId,
@@ -151,7 +155,11 @@ public sealed record VectorSearchHit(
     DocumentVersionNumber DocumentVersion,
     LogicalArtifactDigest ChunkDigest,
     string ChunkText,
-    double Score);
+    double Score,
+    SupportedLanguage? ContentLanguage,
+    int? PageNumber,
+    long? RecordNumber,
+    IReadOnlyDictionary<string, string> Columns);
 
 public sealed class VectorSearchRequest
 {

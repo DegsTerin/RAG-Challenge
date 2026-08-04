@@ -239,6 +239,44 @@ Release build and 85 tests passed: 56 unit, 10 architecture and 19 integration.
 The only embedding implementation exercised was an in-process deterministic
 fake; no provider, listener or network request was used.
 
+## S04-C outcome
+
+`S04-C` completed the provider-neutral retrieval and response policy:
+
+- every query validates the configured corpus, canonical `questionLanguage`,
+  bounded normalised question and correlation identity before either provider
+  port is invoked;
+- a query resolves exactly one complete activation record and joins only its
+  exact document, product, registration and named observation metadata from
+  the local control store; it never selects a separate latest observation or
+  fetches an official source;
+- local evidence is eligible directly, while official evidence is evaluated
+  from the bound observation as current, stale, withdrawn or deactivated;
+  coverage records active/eligible databases and documents plus sanitised
+  degraded source identities;
+- embedding and language-model ports enforce exact observed descriptors,
+  dimensions, ordered evidence, fixed top-k/context bounds and typed provider
+  unavailability, with deterministic fakes in the standard suite;
+- model instructions and untrusted evidence are separate typed fields. Model
+  output must preserve `answerLanguage == questionLanguage` and cite only
+  retrieved chunk IDs; unsupported citations, invalid language or malformed
+  output fail closed to `InsufficientEvidence` with no answer;
+- citations are rebuilt server-side from the resolved activation and retrieved
+  metadata. They preserve source text and `contentLanguage`, database,
+  document/version, format, trust, PDF page or CSV record/column location and
+  official URL/snapshot/freshness when applicable;
+- chunk citation metadata is stored as a bounded derived envelope in the
+  existing vector text column and decoded before canonical generation
+  readback, so no schema change or migration was introduced.
+
+Tests cover all four question/evidence language pairs, untranslated citation
+content, local PDF and official CSV provenance, prompt-injection text as data,
+insufficient evidence, stale-only coverage, embedding/model outages and
+hallucinated citation IDs. Recovery readback was updated to decode the derived
+metadata envelope before recomputing canonical generation identity. Format
+checking, a zero-warning Release build and 96 tests passed: 67 unit, 10
+architecture and 19 integration.
+
 ## Retention and risk
 
 - Preserve all temporary `S04-A0` evidence until separate cleanup authority.
@@ -248,5 +286,5 @@ fake; no provider, listener or network request was used.
   prove current online revocation, Linux ARM64 runtime behaviour, production
   suitability, parser quality over a real corpus or provider behaviour.
 - The consolidated `S04-A` to `S04-D` authority is being consumed
-  sequentially. `S04-A` and `S04-B` are complete and permit `S04-C` to start;
-  no later state or Human Gate is implied.
+  sequentially. `S04-A`, `S04-B` and `S04-C` are complete and permit `S04-D`
+  to start; no later state or Human Gate is implied.

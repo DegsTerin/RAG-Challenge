@@ -28,7 +28,9 @@ proprietários.
   PDF/CSV, sync por transporte falso, snapshots, chunks e idempotência;
   `S04-B` concluiu embeddings por port com fake determinístico, staging,
   finalização canônica, commit, ativação CAS, hard pre-filter e replay
-  idempotente; `S04-C` é o próximo lote sequencial.
+  idempotente; `S04-C` concluiu recuperação sobre uma única revisão ativa,
+  elegibilidade/freshness, recusa, resposta grounded, citações e a matriz
+  `pt-BR`/`en-GB`; `S04-D` é o próximo lote sequencial.
 - Fechamento de `S04-A0`: `PdfPig` `0.1.15` e `CsvHelper` `33.1.0` foram
   selecionados condicionalmente para desenvolvimento local;
   `Sylvan.Data.Csv` `1.4.4` permanece fallback não selecionado e não

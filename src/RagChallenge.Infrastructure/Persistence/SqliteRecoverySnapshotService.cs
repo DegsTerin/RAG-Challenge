@@ -685,12 +685,13 @@ public sealed class SqliteRecoverySnapshotService(SqliteStoreOptions options)
             {
                 while (await chunkReader.ReadAsync(cancellationToken).ConfigureAwait(false))
                 {
+                    var decoded = StoredVectorChunkCodec.Decode(chunkReader.GetString(4));
                     artifacts.Add(new LogicalIndexArtifact(
                         chunkReader.GetInt64(0),
                         new DocumentId(chunkReader.GetString(1)),
                         new DocumentVersionNumber(chunkReader.GetInt64(2)),
                         new LogicalArtifactDigest(chunkReader.GetString(3)),
-                        chunkReader.GetString(4),
+                        decoded.Text,
                         DecodeVector((byte[])chunkReader[5], dimensions)));
                 }
             }

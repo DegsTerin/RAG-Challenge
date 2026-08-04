@@ -126,9 +126,17 @@ public sealed class IndexDocumentInput
 {
     public IndexDocumentInput(
         DocumentBinding binding,
+        SupportedLanguage contentLanguage,
         IReadOnlyCollection<DocumentChunk> chunks)
     {
         Binding = binding ?? throw new ArgumentNullException(nameof(binding));
+
+        if (!Enum.IsDefined(contentLanguage))
+        {
+            throw new ArgumentOutOfRangeException(nameof(contentLanguage));
+        }
+
+        ContentLanguage = contentLanguage;
         ArgumentNullException.ThrowIfNull(chunks);
 
         if (chunks.Count == 0)
@@ -142,6 +150,8 @@ public sealed class IndexDocumentInput
     }
 
     public DocumentBinding Binding { get; }
+
+    public SupportedLanguage ContentLanguage { get; }
 
     public ReadOnlyCollection<DocumentChunk> Chunks { get; }
 }
@@ -186,7 +196,8 @@ public sealed class CorpusIndexingService(
             .ToArray();
         var bindings = orderedDocuments.Select(document => document.Binding).ToArray();
         var flattened = orderedDocuments
-            .SelectMany(document => document.Chunks.Select(chunk => (document.Binding, Chunk: chunk)))
+            .SelectMany(document => document.Chunks.Select(chunk =>
+                (Document: document, document.Binding, Chunk: chunk)))
             .ToArray();
 
         await vectorStore.CreateCandidateAsync(
@@ -210,7 +221,11 @@ public sealed class CorpusIndexingService(
                 item.Binding.DocumentVersion,
                 item.Chunk.Digest,
                 item.Chunk.Text,
-                vectors[index])).ToArray();
+                vectors[index],
+                item.Document.ContentLanguage,
+                item.Chunk.PageNumber,
+                item.Chunk.RecordNumber,
+                item.Chunk.Columns)).ToArray();
 
             foreach (var batch in writes.Chunk(MaximumVectorWriteBatch))
             {
@@ -266,7 +281,7 @@ public sealed class CorpusIndexingService(
 
     private async Task<ReadOnlyMemory<float>[]> EmbedAsync(
         CorpusIndexingRequest request,
-        (DocumentBinding Binding, DocumentChunk Chunk)[] flattened,
+        (IndexDocumentInput Document, DocumentBinding Binding, DocumentChunk Chunk)[] flattened,
         CancellationToken cancellationToken)
     {
         var vectors = new List<ReadOnlyMemory<float>>(flattened.Length);

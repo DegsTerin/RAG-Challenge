@@ -50,7 +50,7 @@ public sealed class BackendIndexingWorkflowTests
         var request = new CorpusIndexingRequest(
             new CandidateBuildId("candidate-backend-indexing"),
             specification,
-            [new IndexDocumentInput(binding, chunks)],
+            [new IndexDocumentInput(binding, SupportedLanguage.EnGb, chunks)],
             descriptor,
             Audit("generation-backend-indexing", "index-generation", 2),
             SqlitePersistenceFixture.At(3));
@@ -77,6 +77,12 @@ public sealed class BackendIndexingWorkflowTests
 
         Assert.Equal(StoreMutationOutcome.Applied, activated.Outcome);
         Assert.Equal(built.Manifest.IndexGenerationId, activated.CurrentRecord!.IndexGenerationId);
+        var querySnapshot = await new SqliteQueryActivationReader(fixture.Options)
+            .ReadAsync(SqlitePersistenceFixture.CorpusId, SqlitePersistenceFixture.At(4));
+        Assert.NotNull(querySnapshot);
+        var resolvedBinding = Assert.Single(querySnapshot.EvidenceBindings);
+        Assert.Equal(SupportedLanguage.EnGb, resolvedBinding.ContentLanguage);
+        Assert.Equal(SourceFreshness.Local, resolvedBinding.Freshness);
         var hits = await fixture.VectorStore.SearchExactAsync(
             new VectorSearchRequest(
                 activated.CurrentRecord.CorpusId,
@@ -87,6 +93,8 @@ public sealed class BackendIndexingWorkflowTests
                 [binding.DatabaseProductId]));
         Assert.Equal(2, hits.Count);
         Assert.Equal("first indexed passage", hits[0].ChunkText);
+        Assert.Equal(SupportedLanguage.EnGb, hits[0].ContentLanguage);
+        Assert.Equal(1, hits[0].PageNumber);
 
         var deniedByDatabaseFilter = await fixture.VectorStore.SearchExactAsync(
             new VectorSearchRequest(
