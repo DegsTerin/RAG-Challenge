@@ -1,6 +1,7 @@
 // Purpose: Implements same-volume, SHA-256-addressed immutable content writes with bounded quarantine, atomic publication, reopen verification, and path containment.
 using System.Buffers;
 using System.Security.Cryptography;
+using System.Text;
 
 using RagChallenge.Application.Persistence;
 using RagChallenge.Domain.CorpusCatalog;
@@ -225,6 +226,134 @@ public sealed class ImmutableContentStore : IImmutableContentStore
         return true;
     }
 
+    internal async Task<ContentDeletionReservation> ReserveForDeletionAsync(
+        OperationId operationId,
+        ContentObjectId contentObjectId,
+        long expectedByteLength,
+        CancellationToken cancellationToken)
+    {
+        ArgumentNullException.ThrowIfNull(operationId);
+        ArgumentNullException.ThrowIfNull(contentObjectId);
+
+        ArgumentOutOfRangeException.ThrowIfNegativeOrZero(expectedByteLength);
+
+        var sourcePath = ResolveObjectPath(contentObjectId, createDirectory: false);
+        var reservationDirectory = ResolveCleanupReservationDirectory(
+            operationId,
+            createDirectory: true);
+        var reservationPath = StoragePathSafety.CombineUnderRoot(
+            reservationDirectory,
+            $"{contentObjectId.Value}.delete");
+        var sourceExists = File.Exists(sourcePath);
+        var reservationExists = File.Exists(reservationPath);
+
+        if (sourceExists && reservationExists)
+        {
+            throw new InvalidDataException(
+                "A content deletion reservation conflicts with the published object.");
+        }
+
+        if (reservationExists)
+        {
+            await VerifyExistingAsync(
+                reservationPath,
+                contentObjectId,
+                expectedByteLength,
+                cancellationToken).ConfigureAwait(false);
+            return new ContentDeletionReservation(
+                sourcePath,
+                reservationPath,
+                WasPresent: true);
+        }
+
+        if (!sourceExists)
+        {
+            return new ContentDeletionReservation(
+                sourcePath,
+                reservationPath,
+                WasPresent: false);
+        }
+
+        await VerifyExistingAsync(
+            sourcePath,
+            contentObjectId,
+            expectedByteLength,
+            cancellationToken).ConfigureAwait(false);
+        File.Move(sourcePath, reservationPath, overwrite: false);
+        return new ContentDeletionReservation(
+            sourcePath,
+            reservationPath,
+            WasPresent: true);
+    }
+
+    internal static void RestoreDeletionReservation(ContentDeletionReservation reservation)
+    {
+        ArgumentNullException.ThrowIfNull(reservation);
+
+        if (!reservation.WasPresent || !File.Exists(reservation.ReservationPath))
+        {
+            return;
+        }
+
+        StoragePathSafety.EnsureExistingPathIsNotReparsePoint(
+            reservation.ReservationPath,
+            nameof(reservation));
+
+        if (File.Exists(reservation.SourcePath))
+        {
+            throw new InvalidDataException(
+                "A published content object appeared while its deletion was being rolled back.");
+        }
+
+        File.Move(reservation.ReservationPath, reservation.SourcePath, overwrite: false);
+    }
+
+    internal int CountDeletionReservations(OperationId operationId)
+    {
+        ArgumentNullException.ThrowIfNull(operationId);
+        var directory = ResolveCleanupReservationDirectory(operationId, createDirectory: false);
+
+        if (!Directory.Exists(directory))
+        {
+            return 0;
+        }
+
+        StoragePathSafety.EnsureExistingPathIsNotReparsePoint(directory, nameof(operationId));
+        return Directory.EnumerateFiles(directory, "*.delete", SearchOption.TopDirectoryOnly)
+            .Count(path =>
+            {
+                StoragePathSafety.EnsureExistingPathIsNotReparsePoint(path, nameof(operationId));
+                return true;
+            });
+    }
+
+    internal void FinaliseDeletionReservations(OperationId operationId)
+    {
+        ArgumentNullException.ThrowIfNull(operationId);
+        var directory = ResolveCleanupReservationDirectory(operationId, createDirectory: false);
+
+        if (!Directory.Exists(directory))
+        {
+            return;
+        }
+
+        StoragePathSafety.EnsureExistingPathIsNotReparsePoint(directory, nameof(operationId));
+
+        foreach (var path in Directory.EnumerateFiles(
+            directory,
+            "*.delete",
+            SearchOption.TopDirectoryOnly))
+        {
+            StoragePathSafety.EnsureExistingPathIsNotReparsePoint(path, nameof(operationId));
+            File.Delete(path);
+        }
+
+        if (!Directory.EnumerateFileSystemEntries(directory).Any())
+        {
+            Directory.Delete(directory);
+        }
+    }
+
     internal IEnumerable<string> EnumerateObjectFiles()
     {
         if (!Directory.Exists(objectsPath))
@@ -278,6 +407,28 @@ public sealed class ImmutableContentStore : IImmutableContentStore
             $"{contentObjectId.Value}.bin");
     }
 
+    private string ResolveCleanupReservationDirectory(
+        OperationId operationId,
+        bool createDirectory)
+    {
+        var operationDigest = Convert.ToHexString(
+            SHA256.HashData(Encoding.UTF8.GetBytes(operationId.Value)))
+            .ToLowerInvariant();
+        var cleanupRoot = StoragePathSafety.CombineUnderRoot(
+            rootPath,
+            "quarantine",
+            "cleanup");
+        var directory = StoragePathSafety.CombineUnderRoot(cleanupRoot, operationDigest);
+
+        if (createDirectory)
+        {
+            CreateSafeDirectory(cleanupRoot);
+            CreateSafeDirectory(directory);
+        }
+
+        return directory;
+    }
+
     private static async Task VerifyExistingAsync(
         string path,
         ContentObjectId expectedId,
@@ -327,3 +478,8 @@ public sealed class ImmutableContentStore : IImmutableContentStore
         }
     }
 }
+
+internal sealed record ContentDeletionReservation(
+    string SourcePath,
+    string ReservationPath,
+    bool WasPresent);

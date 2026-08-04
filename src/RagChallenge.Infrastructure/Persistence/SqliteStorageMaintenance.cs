@@ -35,6 +35,7 @@ public sealed class SqliteStorageMaintenance(SqliteStoreOptions options)
 
         if (plan.AlreadyApplied)
         {
+            new ImmutableContentStore(options).FinaliseDeletionReservations(operationId);
             return new StorageCleanupResult(operationId, 0, 0, AlreadyApplied: true);
         }
 
@@ -52,7 +53,17 @@ public sealed class SqliteStorageMaintenance(SqliteStoreOptions options)
         }
 
         var contentStore = new ImmutableContentStore(options);
-        var removedContent = plan.ContentObjects.Count(contentStore.DeleteIfPresent);
+
+        foreach (var contentObject in plan.ContentObjects)
+        {
+            await RemoveContentIfGloballyUnreferencedAsync(
+                contentStore,
+                operationId,
+                contentObject,
+                cancellationToken).ConfigureAwait(false);
+        }
+
+        var removedContent = contentStore.CountDeletionReservations(operationId);
         await CompleteAsync(
             operationId,
             corpusId,
@@ -60,6 +71,7 @@ public sealed class SqliteStorageMaintenance(SqliteStoreOptions options)
             removedGenerations,
             removedContent,
             cancellationToken).ConfigureAwait(false);
+        contentStore.FinaliseDeletionReservations(operationId);
         return new StorageCleanupResult(
             operationId,
             removedGenerations,
@@ -94,7 +106,7 @@ public sealed class SqliteStorageMaintenance(SqliteStoreOptions options)
                 await transaction.CommitAsync(cancellationToken).ConfigureAwait(false);
                 return new CleanupPlan(
                     Array.Empty<IndexGenerationId>(),
-                    Array.Empty<ContentObjectId>(),
+                    Array.Empty<CleanupContentCandidate>(),
                     AlreadyApplied: true);
             }
 
@@ -126,22 +138,18 @@ public sealed class SqliteStorageMaintenance(SqliteStoreOptions options)
             .Where(row => row.ProtectionRole == "Hold" &&
                 ControlPlaneMapping.ParseUtc(row.RetainUntilUtc) <= requestedAt)
             .ToArray();
-        var protectedGenerationIds = retentionRows
-            .Except(expiredHolds)
-            .Select(row => row.IndexGenerationId)
-            .ToHashSet(StringComparer.Ordinal);
-        var reachableContent = await FindReachableContentAsync(
+        var globallyReferencedContent = await FindGloballyReferencedContentAsync(
             context,
-            corpusId,
-            protectedGenerationIds,
             cancellationToken).ConfigureAwait(false);
         var allContentIds = await context.ContentObjects.AsNoTracking()
-            .Select(row => row.ContentSha256)
+            .Select(row => new { row.ContentSha256, row.ByteLength })
             .ToArrayAsync(cancellationToken)
             .ConfigureAwait(false);
         var physicalContentCandidates = allContentIds
-            .Where(contentId => !reachableContent.Contains(contentId))
-            .Select(contentId => new ContentObjectId(contentId))
+            .Where(row => !globallyReferencedContent.Contains(row.ContentSha256))
+            .Select(row => new CleanupContentCandidate(
+                new ContentObjectId(row.ContentSha256),
+                row.ByteLength))
             .ToArray();
 
         if (operation is null)
@@ -201,64 +209,78 @@ public sealed class SqliteStorageMaintenance(SqliteStoreOptions options)
             AlreadyApplied: false);
     }
 
-    private static async Task<HashSet<string>> FindReachableContentAsync(
+    private static async Task<HashSet<string>> FindGloballyReferencedContentAsync(
         ControlPlaneDbContext context,
-        CorpusId corpusId,
-        HashSet<string> protectedGenerationIds,
         CancellationToken cancellationToken)
     {
-        var reachableDocumentKeys = new HashSet<(string DocumentId, long Version)>();
-        var catalogueHead = await context.CatalogueHeads.AsNoTracking()
-            .SingleOrDefaultAsync(
-                row => row.CorpusId == corpusId.Value,
-                cancellationToken).ConfigureAwait(false);
-
-        if (catalogueHead is not null)
-        {
-            var catalogueDocuments = await context.CatalogueRevisionDocuments.AsNoTracking()
-                .Where(row => row.CorpusId == corpusId.Value &&
-                    row.CatalogueRevision == catalogueHead.CatalogueRevision &&
-                    row.Status != "Removed")
-                .Select(row => new { row.DocumentId, row.DocumentVersion })
-                .ToArrayAsync(cancellationToken)
-                .ConfigureAwait(false);
-
-            foreach (var row in catalogueDocuments)
-            {
-                reachableDocumentKeys.Add((row.DocumentId, row.DocumentVersion));
-            }
-        }
-
-        if (protectedGenerationIds.Count > 0)
-        {
-            var generationDocuments = await context.GenerationManifestBindings.AsNoTracking()
-                .Where(row => row.CorpusId == corpusId.Value &&
-                    protectedGenerationIds.Contains(row.IndexGenerationId))
-                .Select(row => new { row.DocumentId, row.DocumentVersion })
-                .ToArrayAsync(cancellationToken)
-                .ConfigureAwait(false);
-
-            foreach (var row in generationDocuments)
-            {
-                reachableDocumentKeys.Add((row.DocumentId, row.DocumentVersion));
-            }
-        }
-
-        var documentRows = await context.DocumentVersions.AsNoTracking()
-            .Where(row => row.CorpusId == corpusId.Value)
-            .Select(row => new
-            {
-                row.DocumentId,
-                row.DocumentVersion,
-                row.ContentSha256,
-            })
+        var referenced = (await context.DocumentVersions.AsNoTracking()
+            .Select(row => row.ContentSha256)
+            .ToArrayAsync(cancellationToken)
+            .ConfigureAwait(false))
+            .ToHashSet(StringComparer.Ordinal);
+        var officialSnapshots = await context.OfficialSourceSnapshots.AsNoTracking()
+            .Select(row => row.ContentSha256)
             .ToArrayAsync(cancellationToken)
             .ConfigureAwait(false);
-        return documentRows
-            .Where(row => reachableDocumentKeys.Contains(
-                (row.DocumentId, row.DocumentVersion)))
-            .Select(row => row.ContentSha256)
-            .ToHashSet(StringComparer.Ordinal);
+        referenced.UnionWith(officialSnapshots);
+        return referenced;
+    }
+
+    private async Task RemoveContentIfGloballyUnreferencedAsync(
+        ImmutableContentStore contentStore,
+        OperationId operationId,
+        CleanupContentCandidate candidate,
+        CancellationToken cancellationToken)
+    {
+        await using var context = options.CreateControlContext();
+        await using var transaction = await BeginImmediateAsync(
+            context,
+            cancellationToken).ConfigureAwait(false);
+        var row = await context.ContentObjects.SingleOrDefaultAsync(
+            item => item.ContentSha256 == candidate.ContentObjectId.Value,
+            cancellationToken).ConfigureAwait(false);
+
+        if (row is null)
+        {
+            await transaction.CommitAsync(cancellationToken).ConfigureAwait(false);
+            return;
+        }
+
+        var referencedByDocument = await context.DocumentVersions.AsNoTracking().AnyAsync(
+            item => item.ContentSha256 == candidate.ContentObjectId.Value,
+            cancellationToken).ConfigureAwait(false);
+        var referencedBySnapshot = await context.OfficialSourceSnapshots.AsNoTracking().AnyAsync(
+            item => item.ContentSha256 == candidate.ContentObjectId.Value,
+            cancellationToken).ConfigureAwait(false);
+
+        if (referencedByDocument || referencedBySnapshot)
+        {
+            await transaction.CommitAsync(cancellationToken).ConfigureAwait(false);
+            return;
+        }
+
+        ContentDeletionReservation? reservation = null;
+
+        try
+        {
+            reservation = await contentStore.ReserveForDeletionAsync(
+                operationId,
+                candidate.ContentObjectId,
+                candidate.ByteLength,
+                cancellationToken).ConfigureAwait(false);
+            context.ContentObjects.Remove(row);
+            await context.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
+            await transaction.CommitAsync(cancellationToken).ConfigureAwait(false);
+        }
+        catch
+        {
+            if (reservation is not null)
+            {
+                ImmutableContentStore.RestoreDeletionReservation(reservation);
+            }
+
+            throw;
+        }
     }
 
     private async Task CompleteAsync(
@@ -358,6 +380,10 @@ public sealed class SqliteStorageMaintenance(SqliteStoreOptions options)
 
     private sealed record CleanupPlan(
         IReadOnlyCollection<IndexGenerationId> VectorGenerations,
-        IReadOnlyCollection<ContentObjectId> ContentObjects,
+        IReadOnlyCollection<CleanupContentCandidate> ContentObjects,
         bool AlreadyApplied);
+
+    private sealed record CleanupContentCandidate(
+        ContentObjectId ContentObjectId,
+        long ByteLength);
 }

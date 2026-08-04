@@ -126,6 +126,72 @@ public sealed class SqliteActivationLifecycleTests
     {
         await using var fixture = await SqlitePersistenceFixture.CreateAsync();
         var (_, binding) = await fixture.CommitLocalCatalogueAsync();
+        var officialBytes = Encoding.UTF8.GetBytes("unbound official snapshot");
+        await using var officialStream = new MemoryStream(officialBytes, writable: false);
+        var officialContent = await fixture.ContentStore.PutAsync(
+            officialStream,
+            officialBytes.Length);
+        var officialRegistration = new OfficialSourceRegistration(
+            new OfficialSourceRegistrationId("cleanup-official-registration"),
+            new SourceRegistrationRevision(1),
+            binding.DatabaseProductId,
+            binding.DocumentId,
+            new SourceAdapterId("cleanup-official-adapter"),
+            "https://maintainer.example/cleanup.pdf",
+            CatalogueItemStatus.Active);
+        var officialSnapshot = new OfficialSourceSnapshot(
+            new OfficialSnapshotId("cleanup-official-snapshot"),
+            officialRegistration.Id,
+            officialContent.ContentObjectId,
+            officialContent.ByteLength,
+            "application/pdf",
+            SqlitePersistenceFixture.At(1));
+        var officialCommit = await fixture.ControlStore.CommitOfficialSourceAsync(
+            new OfficialSourceCommitRequest(
+                new OperationId("cleanup-official-commit"),
+                SqlitePersistenceFixture.CorpusId,
+                officialRegistration,
+                officialSnapshot,
+                SqlitePersistenceFixture.At(1)));
+        Assert.Equal(StoreMutationOutcome.Applied, officialCommit.Outcome);
+        var sharedBytes = Encoding.UTF8.GetBytes("content referenced by another corpus");
+        await using var sharedStream = new MemoryStream(sharedBytes, writable: false);
+        var sharedContent = await fixture.ContentStore.PutAsync(sharedStream, sharedBytes.Length);
+        var sharedCorpusId = new CorpusId("shared-content-corpus");
+        var sharedCategory = new DatabaseCategory(
+            new DatabaseCategoryId("shared-content-category"),
+            "Shared content category");
+        var sharedProduct = new DatabaseProduct(
+            new DatabaseProductId("shared-content-product"),
+            new DatabaseProductRevision(1),
+            "Shared content product",
+            CatalogueItemStatus.Active,
+            [sharedCategory.Id]);
+        var sharedDocument = new DocumentVersion(
+            new DocumentId("shared-content-document"),
+            new DocumentVersionNumber(1),
+            sharedProduct.Id,
+            sharedProduct.Revision,
+            DocumentFormat.Pdf,
+            SupportedLanguage.EnGb,
+            CatalogueItemStatus.Active,
+            sharedContent.ContentObjectId,
+            sharedContent.ByteLength,
+            "application/pdf",
+            new SourceAdapterId("shared-content-adapter"),
+            SourceTrustClass.LocalAuthorised);
+        var sharedCommit = await fixture.ControlStore.CommitCatalogueAsync(
+            new CatalogueCommitRequest(
+                new OperationId("shared-content-catalogue"),
+                new CatalogueSnapshot(
+                    sharedCorpusId,
+                    new CatalogueRevision(1),
+                    [sharedCategory],
+                    [sharedProduct],
+                    [sharedDocument]),
+                ExpectedCurrentRevision: 0,
+                SqlitePersistenceFixture.At(1)));
+        Assert.Equal(StoreMutationOutcome.Applied, sharedCommit.Outcome);
         var generationA = await fixture.CommitGenerationAsync(binding, "a");
         var initial = ActivationRecordFactory.CreateInitial(
             generationA,
@@ -226,6 +292,18 @@ public sealed class SqliteActivationLifecycleTests
         {
             await using var _ = await fixture.ContentStore.OpenReadAsync(orphan.ContentObjectId);
         });
+        await using (var preservedOfficial = await fixture.ContentStore.OpenReadAsync(
+            officialContent.ContentObjectId))
+        {
+            Assert.Equal(officialContent.ByteLength, preservedOfficial.Length);
+        }
+        await using (var preservedShared = await fixture.ContentStore.OpenReadAsync(
+            sharedContent.ContentObjectId))
+        {
+            Assert.Equal(sharedContent.ByteLength, preservedShared.Length);
+        }
+        Assert.Equal(0, await fixture.ScalarAsync(
+            $"SELECT COUNT(*) FROM content_objects WHERE content_sha256 = '{orphan.ContentObjectId.Value}';"));
         Assert.Equal(2, await fixture.ScalarAsync(
             "SELECT COUNT(*) FROM audit_events WHERE operation_id = 'cleanup-expired-hold';"));
 
@@ -244,16 +322,17 @@ public sealed class SqliteActivationLifecycleTests
         var verified = await SqliteRecoverySnapshotService.VerifyIsolatedAsync(
             recoveryResult.SnapshotPath);
         Assert.True(verified.IsValid, string.Join(Environment.NewLine, verified.Failures));
-        Assert.Equal(1, recoveryResult.ContentObjectCount);
+        Assert.Equal(3, recoveryResult.ContentObjectCount);
         Assert.Equal(0, await fixture.ScalarAsync("SELECT COUNT(*) FROM recovery_leases;"));
         Assert.Equal(2, await fixture.ScalarAsync(
             "SELECT COUNT(*) FROM audit_events WHERE operation_id = 'recovery-verified';"));
 
-        var copiedContent = Assert.Single(Directory.EnumerateFiles(
+        var copiedContent = Directory.EnumerateFiles(
             Path.Combine(recoveryResult.SnapshotPath, "content"),
             "*.bin",
-            SearchOption.AllDirectories));
-        await File.AppendAllTextAsync(copiedContent, "corruption");
+            SearchOption.AllDirectories).ToArray();
+        Assert.Equal(3, copiedContent.Length);
+        await File.AppendAllTextAsync(copiedContent[0], "corruption");
         var corrupted = await SqliteRecoverySnapshotService.VerifyIsolatedAsync(
             recoveryResult.SnapshotPath);
         Assert.False(corrupted.IsValid);
