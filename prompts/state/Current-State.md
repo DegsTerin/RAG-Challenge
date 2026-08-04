@@ -38,6 +38,19 @@ proprietários.
   integrado do fluxo sintético completo. O Human Gate de `STATE-04` foi
   aprovado com as ressalvas documentadas em 2026-08-04; `STATE-04` está
   encerrado e nenhum estado posterior foi autorizado.
+- Uma auditoria local posterior ao Human Gate, sobre
+  `main@f71343291b942c66d0ff417a8764b032bbd63bff`, identificou os achados
+  `AUD-S04-001` a `AUD-S04-004`. O proprietário autorizou o incremento
+  corretivo consolidado `S04-CORR-01`: rebinding transacional de observações
+  em `304`/hash idêntico (`a674560ed1093e96d533012f1b11a292c3f641b5`),
+  chunking integral `paragraph-window-v1`
+  (`b875eac6e9ce4c72783d4e4bb72a59686ca58248`), administração one-shot
+  governada com journal durável (`ac34c085a499a34ea8ee1c9106675482e38790c3`)
+  e esta reconciliação documental. As correções executáveis estão
+  implementadas e os documentos factuais foram reconciliados, mas a disposição
+  dos quatro achados permanece pendente do Automatic Quality Gate corretivo e
+  da retomada integral da auditoria. Isso não reabre o lifecycle, não altera o
+  Human Gate histórico e não autoriza `STATE-05`.
 - Fechamento de `S04-A0`: `PdfPig` `0.1.15` e `CsvHelper` `33.1.0` foram
   selecionados condicionalmente para desenvolvimento local;
   `Sylvan.Data.Csv` `1.4.4` permanece fallback não selecionado e não
@@ -206,6 +219,16 @@ proprietários.
   canônica foi `Confirmo a decisão acima exclusivamente para STATE-04`. A
   decisão encerra somente `STATE-04`; não autoriza entrada ou execução de
   `STATE-05`, produção, ação externa ou limpeza das evidências temporárias.
+- Auditoria corretiva posterior de `STATE-04`: a primeira passagem, iniciada
+  sobre `main@f71343291b942c66d0ff417a8764b032bbd63bff`, identificou
+  `AUD-S04-001` a `AUD-S04-004` e foi interrompida conforme sua condição de
+  parada. `S04-CORR-01` implementou C1, C2 e C3 nos commits focais
+  `a674560ed1093e96d533012f1b11a292c3f641b5`,
+  `b875eac6e9ce4c72783d4e4bb72a59686ca58248` e
+  `ac34c085a499a34ea8ee1c9106675482e38790c3`; C4 reconcilia os registros
+  factuais. Automatic Quality Gate corretivo e auditoria completa permanecem
+  pendentes e são obrigatórios antes da disposição dos achados. Nenhum novo
+  Human Gate foi executado.
 - Human Gate de `STATE-03`: `APROVADO` sem ressalvas em 2026-08-02 sobre
   `main@a88dc1f296bb9117dd8e869b83d1665cee99634f`, corpus `4.9.1`, após
   revisão, na mesma conversa, do resumo completo da baseline vigente, dos
@@ -414,8 +437,12 @@ proprietários.
   `RagChallenge`, um boundary React/TypeScript para o Dashboard e três
   projetos .NET de testes, conforme o ADR-0003. Domain e Application contêm o
   modelo, as identidades canônicas e os ports de persistência; Infrastructure
-  contém a persistência SQLite local de `S03-B`. Não existe fluxo funcional de
-  ingestão, recuperação RAG, geração ou API do `STATE-04`.
+  contém a persistência SQLite local, conteúdo imutável, catálogo, snapshots,
+  observações, gerações, ativações, leases e journal administrativo. O backend
+  local de `STATE-04` implementa administração one-shot, ingestão PDF/CSV,
+  sincronização por transporte controlado, chunking, indexação, recuperação,
+  geração grounded e API pública v1; os caminhos externos permanecem
+  fail-closed e foram exercitados somente com fakes e fixtures sintéticas.
 - SDK .NET `10.0.302`, C# `14.0`, Node.js `24.18.0` e npm `11.16.0` estão
   fixados. NuGet usa gestão central e sete lockfiles reproduzidos offline.
 - O gate histórico de setup aprovou restore .NET offline locked, format,
@@ -453,8 +480,10 @@ proprietários.
 - O pipeline CI está definido localmente, com menor privilégio e sem deploy;
   não foi executado no GitHub.
 - O arquivo `LICENSE` materializa a licença MIT aprovada.
-- Não existem API funcional, ingestão, recuperação, banco persistente, vector
-  store, corpus real, container, infraestrutura operacional ou deploy.
+- Existem API, ingestão, recuperação, persistência SQLite e vector store
+  exato funcionais localmente dentro do escopo sintético de `STATE-04`. Não
+  existem corpus real autorizado, container, infraestrutura operacional ou
+  deploy homologados.
 - Nenhum recurso OCI ou GitHub foi criado ou alterado.
 - O DB-Notifier permaneceu somente leitura.
 
@@ -510,8 +539,10 @@ autorizada.
    para cada banco antes de sua ativação.
 2. Validar e ativar individualmente novos registros de fonte oficial; a
    aceitação arquitetural não autoriza URL, rede, download ou crawling.
-3. Preparar uma proposta limitada de entrada em `STATE-05` e obter autorização
-   humana explícita e separada antes de qualquer alteração de frontend.
+3. Concluir o Automatic Quality Gate corretivo e a auditoria completa de
+   `STATE-04`, dispondo `AUD-S04-001` a `AUD-S04-004`; somente depois preparar
+   uma proposta limitada de entrada em `STATE-05` e obter autorização humana
+   explícita e separada antes de qualquer alteração de frontend.
 4. Verificar tier, entitlement, spend limit e controles da conta OpenAI, além
    da recuperação/geração bilíngue, antes de usar ou anunciar os providers.
 5. Homologar desempenho e capacidade do `SqliteExactVectorStore`; a fixture
@@ -545,6 +576,14 @@ aprovados; o primeiro gate runtime sintético passou. `S04-A`, `S04-B`, `S04-C`
 e `S04-D` foram concluídos sequencialmente. O Automatic Quality Gate de
 `STATE-04` foi aprovado sem achados abertos; o Human Gate subsequente aceitou
 o estado com as limitações e os riscos residuais já registrados.
+
+A auditoria local posterior identificou `AUD-S04-001` a `AUD-S04-004`.
+`S04-CORR-01` implementou o rebinding transacional de observações, alinhou o
+chunking integral, materializou a administração one-shot governada e
+reconciliou a memória documental. A disposição dos achados depende do
+Automatic Quality Gate corretivo e da auditoria completa já autorizados. O
+lifecycle permanece encerrado no mesmo ponto enquanto essas validações não
+concedem nem substituem autoridade de entrada em estado posterior.
 
 Qualquer entrada em `STATE-05 FRONTEND_IMPLEMENTATION` exige proposta e
 autorização humana explícita e separada. O Human Gate de `STATE-04` não concede

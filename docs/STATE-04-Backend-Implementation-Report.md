@@ -375,6 +375,35 @@ or execution of `STATE-05`.
 - The default host remains deliberately unready until an explicit valid local
   store, activation, vector and provider-circuit composition is supplied.
 
+## Post-Human-Gate audit and corrective increment
+
+A subsequent local, offline audit began on 2026-08-04 over
+`main@f71343291b942c66d0ff417a8764b032bbd63bff`, corpus `4.9.2` and a clean
+working tree. It identified four actionable findings and stopped under its
+authorised finding stop condition before completing the full audit. The owner
+then authorised the consolidated, sequential `S04-CORR-01` increment, its
+corrective Automatic Quality Gate and, only after that gate passes, resumption
+of the complete audit.
+
+| Finding | Corrective evidence | Status before the corrective gate |
+| --- | --- | --- |
+| `AUD-S04-001` | Commit `a674560ed1093e96d533012f1b11a292c3f641b5` makes unchanged official-source observation rebinding and the new complete activation record one immediate SQLite transaction. Exact replay, withdrawn/mismatched bindings, activation conflicts and injected persistence failures are covered. | `IMPLEMENTED_PENDING_VALIDATION` |
+| `AUD-S04-002` | Commit `ac34c085a499a34ea8ee1c9106675482e38790c3` implements the explicit one-shot administrative host mode, strict command lifecycle mutations, per-corpus lease, stable-intent idempotency, bounded single-handle input and durable journal. Successful mutations complete the journal in the same transaction; administrative HTTP routes remain absent. | `IMPLEMENTED_PENDING_VALIDATION` |
+| `AUD-S04-003` | Commit `b875eac6e9ce4c72783d4e4bb72a59686ca58248` aligns deterministic chunking to the accepted `paragraph-window-v1` scalar, overlap, hard-limit, boundary, normalisation and compatibility-key contract. | `IMPLEMENTED_PENDING_VALIDATION` |
+| `AUD-S04-004` | The current factual state, this owner report and the append-only history now distinguish the historical gate/Human Gate from the later audit and corrections, and no longer claim that the delivered backend is absent. | `RECONCILED_PENDING_VALIDATION` |
+
+These statuses are factual implementation and documentation states, not audit
+dispositions. None of the findings is `RESOLVED` until the corrective
+Automatic Quality Gate and the resumed complete audit both support that
+disposition. The historical Human Gate remains an immutable lifecycle fact;
+the corrective increment neither reruns it nor authorises `STATE-05`.
+
+The correction added no external provider call, real corpus, publication or
+deployment. The NuGet signature status remains
+`CONDITIONAL_REVOCATION_NOT_CURRENT`, all temporary `S04-A0` evidence remains
+retained, and the existing real-provider, Linux ARM64 runtime, listener E2E,
+performance and operational limitations continue to apply.
+
 ## Retention and risk
 
 - Preserve all temporary `S04-A0` evidence until separate cleanup authority.
@@ -385,5 +414,6 @@ or execution of `STATE-05`.
   suitability, parser quality over a real corpus or provider behaviour.
 - The consolidated `S04-A` to `S04-D` authority has been consumed
   sequentially; its Automatic Quality Gate and subsequent Human Gate are
-  approved with the documented limitations. `STATE-04` is closed and no later
-  state is authorised.
+  approved with the documented limitations. The later corrective increment is
+  pending its Automatic Quality Gate and resumed audit. `STATE-04` remains
+  closed and no later state is authorised.

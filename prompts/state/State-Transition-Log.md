@@ -2881,3 +2881,42 @@ contém somente fatos cronológicos.
 - Próxima condição: preparar proposta limitada e obter autorização humana
   explícita e separada para qualquer entrada em `STATE-05`.
 - Aprovador: proprietário do RAG-Challenge.
+
+## 2026-08-04 — S04-CORR-01 implementado; gate corretivo pendente
+
+- Estado anterior: `STATE-04 BACKEND_IMPLEMENTATION` encerrado após Automatic
+  Quality Gate aprovado e Human Gate aprovado com ressalvas; nenhum estado
+  posterior autorizado.
+- Baseline da auditoria: branch `main`, commit
+  `f71343291b942c66d0ff417a8764b032bbd63bff`, corpus `4.9.2` e working tree
+  limpa.
+- Auditoria: a primeira passagem local e offline identificou
+  `AUD-S04-001` a `AUD-S04-004` e parou conforme a condição de achado antes de
+  completar a matriz integral.
+- Autoridade corretiva: implementação consolidada e sequencial de
+  `S04-CORR-01`, Automatic Quality Gate corretivo e, somente após aprovação
+  integral desse gate, retomada completa da auditoria. `STATE-05` permaneceu
+  explicitamente proibido.
+- C1: commit `a674560ed1093e96d533012f1b11a292c3f641b5` implementa o
+  rebinding transacional de observação em `304`/hash idêntico e a nova revisão
+  completa de ativação, com replay exato e falhas atômicas testadas.
+- C2: commit `b875eac6e9ce4c72783d4e4bb72a59686ca58248` alinha o chunking ao
+  contrato integral `paragraph-window-v1`.
+- C3: commit `ac34c085a499a34ea8ee1c9106675482e38790c3` implementa a
+  administração one-shot governada, lifecycle estrito por comando, lease por
+  corpus, idempotência por intenção estável, input limitado e journal durável;
+  a conclusão de mutações bem-sucedidas participa da mesma transação.
+- C4: Current State, relatório proprietário e este histórico foram
+  reconciliados; a memória factual não afirma mais ausência do backend já
+  entregue e separa o Human Gate histórico da auditoria corretiva posterior.
+- Dependências e escopo: nenhuma nova dependência, package, provider, corpus
+  real, ação externa, publicação ou deploy foi introduzido; Dashboard, GitHub,
+  OCI e DB-Notifier permaneceram fora do acesso.
+- Disposição: `AUD-S04-001` a `AUD-S04-003` estão
+  `IMPLEMENTADOS_PENDENTES_DE_VALIDAÇÃO`; `AUD-S04-004` está
+  `RECONCILIADO_PENDENTE_DE_VALIDAÇÃO`. Nenhum deles está resolvido antes do
+  gate corretivo e da auditoria retomada.
+- Estado resultante: `STATE-04` permanece encerrado; Automatic Quality Gate
+  corretivo é a próxima etapa autorizada; Human Gate não foi repetido e
+  `STATE-05` continua sem autorização.
+- Aprovador: proprietário do RAG-Challenge.
