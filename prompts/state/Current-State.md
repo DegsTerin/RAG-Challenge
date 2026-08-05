@@ -262,6 +262,24 @@ proprietários.
   política recusou excluir quatro diretórios temporários; o primeiro perfil
   pode conservar cache da navegação acidental. `AQG-S05-008` está
   `CORRIGIDO_PENDENTE_DE_RETESTE_DO_GATE`; o gate não foi reiniciado.
+- Reinício integral do Automatic Quality Gate após `S05-CORR-07`: autorizado
+  e concluído em 2026-08-05 sobre
+  `main@97ea076da84d7afdb3330aa05dcb39fc7b44ce0f`, corpus `4.9.2` e working
+  tree limpa. Autoridade, lifecycle, escopo, contratos e segurança foram
+  reinspecionados; lint, typecheck, 38 testes, build e repetição byte a byte do
+  build passaram. Chrome headless `151.0.7922.75`, em perfil temporário sem
+  extensões, executou as oito combinações a 1280 CSS px e novamente a 320 CSS
+  px. A fixture continha somente citação local sem URL, a interceptação
+  bloqueava qualquer destino não loopback e cada `Enter` foi precedido pela
+  guarda do elemento ativo. Houve zero tentativa ou URL externa, zero exceção
+  runtime e zero achado novo P0, P1, P2 ou P3. Reflow, tokens contínuos,
+  escaping, foco, teclado, Light/Dark, `pt-BR`/`en-GB` e idioma original da
+  citação passaram; `AQG-S05-001` a `AQG-S05-008` estão `RESOLVIDOS` e o gate
+  está `APROVADO`. Os listeners da tarefa foram encerrados e as portas
+  terminaram livres. Percentuais de cobertura JavaScript, reprodução no Node
+  exato, engine externa de acessibilidade e browser em janela visível
+  permanecem limitações. O Human Gate não foi autorizado nem executado, e
+  `STATE-06` permanece sem autorização.
 - Fechamento de `S04-A0`: `PdfPig` `0.1.15` e `CsvHelper` `33.1.0` foram
   selecionados condicionalmente para desenvolvimento local;
   `Sylvan.Data.Csv` `1.4.4` permanece fallback não selecionado e não
@@ -752,9 +770,8 @@ autorizada.
    para cada banco antes de sua ativação.
 2. Validar e ativar individualmente novos registros de fonte oficial; a
    aceitação arquitetural não autoriza URL, rede, download ou crawling.
-3. Obter autoridade humana explícita e separada para reiniciar integralmente
-   o Automatic Quality Gate de `STATE-05` sobre a baseline corretiva limpa e
-   dispor `AQG-S05-007` e `AQG-S05-008`.
+3. Obter autoridade humana explícita e separada para executar o Human Gate de
+   `STATE-05` sobre o relatório automático aprovado e a baseline limpa.
 4. Verificar tier, entitlement, spend limit e controles da conta OpenAI, além
    da recuperação/geração bilíngue, antes de usar ou anunciar os providers.
 5. Homologar desempenho e capacidade do `SqliteExactVectorStore`; a fixture
@@ -899,9 +916,17 @@ A primeira tentativa browser gerou acesso externo não autorizado ao ativar a
 URL oficial sintética antes da guarda de foco; o incidente, a parada e a
 retomada autorizada estão registrados no relatório. A repetição final usou
 somente citação local sem URL e bloqueio não loopback, sem nova tentativa
-externa. `AQG-S05-008` está `CORRIGIDO_PENDENTE_DE_RETESTE_DO_GATE`. A próxima
-autoridade possível é uma decisão humana explícita e separada para reiniciar
-integralmente o gate sobre a baseline corretiva limpa.
+externa. `AQG-S05-008` ficou `CORRIGIDO_PENDENTE_DE_RETESTE_DO_GATE` naquele
+lote. O reinício integral posterior, sobre
+`main@97ea076da84d7afdb3330aa05dcb39fc7b44ce0f`, repetiu desde o início as
+inspeções estáticas, os quatro checks npm, o build reprodutível e a validação
+browser completa. As oito combinações passaram em largura padrão e a 320 CSS
+px, com guarda antes de cada `Enter`, citação local sem URL, bloqueio de
+destinos não loopback e zero tentativa ou URL externa. O gate foi `APROVADO`,
+sem novo P0, P1, P2 ou P3, e `AQG-S05-001` a `AQG-S05-008` estão
+`RESOLVIDOS`. A próxima autoridade possível é uma decisão humana explícita e
+separada para executar o Human Gate de `STATE-05` sobre o relatório e a
+baseline limpa.
 
 Rede externa, providers, contas, secrets, corpus real, fontes oficiais reais
 do produto, armazenamento operacional, GitHub, OCI, publicação, deploy,

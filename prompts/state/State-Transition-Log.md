@@ -3830,3 +3830,76 @@ contém somente fatos cronológicos.
   separada para reiniciar integralmente o Automatic Quality Gate de
   `STATE-05` e dispor `AQG-S05-007` e `AQG-S05-008`.
 - Aprovador: proprietário do RAG-Challenge.
+
+## 2026-08-05 — Automatic Quality Gate após S05-CORR-07 aprovado
+
+- Estado preservado: `STATE-05 FRONTEND_IMPLEMENTATION` permanece ativo; o
+  Human Gate e `STATE-06` não foram autorizados nem executados.
+- Baseline do reinício: localização `C:\Projects\RAG-Challenge`, Git
+  top-level `C:/Projects/RAG-Challenge`, Git directory `.git`, branch `main`,
+  commit `97ea076da84d7afdb3330aa05dcb39fc7b44ce0f`, corpus `4.9.2` e working
+  tree limpa. As sete condições foram reconfirmadas antes da auditoria, e
+  branch, commit e limpeza foram reconfirmados antes deste registro.
+- Autoridade: reinício integral, local, offline e sequencial do Automatic
+  Quality Gate, usando somente a instalação existente, fixtures sintéticas,
+  fetch falso, listener loopback e Chrome headless temporário sem Dark Reader
+  ou extensão modificadora. A fixture não continha link externo interativo; a
+  interceptação bloqueava qualquer destino não loopback e toda ativação por
+  `Enter` exigia guarda prévia do elemento ativo.
+- Inspeção estática: autoridade, lifecycle, escopo, contratos e segurança
+  foram repetidos desde o início. Package, lockfile, OpenAPI, ADRs, backend e
+  demais superfícies protegidas não tinham diff no intervalo de `STATE-05`; o
+  OpenAPI reteve SHA-256
+  `D6A686B94C926914BEB28B437F464430A01DE6560C2E2D476CF5C36025813E34`.
+  CSP/same-origin, escaping, URLs HTTPS, limite de resposta, idioma da
+  resposta, freshness, foco e reflow conservaram seus controles.
+- Checks npm: `npm run lint`, `npm run typecheck`, `npm test` e
+  `npm run build` passaram offline na instalação existente. Foram 38 testes,
+  sem falha, skip ou cancelamento, e 20 módulos transformados.
+- Reprodutibilidade: dois builds consecutivos produziram os mesmos três
+  arquivos byte a byte: HTML 977 bytes,
+  `53B4C11EED457043B6FDEFC6437A1F7539DEEE28E02BD7D9A718065FDD885BF1`;
+  CSS 12.053 bytes,
+  `5AF87FA05E947BC21DEFB8A4BCE69A202E7BC77D5A85AC85574578B723633B9A`;
+  JavaScript 171.973 bytes,
+  `1D1E4981B8B34FB585260DACCB32646C0594A3C0F4CF080DA35A73625CC7DCCA`.
+- Browser isolado: Chrome `151.0.7922.75` iniciou com perfil novo, extensões e
+  background de componentes desativados e zero alvo de extensão. A matriz das
+  oito combinações passou a 1280 CSS px e foi repetida integralmente a 320 CSS
+  px. No estreito, documento `clientWidth`/`scrollWidth` foi 305/305; resposta,
+  título e trecho com tokens contínuos íntegros mediram 243/243, 213/213 e
+  210/210. Capturas `pt-BR`/`en-GB` em Light/Dark confirmaram reflow vertical,
+  hierarquia e ausência de corte ou panning.
+- Acessibilidade: um header, main, footer e H1, IDs únicos e controles
+  rotulados passaram nas 16 execuções. O primeiro `Tab` focou o skip link com
+  outline sólido de três pixels; após a guarda explícita, `Enter` focou
+  `MAIN#main-content`; o `Tab` seguinte focou o rádio selecionado. Contrastes
+  runtime observados foram no mínimo 14,35 no body, 10,48 no controle
+  selecionado e 12,93 no textarea.
+- Rede e segurança: o fetch falso devolveu exclusivamente uma citação
+  `LocalAuthorised` sem URL. Foram observadas zero tentativa bloqueada, zero
+  URL externa, zero exceção runtime e zero entrada significativa de console.
+  Somente HTML, JavaScript, CSS e `/favicon.ico` passaram pelo loopback; o 404
+  já conhecido do favicon foi não material.
+- Disposição: o Automatic Quality Gate é `APROVADO`, sem novo P0, P1, P2 ou
+  P3. `AQG-S05-001` a `AQG-S05-008` estão `RESOLVIDOS`.
+- Runtime e cleanup: preview e Chrome foram identificados pelos PIDs,
+  comando/perfil e portas da tarefa antes do encerramento. As portas 4173,
+  5173 e 9230 terminaram livres. Um diretório temporário sanitizado conserva
+  logs, perfil isolado loopback-only, harness e quatro screenshots; não contém
+  processo, listener, credencial, secret, corpus real ou mudança rastreada.
+- Limitações: percentuais de cobertura JavaScript continuam indisponíveis;
+  Node.js observado `24.18.1` diverge do pin `24.18.0`; nenhuma engine externa
+  de acessibilidade, janela visível, backend real, provider, conta, secret,
+  corpus real, fonte oficial real ou rede externa foi usada. Uma tentativa
+  inicial do harness temporário falhou antes do CDP por modo de módulo
+  incompatível e não iniciou navegação nem requisição; o invólucro temporário
+  foi corrigido sem mudar produto ou teste.
+- Mudanças: somente relatório e memória factual do gate; nenhum frontend,
+  código, teste, dependência, package, lockfile, contrato, OpenAPI, ADR,
+  backend ou configuração foi alterado.
+- Próxima condição: autoridade humana explícita e separada para executar o
+  Human Gate de `STATE-05` sobre o relatório automático aprovado e a baseline
+  limpa. O gate automático não concede essa autoridade nem entrada em
+  `STATE-06`.
+- Aprovador: proprietário do RAG-Challenge.
