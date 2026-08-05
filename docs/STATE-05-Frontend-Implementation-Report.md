@@ -871,3 +871,80 @@ Quality Gate is failed with `AQG-S05-005` open. `AQG-S05-001` through
 Human Gate and `STATE-06` remain not authorised and not executed. Correction
 of `AQG-S05-005` and a later complete gate restart require separate explicit
 owner authorities.
+
+## S05-CORR-04 — 2026-08-05
+
+### Authority and baseline
+
+- Initial baseline: location `C:\Projects\RAG-Challenge`, Git top-level
+  `C:/Projects/RAG-Challenge`, Git directory `.git`, branch `main`, commit
+  `fb59861a8367749f2a11ac279add5007989d27e0`, corpus `4.9.2` and clean
+  working tree. All seven conditions were reconfirmed immediately before the
+  first alteration.
+- Authority: local, offline, sequential and limited correction of
+  `AQG-S05-005`, with deterministic contract and client regressions. The
+  Automatic Quality Gate, Human Gate and later lifecycle states were not
+  authorised.
+
+### Correction and regressions
+
+The focused commit `bed8ec03d670ed4e76a556f7df723c30db320a24`
+binds every completed response to the request that produced it:
+
+- `decodeQueryResponse` requires the expected answer language and rejects a
+  supported but different `answerLanguage`;
+- `askQuestion` supplies the same `questionLanguage` used to construct the
+  request body to completion decoding;
+- synthetic completed fixtures now represent both `pt-BR` and `en-GB`; and
+- the exact 262,144-byte transport fixture now matches its `en-GB` request
+  instead of accepting the former `pt-BR` mismatch.
+
+Contract and client regressions cover valid `pt-BR`, valid `en-GB`, invalid
+`pt-BR` to `en-GB` and invalid `en-GB` to `pt-BR` completions. The complete
+suite also retained the citation URL, incremental body limit, cancellation,
+document-title localisation and source-freshness regressions associated with
+`AQG-S05-001` through `AQG-S05-004`.
+
+### Verification
+
+All commands ran from `src/RagChallenge.Dashboard.Web` with the existing
+installation and `npm_config_offline=true`. No installation, `dotnet`, real
+backend or network command ran.
+
+| Verification | Result |
+| --- | --- |
+| `npm run lint` | Passed, exit code 0 |
+| `npm run typecheck` | Passed, exit code 0 |
+| `npm test` | Passed, 37 tests, 0 failed/skipped/cancelled |
+| `npm run build` | Passed, 20 modules transformed |
+| Built HTML | 0.97 kB (0.56 kB gzip) |
+| Built CSS | 11.96 kB (3.35 kB gzip) |
+| Built JavaScript | 171.86 kB (55.29 kB gzip) |
+| Package, lockfile and OpenAPI diff | Empty |
+| OpenAPI SHA-256 | `D6A686B94C926914BEB28B437F464430A01DE6560C2E2D476CF5C36025813E34` |
+
+The directed preflight observed one Node.js process whose executable belonged
+to the Codex runtime rather than RAG-Challenge and found no project-owned
+listener. It was not stopped. No loopback listener was needed or started:
+the correction changes only contract/client acceptance, and the authorised
+language behaviour was exercised deterministically with fake fetch responses.
+
+### Disposition, limitations and next authority
+
+`AQG-S05-005` is `CORRIGIDO_PENDENTE_DE_RETESTE_DO_GATE`.
+`AQG-S05-001` through `AQG-S05-004` remain in the same status. Passing the
+complete local suite in this corrective increment does not execute or approve
+the Automatic Quality Gate and does not dispose any finding.
+
+JavaScript line and branch percentages remain unavailable in the existing
+package scripts and dependency set. Node.js `24.18.1` was observed instead of
+the exact `24.18.0` pin. This correction did not repeat complete styled
+visual, external accessibility-engine, narrow-viewport/reflow, keyboard,
+Light/Dark or eight-combination browser review. No real backend, provider,
+account, secret, corpus, official source or external network was exercised.
+No new P0/P1, security or accessibility failure was observed within the
+authorised correction scope.
+
+`STATE-05 FRONTEND_IMPLEMENTATION` remains active. A complete restart of its
+Automatic Quality Gate requires new explicit and separate owner authority.
+Human Gate and `STATE-06` remain not authorised and not executed.

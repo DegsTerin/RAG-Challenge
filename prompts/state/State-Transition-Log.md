@@ -3476,3 +3476,48 @@ contém somente fatos cronológicos.
   `AQG-S05-005`; depois de baseline corretiva limpa, nova autoridade separada
   para reiniciar integralmente o Automatic Quality Gate.
 - Aprovador: proprietário do RAG-Challenge.
+
+## 2026-08-05 — S05-CORR-04 corrige AQG-S05-005
+
+- Estado preservado: `STATE-05 FRONTEND_IMPLEMENTATION` permaneceu ativo; o
+  Automatic Quality Gate não foi repetido, e Human Gate e `STATE-06` não foram
+  autorizados nem executados.
+- Baseline inicial: localização `C:\Projects\RAG-Challenge`, Git top-level
+  `C:/Projects/RAG-Challenge`, Git directory `.git`, branch `main`, commit
+  `fb59861a8367749f2a11ac279add5007989d27e0`, corpus `4.9.2` e working tree
+  limpa, reconfirmados imediatamente antes da primeira alteração.
+- Autoridade: incremento local, offline, sequencial e limitado
+  `S05-CORR-04`, exclusivamente para corrigir `AQG-S05-005`, preservar
+  `AQG-S05-001` a `AQG-S05-004`, adicionar regressões determinísticas e
+  executar os quatro checks npm existentes.
+- Correção: o commit `bed8ec03d670ed4e76a556f7df723c30db320a24`
+  vincula a conclusão ao `questionLanguage` enviado, exige
+  `answerLanguage` idêntico e rejeita divergências nas duas direções. As
+  fixtures cobrem os dois idiomas, e o transporte no limite exato deixou de
+  aceitar a divergência anterior.
+- Verificações: `npm run lint`, `npm run typecheck`, `npm test` e
+  `npm run build` passaram na instalação existente e offline. Foram 37
+  testes, sem falha, skip ou cancelamento, e 20 módulos transformados.
+- Ambiente: Node.js observado `24.18.1`, contra pin `24.18.0`, e npm
+  `11.16.0`. O preflight não encontrou processo ou listener pertencente ao
+  RAG-Challenge; nenhum listener foi iniciado. Nenhuma instalação ou execução
+  `dotnet` ocorreu.
+- Contratos e dependências: package, lockfile e OpenAPI permaneceram sem diff;
+  o OpenAPI conservou SHA-256
+  `D6A686B94C926914BEB28B437F464430A01DE6560C2E2D476CF5C36025813E34`.
+- Disposição: `AQG-S05-001` a `AQG-S05-005` estão
+  `CORRIGIDOS_PENDENTES_DE_RETESTE_DO_GATE`. O incremento não executou nem
+  aprovou o Automatic Quality Gate.
+- Limitações preservadas: percentuais de cobertura JavaScript, styled visual
+  review completo, viewport estreito/reflow, engine externa de
+  acessibilidade, teclado, matriz browser integral e reprodução no Node exato
+  continuam sem disposição por este incremento.
+- Escopo negativo preservado: sem dependência, package, lockfile, contrato
+  externo, OpenAPI, ADR, backend, Domain, Application, Infrastructure, API,
+  provider, instalação, rede externa, conta, secret, corpus real, fonte
+  oficial real, GitHub, OCI, publicação, deploy, DB-Notifier, Automatic
+  Quality Gate, Human Gate ou estado posterior.
+- Próxima condição: nova baseline limpa e autorização humana explícita e
+  separada para reiniciar integralmente o Automatic Quality Gate de
+  `STATE-05`.
+- Aprovador: proprietário do RAG-Challenge.
