@@ -230,6 +230,20 @@ proprietários.
   tarefa foram encerrados e as portas terminaram livres. `AQG-S05-007` está
   `CORRIGIDO_PENDENTE_DE_RETESTE_DO_GATE`; o Automatic Quality Gate não foi
   reiniciado nem aprovado.
+- Reinício integral do Automatic Quality Gate após `S05-CORR-06`: autorizado
+  e iniciado em 2026-08-05 sobre
+  `main@bc2ddd6bf64fc82f7d68eb518c3013d85655c16a`, corpus `4.9.2` e working
+  tree limpa. A inspeção estática repetiu autoridade, lifecycle, escopo,
+  contratos e segurança e encontrou `AQG-S05-008` (P2): resposta, título e
+  trecho de citação derivados da API aceitam tokens contínuos válidos pelo
+  contrato, mas suas superfícies de apresentação não permitem a quebra desses
+  tokens no viewport estreito. A condição de parada foi acionada antes do
+  preflight executável, checks npm, build e browser; nenhum processo ou
+  listener foi iniciado. `AQG-S05-001` a `AQG-S05-006` conservam a disposição
+  `RESOLVIDOS`; `AQG-S05-007` permanece
+  `CORRIGIDO_PENDENTE_DE_RETESTE_DO_GATE`, pois o reteste executável não foi
+  alcançado. O gate foi `REPROVADO`, sem novo P0/P1 e sem correção de produto
+  ou teste.
 - Fechamento de `S04-A0`: `PdfPig` `0.1.15` e `CsvHelper` `33.1.0` foram
   selecionados condicionalmente para desenvolvimento local;
   `Sylvan.Data.Csv` `1.4.4` permanece fallback não selecionado e não
@@ -720,9 +734,10 @@ autorizada.
    para cada banco antes de sua ativação.
 2. Validar e ativar individualmente novos registros de fonte oficial; a
    aceitação arquitetural não autoriza URL, rede, download ou crawling.
-3. Obter autoridade humana explícita e separada para reiniciar integralmente
-   o Automatic Quality Gate de `STATE-05` sobre a baseline corretiva limpa e
-   dispor `AQG-S05-007`.
+3. Obter autoridade humana explícita e separada para corrigir `AQG-S05-008`;
+   depois de uma baseline corretiva limpa, obter nova autoridade separada para
+   reiniciar integralmente o Automatic Quality Gate de `STATE-05` e dispor os
+   achados pendentes.
 4. Verificar tier, entitlement, spend limit e controles da conta OpenAI, além
    da recuperação/geração bilíngue, antes de usar ou anunciar os providers.
 5. Homologar desempenho e capacidade do `SqliteExactVectorStore`; a fixture
@@ -850,9 +865,18 @@ combinações `en-GB` refluíam sem overflow. `S05-CORR-06`, no commit
 hero e sua tipografia compacta; os quatro checks npm e a matriz browser
 isolada das oito combinações passaram a 320 CSS px, com foco, teclado e temas
 preservados. `AQG-S05-007` está
-`CORRIGIDO_PENDENTE_DE_RETESTE_DO_GATE`. A próxima autoridade possível é uma
-decisão humana explícita e separada para reiniciar integralmente o gate sobre
-a baseline corretiva limpa.
+`CORRIGIDO_PENDENTE_DE_RETESTE_DO_GATE`. O reinício integral posterior sobre
+`main@bc2ddd6bf64fc82f7d68eb518c3013d85655c16a` foi `REPROVADO` durante a
+inspeção estática por `AQG-S05-008` (P2): tokens contínuos válidos pelo
+contrato em resposta, título ou trecho de citação podem forçar overflow no
+viewport estreito porque as superfícies correspondentes não permitem sua
+quebra. A parada ocorreu antes de preflight executável, checks npm, build ou
+browser, sem processo ou listener iniciado e sem correção. `AQG-S05-001` a
+`AQG-S05-006` conservam `RESOLVIDOS`; `AQG-S05-007` permanece corrigido
+pendente de reteste. A próxima autoridade possível é uma decisão humana
+explícita e separada para corrigir `AQG-S05-008`; qualquer novo reinício
+integral do gate exigirá autoridade posterior própria sobre baseline
+corretiva limpa.
 
 Rede externa, providers, contas, secrets, corpus real, fontes oficiais reais
 do produto, armazenamento operacional, GitHub, OCI, publicação, deploy,

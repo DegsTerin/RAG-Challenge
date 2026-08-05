@@ -1369,3 +1369,106 @@ correction scope.
 `STATE-05 FRONTEND_IMPLEMENTATION` remains active. A complete restart of its
 Automatic Quality Gate requires new explicit and separate owner authority.
 Human Gate and `STATE-06` remain not authorised and not executed.
+
+## Automatic Quality Gate restart after S05-CORR-06 — 2026-08-05
+
+### Authority, baseline and result
+
+The gate baseline was location `C:\Projects\RAG-Challenge`, Git top-level
+`C:/Projects/RAG-Challenge`, Git directory `.git`, branch `main`, commit
+`bc2ddd6bf64fc82f7d68eb518c3013d85655c16a`, corpus `4.9.2` and a clean
+working tree. All seven conditions were reconfirmed before the audit.
+
+The complete `STATE-05` Automatic Quality Gate restarted locally, offline and
+sequentially. Authority, lifecycle, scope, contract and security inspection
+was repeated from the beginning. The owner-defined stop condition was applied
+during static inspection, before executable preflight, npm checks, build or
+browser validation.
+
+Result: `REPROVADO`. `AQG-S05-001` through `AQG-S05-006` retain their prior
+`RESOLVIDOS` disposition. The static controls for `AQG-S05-007` were present,
+but its gate retest was not completed before the stop, so it remains
+`CORRIGIDO_PENDENTE_DE_RETESTE_DO_GATE`. `AQG-S05-008` (P2) is open. No
+product or test correction was made.
+
+### Finding disposition
+
+- `AQG-S05-001` through `AQG-S05-006`: prior `RESOLVIDOS` dispositions
+  retained. Static inspection reconfirmed their implemented controls, but the
+  stopped restart did not repeat executable or browser evidence.
+- `AQG-S05-007`: `CORRIGIDO_PENDENTE_DE_RETESTE_DO_GATE`. The narrow hero
+  track, compact heading constraint and deterministic eight-combination
+  regression are present, but the complete gate did not reach npm or browser
+  execution and therefore did not dispose the finding.
+
+#### AQG-S05-008 — P2 — untrusted long tokens can break narrow reflow
+
+The completed-result presentation renders API-derived answer text, citation
+titles and citation excerpts in `.answer-copy`, `.citation-card h4` and
+`.citation-card blockquote`. These three surfaces do not apply an
+`overflow-wrap` or equivalent rule that can break a continuous token. The
+answer preserves whitespace with `white-space: pre-wrap`, which does not by
+itself break an otherwise unbroken token.
+
+The versioned OpenAPI contract permits these fields as strings without an
+individual maximum length or a requirement that they contain break
+opportunities. Its SHA-256 remained
+`D6A686B94C926914BEB28B437F464430A01DE6560C2E2D476CF5C36025813E34`.
+The client bounds the total response stream to 262,144 bytes, but a valid
+response can still devote a long continuous value to any affected field. At a
+narrow supported viewport, CSS intrinsic sizing can consequently widen a
+result card or its scrollable ancestor beyond the viewport.
+
+The existing hostile-content regression proves text escaping, and the narrow
+eight-combination regression pins the hero constraints, but neither exercises
+a completed answer, citation title or citation excerpt containing a long
+unbroken token. The supported reflow requirement is therefore not preserved
+for all contract-valid, untrusted result content.
+
+Under separate corrective authority, the three affected text surfaces should
+permit safe token wrapping without changing or truncating evidence, and a
+focal regression should exercise contract-valid long unbroken values at the
+narrow viewport. A later complete gate restart requires its own separate
+authority.
+
+### Static verification and stopped checks
+
+Static inspection reconfirmed the accepted lifecycle and frontend boundary,
+the same-origin API surface, strict document CSP, HTTPS-only official citation
+links, null local citation URLs, streamed response limit, explicit language
+binding, closed trust/freshness relationships, interface-language document
+metadata and skip-link focus implementation. The scoped source history
+contained only the authorised Dashboard and state-evidence work. Package,
+lockfile, OpenAPI, contracts, ADRs, backend and other protected surfaces had no
+diff from the `STATE-05` entry baseline. A targeted secret-marker scan found
+no secret value.
+
+Because the material finding triggered the mandatory stop:
+
+- runtime preflight was not applicable after the stop; no process or listener
+  was inspected, started or stopped;
+- `npm run lint`, `npm run typecheck`, `npm test` and `npm run build` were not
+  run;
+- build reproducibility and JavaScript coverage capability were not rerun;
+- no extension-free browser context was started, so visual accessibility,
+  narrow viewport, reflow, keyboard, focus, Light/Dark, `pt-BR`/`en-GB` and
+  the eight-combination browser matrix were not repeated; and
+- no frontend, code, test, dependency, package, lockfile, contract, OpenAPI,
+  ADR, backend or configuration file was changed.
+
+### Limitations, risks and lifecycle consequence
+
+This restart establishes a static, contract-reachable reflow defect; it does
+not include a browser measurement of a chosen hostile token. JavaScript line
+and branch percentages remain unavailable in the existing package scripts
+and dependency set. No third-party accessibility engine, real backend,
+provider, account, secret, corpus, official source or external network was
+used.
+
+`STATE-05 FRONTEND_IMPLEMENTATION` remains active. Its Automatic Quality Gate
+is failed with `AQG-S05-008` open. `AQG-S05-007` remains corrected pending a
+complete gate retest, and `AQG-S05-001` through `AQG-S05-006` retain their
+resolved dispositions. No new P0 or P1 was observed. Human Gate and
+`STATE-06` remain not authorised and not executed. Correction of
+`AQG-S05-008` and any later complete gate restart require separate explicit
+owner authorities.

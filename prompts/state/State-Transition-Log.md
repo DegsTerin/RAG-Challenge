@@ -3734,3 +3734,43 @@ contém somente fatos cronológicos.
   separada para reiniciar integralmente o Automatic Quality Gate de
   `STATE-05` e dispor `AQG-S05-007`.
 - Aprovador: proprietário do RAG-Challenge.
+
+## 2026-08-05 — Automatic Quality Gate após S05-CORR-06 reprovado
+
+- Estado preservado: `STATE-05 FRONTEND_IMPLEMENTATION` permaneceu ativo; o
+  Human Gate e `STATE-06` não foram autorizados nem executados.
+- Baseline do reinício: localização `C:\Projects\RAG-Challenge`, Git
+  top-level `C:/Projects/RAG-Challenge`, Git directory `.git`, branch `main`,
+  commit `bc2ddd6bf64fc82f7d68eb518c3013d85655c16a`, corpus `4.9.2` e working
+  tree limpa, reconfirmados antes da auditoria.
+- Autoridade: reinício integral, local, offline e sequencial do Automatic
+  Quality Gate; sem correção automática, mudança de produto/teste,
+  dependência, instalação, rede externa, ação remota, Human Gate ou estado
+  posterior.
+- Inspeção estática: autoridade, lifecycle, escopo, contratos e segurança
+  foram repetidos desde o início. Os controles de `AQG-S05-001` a
+  `AQG-S05-007` estavam presentes; o OpenAPI permaneceu com SHA-256
+  `D6A686B94C926914BEB28B437F464430A01DE6560C2E2D476CF5C36025813E34`, e
+  package, lockfile, contrato, ADR e backend não tinham diff no escopo.
+- `AQG-S05-008` (P2): resposta, título e trecho de citação derivados da API
+  permitem tokens contínuos válidos pelo contrato, mas `.answer-copy`,
+  `.citation-card h4` e `.citation-card blockquote` não permitem sua quebra.
+  Um token longo pode ampliar o conteúdo além do viewport estreito. A
+  regressão hostil cobre escaping, e a matriz estreita cobre as restrições da
+  hero, mas nenhuma cobre esses valores contínuos no resultado concluído.
+- Condição de parada: acionada antes do preflight executável. Nenhum processo
+  ou listener foi inspecionado, iniciado ou encerrado; lint, typecheck, testes,
+  build, reprodutibilidade, cobertura, browser sem extensões, acessibilidade,
+  viewport, reflow, teclado, foco, temas, idiomas e matriz das oito combinações
+  não foram executados neste reinício.
+- Disposição: o gate é `REPROVADO`, com `AQG-S05-008` aberto e nenhum novo
+  P0/P1. `AQG-S05-001` a `AQG-S05-006` conservam `RESOLVIDOS`;
+  `AQG-S05-007` permanece `CORRIGIDO_PENDENTE_DE_RETESTE_DO_GATE` porque o
+  reteste executável não foi alcançado.
+- Mudanças: somente relatório e memória factual do gate; nenhum frontend,
+  código, teste, dependência, package, lockfile, contrato, OpenAPI, ADR,
+  backend ou configuração foi alterado.
+- Próxima condição: autoridade humana explícita e separada para corrigir
+  `AQG-S05-008`; depois de baseline corretiva limpa, nova autoridade separada
+  para reiniciar integralmente o Automatic Quality Gate.
+- Aprovador: proprietário do RAG-Challenge.
