@@ -90,6 +90,8 @@ export class ContractValidationError extends Error {
   }
 }
 
+export type QuestionValidationFailure = "Empty" | "TooLong" | "ControlCharacter";
+
 export function normaliseQuestion(question: string): string {
   return question.trim().normalize("NFC");
 }
@@ -98,15 +100,16 @@ export function utf8ByteCount(value: string): number {
   return new TextEncoder().encode(value).byteLength;
 }
 
-export function createQueryRequest(
-  question: string,
-  questionLanguage: SupportedLanguage,
-): { request: QueryRequestV1; body: string } {
+export function validateQuestion(question: string): QuestionValidationFailure | null {
   const normalisedQuestion = normaliseQuestion(question);
   const questionBytes = utf8ByteCount(normalisedQuestion);
 
-  if (questionBytes < 1 || questionBytes > maximumQuestionBytes) {
-    throw new ContractValidationError("Question length is outside the API v1 bounds.");
+  if (questionBytes < 1) {
+    return "Empty";
+  }
+
+  if (questionBytes > maximumQuestionBytes) {
+    return "TooLong";
   }
 
   for (const character of normalisedQuestion) {
@@ -114,8 +117,22 @@ export function createQueryRequest(
     const isAllowedWhitespace = character === "\r" || character === "\n" || character === "\t";
 
     if ((codePoint <= 0x1f || codePoint === 0x7f) && !isAllowedWhitespace) {
-      throw new ContractValidationError("Question contains a disallowed control character.");
+      return "ControlCharacter";
     }
+  }
+
+  return null;
+}
+
+export function createQueryRequest(
+  question: string,
+  questionLanguage: SupportedLanguage,
+): { request: QueryRequestV1; body: string } {
+  const normalisedQuestion = normaliseQuestion(question);
+  const validationFailure = validateQuestion(normalisedQuestion);
+
+  if (validationFailure !== null) {
+    throw new ContractValidationError(`Question validation failed: ${validationFailure}.`);
   }
 
   const request: QueryRequestV1 = {

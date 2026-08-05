@@ -1,22 +1,34 @@
 // Purpose: Composes the accessible Dashboard shell and owns only device-local visual preferences; query execution remains in the API client boundary.
-import { useEffect, useState } from "react";
+import { useEffect, useReducer, useRef, useState, type ReactNode } from "react";
 
+import {
+  ContractValidationError,
+  maximumQuestionBytes,
+  utf8ByteCount,
+  validateQuestion,
+  type QuestionValidationFailure,
+  type SupportedLanguage,
+} from "./contracts/api-v1";
 import { dashboardCopy } from "./i18n";
 import {
   persistPreference,
   preferenceKeys,
   resolveInterfaceLanguage,
+  resolveQuestionLanguage,
   resolveTheme,
   type InterfaceLanguage,
   type PreferenceStorage,
   type Theme,
 } from "./preferences";
+import { askQuestion } from "./query-client";
+import { initialQueryState, queryReducer, type QueryState } from "./state/query-state";
 
 export interface DashboardShellProperties {
   interfaceLanguage: InterfaceLanguage;
   theme: Theme;
   onInterfaceLanguageChange: (language: InterfaceLanguage) => void;
   onThemeChange: (theme: Theme) => void;
+  workspace?: ReactNode;
 }
 
 export function DashboardShell({
@@ -24,6 +36,7 @@ export function DashboardShell({
   theme,
   onInterfaceLanguageChange,
   onThemeChange,
+  workspace,
 }: DashboardShellProperties): JSX.Element {
   const copy = dashboardCopy[interfaceLanguage];
 
@@ -72,24 +85,7 @@ export function DashboardShell({
           </div>
         </section>
 
-        <section className="workspace-grid" aria-label={copy.workspaceLabel}>
-          <div className="panel query-panel">
-            <span className="panel-number" aria-hidden="true">01</span>
-            <p className="section-kicker">{copy.queryHeading}</p>
-            <h2>{copy.queryIntroduction}</h2>
-            <div className="pending-workspace" aria-hidden="true">
-              <span />
-              <span />
-              <span />
-            </div>
-          </div>
-          <div className="panel result-panel result-panel-empty">
-            <span className="panel-number" aria-hidden="true">02</span>
-            <p className="section-kicker">{copy.resultHeading}</p>
-            <h2>{copy.initialResultTitle}</h2>
-            <p>{copy.initialResultBody}</p>
-          </div>
-        </section>
+        {workspace ?? <WorkspacePlaceholder interfaceLanguage={interfaceLanguage} />}
       </main>
 
       <footer className="site-footer">
@@ -108,6 +104,16 @@ export function App(): JSX.Element {
   const [theme, setTheme] = useState<Theme>(() =>
     resolveTheme(storage, getSystemThemePreference()),
   );
+  const [questionLanguage, setQuestionLanguage] = useState<SupportedLanguage>(() =>
+    resolveQuestionLanguage(storage),
+  );
+  const [question, setQuestion] = useState("");
+  const [validationFailure, setValidationFailure] =
+    useState<QuestionValidationFailure | null>(null);
+  const [queryState, dispatch] = useReducer(queryReducer, initialQueryState);
+  const requestSequence = useRef(0);
+  const activeController = useRef<AbortController>(null);
+  const resultHeading = useRef<HTMLElement>(null);
 
   useEffect(() => {
     document.documentElement.lang = interfaceLanguage;
@@ -117,6 +123,19 @@ export function App(): JSX.Element {
     document.documentElement.dataset.theme = theme;
     document.documentElement.style.colorScheme = theme.toLowerCase();
   }, [theme]);
+
+  useEffect(() => {
+    if (queryState.phase === "completed" || queryState.phase === "failed") {
+      resultHeading.current?.focus();
+    }
+  }, [queryState.phase]);
+
+  useEffect(
+    () => () => {
+      activeController.current?.abort();
+    },
+    [],
+  );
 
   function changeInterfaceLanguage(language: InterfaceLanguage): void {
     setInterfaceLanguage(language);
@@ -128,14 +147,271 @@ export function App(): JSX.Element {
     persistPreference(storage, preferenceKeys.theme, selectedTheme);
   }
 
+  function changeQuestionLanguage(language: SupportedLanguage): void {
+    setQuestionLanguage(language);
+    persistPreference(storage, preferenceKeys.questionLanguage, language);
+  }
+
+  async function submitQuestion(event: { preventDefault(): void }): Promise<void> {
+    event.preventDefault();
+    const failure = validateQuestion(question);
+    setValidationFailure(failure);
+
+    if (failure !== null) {
+      return;
+    }
+
+    activeController.current?.abort();
+    const controller = new AbortController();
+    activeController.current = controller;
+    requestSequence.current = (requestSequence.current ?? 0) + 1;
+    const requestId = requestSequence.current;
+    dispatch({ type: "begin", requestId });
+
+    try {
+      const result = await askQuestion(question, questionLanguage, controller.signal);
+      if (result.kind === "completed") {
+        dispatch({ type: "complete", requestId, response: result.response });
+      } else {
+        dispatch({ type: "failProblem", requestId, problem: result.problem });
+      }
+    } catch (error) {
+      const failureKind = error instanceof ContractValidationError
+        ? "ResponseIncompatible"
+        : isAbortError(error)
+          ? "RequestCancelled"
+          : "NetworkUnavailable";
+      dispatch({ type: "failClient", requestId, failure: failureKind });
+    }
+  }
+
+  function clearQuery(): void {
+    activeController.current?.abort();
+    activeController.current = null;
+    setQuestion("");
+    setValidationFailure(null);
+    dispatch({ type: "reset" });
+  }
+
   return (
     <DashboardShell
       interfaceLanguage={interfaceLanguage}
       theme={theme}
       onInterfaceLanguageChange={changeInterfaceLanguage}
       onThemeChange={changeTheme}
+      workspace={
+        <QueryWorkspace
+          interfaceLanguage={interfaceLanguage}
+          questionLanguage={questionLanguage}
+          question={question}
+          validationFailure={validationFailure}
+          queryState={queryState}
+          resultHeading={resultHeading}
+          onQuestionLanguageChange={changeQuestionLanguage}
+          onQuestionChange={(value) => {
+            setQuestion(value);
+            if (validationFailure !== null) {
+              setValidationFailure(validateQuestion(value));
+            }
+          }}
+          onSubmit={submitQuestion}
+          onClear={clearQuery}
+        />
+      }
     />
   );
+}
+
+interface QueryWorkspaceProperties {
+  interfaceLanguage: InterfaceLanguage;
+  questionLanguage: SupportedLanguage;
+  question: string;
+  validationFailure: QuestionValidationFailure | null;
+  queryState: QueryState;
+  resultHeading: { current: HTMLElement | null };
+  onQuestionLanguageChange: (language: SupportedLanguage) => void;
+  onQuestionChange: (value: string) => void;
+  onSubmit: (event: { preventDefault(): void }) => void;
+  onClear: () => void;
+}
+
+export function QueryWorkspace({
+  interfaceLanguage,
+  questionLanguage,
+  question,
+  validationFailure,
+  queryState,
+  resultHeading,
+  onQuestionLanguageChange,
+  onQuestionChange,
+  onSubmit,
+  onClear,
+}: QueryWorkspaceProperties): JSX.Element {
+  const copy = dashboardCopy[interfaceLanguage];
+  const questionBytes = utf8ByteCount(question.normalize("NFC"));
+  const validationMessage = getValidationMessage(copy, validationFailure);
+  const isSubmitting = queryState.phase === "submitting";
+
+  return (
+    <section className="workspace-grid" aria-label={copy.workspaceLabel}>
+      <div className="panel query-panel">
+        <span className="panel-number" aria-hidden="true">01</span>
+        <p className="section-kicker">{copy.queryHeading}</p>
+        <h2>{copy.queryIntroduction}</h2>
+
+        <form className="query-form" onSubmit={onSubmit} noValidate>
+          <fieldset className="language-fieldset">
+            <legend>{copy.questionLanguageLabel}</legend>
+            <div className="segmented-control">
+              {(["pt-BR", "en-GB"] as const).map((language) => (
+                <label key={language} className="radio-segment">
+                  <input
+                    type="radio"
+                    name="question-language"
+                    value={language}
+                    checked={questionLanguage === language}
+                    onChange={() => onQuestionLanguageChange(language)}
+                  />
+                  <span>{copy.languageNames[language]}</span>
+                </label>
+              ))}
+            </div>
+          </fieldset>
+
+          <div className="question-field">
+            <label htmlFor="question">{copy.questionLabel}</label>
+            <textarea
+              id="question"
+              rows={6}
+              value={question}
+              placeholder={copy.questionPlaceholder}
+              aria-describedby="question-hint question-count question-error"
+              aria-invalid={validationFailure !== null}
+              disabled={isSubmitting}
+              onChange={(event: { currentTarget: { value: string } }) =>
+                onQuestionChange(event.currentTarget.value)}
+            />
+            <div className="field-support">
+              <span id="question-hint">{copy.questionHint}</span>
+              <span
+                id="question-count"
+                className={questionBytes > maximumQuestionBytes ? "byte-count byte-count-invalid" : "byte-count"}
+              >
+                {copy.questionByteCount(questionBytes, maximumQuestionBytes)}
+              </span>
+            </div>
+            <p id="question-error" className="field-error" aria-live="polite">
+              {validationMessage}
+            </p>
+          </div>
+
+          <div className="form-actions">
+            <button className="primary-action" type="submit" disabled={isSubmitting}>
+              {isSubmitting ? copy.askingAction : copy.askAction}
+            </button>
+            <button className="secondary-action" type="button" onClick={onClear} disabled={isSubmitting && question.length === 0}>
+              {copy.clearAction}
+            </button>
+          </div>
+        </form>
+      </div>
+
+      <QueryResultPanel
+        interfaceLanguage={interfaceLanguage}
+        queryState={queryState}
+        resultHeading={resultHeading}
+      />
+    </section>
+  );
+}
+
+interface QueryResultPanelProperties {
+  interfaceLanguage: InterfaceLanguage;
+  queryState: QueryState;
+  resultHeading: { current: HTMLElement | null };
+}
+
+function QueryResultPanel({
+  interfaceLanguage,
+  queryState,
+  resultHeading,
+}: QueryResultPanelProperties): JSX.Element {
+  const copy = dashboardCopy[interfaceLanguage];
+  const isInitial = queryState.phase === "idle";
+  const isLoading = queryState.phase === "submitting";
+  const isFailed = queryState.phase === "failed";
+
+  return (
+    <div
+      className={`panel result-panel${isInitial ? " result-panel-empty" : ""}`}
+      aria-live={isLoading ? "polite" : "off"}
+      aria-busy={isLoading}
+    >
+      <span className="panel-number" aria-hidden="true">02</span>
+      <p className="section-kicker">{copy.resultHeading}</p>
+      <h2 ref={resultHeading} tabIndex={-1}>
+        {isInitial
+          ? copy.initialResultTitle
+          : isLoading
+            ? copy.loadingTitle
+            : isFailed
+              ? copy.errorHeading
+              : queryState.response?.outcome === "Answered"
+                ? copy.answeredLabel
+                : copy.insufficientTitle}
+      </h2>
+      <p>
+        {isInitial
+          ? copy.initialResultBody
+          : isLoading
+            ? copy.loadingBody
+            : isFailed
+              ? copy.clientFailures[queryState.clientFailure ?? ""] ?? copy.unsupportedProblem
+              : queryState.response?.outcome === "Answered"
+                ? queryState.response.answer
+                : copy.insufficientBody}
+      </p>
+    </div>
+  );
+}
+
+function WorkspacePlaceholder({ interfaceLanguage }: { interfaceLanguage: InterfaceLanguage }): JSX.Element {
+  const copy = dashboardCopy[interfaceLanguage];
+  return (
+    <section className="workspace-grid" aria-label={copy.workspaceLabel}>
+      <div className="panel query-panel">
+        <span className="panel-number" aria-hidden="true">01</span>
+        <p className="section-kicker">{copy.queryHeading}</p>
+        <h2>{copy.queryIntroduction}</h2>
+      </div>
+      <div className="panel result-panel result-panel-empty">
+        <span className="panel-number" aria-hidden="true">02</span>
+        <p className="section-kicker">{copy.resultHeading}</p>
+        <h2>{copy.initialResultTitle}</h2>
+        <p>{copy.initialResultBody}</p>
+      </div>
+    </section>
+  );
+}
+
+function getValidationMessage(
+  copy: (typeof dashboardCopy)[InterfaceLanguage],
+  failure: QuestionValidationFailure | null,
+): string {
+  switch (failure) {
+    case "Empty":
+      return copy.validationEmpty;
+    case "TooLong":
+      return copy.validationTooLong;
+    case "ControlCharacter":
+      return copy.validationControlCharacter;
+    case null:
+      return "";
+  }
+}
+
+function isAbortError(error: unknown): boolean {
+  return error instanceof DOMException && error.name === "AbortError";
 }
 
 interface PreferenceSelectorProperties<T extends string> {

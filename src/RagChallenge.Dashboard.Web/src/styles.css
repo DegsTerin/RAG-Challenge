@@ -316,6 +316,169 @@ select:focus-visible,
   line-height: 1.65;
 }
 
+.query-form {
+  display: grid;
+  gap: 1.35rem;
+  margin-top: 1.75rem;
+}
+
+.language-fieldset {
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.language-fieldset legend,
+.question-field > label {
+  display: block;
+  margin-bottom: 0.55rem;
+  color: var(--text);
+  font-size: 0.9rem;
+  font-weight: 750;
+}
+
+.radio-segment {
+  position: relative;
+  flex: 1 1 auto;
+  cursor: pointer;
+}
+
+.radio-segment input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+}
+
+.radio-segment span {
+  display: grid;
+  min-height: 2.5rem;
+  padding: 0.55rem 0.75rem;
+  place-items: center;
+  color: var(--text-muted);
+  border-radius: 0.55rem;
+  font-size: 0.84rem;
+  font-weight: 700;
+}
+
+.radio-segment input:checked + span {
+  color: var(--accent-contrast);
+  background: var(--accent-strong);
+}
+
+.radio-segment input:focus-visible + span {
+  outline: 0.2rem solid var(--focus);
+  outline-offset: 0.18rem;
+}
+
+.question-field textarea {
+  display: block;
+  width: 100%;
+  min-height: 10rem;
+  resize: vertical;
+  padding: 1rem;
+  color: var(--text);
+  background: var(--surface-raised);
+  border: 1px solid var(--border-strong);
+  border-radius: 0.85rem;
+  line-height: 1.55;
+}
+
+.question-field textarea::placeholder {
+  color: var(--text-muted);
+  opacity: 0.9;
+}
+
+.question-field textarea[aria-invalid="true"] {
+  border-color: var(--danger);
+}
+
+.field-support {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-top: 0.5rem;
+  color: var(--text-muted);
+  font-size: 0.78rem;
+  line-height: 1.45;
+}
+
+.byte-count {
+  flex: 0 0 auto;
+  font-variant-numeric: tabular-nums;
+}
+
+.byte-count-invalid,
+.field-error {
+  color: var(--danger);
+  font-weight: 700;
+}
+
+.field-error {
+  min-height: 1.35rem;
+  margin: 0.35rem 0 0;
+  font-size: 0.82rem;
+}
+
+.form-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.7rem;
+}
+
+.primary-action,
+.secondary-action {
+  min-height: 2.75rem;
+  padding: 0.72rem 1rem;
+  border-radius: 0.7rem;
+  cursor: pointer;
+  font-weight: 750;
+}
+
+.primary-action {
+  color: var(--accent-contrast);
+  background: var(--accent-strong);
+  border: 1px solid var(--accent-strong);
+}
+
+.secondary-action {
+  color: var(--text);
+  background: transparent;
+  border: 1px solid var(--border-strong);
+}
+
+.primary-action:disabled,
+.secondary-action:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.result-panel[aria-busy="true"]::after {
+  display: block;
+  width: 3.5rem;
+  height: 0.3rem;
+  margin-top: 1.25rem;
+  content: "";
+  background: var(--accent);
+  border-radius: 999px;
+  animation: loading-pulse 1.2s ease-in-out infinite alternate;
+}
+
+@keyframes loading-pulse {
+  from {
+    opacity: 0.35;
+    transform: scaleX(0.45);
+    transform-origin: left;
+  }
+
+  to {
+    opacity: 1;
+    transform: scaleX(1);
+    transform-origin: left;
+  }
+}
+
 .result-panel-empty {
   display: flex;
   flex-direction: column;
@@ -401,6 +564,11 @@ select:focus-visible,
 
   .segment-button {
     flex: 1 1 auto;
+  }
+
+  .field-support {
+    flex-direction: column;
+    gap: 0.35rem;
   }
 
   .hero h1 {

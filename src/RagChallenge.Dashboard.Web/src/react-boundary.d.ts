@@ -5,7 +5,7 @@ declare module "react" {
   export type Dispatch<T> = (value: T) => void;
 
   export interface RefObject<T> {
-    readonly current: T | null;
+    current: T | null;
   }
 
   export function StrictMode(properties: { children?: ReactNode }): JSX.Element;
