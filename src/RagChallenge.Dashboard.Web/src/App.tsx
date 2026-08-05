@@ -6,10 +6,14 @@ import {
   maximumQuestionBytes,
   utf8ByteCount,
   validateQuestion,
+  type CitationV1,
+  type EvidenceCoverageV1,
+  type ProblemDetailsV1,
   type QuestionValidationFailure,
+  type QueryResponseV1,
   type SupportedLanguage,
 } from "./contracts/api-v1";
-import { dashboardCopy } from "./i18n";
+import { dashboardCopy, knownSourceStates, type DashboardCopy } from "./i18n";
 import {
   persistPreference,
   preferenceKeys,
@@ -331,7 +335,7 @@ interface QueryResultPanelProperties {
   resultHeading: { current: HTMLElement | null };
 }
 
-function QueryResultPanel({
+export function QueryResultPanel({
   interfaceLanguage,
   queryState,
   resultHeading,
@@ -360,19 +364,220 @@ function QueryResultPanel({
                 ? copy.answeredLabel
                 : copy.insufficientTitle}
       </h2>
-      <p>
-        {isInitial
-          ? copy.initialResultBody
-          : isLoading
-            ? copy.loadingBody
-            : isFailed
-              ? copy.clientFailures[queryState.clientFailure ?? ""] ?? copy.unsupportedProblem
-              : queryState.response?.outcome === "Answered"
-                ? queryState.response.answer
-                : copy.insufficientBody}
+      {isInitial && <p>{copy.initialResultBody}</p>}
+      {isLoading && <p>{copy.loadingBody}</p>}
+      {isFailed && (
+        <FailureSummary
+          copy={copy}
+          problem={queryState.problem}
+          clientFailure={queryState.clientFailure}
+        />
+      )}
+      {queryState.phase === "completed" && queryState.response !== null && (
+        <CompletedResult
+          copy={copy}
+          interfaceLanguage={interfaceLanguage}
+          response={queryState.response}
+        />
+      )}
+    </div>
+  );
+}
+
+function FailureSummary({
+  copy,
+  problem,
+  clientFailure,
+}: {
+  copy: DashboardCopy;
+  problem: ProblemDetailsV1 | null;
+  clientFailure: QueryState["clientFailure"];
+}): JSX.Element {
+  const message = problem === null
+    ? copy.clientFailures[clientFailure ?? ""] ?? copy.unsupportedProblem
+    : copy.problemMessages[problem.code] ?? copy.unsupportedProblem;
+
+  return (
+    <div className="failure-summary" role="alert">
+      <p>{message}</p>
+      {problem?.retryAfterSeconds !== undefined && (
+        <p>{copy.retryAfter(problem.retryAfterSeconds)}</p>
+      )}
+      {problem !== null && (
+        <p className="correlation-line">
+          <span>{copy.correlationLabel}</span>
+          <code>{problem.correlationId}</code>
+        </p>
+      )}
+    </div>
+  );
+}
+
+function CompletedResult({
+  copy,
+  interfaceLanguage,
+  response,
+}: {
+  copy: DashboardCopy;
+  interfaceLanguage: InterfaceLanguage;
+  response: QueryResponseV1;
+}): JSX.Element {
+  return (
+    <div className="completed-result">
+      {response.outcome === "Answered" ? (
+        <p className="answer-copy" lang={response.answerLanguage}>{response.answer}</p>
+      ) : (
+        <p className="insufficient-copy">{copy.insufficientBody}</p>
+      )}
+
+      <CoveragePanel
+        copy={copy}
+        interfaceLanguage={interfaceLanguage}
+        coverage={response.evidenceCoverage}
+      />
+
+      {response.outcome === "Answered" && (
+        <section className="citations-section" aria-labelledby="citations-heading">
+          <h3 id="citations-heading">{copy.citationsHeading}</h3>
+          <ol className="citation-list">
+            {response.citations.map((citation, index) => (
+              <li key={citation.chunkId}>
+                <CitationCard
+                  citation={citation}
+                  copy={copy}
+                  interfaceLanguage={interfaceLanguage}
+                  index={index + 1}
+                  generationId={response.indexGenerationId}
+                />
+              </li>
+            ))}
+          </ol>
+        </section>
+      )}
+
+      <p className="correlation-line">
+        <span>{copy.correlationLabel}</span>
+        <code>{response.correlationId}</code>
       </p>
     </div>
   );
+}
+
+function CoveragePanel({
+  copy,
+  interfaceLanguage,
+  coverage,
+}: {
+  copy: DashboardCopy;
+  interfaceLanguage: InterfaceLanguage;
+  coverage: EvidenceCoverageV1;
+}): JSX.Element {
+  const degradedSources = Object.entries(coverage.degradedSources);
+  const metrics = [
+    [copy.activeDatabasesLabel, coverage.activeDatabaseCount],
+    [copy.eligibleDatabasesLabel, coverage.eligibleDatabaseCount],
+    [copy.activeDocumentsLabel, coverage.activeDocumentCount],
+    [copy.eligibleDocumentsLabel, coverage.eligibleDocumentCount],
+  ] as const;
+
+  return (
+    <section className="coverage-section" aria-labelledby="coverage-heading">
+      <h3 id="coverage-heading">{copy.coverageHeading}</h3>
+      <p>{copy.coverageIntroduction}</p>
+      <dl className="coverage-metrics">
+        {metrics.map(([label, value]) => (
+          <div key={label}>
+            <dt>{label}</dt>
+            <dd>{value}</dd>
+          </div>
+        ))}
+      </dl>
+      <h4>{copy.degradedSourcesHeading}</h4>
+      {degradedSources.length === 0 ? (
+        <p>{copy.noDegradedSources}</p>
+      ) : (
+        <ul className="degraded-source-list">
+          {degradedSources.map(([sourceId, state]) => (
+            <li key={sourceId}>
+              <code>{sourceId}</code>
+              <span>{knownSourceStates[interfaceLanguage][state] ?? copy.sourceStateUnknown}</span>
+            </li>
+          ))}
+        </ul>
+      )}
+    </section>
+  );
+}
+
+function CitationCard({
+  citation,
+  copy,
+  interfaceLanguage,
+  index,
+  generationId,
+}: {
+  citation: CitationV1;
+  copy: DashboardCopy;
+  interfaceLanguage: InterfaceLanguage;
+  index: number;
+  generationId: string;
+}): JSX.Element {
+  const freshness = knownSourceStates[interfaceLanguage][citation.sourceFreshness] ??
+    copy.sourceStateUnknown;
+  const location = citation.documentFormat === "Pdf"
+    ? copy.pdfLocation(citation.pageStart, citation.pageEnd)
+    : copy.csvLocation(citation.recordStart, citation.recordEnd);
+
+  return (
+    <article className="citation-card" aria-labelledby={`citation-${index}-title`}>
+      <div className="citation-heading-row">
+        <p className="citation-index">{copy.citationLabel(index)}</p>
+        <span className={`trust-badge trust-${citation.sourceTrustClass.toLowerCase()}`}>
+          {citation.sourceTrustClass === "LocalAuthorised" ? copy.sourceLocal : copy.sourceOfficial}
+        </span>
+      </div>
+      <h4 id={`citation-${index}-title`} lang={citation.contentLanguage}>
+        {citation.title ?? citation.documentId}
+      </h4>
+      <blockquote lang={citation.contentLanguage}>{citation.excerpt}</blockquote>
+      <dl className="citation-summary">
+        <div><dt>{copy.contentLanguageLabel}</dt><dd>{citation.contentLanguage}</dd></div>
+        <div><dt>{copy.sourceFreshnessLabel}</dt><dd>{freshness}</dd></div>
+        <div><dt>{copy.documentLabel}</dt><dd>{citation.documentId} v{citation.documentVersion}</dd></div>
+        <div><dt>{location}</dt><dd>{citation.documentFormat}</dd></div>
+        {citation.documentFormat === "Csv" && citation.columns.length > 0 && (
+          <div><dt>{copy.columnsLabel}</dt><dd>{citation.columns.join(", ")}</dd></div>
+        )}
+      </dl>
+      {citation.canonicalUrl !== null && (
+        <p>
+          <a href={citation.canonicalUrl} rel="noopener noreferrer" target="_blank">
+            {copy.sourceUrlLabel}
+          </a>
+        </p>
+      )}
+      <details>
+        <summary>{copy.technicalDetailsSummary}</summary>
+        <dl className="technical-details">
+          <div><dt>{copy.generationLabel}</dt><dd><code>{generationId}</code></dd></div>
+          <div><dt>{copy.sourceSnapshotLabel}</dt><dd><code>{citation.sourceSnapshotId ?? "—"}</code></dd></div>
+          <div><dt>{copy.revalidatedAtLabel}</dt><dd>{formatDateTime(citation.revalidatedAt, interfaceLanguage)}</dd></div>
+        </dl>
+      </details>
+    </article>
+  );
+}
+
+function formatDateTime(value: string | null, language: InterfaceLanguage): string {
+  if (value === null) {
+    return "—";
+  }
+
+  return new Intl.DateTimeFormat(language, {
+    dateStyle: "medium",
+    timeStyle: "short",
+    timeZone: "UTC",
+  }).format(new Date(value));
 }
 
 function WorkspacePlaceholder({ interfaceLanguage }: { interfaceLanguage: InterfaceLanguage }): JSX.Element {

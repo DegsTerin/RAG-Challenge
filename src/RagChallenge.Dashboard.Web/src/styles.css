@@ -465,6 +465,214 @@ select:focus-visible,
   animation: loading-pulse 1.2s ease-in-out infinite alternate;
 }
 
+.completed-result,
+.coverage-section,
+.citations-section,
+.citation-card,
+.failure-summary {
+  display: grid;
+  gap: 0.9rem;
+}
+
+.answer-copy,
+.insufficient-copy,
+.failure-summary {
+  margin: 0;
+  padding: 1rem 1.1rem;
+  background: var(--canvas-accent);
+  border-left: 0.3rem solid var(--accent);
+  border-radius: 0.2rem 0.8rem 0.8rem 0.2rem;
+  line-height: 1.7;
+  white-space: pre-wrap;
+}
+
+.failure-summary {
+  background: color-mix(in srgb, var(--danger) 10%, var(--surface));
+  border-left-color: var(--danger);
+}
+
+.failure-summary p,
+.coverage-section p,
+.citation-card p,
+.citation-card blockquote,
+.correlation-line {
+  margin: 0;
+}
+
+.coverage-section,
+.citations-section {
+  padding-top: 1.3rem;
+  border-top: 1px solid var(--border);
+}
+
+.coverage-section h3,
+.citations-section h3,
+.coverage-section h4,
+.citation-card h4 {
+  margin: 0;
+  font-family: Georgia, "Times New Roman", serif;
+}
+
+.coverage-metrics {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.55rem;
+  margin: 0;
+}
+
+.coverage-metrics div {
+  min-width: 0;
+  padding: 0.8rem;
+  background: var(--surface-raised);
+  border: 1px solid var(--border);
+  border-radius: 0.7rem;
+}
+
+.coverage-metrics dt {
+  color: var(--text-muted);
+  font-size: 0.75rem;
+  line-height: 1.35;
+}
+
+.coverage-metrics dd {
+  margin: 0.35rem 0 0;
+  color: var(--accent);
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 1.65rem;
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+}
+
+.degraded-source-list,
+.citation-list {
+  display: grid;
+  gap: 0.7rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.degraded-source-list li {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding: 0.7rem;
+  color: var(--warning);
+  background: color-mix(in srgb, var(--warning) 9%, var(--surface));
+  border: 1px solid color-mix(in srgb, var(--warning) 45%, var(--border));
+  border-radius: 0.65rem;
+}
+
+.citation-card {
+  padding: 1rem;
+  background: var(--surface-raised);
+  border: 1px solid var(--border);
+  border-radius: 0.9rem;
+}
+
+.citation-heading-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.citation-index {
+  color: var(--text-muted);
+  font-size: 0.75rem;
+  font-weight: 750;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.trust-badge {
+  padding: 0.3rem 0.55rem;
+  color: var(--text);
+  background: var(--canvas-accent);
+  border: 1px solid var(--border-strong);
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 750;
+}
+
+.trust-officialexternal {
+  color: var(--accent-contrast);
+  background: var(--accent-strong);
+  border-color: var(--accent-strong);
+}
+
+.citation-card blockquote {
+  padding-left: 1rem;
+  color: var(--text-muted);
+  border-left: 0.2rem solid var(--border-strong);
+  line-height: 1.65;
+}
+
+.citation-summary,
+.technical-details {
+  display: grid;
+  gap: 0.45rem;
+  margin: 0;
+}
+
+.citation-summary div,
+.technical-details div {
+  display: grid;
+  grid-template-columns: minmax(8rem, 0.7fr) minmax(0, 1.3fr);
+  gap: 0.75rem;
+}
+
+.citation-summary dt,
+.technical-details dt {
+  color: var(--text-muted);
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.citation-summary dd,
+.technical-details dd {
+  min-width: 0;
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.citation-card a {
+  color: var(--accent);
+  font-weight: 750;
+  text-decoration-thickness: 0.12em;
+  text-underline-offset: 0.18em;
+}
+
+.citation-card summary {
+  cursor: pointer;
+  color: var(--text-muted);
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+.technical-details {
+  margin-top: 0.7rem;
+  padding: 0.75rem;
+  background: var(--canvas);
+  border-radius: 0.6rem;
+}
+
+.correlation-line {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem 0.75rem;
+  color: var(--text-muted);
+  font-size: 0.78rem;
+}
+
+.correlation-line code,
+.degraded-source-list code,
+.technical-details code {
+  color: var(--text);
+  overflow-wrap: anywhere;
+}
+
 @keyframes loading-pulse {
   from {
     opacity: 0.35;
@@ -569,6 +777,16 @@ select:focus-visible,
   .field-support {
     flex-direction: column;
     gap: 0.35rem;
+  }
+
+  .coverage-metrics {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .citation-summary div,
+  .technical-details div {
+    grid-template-columns: 1fr;
+    gap: 0.15rem;
   }
 
   .hero h1 {
