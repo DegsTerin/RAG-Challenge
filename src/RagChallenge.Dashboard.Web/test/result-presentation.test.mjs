@@ -113,6 +113,27 @@ test("escapes answer and evidence strings without an HTML or Markdown rendering 
   assert.equal(html.includes("<script>"), false);
 });
 
+test("never presents a local citation URL as an interactive link", async () => {
+  const { QueryResultPanel } = await vite.ssrLoadModule("/src/App.tsx");
+  const hostileResponse = {
+    ...answeredResponse,
+    citations: answeredResponse.citations.map((citation, index) => index === 1
+      ? { ...citation, canonicalUrl: "javascript:alert(document.domain)" }
+      : citation),
+  };
+  const html = renderResult(QueryResultPanel, "en-GB", {
+    phase: "completed",
+    activeRequestId: null,
+    response: hostileResponse,
+    problem: null,
+    clientFailure: null,
+  });
+
+  assert.equal(html.includes("javascript:"), false);
+  assert.equal([...html.matchAll(/href=/g)].length, 1);
+  assert.match(html, /href="https:\/\/www\.postgresql\.org\//);
+});
+
 test("presents a bounded client failure without fabricated server metadata", async () => {
   const { QueryResultPanel } = await vite.ssrLoadModule("/src/App.tsx");
   const html = renderResult(QueryResultPanel, "pt-BR", {

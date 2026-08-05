@@ -191,10 +191,20 @@ export function decodeQueryResponse(value: unknown): QueryResponseV1 {
       throw new ContractValidationError("Citation identity does not match the response.");
     }
 
+    if (citation.canonicalUrl !== null && !isSafeHttpsUrl(citation.canonicalUrl)) {
+      throw new ContractValidationError("Citation URL does not use the approved HTTPS scheme.");
+    }
+
+    if (
+      citation.sourceTrustClass === "LocalAuthorised" &&
+      citation.canonicalUrl !== null
+    ) {
+      throw new ContractValidationError("Local citation must not contain a canonical URL.");
+    }
+
     if (
       citation.sourceTrustClass === "OfficialExternal" &&
       (citation.canonicalUrl === null ||
-        !isSafeHttpsUrl(citation.canonicalUrl) ||
         citation.sourceSnapshotId === null ||
         citation.revalidatedAt === null)
     ) {

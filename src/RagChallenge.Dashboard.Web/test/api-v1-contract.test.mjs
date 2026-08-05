@@ -55,6 +55,9 @@ test("decodes answered and insufficient-evidence completions", () => {
 
   assert.equal(answered.citations[0].sourceTrustClass, "OfficialExternal");
   assert.equal(answered.citations[0].contentLanguage, "en-GB");
+  assert.match(answered.citations[0].canonicalUrl, /^https:\/\//);
+  assert.equal(answered.citations[1].sourceTrustClass, "LocalAuthorised");
+  assert.equal(answered.citations[1].canonicalUrl, null);
   assert.equal(insufficient.outcome, "InsufficientEvidence");
   assert.equal(insufficient.answer, null);
 });
@@ -77,6 +80,26 @@ test("rejects inconsistent completion and provenance identities", () => {
       decodeQueryResponse({
         ...answeredResponse,
         citations: [{ ...answeredResponse.citations[0], canonicalUrl: "javascript:alert(1)" }],
+      }),
+    ContractValidationError,
+  );
+  assert.throws(
+    () =>
+      decodeQueryResponse({
+        ...answeredResponse,
+        citations: answeredResponse.citations.map((citation, index) => index === 1
+          ? { ...citation, canonicalUrl: "javascript:alert(1)" }
+          : citation),
+      }),
+    ContractValidationError,
+  );
+  assert.throws(
+    () =>
+      decodeQueryResponse({
+        ...answeredResponse,
+        citations: answeredResponse.citations.map((citation, index) => index === 1
+          ? { ...citation, canonicalUrl: "https://local.invalid/document.csv" }
+          : citation),
       }),
     ContractValidationError,
   );

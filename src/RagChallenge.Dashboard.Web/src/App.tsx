@@ -3,6 +3,7 @@ import { useEffect, useReducer, useRef, useState, type ReactNode } from "react";
 
 import {
   ContractValidationError,
+  isSafeHttpsUrl,
   maximumQuestionBytes,
   utf8ByteCount,
   validateQuestion,
@@ -549,13 +550,15 @@ function CitationCard({
           <div><dt>{copy.columnsLabel}</dt><dd>{citation.columns.join(", ")}</dd></div>
         )}
       </dl>
-      {citation.canonicalUrl !== null && (
+      {citation.sourceTrustClass === "OfficialExternal" &&
+        citation.canonicalUrl !== null &&
+        isSafeHttpsUrl(citation.canonicalUrl) && (
         <p>
           <a href={citation.canonicalUrl} rel="noopener noreferrer" target="_blank">
             {copy.sourceUrlLabel}
           </a>
         </p>
-      )}
+        )}
       <details>
         <summary>{copy.technicalDetailsSummary}</summary>
         <dl className="technical-details">
