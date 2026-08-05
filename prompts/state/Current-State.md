@@ -141,6 +141,18 @@ proprietários.
   cobertura e browser. Nenhum código, teste, processo, listener ou
   configuração foi alterado. O gate foi `REPROVADO`; os quatro achados
   permanecem sem disposição final por um gate completo aprovado.
+- Correção `S05-CORR-03`: autorizada e concluída em 2026-08-05 sobre
+  `main@800e6dc92d2a3555dbe92bc4e3b6b16e6411726b`, corpus `4.9.2` e working
+  tree limpa. O commit `9ef937744302044ee3cd9105c9a23ddd3557a861`
+  restringe `sourceFreshness` ao conjunto canônico, aceita
+  `LocalAuthorised` somente com `Local` e URL nula, rejeita `Local` para
+  `OfficialExternal`, localiza `Local` em `pt-BR` e `en-GB` e corrige a
+  fixture sintética. Lint, typecheck, 35 testes e build passaram; a validação
+  loopback confirmou a alternância localizada e terminou sem listener.
+  Package, lockfile, OpenAPI, contratos externos e backend permaneceram
+  inalterados. `AQG-S05-001` a `AQG-S05-004` estão corrigidos, mas pendem de
+  reteste e disposição por um reinício integral do Automatic Quality Gate sob
+  autoridade humana posterior e separada.
 - Fechamento de `S04-A0`: `PdfPig` `0.1.15` e `CsvHelper` `33.1.0` foram
   selecionados condicionalmente para desenvolvimento local;
   `Sylvan.Data.Csv` `1.4.4` permanece fallback não selecionado e não
@@ -631,10 +643,9 @@ autorizada.
    para cada banco antes de sua ativação.
 2. Validar e ativar individualmente novos registros de fonte oficial; a
    aceitação arquitetural não autoriza URL, rede, download ou crawling.
-3. Obter autorização humana explícita e separada para corrigir
-   `AQG-S05-004`; depois de uma baseline corretiva limpa, outro reinício
-   integral do Automatic Quality Gate de `STATE-05` exigirá nova autorização
-   separada para dispor `AQG-S05-001` a `AQG-S05-004`.
+3. Obter autorização humana explícita e separada para reiniciar integralmente
+   o Automatic Quality Gate de `STATE-05` sobre a baseline corretiva limpa e
+   dispor `AQG-S05-001` a `AQG-S05-004`.
 4. Verificar tier, entitlement, spend limit e controles da conta OpenAI, além
    da recuperação/geração bilíngue, antes de usar ou anunciar os providers.
 5. Homologar desempenho e capacidade do `SqliteExactVectorStore`; a fixture
@@ -721,14 +732,23 @@ fixture sintética o substitui por `Current`, mascarando o estado desconhecido
 na apresentação. A parada obrigatória ocorreu antes do preflight executável,
 dos checks npm e da validação em browser; nenhuma correção foi executada.
 
-A próxima autoridade possível é uma decisão humana posterior, explícita e
-separada, para corrigir somente `AQG-S05-004`. Depois de uma baseline
-corretiva limpa, outro reinício integral do Automatic Quality Gate exigirá
-nova autoridade separada. O Human Gate continua prematuro e `STATE-06` não
-está autorizado.
+`S05-CORR-03` foi concluído no commit
+`9ef937744302044ee3cd9105c9a23ddd3557a861`. O decoder agora restringe
+freshness ao conjunto canônico, exige `Local` e URL nula para
+`LocalAuthorised`, rejeita relações cross-class incompatíveis e apresenta
+`Local` nas interfaces `pt-BR` e `en-GB`. A fixture local foi corrigida. Lint,
+typecheck, 35 testes e build passaram; a validação loopback confirmou a
+alternância localizada e terminou sem listener. As regressões de
+`AQG-S05-001` a `AQG-S05-003` permaneceram verdes.
+
+`AQG-S05-001` a `AQG-S05-004` estão
+`CORRIGIDOS_PENDENTES_DE_RETESTE_DO_GATE`. A próxima autoridade possível é
+uma decisão humana posterior, explícita e separada, para reiniciar
+integralmente o Automatic Quality Gate de `STATE-05` sobre a baseline
+corretiva limpa. O Human Gate continua prematuro e `STATE-06` não está
+autorizado.
 
 Rede externa, providers, contas, secrets, corpus real, fontes oficiais reais
 do produto, armazenamento operacional, GitHub, OCI, publicação, deploy,
 DB-Notifier, nova repetição do Automatic Quality Gate, Human Gate e entrada ou
-execução de estados posteriores, assim como a correção de `AQG-S05-004`,
-continuam sem autorização.
+execução de estados posteriores continuam sem autorização.

@@ -676,3 +676,102 @@ Quality Gate is failed with `AQG-S05-004` open. `AQG-S05-001`,
 executable gate retest. Human Gate and `STATE-06` remain not authorised and
 not executed. Correction of `AQG-S05-004` and a later complete gate restart
 require separate explicit owner authorities.
+
+## S05-CORR-03 — 2026-08-05
+
+### Authority and baseline
+
+- Initial baseline: branch `main`, commit
+  `800e6dc92d2a3555dbe92bc4e3b6b16e6411726b`, corpus `4.9.2`, clean
+  working tree. Location, Git top-level, Git directory, branch, commit,
+  corpus and cleanliness were reconfirmed immediately before the first
+  alteration.
+- Authority: execute only the local, offline and sequential `S05-CORR-03`
+  correction for `AQG-S05-004`, preserve the `AQG-S05-001` through
+  `AQG-S05-003` corrections, use the existing installation and create
+  focused local commits.
+- No dependency, package, lockfile, external contract, OpenAPI, ADR, backend,
+  provider, installation or external action was authorised or performed.
+
+### Correction
+
+The focused commit `9ef937744302044ee3cd9105c9a23ddd3557a861`
+aligns the Dashboard with the canonical API v1 freshness relation:
+
+- `sourceFreshness` is decoded from the closed set `Local`, `Current`,
+  `Stale`, `Withdrawn`, `Deactivated` and `Unavailable`;
+- a `LocalAuthorised` citation is accepted only with `sourceFreshness:
+  "Local"` and a null `canonicalUrl`;
+- an `OfficialExternal` citation rejects `Local` and continues to require a
+  validated HTTPS `canonicalUrl`, snapshot identity and revalidation instant;
+- `Local` is owned by the exhaustive `pt-BR` and `en-GB` source-state maps;
+  unknown degraded-source coverage values retain their bounded visual
+  fallback; and
+- the synthetic local citation now uses `Local`, while the official fixture
+  remains `Current`.
+
+Deterministic contract regressions cover the valid local citation, local
+freshness paired with the official trust class, official freshness paired
+with the local trust class and an unknown freshness value. Presentation
+regressions render the valid local citation as `Local` under both interface
+languages. The complete suite retained the URL-scheme and local-URL checks of
+`AQG-S05-001`, the bounded incremental-response and cancellation checks of
+`AQG-S05-002`, and the title/localisation matrix checks of `AQG-S05-003`.
+
+### Verification
+
+The full offline verification ran from
+`src/RagChallenge.Dashboard.Web` with the existing Node.js `24.18.1` and npm
+`11.16.0` installation. No install command or `dotnet` command ran.
+
+| Verification | Result |
+| --- | --- |
+| `npm run typecheck` | Passed, exit code 0 after one in-scope type-guard correction |
+| `npm run lint` | Passed, exit code 0 |
+| `npm test` | Passed, 35 tests, 0 failed/skipped/cancelled |
+| `npm run build` | Passed, 20 modules transformed |
+| Built HTML | 0.97 kB (0.56 kB gzip) |
+| Built CSS | 11.96 kB (3.35 kB gzip) |
+| Built JavaScript | 171.75 kB (55.27 kB gzip) |
+| Package, lockfile and OpenAPI diff | Empty |
+| OpenAPI SHA-256 | `D6A686B94C926914BEB28B437F464430A01DE6560C2E2D476CF5C36025813E34` |
+
+The first typecheck exposed that the now-exhaustive freshness map could not be
+indexed by the open degraded-source coverage string. The in-scope correction
+added a freshness type guard, preserving the existing unknown-state fallback
+for coverage without weakening citation decoding. The complete verification
+sequence then passed.
+
+The directed preflight found no RAG-Challenge listener on ports 4173 or 5173
+and no Dashboard development server to stop. The observed Node.js process was
+the Codex browser-control runtime, not a product listener, and was not
+stopped. The built application was served by the task-owned Vite preview on
+`127.0.0.1:4173`. Browser inspection confirmed the English title and heading,
+the Portuguese title and heading after switching to `pt-BR`, and the English
+values again after switching to `en-GB`; no console error was observed. The
+browser session was finalised, the preview process was revalidated by
+executable and command line before termination, and port 4173 was confirmed
+clear. Local citation rendering itself was verified by the deterministic
+component presentation tests with synthetic data and no backend or network.
+
+### Disposition, limitations and next authority
+
+`AQG-S05-004` is `CORRIGIDO_PENDENTE_DE_RETESTE_DO_GATE`. The complete npm
+suite also exercised the preserved regressions for `AQG-S05-001`,
+`AQG-S05-002` and `AQG-S05-003`, but this corrective increment did not
+execute or approve the Automatic Quality Gate. All four findings still
+require disposition by a separately authorised complete restart.
+
+JavaScript line and branch percentages remain unavailable in the existing
+package scripts and dependency set. The observed Node.js patch version is
+`24.18.1`, not the exact `24.18.0` pin. This increment did not repeat the
+gate's complete styled visual, external accessibility-engine,
+narrow-viewport/reflow, keyboard, Light/Dark or eight-combination browser
+review. No real backend, provider, account, secret, corpus, official source or
+external network was exercised. No new P0 or P1 was observed within the
+authorised correction scope.
+
+`STATE-05 FRONTEND_IMPLEMENTATION` remains active. Automatic Quality Gate,
+Human Gate and `STATE-06` were not authorised or executed. The next possible
+action is a separate explicit owner authority to restart the complete
+`STATE-05` Automatic Quality Gate over the resulting clean baseline.
