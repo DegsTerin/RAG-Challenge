@@ -3126,3 +3126,52 @@ contém somente fatos cronológicos.
 - Próxima condição: nova baseline limpa e autorização humana explícita,
   posterior e separada, limitada ao Automatic Quality Gate de `STATE-05`.
 - Aprovador: proprietário do RAG-Challenge.
+
+## 2026-08-05 — Automatic Quality Gate de STATE-05 reprovado
+
+- Estado preservado: `STATE-05 FRONTEND_IMPLEMENTATION` permaneceu ativo; o
+  Human Gate e `STATE-06` não foram autorizados nem executados.
+- Baseline do gate: branch `main`, commit
+  `f6df67a67657af891e4831a616b142d8da9fb584`, corpus `4.9.2` e working tree
+  limpa, reconfirmados antes da auditoria.
+- Autoridade: Automatic Quality Gate local, offline e sequencial, sem correção
+  automática, mudança de produto ou teste, instalação, rede externa, ação
+  remota, Human Gate ou estado posterior.
+- Escopo inicial: inspeção de autoridade, lifecycle, diff, contrato cliente,
+  saída não confiável, segurança, acessibilidade, cobertura e
+  reprodutibilidade; checks npm e browser loopback somente enquanto nenhuma
+  condição de parada fosse encontrada.
+- Preflight runtime: antes da reprodução executável, foi observado somente o
+  runtime de controle do navegador do Codex associado ao workspace, sem
+  listener. Ele não era processo do produto e não foi encerrado.
+- `AQG-S05-001` (P1): o decoder aplica validação HTTPS de `canonicalUrl`
+  somente a `OfficialExternal`, enquanto a apresentação cria um link para
+  qualquer valor não nulo. Uma resposta sintética alterada apenas em memória,
+  com `javascript:alert(document.domain)` na segunda citação
+  `LocalAuthorised`, foi aceita e o SSR emitiu
+  `href="javascript:alert(document.domain)"`; o React também registrou warning
+  de URL insegura.
+- Teste ausente: o teste de URL perigosa existente altera apenas a primeira
+  citação, `OfficialExternal`; os testes de saída hostil cobrem texto de
+  resposta, título e trecho, mas não `canonicalUrl` da citação local.
+- Contexto e impacto: Application exige URL nula para evidência local, o que
+  reduz a probabilidade no fluxo normal, mas não elimina a fronteira de
+  confiança Dashboard/API nem a obrigação frontend de falhar fechado diante
+  de resposta malformada. A CSP atual pode mitigar execução, mas a ativação do
+  link não foi testada depois da parada e não substitui a validação do scheme.
+- Condição de parada: acionada imediatamente após reprodução e classificação.
+  `npm run lint`, `npm run typecheck`, `npm test`, `npm run build`, cobertura,
+  screenshot, reflow estreito, teclado/browser e reprodutibilidade não foram
+  executados neste gate. Nenhum listener foi iniciado.
+- Resultado do Automatic Quality Gate: `REPROVADO`, com um P1 aberto e nenhum
+  P0, P2 ou P3 registrado antes da parada obrigatória.
+- Mudanças: somente relatório e memória factual do gate; nenhum arquivo de
+  frontend, código, teste, dependência, package, lockfile, contrato, OpenAPI,
+  ADR, backend ou configuração foi alterado.
+- Limitações preservadas: percentuais de cobertura JavaScript, screenshot do
+  build estilizado, viewport estreito direto, engine externa de acessibilidade
+  e reprodução no Node exato permanecem sem disposição por este gate.
+- Próxima condição: autoridade humana explícita e separada para corrigir
+  `AQG-S05-001`; depois de uma baseline corretiva limpa, nova autoridade
+  separada para reiniciar integralmente o Automatic Quality Gate.
+- Aprovador: proprietário do RAG-Challenge.

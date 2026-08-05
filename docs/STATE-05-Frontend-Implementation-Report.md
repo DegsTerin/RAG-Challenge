@@ -256,3 +256,75 @@ limitations above. The `STATE-05` Automatic Quality Gate, Human Gate and entry
 into `STATE-06` remain not executed and not authorised. The next possible
 action is a separate explicit owner decision limited to the Automatic Quality
 Gate after review of the clean post-record baseline.
+
+## Automatic Quality Gate — 2026-08-05
+
+### Authority and baseline
+
+- Gate baseline: branch `main`, commit
+  `f6df67a67657af891e4831a616b142d8da9fb584`, corpus `4.9.2`, clean working
+  tree. Location, Git top-level, Git directory, branch, commit, corpus and
+  cleanliness were reconfirmed before the audit.
+- Authority: local, offline and sequential Automatic Quality Gate with no
+  product correction, dependency change, installation, external action,
+  Human Gate or later lifecycle state.
+- Runtime preflight before the bounded executable reproduction found only the
+  Codex browser-control runtime associated with the workspace and no listener.
+  It was not a RAG-Challenge product process and was not stopped.
+
+### Result
+
+`REPROVADO`. The gate stopped on one material security finding, as required by
+the owner's stop condition. No product or test file was changed.
+
+#### AQG-S05-001 — P1 — unsafe local citation URL reaches an anchor
+
+- Requirement: API responses and citation metadata are untrusted at the
+  Dashboard boundary. Only approved URL schemes may become interactive links,
+  and malformed responses must fail closed.
+- Location: `src/RagChallenge.Dashboard.Web/src/contracts/api-v1.ts` validates
+  `canonicalUrl` as safe HTTPS only when `sourceTrustClass` is
+  `OfficialExternal`. `src/RagChallenge.Dashboard.Web/src/App.tsx` renders any
+  non-null `canonicalUrl` as an anchor.
+- Reproduction: a synthetic answered response was changed in memory so its
+  second, `LocalAuthorised` citation carried
+  `javascript:alert(document.domain)`. The normal response decoder accepted
+  the value and server rendering emitted
+  `href="javascript:alert(document.domain)"`. React also emitted its unsafe-URL
+  warning.
+- Existing test gap: the dangerous-URL contract test mutates only the first
+  fixture citation, which is `OfficialExternal`. Hostile title and excerpt
+  rendering is covered, but a hostile `canonicalUrl` on a local citation is
+  not.
+- Backend context: the current Application invariant requires
+  `LocalAuthorised` evidence to have a null canonical URL. That reduces the
+  normal-path likelihood but does not remove the browser/API trust boundary or
+  the frontend requirement to reject a malformed response.
+- Impact: a malformed or compromised API response can create an interactive
+  script-scheme citation link. The current CSP may provide an additional
+  mitigation, but link activation under the CSP was not exercised after the
+  mandatory stop and cannot be treated as the primary validation boundary.
+- Recommendation: under separate corrective authority, require every non-null
+  citation URL to pass the approved HTTPS validation and enforce the
+  `LocalAuthorised` null-URL invariant before rendering; add contract and
+  presentation regression tests for the local citation case.
+
+### Checks stopped or not reached
+
+The following authorised checks were deliberately not executed after the
+finding: `npm run lint`, `npm run typecheck`, `npm test`, `npm run build`,
+coverage reassessment, styled screenshot, narrow-viewport/reflow observation,
+keyboard/browser repetition and build reproducibility. No loopback listener
+was started, so no listener cleanup was necessary.
+
+The previously recorded implementation evidence remains historical evidence
+only; it does not substitute for a complete passing Automatic Quality Gate.
+The accessibility, narrow-viewport, JavaScript coverage and exact Node pin
+limitations therefore remain open and were not disposed by this gate.
+
+### Lifecycle consequence
+
+`STATE-05 FRONTEND_IMPLEMENTATION` remains active. Its Automatic Quality Gate
+is failed with `AQG-S05-001` open. Human Gate and `STATE-06` remain not
+authorised and not executed. A correction and a complete restart of the
+Automatic Quality Gate require separate explicit owner authority.

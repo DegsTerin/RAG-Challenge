@@ -1,6 +1,6 @@
 # Estado Atual
 
-Este documento é o snapshot factual vigente do workspace em 2026-08-04. Ele
+Este documento é o snapshot factual vigente do workspace em 2026-08-05. Ele
 não concede autoridade. Evolução e decisões no contexto original pertencem ao
 [`State-Transition-Log.md`](State-Transition-Log.md) e aos relatórios
 proprietários.
@@ -81,6 +81,16 @@ proprietários.
   falhas seguras e acessibilidade dentro do escopo aprovado. As verificações
   finais aprovaram lint, typecheck, 28 testes offline e build. O Automatic
   Quality Gate, o Human Gate e `STATE-06` não foram autorizados nem executados.
+- Automatic Quality Gate de `STATE-05`: autorizado e iniciado em 2026-08-05
+  sobre `main@f6df67a67657af891e4831a616b142d8da9fb584`, corpus `4.9.2` e
+  working tree limpa. A auditoria parou conforme a condição do proprietário e
+  resultou `REPROVADO` com `AQG-S05-001` (P1): o cliente aceita
+  `canonicalUrl` com scheme `javascript:` em citação `LocalAuthorised` e a
+  apresenta como link. A reprodução local em memória confirmou que o decoder
+  aceitou o payload e o SSR emitiu o `href` inseguro. Nenhuma correção, mudança
+  de produto, instalação ou ação externa foi executada; lint, typecheck,
+  testes, build e browser do gate não foram alcançados depois do achado. O
+  Human Gate e `STATE-06` permanecem sem autorização e sem execução.
 - Fechamento de `S04-A0`: `PdfPig` `0.1.15` e `CsvHelper` `33.1.0` foram
   selecionados condicionalmente para desenvolvimento local;
   `Sylvan.Data.Csv` `1.4.4` permanece fallback não selecionado e não
@@ -571,9 +581,10 @@ autorizada.
    para cada banco antes de sua ativação.
 2. Validar e ativar individualmente novos registros de fonte oficial; a
    aceitação arquitetural não autoriza URL, rede, download ou crawling.
-3. Obter autorização humana explícita e separada para o Automatic Quality Gate
-   de `STATE-05` sobre a baseline limpa posterior ao registro factual de
-   `S05-A0` a `S05-A4`; implementação concluída não concede autoridade de gate.
+3. Corrigir `AQG-S05-001` somente sob autoridade humana explícita e separada e
+   reiniciar integralmente o Automatic Quality Gate de `STATE-05` sobre a
+   baseline limpa posterior; o gate reprovado não concede autoridade de
+   correção nem de Human Gate.
 4. Verificar tier, entitlement, spend limit e controles da conta OpenAI, além
    da recuperação/geração bilíngue, antes de usar ou anunciar os providers.
 5. Homologar desempenho e capacidade do `SqliteExactVectorStore`; a fixture
@@ -621,14 +632,22 @@ JavaScript, screenshot do build estilizado e observação direta de viewport
 estreito permanecem limitações, conforme o
 [relatório de STATE-05](../../docs/STATE-05-Frontend-Implementation-Report.md).
 
+A Automatic Quality Gate de `STATE-05` foi autorizada sobre
+`main@f6df67a67657af891e4831a616b142d8da9fb584`, iniciou pela inspeção
+estática e foi `REPROVADA` com `AQG-S05-001` (P1). A reprodução mostrou que
+uma citação local malformada com `canonicalUrl` `javascript:` atravessa o
+decoder e se torna link interativo. A condição de parada cancelou as demais
+verificações antes de lint, typecheck, testes, build ou listener; nenhuma
+correção foi executada.
+
 A próxima autoridade possível é uma decisão humana posterior, explícita e
-separada, limitada ao Automatic Quality Gate de `STATE-05` sobre a nova
-baseline limpa. O gate deverá reavaliar as limitações de cobertura,
-acessibilidade visual e reprodutibilidade e parar diante de achado material.
-Esta conclusão não substitui o Automatic Quality Gate, o Human Gate nem
-autoriza `STATE-06`.
+separada, para um incremento corretivo limitado de `STATE-05` que resolva
+`AQG-S05-001`, execute os testes de regressão aplicáveis e depois permita nova
+autorização separada para reiniciar integralmente o Automatic Quality Gate. O
+Human Gate continua prematuro e `STATE-06` não está autorizado.
 
 Rede externa, providers, contas, secrets, corpus real, fontes oficiais reais
 do produto, armazenamento operacional, GitHub, OCI, publicação, deploy,
-DB-Notifier, Automatic Quality Gate, Human Gate e entrada ou execução de
-estados posteriores continuam sem autorização.
+DB-Notifier, correção de `AQG-S05-001`, repetição do Automatic Quality Gate,
+Human Gate e entrada ou execução de estados posteriores continuam sem
+autorização.
