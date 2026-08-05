@@ -58,8 +58,48 @@ test("decodes answered and insufficient-evidence completions", () => {
   assert.match(answered.citations[0].canonicalUrl, /^https:\/\//);
   assert.equal(answered.citations[1].sourceTrustClass, "LocalAuthorised");
   assert.equal(answered.citations[1].canonicalUrl, null);
+  assert.equal(answered.citations[1].sourceFreshness, "Local");
   assert.equal(insufficient.outcome, "InsufficientEvidence");
   assert.equal(insufficient.answer, null);
+});
+
+test("fails closed on cross-class citation freshness", () => {
+  const localCitationIndex = 1;
+  const officialCitationIndex = 0;
+
+  assert.throws(
+    () =>
+      decodeQueryResponse({
+        ...answeredResponse,
+        citations: answeredResponse.citations.map((citation, index) =>
+          index === localCitationIndex
+            ? { ...citation, sourceFreshness: "Current" }
+            : citation),
+      }),
+    ContractValidationError,
+  );
+  assert.throws(
+    () =>
+      decodeQueryResponse({
+        ...answeredResponse,
+        citations: answeredResponse.citations.map((citation, index) =>
+          index === officialCitationIndex
+            ? { ...citation, sourceFreshness: "Local" }
+            : citation),
+      }),
+    ContractValidationError,
+  );
+  assert.throws(
+    () =>
+      decodeQueryResponse({
+        ...answeredResponse,
+        citations: answeredResponse.citations.map((citation, index) =>
+          index === officialCitationIndex
+            ? { ...citation, sourceFreshness: "Future" }
+            : citation),
+      }),
+    ContractValidationError,
+  );
 });
 
 test("rejects inconsistent completion and provenance identities", () => {

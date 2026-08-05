@@ -40,6 +40,12 @@ test("presents coverage and both official PDF and authorised local CSV citations
     assert.match(html, /Pages?: 142|Páginas?: 142/);
     assert.match(html, /Records?: 7–9|Registros?: 7–9/);
     assert.match(html, /recurso, estado/);
+    assert.match(
+      html,
+      interfaceLanguage === "pt-BR"
+        ? /<dt>Frescor<\/dt><dd>Local<\/dd>/
+        : /<dt>Freshness<\/dt><dd>Local<\/dd>/,
+    );
     assert.match(html, /rel="noopener noreferrer"/);
     assert.match(html, /target="_blank"/);
     assert.match(html, /source-synthetic-stale/);

@@ -1,4 +1,5 @@
 // Purpose: Provides exhaustive product-owned interface copy for the two approved visual languages without translating source-derived evidence.
+import type { SourceFreshness } from "./contracts/api-v1";
 import type { InterfaceLanguage, Theme } from "./preferences";
 
 export interface DashboardCopy {
@@ -246,8 +247,11 @@ export const dashboardCopy: Readonly<Record<InterfaceLanguage, DashboardCopy>> =
   },
 };
 
-export const knownSourceStates: Readonly<Record<InterfaceLanguage, Readonly<Record<string, string>>>> = {
+export const knownSourceStates: Readonly<
+  Record<InterfaceLanguage, Readonly<Record<SourceFreshness, string>>>
+> = {
   "pt-BR": {
+    Local: "Local",
     Current: "Atual",
     Stale: "Desatualizada",
     Unavailable: "Indisponível",
@@ -255,6 +259,7 @@ export const knownSourceStates: Readonly<Record<InterfaceLanguage, Readonly<Reco
     Deactivated: "Desativada",
   },
   "en-GB": {
+    Local: "Local",
     Current: "Current",
     Stale: "Stale",
     Unavailable: "Unavailable",

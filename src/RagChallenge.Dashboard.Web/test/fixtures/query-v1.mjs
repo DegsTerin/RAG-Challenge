@@ -50,7 +50,7 @@ export const answeredResponse = {
       canonicalUrl: null,
       sourceSnapshotId: null,
       revalidatedAt: null,
-      sourceFreshness: "Current",
+      sourceFreshness: "Local",
     },
   ],
   evidenceCoverage: {

@@ -8,11 +8,24 @@ export const supportedLanguages = ["pt-BR", "en-GB"] as const;
 export const queryOutcomes = ["Answered", "InsufficientEvidence"] as const;
 export const documentFormats = ["Pdf", "Csv"] as const;
 export const sourceTrustClasses = ["LocalAuthorised", "OfficialExternal"] as const;
+export const sourceFreshnessStates = [
+  "Local",
+  "Current",
+  "Stale",
+  "Withdrawn",
+  "Deactivated",
+  "Unavailable",
+] as const;
 
 export type SupportedLanguage = (typeof supportedLanguages)[number];
 export type QueryOutcome = (typeof queryOutcomes)[number];
 export type DocumentFormat = (typeof documentFormats)[number];
 export type SourceTrustClass = (typeof sourceTrustClasses)[number];
+export type SourceFreshness = (typeof sourceFreshnessStates)[number];
+
+export function isSourceFreshness(value: string): value is SourceFreshness {
+  return sourceFreshnessStates.some((state) => state === value);
+}
 
 export interface QueryRequestV1 {
   corpusId: string;
@@ -50,7 +63,7 @@ export interface CitationV1 {
   canonicalUrl: string | null;
   sourceSnapshotId: string | null;
   revalidatedAt: string | null;
-  sourceFreshness: string;
+  sourceFreshness: SourceFreshness;
 }
 
 export interface LanguageModelDescriptorV1 {
@@ -197,14 +210,17 @@ export function decodeQueryResponse(value: unknown): QueryResponseV1 {
 
     if (
       citation.sourceTrustClass === "LocalAuthorised" &&
-      citation.canonicalUrl !== null
+      (citation.sourceFreshness !== "Local" || citation.canonicalUrl !== null)
     ) {
-      throw new ContractValidationError("Local citation must not contain a canonical URL.");
+      throw new ContractValidationError(
+        "Local citation must use Local freshness and no canonical URL.",
+      );
     }
 
     if (
       citation.sourceTrustClass === "OfficialExternal" &&
-      (citation.canonicalUrl === null ||
+      (citation.sourceFreshness === "Local" ||
+        citation.canonicalUrl === null ||
         citation.sourceSnapshotId === null ||
         citation.revalidatedAt === null)
     ) {
@@ -296,7 +312,11 @@ function decodeCitation(value: unknown, index: number): CitationV1 {
     canonicalUrl: requireNullableString(object.canonicalUrl, "canonicalUrl"),
     sourceSnapshotId: requireNullableString(object.sourceSnapshotId, "sourceSnapshotId"),
     revalidatedAt: requireNullableDateTime(object.revalidatedAt, "revalidatedAt"),
-    sourceFreshness: requireNonEmptyString(object.sourceFreshness, "sourceFreshness"),
+    sourceFreshness: requireEnum(
+      object.sourceFreshness,
+      sourceFreshnessStates,
+      "sourceFreshness",
+    ),
   };
 }
 

@@ -4,6 +4,7 @@ import { useEffect, useReducer, useRef, useState, type ReactNode } from "react";
 import {
   ContractValidationError,
   isSafeHttpsUrl,
+  isSourceFreshness,
   maximumQuestionBytes,
   utf8ByteCount,
   validateQuestion,
@@ -514,7 +515,11 @@ function CoveragePanel({
           {degradedSources.map(([sourceId, state]) => (
             <li key={sourceId}>
               <code>{sourceId}</code>
-              <span>{knownSourceStates[interfaceLanguage][state] ?? copy.sourceStateUnknown}</span>
+              <span>
+                {isSourceFreshness(state)
+                  ? knownSourceStates[interfaceLanguage][state]
+                  : copy.sourceStateUnknown}
+              </span>
             </li>
           ))}
         </ul>
