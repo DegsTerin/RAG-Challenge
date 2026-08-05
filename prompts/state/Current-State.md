@@ -66,15 +66,21 @@ proprietários.
   `AUD-S04-009`, incluindo `AUD-S04-005-R1`, como `RESOLVIDOS`. O lifecycle e
   o Human Gate histórico não foram alterados; `STATE-05` permaneceu sem
   autorização naquele resultado.
-- Entrada em `STATE-05 FRONTEND_IMPLEMENTATION`: autorizada exclusivamente de
-  forma documental pelo proprietário em 2026-08-04 sobre
-  `main@23c5bc56e3cb06d9beaeb1af974c51668731ab01`, corpus `4.9.2` e working
-  tree limpa, depois da revisão e aprovação da proposta limitada apresentada
-  na mesma conversa. A autoridade permite somente atualizar este snapshot, o
-  histórico append-only e criar o commit local focal do registro. `STATE-05`
-  está ativo, mas nenhum lote executável, frontend, Dashboard, código,
-  dependência, package, lockfile, contrato, OpenAPI, ADR, comando, teste,
-  instalação, runtime ou ação externa foi autorizado ou executado.
+- Entrada em `STATE-05 FRONTEND_IMPLEMENTATION`: registrada documentalmente
+  em 2026-08-04. Depois, sobre
+  `main@cab336ada60866083f3e688fe1a13cff348a3335`, corpus `4.9.2` e working
+  tree limpa, o proprietário autorizou a execução local, offline, sequencial e
+  limitada de `S05-A0` a `S05-A4`. Os cinco lotes foram concluídos nos commits
+  `9c27cc49442ff467486c93febf7144e6d3a652b7`,
+  `2fd7526f0907361d6c03552379341b877e88c236`,
+  `7a42d332ddf6646c575c7cae16cfe9085120e18d`,
+  `a8835b94ab485e542f7cfe23355283c92de17fc8` e
+  `5865a225cdab9bd92f9befa00c7ee581b2aa0877`. O Dashboard implementa o
+  contrato cliente v1 existente, estados, consulta same-origin, localização
+  `pt-BR`/`en-GB`, temas `Light`/`Dark`, cobertura, proveniência, citações,
+  falhas seguras e acessibilidade dentro do escopo aprovado. As verificações
+  finais aprovaram lint, typecheck, 28 testes offline e build. O Automatic
+  Quality Gate, o Human Gate e `STATE-06` não foram autorizados nem executados.
 - Fechamento de `S04-A0`: `PdfPig` `0.1.15` e `CsvHelper` `33.1.0` foram
   selecionados condicionalmente para desenvolvimento local;
   `Sylvan.Data.Csv` `1.4.4` permanece fallback não selecionado e não
@@ -565,9 +571,9 @@ autorizada.
    para cada banco antes de sua ativação.
 2. Validar e ativar individualmente novos registros de fonte oficial; a
    aceitação arquitetural não autoriza URL, rede, download ou crawling.
-3. Obter autorização humana explícita e separada para os lotes executáveis de
-   `STATE-05` sobre a nova baseline limpa posterior a este registro; a entrada
-   documental já foi autorizada, mas não concede alteração de frontend.
+3. Obter autorização humana explícita e separada para o Automatic Quality Gate
+   de `STATE-05` sobre a baseline limpa posterior ao registro factual de
+   `S05-A0` a `S05-A4`; implementação concluída não concede autoridade de gate.
 4. Verificar tier, entitlement, spend limit e controles da conta OpenAI, além
    da recuperação/geração bilíngue, antes de usar ou anunciar os providers.
 5. Homologar desempenho e capacidade do `SqliteExactVectorStore`; a fixture
@@ -581,14 +587,6 @@ autorizada.
    tenancy OCI; as fontes públicas ainda divergem sobre a franquia gratuita.
 8. Materializar `rag-eval-catalogue-v1`, a rubrica e thresholds antes de cada
    execução pontuada, preservando a matriz `pt-BR`/`en-GB` aceita.
-9. Implementar somente sob autoridade posterior a decisão aprovada na
-   proposta de `STATE-05`: `pt-BR` inicial para a interface, persistência
-   apenas da seleção explícita e fallback `pt-BR`; o conjunto continua
-   `pt-BR`/`en-GB` e independente de `questionLanguage`.
-10. Implementar somente sob autoridade posterior a decisão aprovada na
-    proposta de `STATE-05`: usar a preferência do sistema na ausência de
-    escolha persistida, preservar `Light`/`Dark` como seleção explícita e usar
-    `Light` como fallback; tema permanece independente de idioma e consulta.
 
 ## Próxima autoridade
 
@@ -611,21 +609,26 @@ residual `AUD-S04-005-R1`. `S04-CORR-01`, `S04-CORR-02` e `S04-CORR-03`
 implementaram as correções autorizadas sem ampliar o lifecycle. O último
 Automatic Quality Gate corretivo foi aprovado e a auditoria completa
 reiniciada resolveu todos os achados, sem identificar novo P0, P1, P2 ou P3.
-Depois da auditoria, o proprietário revisou e aprovou a proposta limitada de
-entrada em `STATE-05 FRONTEND_IMPLEMENTATION` e autorizou exclusivamente o
-registro documental sobre
-`main@23c5bc56e3cb06d9beaeb1af974c51668731ab01`, corpus `4.9.2` e working
-tree limpa. `STATE-05` está ativo somente no lifecycle documental. Essa
-autoridade não permite executar `S05-A0` a `S05-A4`, alterar o frontend ou
-realizar qualquer verificação executável.
+Depois da auditoria e da entrada documental, o proprietário autorizou a
+execução local, sequencial e limitada de `S05-A0` a `S05-A4` sobre
+`main@cab336ada60866083f3e688fe1a13cff348a3335`, corpus `4.9.2` e working
+tree limpa. Os lotes foram concluídos com fixtures sintéticas, fetch falso e
+verificações offline na instalação existente. A matriz das oito combinações,
+lint, typecheck, 28 testes e build foram aprovados. A validação do build em
+loopback confirmou preferências, validação, fluxo fail-closed, foco, landmarks
+e controles rotulados; o listener foi encerrado. Cobertura percentual
+JavaScript, screenshot do build estilizado e observação direta de viewport
+estreito permanecem limitações, conforme o
+[relatório de STATE-05](../../docs/STATE-05-Frontend-Implementation-Report.md).
 
 A próxima autoridade possível é uma decisão humana posterior, explícita e
-separada, sobre a nova baseline limpa, que nomeie os lotes executáveis de
-`STATE-05`, seus checks, runtime permitido, escopo negativo e condições de
-parada. O registro atual não substitui essa decisão nem o futuro Automatic
-Quality Gate ou Human Gate.
+separada, limitada ao Automatic Quality Gate de `STATE-05` sobre a nova
+baseline limpa. O gate deverá reavaliar as limitações de cobertura,
+acessibilidade visual e reprodutibilidade e parar diante de achado material.
+Esta conclusão não substitui o Automatic Quality Gate, o Human Gate nem
+autoriza `STATE-06`.
 
-Rede, providers, contas, secrets, corpus real, fontes oficiais reais do
-produto, armazenamento operacional, GitHub, OCI, execução do Dashboard,
-publicação, deploy, execução de `STATE-05`, entrada ou execução de estados
-posteriores e mudanças no DB-Notifier continuam sem autorização.
+Rede externa, providers, contas, secrets, corpus real, fontes oficiais reais
+do produto, armazenamento operacional, GitHub, OCI, publicação, deploy,
+DB-Notifier, Automatic Quality Gate, Human Gate e entrada ou execução de
+estados posteriores continuam sem autorização.

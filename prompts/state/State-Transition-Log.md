@@ -3068,3 +3068,61 @@ contém somente fatos cronológicos.
   humana posterior, explícita e separada, que nomeie os lotes executáveis,
   checks, runtime permitido, escopo negativo e condições de parada.
 - Aprovador: proprietário do RAG-Challenge.
+
+## 2026-08-04 — S05-A0 a S05-A4 concluídos localmente
+
+- Estado preservado: `STATE-05 FRONTEND_IMPLEMENTATION` permaneceu ativo; o
+  Automatic Quality Gate, o Human Gate e `STATE-06` não foram autorizados nem
+  executados.
+- Baseline inicial: branch `main`, commit
+  `cab336ada60866083f3e688fe1a13cff348a3335`, corpus `4.9.2` e working tree
+  limpa, reconfirmados imediatamente antes da primeira alteração.
+- Autoridade: execução local, offline, sequencial e limitada de `S05-A0` a
+  `S05-A4`, com alterações somente no Dashboard, testes próprios, relatório e
+  memória factual; instalação, rede externa, backend, contratos, dependências
+  e estados posteriores permaneceram excluídos.
+- `S05-A0`: o commit `9c27cc49442ff467486c93febf7144e6d3a652b7`
+  congelou tipos e validação do cliente v1, estados determinísticos,
+  preferências versionadas e fixtures sintéticas.
+- `S05-A1`: o commit `2fd7526f0907361d6c03552379341b877e88c236`
+  implementou shell semântico, localização `pt-BR`/`en-GB`, seletores
+  independentes, temas `Light`/`Dark`, foco e regras responsivas.
+- `S05-A2`: o commit `7a42d332ddf6646c575c7cae16cfe9085120e18d`
+  implementou validação UTF-8, cliente HTTP same-origin fail-closed,
+  cancelamento, proteção contra resposta tardia e fluxo de consulta.
+- `S05-A3`: o commit `a8835b94ab485e542f7cfe23355283c92de17fc8`
+  implementou resposta e insuficiência de evidência, cobertura avaliada,
+  proveniência local/oficial, citações PDF/CSV, 12 falhas localizadas, escape
+  de saída e semântica acessível.
+- `S05-A4`: o commit `5865a225cdab9bd92f9befa00c7ee581b2aa0877`
+  concluiu a matriz das oito combinações, mensagens de falha e contraste
+  textual WCAG AA e preparou a verificação final.
+- Verificação final: `npm run lint`, `npm run typecheck`, `npm test` e
+  `npm run build` passaram na instalação existente; foram 28 testes, sem
+  falha, skip ou cancelamento, e 20 módulos transformados no build. Nenhum
+  comando de instalação ou `dotnet` foi executado.
+- Contratos e dependências: `package.json`, `package-lock.json` e OpenAPI
+  permaneceram sem diff; o OpenAPI conservou SHA-256
+  `D6A686B94C926914BEB28B437F464430A01DE6560C2E2D476CF5C36025813E34`.
+- Browser local: preflight dirigido encontrou apenas o runtime do Codex, que
+  não pertence ao produto. Um listener da tarefa em `127.0.0.1:4173` validou
+  o build com stylesheet sob CSP, localização, tema, validação, idioma da
+  pergunta, contagem UTF-8, falha incompatível segura, foco, landmarks,
+  rótulos e skip link; os dois processos Vite usados foram identificados e
+  encerrados, sem listener residual.
+- Limitações: Node.js observado `24.18.1` contra pin `24.18.0`; sem percentuais
+  de cobertura JavaScript por ausência de instrumentação instalada; sem
+  screenshot aproveitável do build estilizado; o override de viewport estreito
+  do navegador não foi aplicado; sem engine externa de acessibilidade; sem API,
+  provider, corpus ou fonte real.
+- Resultado: `S05-A0` a `S05-A4` concluídos dentro do escopo autorizado, sem
+  P0/P1 observado. O relatório factual pertence a
+  [`docs/STATE-05-Frontend-Implementation-Report.md`](../../docs/STATE-05-Frontend-Implementation-Report.md).
+- Escopo negativo preservado: sem dependência, package, lockfile, contrato,
+  OpenAPI, ADR, backend, Domain, Application, Infrastructure, API, provider,
+  instalação, rede externa, conta, secret, corpus real, fonte oficial real,
+  GitHub, OCI, publicação, deploy, DB-Notifier, Automatic Quality Gate, Human
+  Gate ou estado posterior.
+- Próxima condição: nova baseline limpa e autorização humana explícita,
+  posterior e separada, limitada ao Automatic Quality Gate de `STATE-05`.
+- Aprovador: proprietário do RAG-Challenge.
