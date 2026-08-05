@@ -3431,3 +3431,48 @@ contém somente fatos cronológicos.
   separada para reiniciar integralmente o Automatic Quality Gate de
   `STATE-05`.
 - Aprovador: proprietário do RAG-Challenge.
+
+## 2026-08-05 — Automatic Quality Gate após S05-CORR-03 reprovado
+
+- Estado preservado: `STATE-05 FRONTEND_IMPLEMENTATION` permaneceu ativo; o
+  Human Gate e `STATE-06` não foram autorizados nem executados.
+- Baseline do reinício: localização `C:\Projects\RAG-Challenge`, Git
+  top-level `C:/Projects/RAG-Challenge`, Git directory `.git`, branch `main`,
+  commit `b457970aed4564d5a654bb4e8d38439c98f29522`, corpus `4.9.2` e working
+  tree limpa, reconfirmados imediatamente antes da auditoria.
+- Autoridade: reinício integral, local, offline e sequencial do Automatic
+  Quality Gate, sem correção automática, mudança de produto/teste,
+  dependência, instalação, rede externa, ação remota, Human Gate ou estado
+  posterior.
+- Escopo iniciado: releitura das autoridades e inspeção desde o começo de
+  lifecycle, escopo, contratos e segurança; os checks npm e o browser
+  loopback somente prosseguiriam sem condição de parada.
+- Reavaliação de `AQG-S05-001` a `AQG-S05-004`: a inspeção estática confirmou
+  URL local nula/HTTPS oficial, leitura incremental limitada, título por
+  `interfaceLanguage` e relação canônica de freshness local/oficial. As
+  regressões focais permanecem presentes, mas a parada ocorreu antes do
+  reteste executável; a disposição continua pendente de um gate completo.
+- `AQG-S05-005` (P2): o decoder valida `answerLanguage` somente contra o
+  conjunto suportado e o cliente não o compara ao `questionLanguage` enviado.
+  O teste de limite exato envia `en-GB`, recebe a fixture concluída `pt-BR` e
+  aceita o resultado. Uma resposta incompatível pode, portanto, apresentar um
+  idioma diferente do selecionado pelo usuário em violação do contrato v1.
+- Condição de parada: acionada durante a inspeção estática. Preflight
+  executável, lint, typecheck, testes, build, cobertura percentual, browser,
+  acessibilidade visual, viewport estreito/reflow, teclado, temas, idiomas,
+  matriz das oito combinações e reprodutibilidade não foram executados. Nenhum
+  processo ou listener foi inspecionado, iniciado ou encerrado.
+- Resultado do Automatic Quality Gate reiniciado: `REPROVADO`, com um P2
+  aberto e nenhum novo P0/P1 observado antes da parada. `AQG-S05-001` a
+  `AQG-S05-004` permanecem corrigidos, mas pendentes de reteste executável e
+  disposição.
+- Mudanças: somente relatório e memória factual do gate; nenhum arquivo de
+  frontend, código, teste, dependência, package, lockfile, contrato, OpenAPI,
+  ADR, backend ou configuração foi alterado.
+- Limitações preservadas: percentuais de cobertura JavaScript, styled visual
+  review, viewport estreito direto, engine externa de acessibilidade, teclado,
+  matriz browser e reprodução no Node exato permanecem sem disposição.
+- Próxima condição: autoridade humana explícita e separada para corrigir
+  `AQG-S05-005`; depois de baseline corretiva limpa, nova autoridade separada
+  para reiniciar integralmente o Automatic Quality Gate.
+- Aprovador: proprietário do RAG-Challenge.

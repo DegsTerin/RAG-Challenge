@@ -775,3 +775,99 @@ authorised correction scope.
 Human Gate and `STATE-06` were not authorised or executed. The next possible
 action is a separate explicit owner authority to restart the complete
 `STATE-05` Automatic Quality Gate over the resulting clean baseline.
+
+## Automatic Quality Gate restart after S05-CORR-03 — 2026-08-05
+
+### Authority and baseline
+
+- Gate baseline: branch `main`, commit
+  `b457970aed4564d5a654bb4e8d38439c98f29522`, corpus `4.9.2`, clean working
+  tree. Location, Git top-level, Git directory, branch, commit, corpus and
+  cleanliness were reconfirmed immediately before the audit.
+- Authority: restart the complete `STATE-05` Automatic Quality Gate locally,
+  offline and sequentially, without product correction, dependency change,
+  installation, external action, Human Gate or later lifecycle state.
+- The audit restarted with the required authority, lifecycle, scope, contract
+  and security inspection. The owner-defined stop condition applied to every
+  material finding.
+
+### Result
+
+`REPROVADO`. One material P2 finding was observed during the initial static
+inspection. The gate stopped before executable preflight, npm commands or
+loopback browser validation. No product or test file was changed.
+
+#### AQG-S05-005 — P2 — completed response language is not bound to the request
+
+- Requirement: every completed API v1 response must have `answerLanguage`
+  equal to the accepted `questionLanguage`. The Dashboard must fail closed on
+  an incompatible response rather than present an answer under a different
+  language contract.
+- Location: `src/RagChallenge.Dashboard.Web/src/contracts/api-v1.ts` validates
+  `answerLanguage` only as a member of the supported-language set.
+  `src/RagChallenge.Dashboard.Web/src/query-client.ts` calls
+  `decodeQueryResponse(payload)` without supplying or comparing the
+  `questionLanguage` used to create the request.
+- Existing test evidence: the shared answered fixture declares
+  `answerLanguage: "pt-BR"`. The exact-response-ceiling transport test sends
+  an `en-GB` question, receives that fixture and accepts the result as
+  completed. The eight-combination presentation test constructs matching
+  response values directly and therefore does not exercise the transport
+  mismatch.
+- Impact: a malformed, compromised or incompatible same-origin API response
+  can return a supported but different answer language. The Dashboard then
+  presents and marks that answer with the response language despite the
+  user's explicit query-language selection, violating the v1 compatibility
+  boundary and the bilingual experience contract.
+- Recommendation: under separate corrective authority, bind completion
+  decoding to the request language, reject every mismatch, and add
+  deterministic client/contract regressions for both valid languages and the
+  two cross-language mismatch directions.
+
+### AQG-S05-001 to AQG-S05-004 re-evaluation
+
+Static inspection confirmed that:
+
+- `AQG-S05-001`: non-HTTPS citation URLs and every non-null local URL are
+  rejected, and presentation creates links only for validated official HTTPS
+  citations;
+- `AQG-S05-002`: response reading rejects a declared oversized length before
+  reader acquisition, counts incremental bytes, cancels on the first overflow
+  and preserves abort propagation;
+- `AQG-S05-003`: the Portuguese static title is replaced from
+  `interfaceLanguage`, independently of query language and theme; and
+- `AQG-S05-004`: citation freshness uses the closed canonical set,
+  `LocalAuthorised` requires `Local`, `OfficialExternal` rejects `Local`, and
+  both interface maps own the `Local` label.
+
+The focused regressions for all four corrections remain present. The
+mandatory stop occurred before `npm test` and browser execution, so the four
+findings remain corrected but pending executable retest and disposition by a
+later complete gate restart.
+
+### Checks stopped or not reached
+
+- Executable runtime preflight was not reached; no process or listener was
+  inspected, started or stopped.
+- `npm run lint`, `npm run typecheck`, `npm test` and `npm run build` were not
+  executed. Toolchain inspection was not used as executable gate evidence.
+- JavaScript percentage coverage remains unavailable in the existing package
+  scripts and dependency set; no percentage is claimed.
+- Styled visual and external accessibility-engine checks, narrow viewport and
+  reflow, keyboard, Light/Dark, `pt-BR`/`en-GB`, the eight-combination browser
+  matrix and build reproducibility were not reached.
+- No loopback listener or browser session was started, so no listener cleanup
+  was required.
+- Static scope inspection found no package, lockfile, OpenAPI, ADR, backend or
+  other protected-path change in the `STATE-05` implementation range. The
+  OpenAPI SHA-256 remained
+  `D6A686B94C926914BEB28B437F464430A01DE6560C2E2D476CF5C36025813E34`.
+
+### Lifecycle consequence
+
+`STATE-05 FRONTEND_IMPLEMENTATION` remains active. The restarted Automatic
+Quality Gate is failed with `AQG-S05-005` open. `AQG-S05-001` through
+`AQG-S05-004` remain corrected but pending complete executable gate retest.
+Human Gate and `STATE-06` remain not authorised and not executed. Correction
+of `AQG-S05-005` and a later complete gate restart require separate explicit
+owner authorities.
