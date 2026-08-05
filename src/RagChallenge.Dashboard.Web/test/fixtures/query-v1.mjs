@@ -1,0 +1,67 @@
+// Purpose: Supplies synthetic API v1 fixtures that exercise Dashboard behaviour without real corpus, provider, source, or network access.
+export const answeredResponse = {
+  outcome: "Answered",
+  answerLanguage: "pt-BR",
+  answer: "O PostgreSQL usa controle multiversão para manter versões de linhas.",
+  citations: [
+    {
+      corpusId: "database-systems-catalogue-mvp",
+      indexGenerationId: "generation-synthetic-001",
+      databaseProductId: "postgresql",
+      databaseProductRevision: 1,
+      documentId: "postgresql-18-reference",
+      documentVersion: 1,
+      documentFormat: "Pdf",
+      contentLanguage: "en-GB",
+      chunkId: "chunk-synthetic-001",
+      sourceAdapterId: "https-official-pdf-v1",
+      sourceTrustClass: "OfficialExternal",
+      excerpt: "Multiversion concurrency control gives each statement a snapshot.",
+      title: "PostgreSQL 18 Documentation",
+      pageStart: 142,
+      pageEnd: 142,
+      recordStart: null,
+      recordEnd: null,
+      columns: [],
+      canonicalUrl: "https://www.postgresql.org/files/documentation/pdf/18/postgresql-18-A4.pdf",
+      sourceSnapshotId: "snapshot-synthetic-001",
+      revalidatedAt: "2026-08-04T12:00:00Z",
+      sourceFreshness: "Current",
+    },
+  ],
+  evidenceCoverage: {
+    activeDatabaseCount: 2,
+    activeDocumentCount: 3,
+    eligibleDatabaseCount: 1,
+    eligibleDocumentCount: 2,
+    degradedSources: {
+      "source-synthetic-stale": "Stale",
+    },
+  },
+  indexGenerationId: "generation-synthetic-001",
+  retrievalPolicyVersion: "retrieval-policy-v1",
+  promptVersion: "grounded-answer-v1",
+  languageModelDescriptor: {
+    providerId: "synthetic-provider",
+    modelId: "synthetic-model",
+    modelRevision: "synthetic-revision",
+  },
+  correlationId: "correlation_synthetic_001",
+};
+
+export const insufficientEvidenceResponse = {
+  ...answeredResponse,
+  outcome: "InsufficientEvidence",
+  answer: null,
+  citations: [],
+};
+
+export const rateLimitedProblem = {
+  type: "urn:rag-challenge:problem:ch_query_rate_limited",
+  title: "Query rate limited",
+  status: 429,
+  detail: "The query budget is temporarily exhausted.",
+  code: "CH_QUERY_RATE_LIMITED",
+  correlationId: "correlation_synthetic_002",
+  retryAfterSeconds: 3,
+};
