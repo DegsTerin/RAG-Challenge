@@ -58,7 +58,7 @@ export async function askQuestion(
   }
 
   return response.ok
-    ? { kind: "completed", response: decodeQueryResponse(payload) }
+    ? { kind: "completed", response: decodeQueryResponse(payload, questionLanguage) }
     : { kind: "problem", problem: decodeProblemDetails(payload) };
 }
 

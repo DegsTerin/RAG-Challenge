@@ -162,10 +162,20 @@ export function createQueryRequest(
   return { request, body };
 }
 
-export function decodeQueryResponse(value: unknown): QueryResponseV1 {
+export function decodeQueryResponse(
+  value: unknown,
+  expectedAnswerLanguage: SupportedLanguage,
+): QueryResponseV1 {
   const object = requireObject(value, "response");
   const outcome = requireEnum(object.outcome, queryOutcomes, "outcome");
   const answerLanguage = requireEnum(object.answerLanguage, supportedLanguages, "answerLanguage");
+
+  if (answerLanguage !== expectedAnswerLanguage) {
+    throw new ContractValidationError(
+      "Response answerLanguage does not match the requested questionLanguage.",
+    );
+  }
+
   const answer = requireNullableString(object.answer, "answer");
   const citations = requireArray(object.citations, "citations").map(decodeCitation);
   const evidenceCoverage = decodeEvidenceCoverage(object.evidenceCoverage);

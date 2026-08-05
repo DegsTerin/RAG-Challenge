@@ -4,7 +4,11 @@ import test from "node:test";
 
 import { ContractValidationError } from "../src/contracts/api-v1.ts";
 import { askQuestion } from "../src/query-client.ts";
-import { answeredResponse, rateLimitedProblem } from "./fixtures/query-v1.mjs";
+import {
+  answeredResponse,
+  answeredResponseEnGb,
+  rateLimitedProblem,
+} from "./fixtures/query-v1.mjs";
 
 const maximumResponseBytes = 262_144;
 
@@ -55,6 +59,50 @@ test("returns canonical Problem Details without exposing server prose as UI copy
   assert.equal(result.problem.retryAfterSeconds, 3);
 });
 
+test("binds completed responses to the question language sent", async () => {
+  for (const [questionLanguage, response] of [
+    ["pt-BR", answeredResponse],
+    ["en-GB", answeredResponseEnGb],
+  ]) {
+    const fakeFetch = async () =>
+      new Response(JSON.stringify(response), {
+        status: 200,
+        headers: { "content-type": "application/json" },
+      });
+
+    const result = await askQuestion(
+      "Synthetic question",
+      questionLanguage,
+      new AbortController().signal,
+      fakeFetch,
+    );
+
+    assert.equal(result.kind, "completed");
+    assert.equal(result.response.answerLanguage, questionLanguage);
+  }
+
+  for (const [questionLanguage, response] of [
+    ["pt-BR", answeredResponseEnGb],
+    ["en-GB", answeredResponse],
+  ]) {
+    const fakeFetch = async () =>
+      new Response(JSON.stringify(response), {
+        status: 200,
+        headers: { "content-type": "application/json" },
+      });
+
+    await assert.rejects(
+      askQuestion(
+        "Synthetic question",
+        questionLanguage,
+        new AbortController().signal,
+        fakeFetch,
+      ),
+      ContractValidationError,
+    );
+  }
+});
+
 test("fails closed on incompatible media type, JSON, or body size", async () => {
   const textResponse = async () => new Response("plain text", { status: 200 });
   const invalidJson = async () =>
@@ -74,7 +122,7 @@ test("fails closed on incompatible media type, JSON, or body size", async () => 
 });
 
 test("accepts a valid response at the exact byte ceiling", async () => {
-  const responseText = createPaddedResponse(maximumResponseBytes);
+  const responseText = createPaddedResponse(maximumResponseBytes, answeredResponseEnGb);
   const fakeFetch = async () =>
     new Response(responseText, {
       status: 200,
@@ -188,9 +236,9 @@ test("preserves cancellation while streaming the response body", async () => {
   );
 });
 
-function createPaddedResponse(byteLength) {
-  const emptyResponse = JSON.stringify({ ...answeredResponse, padding: "" });
+function createPaddedResponse(byteLength, response = answeredResponse) {
+  const emptyResponse = JSON.stringify({ ...response, padding: "" });
   const paddingLength = byteLength - new TextEncoder().encode(emptyResponse).byteLength;
   assert.ok(paddingLength >= 0);
-  return JSON.stringify({ ...answeredResponse, padding: "x".repeat(paddingLength) });
+  return JSON.stringify({ ...response, padding: "x".repeat(paddingLength) });
 }

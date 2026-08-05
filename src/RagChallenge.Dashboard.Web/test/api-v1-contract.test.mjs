@@ -13,6 +13,7 @@ import {
 } from "../src/contracts/api-v1.ts";
 import {
   answeredResponse,
+  answeredResponseEnGb,
   insufficientEvidenceResponse,
   rateLimitedProblem,
 } from "./fixtures/query-v1.mjs";
@@ -50,9 +51,12 @@ test("rejects empty, oversized, and control-character questions", () => {
 });
 
 test("decodes answered and insufficient-evidence completions", () => {
-  const answered = decodeQueryResponse(answeredResponse);
-  const insufficient = decodeQueryResponse(insufficientEvidenceResponse);
+  const answered = decodeQueryResponse(answeredResponse, "pt-BR");
+  const answeredEnGb = decodeQueryResponse(answeredResponseEnGb, "en-GB");
+  const insufficient = decodeQueryResponse(insufficientEvidenceResponse, "pt-BR");
 
+  assert.equal(answered.answerLanguage, "pt-BR");
+  assert.equal(answeredEnGb.answerLanguage, "en-GB");
   assert.equal(answered.citations[0].sourceTrustClass, "OfficialExternal");
   assert.equal(answered.citations[0].contentLanguage, "en-GB");
   assert.match(answered.citations[0].canonicalUrl, /^https:\/\//);
@@ -61,6 +65,17 @@ test("decodes answered and insufficient-evidence completions", () => {
   assert.equal(answered.citations[1].sourceFreshness, "Local");
   assert.equal(insufficient.outcome, "InsufficientEvidence");
   assert.equal(insufficient.answer, null);
+});
+
+test("rejects completed responses in a language other than the requested language", () => {
+  assert.throws(
+    () => decodeQueryResponse(answeredResponseEnGb, "pt-BR"),
+    ContractValidationError,
+  );
+  assert.throws(
+    () => decodeQueryResponse(answeredResponse, "en-GB"),
+    ContractValidationError,
+  );
 });
 
 test("fails closed on cross-class citation freshness", () => {
@@ -75,7 +90,7 @@ test("fails closed on cross-class citation freshness", () => {
           index === localCitationIndex
             ? { ...citation, sourceFreshness: "Current" }
             : citation),
-      }),
+      }, "pt-BR"),
     ContractValidationError,
   );
   assert.throws(
@@ -86,7 +101,7 @@ test("fails closed on cross-class citation freshness", () => {
           index === officialCitationIndex
             ? { ...citation, sourceFreshness: "Local" }
             : citation),
-      }),
+      }, "pt-BR"),
     ContractValidationError,
   );
   assert.throws(
@@ -97,14 +112,17 @@ test("fails closed on cross-class citation freshness", () => {
           index === officialCitationIndex
             ? { ...citation, sourceFreshness: "Future" }
             : citation),
-      }),
+      }, "pt-BR"),
     ContractValidationError,
   );
 });
 
 test("rejects inconsistent completion and provenance identities", () => {
   assert.throws(
-    () => decodeQueryResponse({ ...insufficientEvidenceResponse, answer: "unsupported" }),
+    () => decodeQueryResponse(
+      { ...insufficientEvidenceResponse, answer: "unsupported" },
+      "pt-BR",
+    ),
     ContractValidationError,
   );
   assert.throws(
@@ -112,7 +130,7 @@ test("rejects inconsistent completion and provenance identities", () => {
       decodeQueryResponse({
         ...answeredResponse,
         citations: [{ ...answeredResponse.citations[0], indexGenerationId: "other" }],
-      }),
+      }, "pt-BR"),
     ContractValidationError,
   );
   assert.throws(
@@ -120,7 +138,7 @@ test("rejects inconsistent completion and provenance identities", () => {
       decodeQueryResponse({
         ...answeredResponse,
         citations: [{ ...answeredResponse.citations[0], canonicalUrl: "javascript:alert(1)" }],
-      }),
+      }, "pt-BR"),
     ContractValidationError,
   );
   assert.throws(
@@ -130,7 +148,7 @@ test("rejects inconsistent completion and provenance identities", () => {
         citations: answeredResponse.citations.map((citation, index) => index === 1
           ? { ...citation, canonicalUrl: "javascript:alert(1)" }
           : citation),
-      }),
+      }, "pt-BR"),
     ContractValidationError,
   );
   assert.throws(
@@ -140,7 +158,7 @@ test("rejects inconsistent completion and provenance identities", () => {
         citations: answeredResponse.citations.map((citation, index) => index === 1
           ? { ...citation, canonicalUrl: "https://local.invalid/document.csv" }
           : citation),
-      }),
+      }, "pt-BR"),
     ContractValidationError,
   );
 });

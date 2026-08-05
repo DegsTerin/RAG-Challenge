@@ -80,6 +80,12 @@ export const insufficientEvidenceResponse = {
   citations: [],
 };
 
+export const answeredResponseEnGb = {
+  ...answeredResponse,
+  answerLanguage: "en-GB",
+  answer: "PostgreSQL uses multiversion concurrency control to retain row versions.",
+};
+
 export const rateLimitedProblem = {
   type: "urn:rag-challenge:problem:ch_query_rate_limited",
   title: "Query rate limited",
