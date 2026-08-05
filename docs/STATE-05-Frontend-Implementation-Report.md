@@ -395,3 +395,91 @@ that gate.
 `STATE-05 FRONTEND_IMPLEMENTATION` remains active. Automatic Quality Gate,
 Human Gate and `STATE-06` were not executed by `S05-CORR-01` and remain without
 authority.
+
+## Automatic Quality Gate restart — 2026-08-05
+
+### Authority and baseline
+
+- Restart baseline: branch `main`, commit
+  `f7e7f4a9d4afd234c9f3fcc725e7093653bc3363`, corpus `4.9.2`, clean working
+  tree. Location, Git top-level, Git directory, branch, commit, corpus and
+  cleanliness were reconfirmed before the audit.
+- Authority: restart the complete `STATE-05` Automatic Quality Gate locally,
+  offline and sequentially, without product correction, dependency change,
+  installation, external action, Human Gate or later lifecycle state.
+- The audit began again with authority, lifecycle, scope, contract and
+  security inspection. Its owner-defined stop condition applied to any
+  material finding.
+
+### Result
+
+`REPROVADO`. Two material P2 findings were observed during the initial static
+inspection. The gate stopped before executable preflight, npm commands or
+loopback browser validation. No product or test file was changed.
+
+#### AQG-S05-002 — P2 — response ceiling is enforced after full materialisation
+
+- Requirement: untrusted response input must remain bounded in bytes before it
+  can consume unbounded client memory.
+- Location: `src/RagChallenge.Dashboard.Web/src/query-client.ts` calls
+  `response.text()` before calculating the UTF-8 byte count against the
+  262,144-byte ceiling.
+- Evidence: no `Content-Length` pre-check, streaming reader or incremental
+  byte counter exists in the client or its tests. The oversized-response test
+  proves rejection only after the complete synthetic body has been allocated
+  and decoded as text.
+- Impact: a malformed, compromised or unexpectedly large same-origin API
+  response can be fully buffered before rejection. The declared ceiling
+  protects JSON parsing and rendering, but does not bound transport-body
+  materialisation or its transient memory cost.
+- Recommendation: under separate corrective authority, enforce the ceiling
+  while reading the response body, reject a declared oversized length before
+  reading where present, preserve cancellation, and add deterministic fake
+  stream tests for boundary, overflow and abort behaviour.
+
+#### AQG-S05-003 — P2 — document title is not localised with the interface
+
+- Requirement: product-owned visual text must use the selected
+  `interfaceLanguage` without mixing `pt-BR` and `en-GB`.
+- Location: `src/RagChallenge.Dashboard.Web/index.html` fixes the document
+  title as `RAG-Challenge — Database documentation`. No source or test updates
+  `document.title` when `interfaceLanguage` changes.
+- Impact: the default `pt-BR` interface and subsequent language changes leave
+  an English product label visible in the browser tab, so the visual language
+  is not complete even though the in-page shell is localised.
+- Recommendation: under separate corrective authority, add localised document
+  metadata owned by the interface-language state and test both initial and
+  switched language values without coupling them to `questionLanguage` or
+  theme.
+
+### AQG-S05-001 re-evaluation
+
+Static inspection confirmed that the decoder rejects non-HTTPS citation URLs,
+requires a null `canonicalUrl` for `LocalAuthorised`, and that presentation
+creates anchors only for `OfficialExternal` citations with validated HTTPS.
+The two focused regression files contain the expected malformed-local and
+preserved-valid cases. However, the mandatory stop occurred before `npm test`,
+so `AQG-S05-001` remains `CORRIGIDO_PENDENTE_DE_RETESTE_DO_GATE` rather than
+being disposed as resolved by this incomplete restart.
+
+### Checks stopped or not reached
+
+- Executable runtime preflight was not reached; no process or listener was
+  inspected, started or stopped.
+- `npm run lint`, `npm run typecheck`, `npm test` and `npm run build` were not
+  executed.
+- JavaScript percentage coverage remains unavailable in the existing package
+  scripts and dependency set; no percentage is claimed.
+- Styled visual review, external accessibility-engine checks, narrow viewport
+  and reflow observation, keyboard repetition, the eight-combination browser
+  matrix and exact-toolchain reproducibility were not reached.
+- No loopback listener or browser session was started, so no listener cleanup
+  was required.
+
+### Lifecycle consequence
+
+`STATE-05 FRONTEND_IMPLEMENTATION` remains active. Its restarted Automatic
+Quality Gate is failed with `AQG-S05-002` and `AQG-S05-003` open, while
+`AQG-S05-001` remains corrected but pending executable gate retest. Human Gate
+and `STATE-06` remain not authorised and not executed. Corrections and a later
+complete gate restart require separate explicit owner authorities.

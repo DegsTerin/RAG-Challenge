@@ -3222,3 +3222,52 @@ contém somente fatos cronológicos.
   separada para reiniciar integralmente o Automatic Quality Gate de
   `STATE-05`.
 - Aprovador: proprietário do RAG-Challenge.
+
+## 2026-08-05 — Reinício integral do Automatic Quality Gate de STATE-05 reprovado
+
+- Estado preservado: `STATE-05 FRONTEND_IMPLEMENTATION` permaneceu ativo; o
+  Human Gate e `STATE-06` não foram autorizados nem executados.
+- Baseline do reinício: branch `main`, commit
+  `f7e7f4a9d4afd234c9f3fcc725e7093653bc3363`, corpus `4.9.2` e working tree
+  limpa, reconfirmados antes da auditoria.
+- Autoridade: reinício integral, local, offline e sequencial do Automatic
+  Quality Gate, sem correção automática, mudança de produto/teste,
+  dependência, instalação, rede externa, ação remota, Human Gate ou estado
+  posterior.
+- Escopo iniciado: releitura de autoridades e inspeção desde o começo de
+  lifecycle, escopo, contratos, segurança, cobertura, acessibilidade,
+  viewport, matriz e reprodutibilidade; checks npm e browser loopback somente
+  enquanto nenhuma condição de parada fosse encontrada.
+- Reavaliação de `AQG-S05-001`: a inspeção estática confirmou rejeição de URL
+  não HTTPS, URL nula obrigatória para `LocalAuthorised`, link restrito a
+  `OfficialExternal` HTTPS e as regressões focais esperadas. Como a parada
+  ocorreu antes de `npm test`, a disposição permanece
+  `CORRIGIDO_PENDENTE_DE_RETESTE_DO_GATE`.
+- `AQG-S05-002` (P2): `query-client.ts` chama `response.text()` antes de
+  conferir o teto de 262.144 bytes. Não existe precheck de `Content-Length`,
+  leitura incremental ou contador de bytes; o teste oversized comprova
+  rejeição somente depois de alocar/materializar o corpo completo. Uma
+  resposta same-origin inesperadamente grande pode consumir memória sem o
+  limite declarado antes de ser rejeitada.
+- `AQG-S05-003` (P2): `index.html` fixa o título
+  `RAG-Challenge — Database documentation`, e não existe atualização de
+  `document.title` ligada a `interfaceLanguage`. A interface padrão `pt-BR`
+  mantém um rótulo visual inglês na aba do navegador.
+- Condição de parada: acionada durante a inspeção estática. Preflight
+  executável, lint, typecheck, testes, build, cobertura percentual, browser,
+  acessibilidade visual, viewport estreito/reflow, teclado, matriz das oito
+  combinações e reprodutibilidade não foram executados. Nenhum processo ou
+  listener foi inspecionado, iniciado ou encerrado.
+- Resultado do Automatic Quality Gate reiniciado: `REPROVADO`, com dois P2
+  abertos, nenhum novo P0/P1 observado antes da parada e
+  `AQG-S05-001` ainda pendente de reteste executável.
+- Mudanças: somente relatório e memória factual do gate; nenhum arquivo de
+  frontend, código, teste, dependência, package, lockfile, contrato, OpenAPI,
+  ADR, backend ou configuração foi alterado.
+- Limitações preservadas: percentuais de cobertura JavaScript, styled visual
+  review, viewport estreito direto, engine externa de acessibilidade, matriz
+  browser e reprodução no Node exato permanecem sem disposição.
+- Próxima condição: autoridade humana explícita e separada para corrigir
+  `AQG-S05-002` e `AQG-S05-003`; depois de baseline corretiva limpa, nova
+  autoridade separada para reiniciar integralmente o Automatic Quality Gate.
+- Aprovador: proprietário do RAG-Challenge.
