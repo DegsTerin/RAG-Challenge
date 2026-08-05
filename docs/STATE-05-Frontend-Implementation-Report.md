@@ -948,3 +948,126 @@ authorised correction scope.
 `STATE-05 FRONTEND_IMPLEMENTATION` remains active. A complete restart of its
 Automatic Quality Gate requires new explicit and separate owner authority.
 Human Gate and `STATE-06` remain not authorised and not executed.
+
+## Automatic Quality Gate restart after S05-CORR-04 — 2026-08-05
+
+### Authority and baseline
+
+- Gate baseline: location `C:\Projects\RAG-Challenge`, Git top-level
+  `C:/Projects/RAG-Challenge`, Git directory `.git`, branch `main`, commit
+  `a58c4038fb14e656c95303d914e02c7f8ad75c17`, corpus `4.9.2` and clean
+  working tree. All seven conditions were reconfirmed immediately before the
+  audit.
+- Authority: restart the complete `STATE-05` Automatic Quality Gate locally,
+  offline and sequentially, using only the existing installation, synthetic
+  fixtures, fake fetch and a task-owned loopback listener. Product correction,
+  dependency changes, installation, external actions, Human Gate and later
+  lifecycle states remained outside authority.
+- The audit restarted with authority, lifecycle, scope, contract and security
+  inspection. The owner-defined stop condition applied to every material
+  finding.
+
+### Result
+
+`REPROVADO`. The static inspection and complete existing npm suite disposed
+`AQG-S05-001` through `AQG-S05-005` as `RESOLVIDOS`, but the browser keyboard
+reproduction found `AQG-S05-006` (P2). The gate stopped before the remaining
+narrow-viewport, reflow, theme and eight-combination browser checks. No
+product or test file was changed.
+
+#### AQG-S05-001 to AQG-S05-005 disposition
+
+- `AQG-S05-001`: `RESOLVIDO`. Static inspection confirmed the HTTPS-only
+  citation boundary, null URL for `LocalAuthorised` and official-link
+  presentation guard. The unsafe local URL regressions passed.
+- `AQG-S05-002`: `RESOLVIDO`. The client rejects an oversized declared length
+  before acquiring the reader, counts incremental bytes, cancels on the first
+  overflow and preserves cancellation. Boundary and streaming regressions
+  passed.
+- `AQG-S05-003`: `RESOLVIDO`. The static fallback is Portuguese and the
+  document metadata follows only `interfaceLanguage`. Both titles and all
+  eight state combinations passed the deterministic matrix test; the built
+  browser page also presented metadata consistent with its persisted `en-GB`
+  preference.
+- `AQG-S05-004`: `RESOLVIDO`. Citation freshness uses the closed canonical
+  set, local evidence requires `Local`, official evidence rejects `Local`, and
+  both interface maps own the localised presentation. Contract and component
+  regressions passed.
+- `AQG-S05-005`: `RESOLVIDO`. Completion decoding is bound to the
+  `questionLanguage` actually sent. The two valid and two incompatible
+  language directions passed in contract and fake-fetch client regressions.
+
+#### AQG-S05-006 — P2 — skip link does not transfer focus to the main content
+
+- Requirement: keyboard users must be able to bypass repeated header controls,
+  with visible and deterministic focus behaviour.
+- Location: `src/RagChallenge.Dashboard.Web/src/App.tsx` links the first focus
+  target to `#main-content`, but the target `<main>` is not programmatically
+  focusable and activation has no focus-management handler.
+- Reproduction: on the built application served from the task-owned loopback
+  listener, the first `Tab` focused `Skip to content` and exposed its visible
+  solid outline. Activating it changed the URL fragment to `#main-content`,
+  but `document.activeElement` became `<body>` rather than the target
+  `<main>`.
+- Impact: the skip link does not provide a reliable keyboard-focus bypass of
+  the repeated visual-preference controls. The presence and visible focus of
+  the link do not satisfy its intended navigation behaviour.
+- Recommendation: under separate corrective authority, make the main target
+  programmatically focusable and move focus to it on skip-link activation,
+  then add a browser regression that proves both the target focus and the next
+  tab order.
+
+### Executable verification reached before the stop
+
+All npm commands ran from `src/RagChallenge.Dashboard.Web` with
+`npm_config_offline=true`, the existing Node.js `24.18.1` and npm `11.16.0`
+installation, and no install or `dotnet` command.
+
+| Verification | Result |
+| --- | --- |
+| `npm run lint` | Passed, exit code 0 |
+| `npm run typecheck` | Passed, exit code 0 |
+| `npm test` | Passed, 37 tests, 0 failed/skipped/cancelled |
+| `npm run build` | Passed, 20 modules transformed |
+| Repeated build | Byte-for-byte identical SHA-256 manifest for all three built files |
+| Built HTML | 0.97 kB (0.56 kB gzip) |
+| Built CSS | 11.96 kB (3.35 kB gzip) |
+| Built JavaScript | 171.86 kB (55.29 kB gzip) |
+| Working tree after executable checks | Clean |
+
+The directed preflight found no RAG-Challenge listener on ports 4173 or 5173
+and no product process to stop. The existing matching Node.js process belonged
+to the Codex browser-control runtime and was not stopped. The built application
+was then served exclusively on `127.0.0.1:4173` by a task-owned Vite preview.
+The exact preview process was revalidated by executable, command line, address
+and port before termination; port 4173 was clear afterwards.
+
+### Checks stopped or limitations retained
+
+- JavaScript line and branch percentages remain unavailable because the
+  existing package scripts and dependency set contain no instrumentation.
+  No percentage or repository coverage floor is claimed for the Dashboard.
+- Node.js `24.18.1` was observed instead of the exact repository pin
+  `24.18.0`. Build output reproduced byte for byte on the observed runtime,
+  but exact-Node reproducibility was not proved.
+- The browser screenshot operation timed out. Semantic structure, labels,
+  visible keyboard focus and computed runtime state were inspected, but no
+  screenshot is claimed as evidence.
+- Narrow viewport, reflow, the complete Light/Dark browser switch, the two
+  interface languages and the eight-combination browser matrix were not
+  reached after the mandatory stop. Their deterministic component, CSS-token
+  and fake-fetch tests passed before the finding.
+- No third-party accessibility engine was installed or run. No real backend,
+  provider, account, secret, corpus, official source or external network was
+  exercised.
+- A sanitised task log directory outside the repository remained in the
+  system temporary directory after the execution policy refused its deletion.
+  It contains no listener, secret, corpus or tracked project change.
+
+### Lifecycle consequence
+
+`STATE-05 FRONTEND_IMPLEMENTATION` remains active. Its Automatic Quality Gate
+is failed with `AQG-S05-006` open; `AQG-S05-001` through `AQG-S05-005` are
+resolved by this restart. Human Gate and `STATE-06` remain not authorised and
+not executed. Correction of `AQG-S05-006` and any later complete gate restart
+require separate explicit owner authorities.

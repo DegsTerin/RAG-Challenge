@@ -176,6 +176,20 @@ proprietários.
   permaneceram inalterados. `AQG-S05-001` a `AQG-S05-005` estão corrigidos,
   mas pendem de reteste e disposição por um reinício integral do Automatic
   Quality Gate sob autoridade humana posterior e separada.
+- Reinício integral do Automatic Quality Gate após `S05-CORR-04`: autorizado
+  e iniciado em 2026-08-05 sobre
+  `main@a58c4038fb14e656c95303d914e02c7f8ad75c17`, corpus `4.9.2` e working
+  tree limpa. Inspeção estática, lint, typecheck, 37 testes, build e repetição
+  byte a byte do build passaram; `AQG-S05-001` a `AQG-S05-005` foram
+  dispostos como `RESOLVIDOS`. A validação de teclado encontrou
+  `AQG-S05-006` (P2): o skip link recebe foco visível e altera o fragmento
+  para `#main-content`, mas não transfere o foco ao `<main>`; o elemento ativo
+  volta a ser `<body>`, sem oferecer bypass de foco confiável. A condição de
+  parada foi acionada antes de viewport estreito/reflow, alternância completa
+  Light/Dark e matriz browser das oito combinações. O gate foi `REPROVADO`.
+  O listener pertencente à tarefa escutou somente em `127.0.0.1:4173`, foi
+  identificado e encerrado; a porta terminou livre. Nenhuma correção, mudança
+  de frontend, código, teste, dependência, contrato ou backend foi executada.
 - Fechamento de `S04-A0`: `PdfPig` `0.1.15` e `CsvHelper` `33.1.0` foram
   selecionados condicionalmente para desenvolvimento local;
   `Sylvan.Data.Csv` `1.4.4` permanece fallback não selecionado e não
@@ -666,9 +680,10 @@ autorizada.
    para cada banco antes de sua ativação.
 2. Validar e ativar individualmente novos registros de fonte oficial; a
    aceitação arquitetural não autoriza URL, rede, download ou crawling.
-3. Obter autorização humana explícita e separada para reiniciar integralmente
-   o Automatic Quality Gate de `STATE-05` sobre a baseline corretiva limpa e
-   dispor `AQG-S05-001` a `AQG-S05-005`.
+3. Obter autoridade humana explícita e separada para corrigir
+   `AQG-S05-006`; depois, sobre nova baseline corretiva limpa, obter outra
+   autoridade separada para reiniciar integralmente o Automatic Quality Gate
+   de `STATE-05`.
 4. Verificar tier, entitlement, spend limit e controles da conta OpenAI, além
    da recuperação/geração bilíngue, antes de usar ou anunciar os providers.
 5. Homologar desempenho e capacidade do `SqliteExactVectorStore`; a fixture
@@ -777,13 +792,21 @@ browser; nenhuma correção foi executada.
 `bed8ec03d670ed4e76a556f7df723c30db320a24`. O decoder exige que o idioma da
 resposta concluída corresponda ao idioma enviado, o cliente preserva esse
 binding e as quatro combinações válidas/incompatíveis foram exercitadas.
-Lint, typecheck, 37 testes e build passaram. `AQG-S05-001` a `AQG-S05-005`
-estão `CORRIGIDOS_PENDENTES_DE_RETESTE_DO_GATE`. A próxima autoridade
-possível é uma decisão humana posterior, explícita e separada, para reiniciar
-integralmente o Automatic Quality Gate. O Human Gate continua prematuro e
-`STATE-06` não está autorizado.
+Lint, typecheck, 37 testes e build passaram.
+
+O reinício integral posterior sobre
+`main@a58c4038fb14e656c95303d914e02c7f8ad75c17` dispôs
+`AQG-S05-001` a `AQG-S05-005` como `RESOLVIDOS`, mas foi `REPROVADO` por
+`AQG-S05-006` (P2). A reprodução em browser mostrou que o skip link visível
+não transfere o foco ao conteúdo principal. A parada obrigatória impediu a
+conclusão das verificações browser de viewport estreito/reflow, temas e matriz
+das oito combinações. O Human Gate continua prematuro e `STATE-06` não está
+autorizado. A próxima autoridade possível é uma decisão humana explícita e
+separada para corrigir somente `AQG-S05-006`; um novo reinício integral do
+gate exigirá autorização posterior própria sobre a baseline corretiva limpa.
 
 Rede externa, providers, contas, secrets, corpus real, fontes oficiais reais
 do produto, armazenamento operacional, GitHub, OCI, publicação, deploy,
-DB-Notifier, nova repetição do Automatic Quality Gate, Human Gate e entrada ou
-execução de estados posteriores continuam sem autorização.
+DB-Notifier, correção de `AQG-S05-006`, nova repetição do Automatic Quality
+Gate, Human Gate e entrada ou execução de estados posteriores continuam sem
+autorização.
