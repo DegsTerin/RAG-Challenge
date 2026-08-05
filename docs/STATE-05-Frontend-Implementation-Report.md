@@ -483,3 +483,102 @@ Quality Gate is failed with `AQG-S05-002` and `AQG-S05-003` open, while
 `AQG-S05-001` remains corrected but pending executable gate retest. Human Gate
 and `STATE-06` remain not authorised and not executed. Corrections and a later
 complete gate restart require separate explicit owner authorities.
+
+## S05-CORR-02 — 2026-08-05
+
+### Authority and baseline
+
+- Correction baseline: branch `main`, commit
+  `651b4ad9edba79b3fc8a16e550fc2a357b6b85d2`, corpus `4.9.2`, clean working
+  tree. Location, Git top-level, Git directory, branch, commit, corpus and
+  cleanliness were reconfirmed immediately before the first alteration.
+- Authority: execute the local, offline and sequential `S05-CORR-02`
+  increment only, correcting `AQG-S05-002` and `AQG-S05-003`, preserving the
+  `AQG-S05-001` correction, running the four existing npm checks and using a
+  task-owned loopback listener only for title validation.
+- No dependency, package, lockfile, external contract, OpenAPI, ADR, backend,
+  provider, installation or external action was authorised or performed.
+
+### Corrections
+
+The focused commit `ec5ecf41b113853fc2863a94cbfe77dbe4741828`
+implements the response-body boundary. The client now:
+
+- rejects a valid decimal `Content-Length` greater than 262,144 bytes before
+  acquiring the response stream reader;
+- reads the body incrementally and counts raw bytes before decoding or JSON
+  parsing;
+- cancels the reader and fails closed on the first byte beyond the limit;
+- accepts an exactly 262,144-byte valid JSON response; and
+- propagates cancellation while preserving the existing same-origin request,
+  accepted JSON media types and contract-validation boundaries.
+
+Deterministic fake-stream regressions cover the exact limit, incremental
+overflow, declared oversized length and abort during body reading. The
+existing unsafe-local-URL and valid official/local citation regressions remain
+present and passed in the complete suite.
+
+The focused commit `20458c8189b132b775786b2fc8f9b44ee5c2f7b8`
+implements the visual document title. The static fallback is Portuguese, and
+the interface-language effect now updates both the root `lang` attribute and
+`document.title` from `interfaceLanguage`. Tests exercise all eight
+interface-language, question-language and theme combinations and prove that
+the title depends only on `interfaceLanguage`:
+
+- `pt-BR`: `RAG-Challenge — Documentação de bancos de dados`;
+- `en-GB`: `RAG-Challenge — Database documentation`.
+
+### Verification
+
+The full offline verification ran from
+`src/RagChallenge.Dashboard.Web` with the existing Node.js `24.18.1` and npm
+`11.16.0` installation. No install command or `dotnet` command ran.
+
+| Verification | Result |
+| --- | --- |
+| `npm run lint` | Passed, exit code 0 |
+| `npm run typecheck` | Passed, exit code 0 |
+| `npm test` | Passed, 34 tests, 0 failed/skipped/cancelled |
+| `npm run build` | Passed, 20 modules transformed |
+| Built HTML | 0.97 kB (0.56 kB gzip) |
+| Built CSS | 11.96 kB (3.35 kB gzip) |
+| Built JavaScript | 171.54 kB (55.19 kB gzip) |
+| Package, lockfile and OpenAPI diff | Empty |
+| OpenAPI SHA-256 | `D6A686B94C926914BEB28B437F464430A01DE6560C2E2D476CF5C36025813E34` |
+
+The directed preflight found no task-owned listener on port 4173 and no
+RAG-Challenge development server to stop. The only process whose command text
+matched the inspection was the current PowerShell inspection process; it was
+not a product process and was not stopped.
+
+The built application was then served by the task-owned Vite preview process
+on `127.0.0.1:4173`. Browser inspection observed an existing `en-GB`
+preference with the English title, then the Portuguese title and root language
+after selecting `pt-BR`, and the English values again after selecting `en-GB`.
+No browser console warning or error was observed. The browser session was
+finalised, the exact preview process was verified by executable and command
+line before termination, and port 4173 was confirmed to have no remaining
+listener.
+
+### Disposition, limitations and next authority
+
+`AQG-S05-002` and `AQG-S05-003` are
+`CORRIGIDOS_PENDENTES_DE_RETESTE_DO_GATE`. The complete npm suite also
+exercised the preserved `AQG-S05-001` regressions successfully, but this
+corrective increment did not execute or approve the Automatic Quality Gate;
+all three findings still require disposition by a separately authorised
+complete restart.
+
+JavaScript line and branch percentages remain unavailable in the existing
+package scripts and dependency set. The observed Node.js patch version is
+`24.18.1`, not the exact `24.18.0` pin. This correction validated the title in
+a loopback browser, but it did not repeat the gate's complete styled visual,
+external accessibility-engine, narrow-viewport/reflow, keyboard or
+eight-combination browser review. No real backend, provider, account, secret,
+corpus, official source or external network was exercised. No new P0 or P1
+was observed within the authorised correction scope.
+
+`STATE-05 FRONTEND_IMPLEMENTATION` remains active. Human Gate, `STATE-06` and
+a new Automatic Quality Gate restart were not authorised or executed. The
+next possible action is a separate explicit owner authority to restart the
+complete `STATE-05` Automatic Quality Gate over the resulting clean baseline.

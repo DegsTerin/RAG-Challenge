@@ -3271,3 +3271,60 @@ contém somente fatos cronológicos.
   `AQG-S05-002` e `AQG-S05-003`; depois de baseline corretiva limpa, nova
   autoridade separada para reiniciar integralmente o Automatic Quality Gate.
 - Aprovador: proprietário do RAG-Challenge.
+
+## 2026-08-05 — S05-CORR-02 corrige AQG-S05-002 e AQG-S05-003
+
+- Estado preservado: `STATE-05 FRONTEND_IMPLEMENTATION` permaneceu ativo; o
+  Automatic Quality Gate não foi repetido, e Human Gate e `STATE-06` não foram
+  autorizados nem executados.
+- Baseline inicial: branch `main`, commit
+  `651b4ad9edba79b3fc8a16e550fc2a357b6b85d2`, corpus `4.9.2` e working tree
+  limpa, reconfirmados imediatamente antes da primeira alteração.
+- Autoridade: incremento local, offline, sequencial e limitado
+  `S05-CORR-02`, exclusivamente para corrigir `AQG-S05-002` e
+  `AQG-S05-003`, preservar `AQG-S05-001`, adicionar regressões
+  determinísticas, executar os quatro checks npm existentes e validar o
+  título em listener loopback pertencente à tarefa.
+- Limite da resposta: o commit
+  `ec5ecf41b113853fc2863a94cbfe77dbe4741828` rejeita `Content-Length`
+  decimal superior a 262.144 bytes antes de obter o reader, conta bytes
+  incrementalmente, cancela a leitura no primeiro overflow e preserva
+  cancelamento, media types, same-origin e falha fechada.
+- Título visual: o commit
+  `20458c8189b132b775786b2fc8f9b44ee5c2f7b8` define fallback `pt-BR` e
+  atualiza `document.title` e o atributo `lang` exclusivamente por
+  `interfaceLanguage`. As oito combinações provam independência de
+  `questionLanguage` e tema.
+- Regressões: limite exato, overflow incremental, `Content-Length` excedido e
+  cancelamento foram exercitados deterministicamente; os casos de título
+  `pt-BR`/`en-GB` e as regressões de `AQG-S05-001` também passaram.
+- Verificações: `npm run lint`, `npm run typecheck`, `npm test` e
+  `npm run build` passaram na instalação existente. Foram 34 testes, sem
+  falha, skip ou cancelamento, e 20 módulos transformados no build.
+- Ambiente: Node.js observado `24.18.1`, contra pin `24.18.0`, e npm
+  `11.16.0`. Nenhuma instalação ou execução `dotnet` ocorreu.
+- Validação loopback: depois do preflight dirigido, o Vite preview da tarefa
+  escutou somente em `127.0.0.1:4173`. O browser confirmou os títulos em
+  português e inglês após alternância, sem warning ou erro no console. A
+  sessão foi finalizada, o processo foi identificado por executável e linha
+  de comando antes de ser encerrado, e a porta terminou sem listener.
+- Contratos e dependências: package, lockfile e OpenAPI permaneceram sem diff;
+  o OpenAPI conservou SHA-256
+  `D6A686B94C926914BEB28B437F464430A01DE6560C2E2D476CF5C36025813E34`.
+- Disposição: `AQG-S05-002` e `AQG-S05-003` estão
+  `CORRIGIDOS_PENDENTES_DE_RETESTE_DO_GATE`. A suíte completa confirmou as
+  regressões de `AQG-S05-001`, mas este incremento não repetiu nem aprovou o
+  gate; os três achados pendem de disposição pelo reinício integral.
+- Limitações preservadas: percentuais de cobertura JavaScript, styled visual
+  review completo, viewport estreito/reflow, engine externa de
+  acessibilidade, teclado, matriz browser integral e reprodução no Node exato
+  continuam sem disposição por este incremento.
+- Escopo negativo preservado: sem dependência, package, lockfile, contrato
+  externo, OpenAPI, ADR, backend, Domain, Application, Infrastructure, API,
+  provider, instalação, rede externa, conta, secret, corpus real, fonte
+  oficial real, GitHub, OCI, publicação, deploy, DB-Notifier, Automatic
+  Quality Gate, Human Gate ou estado posterior.
+- Próxima condição: nova baseline limpa e autorização humana explícita e
+  separada para reiniciar integralmente o Automatic Quality Gate de
+  `STATE-05`.
+- Aprovador: proprietário do RAG-Challenge.
