@@ -1270,3 +1270,102 @@ is failed with `AQG-S05-007` open; `AQG-S05-001` through `AQG-S05-006` are
 resolved. No P0 or P1 was observed. Human Gate and `STATE-06` remain not
 authorised and not executed. Correction of `AQG-S05-007` and any later full
 gate restart require separate explicit owner authorities.
+
+## S05-CORR-06 — 2026-08-05
+
+### Authority and baseline
+
+- Initial baseline: location `C:\Projects\RAG-Challenge`, Git top-level
+  `C:/Projects/RAG-Challenge`, Git directory `.git`, branch `main`, commit
+  `c32953eceb149efa3cfeb952f1dbfdbe0c00e2eb`, corpus `4.9.2` and clean
+  working tree. All seven conditions were reconfirmed immediately before the
+  executable preflight and first alteration.
+- Authority: local, offline, sequential and limited correction of
+  `AQG-S05-007`, with a focal narrow-layout regression, the four existing npm
+  checks, an extension-free task-owned browser context and focused local
+  commits. The Automatic Quality Gate, Human Gate and later lifecycle states
+  were not authorised.
+
+### Correction and regression
+
+The focused commit `e34e73c7bbe8fabf96d5a5683df35935a3266e37`:
+
+- keeps the single responsive hero grid track shrinkable with
+  `minmax(0, 1fr)`, instead of restoring its intrinsic `1fr` minimum;
+- reduces the compact heading's fluid viewport term from `14vw` to `11vw`,
+  retaining a 2.25 rem minimum while fitting the current Portuguese
+  min-content at 320 CSS pixels; and
+- extends the existing deterministic eight-combination matrix regression to
+  pin both narrow-layout constraints while continuing to render both
+  interface languages, both question languages and both themes.
+
+### Verification
+
+All final commands ran from `src/RagChallenge.Dashboard.Web` with the existing
+installation, `npm_config_offline=true`, Node.js `24.18.1` and npm `11.16.0`.
+No installation, `dotnet`, real backend or external-network command ran.
+
+| Verification | Result |
+| --- | --- |
+| `npm run lint` | Passed, exit code 0 |
+| `npm run typecheck` | Passed, exit code 0 |
+| `npm test` | Passed, 38 tests, 0 failed/skipped/cancelled |
+| `npm run build` | Passed, 20 modules transformed |
+| Built HTML | 0.97 kB (0.56 kB gzip) |
+| Built CSS | 11.97 kB (3.35 kB gzip) |
+| Built JavaScript | 171.97 kB (55.33 kB gzip) |
+| Package, lockfile and OpenAPI diff | Empty |
+
+The final browser run used a fresh temporary Chrome profile with extensions,
+component extension backgrounds and background networking disabled. The CDP
+inventory contained zero extension targets, so Dark Reader and other
+page-modifying extensions did not participate. The built application was
+served only on `127.0.0.1:4173`, and the viewport override observed an
+`innerWidth` of 320 CSS pixels and a 305-pixel document client width.
+
+All eight `interfaceLanguage` × `questionLanguage` × theme combinations
+passed with `scrollWidth` equal to 305 pixels. The hero and heading each fit
+their 289-pixel content width; the heading computed to 36 pixels and its
+`scrollWidth` equalled its `clientWidth`. Root language, localised title,
+selected question-language radio, two pressed preference controls and
+`Light`/`Dark` state remained consistent in every combination. Computed body
+colours were `rgb(241, 239, 232)` / `rgb(23, 33, 29)` in Light and
+`rgb(16, 23, 20)` / `rgb(245, 242, 233)` in Dark. Direct screenshots of the
+Portuguese Light and Dark states showed readable vertical reflow without
+clipped content or horizontal panning.
+
+The complete keyboard path also passed in every combination: the first
+`Tab` exposed the skip link with a solid three-pixel outline, `Enter` focused
+`MAIN#main-content` with `tabindex="-1"`, and the next `Tab` focused the
+selected question-language radio. No runtime exception occurred. Chrome made
+one non-material request for the pre-existing absent `/favicon.ico`, which
+returned 404; the JavaScript and CSS assets returned 200 and no product
+correction was made for that unrelated diagnostic.
+
+The exact preview and isolated-Chrome processes were revalidated by
+executable, command line, profile, address and port before termination. Ports
+4173 and 9230 finished without listeners. The execution policy refused the
+recursive deletion of five task-specific directories under the system
+temporary directory; they contain only sanitised preview logs, temporary
+browser profiles and screenshots, with no running process, listener, secret,
+real corpus or tracked project change.
+
+### Disposition, limitations and next authority
+
+`AQG-S05-007` is `CORRIGIDO_PENDENTE_DE_RETESTE_DO_GATE`. The focused
+regression, complete npm suite, extension-free narrow matrix, visual review
+and keyboard repetition passed, but this corrective increment did not restart
+or approve the Automatic Quality Gate and cannot dispose the finding.
+`AQG-S05-001` through `AQG-S05-006` retain their prior `RESOLVIDOS`
+disposition.
+
+JavaScript line and branch percentages remain unavailable in the existing
+package scripts and dependency set. Node.js `24.18.1` was observed instead of
+the exact `24.18.0` pin. No third-party accessibility engine, real backend,
+provider, account, secret, corpus, official source or external network was
+used. No new material finding or P0/P1 was observed within the authorised
+correction scope.
+
+`STATE-05 FRONTEND_IMPLEMENTATION` remains active. A complete restart of its
+Automatic Quality Gate requires new explicit and separate owner authority.
+Human Gate and `STATE-06` remain not authorised and not executed.

@@ -3677,3 +3677,60 @@ contém somente fatos cronológicos.
   `AQG-S05-007`; depois de baseline corretiva limpa, nova autoridade separada
   para reiniciar integralmente o Automatic Quality Gate.
 - Aprovador: proprietário do RAG-Challenge.
+
+## 2026-08-05 — S05-CORR-06 corrige AQG-S05-007
+
+- Estado preservado: `STATE-05 FRONTEND_IMPLEMENTATION` permaneceu ativo; o
+  Automatic Quality Gate não foi reiniciado, e Human Gate e `STATE-06` não
+  foram autorizados nem executados.
+- Baseline inicial: localização `C:\Projects\RAG-Challenge`, Git top-level
+  `C:/Projects/RAG-Challenge`, Git directory `.git`, branch `main`, commit
+  `c32953eceb149efa3cfeb952f1dbfdbe0c00e2eb`, corpus `4.9.2` e working tree
+  limpa, reconfirmados imediatamente antes do preflight e da primeira
+  alteração.
+- Autoridade: incremento local, offline, sequencial e limitado
+  `S05-CORR-06`, exclusivamente para corrigir `AQG-S05-007`, adicionar
+  regressão focal das oito combinações, executar os quatro checks npm
+  existentes e validar em listener loopback pertencente à tarefa.
+- Correção: o commit `e34e73c7bbe8fabf96d5a5683df35935a3266e37`
+  mantém a coluna única da hero reduzível com `minmax(0, 1fr)` e reduz o termo
+  fluido do H1 compacto de `14vw` para `11vw`, preservando o mínimo de
+  2,25 rem. A regressão focal fixa ambos os limites na matriz existente das
+  oito combinações.
+- Verificações: `npm run lint`, `npm run typecheck`, `npm test` e
+  `npm run build` passaram na instalação existente e offline. Foram 38 testes,
+  sem falha, skip ou cancelamento, e 20 módulos transformados.
+- Browser isolado: um perfil Chrome temporário, com extensões e componentes
+  de extensão desativados, apresentou zero alvo de extensão; Dark Reader não
+  participou. Nas oito combinações a 320 CSS px, `clientWidth` e
+  `scrollWidth` foram 305, e H1 `clientWidth`/`scrollWidth` foram 289/289 a
+  36 px. Idiomas, títulos, estado selecionado e temas permaneceram coerentes.
+  A inspeção visual em pt-BR Light/Dark mostrou reflow vertical sem corte ou
+  rolagem horizontal.
+- Foco e teclado: nas oito combinações, o primeiro `Tab` exibiu o skip link
+  com outline sólido, `Enter` focou `MAIN#main-content` e o `Tab` seguinte
+  focou o rádio selecionado do idioma da pergunta. Nenhuma exceção runtime
+  ocorreu. A requisição não material e preexistente de `/favicon.ico`
+  retornou 404; CSS e JavaScript retornaram 200.
+- Runtime e cleanup: preview e Chrome isolado foram revalidados por processo,
+  comando, perfil, endereço e porta antes do encerramento; as portas 4173 e
+  9230 terminaram livres. A política de execução recusou excluir cinco
+  diretórios temporários sanitizados da tarefa; eles não contêm processo,
+  listener, secret, corpus real ou mudança rastreada.
+- Ambiente e limites: Node.js observado `24.18.1`, contra pin `24.18.0`, e npm
+  `11.16.0`; percentuais de cobertura JavaScript continuam indisponíveis e
+  nenhuma engine externa de acessibilidade foi instalada. Package, lockfile,
+  OpenAPI, contratos e backend permaneceram sem alteração.
+- Disposição: `AQG-S05-007` está
+  `CORRIGIDO_PENDENTE_DE_RETESTE_DO_GATE`; `AQG-S05-001` a `AQG-S05-006`
+  conservam a disposição `RESOLVIDOS`. O incremento não executou nem aprovou o
+  Automatic Quality Gate.
+- Escopo negativo preservado: sem dependência, package, lockfile, contrato,
+  OpenAPI, ADR, backend, Domain, Application, Infrastructure, API, `dotnet`,
+  instalação, rede externa, provider, conta, secret, corpus real, fonte
+  oficial real, GitHub, OCI, publicação, deploy, DB-Notifier, Automatic
+  Quality Gate, Human Gate ou estado posterior.
+- Próxima condição: baseline corretiva limpa e autoridade humana explícita e
+  separada para reiniciar integralmente o Automatic Quality Gate de
+  `STATE-05` e dispor `AQG-S05-007`.
+- Aprovador: proprietário do RAG-Challenge.
