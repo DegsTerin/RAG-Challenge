@@ -69,6 +69,32 @@ test("renders all eight interface, question-language, and theme combinations", a
   assert.equal(combinations, 8);
 });
 
+test("localises the initial and switched document title only from interface language", async () => {
+  const indexHtml = await readFile(new URL("../index.html", import.meta.url), "utf8");
+  const { applyInterfaceLanguageMetadata } = await vite.ssrLoadModule("/src/App.tsx");
+  const expectedTitles = {
+    "pt-BR": "RAG-Challenge — Documentação de bancos de dados",
+    "en-GB": "RAG-Challenge — Database documentation",
+  };
+  const target = { title: "", documentElement: { lang: "" } };
+  let combinations = 0;
+
+  assert.match(indexHtml, new RegExp(`<title>${expectedTitles["pt-BR"]}</title>`));
+
+  for (const interfaceLanguage of ["pt-BR", "en-GB"]) {
+    for (const questionLanguage of ["pt-BR", "en-GB"]) {
+      for (const theme of ["Light", "Dark"]) {
+        applyInterfaceLanguageMetadata(target, interfaceLanguage);
+        assert.equal(target.documentElement.lang, interfaceLanguage);
+        assert.equal(target.title, expectedTitles[interfaceLanguage]);
+        combinations += 1;
+      }
+    }
+  }
+
+  assert.equal(combinations, 8);
+});
+
 test("owns localised messages for every API v1 failure code", async () => {
   const { dashboardCopy } = await vite.ssrLoadModule("/src/i18n.ts");
   const codes = [

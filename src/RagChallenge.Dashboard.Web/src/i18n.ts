@@ -4,6 +4,7 @@ import type { InterfaceLanguage, Theme } from "./preferences";
 export interface DashboardCopy {
   brandEyebrow: string;
   brandName: string;
+  documentTitle: string;
   pageTitle: string;
   pageIntroduction: string;
   interfaceLanguageLabel: string;
@@ -70,6 +71,7 @@ export const dashboardCopy: Readonly<Record<InterfaceLanguage, DashboardCopy>> =
   "pt-BR": {
     brandEyebrow: "Catálogo de documentação",
     brandName: "RAG-Challenge",
+    documentTitle: "RAG-Challenge — Documentação de bancos de dados",
     pageTitle: "Respostas fundamentadas, com a fonte à vista.",
     pageIntroduction:
       "Consulte a documentação ativa de bancos de dados e acompanhe a cobertura, a origem e a localização de cada evidência.",
@@ -157,6 +159,7 @@ export const dashboardCopy: Readonly<Record<InterfaceLanguage, DashboardCopy>> =
   "en-GB": {
     brandEyebrow: "Documentation catalogue",
     brandName: "RAG-Challenge",
+    documentTitle: "RAG-Challenge — Database documentation",
     pageTitle: "Grounded answers, with the source in view.",
     pageIntroduction:
       "Query the active database documentation and inspect the coverage, origin, and location of every piece of evidence.",

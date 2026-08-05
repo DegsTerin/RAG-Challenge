@@ -121,7 +121,7 @@ export function App(): JSX.Element {
   const resultHeading = useRef<HTMLElement>(null);
 
   useEffect(() => {
-    document.documentElement.lang = interfaceLanguage;
+    applyInterfaceLanguageMetadata(document, interfaceLanguage);
   }, [interfaceLanguage]);
 
   useEffect(() => {
@@ -225,6 +225,19 @@ export function App(): JSX.Element {
       }
     />
   );
+}
+
+interface InterfaceLanguageDocumentTarget {
+  title: string;
+  documentElement: { lang: string };
+}
+
+export function applyInterfaceLanguageMetadata(
+  target: InterfaceLanguageDocumentTarget,
+  interfaceLanguage: InterfaceLanguage,
+): void {
+  target.documentElement.lang = interfaceLanguage;
+  target.title = dashboardCopy[interfaceLanguage].documentTitle;
 }
 
 interface QueryWorkspaceProperties {
