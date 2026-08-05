@@ -3576,3 +3576,56 @@ contém somente fatos cronológicos.
   `AQG-S05-006`; depois de baseline corretiva limpa, nova autoridade separada
   para reiniciar integralmente o Automatic Quality Gate.
 - Aprovador: proprietário do RAG-Challenge.
+
+## 2026-08-05 — S05-CORR-05 corrige AQG-S05-006
+
+- Estado preservado: `STATE-05 FRONTEND_IMPLEMENTATION` permaneceu ativo; o
+  Automatic Quality Gate não foi reiniciado, e Human Gate e `STATE-06` não
+  foram autorizados nem executados.
+- Baseline inicial: localização `C:\Projects\RAG-Challenge`, Git top-level
+  `C:/Projects/RAG-Challenge`, Git directory `.git`, branch `main`, commit
+  `3ff7002b394199bbf253139836827231c1988116`, corpus `4.9.2` e working tree
+  limpa, reconfirmados imediatamente antes do preflight e da primeira
+  alteração.
+- Autoridade: incremento local, offline, sequencial e limitado
+  `S05-CORR-05`, exclusivamente para corrigir `AQG-S05-006`, adicionar
+  regressão focal, executar os quatro checks npm existentes e validar o foco
+  em listener loopback pertencente à tarefa.
+- Correção: o commit `8b543eb85907b5aa4023f109dabb4bb11100da3e`
+  torna `main#main-content` programaticamente focável e transfere o foco ao
+  alvo quando o skip link é ativado. A regressão de componente exercita a
+  transferência e a ordem estrutural até o controle seguinte no conteúdo.
+- Verificações: `npm run lint`, `npm run typecheck`, `npm test` e
+  `npm run build` passaram na instalação existente e offline. Foram 38 testes,
+  sem falha, skip ou cancelamento, e 20 módulos transformados. O primeiro
+  typecheck levou a uma correção tipada local dentro do escopo, sem dependência
+  ou declaração compartilhada nova.
+- Browser: no build servido exclusivamente em `127.0.0.1:4173`, o primeiro
+  `Tab` focou `Skip to content`, `Enter` transferiu o foco ao
+  `MAIN#main-content` e o `Tab` seguinte focou o rádio selecionado `en-GB` de
+  idioma da pergunta dentro do conteúdo principal. Não houve warning ou erro
+  no console.
+- Runtime e cleanup: o preflight não encontrou listener do produto nas portas
+  4173 ou 5173. O preview pertencente à tarefa foi revalidado por PID,
+  executável, comando, endereço e porta antes de ser encerrado; a porta 4173
+  terminou livre.
+- Ambiente: Node.js observado `24.18.1`, contra pin `24.18.0`, e npm
+  `11.16.0`. Package, lockfile, OpenAPI, contratos e backend permaneceram sem
+  alteração.
+- Disposição: `AQG-S05-006` está
+  `CORRIGIDO_PENDENTE_DE_RETESTE_DO_GATE`; `AQG-S05-001` a `AQG-S05-005`
+  conservam a disposição `RESOLVIDOS`. O incremento não executou nem aprovou o
+  Automatic Quality Gate.
+- Limitações preservadas: percentuais de cobertura JavaScript, reprodução no
+  Node exato, viewport estreito/reflow, matriz browser completa de temas e
+  idiomas, screenshot e engine externa de acessibilidade não foram repetidos
+  por esta correção.
+- Escopo negativo preservado: sem dependência, package, lockfile, contrato,
+  OpenAPI, ADR, backend, Domain, Application, Infrastructure, API, `dotnet`,
+  instalação, rede externa, provider, conta, secret, corpus real, fonte
+  oficial real, GitHub, OCI, publicação, deploy, DB-Notifier, Automatic
+  Quality Gate, Human Gate ou estado posterior.
+- Próxima condição: baseline corretiva limpa e autoridade humana explícita e
+  separada para reiniciar integralmente o Automatic Quality Gate de
+  `STATE-05` e dispor `AQG-S05-006`.
+- Aprovador: proprietário do RAG-Challenge.

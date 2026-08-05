@@ -190,6 +190,19 @@ proprietários.
   O listener pertencente à tarefa escutou somente em `127.0.0.1:4173`, foi
   identificado e encerrado; a porta terminou livre. Nenhuma correção, mudança
   de frontend, código, teste, dependência, contrato ou backend foi executada.
+- Correção `S05-CORR-05`: autorizada e concluída em 2026-08-05 sobre
+  `main@3ff7002b394199bbf253139836827231c1988116`, corpus `4.9.2` e working
+  tree limpa. O commit `8b543eb85907b5aa4023f109dabb4bb11100da3e`
+  torna `main#main-content` programaticamente focável, transfere o foco ao
+  alvo quando o skip link é ativado e adiciona regressão focal de componente.
+  Lint, typecheck, 38 testes e build passaram na instalação existente e
+  offline. No build loopback, `Tab` focou o skip link, `Enter` focou o
+  `<main>` e o `Tab` seguinte avançou ao rádio selecionado de idioma da
+  pergunta dentro do conteúdo principal; não houve warning ou erro no console.
+  O listener pertencente à tarefa foi revalidado e encerrado, e a porta
+  terminou livre. `AQG-S05-006` está
+  `CORRIGIDO_PENDENTE_DE_RETESTE_DO_GATE`; a correção não reiniciou nem
+  aprovou o Automatic Quality Gate.
 - Fechamento de `S04-A0`: `PdfPig` `0.1.15` e `CsvHelper` `33.1.0` foram
   selecionados condicionalmente para desenvolvimento local;
   `Sylvan.Data.Csv` `1.4.4` permanece fallback não selecionado e não
@@ -680,10 +693,9 @@ autorizada.
    para cada banco antes de sua ativação.
 2. Validar e ativar individualmente novos registros de fonte oficial; a
    aceitação arquitetural não autoriza URL, rede, download ou crawling.
-3. Obter autoridade humana explícita e separada para corrigir
-   `AQG-S05-006`; depois, sobre nova baseline corretiva limpa, obter outra
-   autoridade separada para reiniciar integralmente o Automatic Quality Gate
-   de `STATE-05`.
+3. Sobre a baseline corretiva limpa resultante de `S05-CORR-05`, obter
+   autoridade humana explícita e separada para reiniciar integralmente o
+   Automatic Quality Gate de `STATE-05` e dispor `AQG-S05-006`.
 4. Verificar tier, entitlement, spend limit e controles da conta OpenAI, além
    da recuperação/geração bilíngue, antes de usar ou anunciar os providers.
 5. Homologar desempenho e capacidade do `SqliteExactVectorStore`; a fixture
@@ -801,12 +813,12 @@ O reinício integral posterior sobre
 não transfere o foco ao conteúdo principal. A parada obrigatória impediu a
 conclusão das verificações browser de viewport estreito/reflow, temas e matriz
 das oito combinações. O Human Gate continua prematuro e `STATE-06` não está
-autorizado. A próxima autoridade possível é uma decisão humana explícita e
-separada para corrigir somente `AQG-S05-006`; um novo reinício integral do
-gate exigirá autorização posterior própria sobre a baseline corretiva limpa.
+autorizado. `S05-CORR-05` corrigiu o foco do skip link e está
+`CORRIGIDO_PENDENTE_DE_RETESTE_DO_GATE`. A próxima autoridade possível é uma
+decisão humana explícita e separada para reiniciar integralmente o gate sobre
+a baseline corretiva limpa e dispor `AQG-S05-006`.
 
 Rede externa, providers, contas, secrets, corpus real, fontes oficiais reais
 do produto, armazenamento operacional, GitHub, OCI, publicação, deploy,
-DB-Notifier, correção de `AQG-S05-006`, nova repetição do Automatic Quality
-Gate, Human Gate e entrada ou execução de estados posteriores continuam sem
-autorização.
+DB-Notifier, nova repetição do Automatic Quality Gate, Human Gate e entrada ou
+execução de estados posteriores continuam sem autorização.

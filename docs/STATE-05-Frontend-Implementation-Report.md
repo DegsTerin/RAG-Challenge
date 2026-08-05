@@ -1071,3 +1071,88 @@ is failed with `AQG-S05-006` open; `AQG-S05-001` through `AQG-S05-005` are
 resolved by this restart. Human Gate and `STATE-06` remain not authorised and
 not executed. Correction of `AQG-S05-006` and any later complete gate restart
 require separate explicit owner authorities.
+
+## S05-CORR-05 — 2026-08-05
+
+### Authority and baseline
+
+- Initial baseline: location `C:\Projects\RAG-Challenge`, Git top-level
+  `C:/Projects/RAG-Challenge`, Git directory `.git`, branch `main`, commit
+  `3ff7002b394199bbf253139836827231c1988116`, corpus `4.9.2` and clean
+  working tree. All seven conditions were reconfirmed immediately before the
+  executable preflight and first alteration.
+- Authority: local, offline, sequential and limited correction of
+  `AQG-S05-006`, with a focal component regression, the four existing npm
+  checks, factual records and focused local commits. The Automatic Quality
+  Gate, Human Gate and later lifecycle states were not authorised.
+
+### Correction and regression
+
+The focused commit `8b543eb85907b5aa4023f109dabb4bb11100da3e`:
+
+- makes `main#main-content` programmatically focusable with `tabindex="-1"`;
+- retains the semantic skip-link destination while its activation prevents
+  default fragment navigation and explicitly focuses the main target; and
+- adds a component regression that exercises the focus-transfer function and
+  proves the structural order from the skip link to the main target and its
+  next in-main control.
+
+### Verification
+
+All final commands ran from `src/RagChallenge.Dashboard.Web` with the existing
+installation and `npm_config_offline=true`. No installation, `dotnet`, real
+backend or external-network command ran.
+
+| Verification | Result |
+| --- | --- |
+| `npm run lint` | Passed, exit code 0 |
+| `npm run typecheck` | Passed, exit code 0 after one in-scope local typing correction |
+| `npm test` | Passed, 38 tests, 0 failed/skipped/cancelled |
+| `npm run build` | Passed, 20 modules transformed |
+| Built HTML | 0.97 kB (0.56 kB gzip) |
+| Built CSS | 11.96 kB (3.35 kB gzip) |
+| Built JavaScript | 171.97 kB (55.33 kB gzip) |
+| Package, lockfile and OpenAPI diff | Empty |
+
+The first typecheck attempt exposed that the repository's deliberately minimal
+React declaration does not export `MouseEvent`. The in-scope implementation
+was corrected to use a local structural activation-event type; no dependency
+or shared declaration changed. Typecheck and the remaining final checks then
+passed.
+
+The directed preflight found no RAG-Challenge listener on ports 4173 or 5173
+and no product process to stop. The built application was served exclusively
+by the task-owned Vite preview on `127.0.0.1:4173`. Browser keyboard validation
+observed this sequence on the persisted `en-GB`/`Light` interface:
+
+1. the first `Tab` focused the visible `Skip to content` link;
+2. `Enter` made `MAIN#main-content` with `tabindex="-1"` the active element;
+3. the next `Tab` focused the selected `en-GB` question-language radio inside
+   the main content.
+
+The focus transfer intentionally leaves the URL fragment unchanged because the
+handler prevents default navigation before focusing the target. No browser
+warning or error was observed. The exact preview process was revalidated by
+PID, executable, command line, address and port before termination; port 4173
+was clear afterwards.
+
+### Disposition, limitations and next authority
+
+`AQG-S05-006` is `CORRIGIDO_PENDENTE_DE_RETESTE_DO_GATE`. The correction,
+component regression, complete npm suite and directed browser keyboard path
+passed, but this increment did not restart or approve the Automatic Quality
+Gate and cannot dispose the finding. `AQG-S05-001` through `AQG-S05-005`
+retain their prior `RESOLVIDOS` disposition.
+
+JavaScript line and branch percentages remain unavailable in the existing
+package scripts and dependency set. Node.js `24.18.1` was observed instead of
+the exact `24.18.0` pin. This correction did not repeat the complete gate,
+narrow-viewport/reflow review, full Light/Dark and language browser matrix,
+screenshot review or an external accessibility engine. No real backend,
+provider, account, secret, corpus, official source or external network was
+exercised. No new material finding or P0/P1 was observed within the authorised
+correction scope.
+
+`STATE-05 FRONTEND_IMPLEMENTATION` remains active. A complete restart of its
+Automatic Quality Gate requires new explicit and separate owner authority.
+Human Gate and `STATE-06` remain not authorised and not executed.
