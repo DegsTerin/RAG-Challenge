@@ -582,3 +582,97 @@ was observed within the authorised correction scope.
 a new Automatic Quality Gate restart were not authorised or executed. The
 next possible action is a separate explicit owner authority to restart the
 complete `STATE-05` Automatic Quality Gate over the resulting clean baseline.
+
+## Automatic Quality Gate restart after S05-CORR-02 — 2026-08-05
+
+### Authority and baseline
+
+- Gate baseline: branch `main`, commit
+  `3f120aaf3cbc199c821685b161ece95a1988a659`, corpus `4.9.2`, clean working
+  tree. Location, Git top-level, Git directory, branch, commit, corpus and
+  cleanliness were reconfirmed immediately before the audit.
+- Authority: restart the complete `STATE-05` Automatic Quality Gate locally,
+  offline and sequentially, without product correction, dependency change,
+  installation, external action, Human Gate or later lifecycle state.
+- The audit restarted with the required authority, lifecycle, scope, contract
+  and security inspection. The owner-defined stop condition applied to every
+  material finding.
+
+### Result
+
+`REPROVADO`. One material P2 finding was observed during the initial static
+inspection. The gate stopped before executable preflight, npm commands or
+loopback browser validation. No product or test file was changed.
+
+#### AQG-S05-004 — P2 — authorised local freshness is presented as unknown
+
+- Requirement: coverage, provenance and freshness must be factual and fully
+  localised for both trust classes and both interface languages.
+- Canonical backend evidence:
+  `src/RagChallenge.Application/IndexingRetrieval/QueryServices.cs` requires
+  `SourceFreshness.Local` for every `LocalAuthorised` evidence binding, and
+  `src/RagChallenge.Server.Api/Contracts/V1/QueryContracts.cs` serialises that
+  enum value as `"Local"` in `sourceFreshness`.
+- Dashboard mismatch: `src/RagChallenge.Dashboard.Web/src/i18n.ts` maps
+  `Current`, `Stale`, `Unavailable`, `Withdrawn` and `Deactivated`, but not
+  `Local`. `CitationCard` therefore falls back to `Estado não reconhecido` or
+  `Unrecognised state` for a valid local citation. The response decoder accepts
+  any non-empty freshness string and does not enforce the trust/freshness
+  relation.
+- Fixture gap: the synthetic local citation uses `sourceFreshness: "Current"`,
+  a value rejected by the Application invariant for `LocalAuthorised`
+  evidence. Existing presentation and matrix tests therefore mask the real
+  contract value rather than exercising it.
+- Impact: a valid API v1 response containing authorised local evidence shows
+  an inaccurate freshness label in either interface language. This weakens
+  the explicit provenance/freshness acceptance criterion and prevents the
+  complete interface from being factually localised.
+- Recommendation: under separate corrective authority, localise `Local` in
+  both interface languages, enforce the canonical trust/freshness relation in
+  the client decoder, correct the synthetic fixture and add contract and
+  presentation regressions for valid local and invalid cross-class states.
+
+### AQG-S05-001 to AQG-S05-003 re-evaluation
+
+Static inspection confirmed that:
+
+- `AQG-S05-001`: the decoder rejects non-HTTPS citation URLs and non-null
+  local URLs, while presentation creates an anchor only for validated
+  `OfficialExternal` HTTPS citations;
+- `AQG-S05-002`: the response body is read incrementally, declared oversized
+  decimal length is rejected before reader acquisition and the first
+  incremental overflow cancels the reader; and
+- `AQG-S05-003`: the static title fallback is `pt-BR`, and the
+  interface-language effect updates the document title and root language from
+  `interfaceLanguage` only.
+
+The focused regressions for these corrections remain present. The mandatory
+stop occurred before `npm test` and browser execution, so all three findings
+remain corrected but pending executable retest and disposition by a later
+complete gate restart.
+
+### Checks stopped or not reached
+
+- Executable runtime preflight was not reached; no process or listener was
+  inspected, started or stopped.
+- `npm run lint`, `npm run typecheck`, `npm test` and `npm run build` were not
+  executed. Toolchain inspection observed Node.js `24.18.1` and npm `11.16.0`;
+  the repository still pins Node.js `24.18.0` and npm `11.16.0`.
+- JavaScript percentage coverage remains unavailable in the existing package
+  scripts and dependency set; no percentage is claimed.
+- Styled visual and external accessibility-engine checks, narrow viewport and
+  reflow, keyboard, Light/Dark, `pt-BR`/`en-GB`, the eight-combination browser
+  matrix and build reproducibility were not reached.
+- No loopback listener or browser session was started, so no listener cleanup
+  was required.
+- Static scope inspection found no package, lockfile, OpenAPI, ADR, backend or
+  other protected-path change in the `STATE-05` implementation range.
+
+### Lifecycle consequence
+
+`STATE-05 FRONTEND_IMPLEMENTATION` remains active. The restarted Automatic
+Quality Gate is failed with `AQG-S05-004` open. `AQG-S05-001`,
+`AQG-S05-002` and `AQG-S05-003` remain corrected but pending complete
+executable gate retest. Human Gate and `STATE-06` remain not authorised and
+not executed. Correction of `AQG-S05-004` and a later complete gate restart
+require separate explicit owner authorities.
