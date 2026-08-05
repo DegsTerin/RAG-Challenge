@@ -3774,3 +3774,59 @@ contém somente fatos cronológicos.
   `AQG-S05-008`; depois de baseline corretiva limpa, nova autoridade separada
   para reiniciar integralmente o Automatic Quality Gate.
 - Aprovador: proprietário do RAG-Challenge.
+
+## 2026-08-05 — S05-CORR-07 corrige AQG-S05-008
+
+- Estado preservado: `STATE-05 FRONTEND_IMPLEMENTATION` permaneceu ativo; o
+  Automatic Quality Gate não foi reiniciado, e Human Gate e `STATE-06` não
+  foram autorizados nem executados.
+- Baseline inicial: localização `C:\Projects\RAG-Challenge`, Git top-level
+  `C:/Projects/RAG-Challenge`, Git directory `.git`, branch `main`, commit
+  `dfa31d02e8ba3fd171986ea2c1d06c70101d07a3`, corpus `4.9.2` e working tree
+  limpa, reconfirmados imediatamente antes do preflight e da primeira
+  alteração.
+- Correção: o commit `3f003b9db67eefeccc7e677c319ca37a26d49fa7`
+  aplica `overflow-wrap: anywhere` à resposta, ao título e ao trecho de
+  citação, sem truncamento, e cobre nas oito combinações tokens contínuos
+  distintos, válidos pelo decoder e preservados integralmente na saída React.
+- Verificações: `npm run lint`, `npm run typecheck`, `npm test` e
+  `npm run build` passaram offline na instalação existente. Foram 38 testes,
+  sem falha, skip ou cancelamento, e 20 módulos transformados. Package,
+  lockfile, OpenAPI, contratos e backend permaneceram sem alteração.
+- Incidente: a primeira tentativa no Chrome headless isolado enviou `Enter`
+  antes de confirmar o alvo após `blur`; a citação oficial sintética recebeu
+  foco e abriu o PDF público do PostgreSQL. Esse acesso externo não era
+  autorizado. A tarefa parou imediatamente, encerrou Chrome e preview, limpou
+  as portas e informou o proprietário. Não participaram credencial, conta,
+  secret, corpus real do produto ou pergunta real.
+- Retomada: após o proprietário permitir continuar em headless, a baseline
+  suja foi reconfirmada com somente os dois arquivos esperados. A repetição
+  usou exclusivamente citação `LocalAuthorised` sem URL, interceptação que
+  permitia apenas `127.0.0.1:4173` e guarda do foco no skip link antes de cada
+  `Enter`.
+- Browser final: Chrome `151.0.7922.75`, zero alvo de extensão, zero tentativa
+  bloqueada ou URL externa e zero exceção runtime. Nas oito combinações a
+  `innerWidth` 320, o documento mediu `clientWidth`/`scrollWidth` 305/305; os
+  três tokens permaneceram íntegros, quebraram em múltiplas linhas e não
+  excederam suas superfícies. Light/Dark, `pt-BR`/`en-GB`, títulos e estados
+  selecionados permaneceram coerentes.
+- Foco e teclado: em todas as combinações, o primeiro `Tab` focou o skip link
+  com outline sólido de três pixels, o `Enter` guardado focou
+  `MAIN#main-content` e o `Tab` seguinte focou o rádio selecionado. Capturas
+  pt-BR Light/Dark confirmaram reflow vertical sem corte ou rolagem horizontal.
+- Runtime e cleanup: Chrome e preview foram revalidados e encerrados; portas
+  4173 e 9230 terminaram livres. A política recusou excluir quatro diretórios
+  temporários sanitizados; o perfil inicial pode conservar cache do PDF
+  público acessado acidentalmente, sem processo, listener, credencial, secret,
+  corpus real do produto ou mudança rastreada.
+- Disposição: `AQG-S05-008` está
+  `CORRIGIDO_PENDENTE_DE_RETESTE_DO_GATE`; `AQG-S05-007` conserva o mesmo
+  status e `AQG-S05-001` a `AQG-S05-006` conservam `RESOLVIDOS`. O lote não
+  executou nem aprovou o Automatic Quality Gate.
+- Limitações: percentuais de cobertura JavaScript continuam indisponíveis;
+  Node.js observado `24.18.1` diverge do pin `24.18.0`; nenhuma engine externa
+  de acessibilidade ou passagem browser em janela visível foi executada.
+- Próxima condição: baseline corretiva limpa e autoridade humana explícita e
+  separada para reiniciar integralmente o Automatic Quality Gate de
+  `STATE-05` e dispor `AQG-S05-007` e `AQG-S05-008`.
+- Aprovador: proprietário do RAG-Challenge.

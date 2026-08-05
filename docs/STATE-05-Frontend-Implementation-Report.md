@@ -1472,3 +1472,138 @@ resolved dispositions. No new P0 or P1 was observed. Human Gate and
 `STATE-06` remain not authorised and not executed. Correction of
 `AQG-S05-008` and any later complete gate restart require separate explicit
 owner authorities.
+
+## S05-CORR-07 — 2026-08-05
+
+### Authority and baseline
+
+- Initial baseline: location `C:\Projects\RAG-Challenge`, Git top-level
+  `C:/Projects/RAG-Challenge`, Git directory `.git`, branch `main`, commit
+  `dfa31d02e8ba3fd171986ea2c1d06c70101d07a3`, corpus `4.9.2` and clean
+  working tree. All seven conditions were reconfirmed immediately before the
+  executable preflight and first alteration.
+- Authority: local, offline, sequential and limited correction of
+  `AQG-S05-008`, with a focal contract-valid long-token regression, the four
+  existing npm checks, extension-free loopback browser validation and focused
+  local commits. The Automatic Quality Gate, Human Gate and later lifecycle
+  states were not authorised.
+
+### Correction and regression
+
+The focused commit `3f003b9db67eefeccc7e677c319ca37a26d49fa7`:
+
+- applies `overflow-wrap: anywhere` to the untrusted completed answer,
+  citation title and citation excerpt surfaces without truncating, hiding or
+  changing their text;
+- extends the deterministic eight-combination matrix with separate 517- to
+  519-character unbroken answer, title and excerpt values;
+- passes those values through the API v1 decoder for each matching question
+  language, proving they remain contract-valid; and
+- verifies that all three complete values reach escaped React text output in
+  both interface languages, both question languages and both themes.
+
+### Verification
+
+All npm commands ran from `src/RagChallenge.Dashboard.Web` with the existing
+installation, `npm_config_offline=true`, Node.js `24.18.1` and npm `11.16.0`.
+No installation, `dotnet` or real backend command ran.
+
+| Verification | Result |
+| --- | --- |
+| `npm run lint` | Passed, exit code 0 |
+| `npm run typecheck` | Passed, exit code 0 |
+| `npm test` | Passed, 38 tests, 0 failed/skipped/cancelled |
+| `npm run build` | Passed, 20 modules transformed |
+| Built HTML | 977 bytes |
+| Built CSS | 12,053 bytes |
+| Built JavaScript | 171,973 bytes |
+| Package, lockfile, OpenAPI and protected backend diff | Empty |
+| OpenAPI SHA-256 | `D6A686B94C926914BEB28B437F464430A01DE6560C2E2D476CF5C36025813E34` |
+
+The directed preflight found no listener on ports 4173 or 9230. The built
+application was served only on `127.0.0.1:4173` and the isolated Chrome debug
+surface only on `127.0.0.1:9230`.
+
+### Browser incident, stop and controlled resumption
+
+The available connected Chrome surface belonged to the owner's ordinary
+profile and could include Dark Reader, so no tab was opened there. Browser
+validation instead used a task-specific headless Chrome profile with
+extensions disabled.
+
+During the first isolated-browser attempt, the harness blurred the result
+heading and assumed that the next `Tab` restarted document-order focus. It
+sent `Enter` before verifying the active element. The official synthetic
+citation link had received focus and was activated, unintentionally navigating
+to
+`https://www.postgresql.org/files/documentation/pdf/18/postgresql-18-A4.pdf`.
+This was an unauthorised external-source access and violated the offline
+boundary. The task stopped immediately; Chrome and preview were terminated,
+ports 4173 and 9230 were cleared, no documentation or commit was produced at
+that point, and the owner was informed. No credential, account, secret, real
+product corpus or real user question participated; the question and result
+were synthetic.
+
+After the owner confirmed that headless validation could continue, the dirty
+resume baseline was reconfirmed as the original commit plus only the two
+expected correction files. The controlled retry used all of these safeguards:
+
+- a single `LocalAuthorised` synthetic citation with a null `canonicalUrl`,
+  leaving no external anchor in the rendered result;
+- CDP request interception that continued only exact
+  `http://127.0.0.1:4173/` requests and failed any other HTTP or HTTPS request
+  before network dispatch;
+- a new navigation for every matrix state, so the first `Tab` began from a
+  fresh document; and
+- an explicit active-element guard before every `Enter`, with immediate abort
+  on any target other than the skip link.
+
+The controlled retry used Chrome `151.0.7922.75` and reported zero extension
+targets, zero blocked external attempts, zero observed external URLs and zero
+runtime exceptions. Network observations were limited to the loopback HTML,
+JavaScript, CSS and the pre-existing absent `/favicon.ico`; the latter returned
+404 and was the only console issue.
+
+All eight `interfaceLanguage` × `questionLanguage` × theme combinations passed
+at `innerWidth` 320 CSS pixels. The document `clientWidth` and `scrollWidth`
+were both 305 pixels. Every affected surface computed
+`overflow-wrap: anywhere`, preserved the exact complete token and wrapped to
+multiple visual lines with `scrollWidth` equal to `clientWidth`. The answer
+measured 243/243 pixels, the title 213/213 and the excerpt 210/210. Light used
+body colours `rgb(241, 239, 232)` / `rgb(23, 33, 29)` and Dark used
+`rgb(16, 23, 20)` / `rgb(245, 242, 233)`.
+
+In every combination, the first `Tab` focused the localised skip link with a
+solid three-pixel outline, the guarded `Enter` focused
+`MAIN#main-content` with `tabindex="-1"`, and the next `Tab` focused the
+selected question-language radio. Direct full-page screenshots of the
+Portuguese Light and Dark states showed readable vertical reflow, intact
+tokens, visible completion focus and no clipping or horizontal panning.
+
+### Cleanup, disposition and limitations
+
+The final preview and isolated-Chrome processes were revalidated by PID,
+executable, command line, profile, address and port before termination. Ports
+4173 and 9230 finished without listeners. The execution policy refused the
+recursive deletion of the task directories. Four sanitised directories remain
+under the system temporary directory: preview logs, two temporary browser
+profiles and the two screenshots. The first profile may retain cache from the
+accidental public-PDF navigation; none has a running process, listener,
+credential, secret, real product corpus or tracked project change.
+
+`AQG-S05-008` is `CORRIGIDO_PENDENTE_DE_RETESTE_DO_GATE`. The correction,
+contract-valid regression, complete npm suite and controlled browser matrix
+passed, but this increment did not restart or approve the Automatic Quality
+Gate and cannot dispose the finding. `AQG-S05-007` remains in the same status,
+and `AQG-S05-001` through `AQG-S05-006` retain `RESOLVIDOS`.
+
+JavaScript line and branch percentages remain unavailable in the existing
+package scripts and dependency set. Node.js `24.18.1` was observed instead of
+the exact `24.18.0` pin. No third-party accessibility engine or visible-window
+browser pass was used. The unauthorised external navigation and retained
+temporary profile are explicit execution risks; no new product P0/P1 or
+material product finding was observed in the controlled retry.
+
+`STATE-05 FRONTEND_IMPLEMENTATION` remains active. A complete restart of its
+Automatic Quality Gate requires new explicit and separate owner authority.
+Human Gate and `STATE-06` remain not authorised and not executed.

@@ -244,6 +244,24 @@ proprietários.
   `CORRIGIDO_PENDENTE_DE_RETESTE_DO_GATE`, pois o reteste executável não foi
   alcançado. O gate foi `REPROVADO`, sem novo P0/P1 e sem correção de produto
   ou teste.
+- Correção `S05-CORR-07`: autorizada e concluída em 2026-08-05 sobre
+  `main@dfa31d02e8ba3fd171986ea2c1d06c70101d07a3`, corpus `4.9.2` e working
+  tree limpa. O commit `3f003b9db67eefeccc7e677c319ca37a26d49fa7`
+  aplica quebra segura, sem truncamento, à resposta, ao título e ao trecho de
+  citação e amplia a regressão das oito combinações com tokens contínuos
+  válidos pelo decoder. Lint, typecheck, 38 testes e build passaram offline.
+  A primeira tentativa headless ativou por erro do harness a URL oficial
+  sintética antes de confirmar o foco, gerando acesso externo não autorizado;
+  a tarefa parou, encerrou os runtimes e informou o proprietário. Após o
+  proprietário permitir a continuação headless, a repetição controlada usou
+  somente citação local sem URL, bloqueio de qualquer requisição não loopback
+  e guarda do elemento ativo antes de `Enter`. As oito combinações passaram a
+  320 CSS px com documento 305/305, tokens intactos e refluídos, foco, teclado,
+  idiomas e temas preservados, zero alvo de extensão e zero tentativa ou URL
+  externa. Chrome e preview foram encerrados e as portas ficaram livres. A
+  política recusou excluir quatro diretórios temporários; o primeiro perfil
+  pode conservar cache da navegação acidental. `AQG-S05-008` está
+  `CORRIGIDO_PENDENTE_DE_RETESTE_DO_GATE`; o gate não foi reiniciado.
 - Fechamento de `S04-A0`: `PdfPig` `0.1.15` e `CsvHelper` `33.1.0` foram
   selecionados condicionalmente para desenvolvimento local;
   `Sylvan.Data.Csv` `1.4.4` permanece fallback não selecionado e não
@@ -734,10 +752,9 @@ autorizada.
    para cada banco antes de sua ativação.
 2. Validar e ativar individualmente novos registros de fonte oficial; a
    aceitação arquitetural não autoriza URL, rede, download ou crawling.
-3. Obter autoridade humana explícita e separada para corrigir `AQG-S05-008`;
-   depois de uma baseline corretiva limpa, obter nova autoridade separada para
-   reiniciar integralmente o Automatic Quality Gate de `STATE-05` e dispor os
-   achados pendentes.
+3. Obter autoridade humana explícita e separada para reiniciar integralmente
+   o Automatic Quality Gate de `STATE-05` sobre a baseline corretiva limpa e
+   dispor `AQG-S05-007` e `AQG-S05-008`.
 4. Verificar tier, entitlement, spend limit e controles da conta OpenAI, além
    da recuperação/geração bilíngue, antes de usar ou anunciar os providers.
 5. Homologar desempenho e capacidade do `SqliteExactVectorStore`; a fixture
@@ -873,10 +890,18 @@ viewport estreito porque as superfícies correspondentes não permitem sua
 quebra. A parada ocorreu antes de preflight executável, checks npm, build ou
 browser, sem processo ou listener iniciado e sem correção. `AQG-S05-001` a
 `AQG-S05-006` conservam `RESOLVIDOS`; `AQG-S05-007` permanece corrigido
-pendente de reteste. A próxima autoridade possível é uma decisão humana
-explícita e separada para corrigir `AQG-S05-008`; qualquer novo reinício
-integral do gate exigirá autoridade posterior própria sobre baseline
-corretiva limpa.
+pendente de reteste. `S05-CORR-07`, no commit
+`3f003b9db67eefeccc7e677c319ca37a26d49fa7`, tornou quebráveis sem truncamento
+os três textos não confiáveis e adicionou tokens contínuos válidos à matriz
+das oito combinações. Os quatro checks npm e a repetição headless controlada
+passaram a 320 CSS px com reflow, idiomas, temas, foco e teclado preservados.
+A primeira tentativa browser gerou acesso externo não autorizado ao ativar a
+URL oficial sintética antes da guarda de foco; o incidente, a parada e a
+retomada autorizada estão registrados no relatório. A repetição final usou
+somente citação local sem URL e bloqueio não loopback, sem nova tentativa
+externa. `AQG-S05-008` está `CORRIGIDO_PENDENTE_DE_RETESTE_DO_GATE`. A próxima
+autoridade possível é uma decisão humana explícita e separada para reiniciar
+integralmente o gate sobre a baseline corretiva limpa.
 
 Rede externa, providers, contas, secrets, corpus real, fontes oficiais reais
 do produto, armazenamento operacional, GitHub, OCI, publicação, deploy,
