@@ -3025,3 +3025,46 @@ contém somente fatos cronológicos.
 - Resultado: `STATE-04` permanece encerrado; o Human Gate não foi repetido e
   `STATE-05` continua sem autorização.
 - Aprovador: proprietário do RAG-Challenge.
+
+## 2026-08-04 — Entrada documental em STATE-05 FRONTEND_IMPLEMENTATION autorizada
+
+- Estado anterior: `STATE-04 BACKEND_IMPLEMENTATION` encerrado após Automatic
+  Quality Gate e Human Gate aprovados com as ressalvas documentadas; auditoria
+  corretiva completa aprovada e todos os achados `AUD-S04-*` resolvidos;
+  `STATE-05` ainda sem autorização.
+- Baseline da decisão: branch `main`, commit
+  `23c5bc56e3cb06d9beaeb1af974c51668731ab01`, corpus `4.9.2` e working tree
+  limpa, reconfirmados imediatamente antes da alteração documental.
+- Preparação revisada: proposta completa e limitada apresentada na mesma
+  conversa, com objetivo, lotes sequenciais `S05-A0` a `S05-A4`, contrato da
+  API v1, entregáveis, dependências, verificações, acessibilidade, localização
+  `pt-BR`/`en-GB`, temas `Light`/`Dark`, cobertura, proveniência, citações,
+  falhas, testes, aceite, riscos, rollback, escopos e condições de parada.
+- Decisão humana: o proprietário revisou e aprovou a proposta e autorizou
+  exclusivamente registrar documentalmente a entrada em `STATE-05` sobre a
+  baseline identificada. A decisão não autoriza nenhum lote executável.
+- Decisões de frontend aprovadas, mas não implementadas: interface inicia em
+  `pt-BR`, persiste somente a seleção explícita e usa fallback `pt-BR`;
+  `questionLanguage` permanece independente. Na ausência de tema persistido,
+  a preferência do sistema seleciona `Light` ou `Dark`; `Light` é o fallback,
+  e escolha explícita de tema permanece independente de idioma e consulta.
+- Mudanças autorizadas: somente atualizar
+  `prompts/state/Current-State.md`, acrescentar esta entrada append-only em
+  `prompts/state/State-Transition-Log.md` e criar um commit local focal.
+- Runtime preflight: `NÃO APLICÁVEL`; a ação altera apenas documentação e
+  memória de lifecycle, sem inspecionar ou validar comportamento executável.
+- Verificações: identidade do workspace, Git top-level, Git directory,
+  branch, HEAD, corpus e working tree foram reconfirmados; revisão limitada a
+  diff, formato, links locais e higiene dos dois documentos alterados.
+- Escopo negativo: sem implementação ou execução do frontend, Dashboard,
+  código, dependência, package, lockfile, contrato, OpenAPI, ADR, `dotnet`,
+  teste, instalação, rede, provider, conta, secret, corpus real, fonte
+  oficial, GitHub, OCI, publicação, deploy, DB-Notifier, Automatic Quality
+  Gate, Human Gate ou estado posterior.
+- Estado resultante: `STATE-05 FRONTEND_IMPLEMENTATION` ativo exclusivamente
+  no lifecycle documental; `S05-A0` a `S05-A4` e qualquer outra execução
+  permanecem sem autorização.
+- Próxima condição: apresentar a nova baseline limpa e obter autorização
+  humana posterior, explícita e separada, que nomeie os lotes executáveis,
+  checks, runtime permitido, escopo negativo e condições de parada.
+- Aprovador: proprietário do RAG-Challenge.

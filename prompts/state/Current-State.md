@@ -37,7 +37,7 @@ proprietários.
   aprovado sem achados abertos; `AQG-S04-001` (P2) foi resolvido por um teste
   integrado do fluxo sintético completo. O Human Gate de `STATE-04` foi
   aprovado com as ressalvas documentadas em 2026-08-04; `STATE-04` está
-  encerrado e nenhum estado posterior foi autorizado.
+  encerrado.
 - Uma auditoria local posterior ao Human Gate, sobre
   `main@f71343291b942c66d0ff417a8764b032bbd63bff`, identificou os achados
   `AUD-S04-001` a `AUD-S04-004`. O proprietário autorizou o incremento
@@ -64,8 +64,17 @@ proprietários.
   92,04% de linhas e 66,46% de branches. A auditoria completa reiniciada foi
   `APROVADA`, sem novo P0, P1, P2 ou P3, e dispôs `AUD-S04-001` a
   `AUD-S04-009`, incluindo `AUD-S04-005-R1`, como `RESOLVIDOS`. O lifecycle e
-  o Human Gate histórico não foram alterados; `STATE-05` continua sem
-  autorização.
+  o Human Gate histórico não foram alterados; `STATE-05` permaneceu sem
+  autorização naquele resultado.
+- Entrada em `STATE-05 FRONTEND_IMPLEMENTATION`: autorizada exclusivamente de
+  forma documental pelo proprietário em 2026-08-04 sobre
+  `main@23c5bc56e3cb06d9beaeb1af974c51668731ab01`, corpus `4.9.2` e working
+  tree limpa, depois da revisão e aprovação da proposta limitada apresentada
+  na mesma conversa. A autoridade permite somente atualizar este snapshot, o
+  histórico append-only e criar o commit local focal do registro. `STATE-05`
+  está ativo, mas nenhum lote executável, frontend, Dashboard, código,
+  dependência, package, lockfile, contrato, OpenAPI, ADR, comando, teste,
+  instalação, runtime ou ação externa foi autorizado ou executado.
 - Fechamento de `S04-A0`: `PdfPig` `0.1.15` e `CsvHelper` `33.1.0` foram
   selecionados condicionalmente para desenvolvimento local;
   `Sylvan.Data.Csv` `1.4.4` permanece fallback não selecionado e não
@@ -556,10 +565,9 @@ autorizada.
    para cada banco antes de sua ativação.
 2. Validar e ativar individualmente novos registros de fonte oficial; a
    aceitação arquitetural não autoriza URL, rede, download ou crawling.
-3. Preparar, se o proprietário desejar continuar, uma proposta limitada de
-   entrada em `STATE-05` e obter autorização humana explícita e separada antes
-   de qualquer alteração de frontend; a auditoria completa de `STATE-04` já
-   foi aprovada e todos os achados `AUD-S04-*` foram resolvidos.
+3. Obter autorização humana explícita e separada para os lotes executáveis de
+   `STATE-05` sobre a nova baseline limpa posterior a este registro; a entrada
+   documental já foi autorizada, mas não concede alteração de frontend.
 4. Verificar tier, entitlement, spend limit e controles da conta OpenAI, além
    da recuperação/geração bilíngue, antes de usar ou anunciar os providers.
 5. Homologar desempenho e capacidade do `SqliteExactVectorStore`; a fixture
@@ -573,10 +581,14 @@ autorizada.
    tenancy OCI; as fontes públicas ainda divergem sobre a franquia gratuita.
 8. Materializar `rag-eval-catalogue-v1`, a rubrica e thresholds antes de cada
    execução pontuada, preservando a matriz `pt-BR`/`en-GB` aceita.
-9. Decidir no `STATE-05` idioma inicial da interface, persistência da
-   preferência e fallback; o conjunto `pt-BR`/`en-GB` já está decidido.
-10. Decidir no `STATE-05` tema inicial, eventual preferência do sistema,
-    persistência e fallback; o conjunto `Light`/`Dark` já está decidido.
+9. Implementar somente sob autoridade posterior a decisão aprovada na
+   proposta de `STATE-05`: `pt-BR` inicial para a interface, persistência
+   apenas da seleção explícita e fallback `pt-BR`; o conjunto continua
+   `pt-BR`/`en-GB` e independente de `questionLanguage`.
+10. Implementar somente sob autoridade posterior a decisão aprovada na
+    proposta de `STATE-05`: usar a preferência do sistema na ausência de
+    escolha persistida, preservar `Light`/`Dark` como seleção explícita e usar
+    `Light` como fallback; tema permanece independente de idioma e consulta.
 
 ## Próxima autoridade
 
@@ -599,14 +611,21 @@ residual `AUD-S04-005-R1`. `S04-CORR-01`, `S04-CORR-02` e `S04-CORR-03`
 implementaram as correções autorizadas sem ampliar o lifecycle. O último
 Automatic Quality Gate corretivo foi aprovado e a auditoria completa
 reiniciada resolveu todos os achados, sem identificar novo P0, P1, P2 ou P3.
-O lifecycle permanece encerrado no mesmo ponto; essa validação não concede nem
-substitui autoridade de entrada em estado posterior.
+Depois da auditoria, o proprietário revisou e aprovou a proposta limitada de
+entrada em `STATE-05 FRONTEND_IMPLEMENTATION` e autorizou exclusivamente o
+registro documental sobre
+`main@23c5bc56e3cb06d9beaeb1af974c51668731ab01`, corpus `4.9.2` e working
+tree limpa. `STATE-05` está ativo somente no lifecycle documental. Essa
+autoridade não permite executar `S05-A0` a `S05-A4`, alterar o frontend ou
+realizar qualquer verificação executável.
 
-Qualquer entrada em `STATE-05 FRONTEND_IMPLEMENTATION` exige proposta e
-autorização humana explícita e separada. O Human Gate de `STATE-04` não concede
-essa autoridade.
+A próxima autoridade possível é uma decisão humana posterior, explícita e
+separada, sobre a nova baseline limpa, que nomeie os lotes executáveis de
+`STATE-05`, seus checks, runtime permitido, escopo negativo e condições de
+parada. O registro atual não substitui essa decisão nem o futuro Automatic
+Quality Gate ou Human Gate.
 
 Rede, providers, contas, secrets, corpus real, fontes oficiais reais do
-produto, armazenamento operacional, GitHub, OCI, Dashboard, publicação,
-deploy, entrada ou execução de estados posteriores e mudanças no DB-Notifier
-continuam sem autorização.
+produto, armazenamento operacional, GitHub, OCI, execução do Dashboard,
+publicação, deploy, execução de `STATE-05`, entrada ou execução de estados
+posteriores e mudanças no DB-Notifier continuam sem autorização.
