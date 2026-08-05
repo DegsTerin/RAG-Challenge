@@ -203,6 +203,20 @@ proprietários.
   terminou livre. `AQG-S05-006` está
   `CORRIGIDO_PENDENTE_DE_RETESTE_DO_GATE`; a correção não reiniciou nem
   aprovou o Automatic Quality Gate.
+- Reinício integral do Automatic Quality Gate após `S05-CORR-05`: autorizado
+  e executado em 2026-08-05 sobre
+  `main@8ee1213eed3522493204c68b4f843e9c438e0f69`, corpus `4.9.2` e working
+  tree limpa. Inspeção estática, lint, typecheck, 38 testes, build e repetição
+  byte a byte do build passaram; `AQG-S05-001` a `AQG-S05-006` foram
+  dispostos como `RESOLVIDOS`. A matriz browser padrão aprovou as oito
+  combinações de idioma da interface, idioma da pergunta e tema. Na matriz
+  estreita, as quatro combinações `pt-BR` produziram overflow horizontal a
+  320 CSS px (`scrollWidth` 355 para `clientWidth` 303), enquanto as quatro
+  combinações `en-GB` não produziram overflow. `AQG-S05-007` (P2) registra a
+  falha de reflow da interface portuguesa. A condição de parada foi acionada
+  sem correção. O gate foi `REPROVADO`, sem novo P0/P1. O listener pertencente
+  à tarefa escutou somente em `127.0.0.1:4173`, foi revalidado e encerrado, e
+  a porta terminou livre.
 - Fechamento de `S04-A0`: `PdfPig` `0.1.15` e `CsvHelper` `33.1.0` foram
   selecionados condicionalmente para desenvolvimento local;
   `Sylvan.Data.Csv` `1.4.4` permanece fallback não selecionado e não
@@ -693,9 +707,10 @@ autorizada.
    para cada banco antes de sua ativação.
 2. Validar e ativar individualmente novos registros de fonte oficial; a
    aceitação arquitetural não autoriza URL, rede, download ou crawling.
-3. Sobre a baseline corretiva limpa resultante de `S05-CORR-05`, obter
-   autoridade humana explícita e separada para reiniciar integralmente o
-   Automatic Quality Gate de `STATE-05` e dispor `AQG-S05-006`.
+3. Obter autoridade humana explícita e separada para corrigir
+   `AQG-S05-007`; após uma baseline corretiva limpa, obter nova autoridade
+   separada para reiniciar integralmente o Automatic Quality Gate de
+   `STATE-05`.
 4. Verificar tier, entitlement, spend limit e controles da conta OpenAI, além
    da recuperação/geração bilíngue, antes de usar ou anunciar os providers.
 5. Homologar desempenho e capacidade do `SqliteExactVectorStore`; a fixture
@@ -814,9 +829,14 @@ não transfere o foco ao conteúdo principal. A parada obrigatória impediu a
 conclusão das verificações browser de viewport estreito/reflow, temas e matriz
 das oito combinações. O Human Gate continua prematuro e `STATE-06` não está
 autorizado. `S05-CORR-05` corrigiu o foco do skip link e está
-`CORRIGIDO_PENDENTE_DE_RETESTE_DO_GATE`. A próxima autoridade possível é uma
-decisão humana explícita e separada para reiniciar integralmente o gate sobre
-a baseline corretiva limpa e dispor `AQG-S05-006`.
+`RESOLVIDO` pelo reinício integral posterior sobre
+`main@8ee1213eed3522493204c68b4f843e9c438e0f69`. Esse gate foi
+`REPROVADO` por `AQG-S05-007` (P2): em viewport de 320 CSS px, todas as quatro
+combinações `pt-BR` geram overflow horizontal, enquanto as quatro combinações
+`en-GB` refluem sem overflow. A próxima autoridade possível é uma decisão
+humana explícita e separada para corrigir `AQG-S05-007`; um novo reinício
+integral do gate exigirá autoridade posterior e separada sobre a baseline
+corretiva limpa.
 
 Rede externa, providers, contas, secrets, corpus real, fontes oficiais reais
 do produto, armazenamento operacional, GitHub, OCI, publicação, deploy,

@@ -3629,3 +3629,51 @@ contém somente fatos cronológicos.
   separada para reiniciar integralmente o Automatic Quality Gate de
   `STATE-05` e dispor `AQG-S05-006`.
 - Aprovador: proprietário do RAG-Challenge.
+
+## 2026-08-05 — Automatic Quality Gate após S05-CORR-05 reprovado
+
+- Estado preservado: `STATE-05 FRONTEND_IMPLEMENTATION` permaneceu ativo; o
+  Human Gate e `STATE-06` não foram autorizados nem executados.
+- Baseline do reinício: localização `C:\Projects\RAG-Challenge`, Git
+  top-level `C:/Projects/RAG-Challenge`, Git directory `.git`, branch `main`,
+  commit `8ee1213eed3522493204c68b4f843e9c438e0f69`, corpus `4.9.2` e working
+  tree limpa, reconfirmados imediatamente antes do preflight e da auditoria.
+- Autoridade: reinício integral, local, offline e sequencial do Automatic
+  Quality Gate, usando somente instalação existente, fixtures sintéticas,
+  fetch falso e listener loopback pertencente à tarefa; sem correção
+  automática, mudança de produto/teste, dependência, instalação, rede externa,
+  ação remota, Human Gate ou estado posterior.
+- Verificações: inspeções de autoridade, lifecycle, escopo, contratos e
+  segurança; `npm run lint`, `npm run typecheck`, `npm test` e
+  `npm run build`; repetição reprodutível do build; semântica e controles
+  rotulados; foco e teclado; localização, temas e matriz browser das oito
+  combinações; viewport estreito e reflow. Os quatro checks npm passaram, com
+  38 testes e 20 módulos transformados, e os três arquivos construídos foram
+  idênticos entre as duas construções.
+- Disposição: `AQG-S05-001` a `AQG-S05-006` estão `RESOLVIDOS`. O browser
+  confirmou a transferência do skip link a `MAIN#main-content` e o avanço do
+  `Tab` seguinte ao primeiro controle interno.
+- `AQG-S05-007` (P2): em viewport observado de 320 CSS px, todas as quatro
+  combinações com interface `pt-BR` produziram `scrollWidth` 355 para
+  `clientWidth` 303, em ambos os temas e idiomas da pergunta. A região hero
+  cresceu para aproximadamente 348 pixels dentro de um contêiner de 287
+  pixels. As quatro combinações `en-GB` permaneceram sem overflow. A inspeção
+  visual confirmou conteúdo cortado e rolagem horizontal.
+- Condição de parada: acionada sem qualquer correção de frontend, código ou
+  teste. O resultado do Automatic Quality Gate reiniciado é `REPROVADO`, com
+  um P2 aberto e nenhum novo P0/P1 observado.
+- Runtime e cleanup: o preflight não encontrou listener do produto. O preview
+  pertencente à tarefa escutou somente em `127.0.0.1:4173`; PID, executável,
+  comando e porta foram revalidados antes do encerramento, e a porta terminou
+  livre.
+- Limitações: percentuais de cobertura JavaScript permanecem indisponíveis;
+  Node.js observado `24.18.1` diverge do pin `24.18.0`; nenhuma engine externa
+  de acessibilidade, backend real, provider, conta, secret, corpus real, fonte
+  oficial real ou rede externa foi usada.
+- Mudanças: somente relatório e memória factual do gate; nenhum frontend,
+  código, teste, dependência, package, lockfile, contrato, OpenAPI, ADR,
+  backend ou configuração foi alterado.
+- Próxima condição: autoridade humana explícita e separada para corrigir
+  `AQG-S05-007`; depois de baseline corretiva limpa, nova autoridade separada
+  para reiniciar integralmente o Automatic Quality Gate.
+- Aprovador: proprietário do RAG-Challenge.

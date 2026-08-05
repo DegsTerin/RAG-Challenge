@@ -1156,3 +1156,117 @@ correction scope.
 `STATE-05 FRONTEND_IMPLEMENTATION` remains active. A complete restart of its
 Automatic Quality Gate requires new explicit and separate owner authority.
 Human Gate and `STATE-06` remain not authorised and not executed.
+
+## Automatic Quality Gate restart after S05-CORR-05 — 2026-08-05
+
+### Authority, baseline and result
+
+The gate baseline was location `C:\Projects\RAG-Challenge`, Git top-level
+`C:/Projects/RAG-Challenge`, Git directory `.git`, branch `main`, commit
+`8ee1213eed3522493204c68b4f843e9c438e0f69`, corpus `4.9.2` and a clean
+working tree. All seven conditions were reconfirmed immediately before the
+executable preflight and audit.
+
+The complete `STATE-05` Automatic Quality Gate restarted locally, offline and
+sequentially with only the existing installation, synthetic fixtures, fake
+fetch and a task-owned loopback listener. Authority, lifecycle, scope,
+contract and security inspection was repeated from the beginning. Product
+correction, dependencies, installation, external actions, Human Gate and later
+states remained outside authority.
+
+Result: `REPROVADO`. `AQG-S05-001` through `AQG-S05-006` are `RESOLVIDOS`,
+but the narrow-browser matrix found `AQG-S05-007` (P2). The owner-defined stop
+condition was applied without any product or test correction.
+
+### Finding disposition
+
+- `AQG-S05-001`: `RESOLVIDO`; official citation links remain HTTPS-only and
+  local evidence requires a null URL.
+- `AQG-S05-002`: `RESOLVIDO`; the response reader enforces declared and
+  streamed 262,144-byte limits before full materialisation and preserves
+  cancellation.
+- `AQG-S05-003`: `RESOLVIDO`; browser and component matrices confirmed that
+  document language and title follow only `interfaceLanguage`.
+- `AQG-S05-004`: `RESOLVIDO`; the closed freshness model, provenance
+  relationships and both localised presentations passed.
+- `AQG-S05-005`: `RESOLVIDO`; completion decoding remains bound to the
+  `questionLanguage` sent, including both incompatible fake-fetch directions.
+- `AQG-S05-006`: `RESOLVIDO`; the first `Tab` visibly focused the skip link,
+  `Enter` focused `MAIN#main-content` with `tabindex="-1"`, and the next
+  `Tab` reached the selected question-language radio inside the main content.
+
+#### AQG-S05-007 — P2 — pt-BR narrow viewport creates horizontal overflow
+
+At an observed `innerWidth` of 320 CSS pixels and a 303-pixel document client
+width after the vertical scrollbar, every `pt-BR` combination produced a
+document `scrollWidth` of 355 pixels in both `Light` and `Dark` and for both
+question languages. All four equivalent `en-GB` combinations retained a
+303-pixel `scrollWidth` without horizontal overflow.
+
+The `pt-BR` hero expanded beyond its 287-pixel container; its content measured
+approximately 348 pixels and extended to approximately 356 pixels from the
+viewport origin. Direct styled visual inspection showed clipped hero and
+workspace content plus a horizontal scrollbar. Narrow-screen, low-vision and
+keyboard users of the supported Portuguese interface must therefore pan
+horizontally to read and operate the page, contrary to the required reflow.
+
+Under separate corrective authority, the Portuguese min-content expansion
+should be removed at the narrow breakpoint without weakening supported content
+or focus behaviour, with a focal `pt-BR` 320-pixel regression. A later complete
+gate restart requires its own separate authority.
+
+### Verification and reproducibility
+
+All npm commands ran from `src/RagChallenge.Dashboard.Web` with
+`npm_config_offline=true`, Node.js `24.18.1`, npm `11.16.0` and the existing
+installation. No install, `dotnet`, real backend or external-network command
+ran.
+
+| Verification | Result |
+| --- | --- |
+| `npm run lint` | Passed, exit code 0 |
+| `npm run typecheck` | Passed, exit code 0 |
+| `npm test` | Passed, 38 tests, 0 failed/skipped/cancelled |
+| `npm run build` | Passed, 20 modules transformed |
+| Repeated build | Byte-for-byte identical SHA-256 manifest for all three files |
+| Built HTML | 0.97 kB (0.56 kB gzip) |
+| Built CSS | 11.96 kB (3.35 kB gzip) |
+| Built JavaScript | 171.97 kB (55.33 kB gzip) |
+| Default-width matrix | All eight combinations passed |
+| Narrow matrix | Four `pt-BR` combinations failed; four `en-GB` combinations passed |
+| Working tree after executable checks | Clean |
+
+The repeated manifest was `index.html`, 977 bytes,
+`8EA669A1672752FC91E5864975DE2054DF07184D6E4397EBCE6552EE0AE73473`;
+`assets/index-DyZXAIuo.css`, 11,963 bytes,
+`7B43E53F5E614778D571649141D8367CF7FFB4E300AAA690E58F12E10F7BBF1D`;
+and `assets/index-DC8AuelO.js`, 171,973 bytes,
+`1D1E4981B8B34FB585260DACCB32646C0594A3C0F4CF080DA35A73625CC7DCCA`.
+
+The default-width browser inspection found one header, main and footer, one
+H1, no duplicate IDs, no unnamed interactive control and no horizontal
+overflow. Focus outlines were solid and visible. Both interface languages,
+both question languages and both themes preserved localised titles, H1 text,
+canonical checked/pressed state and the synthetic input.
+
+Preflight found no product listener on ports 4173 or 5173. The built app was
+served only on `127.0.0.1:4173`; the task-owned preview's PID, executable,
+command line and port were revalidated before termination, and port 4173
+finished clear.
+
+### Limitations, risks and lifecycle consequence
+
+JavaScript line and branch percentages remain unavailable because the existing
+scripts and dependency set provide no coverage instrumentation. No Dashboard
+coverage percentage or repository floor is claimed. Node.js `24.18.1` was
+observed instead of the `24.18.0` pin, so reproduction passed on the observed
+runtime rather than the exact pin. No third-party accessibility engine was
+installed; semantic, label, focus, computed-layout and direct styled visual
+inspection used the existing browser surface. No real backend, provider,
+account, secret, corpus, official source or external network was exercised.
+
+`STATE-05 FRONTEND_IMPLEMENTATION` remains active. Its Automatic Quality Gate
+is failed with `AQG-S05-007` open; `AQG-S05-001` through `AQG-S05-006` are
+resolved. No P0 or P1 was observed. Human Gate and `STATE-06` remain not
+authorised and not executed. Correction of `AQG-S05-007` and any later full
+gate restart require separate explicit owner authorities.
