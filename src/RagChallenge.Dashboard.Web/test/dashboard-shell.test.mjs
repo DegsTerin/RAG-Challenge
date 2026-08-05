@@ -29,13 +29,52 @@ test("renders complete pt-BR and en-GB shells in both themes", async () => {
         }),
       );
 
-      assert.match(html, /<main id="main-content"/);
+      assert.match(html, /<main id="main-content" class="main-content" tabindex="-1"/);
       assert.match(html, /aria-pressed="true"/);
       assert.match(html, /RAG-Challenge/);
       assert.equal(html.includes("dangerouslySetInnerHTML"), false);
       assert.equal(html.includes(theme === "Light" ? ">Claro<" : ">Escuro<"), interfaceLanguage === "pt-BR");
     }
   }
+});
+
+test("moves skip-link focus to main content before the next main control", async () => {
+  const { DashboardShell, moveFocusToMainContent } = await vite.ssrLoadModule("/src/App.tsx");
+  const events = [];
+
+  moveFocusToMainContent(
+    {
+      preventDefault() {
+        events.push("navigation-prevented");
+      },
+    },
+    {
+      focus() {
+        events.push("main-focused");
+      },
+    },
+  );
+
+  assert.deepEqual(events, ["navigation-prevented", "main-focused"]);
+
+  const html = renderToStaticMarkup(
+    createElement(DashboardShell, {
+      interfaceLanguage: "en-GB",
+      theme: "Light",
+      onInterfaceLanguageChange() {},
+      onThemeChange() {},
+      workspace: createElement("button", { id: "first-main-control" }, "First main control"),
+    }),
+  );
+  const skipLinkPosition = html.indexOf('class="skip-link"');
+  const mainPosition = html.indexOf(
+    '<main id="main-content" class="main-content" tabindex="-1">',
+  );
+  const firstMainControlPosition = html.indexOf('id="first-main-control"');
+
+  assert.ok(skipLinkPosition >= 0);
+  assert.ok(mainPosition > skipLinkPosition);
+  assert.ok(firstMainControlPosition > mainPosition);
 });
 
 test("keeps source and query concepts out of visual-preference controls", async () => {

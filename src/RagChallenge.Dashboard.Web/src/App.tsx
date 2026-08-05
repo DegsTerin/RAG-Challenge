@@ -1,5 +1,11 @@
 // Purpose: Composes the accessible Dashboard shell and owns only device-local visual preferences; query execution remains in the API client boundary.
-import { useEffect, useReducer, useRef, useState, type ReactNode } from "react";
+import {
+  useEffect,
+  useReducer,
+  useRef,
+  useState,
+  type ReactNode,
+} from "react";
 
 import {
   ContractValidationError,
@@ -37,6 +43,18 @@ export interface DashboardShellProperties {
   workspace?: ReactNode;
 }
 
+interface SkipLinkActivationEvent {
+  preventDefault(): void;
+}
+
+export function moveFocusToMainContent(
+  event: SkipLinkActivationEvent,
+  target: HTMLElement | null,
+): void {
+  event.preventDefault();
+  target?.focus();
+}
+
 export function DashboardShell({
   interfaceLanguage,
   theme,
@@ -45,10 +63,17 @@ export function DashboardShell({
   workspace,
 }: DashboardShellProperties): JSX.Element {
   const copy = dashboardCopy[interfaceLanguage];
+  const mainContent = useRef<HTMLElement>(null);
 
   return (
     <div className="site-shell">
-      <a className="skip-link" href="#main-content">
+      <a
+        className="skip-link"
+        href="#main-content"
+        onClick={(event: SkipLinkActivationEvent) =>
+          moveFocusToMainContent(event, mainContent.current)
+        }
+      >
         {interfaceLanguage === "pt-BR" ? "Pular para o conteúdo" : "Skip to content"}
       </a>
       <header className="site-header">
@@ -77,7 +102,7 @@ export function DashboardShell({
         </div>
       </header>
 
-      <main id="main-content" className="main-content">
+      <main ref={mainContent} id="main-content" className="main-content" tabIndex={-1}>
         <section className="hero" aria-labelledby="page-title">
           <div className="hero-copy">
             <p className="section-kicker">{copy.workspaceLabel}</p>
