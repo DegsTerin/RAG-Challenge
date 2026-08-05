@@ -49,13 +49,27 @@ proprietários.
   e esta reconciliação documental. As correções executáveis estão
   implementadas e os documentos factuais foram reconciliados. O Automatic
   Quality Gate corretivo foi aprovado sobre
-  `main@114ea6f7f76936dac991553588660fc986bd0f10`; a disposição dos quatro
-  achados permanece pendente da retomada integral da auditoria. Isso não reabre
-  o lifecycle, não altera o Human Gate histórico e não autoriza `STATE-05`.
+  `main@114ea6f7f76936dac991553588660fc986bd0f10`; a disposição posterior dos
+  quatro achados integra o resultado consolidado abaixo. Isso não reabriu o
+  lifecycle, não alterou o Human Gate histórico e não autorizou `STATE-05`.
+- A retomada posterior da auditoria identificou `AUD-S04-005` a
+  `AUD-S04-009`. `S04-CORR-02` implementou alcance global antes da limpeza,
+  replay exato nos domínios persistidos, validação e falhas tipadas dos
+  adapters OpenAI, classificação administrativa por fase e reconciliação de
+  comentários. A nova passagem encontrou o residual `AUD-S04-005-R1` na
+  recuperação de uma reserva após crash. `S04-CORR-03`, no commit
+  `19889f560dad0f011006ff17fc7414c807838149`, adicionou o plano interno
+  versionado e a reconciliação transacional das reservas antes do planejamento
+  e da finalização. Seu Automatic Quality Gate foi aprovado com 169 testes,
+  92,04% de linhas e 66,46% de branches. A auditoria completa reiniciada foi
+  `APROVADA`, sem novo P0, P1, P2 ou P3, e dispôs `AUD-S04-001` a
+  `AUD-S04-009`, incluindo `AUD-S04-005-R1`, como `RESOLVIDOS`. O lifecycle e
+  o Human Gate histórico não foram alterados; `STATE-05` continua sem
+  autorização.
 - Fechamento de `S04-A0`: `PdfPig` `0.1.15` e `CsvHelper` `33.1.0` foram
   selecionados condicionalmente para desenvolvimento local;
   `Sylvan.Data.Csv` `1.4.4` permanece fallback não selecionado e não
-  autorizável por substituição automática. O adapter OpenAI será HTTP direto,
+  autorizável por substituição automática. O adapter OpenAI é HTTP direto,
   sem package `OpenAI` ou `System.ClientModel`. Hashes, gates, limitações,
   evidências, resolução do bloqueio pré-pin e gate runtime estão registrados no
   [relatório de STATE-04](../../docs/STATE-04-Backend-Implementation-Report.md).
@@ -542,10 +556,10 @@ autorizada.
    para cada banco antes de sua ativação.
 2. Validar e ativar individualmente novos registros de fonte oficial; a
    aceitação arquitetural não autoriza URL, rede, download ou crawling.
-3. Concluir a auditoria completa de `STATE-04`, dispondo `AUD-S04-001` a
-   `AUD-S04-004`; somente depois preparar uma proposta limitada de entrada em
-   `STATE-05` e obter autorização humana explícita e separada antes de qualquer
-   alteração de frontend.
+3. Preparar, se o proprietário desejar continuar, uma proposta limitada de
+   entrada em `STATE-05` e obter autorização humana explícita e separada antes
+   de qualquer alteração de frontend; a auditoria completa de `STATE-04` já
+   foi aprovada e todos os achados `AUD-S04-*` foram resolvidos.
 4. Verificar tier, entitlement, spend limit e controles da conta OpenAI, além
    da recuperação/geração bilíngue, antes de usar ou anunciar os providers.
 5. Homologar desempenho e capacidade do `SqliteExactVectorStore`; a fixture
@@ -580,13 +594,13 @@ e `S04-D` foram concluídos sequencialmente. O Automatic Quality Gate de
 `STATE-04` foi aprovado sem achados abertos; o Human Gate subsequente aceitou
 o estado com as limitações e os riscos residuais já registrados.
 
-A auditoria local posterior identificou `AUD-S04-001` a `AUD-S04-004`.
-`S04-CORR-01` implementou o rebinding transacional de observações, alinhou o
-chunking integral, materializou a administração one-shot governada e
-reconciliou a memória documental. O Automatic Quality Gate corretivo foi
-aprovado; a disposição dos achados depende da auditoria completa já autorizada.
-O lifecycle permanece encerrado no mesmo ponto enquanto essa validação não
-concede nem substitui autoridade de entrada em estado posterior.
+A auditoria local posterior identificou `AUD-S04-001` a `AUD-S04-009` e o
+residual `AUD-S04-005-R1`. `S04-CORR-01`, `S04-CORR-02` e `S04-CORR-03`
+implementaram as correções autorizadas sem ampliar o lifecycle. O último
+Automatic Quality Gate corretivo foi aprovado e a auditoria completa
+reiniciada resolveu todos os achados, sem identificar novo P0, P1, P2 ou P3.
+O lifecycle permanece encerrado no mesmo ponto; essa validação não concede nem
+substitui autoridade de entrada em estado posterior.
 
 Qualquer entrada em `STATE-05 FRONTEND_IMPLEMENTATION` exige proposta e
 autorização humana explícita e separada. O Human Gate de `STATE-04` não concede

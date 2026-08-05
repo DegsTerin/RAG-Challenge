@@ -2965,3 +2965,63 @@ contém somente fatos cronológicos.
   fonte oficial real, listener, Dashboard, GitHub, OCI, DB-Notifier,
   publicação ou deploy.
 - Aprovador: proprietário do RAG-Challenge.
+
+## 2026-08-04 — S04-CORR-02 e S04-CORR-03 aprovados; auditoria integral concluída
+
+- Estado preservado: `STATE-04 BACKEND_IMPLEMENTATION` continuou encerrado
+  após o Human Gate histórico; nenhum estado posterior foi autorizado ou
+  executado.
+- Baseline inicial de `S04-CORR-02`:
+  `main@405d386fc4a4433ac7922e620706c082c0835ab9`, corpus `4.9.2` e working
+  tree limpa.
+- `S04-CORR-02`: os commits
+  `7299722b4259c7384287e5b86f1eec65626a6842`,
+  `8c661ba094302c551182a6da853306036b50b83d`,
+  `a4baa22052d7c0fd7787d44820d6a2471a6f5d65`,
+  `c230c80bd6bdb19752ec7d6f4fb4aec5c76b7ae3` e
+  `3e9d6f9b2c7d7a92d9f1cbaf94d55490bd564092` corrigiram
+  `AUD-S04-005` a `AUD-S04-009`: alcance global de referências antes da
+  limpeza, replay persistido exato, validação e falhas tipadas dos adapters
+  OpenAI, classificação administrativa por fase e comentários obsoletos.
+- Residual: a auditoria reiniciada encontrou `AUD-S04-005-R1`, no qual uma
+  reserva sobrevivente a crash poderia voltar a ser referenciada antes da
+  finalização física incondicional. A auditoria parou antes de corrigir, como
+  exigido.
+- `S04-CORR-03`: sobre
+  `main@3e9d6f9b2c7d7a92d9f1cbaf94d55490bd564092`, o commit focal
+  `19889f560dad0f011006ff17fc7414c807838149` adicionou plano interno
+  `cleanup-plan-v1`, inventário tipado, reconciliação transacional antes do
+  planejamento e da finalização, restauração de conteúdo novamente alcançável,
+  dupla revalidação global, contenção TOCTOU, replay exato e comportamento
+  fail-closed. Nenhuma migration, dependência, package, lockfile, contrato
+  público, OpenAPI ou ADR mudou.
+- Automatic Quality Gate de `S04-CORR-03`: `APROVADO` sobre o Git tree
+  `40b04e737ebea6e00dab003ff2403e4aa94c4ad2`. Restore locked offline, format
+  e build Release passaram; 169 testes aplicáveis foram aprovados — 74
+  unitários, 86 de integração e 9 de arquitetura — sem falha ou skip; a
+  cobertura foi 92,04% de linhas (17.423/18.929) e 66,46% de branches
+  (2.421/3.643).
+- Supply chain e contratos: sete lockfiles permaneceram byte a byte estáveis;
+  hashes D1/cache de `PdfPig` `0.1.15` e `CsvHelper` `33.1.0` corresponderam;
+  a assinatura continua `CONDITIONAL_REVOCATION_NOT_CURRENT`; OpenAPI manteve
+  somente três rotas e SHA-256
+  `D6A686B94C926914BEB28B437F464430A01DE6560C2E2D476CF5C36025813E34`.
+- Auditoria completa: reiniciada do começo, em modo somente leitura, após o
+  gate. Autoridade, lifecycle, commits, arquitetura, dependências, parsers,
+  persistência, limpeza, indexação, ativação, hard pre-filter, recuperação,
+  geração, citações, idiomas, API, health, limites, cancelamento, rate limit,
+  adapters HTTP, configuração, segurança, testes, cobertura, integração,
+  documentação e higiene foram aprovados.
+- Disposição: `AUD-S04-001` a `AUD-S04-009`, incluindo
+  `AUD-S04-005-R1`, estão `RESOLVIDOS`. Nenhum novo P0, P1, P2 ou P3 foi
+  identificado.
+- Limitações preservadas: sem revogação online atual, sem semântica normativa
+  completa dos hashes NuGet, sem runtime Linux ARM64, provider/conta reais,
+  corpus ou fonte oficial reais, listener E2E, benchmark, recuperação
+  operacional, Dashboard, GitHub, OCI, DB-Notifier, publicação ou deploy.
+- Evidências: todos os artefatos temporários de `S04-A0` e das correções
+  permanecem preservados e não versionáveis até autoridade específica de
+  limpeza.
+- Resultado: `STATE-04` permanece encerrado; o Human Gate não foi repetido e
+  `STATE-05` continua sem autorização.
+- Aprovador: proprietário do RAG-Challenge.

@@ -437,6 +437,134 @@ P0 or P1 finding and no open gate failure. `AUD-S04-001` to `AUD-S04-004` are
 classify them as resolved. This gate does not rerun the Human Gate, reopen
 `STATE-04` or authorise `STATE-05`.
 
+## S04-CORR-02 outcome
+
+The first resumed audit identified five additional persistence, provider and
+administration findings and stopped before completing its matrix. The
+authorised `S04-CORR-02` sequence corrected them without changing packages,
+lockfiles, migrations, public contracts, OpenAPI or ADRs:
+
+- commit `7299722b4259c7384287e5b86f1eec65626a6842` makes physical content
+  cleanup consider document versions and official snapshots globally, keeps
+  deletion recoverable in quarantine and revalidates reachability before the
+  physical action;
+- commit `8c661ba094302c551182a6da853306036b50b83d` requires persisted,
+  operation-specific replay evidence for official-source, observation and
+  generation commits. Generation replay compares the complete
+  generation-bound projection defined by ADR-0007; observation identity
+  remains activation-bound and is checked by observation/activation replay;
+- commit `a4baa22052d7c0fd7787d44820d6a2471a6f5d65` validates exact OpenAI HTTP
+  authority, timeout, response status, redirect evidence, media type, body
+  limit, model identity, embedding order/dimensions and structured response
+  fields, mapping transport and payload failures to sanitised typed outcomes;
+- commit `c230c80bd6bdb19752ec7d6f4fb4aec5c76b7ae3` classifies one-shot
+  administrative failures by the phase actually reached and the canonical
+  exit categories `0`, `2`, `3`, `4`, `5` and `10`;
+- commit `3e9d6f9b2c7d7a92d9f1cbaf94d55490bd564092` reconciles only comments and
+  evidence known to have become stale.
+
+The subsequent read-only audit found one residual crash-recovery flaw,
+`AUD-S04-005-R1`: a reservation could survive a crash before deletion commit,
+later regain a durable reference and still be physically deleted by the old
+unconditional finalisation path. The audit stopped before disposition, as
+required.
+
+## S04-CORR-03 outcome
+
+Commit `19889f560dad0f011006ff17fc7414c807838149` corrects only
+`AUD-S04-005-R1`. It adds no migration, dependency, package, lockfile, public
+contract, OpenAPI or ADR change. The implementation now:
+
+- publishes an internal canonical `cleanup-plan-v1` atomically before any
+  reservation, and adopts it only when operation, corpus, instant, identities,
+  byte lengths, ordering and planning audit digest match exactly;
+- inventories reservation files as typed content identities, rejects unsafe
+  paths, reparse points, duplicate/conflicting canonical files and unplanned
+  artefacts, and verifies content length and SHA-256 before restoration or
+  finalisation;
+- reconciles crash-surviving reservations under an immediate SQLite
+  transaction before planning continues and again before operation
+  completion;
+- restores a reservation whenever its content row or a durable document or
+  official-snapshot reference exists, and refuses a durable reference without
+  its content row;
+- removes the content row only while the global reference set is empty, then
+  revalidates under an immediate transaction before the reservation can be
+  physically finalised;
+- keeps replay exact to the persisted plan and fails closed on missing bytes,
+  hash, path, plan, audit, operation or reference inconsistencies.
+
+Ten new deterministic regression tests cover applied and in-progress crash
+states, document and official-snapshot references, content shared across
+corpora, divergent replay, canonical/reservation conflict, missing or corrupt
+bytes, unexpected reservation paths and a reference committed in the TOCTOU
+window. The pre-existing cleanup/rollback workflow remains covered.
+
+## S04-CORR-03 Automatic Quality Gate
+
+The complete corrective gate ran locally and offline on 2026-08-04 over
+`main@19889f560dad0f011006ff17fc7414c807838149`, Git tree
+`40b04e737ebea6e00dab003ff2403e4aa94c4ad2`, corpus `4.9.2` and a clean
+working tree.
+
+| Gate | Result | Observed evidence |
+| --- | --- | --- |
+| Authority and diff | `APPROVED` | The implementation commit changes only the immutable content store, SQLite maintenance implementation and one integration-test file. No prohibited project, package, lockfile, migration, public contract, OpenAPI or ADR changed. |
+| Runtime preflight and isolation | `APPROVED` | The directed preflight found no RAG-Challenge-owned application process or listener to stop. Restore, CLI home, package cache, HTTP cache, plug-in cache and artefact outputs were isolated under a task-specific temporary root; global caches were neither changed nor inspected. |
+| Offline restore, format and build | `APPROVED` | All seven lockfiles remained byte-identical after locked restore from the allowlisted offline seed. Format verification passed and the .NET SDK `10.0.302` Release build completed with zero warnings and zero errors. |
+| Unit, integration and architecture | `APPROVED` | The accepted runs passed 169 applicable tests: 74 unit, 86 integration and 9 architecture; zero failed or skipped. The single Dashboard-specific architecture test was `NOT_APPLICABLE` under the explicit negative scope. |
+| Coverage | `APPROVED` | Merged Cobertura coverage was 92.04% of lines (17,423/18,929) and 66.46% of branches (2,421/3,643), above the 70% and 45% floors. |
+| Cleanup crash recovery | `APPROVED` | Eleven focused cleanup tests passed, including every newly authorised persisted-crash, global-reference, replay, integrity, path and deterministic concurrency case. No reservation is finalised while its content row or a durable global reference exists. |
+| Supply chain and locks | `APPROVED_WITH_ACCEPTED_LIMITATION` | D1 and isolated-cache SHA-512 values for `PdfPig` `0.1.15` and `CsvHelper` `33.1.0` match the accepted raw hashes; cache hash files match those raw bytes and tracked lock hashes remain unchanged. Signature status remains `CONDITIONAL_REVOCATION_NOT_CURRENT`. |
+| API, configuration and hygiene | `APPROVED` | OpenAPI still contains exactly the three approved public routes with SHA-256 `D6A686B94C926914BEB28B437F464430A01DE6560C2E2D476CF5C36025813E34`. External and administrative composition remain disabled by default. A strict audit of 162 applicable non-Dashboard files found no UTF-8/LF, final-newline, trailing-whitespace, NUL, local-link, private-material or apparent-secret failure. |
+| External and Dashboard validation | `NOT_APPLICABLE` | No network, provider, account, real corpus, official source, listener, Dashboard, GitHub, OCI, DB-Notifier, publication or deployment was used. |
+
+An initial all-test invocation placed outputs outside the repository ancestry
+used by repository-fixture discovery. It produced 158 passes and ten
+root/fixture discovery errors and was rejected as gate evidence. Exact
+SHA-256-validated copies of the required repository fixtures were then placed
+in the isolated mirror, and the accepted 169-test sequence passed without a
+source or product change.
+
+## Complete post-correction audit
+
+After the corrective gate passed, the complete `STATE-04` audit restarted
+from the beginning in read-only mode. It inspected authority, lifecycle,
+commits and diffs; architecture and dependency direction; packages, hashes and
+lockfiles; parser bounds; ingestion, immutable content and SQLite invariants;
+index staging, finalisation, activation and hard pre-filtering; retrieval,
+refusal, grounded generation, citations and both supported languages; API v1,
+OpenAPI, health, limits, cancellation and rate limiting; direct-HTTP adapters,
+fail-closed configuration, sanitisation, tests, coverage, end-to-end evidence,
+documentation and repository hygiene.
+
+| Audit area | Result | Disposition and evidence |
+| --- | --- | --- |
+| Authority and lifecycle | `APPROVED` | Every corrective commit is within an explicit owner authority. `STATE-04` remains historically closed after its Human Gate; no later lifecycle entry or Human Gate was executed. |
+| `AUD-S04-001` to `AUD-S04-004` | `RESOLVED` | Transactional observation rebinding, governed one-shot administration, complete `paragraph-window-v1` and factual documentation are implemented and exercised by the accepted full suite. |
+| `AUD-S04-005` | `RESOLVED` | Global reachability covers document versions and official snapshots across corpora; physical cleanup is quarantined, revalidated and fail-closed. |
+| `AUD-S04-005-R1` | `RESOLVED` | Versioned cleanup plans and transactional reservation reconciliation restore newly referenced content and prevent unconditional post-crash deletion. |
+| `AUD-S04-006` | `RESOLVED` | Official-source, observation and generation operations require exact persisted replay evidence in their respective ADR-0007 identity domains. |
+| `AUD-S04-007` | `RESOLVED` | OpenAI HTTP transport and response-policy violations are bounded, typed and sanitised; only fake handlers were exercised. |
+| `AUD-S04-008` | `RESOLVED` | Administrative outcomes are classified by phase and map to the canonical exit categories. |
+| `AUD-S04-009` | `RESOLVED` | Proved-obsolete comments were reconciled without broad documentary rewriting. |
+| Functional and quality matrix | `APPROVED` | Format, Release build, all applicable unit/architecture/integration tests, coverage floors, full synthetic backend flow, parser gates, migration regressions, OpenAPI and hygiene checks pass. |
+
+No new P0, P1, P2 or P3 finding was identified. The complete audit result is
+`APPROVED`; all findings `AUD-S04-001` through `AUD-S04-009`, including
+`AUD-S04-005-R1`, are `RESOLVED`. This disposition does not rerun or amend the
+historical Human Gate, authorise production, remove accepted caveats, reopen
+`STATE-04` or authorise `STATE-05`.
+
+The audit did not access the Dashboard or external systems and did not test a
+real provider, account, corpus, official source, listener-level deployment,
+Linux ARM64 runtime, benchmark or operational recovery. Provider handlers and
+credentials remain a future explicit composition responsibility; the default
+host is fail-closed and unready. No separate `dotnet-ef` model-diff command was
+run because that additional tool was not present in the isolated offline
+allowlist; the correction contains no model change, tracked migrations and
+snapshots are unchanged, and the full migration integration tests passed.
+
 ## Retention and risk
 
 - Preserve all temporary `S04-A0` evidence until separate cleanup authority.
@@ -447,6 +575,7 @@ classify them as resolved. This gate does not rerun the Human Gate, reopen
   suitability, parser quality over a real corpus or provider behaviour.
 - The consolidated `S04-A` to `S04-D` authority has been consumed
   sequentially; its Automatic Quality Gate and subsequent Human Gate are
-  approved with the documented limitations. The later corrective increment
-  passed its Automatic Quality Gate and is pending the resumed audit.
-  `STATE-04` remains closed and no later state is authorised.
+  approved with the documented limitations. `S04-CORR-01`, `S04-CORR-02` and
+  `S04-CORR-03` passed their authorised corrective gates, and the complete
+  restarted audit resolved every recorded `AUD-S04-*` finding. `STATE-04`
+  remains closed and no later state is authorised.
