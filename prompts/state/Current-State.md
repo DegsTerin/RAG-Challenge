@@ -91,6 +91,16 @@ proprietários.
   de produto, instalação ou ação externa foi executada; lint, typecheck,
   testes, build e browser do gate não foram alcançados depois do achado. O
   Human Gate e `STATE-06` permanecem sem autorização e sem execução.
+- Correção `S05-CORR-01`: autorizada e concluída em 2026-08-05 sobre
+  `main@7ee2241049dc68f16a38e85bd622928e64a317e7`, corpus `4.9.2` e working
+  tree limpa. O commit `654fce6e0a09d6e7196e434de0ff6f5d6ccd5b04`
+  rejeita qualquer URL de citação não HTTPS, exige `canonicalUrl` nula para
+  `LocalAuthorised`, limita links apresentados a `OfficialExternal` com HTTPS
+  validado e adiciona regressões de contrato e apresentação. Lint, typecheck,
+  29 testes e build passaram; package, lockfile, OpenAPI, contratos externos e
+  backend permaneceram inalterados. `AQG-S05-001` está
+  `CORRIGIDO_PENDENTE_DE_RETESTE_DO_GATE`; a correção não repetiu nem aprovou
+  o Automatic Quality Gate.
 - Fechamento de `S04-A0`: `PdfPig` `0.1.15` e `CsvHelper` `33.1.0` foram
   selecionados condicionalmente para desenvolvimento local;
   `Sylvan.Data.Csv` `1.4.4` permanece fallback não selecionado e não
@@ -581,10 +591,9 @@ autorizada.
    para cada banco antes de sua ativação.
 2. Validar e ativar individualmente novos registros de fonte oficial; a
    aceitação arquitetural não autoriza URL, rede, download ou crawling.
-3. Corrigir `AQG-S05-001` somente sob autoridade humana explícita e separada e
-   reiniciar integralmente o Automatic Quality Gate de `STATE-05` sobre a
-   baseline limpa posterior; o gate reprovado não concede autoridade de
-   correção nem de Human Gate.
+3. Obter autorização humana explícita e separada para reiniciar integralmente
+   o Automatic Quality Gate de `STATE-05` sobre a baseline limpa posterior a
+   `S05-CORR-01`; a correção focal não dispõe o achado nem concede Human Gate.
 4. Verificar tier, entitlement, spend limit e controles da conta OpenAI, além
    da recuperação/geração bilíngue, antes de usar ou anunciar os providers.
 5. Homologar desempenho e capacidade do `SqliteExactVectorStore`; a fixture
@@ -640,14 +649,20 @@ decoder e se torna link interativo. A condição de parada cancelou as demais
 verificações antes de lint, typecheck, testes, build ou listener; nenhuma
 correção foi executada.
 
+`S05-CORR-01` foi autorizado e concluído no commit
+`654fce6e0a09d6e7196e434de0ff6f5d6ccd5b04`. O decoder agora rejeita scheme
+não HTTPS e qualquer URL em citação local; a apresentação mantém somente link
+oficial HTTPS validado. Lint, typecheck, 29 testes e build passaram.
+`AQG-S05-001` está `CORRIGIDO_PENDENTE_DE_RETESTE_DO_GATE`, sem disposição
+automática.
+
 A próxima autoridade possível é uma decisão humana posterior, explícita e
-separada, para um incremento corretivo limitado de `STATE-05` que resolva
-`AQG-S05-001`, execute os testes de regressão aplicáveis e depois permita nova
-autorização separada para reiniciar integralmente o Automatic Quality Gate. O
-Human Gate continua prematuro e `STATE-06` não está autorizado.
+separada, para reiniciar integralmente o Automatic Quality Gate de `STATE-05`
+sobre a nova baseline limpa. O gate deverá repetir todos os checks, inclusive
+as verificações não alcançadas na passagem reprovada. O Human Gate continua
+prematuro e `STATE-06` não está autorizado.
 
 Rede externa, providers, contas, secrets, corpus real, fontes oficiais reais
 do produto, armazenamento operacional, GitHub, OCI, publicação, deploy,
-DB-Notifier, correção de `AQG-S05-001`, repetição do Automatic Quality Gate,
-Human Gate e entrada ou execução de estados posteriores continuam sem
-autorização.
+DB-Notifier, repetição do Automatic Quality Gate, Human Gate e entrada ou
+execução de estados posteriores continuam sem autorização.

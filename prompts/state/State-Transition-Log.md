@@ -3175,3 +3175,50 @@ contém somente fatos cronológicos.
   `AQG-S05-001`; depois de uma baseline corretiva limpa, nova autoridade
   separada para reiniciar integralmente o Automatic Quality Gate.
 - Aprovador: proprietário do RAG-Challenge.
+
+## 2026-08-05 — S05-CORR-01 corrige AQG-S05-001
+
+- Estado preservado: `STATE-05 FRONTEND_IMPLEMENTATION` permaneceu ativo; o
+  Automatic Quality Gate não foi repetido, e Human Gate e `STATE-06` não foram
+  autorizados nem executados.
+- Baseline inicial: branch `main`, commit
+  `7ee2241049dc68f16a38e85bd622928e64a317e7`, corpus `4.9.2` e working tree
+  limpa, reconfirmados imediatamente antes da primeira alteração.
+- Autoridade: incremento local, offline, sequencial e limitado
+  `S05-CORR-01`, exclusivamente para corrigir `AQG-S05-001`, adicionar
+  regressões de contrato/apresentação, executar os quatro checks npm existentes
+  e atualizar relatório e memória factual.
+- Correção: o commit `654fce6e0a09d6e7196e434de0ff6f5d6ccd5b04`
+  rejeita toda URL de citação não nula que não seja HTTPS validado, rejeita
+  qualquer `canonicalUrl` não nula em `LocalAuthorised` e mantém uma barreira
+  de apresentação que cria links somente para `OfficialExternal` com HTTPS
+  validado.
+- Regressões: o contrato rejeita `javascript:` e HTTPS em citação local,
+  preserva URL HTTPS oficial e URL nula local; a apresentação não cria link
+  para estado local malformado e conserva o link oficial válido.
+- Preflight runtime: antes dos checks, foi observado somente o runtime de
+  controle do navegador do Codex associado ao workspace, sem listener. Ele não
+  pertencia ao produto e não foi encerrado.
+- Verificações: `npm run lint`, `npm run typecheck`, `npm test` e
+  `npm run build` passaram na instalação existente. Foram 29 testes, sem
+  falha, skip ou cancelamento, e 20 módulos transformados no build.
+- Ambiente: Node.js observado `24.18.1`, contra pin `24.18.0`, e npm
+  `11.16.0`. Nenhuma instalação ou execução `dotnet` ocorreu.
+- Contratos e dependências: package, lockfile e OpenAPI permaneceram sem diff;
+  o OpenAPI conservou SHA-256
+  `D6A686B94C926914BEB28B437F464430A01DE6560C2E2D476CF5C36025813E34`.
+- Disposição: `AQG-S05-001` está
+  `CORRIGIDO_PENDENTE_DE_RETESTE_DO_GATE`. A correção e seus testes não
+  substituem nem aprovam o Automatic Quality Gate reprovado.
+- Limitações preservadas para o gate: percentuais de cobertura JavaScript,
+  screenshot do build estilizado, viewport estreito direto, engine externa de
+  acessibilidade e reprodução no Node exato continuam sem disposição.
+- Escopo negativo preservado: sem dependência, package, lockfile, contrato
+  externo, OpenAPI, ADR, backend, Domain, Application, Infrastructure, API,
+  provider, instalação, rede externa, conta, secret, corpus real, fonte
+  oficial real, GitHub, OCI, publicação, deploy, DB-Notifier, Automatic
+  Quality Gate, Human Gate ou estado posterior.
+- Próxima condição: nova baseline limpa e autorização humana explícita e
+  separada para reiniciar integralmente o Automatic Quality Gate de
+  `STATE-05`.
+- Aprovador: proprietário do RAG-Challenge.

@@ -328,3 +328,70 @@ limitations therefore remain open and were not disposed by this gate.
 is failed with `AQG-S05-001` open. Human Gate and `STATE-06` remain not
 authorised and not executed. A correction and a complete restart of the
 Automatic Quality Gate require separate explicit owner authority.
+
+## S05-CORR-01 — 2026-08-05
+
+### Authority and baseline
+
+- Corrective baseline: branch `main`, commit
+  `7ee2241049dc68f16a38e85bd622928e64a317e7`, corpus `4.9.2`, clean working
+  tree, reconfirmed immediately before the first change.
+- Authority: local, offline and sequential correction of `AQG-S05-001` only,
+  including Dashboard contract and presentation regressions, the four existing
+  npm checks, factual records and focused local commits.
+- Negative scope preserved: no dependency, package, lockfile, external
+  contract, OpenAPI, ADR, backend, provider, installation, network, external
+  action, Automatic Quality Gate, Human Gate or later state.
+
+### Correction
+
+Commit `654fce6e0a09d6e7196e434de0ff6f5d6ccd5b04`:
+
+- rejects every non-null citation URL that does not pass the existing safe
+  HTTPS validation;
+- rejects every non-null `canonicalUrl` on a `LocalAuthorised` citation,
+  including an otherwise valid HTTPS URL;
+- retains the official requirement for a safe HTTPS URL, snapshot and UTC
+  revalidation instant;
+- adds a presentation guard so only `OfficialExternal` citations with a safe
+  HTTPS URL can produce an anchor;
+- adds contract regressions for the local `javascript:` and local HTTPS cases,
+  plus explicit preservation of official HTTPS and local null-URL fixtures;
+- adds a presentation regression proving a malformed local URL never becomes
+  interactive while the valid official citation link remains present.
+
+### Verification
+
+All commands ran from `src/RagChallenge.Dashboard.Web` on 2026-08-05 with the
+existing Node.js `24.18.1` and npm `11.16.0` installation. No install command
+or `dotnet` command ran.
+
+| Verification | Result |
+| --- | --- |
+| `npm run lint` | Passed, exit code 0 |
+| `npm run typecheck` | Passed, exit code 0 |
+| `npm test` | Passed, 29 tests, 0 failed/skipped/cancelled |
+| `npm run build` | Passed, 20 modules transformed |
+| Built HTML | 0.96 kB (0.54 kB gzip) |
+| Built CSS | 11.96 kB (3.35 kB gzip) |
+| Built JavaScript | 170.81 kB (54.94 kB gzip) |
+| Package, lockfile and OpenAPI diff | Empty |
+| OpenAPI SHA-256 | `D6A686B94C926914BEB28B437F464430A01DE6560C2E2D476CF5C36025813E34` |
+
+The runtime preflight before executable verification found only the Codex
+browser-control runtime associated with the workspace and no product-owned
+listener. It was not a RAG-Challenge process and was not stopped. This
+increment did not authorise or require a browser listener.
+
+### Disposition and next authority
+
+`AQG-S05-001` is `CORRIGIDO_PENDENTE_DE_RETESTE_DO_GATE`. The correction and
+targeted regressions passed, but only a separately authorised complete restart
+of the `STATE-05` Automatic Quality Gate can resolve the finding or approve the
+gate. The earlier JavaScript coverage, styled screenshot, narrow viewport,
+external accessibility-engine and exact Node pin limitations remain open for
+that gate.
+
+`STATE-05 FRONTEND_IMPLEMENTATION` remains active. Automatic Quality Gate,
+Human Gate and `STATE-06` were not executed by `S05-CORR-01` and remain without
+authority.
