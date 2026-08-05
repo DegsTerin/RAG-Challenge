@@ -6,6 +6,8 @@ import { ContractValidationError } from "../src/contracts/api-v1.ts";
 import { askQuestion } from "../src/query-client.ts";
 import { answeredResponse, rateLimitedProblem } from "./fixtures/query-v1.mjs";
 
+const maximumResponseBytes = 262_144;
+
 test("posts the frozen request contract without credentials or redirects", async () => {
   let observedInput;
   let observedInit;
@@ -70,3 +72,125 @@ test("fails closed on incompatible media type, JSON, or body size", async () => 
     );
   }
 });
+
+test("accepts a valid response at the exact byte ceiling", async () => {
+  const responseText = createPaddedResponse(maximumResponseBytes);
+  const fakeFetch = async () =>
+    new Response(responseText, {
+      status: 200,
+      headers: { "content-type": "application/json" },
+    });
+
+  const result = await askQuestion(
+    "What is MVCC?",
+    "en-GB",
+    new AbortController().signal,
+    fakeFetch,
+  );
+
+  assert.equal(new TextEncoder().encode(responseText).byteLength, maximumResponseBytes);
+  assert.equal(result.kind, "completed");
+});
+
+test("cancels incremental reading at the first byte beyond the ceiling", async () => {
+  let pulls = 0;
+  let cancelled = false;
+  const body = new ReadableStream(
+    {
+      pull(controller) {
+        pulls += 1;
+        controller.enqueue(
+          pulls === 1
+            ? new Uint8Array(maximumResponseBytes).fill(0x20)
+            : Uint8Array.of(0x7b),
+        );
+      },
+      cancel() {
+        cancelled = true;
+      },
+    },
+    { highWaterMark: 0 },
+  );
+  const fakeFetch = async () =>
+    new Response(body, {
+      status: 200,
+      headers: { "content-type": "application/json" },
+    });
+
+  await assert.rejects(
+    askQuestion("What is MVCC?", "en-GB", new AbortController().signal, fakeFetch),
+    ContractValidationError,
+  );
+
+  assert.equal(pulls, 2);
+  assert.equal(cancelled, true);
+});
+
+test("rejects an oversized declared length before acquiring the body reader", async () => {
+  let readerAcquired = false;
+  let cancelled = false;
+  const fakeFetch = async () => ({
+    ok: true,
+    headers: new Headers({
+      "content-length": String(maximumResponseBytes + 1),
+      "content-type": "application/json",
+    }),
+    body: {
+      getReader() {
+        readerAcquired = true;
+        throw new Error("The body reader must not be acquired.");
+      },
+      async cancel() {
+        cancelled = true;
+      },
+    },
+  });
+
+  await assert.rejects(
+    askQuestion("What is MVCC?", "en-GB", new AbortController().signal, fakeFetch),
+    ContractValidationError,
+  );
+
+  assert.equal(readerAcquired, false);
+  assert.equal(cancelled, true);
+});
+
+test("preserves cancellation while streaming the response body", async () => {
+  const abortController = new AbortController();
+  const fakeFetch = async (_input, init) => {
+    const body = new ReadableStream({
+      start(controller) {
+        init.signal.addEventListener(
+          "abort",
+          () => controller.error(new DOMException("The operation was aborted.", "AbortError")),
+          { once: true },
+        );
+      },
+    });
+
+    return new Response(body, {
+      status: 200,
+      headers: { "content-type": "application/json" },
+    });
+  };
+  const pendingQuery = askQuestion(
+    "What is MVCC?",
+    "en-GB",
+    abortController.signal,
+    fakeFetch,
+  );
+
+  abortController.abort();
+
+  await assert.rejects(
+    pendingQuery,
+    (error) => error instanceof DOMException && error.name === "AbortError",
+  );
+});
+
+function createPaddedResponse(byteLength) {
+  const emptyResponse = JSON.stringify({ ...answeredResponse, padding: "" });
+  const paddingLength = byteLength - new TextEncoder().encode(emptyResponse).byteLength;
+  assert.ok(paddingLength >= 0);
+  return JSON.stringify({ ...answeredResponse, padding: "x".repeat(paddingLength) });
+}

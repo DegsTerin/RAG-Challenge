@@ -8,7 +8,6 @@ import {
   type ProblemDetailsV1,
   type QueryResponseV1,
   type SupportedLanguage,
-  utf8ByteCount,
 } from "./contracts/api-v1.ts";
 
 const maximumResponseBytes = 262_144;
@@ -49,10 +48,7 @@ export async function askQuestion(
     throw new ContractValidationError("Failure response has an unsupported media type.");
   }
 
-  const responseText = await response.text();
-  if (utf8ByteCount(responseText) > maximumResponseBytes) {
-    throw new ContractValidationError("Response exceeds the Dashboard safety bound.");
-  }
+  const responseText = await readBoundedResponseText(response);
 
   let payload: unknown;
   try {
@@ -64,4 +60,71 @@ export async function askQuestion(
   return response.ok
     ? { kind: "completed", response: decodeQueryResponse(payload) }
     : { kind: "problem", problem: decodeProblemDetails(payload) };
+}
+
+async function readBoundedResponseText(response: Response): Promise<string> {
+  const declaredLength = response.headers.get("content-length")?.trim();
+
+  if (declaredLength !== undefined && /^\d+$/.test(declaredLength)) {
+    const declaredBytes = BigInt(declaredLength);
+
+    if (declaredBytes > BigInt(maximumResponseBytes)) {
+      await cancelStreamQuietly(response.body);
+      throw new ContractValidationError("Response exceeds the Dashboard safety bound.");
+    }
+  }
+
+  if (response.body === null) {
+    return "";
+  }
+
+  const reader = response.body.getReader();
+  const decoder = new TextDecoder();
+  const chunks: string[] = [];
+  let receivedBytes = 0;
+
+  try {
+    while (true) {
+      const { done, value } = await reader.read();
+
+      if (done) {
+        break;
+      }
+
+      receivedBytes += value.byteLength;
+      if (receivedBytes > maximumResponseBytes) {
+        await cancelReaderQuietly(reader);
+        throw new ContractValidationError("Response exceeds the Dashboard safety bound.");
+      }
+
+      chunks.push(decoder.decode(value, { stream: true }));
+    }
+
+    chunks.push(decoder.decode());
+    return chunks.join("");
+  } finally {
+    reader.releaseLock();
+  }
+}
+
+async function cancelReaderQuietly(
+  reader: ReadableStreamDefaultReader<Uint8Array>,
+): Promise<void> {
+  try {
+    await reader.cancel();
+  } catch {
+    // The safety-bound failure remains authoritative if transport cancellation also fails.
+  }
+}
+
+async function cancelStreamQuietly(stream: ReadableStream<Uint8Array> | null): Promise<void> {
+  if (stream === null) {
+    return;
+  }
+
+  try {
+    await stream.cancel();
+  } catch {
+    // The declared-length failure remains authoritative if transport cancellation also fails.
+  }
 }
