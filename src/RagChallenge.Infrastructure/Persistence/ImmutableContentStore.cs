@@ -12,6 +12,9 @@ public sealed class ImmutableContentStore : IImmutableContentStore
 {
     private const long AbsoluteMaximumByteLength = 512L * 1024 * 1024;
     private const int BufferSize = 64 * 1024;
+    private const int CleanupPlanMaximumByteLength = 64 * 1024 * 1024;
+    private const string CleanupPlanFileName = "cleanup-plan-v1.json";
+    private const string CleanupPlanPartialFileName = "cleanup-plan-v1.json.partial";
 
     private readonly string rootPath;
     private readonly string objectsPath;
@@ -261,6 +264,7 @@ public sealed class ImmutableContentStore : IImmutableContentStore
                 expectedByteLength,
                 cancellationToken).ConfigureAwait(false);
             return new ContentDeletionReservation(
+                contentObjectId,
                 sourcePath,
                 reservationPath,
                 WasPresent: true);
@@ -269,6 +273,7 @@ public sealed class ImmutableContentStore : IImmutableContentStore
         if (!sourceExists)
         {
             return new ContentDeletionReservation(
+                contentObjectId,
                 sourcePath,
                 reservationPath,
                 WasPresent: false);
@@ -281,9 +286,31 @@ public sealed class ImmutableContentStore : IImmutableContentStore
             cancellationToken).ConfigureAwait(false);
         File.Move(sourcePath, reservationPath, overwrite: false);
         return new ContentDeletionReservation(
+            contentObjectId,
             sourcePath,
             reservationPath,
             WasPresent: true);
+    }
+
+    internal static async Task VerifyDeletionReservationAsync(
+        ContentDeletionReservation reservation,
+        long expectedByteLength,
+        CancellationToken cancellationToken)
+    {
+        ArgumentNullException.ThrowIfNull(reservation);
+        ArgumentOutOfRangeException.ThrowIfNegativeOrZero(expectedByteLength);
+
+        if (!reservation.WasPresent || !File.Exists(reservation.ReservationPath))
+        {
+            throw new InvalidDataException(
+                "A required content deletion reservation is absent.");
+        }
+
+        await VerifyExistingAsync(
+            reservation.ReservationPath,
+            reservation.ContentObjectId,
+            expectedByteLength,
+            cancellationToken).ConfigureAwait(false);
     }
 
     internal static void RestoreDeletionReservation(ContentDeletionReservation reservation)
@@ -308,26 +335,197 @@ public sealed class ImmutableContentStore : IImmutableContentStore
         File.Move(reservation.ReservationPath, reservation.SourcePath, overwrite: false);
     }
 
-    internal int CountDeletionReservations(OperationId operationId)
+    internal IReadOnlyList<ContentDeletionReservation> EnumerateDeletionReservations(
+        OperationId operationId)
     {
         ArgumentNullException.ThrowIfNull(operationId);
         var directory = ResolveCleanupReservationDirectory(operationId, createDirectory: false);
 
         if (!Directory.Exists(directory))
         {
-            return 0;
+            return [];
         }
 
         StoragePathSafety.EnsureExistingPathIsNotReparsePoint(directory, nameof(operationId));
-        return Directory.EnumerateFiles(directory, "*.delete", SearchOption.TopDirectoryOnly)
-            .Count(path =>
+        var reservations = new List<ContentDeletionReservation>();
+        var identifiers = new HashSet<string>(StringComparer.Ordinal);
+
+        foreach (var path in Directory.EnumerateFileSystemEntries(
+            directory,
+            "*",
+            SearchOption.TopDirectoryOnly))
+        {
+            StoragePathSafety.EnsureExistingPathIsNotReparsePoint(path, nameof(operationId));
+
+            if (Directory.Exists(path))
             {
-                StoragePathSafety.EnsureExistingPathIsNotReparsePoint(path, nameof(operationId));
-                return true;
-            });
+                throw new InvalidDataException(
+                    "A cleanup operation directory contains an unexpected directory.");
+            }
+
+            var name = Path.GetFileName(path);
+
+            if (string.Equals(name, CleanupPlanFileName, StringComparison.Ordinal) ||
+                string.Equals(name, CleanupPlanPartialFileName, StringComparison.Ordinal))
+            {
+                continue;
+            }
+
+            if (!name.EndsWith(".delete", StringComparison.Ordinal))
+            {
+                throw new InvalidDataException(
+                    "A cleanup operation directory contains an unexpected file.");
+            }
+
+            var identifier = name[..^".delete".Length];
+            var contentObjectId = new ContentObjectId(identifier);
+
+            if (!string.Equals(
+                    name,
+                    $"{contentObjectId.Value}.delete",
+                    StringComparison.Ordinal) ||
+                !identifiers.Add(contentObjectId.Value))
+            {
+                throw new InvalidDataException(
+                    "A cleanup operation directory contains an invalid reservation identity.");
+            }
+
+            var sourcePath = ResolveObjectPath(contentObjectId, createDirectory: false);
+
+            if (File.Exists(sourcePath))
+            {
+                throw new InvalidDataException(
+                    "A published content object conflicts with its deletion reservation.");
+            }
+
+            reservations.Add(new ContentDeletionReservation(
+                contentObjectId,
+                sourcePath,
+                path,
+                WasPresent: true));
+        }
+
+        return reservations
+            .OrderBy(item => item.ContentObjectId.Value, StringComparer.Ordinal)
+            .ToArray();
     }
 
-    internal void FinaliseDeletionReservations(OperationId operationId)
+    internal static void FinaliseDeletionReservation(
+        ContentDeletionFinalisation finalisation)
+    {
+        ArgumentNullException.ThrowIfNull(finalisation);
+        var reservation = finalisation.Reservation;
+
+        if (!File.Exists(reservation.ReservationPath))
+        {
+            throw new InvalidDataException(
+                "A verified deletion reservation disappeared before finalisation.");
+        }
+
+        StoragePathSafety.EnsureExistingPathIsNotReparsePoint(
+            reservation.ReservationPath,
+            nameof(finalisation));
+
+        if (File.Exists(reservation.SourcePath))
+        {
+            throw new InvalidDataException(
+                "A deletion reservation cannot be finalised while published content exists.");
+        }
+
+        File.Delete(reservation.ReservationPath);
+    }
+
+    internal async Task PublishCleanupPlanAsync(
+        OperationId operationId,
+        ReadOnlyMemory<byte> canonicalPlan,
+        CancellationToken cancellationToken)
+    {
+        ArgumentNullException.ThrowIfNull(operationId);
+
+        if (canonicalPlan.IsEmpty || canonicalPlan.Length > CleanupPlanMaximumByteLength)
+        {
+            throw new InvalidDataException("A cleanup plan has an invalid bounded length.");
+        }
+
+        var directory = ResolveCleanupReservationDirectory(operationId, createDirectory: true);
+        var planPath = StoragePathSafety.CombineUnderRoot(directory, CleanupPlanFileName);
+        var partialPath = StoragePathSafety.CombineUnderRoot(
+            directory,
+            CleanupPlanPartialFileName);
+
+        if (File.Exists(planPath))
+        {
+            await EnsureCleanupPlanMatchesAsync(
+                planPath,
+                canonicalPlan,
+                cancellationToken).ConfigureAwait(false);
+            DeleteCleanupPlanPartial(partialPath);
+            return;
+        }
+
+        DeleteCleanupPlanPartial(partialPath);
+
+        try
+        {
+            await using (var stream = new FileStream(
+                partialPath,
+                FileMode.CreateNew,
+                FileAccess.Write,
+                FileShare.None,
+                BufferSize,
+                FileOptions.Asynchronous | FileOptions.WriteThrough))
+            {
+                await stream.WriteAsync(canonicalPlan, cancellationToken)
+                    .ConfigureAwait(false);
+                await stream.FlushAsync(cancellationToken).ConfigureAwait(false);
+                stream.Flush(flushToDisk: true);
+            }
+
+            File.Move(partialPath, planPath, overwrite: false);
+            await EnsureCleanupPlanMatchesAsync(
+                planPath,
+                canonicalPlan,
+                cancellationToken).ConfigureAwait(false);
+        }
+        catch
+        {
+            DeleteCleanupPlanPartial(partialPath);
+            throw;
+        }
+    }
+
+    internal async Task<byte[]?> ReadCleanupPlanAsync(
+        OperationId operationId,
+        CancellationToken cancellationToken)
+    {
+        ArgumentNullException.ThrowIfNull(operationId);
+        var directory = ResolveCleanupReservationDirectory(operationId, createDirectory: false);
+
+        if (!Directory.Exists(directory))
+        {
+            return null;
+        }
+
+        StoragePathSafety.EnsureExistingPathIsNotReparsePoint(directory, nameof(operationId));
+        var planPath = StoragePathSafety.CombineUnderRoot(directory, CleanupPlanFileName);
+
+        if (!File.Exists(planPath))
+        {
+            return null;
+        }
+
+        StoragePathSafety.EnsureExistingPathIsNotReparsePoint(planPath, nameof(operationId));
+        var length = new FileInfo(planPath).Length;
+
+        if (length is <= 0 or > CleanupPlanMaximumByteLength)
+        {
+            throw new InvalidDataException("A cleanup plan has an invalid bounded length.");
+        }
+
+        return await File.ReadAllBytesAsync(planPath, cancellationToken).ConfigureAwait(false);
+    }
+
+    internal void DeleteCleanupPlanIfComplete(OperationId operationId)
     {
         ArgumentNullException.ThrowIfNull(operationId);
         var directory = ResolveCleanupReservationDirectory(operationId, createDirectory: false);
@@ -337,15 +535,22 @@ public sealed class ImmutableContentStore : IImmutableContentStore
             return;
         }
 
-        StoragePathSafety.EnsureExistingPathIsNotReparsePoint(directory, nameof(operationId));
-
-        foreach (var path in Directory.EnumerateFiles(
-            directory,
-            "*.delete",
-            SearchOption.TopDirectoryOnly))
+        if (EnumerateDeletionReservations(operationId).Count != 0)
         {
-            StoragePathSafety.EnsureExistingPathIsNotReparsePoint(path, nameof(operationId));
-            File.Delete(path);
+            throw new InvalidOperationException(
+                "A cleanup plan cannot be removed while reservations remain.");
+        }
+
+        var partialPath = StoragePathSafety.CombineUnderRoot(
+            directory,
+            CleanupPlanPartialFileName);
+        DeleteCleanupPlanPartial(partialPath);
+        var planPath = StoragePathSafety.CombineUnderRoot(directory, CleanupPlanFileName);
+
+        if (File.Exists(planPath))
+        {
+            StoragePathSafety.EnsureExistingPathIsNotReparsePoint(planPath, nameof(operationId));
+            File.Delete(planPath);
         }
 
         if (!Directory.EnumerateFileSystemEntries(directory).Any())
@@ -477,9 +682,48 @@ public sealed class ImmutableContentStore : IImmutableContentStore
             File.Delete(path);
         }
     }
+
+    private static async Task EnsureCleanupPlanMatchesAsync(
+        string path,
+        ReadOnlyMemory<byte> expected,
+        CancellationToken cancellationToken)
+    {
+        StoragePathSafety.EnsureExistingPathIsNotReparsePoint(path, nameof(path));
+        var length = new FileInfo(path).Length;
+
+        if (length is <= 0 or > CleanupPlanMaximumByteLength ||
+            length != expected.Length)
+        {
+            throw new InvalidDataException(
+                "A cleanup operation identity is associated with an invalid plan length.");
+        }
+
+        var actual = await File.ReadAllBytesAsync(path, cancellationToken).ConfigureAwait(false);
+
+        if (!CryptographicOperations.FixedTimeEquals(actual, expected.Span))
+        {
+            throw new InvalidDataException(
+                "A cleanup operation identity is associated with a different plan.");
+        }
+    }
+
+    private static void DeleteCleanupPlanPartial(string path)
+    {
+        if (!File.Exists(path))
+        {
+            return;
+        }
+
+        StoragePathSafety.EnsureExistingPathIsNotReparsePoint(path, nameof(path));
+        File.Delete(path);
+    }
 }
 
 internal sealed record ContentDeletionReservation(
+    ContentObjectId ContentObjectId,
     string SourcePath,
     string ReservationPath,
     bool WasPresent);
+
+internal sealed record ContentDeletionFinalisation(
+    ContentDeletionReservation Reservation);
