@@ -486,6 +486,12 @@ select:focus-visible,
   white-space: pre-wrap;
 }
 
+.answer-copy,
+.citation-card h4,
+.citation-card blockquote {
+  overflow-wrap: anywhere;
+}
+
 .failure-summary {
   background: color-mix(in srgb, var(--danger) 10%, var(--surface));
   border-left-color: var(--danger);

@@ -26,6 +26,12 @@ test("keeps all eight interface, question-language, and theme combinations shrin
   const compactLayoutEnd = css.indexOf("@media (prefers-reduced-motion: reduce)", narrowLayoutEnd);
   const compactLayout = css.slice(narrowLayoutEnd, compactLayoutEnd);
   const { DashboardShell, QueryWorkspace } = await vite.ssrLoadModule("/src/App.tsx");
+  const { decodeQueryResponse } = await vite.ssrLoadModule("/src/contracts/api-v1.ts");
+  const longTokens = {
+    answer: `Answer${"a".repeat(512)}`,
+    citationTitle: `Title${"t".repeat(512)}`,
+    citationExcerpt: `Excerpt${"e".repeat(512)}`,
+  };
   let combinations = 0;
 
   assert.notEqual(narrowLayoutStart, -1);
@@ -33,15 +39,26 @@ test("keeps all eight interface, question-language, and theme combinations shrin
   assert.notEqual(compactLayoutEnd, -1);
   assert.match(narrowLayout, /\.hero,[\s\S]*grid-template-columns:\s*minmax\(0, 1fr\)/);
   assert.match(compactLayout, /\.hero h1\s*{[\s\S]*font-size:\s*clamp\(2\.25rem, 11vw, 3\.4rem\)/);
+  assert.match(
+    css,
+    /\.answer-copy,\s*\.citation-card h4,\s*\.citation-card blockquote\s*{\s*overflow-wrap:\s*anywhere;/,
+  );
 
   for (const interfaceLanguage of ["pt-BR", "en-GB"]) {
     for (const questionLanguage of ["pt-BR", "en-GB"]) {
       for (const theme of ["Light", "Dark"]) {
-        const response = {
+        const response = decodeQueryResponse({
           ...answeredResponse,
           answerLanguage: questionLanguage,
-          answer: questionLanguage === "pt-BR" ? "Resposta sintética." : "Synthetic answer.",
-        };
+          answer: longTokens.answer,
+          citations: answeredResponse.citations.map((citation, index) => index === 0
+            ? {
+                ...citation,
+                title: longTokens.citationTitle,
+                excerpt: longTokens.citationExcerpt,
+              }
+            : citation),
+        }, questionLanguage);
         const workspace = createElement(QueryWorkspace, {
           interfaceLanguage,
           questionLanguage,
@@ -73,6 +90,9 @@ test("keeps all eight interface, question-language, and theme combinations shrin
         assert.match(html, new RegExp(`lang="${questionLanguage}"`));
         assert.match(html, interfaceLanguage === "pt-BR" ? /Resposta fundamentada/ : /Grounded answer/);
         assert.match(html, theme === "Light" ? /aria-pressed="true">Claro|aria-pressed="true">Light/ : /aria-pressed="true">Escuro|aria-pressed="true">Dark/);
+        assert.ok(html.includes(longTokens.answer));
+        assert.ok(html.includes(longTokens.citationTitle));
+        assert.ok(html.includes(longTokens.citationExcerpt));
         combinations += 1;
       }
     }
