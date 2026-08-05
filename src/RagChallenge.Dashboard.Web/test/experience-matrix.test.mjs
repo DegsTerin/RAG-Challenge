@@ -18,9 +18,21 @@ test.after(async () => {
   await vite.close();
 });
 
-test("renders all eight interface, question-language, and theme combinations", async () => {
+test("keeps all eight interface, question-language, and theme combinations shrinkable at the narrow breakpoint", async () => {
+  const css = await readFile(new URL("../src/styles.css", import.meta.url), "utf8");
+  const narrowLayoutStart = css.indexOf("@media (max-width: 52rem)");
+  const narrowLayoutEnd = css.indexOf("@media (max-width: 32rem)", narrowLayoutStart);
+  const narrowLayout = css.slice(narrowLayoutStart, narrowLayoutEnd);
+  const compactLayoutEnd = css.indexOf("@media (prefers-reduced-motion: reduce)", narrowLayoutEnd);
+  const compactLayout = css.slice(narrowLayoutEnd, compactLayoutEnd);
   const { DashboardShell, QueryWorkspace } = await vite.ssrLoadModule("/src/App.tsx");
   let combinations = 0;
+
+  assert.notEqual(narrowLayoutStart, -1);
+  assert.notEqual(narrowLayoutEnd, -1);
+  assert.notEqual(compactLayoutEnd, -1);
+  assert.match(narrowLayout, /\.hero,[\s\S]*grid-template-columns:\s*minmax\(0, 1fr\)/);
+  assert.match(compactLayout, /\.hero h1\s*{[\s\S]*font-size:\s*clamp\(2\.25rem, 11vw, 3\.4rem\)/);
 
   for (const interfaceLanguage of ["pt-BR", "en-GB"]) {
     for (const questionLanguage of ["pt-BR", "en-GB"]) {
