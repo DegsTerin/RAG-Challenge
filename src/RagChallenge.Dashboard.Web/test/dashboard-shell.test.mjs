@@ -17,6 +17,10 @@ test.after(async () => {
 
 test("renders complete pt-BR and en-GB shells in both themes", async () => {
   const { DashboardShell } = await vite.ssrLoadModule("/src/App.tsx");
+  const expectedHeroHeadings = {
+    "pt-BR": "Consulte a documentação ativa de bancos de dados e acompanhe a cobertura, a origem e a localização de cada evidência.",
+    "en-GB": "Query the active database documentation and inspect the coverage, origin, and location of every piece of evidence.",
+  };
 
   for (const interfaceLanguage of ["pt-BR", "en-GB"]) {
     for (const theme of ["Light", "Dark"]) {
@@ -32,6 +36,10 @@ test("renders complete pt-BR and en-GB shells in both themes", async () => {
       assert.match(html, /<main id="main-content" class="main-content" tabindex="-1"/);
       assert.match(html, /aria-pressed="true"/);
       assert.match(html, /RAG-Challenge/);
+      assert.match(html, new RegExp(`<h1 id="page-title">${expectedHeroHeadings[interfaceLanguage]}</h1>`));
+      assert.equal(html.includes("Respostas fundamentadas, com a fonte à vista."), false);
+      assert.equal(html.includes("Grounded answers, with the source in view."), false);
+      assert.equal(html.includes('class="hero-orbit"'), false);
       assert.equal(html.includes("dangerouslySetInnerHTML"), false);
       assert.equal(html.includes(theme === "Light" ? ">Claro<" : ">Escuro<"), interfaceLanguage === "pt-BR");
     }

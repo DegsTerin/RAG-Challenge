@@ -37,8 +37,10 @@ test("keeps all eight interface, question-language, and theme combinations shrin
   assert.notEqual(narrowLayoutStart, -1);
   assert.notEqual(narrowLayoutEnd, -1);
   assert.notEqual(compactLayoutEnd, -1);
-  assert.match(narrowLayout, /\.hero,[\s\S]*grid-template-columns:\s*minmax\(0, 1fr\)/);
-  assert.match(compactLayout, /\.hero h1\s*{[\s\S]*font-size:\s*clamp\(2\.25rem, 11vw, 3\.4rem\)/);
+  assert.doesNotMatch(css, /\.hero-orbit|\.orbit-core|\.orbit-ring/);
+  assert.match(css, /\.hero h1\s*{[\s\S]*font-size:\s*clamp\(1\.35rem, 2\.8vw, 2rem\)/);
+  assert.doesNotMatch(narrowLayout, /\.hero/);
+  assert.doesNotMatch(compactLayout, /\.hero/);
   assert.match(
     css,
     /\.answer-copy,\s*\.citation-card h4,\s*\.citation-card blockquote\s*{\s*overflow-wrap:\s*anywhere;/,
@@ -89,6 +91,15 @@ test("keeps all eight interface, question-language, and theme combinations shrin
         assert.equal(countMatches(html, /checked=""/g), 1);
         assert.match(html, new RegExp(`lang="${questionLanguage}"`));
         assert.match(html, interfaceLanguage === "pt-BR" ? /Resposta fundamentada/ : /Grounded answer/);
+        assert.equal(countMatches(html, /<h1[ >]/g), 1);
+        assert.match(
+          html,
+          interfaceLanguage === "pt-BR"
+            ? /<h1 id="page-title">Consulte a documentação ativa de bancos de dados/
+            : /<h1 id="page-title">Query the active database documentation/,
+        );
+        assert.equal(html.includes("Respostas fundamentadas, com a fonte à vista."), false);
+        assert.equal(html.includes("Grounded answers, with the source in view."), false);
         assert.match(html, theme === "Light" ? /aria-pressed="true">Claro|aria-pressed="true">Light/ : /aria-pressed="true">Escuro|aria-pressed="true">Dark/);
         assert.ok(html.includes(longTokens.answer));
         assert.ok(html.includes(longTokens.citationTitle));

@@ -197,90 +197,18 @@ select:focus-visible,
 }
 
 .hero {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(12rem, 0.45fr);
-  align-items: center;
-  gap: clamp(2rem, 6vw, 6rem);
   margin-bottom: clamp(2rem, 5vw, 4.5rem);
 }
 
 .hero h1 {
-  max-width: 15ch;
-  margin: 0.55rem 0 1.1rem;
-  font-family: Georgia, "Times New Roman", serif;
-  font-size: clamp(2.4rem, 7vw, 5.5rem);
-  font-weight: 600;
-  letter-spacing: -0.045em;
-  line-height: 0.98;
-}
-
-.hero-introduction {
-  max-width: 62ch;
+  max-width: 48ch;
   margin: 0;
   color: var(--text-muted);
-  font-size: clamp(1rem, 2vw, 1.2rem);
-  line-height: 1.65;
-}
-
-.hero-orbit {
-  position: relative;
-  display: grid;
-  place-items: center;
-  width: min(100%, 18rem);
-  aspect-ratio: 1;
-  justify-self: end;
-}
-
-.orbit-core {
-  z-index: 2;
-  display: grid;
-  place-items: center;
-  width: 7.5rem;
-  aspect-ratio: 1;
-  color: var(--accent-contrast);
-  background: var(--accent-strong);
-  border-radius: 50%;
   font-family: Georgia, "Times New Roman", serif;
-  font-size: 1.5rem;
-  font-weight: 700;
-  box-shadow: var(--shadow);
-}
-
-.orbit-ring {
-  position: absolute;
-  border: 1px solid var(--border-strong);
-  border-radius: 50%;
-}
-
-.orbit-ring-one {
-  inset: 12%;
-}
-
-.orbit-ring-two {
-  inset: 0;
-  border-style: dashed;
-}
-
-.hero-orbit::before,
-.hero-orbit::after {
-  position: absolute;
-  z-index: 3;
-  width: 1.1rem;
-  aspect-ratio: 1;
-  content: "";
-  background: var(--accent);
-  border: 0.3rem solid var(--canvas);
-  border-radius: 50%;
-}
-
-.hero-orbit::before {
-  top: 18%;
-  right: 15%;
-}
-
-.hero-orbit::after {
-  bottom: 10%;
-  left: 22%;
+  font-size: clamp(1.35rem, 2.8vw, 2rem);
+  font-weight: 600;
+  letter-spacing: -0.015em;
+  line-height: 1.35;
 }
 
 .workspace-grid {
@@ -741,7 +669,6 @@ select:focus-visible,
 
 @media (max-width: 52rem) {
   .site-header,
-  .hero,
   .site-footer {
     align-items: stretch;
     grid-template-columns: minmax(0, 1fr);
@@ -754,10 +681,6 @@ select:focus-visible,
 
   .preference-panel {
     justify-content: flex-start;
-  }
-
-  .hero-orbit {
-    display: none;
   }
 
   .workspace-grid {
@@ -793,10 +716,6 @@ select:focus-visible,
   .technical-details div {
     grid-template-columns: 1fr;
     gap: 0.15rem;
-  }
-
-  .hero h1 {
-    font-size: clamp(2.25rem, 11vw, 3.4rem);
   }
 }
 

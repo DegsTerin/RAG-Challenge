@@ -104,16 +104,7 @@ export function DashboardShell({
 
       <main ref={mainContent} id="main-content" className="main-content" tabIndex={-1}>
         <section className="hero" aria-labelledby="page-title">
-          <div className="hero-copy">
-            <p className="section-kicker">{copy.workspaceLabel}</p>
-            <h1 id="page-title">{copy.pageTitle}</h1>
-            <p className="hero-introduction">{copy.pageIntroduction}</p>
-          </div>
-          <div className="hero-orbit" aria-hidden="true">
-            <span className="orbit-core">RAG</span>
-            <span className="orbit-ring orbit-ring-one" />
-            <span className="orbit-ring orbit-ring-two" />
-          </div>
+          <h1 id="page-title">{copy.pageIntroduction}</h1>
         </section>
 
         {workspace ?? <WorkspacePlaceholder interfaceLanguage={interfaceLanguage} />}
