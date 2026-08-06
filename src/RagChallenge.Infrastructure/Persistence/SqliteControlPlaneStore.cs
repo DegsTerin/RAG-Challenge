@@ -959,23 +959,22 @@ public sealed class SqliteControlPlaneStore(SqliteStoreOptions options)
             return new StoreMutationResult(StoreMutationOutcome.NotFound, 0);
         }
 
-        var activeDocuments = await context.CatalogueRevisionDocuments.AsNoTracking()
-            .Where(row => row.CorpusId == request.Manifest.CorpusId.Value &&
-                row.CatalogueRevision == request.Manifest.CatalogueRevision.Value &&
-                row.Status == "Active")
-            .Select(row => new { row.DocumentId, row.DocumentVersion })
-            .ToArrayAsync(cancellationToken)
-            .ConfigureAwait(false);
-        var activeKeys = activeDocuments
-            .Select(row => (row.DocumentId, row.DocumentVersion))
-            .ToHashSet();
+        var expectedBindings = await ResolveExpectedGenerationBindingsAsync(
+            context,
+            request,
+            cancellationToken).ConfigureAwait(false);
 
-        if (request.Bindings.Any(binding =>
-                !activeKeys.Contains((binding.DocumentId.Value, binding.DocumentVersion.Value))) ||
+        if (expectedBindings is null ||
+            BindingDigestCanonicalizer
+                .CanonicaliseActiveDocumentSet(expectedBindings)
+                .Digest != request.Manifest.ActiveDocumentSetDigest ||
+            BindingDigestCanonicalizer
+                .CanonicaliseSourceBindingSet(expectedBindings)
+                .Digest != request.Manifest.SourceBindingSetDigest ||
             !await AreBindingContentsReopenableAsync(
                 context,
                 request.Manifest.CorpusId,
-                request.Bindings,
+                expectedBindings,
                 cancellationToken).ConfigureAwait(false))
         {
             return new StoreMutationResult(StoreMutationOutcome.ValidationFailed, 0);
@@ -990,7 +989,7 @@ public sealed class SqliteControlPlaneStore(SqliteStoreOptions options)
             request.FinalisedAt);
         context.GenerationManifests.Add(ControlPlaneMapping.ToRow(request));
         context.GenerationManifestBindings.AddRange(
-            request.Bindings.Select(binding =>
+            expectedBindings.Select(binding =>
                 ControlPlaneMapping.ToGenerationBindingRow(
                     request.Manifest.CorpusId,
                     request.Manifest.IndexGenerationId,
@@ -1775,6 +1774,175 @@ public sealed class SqliteControlPlaneStore(SqliteStoreOptions options)
         return true;
     }
 
+    private static async Task<IReadOnlyList<DocumentBinding>?>
+        ResolveExpectedGenerationBindingsAsync(
+            ControlPlaneDbContext context,
+            GenerationCommitRequest request,
+            CancellationToken cancellationToken)
+    {
+        var activeDocumentCount = await context.CatalogueRevisionDocuments.AsNoTracking()
+            .CountAsync(
+                row => row.CorpusId == request.Manifest.CorpusId.Value &&
+                    row.CatalogueRevision == request.Manifest.CatalogueRevision.Value &&
+                    row.Status == "Active",
+                cancellationToken)
+            .ConfigureAwait(false);
+        var activeRows = await (
+            from catalogueDocument in context.CatalogueRevisionDocuments.AsNoTracking()
+            join document in context.DocumentVersions.AsNoTracking()
+                on new
+                {
+                    catalogueDocument.CorpusId,
+                    catalogueDocument.DocumentId,
+                    catalogueDocument.DocumentVersion,
+                }
+                equals new
+                {
+                    document.CorpusId,
+                    document.DocumentId,
+                    document.DocumentVersion,
+                }
+            where catalogueDocument.CorpusId == request.Manifest.CorpusId.Value &&
+                catalogueDocument.CatalogueRevision ==
+                    request.Manifest.CatalogueRevision.Value &&
+                catalogueDocument.Status == "Active"
+            select new
+            {
+                CatalogueProductId = catalogueDocument.ProductId,
+                CatalogueProductRevision = catalogueDocument.ProductRevision,
+                DocumentProductId = document.ProductId,
+                DocumentProductRevision = document.ProductRevision,
+                document.DocumentId,
+                document.DocumentVersion,
+                document.DocumentFormat,
+                document.SourceAdapterId,
+                document.SourceTrustClass,
+                document.OfficialRegistrationId,
+                document.OfficialSnapshotId,
+                document.ContentSha256,
+                document.ByteLength,
+                document.MediaType,
+            })
+            .ToArrayAsync(cancellationToken)
+            .ConfigureAwait(false);
+        var requestedByKey = new Dictionary<GenerationBindingKey, DocumentBinding>();
+
+        foreach (var binding in request.Bindings)
+        {
+            if (!requestedByKey.TryAdd(ToReplayBindingKey(binding), binding))
+            {
+                return null;
+            }
+        }
+
+        if (activeRows.Length != activeDocumentCount ||
+            activeRows.Length != requestedByKey.Count)
+        {
+            return null;
+        }
+
+        var officialSnapshots = activeRows.Any(row =>
+            string.Equals(
+                row.SourceTrustClass,
+                SourceTrustClass.OfficialExternal.ToString(),
+                StringComparison.Ordinal))
+            ? await context.OfficialSourceSnapshots.AsNoTracking()
+                .Where(row => row.CorpusId == request.Manifest.CorpusId.Value)
+                .ToArrayAsync(cancellationToken)
+                .ConfigureAwait(false)
+            : [];
+        var officialRegistrations = officialSnapshots.Length == 0
+            ? []
+            : await context.OfficialSourceRegistrations.AsNoTracking()
+                .Where(row => row.CorpusId == request.Manifest.CorpusId.Value)
+                .ToArrayAsync(cancellationToken)
+                .ConfigureAwait(false);
+        var expectedBindings = new List<DocumentBinding>(activeRows.Length);
+
+        foreach (var row in activeRows)
+        {
+            if (!string.Equals(
+                    row.CatalogueProductId,
+                    row.DocumentProductId,
+                    StringComparison.Ordinal) ||
+                row.CatalogueProductRevision != row.DocumentProductRevision)
+            {
+                return null;
+            }
+
+            var expectedKey = new GenerationBindingKey(
+                row.DocumentProductId,
+                row.DocumentProductRevision,
+                row.DocumentId,
+                row.DocumentVersion,
+                row.DocumentFormat,
+                row.SourceAdapterId,
+                row.SourceTrustClass,
+                row.OfficialRegistrationId,
+                row.OfficialSnapshotId);
+
+            if (!requestedByKey.Remove(expectedKey, out var requestedBinding))
+            {
+                return null;
+            }
+
+            if (string.Equals(
+                    row.SourceTrustClass,
+                    SourceTrustClass.OfficialExternal.ToString(),
+                    StringComparison.Ordinal))
+            {
+                var snapshot = officialSnapshots.SingleOrDefault(snapshot =>
+                    string.Equals(
+                        snapshot.SnapshotId,
+                        row.OfficialSnapshotId,
+                        StringComparison.Ordinal) &&
+                    string.Equals(
+                        snapshot.RegistrationId,
+                        row.OfficialRegistrationId,
+                        StringComparison.Ordinal));
+                var registration = snapshot is null
+                    ? null
+                    : officialRegistrations.SingleOrDefault(registration =>
+                        string.Equals(
+                            registration.RegistrationId,
+                            snapshot.RegistrationId,
+                            StringComparison.Ordinal) &&
+                        registration.RegistrationRevision ==
+                            snapshot.RegistrationRevision);
+
+                if (snapshot is null || registration is null ||
+                    !string.Equals(
+                        snapshot.ContentSha256,
+                        row.ContentSha256,
+                        StringComparison.Ordinal) ||
+                    snapshot.ByteLength != row.ByteLength ||
+                    !string.Equals(
+                        snapshot.MediaType,
+                        row.MediaType,
+                        StringComparison.Ordinal) ||
+                    !string.Equals(
+                        registration.ProductId,
+                        row.DocumentProductId,
+                        StringComparison.Ordinal) ||
+                    !string.Equals(
+                        registration.DocumentId,
+                        row.DocumentId,
+                        StringComparison.Ordinal) ||
+                    !string.Equals(
+                        registration.SourceAdapterId,
+                        row.SourceAdapterId,
+                        StringComparison.Ordinal))
+                {
+                    return null;
+                }
+            }
+
+            expectedBindings.Add(requestedBinding);
+        }
+
+        return requestedByKey.Count == 0 ? expectedBindings : null;
+    }
+
     private static async Task<CorpusActivationRecord?> ReadActiveActivationAsync(
         ControlPlaneDbContext context,
         CorpusId corpusId,
@@ -2129,11 +2297,8 @@ public sealed class SqliteControlPlaneStore(SqliteStoreOptions options)
         ControlPlaneMapping.ParseUtc(row.FinalisedAtUtc) == request.FinalisedAt &&
         string.Equals(row.OperationId, request.OperationId.Value, StringComparison.Ordinal);
 
-    private static (string ProductId, long ProductRevision, string DocumentId, long DocumentVersion,
-        string DocumentFormat, string SourceAdapterId, string SourceTrustClass,
-        string? OfficialRegistrationId, string? OfficialSnapshotId) ToReplayBindingKey(
-        DocumentBinding binding) =>
-        (
+    private static GenerationBindingKey ToReplayBindingKey(DocumentBinding binding) =>
+        new(
             binding.DatabaseProductId.Value,
             binding.DatabaseProductRevision.Value,
             binding.DocumentId.Value,
@@ -2144,11 +2309,9 @@ public sealed class SqliteControlPlaneStore(SqliteStoreOptions options)
             binding.OfficialSourceRegistrationId?.Value,
             binding.OfficialSnapshotId?.Value);
 
-    private static (string ProductId, long ProductRevision, string DocumentId, long DocumentVersion,
-        string DocumentFormat, string SourceAdapterId, string SourceTrustClass,
-        string? OfficialRegistrationId, string? OfficialSnapshotId) ToReplayBindingKey(
+    private static GenerationBindingKey ToReplayBindingKey(
         GenerationManifestBindingRow binding) =>
-        (
+        new(
             binding.ProductId,
             binding.ProductRevision,
             binding.DocumentId,
@@ -2721,4 +2884,15 @@ public sealed class SqliteControlPlaneStore(SqliteStoreOptions options)
 
         return value;
     }
+
+    private sealed record GenerationBindingKey(
+        string ProductId,
+        long ProductRevision,
+        string DocumentId,
+        long DocumentVersion,
+        string DocumentFormat,
+        string SourceAdapterId,
+        string SourceTrustClass,
+        string? OfficialRegistrationId,
+        string? OfficialSnapshotId);
 }

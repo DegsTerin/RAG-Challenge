@@ -422,6 +422,96 @@ public sealed class SqlitePersistenceBoundaryTests
     }
 
     [Fact]
+    public async Task GenerationCommitRejectsAnIncompleteActiveDocumentSet()
+    {
+        await using var fixture = await SqlitePersistenceFixture.CreateAsync();
+        var (initialSnapshot, firstBinding) = await fixture.CommitLocalCatalogueAsync();
+        var secondBytes = Encoding.UTF8.GetBytes("second active document");
+        await using var secondStream = new MemoryStream(secondBytes, writable: false);
+        var secondContent = await fixture.ContentStore.PutAsync(
+            secondStream,
+            secondBytes.Length);
+        var firstDocument = Assert.Single(initialSnapshot.DocumentVersions);
+        var secondDocument = new DocumentVersion(
+            new DocumentId("doc-fixture-second"),
+            new DocumentVersionNumber(1),
+            firstDocument.DatabaseProductId,
+            firstDocument.DatabaseProductRevision,
+            DocumentFormat.Pdf,
+            SupportedLanguage.EnGb,
+            CatalogueItemStatus.Active,
+            secondContent.ContentObjectId,
+            secondContent.ByteLength,
+            "application/pdf",
+            new SourceAdapterId("local-fixture"),
+            SourceTrustClass.LocalAuthorised);
+        var secondSnapshot = new CatalogueSnapshot(
+            initialSnapshot.CorpusId,
+            new CatalogueRevision(2),
+            initialSnapshot.DatabaseCategories,
+            initialSnapshot.DatabaseProducts,
+            [firstDocument, secondDocument]);
+        var catalogueCommit = await fixture.ControlStore.CommitCatalogueAsync(
+            new CatalogueCommitRequest(
+                new OperationId("catalogue-two-active-documents"),
+                secondSnapshot,
+                ExpectedCurrentRevision: 1,
+                SqlitePersistenceFixture.At(2)));
+        Assert.Equal(StoreMutationOutcome.Applied, catalogueCommit.Outcome);
+        var (candidate, manifest) = await FinaliseGenerationAsync(
+            fixture,
+            [firstBinding],
+            new CatalogueRevision(2),
+            "omitted-active-document");
+
+        var result = await fixture.ControlStore.CommitGenerationAsync(
+            new GenerationCommitRequest(
+                new OperationId("generation-omitted-active-document"),
+                candidate,
+                manifest,
+                [firstBinding],
+                SqlitePersistenceFixture.At(3)));
+
+        Assert.Equal(StoreMutationOutcome.ValidationFailed, result.Outcome);
+        Assert.Equal(0, await fixture.ScalarAsync(
+            "SELECT COUNT(*) FROM generation_manifests;"));
+    }
+
+    [Theory]
+    [InlineData(GenerationBindingMismatch.DatabaseProduct)]
+    [InlineData(GenerationBindingMismatch.DatabaseProductRevision)]
+    [InlineData(GenerationBindingMismatch.Document)]
+    [InlineData(GenerationBindingMismatch.DocumentVersion)]
+    [InlineData(GenerationBindingMismatch.DocumentFormat)]
+    [InlineData(GenerationBindingMismatch.SourceAdapter)]
+    [InlineData(GenerationBindingMismatch.SourceTrustAndIdentity)]
+    public async Task GenerationCommitRejectsDivergentBindingMetadata(
+        GenerationBindingMismatch mismatch)
+    {
+        await using var fixture = await SqlitePersistenceFixture.CreateAsync();
+        var (_, binding) = await fixture.CommitLocalCatalogueAsync();
+        var divergent = CreateDivergentBinding(binding, mismatch);
+        var seed = $"binding-{mismatch}".ToLowerInvariant();
+        var (candidate, manifest) = await FinaliseGenerationAsync(
+            fixture,
+            [divergent],
+            new CatalogueRevision(1),
+            seed);
+
+        var result = await fixture.ControlStore.CommitGenerationAsync(
+            new GenerationCommitRequest(
+                new OperationId($"generation-{seed}"),
+                candidate,
+                manifest,
+                [divergent],
+                SqlitePersistenceFixture.At(3)));
+
+        Assert.Equal(StoreMutationOutcome.ValidationFailed, result.Outcome);
+        Assert.Equal(0, await fixture.ScalarAsync(
+            "SELECT COUNT(*) FROM generation_manifests;"));
+    }
+
+    [Fact]
     public async Task DurableOperationReplaysRequireTheExactPersistedIntent()
     {
         await using var fixture = await SqlitePersistenceFixture.CreateAsync();
@@ -579,4 +669,129 @@ public sealed class SqlitePersistenceBoundaryTests
 
     private static SqliteConnection OpenReadOnly(string path) =>
         new($"Data Source={path};Mode=ReadOnly;Cache=Private");
+
+    private static async Task<(CandidateBuildId Candidate, FinalisedIndexGenerationManifest Manifest)>
+        FinaliseGenerationAsync(
+            SqlitePersistenceFixture fixture,
+            IReadOnlyCollection<DocumentBinding> bindings,
+            CatalogueRevision catalogueRevision,
+            string seed)
+    {
+        var candidate = new CandidateBuildId($"candidate-{seed}");
+        await fixture.VectorStore.CreateCandidateAsync(
+            candidate,
+            SqlitePersistenceFixture.CorpusId,
+            SqlitePersistenceFixture.CompatibilityKey,
+            vectorDimensions: 3,
+            expectedChunkCount: bindings.Count,
+            SqlitePersistenceFixture.At(3));
+        var ordinal = 0L;
+
+        foreach (var binding in bindings)
+        {
+            await fixture.VectorStore.AddChunksAsync(
+                candidate,
+                [new VectorChunkWrite(
+                    ordinal,
+                    binding.DocumentId,
+                    binding.DocumentVersion,
+                    new LogicalArtifactDigest(
+                        SqlitePersistenceFixture.Hash($"{seed}:{ordinal}")),
+                    $"synthetic generation binding {ordinal}",
+                    new float[] { 1, ordinal + 1, seed.Length })]);
+            ordinal++;
+        }
+
+        var specification = new IndexGenerationSpecification(
+            manifestSchemaVersion: 1,
+            SqlitePersistenceFixture.CorpusId,
+            new CorpusRevision(1),
+            catalogueRevision,
+            BindingDigestCanonicalizer.CanonicaliseActiveDocumentSet(bindings).Digest,
+            BindingDigestCanonicalizer.CanonicaliseSourceBindingSet(bindings).Digest,
+            SqlitePersistenceFixture.CompatibilityKey);
+        var manifest = await fixture.VectorStore.FinaliseCandidateAsync(
+            candidate,
+            specification,
+            SqlitePersistenceFixture.At(3));
+        return (candidate, manifest);
+    }
+
+    private static DocumentBinding CreateDivergentBinding(
+        DocumentBinding binding,
+        GenerationBindingMismatch mismatch) =>
+        mismatch switch
+        {
+            GenerationBindingMismatch.DatabaseProduct => new DocumentBinding(
+                new DatabaseProductId("db-other"),
+                binding.DatabaseProductRevision,
+                binding.DocumentId,
+                binding.DocumentVersion,
+                binding.DocumentFormat,
+                binding.SourceAdapterId,
+                binding.SourceTrustClass),
+            GenerationBindingMismatch.DatabaseProductRevision => new DocumentBinding(
+                binding.DatabaseProductId,
+                new DatabaseProductRevision(2),
+                binding.DocumentId,
+                binding.DocumentVersion,
+                binding.DocumentFormat,
+                binding.SourceAdapterId,
+                binding.SourceTrustClass),
+            GenerationBindingMismatch.Document => new DocumentBinding(
+                binding.DatabaseProductId,
+                binding.DatabaseProductRevision,
+                new DocumentId("doc-other"),
+                binding.DocumentVersion,
+                binding.DocumentFormat,
+                binding.SourceAdapterId,
+                binding.SourceTrustClass),
+            GenerationBindingMismatch.DocumentVersion => new DocumentBinding(
+                binding.DatabaseProductId,
+                binding.DatabaseProductRevision,
+                binding.DocumentId,
+                new DocumentVersionNumber(2),
+                binding.DocumentFormat,
+                binding.SourceAdapterId,
+                binding.SourceTrustClass),
+            GenerationBindingMismatch.DocumentFormat => new DocumentBinding(
+                binding.DatabaseProductId,
+                binding.DatabaseProductRevision,
+                binding.DocumentId,
+                binding.DocumentVersion,
+                DocumentFormat.Csv,
+                binding.SourceAdapterId,
+                binding.SourceTrustClass),
+            GenerationBindingMismatch.SourceAdapter => new DocumentBinding(
+                binding.DatabaseProductId,
+                binding.DatabaseProductRevision,
+                binding.DocumentId,
+                binding.DocumentVersion,
+                binding.DocumentFormat,
+                new SourceAdapterId("local-other"),
+                binding.SourceTrustClass),
+            GenerationBindingMismatch.SourceTrustAndIdentity => new DocumentBinding(
+                binding.DatabaseProductId,
+                binding.DatabaseProductRevision,
+                binding.DocumentId,
+                binding.DocumentVersion,
+                binding.DocumentFormat,
+                binding.SourceAdapterId,
+                SourceTrustClass.OfficialExternal,
+                new OfficialSourceRegistrationId("registration-other"),
+                new OfficialSnapshotId("snapshot-other"),
+                new OfficialObservationId("observation-other")),
+            _ => throw new ArgumentOutOfRangeException(nameof(mismatch)),
+        };
+
+    public enum GenerationBindingMismatch
+    {
+        DatabaseProduct,
+        DatabaseProductRevision,
+        Document,
+        DocumentVersion,
+        DocumentFormat,
+        SourceAdapter,
+        SourceTrustAndIdentity,
+    }
 }
