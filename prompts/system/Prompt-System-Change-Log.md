@@ -2,10 +2,10 @@
 
 ## Versão atual
 
-- Versão: `4.9.2`
-- Data: 2026-08-03
-- Status: isolamento temático do handoff corrigido; `STATE-03` encerrado e
-  entrada em `STATE-04` não autorizada
+- Versão: `4.9.3`
+- Data: 2026-08-06
+- Status: ownership do README de `STATE-06` e `STATE-08` reconciliado;
+  `STATE-06` ativo com Automatic Quality Gate reprovado
 - Escopo: 13 arquivos ativos em `prompts/`
 
 A versão do corpus é independente da versão futura do software.
@@ -19,6 +19,27 @@ A versão do corpus é independente da versão futura do software.
 
 Toda alteração atualiza este arquivo e, quando necessário,
 [`../Start-Here.md`](../Start-Here.md).
+
+## 4.9.3 — 2026-08-06
+
+- Registra a decisão explícita `NORM-S06-001` do proprietário sobre
+  `main@140c0516e4dbfc02808a90f0496550eb6b09da1b`, corpus `4.9.2` e working
+  tree limpa.
+- Mantém em `STATE-06` o entregável obrigatório de README factualmente atual e
+  exige ao menos um exemplo cujo comando e resultado sejam realmente
+  verificados no artefato integrado local/sintético, com essa fronteira
+  declarada.
+- Mantém em `STATE-08` a responsabilidade pelo README público final, que
+  complementa ou substitui os exemplos anteriores com evidência própria,
+  separadamente verificada em OCI e na execução real do produto.
+- Reconciliam-se Lifecycle, roadmap, `S06-CORR-01` e `BL-M13` sem alterar a
+  ordem dos estados, criar capacidade ou enfraquecer o gate reprovado.
+- Classifica-se como `PATCH`: a mudança elimina uma divergência de ownership e
+  torna explícitos os níveis de evidência já exigidos, sem decisão
+  arquitetural nova.
+- O registro não implementa as correções, não dispõe `AQG-S06-001` a
+  `AQG-S06-003`, não repete o Automatic Quality Gate e não executa Human Gate,
+  OCI ou `STATE-07`.
 
 ## 4.9.2 — 2026-08-03
 

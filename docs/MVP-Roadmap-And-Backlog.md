@@ -63,7 +63,7 @@ Não incluído:
 | `STATE-03` | Modelo de banco/categoria/documento/snapshot/índice, freshness, bindings, migrations e rollback. | Geração/ativação e isolamento são verificáveis sem serviço produtivo. |
 | `STATE-04` | Administração/ingestão PDF/CSV, sync oficial, pipeline RAG e API funcionais localmente. | Recuperação unificada, citações e falhas passam testes. |
 | `STATE-05` | Interface mínima com cobertura, proveniência e freshness. | Fluxos PDF/CSV local/oficial e citações validados humanamente. |
-| `STATE-06` | E2E offline, artefato e smoke online autorizado. | Execução reproduzível sem corrupção, leak ou secret. |
+| `STATE-06` | E2E offline, artefato, ensaio OCI não produtivo e README factualmente atual com exemplo local/sintético verificado. | Execução reproduzível sem corrupção, leak, secret ou sobredeclaração de evidência. |
 | `STATE-07` | Homologação RAG, SSRF, isolamento, carga, recuperação e acessibilidade. | Thresholds prévios atendidos e riscos aceitos. |
 | `STATE-08` | Deploy OCI, egress oficial, smoke, evidência e README final. | Entrega pública atende aos critérios oficiais. |
 
@@ -309,6 +309,21 @@ mistura de textos do produto, perda de contraste nem tradução de citações.
 
 Critério: clone limpo reproduz o caminho documentado.
 
+### Lote S06-CORR-01 — Correção do Automatic Quality Gate
+
+- Produzir o plano de prontidão e o ensaio estático Linux ARM64 não produtivo,
+  sem contato com OCI.
+- Provar no host composto que cancelamento e falhas limitadas preservam a
+  geração ativa para consulta e reinicialização.
+- Manter o README factualmente atual com ao menos um comando e resultado
+  verificados no artefato integrado local/sintético, identificando essa
+  fronteira sem alegar corpus, provider, fonte oficial, Linux, OCI ou produção
+  reais.
+
+Critério: os três achados de `STATE-06` possuem evidência corretiva local e
+permanecem pendentes de disposição por um novo Automatic Quality Gate; a
+finalização pública do README continua pertencendo a `S08-B`.
+
 ### Lote S07-A — Avaliação e segurança
 
 - Executar dataset congelado.
@@ -342,7 +357,9 @@ Critério: aplicação pública funcional e identificável.
 ### Lote S08-B — Evidência e entrega
 
 - Registrar link/captura sanitizada.
-- Atualizar README com comandos e exemplos reais.
+- Finalizar o README complementando ou substituindo os exemplos
+  locais/sintéticos por comandos e evidência separadamente verificados em OCI
+  e na execução real do produto.
 - Conferir histórico, licença e material versionado.
 - Submeter URL GitHub segundo as regras do Challenge.
 
@@ -366,7 +383,7 @@ Critério: checklist oficial completo.
 | `BL-M10` | Testes e avaliação RAG. | S04/S07 |
 | `BL-M11` | Execução local reproduzível. | S06 |
 | `BL-M12` | Deploy em OCI e evidência. | S08 |
-| `BL-M13` | README final com exemplos reais. | S08 |
+| `BL-M13` | README público final com exemplos sustentados por evidência separadamente verificada em OCI e na execução real do produto. | S08 |
 | `BL-M14` | Preservar uma geração anterior elegível; testar os digests separados, rebinding de observação e ativação/rollback atômicos por novo `CorpusActivationRecord` em compare-and-swap, sem replay de freshness histórica. | S03/S04/S07 |
 | `BL-M15` | Sincronizar registros oficiais PDF/CSV allowlisted com pinning DNS/IP, snapshot, freshness e cobertura explícita. | S02–S08 |
 | `BL-M16` | Suportar e homologar perguntas/respostas em `pt-BR` e `en-GB`, inclusive recuperação cruzada e preservação do idioma original das citações. | S02/S04/S07 |

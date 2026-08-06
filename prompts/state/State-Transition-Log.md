@@ -4297,3 +4297,50 @@ contém somente fatos cronológicos.
   `AQG-S06-003`, seguida de reinício integral e separadamente autorizado do
   Automatic Quality Gate antes de qualquer resumo de Human Gate.
 - Aprovador: proprietário do RAG-Challenge.
+
+## 2026-08-06 — NORM-S06-001 e autoridade para S06-CORR-01
+
+- Estado anterior e resultante: `STATE-06 INTEGRATION` ativo; Automatic
+  Quality Gate `REPROVADO`; `AQG-S06-001` a `AQG-S06-003` abertos, todos P2;
+  sem transição.
+- Baseline autorizada: `main@140c0516e4dbfc02808a90f0496550eb6b09da1b`,
+  corpus `4.9.2` e working tree limpa, reconfirmados no diretório e Git
+  top-level canônicos antes de qualquer mudança ou acesso externo.
+- Autoridade humana exata:
+
+  ```text
+  Decido NORM-S06-001: STATE-06 é responsável por um README factualmente atual e por pelo menos um exemplo cujo comando e resultado tenham sido realmente verificados contra o artefato integrado local/sintético. O texto deve explicitar essa fronteira e não pode alegar corpus, provider, fonte oficial, runtime Linux, OCI ou produção reais. STATE-08 permanece responsável pelo README público final e por complementar ou substituir esses exemplos com evidência própria de OCI e execução real do produto.
+
+  Autorizo, em execução sequencial, AUTH-S06-NORM-001, AUTH-S06-DEP-001 e AUTH-S06-CORR-001 conforme a proposta.
+
+  Para AUTH-S06-DEP-001, autorizo HTTPS somente por https://api.nuget.org/v3/index.json, sem host ou redirecionamento inesperado, e apenas para verificar e obter em cache isolado os candidatos Microsoft.NETCore.App.Runtime.linux-arm64 10.0.10, Microsoft.AspNetCore.App.Runtime.linux-arm64 10.0.10 e Microsoft.NETCore.App.Host.linux-arm64 10.0.10. Verifique fechamento do resolver, SHA-512 de catálogo, repository signatures em modo de revogação offline, licenças e advisories. Use C:\Projects\RAG-Challenge\artifacts-local\s06-dependencies\nuget-packages como cache isolado. Pare antes do restore se identidade, versão, origem, assinatura, hash ou fechamento diferir. Não altere NuGet.config nem qualquer lockfile fora de src/RagChallenge.Server.Api/packages.lock.json; pare se outro lockfile precisar mudar.
+
+  Implemente somente S06-CORR-01, execute as verificações corretivas previstas e registre o resultado como CORRECTED_PENDING_GATE_RETEST em commits locais focais. Não execute AUTH-S06-AQG-RETEST-001, Human Gate ou STATE-07. Permanecem proibidos OCI, providers, contas, corpus ou fontes reais, GitHub, publicação, deploy, mudanças de ADR, contratos públicos, OpenAPI, schema ou migrations.
+  ```
+
+- Decisão normativa: `NORM-S06-001` aceita. `STATE-06` conserva um README
+  factualmente atual e ao menos um exemplo local/sintético realmente
+  verificado; `STATE-08` conserva a finalização pública com evidência própria
+  de OCI e execução real do produto.
+- Corpus: `4.9.3` (`PATCH`), sem mudança de arquitetura, ordem do lifecycle,
+  capacidade ou estado. Lifecycle, roadmap, changelog e snapshot factual foram
+  reconciliados; o histórico original do gate reprovado permanece intacto.
+- Dependência autorizada: somente os três candidatos Linux ARM64 `10.0.10`,
+  origem NuGet exata, cache isolado, verificação de supply chain e restore
+  delimitado. Qualquer divergência de identidade, versão, origem, redirect,
+  hash, assinatura, fechamento, target ou lockfile exige parada.
+- Correção autorizada: plano/rehearsal OCI somente local, seam interno de teste,
+  testes compostos de cancelamento/falha/preservação, README local/sintético,
+  verificações completas, reconciliação factual e commits locais focais.
+- Escopo negativo: sem novo Automatic Quality Gate, Human Gate, `STATE-07`,
+  OCI real, providers, contas, secrets, corpus ou fontes reais, GitHub,
+  publicação, deploy, ADR, contrato público, OpenAPI, schema, migration ou
+  DB-Notifier.
+- Runtime preflight: `NÃO APLICÁVEL` a este registro normativo; nenhuma
+  inspeção ou interrupção de processo/listener foi realizada.
+- Quality Gate: permanece `REPROVADO`; os três achados permanecem abertos até
+  evidência corretiva e futura disposição por gate separadamente autorizado.
+- Human Gate: prematuro, não solicitado e não autorizado.
+- Próxima condição: concluir sequencialmente o intake delimitado e as correções
+  de `S06-CORR-01`; parar antes de qualquer novo gate.
+- Aprovador: proprietário do RAG-Challenge.

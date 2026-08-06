@@ -239,7 +239,9 @@ Entregáveis:
 - resiliência e cancelamento;
 - artefato reproduzível;
 - plano e ensaio não produtivo de OCI;
-- exemplos reais para o README.
+- README factualmente atual, com ao menos um exemplo cujo comando e resultado
+  tenham sido verificados no artefato integrado local/sintético e com essa
+  fronteira explicitada.
 
 Aceite:
 
@@ -298,7 +300,9 @@ Entregáveis:
 - health e observabilidade;
 - rollback;
 - link/captura de execução;
-- README final e submissão GitHub.
+- README público final, complementando ou substituindo os exemplos
+  locais/sintéticos com comandos e evidência separadamente verificados em OCI
+  e na execução real do produto, e submissão GitHub.
 
 Aceite:
 

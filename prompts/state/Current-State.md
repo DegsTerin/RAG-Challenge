@@ -378,6 +378,19 @@ proprietários.
   temporários da tarefa terminaram ausentes; a política de execução recusou a
   remoção recursiva do diretório de cobertura ignorado sob `TestResults/`, que
   conserva somente evidência gerada.
+- Correção `S06-CORR-01`: autorizada pelo proprietário em 2026-08-06 sobre
+  `main@140c0516e4dbfc02808a90f0496550eb6b09da1b`, corpus `4.9.2` e working
+  tree limpa. A decisão `NORM-S06-001` mantém em `STATE-06` um README
+  factualmente atual com exemplo local/sintético realmente verificado e
+  reserva para `STATE-08` sua finalização pública com evidência própria de OCI
+  e execução real do produto. A reconciliação normativa está registrada como
+  corpus `4.9.3`. O proprietário também autorizou o intake isolado e
+  estritamente delimitado dos três runtime packs Linux ARM64 `10.0.10`, as
+  correções offline dos três achados, suas verificações e commits locais
+  focais. A execução corretiva continua sequencial; os achados permanecem
+  abertos e o Automatic Quality Gate permanece `REPROVADO` até registro de
+  evidência posterior. Human Gate, novo gate, OCI real e `STATE-07` não estão
+  autorizados.
 - Fechamento de `S04-A0`: `PdfPig` `0.1.15` e `CsvHelper` `33.1.0` foram
   selecionados condicionalmente para desenvolvimento local;
   `Sylvan.Data.Csv` `1.4.4` permanece fallback não selecionado e não
@@ -614,7 +627,7 @@ proprietários.
   a política de idioma acrescentou o 21º documento público por incremento
   versionado, e o ADR-0003 acrescentou o 22º.
 - A baseline aprovada no Human Gate de `STATE-00` permanece `3.4.0`.
-- O corpus de instruções vigente possui versão `4.9.2` e 13 arquivos em
+- O corpus de instruções vigente possui versão `4.9.3` e 13 arquivos em
   `prompts/`.
 - Visão, requisitos, arquitetura, RAG, segurança, qualidade, lifecycle,
   roadmap, backlog, estado, histórico e templates estão documentados.
@@ -721,6 +734,12 @@ proprietários.
   melhoria opcional sem relação direta e usa ausência canônica quando não
   existir trabalho adicional pertinente. A correção não altera produto,
   lifecycle, autoridade ou estado executável.
+- O corpus `4.9.3` registra `NORM-S06-001`: `STATE-06` conserva o README
+  factualmente atual e ao menos um exemplo realmente verificado no artefato
+  integrado local/sintético, enquanto `STATE-08` conserva sua finalização
+  pública com evidência separadamente verificada de OCI e execução real do
+  produto. A mudança elimina a divergência de ownership sem alterar a ordem do
+  lifecycle, dispor os achados ou repetir o gate.
 - O Human Gate de `STATE-02` foi confirmado na mesma conversa que apresentou
   o resumo completo da baseline vigente `main@6e61c4c`, corpus `4.9.1`. A
   decisão aceitou a arquitetura documental sem ressalvas, preservou todas as
@@ -1056,9 +1075,11 @@ local, offline, sintético e sequencial, com implementação focal em
 `8041e25a554a7cc47ecebf4abe1fc8b94b12d12d` e relatório próprio. O Automatic
 Quality Gate posterior foi executado sobre
 `main@a6f0480b7f229b63c5ac24d65e61f55de1c6483a` e ficou `REPROVADO` por
-`AQG-S06-001` a `AQG-S06-003`, todos P2. Não existe autoridade vigente para
-corrigir esses achados, repetir o gate, executar Human Gate, transitar para
-`STATE-07` ou realizar ação externa. Rede externa, providers, contas,
-secrets, corpus real, fontes oficiais reais do produto, armazenamento
-operacional, GitHub, OCI real, publicação, deploy, DB-Notifier e estados
-posteriores continuam sem autorização.
+`AQG-S06-001` a `AQG-S06-003`, todos P2. O proprietário autorizou
+`S06-CORR-01` sobre `main@140c0516e4dbfc02808a90f0496550eb6b09da1b` e
+aceitou `NORM-S06-001`; o corpus `4.9.3` reconcilia o ownership do README. A
+execução sequencial autorizada inclui somente o intake Linux ARM64 delimitado,
+as correções offline, seus checks e commits locais focais. Um novo Automatic
+Quality Gate, Human Gate, `STATE-07`, OCI real, providers, contas, secrets,
+corpus ou fontes reais, armazenamento operacional, GitHub, publicação, deploy,
+DB-Notifier e estados posteriores continuam sem autorização.
