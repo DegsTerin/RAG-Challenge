@@ -4215,3 +4215,85 @@ contém somente fatos cronológicos.
 - Próxima condição: nenhuma dentro desta correção concluída; nova autoridade
   é necessária antes de outro lote, gate, estado ou ação externa.
 - Aprovador: proprietário do RAG-Challenge.
+
+## 2026-08-06 — Automatic Quality Gate de STATE-06 reprovado
+
+- Estado anterior: `STATE-06 INTEGRATION` ativo, `S06-A` concluído e
+  Automatic Quality Gate ainda não executado.
+- Estado solicitado: Automatic Quality Gate completo de `STATE-06
+  INTEGRATION`.
+- Autoridade: solicitação explícita do proprietário para auditoria local,
+  offline, sequencial e sem correção sobre
+  `main@a6f0480b7f229b63c5ac24d65e61f55de1c6483a`, corpus `4.9.2` e working
+  tree limpa, com instalação existente, fixtures sintéticas, stores
+  temporários e listeners loopback pertencentes à tarefa.
+- Decisão: Automatic Quality Gate `REPROVADO`; `AQG-S06-001` a
+  `AQG-S06-003` permanecem abertos, todos P2. Nenhum P0, P1 ou P3 foi
+  identificado.
+- Escopo: releitura integral das autoridades e ADRs aplicáveis; reconciliação
+  dos entregáveis e aceites; preflight dirigido; checks .NET/npm; testes de
+  integração/E2E; fluxo sintético documento → índice → pergunta → resposta;
+  sincronização apenas por HTTP falso loopback; restart/persistência;
+  configuração sem secret; reprodução e integridade do artefato; higiene e
+  reprodução sobre baseline rastreada limpa.
+- Escopo negativo: sem correção de código, configuração, teste, README,
+  Lifecycle, roadmap, ADR ou contrato; sem restore, instalação ou atualização
+  de dependência; sem rede externa, provider, conta, secret, corpus ou fonte
+  oficial real, GitHub, OCI real, publicação, deploy, DB-Notifier, Human Gate
+  ou `STATE-07`.
+- Pré-condições: localização `C:\Projects\RAG-Challenge`, Git top-level
+  `C:/Projects/RAG-Challenge`, Git directory `.git`, branch `main`, HEAD
+  autorizado, corpus `4.9.2` e zero status entries foram reconfirmados. O
+  preflight encontrou zero processo do produto e zero listener nas portas
+  4173, 5086, 5096, 5173 e 9230; um `node.exe` alheio ao produto não foi
+  encerrado.
+- Verificações/evidências: format aprovou 0/118 alterações; build Release
+  aprovou com zero warning/erro; 74 testes unitários, 10 de arquitetura e 90
+  de integração passaram, total 174; cobertura combinada foi 92,38% de linhas
+  e 66,59% de branches; lint, typecheck, 38 testes npm e build Vite passaram
+  offline. Os dois testes focais de E2E/restart e HTTP falso passaram. Duas
+  construções produziram o mesmo ZIP de 58 arquivos e 47.234.166 bytes,
+  SHA-256
+  `7b934d3fc8a099683c6599c3663c82d04de19ccdbf89fdeca885895821ade17f`;
+  57/57 payloads conferiram com o manifesto, o hash declarado conferiu e a
+  reprodução loopback preservou a geração ativa depois do restart.
+- `AQG-S06-001` (P2): ADR-0005 contém direção OCI condicional, mas não existe
+  plano/ensaio não produtivo pertencente a `STATE-06`. Os assets existentes
+  não contêm target restaurado `net10.0/linux-arm64`; ensaiá-lo exigiria
+  restore ou dependência adicional e não foi tentado.
+- `AQG-S06-002` (P2): falhas, idempotência, concorrência e cancelamento têm
+  cobertura em camadas inferiores/frontend, porém o host E2E de `STATE-06`
+  não injeta cancelamento, deadline ou falha de sync/provider/store e não
+  prova nesse nível que a geração ativa permanece íntegra e servível.
+- `AQG-S06-003` (P2): Lifecycle exige exemplos reais no README em
+  `STATE-06`, enquanto o roadmap os posiciona em `S08-B`/`BL-M13`. A
+  divergência normativa foi preservada sem alteração; Lifecycle mantém maior
+  precedência. O README não contém o exemplo e ainda descreve `STATE-03` como
+  ativo, sem produto RAG funcional, migrations, stores ou parsers.
+- Limitações/riscos: a reprodução limpa reutilizou os assets já restaurados da
+  instalação existente; Windows x64 foi exercitado, não Linux ARM64 ou OCI.
+  Cobertura percentual JavaScript, OCI/IAM/storage, backup/restore
+  operacional, capacidade, desempenho, providers, fonte oficial, TLS/SSRF e
+  corpus real permanecem não testados. Não houve captura de pacotes do host.
+- Runtime e cleanup: todos os listeners, processos e stores temporários da
+  tarefa foram encerrados/removidos. O artefato ignorado permanece no path
+  validado `artifacts-local/s06-a/` e é reproduzível a partir da baseline.
+  A política de execução recusou remover recursivamente o diretório exato de
+  cobertura do gate sob `TestResults/`; ele permanece ignorado e contém
+  somente evidência gerada, sem processo ou listener.
+- Mudanças: somente
+  `docs/STATE-06-Integration-Report.md`,
+  `prompts/state/Current-State.md` e este histórico append-only registram o
+  resultado factual; nenhum produto ou teste foi corrigido.
+- Rollback: não executado nem necessário. Uma reversão futura exige
+  autoridade própria e revert focal ordinário do commit de evidência,
+  preservando a história append-only; não existe estado externo a reverter.
+- Quality Gate: `REPROVADO` por três achados P2 abertos. O resultado não é
+  `BLOQUEADO`, pois a evidência disponível permite concluir que há entregáveis
+  de `STATE-06` não atendidos.
+- Human Gate: prematuro, não solicitado e não executado.
+- Estado resultante: `STATE-06 INTEGRATION` permanece ativo.
+- Próxima condição: autoridade corretiva própria para `AQG-S06-001` a
+  `AQG-S06-003`, seguida de reinício integral e separadamente autorizado do
+  Automatic Quality Gate antes de qualquer resumo de Human Gate.
+- Aprovador: proprietário do RAG-Challenge.

@@ -1,6 +1,6 @@
 # Estado Atual
 
-Este documento é o snapshot factual vigente do workspace em 2026-08-05. Ele
+Este documento é o snapshot factual vigente do workspace em 2026-08-06. Ele
 não concede autoridade. Evolução e decisões no contexto original pertencem ao
 [`State-Transition-Log.md`](State-Transition-Log.md) e aos relatórios
 proprietários.
@@ -359,6 +359,25 @@ proprietários.
   `65b405c690a1c66c374296745613217717d7fd38f04cbefb15994323da1ffc98`;
   a reprodução loopback e o restart passaram. Nenhuma dependência, instalação,
   contrato, OpenAPI, ADR, lifecycle ou ação externa mudou.
+- Automatic Quality Gate de `STATE-06`: autorizado e executado localmente,
+  offline e de forma sequencial em 2026-08-06 sobre
+  `main@a6f0480b7f229b63c5ac24d65e61f55de1c6483a`, corpus `4.9.2` e working
+  tree limpa. Format, build Release, 174 testes .NET, cobertura combinada de
+  92,38% de linhas e 66,59% de branches, lint, typecheck, 38 testes npm,
+  build Vite, E2E/restart, sync por HTTP falso loopback, configuração sem
+  secret, duas construções idênticas do ZIP e reprodução do artefato passaram.
+  O gate foi `REPROVADO` por três achados P2 abertos: `AQG-S06-001`, ausência
+  do plano/ensaio não produtivo de OCI pertencente ao estado;
+  `AQG-S06-002`, cobertura integrada parcial de resiliência e cancelamento; e
+  `AQG-S06-003`, ausência dos exemplos reais no README, seu estado factual
+  obsoleto e a divergência entre Lifecycle (`STATE-06`) e roadmap
+  (`S08-B`/`BL-M13`). Nenhum P0, P1 ou P3 foi identificado. A auditoria não
+  corrigiu produto, testes, README, Lifecycle, roadmap, ADRs ou contratos e
+  não executou Human Gate, OCI, ação externa ou `STATE-07`. `STATE-06`
+  permanece ativo e o Human Gate é prematuro. Processos, listeners e stores
+  temporários da tarefa terminaram ausentes; a política de execução recusou a
+  remoção recursiva do diretório de cobertura ignorado sob `TestResults/`, que
+  conserva somente evidência gerada.
 - Fechamento de `S04-A0`: `PdfPig` `0.1.15` e `CsvHelper` `33.1.0` foram
   selecionados condicionalmente para desenvolvimento local;
   `Sylvan.Data.Csv` `1.4.4` permanece fallback não selecionado e não
@@ -851,8 +870,9 @@ autorizada.
    para cada banco antes de sua ativação.
 2. Validar e ativar individualmente novos registros de fonte oficial; a
    aceitação arquitetural não autoriza URL, rede, download ou crawling.
-3. Executar e documentar o lote `S06-A` autorizado, preservando integralmente
-   o limite local, offline, sintético e sequencial registrado para `STATE-06`.
+3. Corrigir sob autoridade própria `AQG-S06-001` a `AQG-S06-003` e repetir
+   integralmente o Automatic Quality Gate de `STATE-06` antes de qualquer
+   resumo de Human Gate.
 4. Verificar tier, entitlement, spend limit e controles da conta OpenAI, além
    da recuperação/geração bilíngue, antes de usar ou anunciar os providers.
 5. Homologar desempenho e capacidade do `SqliteExactVectorStore`; a fixture
@@ -1033,9 +1053,12 @@ portas 4173, 5173 e 9230 terminaram livres. `STATE-05` está encerrado.
 sobre `main@8fb3b93532a569af953cdf24e190b82998020464`, corpus `4.9.2` e
 working tree limpa. O único lote autorizado, `S06-A`, foi concluído no limite
 local, offline, sintético e sequencial, com implementação focal em
-`8041e25a554a7cc47ecebf4abe1fc8b94b12d12d` e relatório próprio. Não existe
-autoridade vigente para outro lote, gate, estado ou ação externa. Rede
-externa, providers, contas, secrets, corpus real, fontes oficiais reais do
-produto, armazenamento operacional, GitHub, OCI real, publicação, deploy,
-DB-Notifier, Automatic Quality Gate, Human Gate, `STATE-07` e estados
+`8041e25a554a7cc47ecebf4abe1fc8b94b12d12d` e relatório próprio. O Automatic
+Quality Gate posterior foi executado sobre
+`main@a6f0480b7f229b63c5ac24d65e61f55de1c6483a` e ficou `REPROVADO` por
+`AQG-S06-001` a `AQG-S06-003`, todos P2. Não existe autoridade vigente para
+corrigir esses achados, repetir o gate, executar Human Gate, transitar para
+`STATE-07` ou realizar ação externa. Rede externa, providers, contas,
+secrets, corpus real, fontes oficiais reais do produto, armazenamento
+operacional, GitHub, OCI real, publicação, deploy, DB-Notifier e estados
 posteriores continuam sem autorização.

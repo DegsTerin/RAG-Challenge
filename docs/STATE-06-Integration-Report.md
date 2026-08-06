@@ -366,3 +366,168 @@ GitHub, OCI, publication, deployment or DB-Notifier action occurred. The
 Automatic Quality Gate and Human Gate were not started. Future Node 25 or npm
 12 adoption remains a deliberate compatibility decision outside this bounded
 policy.
+
+## Automatic Quality Gate — 2026-08-06
+
+### Authority, baseline and scope
+
+The owner authorised a complete local, offline and sequential Automatic
+Quality Gate over `main@a6f0480b7f229b63c5ac24d65e61f55de1c6483a`,
+prompt corpus `4.9.2` and a clean working tree. Before executable work, the
+audit reconfirmed:
+
+| Fact | Observed value |
+| --- | --- |
+| Location | `C:\Projects\RAG-Challenge` |
+| Git top-level | `C:/Projects/RAG-Challenge` |
+| Git directory | `.git` |
+| Branch | `main` |
+| HEAD | `a6f0480b7f229b63c5ac24d65e61f55de1c6483a` |
+| Prompt corpus | `4.9.2` |
+| Working tree | clean |
+
+The audit used only the existing installation, synthetic fixtures, temporary
+stores and task-owned loopback listeners. It did not restore, install or
+update a dependency; access an external network, provider, account, secret,
+real product corpus or real official source; mutate GitHub or OCI; publish,
+deploy, run DB-Notifier, execute a Human Gate or enter `STATE-07`.
+
+The directed runtime preflight found no RAG-Challenge process and no listener
+on ports 4173, 5086, 5096, 5173 or 9230. One unrelated `node.exe` process
+referenced the workspace but was neither a product process nor rooted in the
+repository and was not stopped.
+
+### Deliverable and acceptance reconciliation
+
+| STATE-06 requirement | Result | Evidence and boundary |
+| --- | --- | --- |
+| Local/sandbox E2E | `APROVADO` | The real loopback host served the same-origin Dashboard/API flow in both answer languages and preserved its generation across restart. |
+| Fake official-source server; real smoke only when authorised | `APROVADO` for fake loopback; `NÃO APLICÁVEL` for real smoke | The focused test made one bounded request to an ephemeral `127.0.0.1` HTTP server with proxy and redirects disabled. External smoke was explicitly prohibited. |
+| Environment configuration | `APROVADO` | The `Integration` profile requires an explicit environment, enable flag and absolute store root; committed and packaged defaults disable integration, administration and external services and contain no secret. |
+| Resilience and cancellation | `PARCIAL` | Existing tests cover provider failures, activation/persistence faults, idempotency, concurrency, frontend stream cancellation and the canonical cancellation error. The STATE-06 E2E tests do not cancel an in-flight host request or inject a sync/provider/store failure into the composed integration runtime and then prove that the active generation remains serviceable. |
+| Reproducible artefact | `APROVADO` | Two builds produced the same 58-file, 47,234,166-byte ZIP with SHA-256 `7b934d3fc8a099683c6599c3663c82d04de19ccdbf89fdeca885895821ade17f`. All 57 payload entries matched the embedded manifest and the declared archive digest matched the ZIP. |
+| OCI plan and non-production rehearsal | `REPROVADO` | ADR-0005 contains a conditional deployment direction, but STATE-06 has no state-owned rehearsal/runbook or Linux ARM64 candidate evidence. The current assets contain the SQLite Linux ARM64 native library but no restored `net10.0/linux-arm64` publish target; a rehearsal would require a restore or additional dependency authority and was not attempted. |
+| Real README examples | `REPROVADO` with a normative divergence | Lifecycle assigns real README examples to STATE-06. The roadmap assigns the final README and real examples to `S08-B`/`BL-M13`. Lifecycle has higher precedence, the divergence remains unresolved, and the current README has no verified STATE-06 example. It also still describes STATE-03 as active and states that no functional RAG product or persistent store exists. |
+| Complete flow is reproducible | `APROVADO` | Document → immutable content → catalogue → candidate index → activation → question → grounded answer passed in the solution suite, focused E2E and packaged artefact. |
+| Restart and persistence are known | `APROVADO` | Control, vector and raw-content stores reopened after a complete process restart with the same active generation. |
+| External errors do not corrupt the active index | `PARCIAL` | Lower-level integration tests cover failed persistence, compare-and-swap and provider outcomes, but the composed STATE-06 host lacks a deterministic fault/cancellation E2E that proves continued service from the active generation. |
+| Query performs no source fetch and preserves active provenance/generation | `APROVADO` within the synthetic boundary | The query composition has no official transport, resolves one active generation and returned the local-authorised CSV citation. Official synchronisation remained a separate administrative loopback test. |
+| No secret in artefact | `APROVADO` | Configuration inspection and an archive text-signature scan found no secret signature; external capabilities remain disabled. |
+| Evidence is not represented as production | `APROVADO` | The artefact, synthetic providers, fake source and Windows x64 boundary remain explicitly identified as local evidence only. |
+
+The Lifecycle/roadmap disagreement was not resolved by changing Lifecycle,
+roadmap, ADRs or contracts. Under the current precedence, the Lifecycle
+deliverable remains applicable to this gate.
+
+### Commands, versions and observed results
+
+The accepted commands ran from `C:\Projects\RAG-Challenge` unless another
+directory is named.
+
+| Command or check | Result |
+| --- | --- |
+| Location/Git/corpus/status precondition checks | Passed with the exact authorised baseline and zero status entries. |
+| Directed process/listener preflight | Passed; no product process or task-port listener required termination. |
+| `dotnet format RAG-Challenge.sln --verify-no-changes --no-restore --verbosity diagnostic` | Exit 0; 0 of 118 files required formatting. |
+| `dotnet build RAG-Challenge.sln --configuration Release --no-restore` | Exit 0; 0 warnings and 0 errors. |
+| `dotnet test RAG-Challenge.sln --configuration Release --no-build --no-restore --collect:"XPlat Code Coverage"` | Exit 0; 74 unit, 10 architecture and 90 integration tests passed, 174 total and none failed/skipped. |
+| `eng/assert-coverage.ps1` over the gate results | Passed; merged coverage 92.38% lines (17,783/19,250) and 66.59% branches (2,466/3,703). |
+| `npm run lint`, `npm run typecheck`, `npm test`, `npm run build` in the Dashboard | Exit 0 for all; 38 tests passed and Vite transformed 20 modules. npm was forced to offline mode. |
+| Focused `IntegrationHostEndToEndTests` and `OfficialSourceLoopbackTests` | Exit 0; 2/2 passed with ephemeral loopback listeners, restart and cleanup. |
+| Two `Build-IntegrationArtifact.ps1` runs | Exit 0; identical hash, byte count and file count on the clean tracked baseline. |
+| `Test-IntegrationArtifact.ps1 -Port 5086` | Exit 0; both languages, same-origin Dashboard/API, all three store classes and restart passed. |
+| Independent manifest/archive integrity and non-secret configuration check | Passed; 57/57 payload entries matched, archive digest matched, 0 secret signatures, integration and external services disabled. |
+| `eng/check-repository.ps1` and `git diff --check` | Passed for 194 non-ignored files and diff hygiene. |
+
+One audit wrapper attempt exited 1 after a successful artefact build because
+it tried to parse npm prose plus the final JSON object as one JSON document.
+It did not change tracked state. The corrected wrapper selected the final JSON
+line and then completed two accepted identical builds. A proposed ad hoc
+cancellation diagnostic was rejected by the local execution policy before a
+process was launched; it is not test evidence.
+
+Observed toolchain: Windows `10.0.26200` x64, PowerShell `7.6.4`, Git
+`2.55.0.windows.3`, .NET SDK `10.0.302` with runtime `10.0.10`, Node.js
+`24.19.0` and npm `11.17.0`. The audit began at
+`2026-08-06T03:18:11.8368142Z`.
+
+### Findings
+
+#### AQG-S06-001 — P2 — OCI non-production rehearsal is absent
+
+- Impact: the accepted conditional OCI direction has no STATE-06 proof that
+  the candidate artefact, Linux ARM64 runtime, environment model, durable
+  paths and startup/rollback procedure form a reproducible non-production
+  deployment candidate.
+- Reproduction: compare the STATE-06 Lifecycle deliverable with this report
+  and repository files; no rehearsal/runbook exists. The current Server API
+  assets have no `net10.0/linux-arm64` target, so the authorised no-restore
+  installation cannot perform the candidate publish.
+- Recommendation: under separate corrective authority, prepare the bounded
+  state-owned OCI readiness plan and execute an offline/non-production Linux
+  ARM64 rehearsal with already approved dependencies or separately approved
+  restore inputs. Do not contact or create OCI resources for that rehearsal.
+
+#### AQG-S06-002 — P2 — Integrated resilience and cancellation coverage is incomplete
+
+- Impact: lower-level fault handling is strong, but the composed host has no
+  deterministic evidence that an in-flight cancellation or injected
+  sync/provider/store failure leaves the active generation serviceable and
+  restartable.
+- Reproduction: inspect `IntegrationHostEndToEndTests` and
+  `OfficialSourceLoopbackTests`; they exercise only successful requests. The
+  suite maps cancellation and covers faults in other boundaries, but does not
+  perform that STATE-06 composition-level assertion.
+- Recommendation: under separate corrective authority, add deterministic E2E
+  cases for request cancellation/deadline and bounded integration failures,
+  then assert no activation corruption, continued query service and restart
+  consistency.
+
+#### AQG-S06-003 — P2 — README deliverable is missing and its owning documents diverge
+
+- Impact: gate ownership is ambiguous and the public entry point materially
+  understates the implemented state. A reviewer following README receives an
+  obsolete STATE-03 baseline and no verified STATE-06 example.
+- Reproduction: Lifecycle requires `examples reais para o README` in
+  STATE-06, while the roadmap assigns `README final com exemplos reais` to
+  `S08-B`/`BL-M13`. README still states that STATE-03 is active and that
+  migrations, stores, parsers, providers and functional RAG do not exist.
+- Recommendation: obtain bounded corrective authority to reconcile the
+  owner documents without weakening evidence requirements, then update README
+  with the current factual state and examples that are explicitly labelled by
+  their verified local/synthetic or future real-product boundary. Real corpus
+  or provider claims still require their own authority and evidence.
+
+No P0, P1 or P3 finding was identified. The three P2 findings remain open;
+the audit did not correct code, configuration, tests, README, lifecycle,
+roadmap, ADRs or contracts.
+
+### Limitations, cleanup, rollback and gate outcome
+
+- The clean-baseline reproduction used the existing restored local
+  installation, not a fresh machine or dependency installation.
+- Windows x64 was exercised. Linux ARM64, OCI runtime/IAM/storage,
+  operational backup/restore, capacity, performance, real providers, real
+  source TLS/SSRF and real corpus quality remain untested.
+- JavaScript percentage coverage remains unavailable; the 38 frontend tests
+  nevertheless passed.
+- No host-wide packet capture was performed. Every task URL was loopback,
+  npm was offline, .NET commands used `--no-restore`, and no external request
+  was observed by the task.
+- Task runtimes and temporary stores were removed. The ignored reproducible
+  artefact remains under the validated `artifacts-local/s06-a/` path and can
+  be regenerated from the audited commit.
+- The execution policy refused recursive removal of the exact, validated
+  gate coverage directory under `TestResults/`. It remains ignored and
+  contains only generated Cobertura/test evidence; no process or listener
+  uses it.
+- Rollback was neither required nor executed. This evidence-only change can
+  be reverted by one ordinary focused revert under separate authority while
+  preserving this append-only factual history; no external state exists to
+  roll back.
+
+The Automatic Quality Gate is **REPROVADO**. The result is not `BLOQUEADO`
+because the available evidence is sufficient to determine that required
+STATE-06 deliverables are unmet. `STATE-06 INTEGRATION` remains active; the
+Human Gate is premature and was neither requested nor executed. `STATE-07`
+and every external action remain unauthorised.
