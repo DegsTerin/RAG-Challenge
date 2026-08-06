@@ -2015,3 +2015,57 @@ Gate approved on `b68cf2d8a9a6c735781529f1f3fb63d5cd515f95` and
 `AQG-S05-001` through `AQG-S05-008` resolved. This result does not execute or
 approve the Human Gate, enter `STATE-06` or grant external authority. Only
 this report and the two factual state records are changed by the gate record.
+
+## Human Gate — 2026-08-05
+
+### Baseline, review and decision
+
+The Human Gate baseline was reconfirmed as location
+`C:\Projects\RAG-Challenge`, Git top-level `C:/Projects/RAG-Challenge`, Git
+directory `.git`, branch `main`, commit
+`192613364429a79ce82a208f072f5005209e6f52`, corpus `4.9.2` and a clean
+working tree. The owner received the complete current-baseline summary in the
+same conversation, including the approved Automatic Quality Gate,
+`AQG-S05-001` through `AQG-S05-008`, `S05-CORR-08`, critical samples,
+verification, limitations, residual risks, negative scope and rollback.
+
+A real production build was made available temporarily through a task-owned
+Vite preview bound only to `127.0.0.1:4173`. The review guidance covered the
+localised simplified hero, the eight interface-language, question-language
+and theme combinations, keyboard bypass and focus order, validation, narrow
+viewport and reflow. The owner was instructed not to use Dark Reader or
+another page-modifying extension as evidence for the original themes. No new
+product finding or reservation was reported after that guidance.
+
+The real preview deliberately had no backend, corpus or provider. A completed
+grounded response and populated citations were therefore not repeatable in
+that human listener; the owner accepted the previously reported automatic
+fake-fetch and synthetic-fixture evidence with that limitation. The existing
+JavaScript coverage, exact Node patch, external accessibility engine,
+headless-browser, real-service and host-packet-capture limitations remain
+explicit and were not reclassified as Human Gate findings.
+
+The owner then supplied the canonical confirmation phrase:
+
+```text
+Confirmo a decisão acima exclusivamente para STATE-05
+```
+
+Human Gate result: `APROVADO` without reservations. The task-owned preview
+process was reidentified by executable, command line, address and port before
+termination; ports 4173, 5173 and 9230 finished free. No product, test,
+dependency, contract, backend or external resource changed during the Human
+Gate.
+
+### Lifecycle consequence and rollback
+
+`STATE-05 FRONTEND_IMPLEMENTATION` is closed. The decision approves only the
+delivered `STATE-05` scope and its documented limitations. It does not
+authorise entry into or execution of `STATE-06`, a new Automatic Quality Gate,
+frontend correction, dependency or contract changes, installation, external
+network access, provider or account use, real corpus or official-source use,
+GitHub, OCI, publication, deployment or DB-Notifier work.
+
+No rollback was executed or required. Any later rollback still requires
+separate authority, ordinary forward Git reverts of focused commits in reverse
+dependency order and preservation of append-only lifecycle evidence.

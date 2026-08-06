@@ -4009,3 +4009,56 @@ contém somente fatos cronológicos.
   revisão e decidir o Human Gate de `STATE-05` sobre o relatório aprovado e a
   baseline limpa posterior ao registro.
 - Aprovador: proprietário do RAG-Challenge.
+
+## 2026-08-05 — Human Gate de STATE-05 aprovado sem ressalvas
+
+- Estado anterior: `STATE-05 FRONTEND_IMPLEMENTATION` ativo, Automatic Quality
+  Gate `APROVADO`, `AQG-S05-001` a `AQG-S05-008` `RESOLVIDOS` e Human Gate
+  `PENDENTE`.
+- Baseline: localização `C:\Projects\RAG-Challenge`, Git top-level
+  `C:/Projects/RAG-Challenge`, Git directory `.git`, branch `main`, commit
+  `192613364429a79ce82a208f072f5005209e6f52`, corpus `4.9.2` e working tree
+  limpa, reconfirmados antes da ação e preservados até a decisão.
+- Autoridade: preparar e conduzir localmente e de forma sequencial somente o
+  Human Gate de `STATE-05`, apresentar o resumo completo, orientar as amostras
+  humanas aplicáveis, aguardar a decisão inequívoca e somente então registrar
+  o resultado nos três artefatos factuais autorizados e em commit local focal.
+- Resumo revisado: baseline, Automatic Quality Gate aprovado,
+  `AQG-S05-001` a `AQG-S05-008`, `S05-CORR-08`, amostras críticas, checks,
+  build reproduzível, matriz das oito combinações, acessibilidade, limitações,
+  riscos residuais, escopo negativo e rollback foram apresentados na mesma
+  conversa.
+- Amostras humanas: o build real foi disponibilizado temporariamente em Vite
+  preview pertencente à tarefa e restrito a `127.0.0.1:4173`. A orientação
+  cobriu hero localizada, Light/Dark sem Dark Reader ou extensão modificadora,
+  `pt-BR`/`en-GB`, idioma da pergunta, foco do skip link, sequência de teclado,
+  validação, viewport de 320 CSS px e reflow. Nenhum novo achado de produto ou
+  ressalva foi relatado.
+- Amostras não repetidas: resposta fundamentada e citações preenchidas não
+  estavam disponíveis no listener real porque backend, corpus, provider e
+  fetch falso não integravam a revisão humana. O proprietário aceitou a
+  evidência automática sintética e as limitações já declaradas.
+- Decisão: Human Gate `APROVADO` sem ressalvas. A confirmação inequívoca foi
+  `Confirmo a decisão acima exclusivamente para STATE-05`.
+- Runtime e cleanup: o Vite preview foi reidentificado por PID, executável,
+  comando, endereço e porta antes do encerramento. As portas 4173, 5173 e 9230
+  terminaram livres.
+- Limitações e riscos preservados: sem percentuais de cobertura JavaScript,
+  Node.js exato, engine externa de acessibilidade, browser automático em
+  janela visível, backend/provider/conta/corpus/fonte oficial reais ou captura
+  de pacotes no host. Os diretórios temporários sanitizados anteriormente
+  registrados permanecem fora do repositório.
+- Escopo negativo preservado: sem reinício do Automatic Quality Gate,
+  correção ou mudança de frontend, código, teste, dependência, contrato,
+  backend, instalação, rede externa, GitHub, OCI, publicação, deploy,
+  DB-Notifier ou `STATE-06`.
+- Mudanças: somente
+  `docs/STATE-05-Frontend-Implementation-Report.md`,
+  `prompts/state/Current-State.md` e este histórico append-only.
+- Rollback: não executado nem necessário. Reversão futura exige autoridade
+  própria, reverts focais ordinários e preservação deste histórico.
+- Estado resultante: `STATE-05 FRONTEND_IMPLEMENTATION` encerrado após
+  Automatic Quality Gate e Human Gate aprovados.
+- Próxima condição: autoridade humana explícita e separada antes de entrar ou
+  executar `STATE-06`; esta decisão não concede essa autoridade.
+- Aprovador: proprietário do RAG-Challenge.

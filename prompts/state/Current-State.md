@@ -295,6 +295,17 @@ proprietários.
   está `APROVADO`. Preview e Chrome foram encerrados e as portas 4173, 5173 e
   9230 ficaram livres. O Human Gate não foi executado, e `STATE-06` permanece
   sem autorização.
+- Human Gate de `STATE-05`: `APROVADO` sem ressalvas em 2026-08-05 sobre
+  `main@192613364429a79ce82a208f072f5005209e6f52`, corpus `4.9.2` e working
+  tree limpa. O proprietário recebeu e revisou na mesma conversa o resumo
+  completo da baseline, do Automatic Quality Gate aprovado, de
+  `AQG-S05-001` a `AQG-S05-008`, de `S05-CORR-08`, das amostras críticas,
+  verificações, limitações, riscos residuais, escopo negativo e rollback, e
+  confirmou a frase canônica `Confirmo a decisão acima exclusivamente para
+  STATE-05`. Nenhum novo achado ou ressalva foi registrado. O preview humano
+  exclusivamente loopback foi encerrado, e as portas 4173, 5173 e 9230
+  terminaram livres. `STATE-05` está encerrado; `STATE-06` permanece sem
+  autorização e sem execução.
 - Fechamento de `S04-A0`: `PdfPig` `0.1.15` e `CsvHelper` `33.1.0` foram
   selecionados condicionalmente para desenvolvimento local;
   `Sylvan.Data.Csv` `1.4.4` permanece fallback não selecionado e não
@@ -785,9 +796,8 @@ autorizada.
    para cada banco antes de sua ativação.
 2. Validar e ativar individualmente novos registros de fonte oficial; a
    aceitação arquitetural não autoriza URL, rede, download ou crawling.
-3. Obter autoridade humana explícita e separada para retomar a revisão e
-   decidir o Human Gate de `STATE-05` sobre o relatório automático aprovado e
-   a baseline limpa posterior ao registro do gate.
+3. Obter autoridade humana explícita e separada antes de entrar ou executar
+   `STATE-06`; o encerramento de `STATE-05` não concede essa autoridade.
 4. Verificar tier, entitlement, spend limit e controles da conta OpenAI, além
    da recuperação/geração bilíngue, antes de usar ou anunciar os providers.
 5. Homologar desempenho e capacidade do `SqliteExactVectorStore`; a fixture
@@ -957,12 +967,14 @@ estáticas, os quatro checks npm, o build reprodutível e a matriz browser em
 largura padrão e estreita. A hero simplificada, as oito combinações, foco,
 teclado, temas, idiomas, reflow e tokens contínuos passaram sem tentativa ou
 URL externa. O gate foi `APROVADO`, sem novo P0, P1, P2 ou P3, e
-`AQG-S05-001` a `AQG-S05-008` estão `RESOLVIDOS` na baseline. `STATE-05`
-continua ativo; o Human Gate permanece sem decisão registrada. A próxima
-autoridade possível é retomar a revisão humana sobre o relatório aprovado e a
-baseline limpa posterior ao registro deste gate.
+`AQG-S05-001` a `AQG-S05-008` estão `RESOLVIDOS` na baseline. O Human Gate
+posterior foi `APROVADO` sem ressalvas sobre
+`main@192613364429a79ce82a208f072f5005209e6f52`, corpus `4.9.2` e working
+tree limpa, depois do resumo completo e da confirmação canônica do
+proprietário. O preview humano exclusivamente loopback foi encerrado e as
+portas 4173, 5173 e 9230 terminaram livres. `STATE-05` está encerrado.
 
 Rede externa, providers, contas, secrets, corpus real, fontes oficiais reais
 do produto, armazenamento operacional, GitHub, OCI, publicação, deploy,
-DB-Notifier, nova repetição do Automatic Quality Gate, registro do Human Gate e
-entrada ou execução de estados posteriores continuam sem autorização.
+DB-Notifier, nova repetição do Automatic Quality Gate e entrada ou execução de
+`STATE-06` ou estados posteriores continuam sem autorização.
