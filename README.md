@@ -6,11 +6,12 @@ em linguagem natural, com respostas fundamentadas e referências às fontes.
 > Status em 2026-08-06: `STATE-00` a `STATE-05` estão encerrados e
 > `STATE-06 INTEGRATION` está ativo. O lote `S06-A` integrou localmente o
 > Dashboard, a API e os stores persistentes com fixture e providers
-> determinísticos. O Automatic Quality Gate de `STATE-06` permanece
-> `REPROVADO` pelos achados P2 `AQG-S06-001` a `AQG-S06-003`; a implementação
-> corretiva `S06-CORR-01` presente nesta baseline não substitui o reteste
-> integral do gate. Não existe corpus, provider, fonte oficial, execução Linux,
-> OCI ou produção reais, nem publicação ou deploy.
+> determinísticos. O Automatic Quality Gate de `STATE-06` foi reiniciado
+> integralmente e está `APROVADO`; os achados P2 `AQG-S06-001` a
+> `AQG-S06-003` estão `RESOLVIDOS`. `STATE-06` permanece ativo, e nem seu Human
+> Gate nem `STATE-07` foram executados ou autorizados. Não existe corpus,
+> provider, fonte oficial, execução Linux, OCI ou produção reais, nem
+> publicação ou deploy.
 
 ## Problema
 

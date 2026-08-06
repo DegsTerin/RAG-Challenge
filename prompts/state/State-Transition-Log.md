@@ -4477,3 +4477,65 @@ contém somente fatos cronológicos.
   para reiniciar integralmente o Automatic Quality Gate; Human Gate continua
   prematuro.
 - Aprovador: proprietário do RAG-Challenge.
+
+## 2026-08-06 — Reinício integral do Automatic Quality Gate de STATE-06 aprovado
+
+- Estado preservado: `STATE-06 INTEGRATION` ativo.
+- Baseline auditada:
+  `main@9d7c4ce816eca049ba09942ab7fe8b1148aa73c9`, corpus `4.9.3` e working
+  tree limpa.
+- Autoridade: `AUTH-S06-AQG-RETEST-001`, concedida pelo proprietário para
+  reiniciar integralmente o gate localmente, offline, sem correção silenciosa
+  e com parada diante de achado, divergência, mudança concorrente ou nova
+  necessidade de autoridade.
+- Preflight restrito: zero processo pertencente ao RAG-Challenge e zero
+  listener nas portas 4173, 5086, 5096, 5173 e 9230; o editor aberto no
+  repositório não era processo do produto e permaneceu intacto.
+- Auditoria estática: o diff corretivo completo, seam interno de composição,
+  defaults de produção, testes focais, projetos, lockfiles, scripts de
+  rehearsal/CI, configuração e comandos publicados foram revistos sem achado.
+- Supply chain e restore: os três runtime packs ARM64 `10.0.10` corresponderam
+  ao catálogo local, hashes, assinaturas author/repository, licença MIT e zero
+  dependências. O restore locked usou somente fonte verificada e caches
+  isolados, com revogação offline e `--no-cache`, sem mudar qualquer um dos
+  sete lockfiles.
+- Gate técnico: `eng/ci.ps1 -Offline` aprovou restore, format, build Release
+  sem warning/erro, 74 testes unitários, 10 de arquitetura e 95 de integração,
+  total 179 sem falha ou skip; cobertura combinada de 92,40% de linhas e
+  66,60% de branches; `npm ci --offline`, lint, typecheck, 38 testes npm, build
+  Vite, auditoria de 198 arquivos e higiene Git.
+- Testes focais: quatro provas no host composto aprovaram sucesso/restart,
+  cancelamento, falhas limitadas de provider/fonte oficial, recuperação e novo
+  restart contra a mesma geração ativa.
+- Reprodução ARM64: duas construções consecutivas produziram arquivos
+  idênticos de 133.379.066 bytes e 361 entradas, SHA-256
+  `d539f0dd27553859966fe45f373363d32ffd34c61cd59618fe7cf61dcd9b2369`;
+  os manifestos de 360 payloads foram idênticos, SHA-256
+  `ba2ba62001b6da0fb4c9405fcd419d398d491dee0557fa1ceb035394c865fddb`.
+  O verificador aprovou 17 payloads ELF64 AArch64 sem executar Linux nem
+  contatar OCI.
+- README: os dois comandos locais publicados produziram um ZIP de 58 arquivos
+  e 47.234.206 bytes, SHA-256
+  `fc3604a8d99a87c0f0d71b37309c125f7645ba1516ee833cba30ff3310a39a2f`;
+  a reprodução retornou `Passed`, serviu o Dashboard, respondeu em `en-GB` e
+  `pt-BR` e preservou a mesma geração ativa após restart.
+- Segurança e higiene: nenhum contrato/OpenAPI, dependência, schema, migration
+  ou ADR protegido mudou no intervalo corretivo; zero `reference-materials/`
+  rastreado, zero runtime pertencente ao produto, zero listener de tarefa e
+  `git diff --check` aprovado. O OpenAPI permaneceu com SHA-256
+  `d6a686b94c926914beb28b437f464430a01de6560c2e2d476cf5c36025813e34`.
+- Disposição: `AQG-S06-001`, `AQG-S06-002` e `AQG-S06-003` estão
+  `RESOLVIDOS`. Nenhum novo P0, P1, P2 ou P3 foi identificado.
+- Resultado: Automatic Quality Gate `APROVADO`; o gate reprovado e as
+  disposições corretivas permanecem como histórico, sem confusão entre
+  correção e aprovação.
+- Limitações preservadas: sem execução Linux ARM64, OCI, rede, cache global,
+  providers, contas, secrets, corpus ou fonte real, GitHub, publicação, deploy,
+  alteração de contrato público/OpenAPI/schema/migration/ADR, Human Gate ou
+  `STATE-07`. Cobertura percentual JavaScript e observação de pacotes de rede
+  não foram executadas.
+- Relatório atualizado:
+  [`STATE-06-Integration-Report.md`](../../docs/STATE-06-Integration-Report.md).
+- Resultado de estado: `STATE-06` permanece ativo; o Human Gate não foi
+  executado e requer autoridade humana separada sobre baseline limpa.
+- Aprovador: proprietário do RAG-Challenge.

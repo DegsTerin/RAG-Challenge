@@ -410,6 +410,27 @@ proprietários.
   `CORRECTED_PENDING_GATE_RETEST`; o Automatic Quality Gate histórico permanece
   `REPROVADO` e não foi repetido. Human Gate, `STATE-07`, execução Linux, OCI
   real e demais ações externas permanecem não autorizados.
+- Reinício integral do Automatic Quality Gate de `STATE-06`: autorizado por
+  `AUTH-S06-AQG-RETEST-001` e executado localmente, offline e de forma
+  sequencial em 2026-08-06 sobre
+  `main@9d7c4ce816eca049ba09942ab7fe8b1148aa73c9`, corpus `4.9.3` e working
+  tree limpa. O preflight encontrou zero processo pertencente ao produto e
+  zero listener nas portas da tarefa. A auditoria repetiu desde o início a
+  supply chain dos três runtime packs ARM64, restore locked com fonte local
+  verificada e cache isolado, inspeções estáticas, o gate técnico completo,
+  cobertura, testes focais de integração/cancelamento/resiliência, duas
+  reproduções ARM64, o verificador estático, os comandos publicados no README
+  e a higiene de segurança. Format e build Release sem warning, 179 testes
+  .NET, cobertura de 92,40% de linhas e 66,60% de branches, lint, typecheck,
+  38 testes npm e build Vite passaram. As duas reproduções ARM64 foram
+  idênticas, com SHA-256
+  `d539f0dd27553859966fe45f373363d32ffd34c61cd59618fe7cf61dcd9b2369`, e o
+  verificador aprovou 17 payloads ELF64 AArch64 sem executar Linux nem contatar
+  OCI. Os comandos do README produziram e reproduziram localmente o artefato
+  sintético, inclusive a mesma geração ativa após restart. O gate foi
+  `APROVADO`, sem novo P0, P1, P2 ou P3; `AQG-S06-001` a `AQG-S06-003` estão
+  `RESOLVIDOS`. `STATE-06` permanece ativo. Human Gate, `STATE-07`, execução
+  Linux, OCI real e demais ações externas não foram autorizados nem executados.
 - Fechamento de `S04-A0`: `PdfPig` `0.1.15` e `CsvHelper` `33.1.0` foram
   selecionados condicionalmente para desenvolvimento local;
   `Sylvan.Data.Csv` `1.4.4` permanece fallback não selecionado e não
@@ -908,10 +929,10 @@ autorizada.
    para cada banco antes de sua ativação.
 2. Validar e ativar individualmente novos registros de fonte oficial; a
    aceitação arquitetural não autoriza URL, rede, download ou crawling.
-3. Repetir integralmente o Automatic Quality Gate de `STATE-06`, sob
-   `AUTH-S06-AQG-RETEST-001` separada, para dispor `AQG-S06-001` a
-   `AQG-S06-003`, hoje `CORRECTED_PENDING_GATE_RETEST`, antes de qualquer
-   resumo de Human Gate.
+3. Preparar qualquer eventual resumo do Human Gate de `STATE-06` somente sob
+   autoridade humana separada, sobre o relatório do Automatic Quality Gate
+   aprovado e uma baseline limpa; o reteste não executou nem autorizou o Human
+   Gate.
 4. Verificar tier, entitlement, spend limit e controles da conta OpenAI, além
    da recuperação/geração bilíngue, antes de usar ou anunciar os providers.
 5. Homologar desempenho e capacidade do `SqliteExactVectorStore`; a fixture
@@ -1108,10 +1129,11 @@ de lockfile ou grafo além do fechamento previamente autorizado. Os commits
 `801f77625e68692fe7b4691798694b4e8d92433a`,
 `9d72a1bb93325f6303516592fb4ff352a0a531ca` e
 `f1a02cd7c7acb50bcd3fa8b00e69e6c3f59b88c3` materializam a correção e a
-compatibilização final. `AQG-S06-001` a `AQG-S06-003` estão
-`CORRECTED_PENDING_GATE_RETEST`; o gate histórico permanece `REPROVADO` e não
-foi repetido. `STATE-06` continua ativo. Um novo Automatic Quality Gate exige
-`AUTH-S06-AQG-RETEST-001` separada; Human Gate, `STATE-07`, execução Linux,
-OCI real, providers, contas, secrets, corpus ou fontes reais, armazenamento
-operacional, GitHub, publicação, deploy, DB-Notifier e estados posteriores
-continuam sem autorização.
+compatibilização final. O reinício integral autorizado por
+`AUTH-S06-AQG-RETEST-001` foi executado sobre
+`main@9d7c4ce816eca049ba09942ab7fe8b1148aa73c9`, corpus `4.9.3` e working tree
+limpa. O gate foi `APROVADO`, sem novo P0, P1, P2 ou P3, e `AQG-S06-001` a
+`AQG-S06-003` estão `RESOLVIDOS`. `STATE-06` continua ativo. Human Gate,
+`STATE-07`, execução Linux, OCI real, providers, contas, secrets, corpus ou
+fontes reais, armazenamento operacional, GitHub, publicação, deploy,
+DB-Notifier e estados posteriores continuam sem autorização.

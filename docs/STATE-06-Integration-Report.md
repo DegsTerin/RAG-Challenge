@@ -732,3 +732,104 @@ of the applicable corrective commits under separate authority, plus a
 compensating append-only factual record. Ignored task caches and outputs may be
 removed only from their validated paths under explicit cleanup authority; no
 external state exists to roll back.
+
+## Automatic Quality Gate restart — 2026-08-06
+
+`AUTH-S06-AQG-RETEST-001` restarted the complete `STATE-06` Automatic Quality
+Gate locally, offline and sequentially. The audited baseline was
+`main@9d7c4ce816eca049ba09942ab7fe8b1148aa73c9`, prompt corpus `4.9.3`, with a
+clean working tree. The run made no silent correction and stopped neither for
+a finding nor for a concurrent change, divergence or authority boundary.
+
+Restricted preflight found no RAG-Challenge-owned process and no listener on
+ports 4173, 5086, 5096, 5173 or 9230. The repository-open editor was not a
+product process and was left untouched. Static inspection covered the complete
+corrective diff from the failed-gate baseline, the internal composition seam,
+production defaults, focused tests, project RID declarations, lockfiles,
+rehearsal scripts, CI scripts, configuration and published README commands.
+No static finding was raised.
+
+### Dependency, restore and technical evidence
+
+The isolated verified source contained exactly the following signed `10.0.10`
+packages:
+
+| Package | Size (bytes) | Verification |
+| --- | ---: | --- |
+| `Microsoft.AspNetCore.App.Runtime.linux-arm64` | 12,387,032 | Catalogue SHA-512, source SHA-256, author/repository signatures, MIT licence and zero package dependencies matched. |
+| `Microsoft.NETCore.App.Host.linux-arm64` | 5,309,240 | Catalogue SHA-512, source SHA-256, author/repository signatures, MIT licence and zero package dependencies matched. |
+| `Microsoft.NETCore.App.Runtime.linux-arm64` | 37,584,411 | Catalogue SHA-512, source SHA-256, author/repository signatures, MIT licence and zero package dependencies matched. |
+
+Signature verification used offline revocation mode. Solution restore used only
+the verified local source, isolated NuGet package and HTTP caches,
+`--locked-mode` and `--no-cache`. It passed without changing any of the seven
+lockfiles. The four production assets contained only `net10.0` and
+`net10.0/linux-arm64` targets; the three test assets contained only `net10.0`;
+all used the isolated package folder.
+
+`eng/ci.ps1 -Offline` then passed locked restore, format, Release build with
+zero warnings and errors, 74 unit tests, 10 architecture tests and 95
+integration tests: 179 total, with no failure or skip. Merged .NET coverage was
+92.40% of lines (17,798/19,262) and 66.60% of branches (2,469/3,707). Offline
+`npm ci`, lint, typecheck, 38 tests and the Vite build passed. The repository
+audit covered 198 non-ignored files, and Git diff hygiene passed.
+
+The four focused composed-host tests passed. They repeated successful local
+operation and restart, cancellation, bounded provider and official-source
+failure, subsequent recovery, and service after restart against the same
+active generation.
+
+### ARM64, README and security evidence
+
+Two consecutive ARM64 rehearsal builds on the same baseline produced identical
+archives:
+
+| Evidence | Reproduction 1 | Reproduction 2 |
+| --- | --- | --- |
+| Archive SHA-256 | `d539f0dd27553859966fe45f373363d32ffd34c61cd59618fe7cf61dcd9b2369` | `d539f0dd27553859966fe45f373363d32ffd34c61cd59618fe7cf61dcd9b2369` |
+| Archive size | 133,379,066 bytes | 133,379,066 bytes |
+| Archive entries | 361 | 361 |
+| Manifest SHA-256 | `ba2ba62001b6da0fb4c9405fcd419d398d491dee0557fa1ceb035394c865fddb` | `ba2ba62001b6da0fb4c9405fcd419d398d491dee0557fa1ceb035394c865fddb` |
+| Manifest payload records | 360 | 360 |
+
+The static verifier passed integrity, required execution modes, Dashboard
+payload, fail-closed configuration, apparent secret/workstation-path scans and
+17 native ELF64 AArch64 payloads. It reported `LinuxArm64Executed: false` and
+`OciContacted: false`.
+
+The two local integration commands published in the README were executed from
+the repository root. They produced a 58-file, 47,234,206-byte ZIP with SHA-256
+`fc3604a8d99a87c0f0d71b37309c125f7645ba1516ee833cba30ff3310a39a2f` and a
+`Passed` verification result. The Dashboard was served, answers succeeded in
+`en-GB` and `pt-BR`, `control.db` and `vectors.db` were present, and generation
+`idxgen-795825d3ad7afad1acd3a16ef48f2448270dda36ea71725fe6f6231956ced2c5`
+remained active after restart.
+
+Final security and hygiene inspection found no protected OpenAPI, dependency,
+migration, schema or ADR change in the corrective range; no tracked
+`reference-materials/`; no owned runtime; no task-port listener; a clean
+working tree; and a passing `git diff --check`. The public OpenAPI SHA-256
+remained `d6a686b94c926914beb28b437f464430a01de6560c2e2d476cf5c36025813e34`.
+The recorded toolchain was Windows `10.0.26200.0`, PowerShell `7.6.4`, Git
+`2.55.0.windows.3`, .NET SDK `10.0.302`, Node.js `24.19.0` and npm `11.17.0`.
+
+### Finding disposition and gate result
+
+| Finding | Repeated gate evidence | Final disposition |
+| --- | --- | --- |
+| `AQG-S06-001` | State-owned plan, exact locked graph, two identical ARM64 builds and passing static verifier. | `RESOLVED` |
+| `AQG-S06-002` | Composed cancellation and bounded provider/source failures, followed by recovery and restart against the same generation. | `RESOLVED` |
+| `AQG-S06-003` | Accepted ownership rule, corpus `4.9.3`, factual README and repeated published commands. | `RESOLVED` |
+
+The restarted Automatic Quality Gate is **APROVADO**, with no new P0, P1, P2
+or P3 finding. The earlier failed gate and corrective dispositions remain
+historical evidence; this restart is the authority that resolved the three
+findings.
+
+Linux ARM64 execution, OCI tenancy/IAM/capacity/network/storage/cost, TLS,
+operational backup/restore, providers, accounts, real corpus, real official
+sources, JavaScript percentage coverage and packet-level offline observation
+remain untested. Ignored local artefacts and caches remain non-authoritative.
+No network, global cache, OCI, GitHub, public contract, OpenAPI, schema,
+migration, ADR, publication, deployment, Human Gate or `STATE-07` action
+occurred. `STATE-06` remains active.
