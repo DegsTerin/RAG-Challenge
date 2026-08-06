@@ -38,6 +38,31 @@ public sealed class SetupHostArtefactTests
         Assert.False(administrationEnabled);
     }
 
+    [Fact]
+    public void IntegrationConfigurationIsNonSecretAndDisabledByDefault()
+    {
+        var path = Path.Combine(
+            FindRepositoryRoot(),
+            "src",
+            "RagChallenge.Server.Api",
+            "appsettings.Integration.json");
+        using var document = JsonDocument.Parse(File.ReadAllText(path));
+        var integration = document.RootElement
+            .GetProperty("RagChallenge")
+            .GetProperty("Integration");
+
+        Assert.False(integration.GetProperty("Enabled").GetBoolean());
+        Assert.Equal(string.Empty, integration.GetProperty("StoreRoot").GetString());
+        Assert.DoesNotContain(
+            document.RootElement.ToString(),
+            "secret",
+            StringComparison.OrdinalIgnoreCase);
+        Assert.DoesNotContain(
+            document.RootElement.ToString(),
+            "password",
+            StringComparison.OrdinalIgnoreCase);
+    }
+
     [Theory]
     [InlineData(HealthEndpoints.LivenessRoute)]
     [InlineData(HealthEndpoints.ReadinessRoute)]
@@ -98,6 +123,20 @@ public sealed class SetupHostArtefactTests
 
         Assert.Equal(
             "External services must remain disabled during project setup.",
+            exception.Message);
+    }
+
+    [Fact]
+    public void SetupHostRejectsIntegrationRuntimeOutsideIntegrationEnvironment()
+    {
+        var exception = Assert.Throws<InvalidOperationException>(() => SetupHost.Build(
+        [
+            "--environment", "Development",
+            $"--{IntegrationRuntimeOptions.EnabledKey}", "true",
+        ]));
+
+        Assert.Equal(
+            "The synthetic integration runtime requires the Integration environment.",
             exception.Message);
     }
 

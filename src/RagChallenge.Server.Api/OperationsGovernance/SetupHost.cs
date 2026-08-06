@@ -21,6 +21,10 @@ internal static class SetupHost
                 "External services must remain disabled during project setup.");
         }
 
+        var integrationOptions = IntegrationRuntimeOptions.Resolve(
+            builder.Configuration,
+            builder.Environment);
+
         builder.Services.AddSingleton(
             new SetupCompositionBoundary(
                 typeof(Application.ApplicationAssemblyMarker).Assembly,
@@ -55,18 +59,42 @@ internal static class SetupHost
             };
         });
         builder.Services.AddSingleton<QueryConcurrencyGate>();
-        builder.Services.AddSingleton<IQuestionAnsweringService,
-            DisabledQuestionAnsweringService>();
-        builder.Services.AddSingleton<IQueryReadinessProbe,
-            DisabledQueryReadinessProbe>();
+        if (integrationOptions is null)
+        {
+            builder.Services.AddSingleton<IQuestionAnsweringService,
+                DisabledQuestionAnsweringService>();
+            builder.Services.AddSingleton<IQueryReadinessProbe,
+                DisabledQueryReadinessProbe>();
+        }
+        else
+        {
+            builder.Services.AddSingleton(integrationOptions);
+            builder.Services.AddSingleton(services => new SyntheticIntegrationRuntime(
+                services.GetRequiredService<IntegrationRuntimeOptions>()));
+            builder.Services.AddSingleton<IQuestionAnsweringService>(services =>
+                services.GetRequiredService<SyntheticIntegrationRuntime>());
+            builder.Services.AddSingleton<IQueryReadinessProbe>(services =>
+                services.GetRequiredService<SyntheticIntegrationRuntime>());
+        }
         configureServices?.Invoke(builder.Services);
 
         var app = builder.Build();
 
         app.UseExceptionHandler();
+        if (integrationOptions is not null)
+        {
+            app.UseDefaultFiles();
+            app.UseStaticFiles();
+        }
+
         app.UseRateLimiter();
         app.MapHealthV1();
         app.MapQueryV1();
+
+        if (integrationOptions is not null)
+        {
+            app.MapFallbackToFile("index.html");
+        }
 
         return app;
     }
