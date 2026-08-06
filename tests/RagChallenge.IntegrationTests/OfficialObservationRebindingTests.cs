@@ -135,6 +135,49 @@ public sealed class OfficialObservationRebindingTests
     }
 
     [Fact]
+    public async Task LaterRegistrationRevisionDoesNotChangeAnExistingActivation()
+    {
+        await using var fixture = await SqlitePersistenceFixture.CreateAsync();
+        var source = await CreateActiveOfficialSourceAsync(fixture);
+        var registration = new OfficialSourceRegistration(
+            source.Registration.Id,
+            new SourceRegistrationRevision(2),
+            source.Registration.DatabaseProductId,
+            source.Registration.DocumentId,
+            source.Registration.SourceAdapterId,
+            "https://official.invalid/rebind-v2.csv",
+            CatalogueItemStatus.Active);
+        var snapshot = new OfficialSourceSnapshot(
+            new OfficialSnapshotId("snapshot-rebind-v2"),
+            registration.Id,
+            source.Snapshot.ContentObjectId,
+            source.Snapshot.ByteLength,
+            source.Snapshot.MediaType,
+            SqlitePersistenceFixture.At(3));
+        var commit = await fixture.ControlStore.CommitOfficialSourceAsync(
+            new OfficialSourceCommitRequest(
+                new OperationId("source-rebind-v2"),
+                SqlitePersistenceFixture.CorpusId,
+                registration,
+                snapshot,
+                SqlitePersistenceFixture.At(3)));
+        Assert.Equal(StoreMutationOutcome.Applied, commit.Outcome);
+
+        var query = await new SqliteQueryActivationReader(fixture.Options).ReadAsync(
+            SqlitePersistenceFixture.CorpusId,
+            SqlitePersistenceFixture.At(3));
+
+        Assert.NotNull(query);
+        var officialEvidence = query.EvidenceBindings.Single(binding =>
+            binding.Binding.DocumentId == source.OfficialContext.DocumentId);
+        Assert.Equal(source.Registration.CanonicalHttpsUrl, officialEvidence.CanonicalUrl);
+        Assert.Equal(source.Snapshot.Id, officialEvidence.Binding.OfficialSnapshotId);
+        Assert.Equal(1, query.ActivationRecord.RecordRevision.Value);
+        Assert.Equal(2, await fixture.ScalarAsync(
+            "SELECT COUNT(*) FROM official_source_registrations;"));
+    }
+
+    [Fact]
     public async Task SnapshotMismatchRollsBackTheObservationBeforeActivationChanges()
     {
         await using var fixture = await SqlitePersistenceFixture.CreateAsync();

@@ -40,6 +40,9 @@ public sealed class SqliteQueryActivationReader(SqliteStoreOptions options)
         var registrationRows = await context.OfficialSourceRegistrations.AsNoTracking()
             .Where(row => row.CorpusId == corpusId.Value)
             .ToArrayAsync(cancellationToken).ConfigureAwait(false);
+        var snapshotRows = await context.OfficialSourceSnapshots.AsNoTracking()
+            .Where(row => row.CorpusId == corpusId.Value)
+            .ToArrayAsync(cancellationToken).ConfigureAwait(false);
         var observationRows = await context.SourceObservations.AsNoTracking()
             .Where(row => row.CorpusId == corpusId.Value)
             .ToArrayAsync(cancellationToken).ConfigureAwait(false);
@@ -75,16 +78,22 @@ public sealed class SqliteQueryActivationReader(SqliteStoreOptions options)
                 continue;
             }
 
+            var registrationId = binding.OfficialSourceRegistrationId!.Value;
+            var snapshotId = binding.OfficialSnapshotId!.Value;
+            var observationId = binding.SourceObservationId!.Value;
+            var snapshot = snapshotRows.SingleOrDefault(row =>
+                row.SnapshotId == snapshotId &&
+                row.RegistrationId == registrationId) ??
+                throw new InvalidDataException(
+                    "An official binding has no exact immutable snapshot metadata.");
             var registration = registrationRows.SingleOrDefault(row =>
-                row.RegistrationId == binding.OfficialSourceRegistrationId!.Value &&
+                row.RegistrationId == registrationId &&
+                row.RegistrationRevision == snapshot.RegistrationRevision &&
                 row.DocumentId == binding.DocumentId.Value &&
                 row.ProductId == binding.DatabaseProductId.Value &&
                 row.SourceAdapterId == binding.SourceAdapterId.Value) ??
                 throw new InvalidDataException(
                     "An official binding has no exact immutable registration metadata.");
-            var registrationId = binding.OfficialSourceRegistrationId!.Value;
-            var snapshotId = binding.OfficialSnapshotId!.Value;
-            var observationId = binding.SourceObservationId!.Value;
             var observationRow = observationRows.SingleOrDefault(row =>
                 row.ObservationId == observationId &&
                 row.RegistrationId == registrationId &&
