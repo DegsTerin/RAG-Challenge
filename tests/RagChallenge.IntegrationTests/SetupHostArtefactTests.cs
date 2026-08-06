@@ -1,4 +1,5 @@
 // Purpose: Verifies setup-host configuration and health mappings without starting listeners or contacting external services.
+using System.Reflection;
 using System.Text.Json;
 using System.Text.RegularExpressions;
 
@@ -210,6 +211,31 @@ public sealed class SetupHostArtefactTests
         Assert.Contains("AllowExternalServices", verifier, StringComparison.Ordinal);
         Assert.Contains("ExternalServicesEnabledByDefault = $false", verifier, StringComparison.Ordinal);
         Assert.Contains("OciContacted = $false", verifier, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void IntegrationProviderSeamIsInternalAndAbsentFromConfiguration()
+    {
+        var runtimeType = typeof(SyntheticIntegrationRuntime);
+        Assert.False(runtimeType.IsPublic);
+        Assert.Empty(runtimeType.GetConstructors());
+        Assert.Equal(
+            2,
+            runtimeType.GetConstructors(
+                BindingFlags.Instance | BindingFlags.NonPublic).Length);
+
+        var serverRoot = Path.Combine(
+            FindRepositoryRoot(),
+            "src",
+            "RagChallenge.Server.Api");
+        var committedConfiguration = string.Join(
+            "\n",
+            Directory.EnumerateFiles(serverRoot, "appsettings*.json")
+                .OrderBy(path => path, StringComparer.Ordinal)
+                .Select(File.ReadAllText));
+
+        Assert.DoesNotContain("\"Fault", committedConfiguration, StringComparison.OrdinalIgnoreCase);
+        Assert.DoesNotContain("\"Failure", committedConfiguration, StringComparison.OrdinalIgnoreCase);
     }
 
     private static string FindRepositoryRoot()

@@ -76,13 +76,30 @@ internal sealed class SyntheticIntegrationRuntime :
         new("synthetic", "grounded-v1", "s06-a");
 
     private readonly SqliteStoreOptions stores;
+    private readonly IEmbeddingProvider queryEmbeddingProvider;
+    private readonly ILanguageModel queryLanguageModel;
     private readonly SemaphoreSlim initialisationGate = new(1, 1);
     private QuestionAnsweringService? answeringService;
 
     internal SyntheticIntegrationRuntime(IntegrationRuntimeOptions options)
+        : this(
+            options,
+            new DeterministicEmbeddingProvider(),
+            new DeterministicLanguageModel())
+    {
+    }
+
+    internal SyntheticIntegrationRuntime(
+        IntegrationRuntimeOptions options,
+        IEmbeddingProvider queryEmbeddingProvider,
+        ILanguageModel queryLanguageModel)
     {
         ArgumentNullException.ThrowIfNull(options);
         stores = options.Stores;
+        this.queryEmbeddingProvider = queryEmbeddingProvider ??
+            throw new ArgumentNullException(nameof(queryEmbeddingProvider));
+        this.queryLanguageModel = queryLanguageModel ??
+            throw new ArgumentNullException(nameof(queryLanguageModel));
     }
 
     public async Task<QueryExecutionResult> AskAsync(
@@ -207,13 +224,13 @@ internal sealed class SyntheticIntegrationRuntime :
                 cancellationToken).ConfigureAwait(false);
             answeringService = new QuestionAnsweringService(
                 CorpusId,
-                EmbeddingDescriptor,
-                LanguageModelDescriptor,
-                new SqliteQueryActivationReader(stores),
-                new DeterministicEmbeddingProvider(),
-                vectorStore,
-                new DeterministicLanguageModel(),
-                minimumScore: 0.25);
+                 EmbeddingDescriptor,
+                 LanguageModelDescriptor,
+                 new SqliteQueryActivationReader(stores),
+                 queryEmbeddingProvider,
+                 vectorStore,
+                 queryLanguageModel,
+                 minimumScore: 0.25);
         }
         finally
         {
