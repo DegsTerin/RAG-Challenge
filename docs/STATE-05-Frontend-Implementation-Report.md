@@ -1863,3 +1863,155 @@ This increment neither restarted that gate nor recorded the Human Gate. A
 complete Automatic Quality Gate restart over the new clean baseline requires
 new explicit owner authority before the Human Gate review can resume;
 `STATE-06` remains not authorised.
+
+## Automatic Quality Gate restart after S05-CORR-08 — 2026-08-05
+
+### Authority and baseline
+
+- Gate baseline: location `C:\Projects\RAG-Challenge`, Git top-level
+  `C:/Projects/RAG-Challenge`, Git directory `.git`, branch `main`, commit
+  `b68cf2d8a9a6c735781529f1f3fb63d5cd515f95`, corpus `4.9.2` and a clean
+  working tree. All seven conditions and the single applicable root
+  `AGENTS.md` were reconfirmed atomically before the audit.
+- Authority: restart the complete `STATE-05` Automatic Quality Gate locally,
+  offline and sequentially, using only the existing installation, synthetic
+  fixtures, fake fetch and task-owned loopback listeners. Browser validation
+  required a temporary headless Chrome without Dark Reader or another
+  page-modifying extension, no external interactive fixture link,
+  deny-by-default non-loopback interception and an active-element guard before
+  every `Enter`.
+- Product correction, frontend/code/test changes, dependencies, installation,
+  manifests, lockfiles, contracts, OpenAPI, ADRs, backend, `dotnet`, external
+  network, provider, account, secret, real corpus, real official source,
+  remote action, Human Gate and later lifecycle states remained outside
+  authority.
+
+### Result and finding disposition
+
+Result: `APROVADO`. No new P0, P1, P2 or P3 finding was observed.
+`AQG-S05-001` through `AQG-S05-008` are `RESOLVIDOS` on this baseline:
+
+- `AQG-S05-001`: decoder and presentation retain the HTTPS-only official
+  citation boundary and null local URL; hostile and valid citation regressions
+  passed.
+- `AQG-S05-002`: declared and streamed response limits remain enforced before
+  full materialisation; overflow cancellation, the exact byte boundary and
+  request cancellation passed.
+- `AQG-S05-003`: root language and document title follow only
+  `interfaceLanguage` in both interface languages and every matrix state.
+- `AQG-S05-004`: the closed freshness set and local/official trust relations
+  remain aligned with the backend contract, including localised `Local`.
+- `AQG-S05-005`: completed responses remain bound to the
+  `questionLanguage` sent; both valid languages and both incompatible
+  directions passed.
+- `AQG-S05-006`: every browser case focused the skip link on the first `Tab`,
+  focused `MAIN#main-content` after guarded `Enter`, and then focused the
+  selected question-language radio.
+- `AQG-S05-007`: all eight narrow combinations reflowed at 320 CSS pixels with
+  equal 305-pixel document client and scroll widths.
+- `AQG-S05-008`: the 517- to 519-character continuous answer, citation title
+  and excerpt remained intact, multiline and bounded by their own client
+  widths with `overflow-wrap: anywhere`.
+
+The `S05-CORR-08` visual correction also passed. Static structure, component
+regressions and direct screenshots confirmed exactly one localised H1. The
+hero contains only the applicable introductory sentence; the former
+promotional label, display title and decorative orbit are absent. Its
+proportional typography remains readable in both themes and both interface
+languages at the narrow viewport.
+
+### Static, npm and reproducibility evidence
+
+Authority, lifecycle, scope, accepted architecture, canonical contracts and
+security were inspected again from the beginning. The `STATE-05` range
+contains only authorised Dashboard and factual-evidence work. Package
+manifests, lockfiles, OpenAPI, ADRs, backend and other protected technical
+surfaces have no diff from the state-entry baseline. The OpenAPI SHA-256 is
+`D6A686B94C926914BEB28B437F464430A01DE6560C2E2D476CF5C36025813E34`.
+Production source retains the same-origin client, strict CSP, escaped React
+text rendering and no raw-HTML or script-evaluation sink. The targeted
+secret-marker scan found no secret value.
+
+The runtime preflight found no product-owned process or listener on ports
+4173, 5173 or 9230. The only Node.js process associated with the workspace was
+the Codex runtime rather than a RAG-Challenge executable and was not stopped.
+All npm commands then ran from `src/RagChallenge.Dashboard.Web` with the
+existing installation and `npm_config_offline=true`:
+
+| Verification | Result |
+| --- | --- |
+| `npm run lint` | Passed, exit code 0 |
+| `npm run typecheck` | Passed, exit code 0 |
+| `npm test` | Passed, 38 tests, 0 failed/skipped/cancelled |
+| `npm run build` | Passed twice, 20 modules transformed per build |
+| Repeated build | Byte-for-byte identical SHA-256 manifest for all three files |
+| Built HTML | 977 bytes; `6EFBCFC22A91304666795DBFC84F217BBB1652B474298C3B39C3F7E6F46140DC` |
+| Built CSS | 10,944 bytes; `C41332E3477D73EC4FE98E5DE40AF6718B644CAAC2DFDDD0015349FFD860442F` |
+| Built JavaScript | 171,416 bytes; `83E54FA38EEC968F34CFD97C4EB5871C47002CA099D4E0A31BB3C5798D78C1B5` |
+
+The observed toolchain was Node.js `24.18.1` and npm `11.16.0`; the repository
+continues to pin Node.js `24.18.0` and npm `11.16.0`.
+
+### Browser, accessibility and network evidence
+
+The built application was served only on `127.0.0.1:4173`. Chrome
+`151.0.7922.75` used a new task-specific headless profile and exposed CDP only
+on `127.0.0.1:9230`. Extensions, component-extension backgrounds, sync,
+default applications and background networking were disabled; target
+inventory reported zero extension target.
+
+The browser executed 16 fresh navigations: the eight-combination matrix at
+1280 CSS pixels and again at 320 CSS pixels. Every case preserved interface
+language, question language and theme; the localised title, root language,
+one header/main/footer/H1, labelled controls, unique IDs, pressed states,
+answer language and original citation language were coherent. Initial and
+completed states produced no horizontal overflow.
+
+The fake fetch returned one contract-valid `LocalAuthorised` citation with a
+null URL, leaving no external interactive link. CDP request interception
+continued only exact-origin `http://127.0.0.1:4173` traffic and failed any
+other page HTTP/HTTPS destination before dispatch. The run reported zero
+blocked external attempt, zero observed external URL, zero runtime exception
+and zero significant console entry. Network observations were limited to the
+loopback HTML, JavaScript, CSS and the known absent `/favicon.ico`; its 404 was
+non-material.
+
+In all 16 cases, the first `Tab` focused the localised skip link with a solid
+outline of at least three pixels. The active-element guard passed before
+`Enter`, which focused `MAIN#main-content`; the next `Tab` focused the selected
+question-language radio. Runtime contrast ratios were 14.35–16.25 for body
+text, 10.48–11.34 for the selected preference control and 12.93–16.51 for the
+textarea.
+
+At 320 CSS pixels, answer, title and excerpt client/scroll widths were
+243/243, 213/213 and 210/210 pixels in every combination. Four direct
+full-page screenshots — `pt-BR` and `en-GB` in Light and Dark — confirmed the
+simplified proportional hero, readable vertical reflow, visible completion
+focus, intact long tokens, theme hierarchy and no clipping or horizontal
+panning. The browser used neither the owner's profile nor Dark Reader.
+
+### Cleanup, limitations and lifecycle consequence
+
+The exact preview and Chrome processes were identified by PID, executable,
+command/profile and port before termination. Ports 4173, 5173 and 9230
+finished without listeners or task-profile processes. Execution policy
+refused recursive removal of
+`<system-temp>/RAG-Challenge-S05-AQG-CORR08-5f9a0f3c77d24ea881ff5030e868b568`;
+the sanitised directory retains preview diagnostics, the isolated profile and
+four screenshots, with no process, listener, credential, secret, real corpus
+or tracked project change.
+
+JavaScript line and branch percentages remain unavailable because the four
+existing scripts and dependency set do not instrument Dashboard production
+modules; no percentage or repository floor is claimed. Exact-Node
+reproducibility remains unproved despite byte-identical builds on Node.js
+`24.18.1`. No third-party accessibility engine, visible-window browser, real
+backend, provider, account, secret, corpus, official source or external
+network was exercised. CDP observations and Chrome background-disable flags
+were used rather than host-level packet capture.
+
+`STATE-05 FRONTEND_IMPLEMENTATION` remains active with its Automatic Quality
+Gate approved on `b68cf2d8a9a6c735781529f1f3fb63d5cd515f95` and
+`AQG-S05-001` through `AQG-S05-008` resolved. This result does not execute or
+approve the Human Gate, enter `STATE-06` or grant external authority. Only
+this report and the two factual state records are changed by the gate record.

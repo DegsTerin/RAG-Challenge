@@ -3950,3 +3950,62 @@ contém somente fatos cronológicos.
   integralmente o Automatic Quality Gate; somente após nova aprovação a
   revisão do Human Gate pode ser retomada.
 - Aprovador: proprietário do RAG-Challenge.
+
+## 2026-08-05 — Automatic Quality Gate após S05-CORR-08 aprovado
+
+- Estado preservado: `STATE-05 FRONTEND_IMPLEMENTATION` permanece ativo; o
+  Human Gate e `STATE-06` não foram autorizados nem executados.
+- Baseline: localização `C:\Projects\RAG-Challenge`, Git top-level
+  `C:/Projects/RAG-Challenge`, Git directory `.git`, branch `main`, commit
+  `b68cf2d8a9a6c735781529f1f3fb63d5cd515f95`, corpus `4.9.2` e working tree
+  limpa, reconfirmados antes da auditoria.
+- Autoridade: reinício integral, local, offline e sequencial do Automatic
+  Quality Gate, com instalação existente, fixtures sintéticas, fetch falso,
+  listeners loopback e Chrome headless temporário sem Dark Reader ou extensão
+  modificadora. Produto/teste, dependências, instalação, contratos, backend,
+  rede externa, ações remotas, Human Gate e estado posterior permaneceram fora
+  do escopo.
+- Inspeção estática: autoridade, lifecycle, escopo, decisões aceitas,
+  contratos e segurança foram repetidos desde o início. Package, lockfile,
+  OpenAPI, ADRs, backend e superfícies protegidas não tinham diff desde a
+  entrada de `STATE-05`; o OpenAPI conservou SHA-256
+  `D6A686B94C926914BEB28B437F464430A01DE6560C2E2D476CF5C36025813E34`.
+- Checks: `npm run lint`, `npm run typecheck`, `npm test` e dois
+  `npm run build` passaram offline na instalação existente. Foram 38 testes,
+  zero falha/skip/cancelamento e 20 módulos por build; os três artefatos foram
+  idênticos byte a byte nas duas execuções.
+- Disposição: `AQG-S05-001` a `AQG-S05-008` estão `RESOLVIDOS` nesta
+  baseline. HTTPS/null URL, limite de resposta, metadata da interface,
+  freshness, vínculo de idioma, foco do skip link, reflow e tokens contínuos
+  passaram. A hero corrigida também passou com uma única introdução localizada
+  como H1, sem rótulo, título antigo ou ilustração.
+- Browser: Chrome `151.0.7922.75`, perfil novo sem extensões, citação local sem
+  URL, interceptação somente loopback e guarda antes de cada `Enter`. As oito
+  combinações passaram em 1280 e 320 CSS px. Houve zero tentativa bloqueada,
+  zero URL externa, zero exceção runtime e zero console significativo. Quatro
+  capturas estreitas confirmaram Light/Dark e `pt-BR`/`en-GB` sem overflow,
+  corte ou panning.
+- Acessibilidade: um header/main/footer/H1, IDs únicos e controles rotulados
+  passaram nas 16 execuções. O primeiro `Tab` focou o skip link com outline
+  sólido de pelo menos três pixels; `Enter` guardado focou
+  `MAIN#main-content`; o próximo `Tab` focou o rádio selecionado. Os contrastes
+  runtime mínimos foram 14,35 no body, 10,48 no controle selecionado e 12,93
+  no textarea.
+- Runtime e cleanup: preview e Chrome foram identificados e encerrados; portas
+  4173, 5173 e 9230 terminaram livres. A política recusou remover o diretório
+  temporário sanitizado; ele permanece fora do repositório sem processo,
+  listener, credencial, secret, corpus real ou mudança rastreada.
+- Limitações: percentuais de cobertura JavaScript continuam indisponíveis;
+  Node.js observado `24.18.1` diverge do pin `24.18.0`; não houve engine
+  externa de acessibilidade, janela visível, backend real, provider, conta,
+  secret, corpus real, fonte oficial real, rede externa ou captura de pacotes
+  no host.
+- Resultado: Automatic Quality Gate `APROVADO`, sem novo P0, P1, P2 ou P3.
+  Isso não registra o Human Gate nem autoriza `STATE-06`.
+- Mudanças: somente relatório e memória factual do gate; nenhum frontend,
+  código, teste, dependência, package, lockfile, contrato, OpenAPI, ADR,
+  backend ou configuração foi alterado.
+- Próxima condição: autoridade humana explícita e separada para retomar a
+  revisão e decidir o Human Gate de `STATE-05` sobre o relatório aprovado e a
+  baseline limpa posterior ao registro.
+- Aprovador: proprietário do RAG-Challenge.

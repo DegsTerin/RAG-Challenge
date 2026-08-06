@@ -280,6 +280,21 @@ proprietários.
   exato, engine externa de acessibilidade e browser em janela visível
   permanecem limitações. O Human Gate não foi autorizado nem executado, e
   `STATE-06` permanece sem autorização.
+- Reinício integral do Automatic Quality Gate após `S05-CORR-08`: autorizado
+  e concluído em 2026-08-05 sobre
+  `main@b68cf2d8a9a6c735781529f1f3fb63d5cd515f95`, corpus `4.9.2` e working
+  tree limpa. Autoridade, lifecycle, escopo, contratos e segurança foram
+  reinspecionados; lint, typecheck, 38 testes e dois builds idênticos byte a
+  byte passaram. Chrome headless `151.0.7922.75`, em perfil temporário sem
+  extensões, repetiu as oito combinações em 1280 e 320 CSS px com citação
+  local sem URL, interceptação não loopback e guarda antes de cada `Enter`.
+  Reflow, tokens contínuos, escaping, foco, teclado, Light/Dark,
+  `pt-BR`/`en-GB`, idioma original da citação e a hero simplificada passaram.
+  Houve zero tentativa ou URL externa, zero exceção runtime e zero novo P0,
+  P1, P2 ou P3. `AQG-S05-001` a `AQG-S05-008` estão `RESOLVIDOS` e o gate
+  está `APROVADO`. Preview e Chrome foram encerrados e as portas 4173, 5173 e
+  9230 ficaram livres. O Human Gate não foi executado, e `STATE-06` permanece
+  sem autorização.
 - Fechamento de `S04-A0`: `PdfPig` `0.1.15` e `CsvHelper` `33.1.0` foram
   selecionados condicionalmente para desenvolvimento local;
   `Sylvan.Data.Csv` `1.4.4` permanece fallback não selecionado e não
@@ -770,10 +785,9 @@ autorizada.
    para cada banco antes de sua ativação.
 2. Validar e ativar individualmente novos registros de fonte oficial; a
    aceitação arquitetural não autoriza URL, rede, download ou crawling.
-3. Obter autoridade humana explícita e separada para reiniciar integralmente o
-   Automatic Quality Gate de `STATE-05` sobre a baseline limpa posterior a
-   `S05-CORR-08`; somente depois de nova aprovação automática, retomar a
-   revisão e decisão do Human Gate.
+3. Obter autoridade humana explícita e separada para retomar a revisão e
+   decidir o Human Gate de `STATE-05` sobre o relatório automático aprovado e
+   a baseline limpa posterior ao registro do gate.
 4. Verificar tier, entitlement, spend limit e controles da conta OpenAI, além
    da recuperação/geração bilíngue, antes de usar ou anunciar os providers.
 5. Homologar desempenho e capacidade do `SqliteExactVectorStore`; a fixture
@@ -937,14 +951,18 @@ combinações em 1280 e 320 CSS px, com reflow, temas, idiomas, foco e teclado
 preservados e sem URL ou tentativa externa. O listener e o Chrome temporário
 foram encerrados, e as portas 4173, 5173 e 9230 ficaram livres.
 
-A aprovação automática anterior permanece evidência histórica, mas não cobre
-a nova mudança de frontend. `STATE-05` continua ativo; o Human Gate permanece
-sem decisão registrada. A próxima autoridade possível é reiniciar
-integralmente o Automatic Quality Gate sobre a baseline limpa posterior a
-`S05-CORR-08`; somente depois de sua aprovação a revisão humana pode ser
-retomada.
+O reinício integral posterior a `S05-CORR-08`, sobre
+`main@b68cf2d8a9a6c735781529f1f3fb63d5cd515f95`, repetiu as inspeções
+estáticas, os quatro checks npm, o build reprodutível e a matriz browser em
+largura padrão e estreita. A hero simplificada, as oito combinações, foco,
+teclado, temas, idiomas, reflow e tokens contínuos passaram sem tentativa ou
+URL externa. O gate foi `APROVADO`, sem novo P0, P1, P2 ou P3, e
+`AQG-S05-001` a `AQG-S05-008` estão `RESOLVIDOS` na baseline. `STATE-05`
+continua ativo; o Human Gate permanece sem decisão registrada. A próxima
+autoridade possível é retomar a revisão humana sobre o relatório aprovado e a
+baseline limpa posterior ao registro deste gate.
 
 Rede externa, providers, contas, secrets, corpus real, fontes oficiais reais
 do produto, armazenamento operacional, GitHub, OCI, publicação, deploy,
-DB-Notifier, novo reinício do Automatic Quality Gate, registro do Human Gate e
+DB-Notifier, nova repetição do Automatic Quality Gate, registro do Human Gate e
 entrada ou execução de estados posteriores continuam sem autorização.
