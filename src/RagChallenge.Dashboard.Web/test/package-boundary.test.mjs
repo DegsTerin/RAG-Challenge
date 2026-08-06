@@ -7,10 +7,24 @@ const packageJson = JSON.parse(
   await readFile(new URL("../package.json", import.meta.url), "utf8"),
 );
 
-test("pins the dashboard toolchain", () => {
-  assert.equal(packageJson.packageManager, "npm@11.16.0");
-  assert.equal(packageJson.engines.node, "24.18.0");
-  assert.equal(packageJson.engines.npm, "11.16.0");
+test("enforces bounded compatible dashboard toolchain updates", () => {
+  assert.equal("packageManager" in packageJson, false);
+  assert.deepEqual(packageJson.engines, {
+    node: ">=24.18.0 <25",
+    npm: ">=11.16.0 <12",
+  });
+  assert.deepEqual(packageJson.devEngines, {
+    runtime: {
+      name: "node",
+      version: ">=24.18.0 <25",
+      onFail: "error",
+    },
+    packageManager: {
+      name: "npm",
+      version: ">=11.16.0 <12",
+      onFail: "error",
+    },
+  });
 });
 
 test("declares only the approved React build boundary", () => {
