@@ -920,3 +920,128 @@ The approved `STATE-06` Automatic Quality Gate remains factual evidence for
 commits post-date that baseline and are therefore outside its audited diff.
 This reconciliation did not run another Automatic Quality Gate or Human Gate,
 and it did not authorise or enter `STATE-07`. `STATE-06` remains active.
+
+## Automatic Quality Gate after the AST corrections — 2026-08-06
+
+### Authority, baseline and interrupted attempt
+
+The owner subsequently authorised a complete restart of the `STATE-06`
+Automatic Quality Gate on
+`main@726546dbe0302b9664a62e890b6a27f19bf0c6e4`, prompt corpus `4.9.3`, from
+an initially clean working tree. The run was local, offline and sequential and
+reviewed the complete 20-file tracked diff after the previously approved gate
+anchor `9d7c4ce816eca049ba09942ab7fe8b1148aa73c9`.
+
+The first attempt stopped as required with `AQG-S06-004`: the working copies
+of the following generated Entity Framework files had mixed line endings even
+though their indexed content was LF:
+
+- `src/RagChallenge.Infrastructure/Persistence/Migrations/Control/20260806193919_StrengthenOfficialBindingReferences.Designer.cs`; and
+- `src/RagChallenge.Infrastructure/Persistence/Migrations/Control/ControlPlaneDbContextModelSnapshot.cs`.
+
+Under separate, narrow remediation authority, only those working-copy bytes
+were normalised to LF. Their resulting Git blob object IDs matched `HEAD`:
+`52498a695e11af6ff8fc9ca80a80e5095beea433` for the designer and
+`7146b771deaa875d5feb1a1d480cad72cc4a220a` for the snapshot. After the Git
+index refresh, neither staged nor unstaged content differed from `HEAD`, both
+files reported `i/lf w/lf`, and `eng/check-repository.ps1` passed for 200
+non-ignored files. `AQG-S06-004` is therefore `RESOLVED`; no semantic source,
+schema, migration or model change was made by the remediation.
+
+The coverage directory left by the interrupted attempt,
+`TestResults/f019fb042ddb46e8855900f132859c70`, was removed before the integral
+restart. The clean authorised baseline was reconfirmed before continuing.
+
+### Accepted gate evidence
+
+The integral restart ran from `2026-08-06T21:34:47.2595338Z` to
+`2026-08-06T21:41:17.7811145Z`. Its restricted preflight found no
+RAG-Challenge-owned process and no listener on ports 4173, 5086, 5096, 5173
+or 9230. The recorded toolchain was PowerShell `7.6.4`, Git
+`2.55.0.windows.3`, .NET SDK `10.0.302`, Node.js `24.19.0` and npm `11.17.0`.
+
+The offline supply-chain check found exactly the three already available
+Microsoft `10.0.10` Linux ARM64 runtime packs used by the locked graph. Author
+and repository signatures passed for each package:
+
+| Package | Size (bytes) | SHA-256 |
+| --- | ---: | --- |
+| `Microsoft.AspNetCore.App.Runtime.linux-arm64` | 12,387,032 | `57e8c8daff5e3a83909aa7af9b1d2cd52448adfc82cdfd45b453e25b25cf2e7e` |
+| `Microsoft.NETCore.App.Host.linux-arm64` | 5,309,240 | `9cca12665d6bf35f7823300cf77c5c4fd2c35daa5a5f7f99d1e70109df912b52` |
+| `Microsoft.NETCore.App.Runtime.linux-arm64` | 37,584,411 | `9a9d718da744f99e2c6614bac001d233d387500cde6a0897a8f15fdaf93eed92` |
+
+All seven lockfile hashes remained identical before and after restore.
+`eng/ci.ps1 -Offline` passed locked restore, format, Release build with zero
+warning or error, 87 unit tests, 10 architecture tests and 109 integration
+tests: 206 .NET tests in total, with no failure or skip. Merged .NET coverage
+was 93.11% of lines (19,943/21,419) and 66.89% of branches (2,544/3,803).
+Offline `npm ci`, lint, typecheck, all 38 npm tests and the Vite build also
+passed. The repository audit covered 200 non-ignored files.
+
+The four focused composed-host and loopback tests passed. The five focused
+migration and composite-reference tests passed against disposable SQLite
+databases only. The final accepted Entity Framework check used the already
+installed `dotnet-ef` `10.0.10`, the Infrastructure project as both target and
+startup project, and an explicit non-production temporary store root. It
+reported: `No changes have been made to the model since the last migration.`
+
+Three preliminary Entity Framework invocations were not accepted as evidence:
+
+- an isolated `DOTNET_CLI_HOME` did not expose the globally installed tool and
+  requested a tool restore, which was not performed;
+- `RagChallenge.Server.Api` was incorrectly selected as the startup project
+  and did not contain the required Entity Framework design package; and
+- the Infrastructure invocation without
+  `RAGCHALLENGE_DESIGN_TIME_STORE_ROOT` reached the expected fail-closed
+  configuration boundary.
+
+These attempts neither established migration consistency nor installed or
+restored a tool. Only the correctly configured final invocation is accepted
+as gate evidence.
+
+Two consecutive no-restore Linux ARM64 rehearsals produced byte-identical
+133,455,866-byte archives with 361 files and SHA-256
+`059dec2e653d16a85ec173db535f796110df305a59943420b0f3375d84f17c66`.
+Their 360-record manifests had SHA-256
+`22d9c4b3b0028defed869c336fa3ea75a37ae1b4b073a174438ba19af67dbd4a`.
+The static verifier passed and identified 17 native ELF64 AArch64 payloads;
+it reported `LinuxArm64Executed: false` and `OciContacted: false`.
+
+The two literal README integration commands passed. They produced an ignored
+58-file, 47,324,398-byte artefact at
+`artifacts-local/s06-a/rag-challenge-s06-a.zip`, SHA-256
+`fd9efb4636e13337fb7b77245d8a88b9d58703c82fc49e7b67971a32f409b297`.
+Verification returned `Passed`, served the Dashboard on
+`http://127.0.0.1:5086`, answered in `en-GB` and `pt-BR`, preserved generation
+`idxgen-795825d3ad7afad1acd3a16ef48f2448270dda36ea71725fe6f6231956ced2c5`
+across restart, and confirmed persistent `control.db` and `vectors.db` with
+one raw content object.
+
+The final static review found zero unexpected protected-path change, zero
+apparent secret match and no tracked `reference-materials/`. The versioned
+OpenAPI Git blob remained
+`a5fb3602fbab33bda6aa56cc4caaa9fdc37c8160`; the canonical v1 contract Git
+blob remained `eed1021776fc6513d0054c5a6a8babe3a4534150`. Repository audit, final
+`git diff --check` and LF checks passed.
+
+### Cleanup, result and residual risk
+
+The unique gate root `artifacts-local/aqg-s06-726546d` and the new coverage
+directory `TestResults/2d56d4ed0a754d539894ae348a1f686e` were removed.
+Final cleanup found zero task listener and zero RAG-Challenge-owned process.
+The authorised branch and commit were unchanged, and the working tree,
+unstaged diff and staged diff were clean. The ignored artefact produced by the
+literal README command remains under `artifacts-local/s06-a`; ordinary ignored
+build, package and cache outputs remain non-authoritative local material.
+
+The Automatic Quality Gate is **APPROVED**, with no new P0, P1, P2 or P3
+finding. `AQG-S06-004` is `RESOLVED`. This result supersedes only the stopped
+attempt on the same baseline; it does not erase the historical gate records.
+
+Residual limitations remain: the Linux ARM64 payload was not executed; no
+real OCI tenancy, IAM, capacity, network, storage, cost or TLS path was tested;
+no provider, account, secret, real corpus, real official source or operational
+store was used; JavaScript percentage coverage and packet-level network
+observation were not performed; and no migration was applied to a real
+database or used to repair data. No GitHub, publication, push, deployment,
+Human Gate or `STATE-07` action occurred. `STATE-06` remains active.

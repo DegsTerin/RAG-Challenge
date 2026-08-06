@@ -1169,8 +1169,30 @@ persistência e na autoridade de recuperação. Os commits
 `AST-001` e o reforço referencial complementar, respectivamente. A revisão
 pós-correção dispôs os três achados como `RESOLVIDOS` sobre
 `main@dc3dde2437ad3cbb50b397358fcda043c9d6f4b3`, corpus `4.9.3` e working
-tree limpa. O Automatic Quality Gate aprovado em
-`main@9d7c4ce816eca049ba09942ab7fe8b1148aa73c9` permanece fato histórico,
-mas não cobre esse diff posterior. Antes de qualquer Human Gate, um novo
-Automatic Quality Gate sobre baseline atual limpa requer autoridade explícita
-e separada; ele não foi autorizado nem executado por esta reconciliação.
+tree limpa.
+
+O reinício integral posterior do Automatic Quality Gate sobre
+`main@726546dbe0302b9664a62e890b6a27f19bf0c6e4`, corpus `4.9.3` e working
+tree inicialmente limpa, revisou todo o diff de 20 arquivos após
+`9d7c4ce816eca049ba09942ab7fe8b1148aa73c9`. A primeira tentativa parou com
+`AQG-S06-004`: duas working copies geradas do Entity Framework estavam com
+EOL misto. A remediação autorizada normalizou somente seus bytes para LF, sem
+diff semântico, e o reinício integral subsequente foi `APROVADO`, sem novo P0,
+P1, P2 ou P3; `AQG-S06-004` está `RESOLVIDO`.
+
+O gate consolidado aprovou 206 testes .NET e 38 testes npm, cobertura .NET de
+93,11% de linhas e 66,89% de branches, cinco testes focais de migration apenas
+em SQLite descartável, quatro testes focais do host composto, verificação EF
+sem mudança pendente, duas reproduções ARM64 idênticas e os comandos literais
+de integração do README. Invocações preliminares de EF com tool home isolado,
+startup project incorreto ou sem store root explícito não foram aceitas como
+evidência. A limpeza removeu os diretórios exclusivos do gate e da cobertura,
+encerrou sem processo/listener da tarefa e preservou limpa a baseline Git; o
+artefato ignorado do comando literal do README permanece não autoritativo.
+
+Persistem como limitações e riscos residuais: ausência de execução Linux
+ARM64, OCI real, providers, contas, secrets, corpus ou fonte oficial real,
+armazenamento operacional, cobertura percentual JavaScript, observação de
+rede em nível de pacotes, migration em banco real e reparo de dados. O gate
+não executou Human Gate, não alterou o lifecycle e não autorizou `STATE-07`,
+ação externa, publicação, push ou deploy. `STATE-06` continua ativo.

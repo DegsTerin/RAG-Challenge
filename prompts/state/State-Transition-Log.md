@@ -4598,3 +4598,86 @@ contém somente fatos cronológicos.
 - Relatório atualizado:
   [`STATE-06-Integration-Report.md`](../../docs/STATE-06-Integration-Report.md).
 - Aprovador: proprietário do RAG-Challenge.
+
+## 2026-08-06 — Automatic Quality Gate pós-AST de STATE-06 aprovado
+
+- Estado anterior e resultante: `STATE-06 INTEGRATION` permanece ativo; não
+  houve Human Gate, transição ou entrada em `STATE-07`.
+- Autoridade e baseline: o proprietário autorizou o reinício integral, local,
+  offline e sequencial sobre
+  `main@726546dbe0302b9664a62e890b6a27f19bf0c6e4`, corpus `4.9.3` e working
+  tree inicialmente limpa, com revisão do diff completo de 20 arquivos após o
+  gate aprovado em `9d7c4ce816eca049ba09942ab7fe8b1148aa73c9`.
+- Parada inicial: a primeira tentativa identificou `AQG-S06-004`, porque as
+  working copies de
+  `20260806193919_StrengthenOfficialBindingReferences.Designer.cs` e
+  `ControlPlaneDbContextModelSnapshot.cs` apresentavam EOL misto apesar do
+  índice LF. O gate parou sem correção silenciosa.
+- Remediação autorizada: somente os bytes dessas duas working copies foram
+  normalizados para LF. Seus Git blob object IDs coincidiram com `HEAD`, o
+  status voltou a ficar limpo, ambos os arquivos reportaram `i/lf w/lf` e
+  `eng/check-repository.ps1` aprovou 200 arquivos não ignorados. Não houve
+  mudança semântica, staged diff, schema, migration ou modelo EF novo.
+  Disposição de `AQG-S06-004`: `RESOLVIDO`.
+- Limpeza intermediária: o diretório de cobertura
+  `TestResults/f019fb042ddb46e8855900f132859c70` da tentativa interrompida foi
+  removido antes do reinício integral e a baseline limpa foi reconfirmada.
+- Execução aceita: entre `2026-08-06T21:34:47.2595338Z` e
+  `2026-08-06T21:41:17.7811145Z`, o preflight encontrou zero processo do
+  produto e zero listener nas portas 4173, 5086, 5096, 5173 e 9230. A
+  toolchain foi PowerShell `7.6.4`, Git `2.55.0.windows.3`, .NET SDK
+  `10.0.302`, Node.js `24.19.0` e npm `11.17.0`.
+- Supply chain: os três runtime packs Linux ARM64 Microsoft `10.0.10` já
+  disponíveis passaram as verificações offline de assinatura author e
+  repository. Os hashes dos sete lockfiles permaneceram idênticos antes e
+  depois; nenhuma dependência foi instalada ou alterada.
+- Gate técnico: `eng/ci.ps1 -Offline` aprovou restore locked, format, build
+  Release sem warning/erro, 87 testes unitários, 10 de arquitetura e 109 de
+  integração, total 206 sem falha ou skip, cobertura .NET de 93,11% de linhas
+  e 66,89% de branches, `npm ci --offline`, lint, typecheck, 38 testes npm,
+  build Vite e auditoria de 200 arquivos.
+- Verificações focais: quatro testes de host composto/loopback e cinco testes
+  de migration e referências compostas passaram; estes últimos usaram
+  somente bancos SQLite descartáveis. A invocação EF aceita usou o
+  `dotnet-ef` `10.0.10` já instalado, Infrastructure como projeto e startup e
+  store root temporário explícito, e informou ausência de mudança pendente no
+  modelo.
+- Invocações não aceitas como evidência: o tool home isolado não expôs o
+  `dotnet-ef` global e solicitou restore, que não foi executado; o startup
+  project Server.Api não continha o package EF Design; e Infrastructure sem
+  `RAGCHALLENGE_DESIGN_TIME_STORE_ROOT` falhou fechado como esperado. Nenhuma
+  dessas tentativas demonstrou consistência de migration.
+- Reprodução ARM64: duas construções produziram arquivos idênticos de
+  133.455.866 bytes e 361 arquivos, SHA-256
+  `059dec2e653d16a85ec173db535f796110df305a59943420b0f3375d84f17c66`;
+  os manifestos de 360 payloads também foram idênticos, SHA-256
+  `22d9c4b3b0028defed869c336fa3ea75a37ae1b4b073a174438ba19af67dbd4a`.
+  O verificador aprovou 17 ELF64 AArch64 sem executar Linux nem contatar OCI.
+- README: os comandos literais de integração produziram um artefato ignorado
+  de 58 arquivos e 47.324.398 bytes, SHA-256
+  `fd9efb4636e13337fb7b77245d8a88b9d58703c82fc49e7b67971a32f409b297`;
+  a verificação retornou `Passed`, serviu o Dashboard em loopback, respondeu
+  em `en-GB` e `pt-BR`, preservou a geração ativa após restart e confirmou os
+  bancos persistentes sintéticos.
+- Segurança e compatibilidade: zero mudança inesperada em path protegido,
+  zero aparente secret e nenhum `reference-materials/` rastreado. Os Git blob
+  object IDs de OpenAPI e contrato canônico v1 permaneceram
+  `a5fb3602fbab33bda6aa56cc4caaa9fdc37c8160` e
+  `eed1021776fc6513d0054c5a6a8babe3a4534150`, respectivamente.
+- Limpeza final: removidos `artifacts-local/aqg-s06-726546d` e
+  `TestResults/2d56d4ed0a754d539894ae348a1f686e`; zero processo/listener da
+  tarefa, branch e commit preservados e staged/unstaged diff limpos. O
+  artefato ignorado criado pelo comando literal do README permanece em
+  `artifacts-local/s06-a`; demais outputs ignorados são não autoritativos.
+- Resultado: Automatic Quality Gate `APROVADO`, sem novo P0, P1, P2 ou P3;
+  `AQG-S06-004` está `RESOLVIDO`.
+- Limitações e riscos residuais: sem execução Linux ARM64, OCI real e seus
+  controles de IAM/capacidade/rede/storage/custo/TLS, provider, conta, secret,
+  corpus ou fonte oficial real, armazenamento operacional, cobertura
+  percentual JavaScript, observação de pacotes de rede, migration em banco
+  real ou reparo de dados.
+- Escopo negativo preservado: sem contrato, schema, migration, ADR, código,
+  lifecycle, Human Gate, `STATE-07`, ação externa, publicação, push ou deploy.
+- Relatório atualizado:
+  [`STATE-06-Integration-Report.md`](../../docs/STATE-06-Integration-Report.md).
+- Aprovador: proprietário do RAG-Challenge.
