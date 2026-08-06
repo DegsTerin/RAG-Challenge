@@ -770,8 +770,10 @@ autorizada.
    para cada banco antes de sua ativação.
 2. Validar e ativar individualmente novos registros de fonte oficial; a
    aceitação arquitetural não autoriza URL, rede, download ou crawling.
-3. Obter autoridade humana explícita e separada para executar o Human Gate de
-   `STATE-05` sobre o relatório automático aprovado e a baseline limpa.
+3. Obter autoridade humana explícita e separada para reiniciar integralmente o
+   Automatic Quality Gate de `STATE-05` sobre a baseline limpa posterior a
+   `S05-CORR-08`; somente depois de nova aprovação automática, retomar a
+   revisão e decisão do Human Gate.
 4. Verificar tier, entitlement, spend limit e controles da conta OpenAI, além
    da recuperação/geração bilíngue, antes de usar ou anunciar os providers.
 5. Homologar desempenho e capacidade do `SqliteExactVectorStore`; a fixture
@@ -924,11 +926,25 @@ browser completa. As oito combinações passaram em largura padrão e a 320 CSS
 px, com guarda antes de cada `Enter`, citação local sem URL, bloqueio de
 destinos não loopback e zero tentativa ou URL externa. O gate foi `APROVADO`,
 sem novo P0, P1, P2 ou P3, e `AQG-S05-001` a `AQG-S05-008` estão
-`RESOLVIDOS`. A próxima autoridade possível é uma decisão humana explícita e
-separada para executar o Human Gate de `STATE-05` sobre o relatório e a
-baseline limpa.
+`RESOLVIDOS` naquela baseline. Durante a revisão humana posterior, o
+proprietário solicitou simplificar a hero. `S05-CORR-08`, no commit
+`b65d3b45a0ad32f0f7db1e97ccf415bdef5bb113`, removeu o rótulo promocional,
+o título anterior e a ilustração decorativa, mantendo como único conteúdo
+visível da área a introdução localizada promovida a H1 proporcional. Os
+quatro checks npm passaram após a restauração do rótulo de workspace usado
+somente como nome acessível; a matriz browser isolada passou nas oito
+combinações em 1280 e 320 CSS px, com reflow, temas, idiomas, foco e teclado
+preservados e sem URL ou tentativa externa. O listener e o Chrome temporário
+foram encerrados, e as portas 4173, 5173 e 9230 ficaram livres.
+
+A aprovação automática anterior permanece evidência histórica, mas não cobre
+a nova mudança de frontend. `STATE-05` continua ativo; o Human Gate permanece
+sem decisão registrada. A próxima autoridade possível é reiniciar
+integralmente o Automatic Quality Gate sobre a baseline limpa posterior a
+`S05-CORR-08`; somente depois de sua aprovação a revisão humana pode ser
+retomada.
 
 Rede externa, providers, contas, secrets, corpus real, fontes oficiais reais
 do produto, armazenamento operacional, GitHub, OCI, publicação, deploy,
-DB-Notifier, nova repetição do Automatic Quality Gate, Human Gate e entrada ou
-execução de estados posteriores continuam sem autorização.
+DB-Notifier, novo reinício do Automatic Quality Gate, registro do Human Gate e
+entrada ou execução de estados posteriores continuam sem autorização.

@@ -1750,3 +1750,116 @@ Gate approved and `AQG-S05-001` through `AQG-S05-008` resolved. This automatic
 result does not execute or approve the Human Gate, enter `STATE-06` or grant
 authority for any external action. Only this report and the two factual state
 records are changed by the gate record.
+
+## S05-CORR-08 — Human Gate visual observation correction — 2026-08-05
+
+### Authority and baseline
+
+- The authorised correction baseline was reconfirmed as location
+  `C:\Projects\RAG-Challenge`, Git top-level `C:/Projects/RAG-Challenge`, Git
+  directory `.git`, branch `main`, commit
+  `3bf97915d623f2e4c5c3d86da52e724ad906ea35`, corpus `4.9.2` and a clean
+  working tree. No project-owned runtime or listener was active on ports 4173,
+  5173 or 9230 before the executable work.
+- Authority was limited to the visual observation raised during the pending
+  Human Gate review: simplify the hero to its localised introductory sentence
+  as the only visible content, preserve the specified interaction and matrix
+  behaviours, add focal regressions, run the four existing npm checks and
+  validate in a task-owned loopback browser without modifying extensions.
+- Dependencies, installation, manifests, lockfiles, contracts, OpenAPI, ADRs,
+  backend, `dotnet`, external network, real services or data, remote actions,
+  Automatic Quality Gate execution, Human Gate recording and `STATE-06`
+  remained outside authority.
+
+### Correction
+
+Commit `b65d3b45a0ad32f0f7db1e97ccf415bdef5bb113` removes the promotional
+eyebrow, the previous display title and the decorative orbit from the hero.
+The exact Portuguese introduction is now the hero's single visible child and
+its only H1. The existing English equivalent receives the same semantics.
+The H1 uses proportional `clamp(1.35rem, 2.8vw, 2rem)` typography, a readable
+1.35 line height and a reducible 48-character measure. The removed title copy
+and decorative CSS are no longer retained. The localised workspace label was
+deliberately preserved because it continues to name workspace regions for
+assistive technology, although it is no longer visible in the hero.
+
+The focal regressions verify both localised headings in Light and Dark, exactly
+one H1 throughout the eight interface-language × question-language × theme
+combinations, absence of the removed titles and orbit, and the proportional
+hero typography without compact-viewport overrides. The existing long-token,
+escaping, focus, language and matrix assertions remain active.
+
+### Verification evidence
+
+The first sequential check run passed lint but exposed that removing
+`workspaceLabel` from the copy model would break typechecking because the same
+localised value supplies accessible region labels. The field was restored for
+that existing non-visible responsibility, and all four checks were restarted
+from the beginning. The final offline run from
+`src/RagChallenge.Dashboard.Web`, at `2026-08-06T00:05:03.8860069Z`, used
+Node.js `24.18.1`, npm `11.16.0` and the existing installation:
+
+| Verification | Result |
+| --- | --- |
+| `npm run lint` | Passed, exit code 0 |
+| `npm run typecheck` | Passed, exit code 0 |
+| `npm test` | Passed, 38 tests, 0 failed/skipped/cancelled |
+| `npm run build` | Passed, 20 modules transformed |
+| Built HTML | 977 bytes; `6EFBCFC22A91304666795DBFC84F217BBB1652B474298C3B39C3F7E6F46140DC` |
+| Built CSS | 10,944 bytes; `C41332E3477D73EC4FE98E5DE40AF6718B644CAAC2DFDDD0015349FFD860442F` |
+| Built JavaScript | 171,416 bytes; `83E54FA38EEC968F34CFD97C4EB5871C47002CA099D4E0A31BB3C5798D78C1B5` |
+
+The isolated browser validation used Chrome `151.0.7922.75`, a fresh headless
+profile, disabled extensions and background networking, zero extension targets
+and loopback-only CDP. The synthetic fixture contained one `LocalAuthorised`
+citation with no URL. Request interception continued only the exact
+`http://127.0.0.1:4173` origin, and every `Enter` required the expected active
+element first.
+
+All eight combinations passed at 1280 CSS pixels and again at 320 CSS pixels.
+Each of the 16 navigations had exactly one H1 containing the applicable new
+hero sentence, without the removed title, promotional label or decorative
+orbit. At the narrow viewport, document client and scroll widths were both
+305 pixels in every case. The long answer, citation title and excerpt remained
+complete and measured 243/243, 213/213 and 210/210 pixels respectively.
+
+In every case, the first `Tab` visibly focused the localised skip link with a
+solid outline of at least three pixels, guarded `Enter` focused
+`MAIN#main-content`, and the next `Tab` focused the selected question-language
+radio. Runtime contrast ratios remained at least 14.35 for body text, 10.48
+for the selected preference control and 12.93 for the textarea. Direct narrow
+screenshots for `pt-BR` and `en-GB` in Light and Dark showed proportional hero
+typography, readable reflow and no clipping or horizontal panning. The profile
+did not contain Dark Reader or another page-modifying extension. The run
+reported zero blocked external attempt, zero observed external URL, zero
+runtime exception and zero significant console entry; only the known loopback
+`/favicon.ico` 404 remained non-material.
+
+### Cleanup, scope and lifecycle consequence
+
+The preview and Chrome processes were revalidated by PID, executable, command,
+profile and port before termination. Ports 4173, 5173 and 9230 finished free,
+with no remaining process tied to the task profile. Execution policy refused
+recursive removal of the sanitised task directory under the system temporary
+directory; it retains only loopback diagnostics, the isolated profile and four
+screenshots, with no listener, credential, secret, real corpus or tracked
+project change.
+
+The final product/test diff from the authorised baseline contains only the
+five Dashboard source and focal-test files named by this correction. Package
+and lock files, contracts, OpenAPI, ADRs, backend and other protected technical
+surfaces remain unchanged.
+
+JavaScript line and branch percentages remain unavailable in the existing
+scripts and dependencies. The observed Node.js patch remains `24.18.1` rather
+than the exact `24.18.0` pin. No third-party accessibility engine,
+visible-window browser, real backend, provider, account, corpus, official
+source or external network was exercised.
+
+`STATE-05 FRONTEND_IMPLEMENTATION` remains active. The approved Automatic
+Quality Gate result on the pre-correction baseline remains historical evidence
+but does not cover commit `b65d3b45a0ad32f0f7db1e97ccf415bdef5bb113`.
+This increment neither restarted that gate nor recorded the Human Gate. A
+complete Automatic Quality Gate restart over the new clean baseline requires
+new explicit owner authority before the Human Gate review can resume;
+`STATE-06` remains not authorised.

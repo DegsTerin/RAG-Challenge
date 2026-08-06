@@ -3903,3 +3903,50 @@ contém somente fatos cronológicos.
   limpa. O gate automático não concede essa autoridade nem entrada em
   `STATE-06`.
 - Aprovador: proprietário do RAG-Challenge.
+
+## 2026-08-05 — S05-CORR-08 corrige observação visual do Human Gate
+
+- Estado preservado: `STATE-05 FRONTEND_IMPLEMENTATION` permanece ativo. O
+  Automatic Quality Gate não foi reiniciado, o Human Gate não recebeu decisão
+  registrada e `STATE-06` não foi autorizado nem executado.
+- Baseline inicial: localização `C:\Projects\RAG-Challenge`, Git top-level
+  `C:/Projects/RAG-Challenge`, Git directory `.git`, branch `main`, commit
+  `3bf97915d623f2e4c5c3d86da52e724ad906ea35`, corpus `4.9.2` e working tree
+  limpa, reconfirmados imediatamente antes da ação.
+- Correção: o commit `b65d3b45a0ad32f0f7db1e97ccf415bdef5bb113`
+  remove o rótulo promocional, o título grande anterior e a ilustração
+  decorativa da hero. A introdução localizada é seu único conteúdo visível e
+  único H1, com tipografia proporcional. O equivalente `en-GB` e o rótulo de
+  workspace usado como nome acessível foram preservados.
+- Regressões: os testes focais cobrem os dois H1 localizados, Light/Dark,
+  exatamente um H1 nas oito combinações, ausência do título/orbit removidos e
+  a tipografia proporcional sem override estreito. As regressões existentes
+  de escaping, tokens longos, idiomas, foco, teclado e matriz permaneceram
+  ativas.
+- Checks: a primeira sequência passou lint e encontrou no typecheck a
+  reutilização acessível de `workspaceLabel`; o campo foi restaurado dentro
+  do escopo e os quatro checks foram reiniciados. `npm run lint`,
+  `npm run typecheck`, `npm test` e `npm run build` então passaram offline na
+  instalação existente, com 38 testes e 20 módulos transformados.
+- Browser: Chrome headless `151.0.7922.75`, perfil novo sem extensões, fetch
+  falso, citação local sem URL, interceptação somente loopback e guarda antes
+  de cada `Enter`. As oito combinações passaram em 1280 e 320 CSS px, sem
+  overflow, truncamento, URL externa, exceção runtime ou entrada significativa
+  de console. Temas, localização, idioma da pergunta, foco e sequência de
+  teclado permaneceram coerentes; quatro capturas estreitas confirmaram o
+  reflow visual em `pt-BR`/`en-GB` e Light/Dark.
+- Runtime e cleanup: preview e Chrome foram identificados e encerrados; portas
+  4173, 5173 e 9230 terminaram livres. A política de execução recusou remover
+  o diretório temporário sanitizado, que permanece fora do repositório sem
+  processo, listener, credencial, secret, corpus real ou mudança rastreada.
+- Escopo negativo preservado: sem dependência, instalação, package, lockfile,
+  contrato, OpenAPI, ADR, backend, Domain, Application, Infrastructure, API,
+  `dotnet`, rede externa, provider, conta, secret, corpus real, fonte oficial
+  real, GitHub, OCI, publicação, deploy, DB-Notifier, Automatic Quality Gate,
+  registro do Human Gate ou estado posterior.
+- Consequência: a aprovação automática sobre a baseline anterior permanece
+  histórica, mas não cobre a correção. A próxima condição é uma baseline
+  corretiva limpa e autoridade humana explícita e separada para reiniciar
+  integralmente o Automatic Quality Gate; somente após nova aprovação a
+  revisão do Human Gate pode ser retomada.
+- Aprovador: proprietário do RAG-Challenge.
