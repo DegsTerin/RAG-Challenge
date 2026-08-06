@@ -259,10 +259,12 @@ evidence and are retained here for factual completeness.
   local installation. It does not prove a fresh clone or machine without
   restored NuGet/npm assets, because installation and restore were explicitly
   outside authority.
-- Node.js `24.18.1` differs from the repository engine pin `24.18.0`. npm is
-  exactly the pinned `11.16.0`. The existing frontend dependency set provides
-  no percentage coverage instrumentation, so no JavaScript line or branch
-  percentage is claimed.
+- At the accepted `S06-A` reproduction, Node.js `24.18.1` differed from the
+  then-current repository engine pin `24.18.0`; npm matched `11.16.0`. The
+  subsequent bounded toolchain-policy correction recorded below supersedes
+  that exact-pin policy without changing this historical observation. The
+  existing frontend dependency set provides no percentage coverage
+  instrumentation, so no JavaScript line or branch percentage is claimed.
 - Deterministic embeddings and language-model output prove composition,
   persistence and contracts only. They do not validate provider quality,
   latency, cost, entitlement, quota or behaviour.
@@ -323,3 +325,44 @@ Dashboard/API composition, restart durability, reproducible artefact and
 clean-baseline reproduction passed. `STATE-06 INTEGRATION` remains active.
 The Automatic Quality Gate, Human Gate, `STATE-07` and every external action
 remain unexecuted and unauthorised.
+
+## Bounded toolchain-policy correction
+
+After `S06-A`, the owner reported and locally applied the normal workstation
+update to Node.js `24.19.0` and npm `11.17.0`. Because workstation LTS updates
+are expected to continue, the owner authorised a focal correction that accepts
+compatible updates within Node 24 and npm 11 instead of treating one patch as
+the only valid development runtime.
+
+Commit `a7d50d8e72d5f5600ae41e3fdd313f4f1e502188` (`fix(frontend): allow
+compatible toolchain updates`) makes only these executable changes:
+
+- `engines.node` is `>=24.18.0 <25`;
+- `engines.npm` is `>=11.16.0 <12`;
+- `devEngines.runtime` and `devEngines.packageManager` enforce the same
+  ranges with `onFail: "error"` before npm install, CI and run commands;
+- the unenforced exact `packageManager: "npm@11.16.0"` field is removed;
+- the package-lock root engine metadata matches the manifest; and
+- the repository-owned boundary test requires the complete bounded policy and
+  rejects reintroduction of an exact `packageManager` field.
+
+The existing `.nvmrc` remains `24.18.0` as an optional reproducible selector
+at the supported lower boundary; it does not narrow the manifest's supported
+range. No dependency version or integrity record changed.
+
+The correction was executed locally and offline with Node.js `24.19.0`, npm
+`11.17.0` and `engine-strict=false`. `devEngines` accepted both versions.
+`npm run lint`, `npm run typecheck`, all 38 npm tests and `npm run build`
+passed. Two artefact builds on clean
+`main@a7d50d8e72d5f5600ae41e3fdd313f4f1e502188` produced the identical
+58-file, 47,234,166-byte ZIP with SHA-256
+`65b405c690a1c66c374296745613217717d7fd38f04cbefb15994323da1ffc98`.
+The second archive passed the complete loopback reproduction, both answer
+languages and restart with the same active generation.
+
+No install, restore, dependency, source contract, OpenAPI, ADR, lifecycle,
+external network, provider, account, secret, real corpus, official source,
+GitHub, OCI, publication, deployment or DB-Notifier action occurred. The
+Automatic Quality Gate and Human Gate were not started. Future Node 25 or npm
+12 adoption remains a deliberate compatibility decision outside this bounded
+policy.

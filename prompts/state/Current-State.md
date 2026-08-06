@@ -345,6 +345,20 @@ proprietários.
   [`STATE-06-Integration-Report.md`](../../docs/STATE-06-Integration-Report.md).
   `STATE-06` permanece ativo; Automatic Quality Gate, Human Gate, `STATE-07`
   e ações externas não foram autorizados nem executados.
+- Correção focal da política de toolchain do Dashboard: autorizada e concluída
+  em 2026-08-05 no commit
+  `a7d50d8e72d5f5600ae41e3fdd313f4f1e502188`. `engines` e `devEngines`
+  agora aceitam e impõem Node.js `>=24.18.0 <25` e npm `>=11.16.0 <12`, com
+  `onFail: "error"`; o `packageManager` exato não aplicado foi removido e o
+  metadata raiz do lockfile foi reconciliado. `.nvmrc` conserva `24.18.0`
+  como seletor opcional do limite inferior, sem restringir o intervalo
+  suportado. Na instalação já atualizada para Node.js `24.19.0` e npm
+  `11.17.0`, lint, typecheck, 38 testes e build passaram offline. Duas
+  construções sobre a baseline limpa do commit produziram o mesmo ZIP de 58
+  arquivos e SHA-256
+  `65b405c690a1c66c374296745613217717d7fd38f04cbefb15994323da1ffc98`;
+  a reprodução loopback e o restart passaram. Nenhuma dependência, instalação,
+  contrato, OpenAPI, ADR, lifecycle ou ação externa mudou.
 - Fechamento de `S04-A0`: `PdfPig` `0.1.15` e `CsvHelper` `33.1.0` foram
   selecionados condicionalmente para desenvolvimento local;
   `Sylvan.Data.Csv` `1.4.4` permanece fallback não selecionado e não
@@ -739,8 +753,10 @@ proprietários.
   sincronização por transporte controlado, chunking, indexação, recuperação,
   geração grounded e API pública v1; os caminhos externos permanecem
   fail-closed e foram exercitados somente com fakes e fixtures sintéticas.
-- SDK .NET `10.0.302`, C# `14.0`, Node.js `24.18.0` e npm `11.16.0` estão
-  fixados. NuGet usa gestão central e sete lockfiles reproduzidos offline.
+- SDK .NET `10.0.302` e C# `14.0` estão fixados. O Dashboard suporta Node.js
+  `>=24.18.0 <25` e npm `>=11.16.0 <12`, com enforcement por `devEngines`;
+  `.nvmrc` seleciona o limite inferior `24.18.0`. NuGet usa gestão central e
+  sete lockfiles reproduzidos offline.
 - O gate histórico de setup aprovou restore .NET offline locked, format,
   build Release, 15 testes e cobertura de 88% de linhas/100% de branches.
   `S03-A` foi verificado sem restore ou instalação: 68 testes aprovados e

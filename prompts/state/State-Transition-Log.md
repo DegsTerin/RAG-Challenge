@@ -4173,3 +4173,45 @@ contém somente fatos cronológicos.
 - Próxima condição: nova autoridade humana explícita e separada antes de
   qualquer outro lote, gate, estado ou ação externa.
 - Aprovador: proprietário do RAG-Challenge.
+
+## 2026-08-05 — Política de atualizações compatíveis da toolchain corrigida
+
+- Estado preservado: `STATE-06 INTEGRATION` permanece ativo com `S06-A`
+  concluído; nenhum gate ou estado foi iniciado ou transitado.
+- Autoridade: correção focal explícita para aceitar atualizações automáticas
+  compatíveis dentro de Node.js 24 e npm 11, limitada a `package.json`,
+  `package-lock.json`, teste de toolchain e documentação factual necessária.
+- Baseline: `main@4cb02527bad1f2a8a7c548382abf990a4ef6f55c`, corpus `4.9.2`,
+  working tree limpa, Node.js `24.19.0`, npm `11.17.0` e
+  `engine-strict=false`, reconfirmados antes da correção. O preflight dirigido
+  encontrou zero listener e zero processo pertencente ao Dashboard.
+- Implementação: commit
+  `a7d50d8e72d5f5600ae41e3fdd313f4f1e502188` altera `engines` para Node.js
+  `>=24.18.0 <25` e npm `>=11.16.0 <12`, aplica os mesmos intervalos em
+  `devEngines` com `onFail: "error"`, remove o `packageManager` exato não
+  aplicado, reconcilia o metadata raiz do lockfile e atualiza o teste para
+  exigir a política completa. `.nvmrc` conserva `24.18.0` como seletor
+  opcional do limite inferior; nenhuma dependência ou integridade mudou.
+- Verificações: `npm run lint`, `npm run typecheck`, 38 testes npm e
+  `npm run build` passaram offline na instalação existente. `devEngines`
+  aceitou Node.js `24.19.0` e npm `11.17.0`.
+- Reprodução: duas construções consecutivas sobre a baseline rastreada limpa
+  `main@a7d50d8e72d5f5600ae41e3fdd313f4f1e502188` produziram o mesmo ZIP de
+  58 arquivos e 47.234.166 bytes, SHA-256
+  `65b405c690a1c66c374296745613217717d7fd38f04cbefb15994323da1ffc98`.
+  A segunda cópia passou pelo fluxo loopback, respondeu em `pt-BR` e `en-GB`
+  e preservou stores e geração ativa após restart.
+- Escopo negativo preservado: sem instalação, restore, nova dependência, rede
+  externa, contrato, OpenAPI, ADR, lifecycle, provider, conta, secret, corpus
+  ou fonte oficial real, GitHub, OCI, publicação, deploy, DB-Notifier,
+  Automatic Quality Gate, Human Gate ou `STATE-07`.
+- Limite deliberado: Node.js 25 e npm 12 permanecem fora dos intervalos e
+  exigem decisão e validação próprias; cobertura percentual JavaScript
+  continua indisponível na instalação existente.
+- Rollback: não executado. Reversão futura exige autoridade própria e revert
+  focal ordinário do commit, preservando este histórico append-only.
+- Relatório reconciliado:
+  [`STATE-06-Integration-Report.md`](../../docs/STATE-06-Integration-Report.md).
+- Próxima condição: nenhuma dentro desta correção concluída; nova autoridade
+  é necessária antes de outro lote, gate, estado ou ação externa.
+- Aprovador: proprietário do RAG-Challenge.
