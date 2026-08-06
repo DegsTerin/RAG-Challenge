@@ -431,6 +431,28 @@ proprietários.
   `APROVADO`, sem novo P0, P1, P2 ou P3; `AQG-S06-001` a `AQG-S06-003` estão
   `RESOLVIDOS`. `STATE-06` permanece ativo. Human Gate, `STATE-07`, execução
   Linux, OCI real e demais ações externas não foram autorizados nem executados.
+- Auditoria técnica estática posterior ao gate: os achados `AST-001`,
+  `AST-002` e `AST-003` foram confirmados e corrigidos sequencialmente sobre o
+  anchor pré-correção
+  `main@bfc3aefc3a731b1b49b47458374cb903860faf6f`. O commit
+  `0b3c5be2c80f0f1ee83af82d2158e87360c33ea7` vincula a resolução de registro
+  oficial à revisão imutável do snapshot; o commit
+  `d3fa9d77863092918dbef6fa7afee12992c2053f` exige e valida a autoridade
+  generation-bound completa na busca vetorial; o commit
+  `cfb93892571bec1beae3087b1f5ff44932d24693` valida transacionalmente o
+  conjunto completo de bindings ativos; e o commit
+  `dc3dde2437ad3cbb50b397358fcda043c9d6f4b3` adiciona a migration local de
+  integridade referencial pós-snapshot. A verificação consolidada na última
+  baseline aprovou build Release sem warning/erro, 87 testes unitários, 10 de
+  arquitetura e 109 de integração, total 206 sem falha ou skip, format,
+  ausência de mudança pendente no modelo EF e higiene Git. A revisão
+  pós-correção sobre `main@dc3dde2437ad3cbb50b397358fcda043c9d6f4b3`,
+  corpus `4.9.3` e working tree limpa dispôs `AST-001` a `AST-003` como
+  `RESOLVIDOS`. Contrato canônico v1, API pública e OpenAPI permaneceram
+  inalterados. Nenhum banco real foi migrado ou reparado. Essa disposição
+  pertence à auditoria AST e não repetiu nem substituiu o Automatic Quality
+  Gate aprovado na baseline anterior; `STATE-06` permanece ativo, sem Human
+  Gate, `STATE-07` ou ação externa.
 - Fechamento de `S04-A0`: `PdfPig` `0.1.15` e `CsvHelper` `33.1.0` foram
   selecionados condicionalmente para desenvolvimento local;
   `Sylvan.Data.Csv` `1.4.4` permanece fallback não selecionado e não
@@ -1137,3 +1159,18 @@ limpa. O gate foi `APROVADO`, sem novo P0, P1, P2 ou P3, e `AQG-S06-001` a
 `STATE-07`, execução Linux, OCI real, providers, contas, secrets, corpus ou
 fontes reais, armazenamento operacional, GitHub, publicação, deploy,
 DB-Notifier e estados posteriores continuam sem autorização.
+
+Depois desse gate, a auditoria técnica AST confirmou três problemas na
+persistência e na autoridade de recuperação. Os commits
+`0b3c5be2c80f0f1ee83af82d2158e87360c33ea7`,
+`d3fa9d77863092918dbef6fa7afee12992c2053f`,
+`cfb93892571bec1beae3087b1f5ff44932d24693` e
+`dc3dde2437ad3cbb50b397358fcda043c9d6f4b3` corrigiram `AST-002`, `AST-003`,
+`AST-001` e o reforço referencial complementar, respectivamente. A revisão
+pós-correção dispôs os três achados como `RESOLVIDOS` sobre
+`main@dc3dde2437ad3cbb50b397358fcda043c9d6f4b3`, corpus `4.9.3` e working
+tree limpa. O Automatic Quality Gate aprovado em
+`main@9d7c4ce816eca049ba09942ab7fe8b1148aa73c9` permanece fato histórico,
+mas não cobre esse diff posterior. Antes de qualquer Human Gate, um novo
+Automatic Quality Gate sobre baseline atual limpa requer autoridade explícita
+e separada; ele não foi autorizado nem executado por esta reconciliação.

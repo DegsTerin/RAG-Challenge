@@ -4539,3 +4539,62 @@ contém somente fatos cronológicos.
 - Resultado de estado: `STATE-06` permanece ativo; o Human Gate não foi
   executado e requer autoridade humana separada sobre baseline limpa.
 - Aprovador: proprietário do RAG-Challenge.
+
+## 2026-08-06 — Reconciliação factual pós-auditoria de AST-001 a AST-003
+
+- Estado anterior e resultante: `STATE-06 INTEGRATION` permanece ativo; não
+  houve transição, Automatic Quality Gate, Human Gate ou entrada em
+  `STATE-07`.
+- Autoridade: o proprietário autorizou exclusivamente registrar a baseline,
+  os commits, as verificações, as limitações, os riscos residuais e a
+  disposição dos três achados na documentação técnica proprietária, no
+  snapshot factual e neste histórico append-only.
+- Baseline: os quatro commits corretivos formam um intervalo contínuo depois
+  do anchor pré-correção
+  `main@bfc3aefc3a731b1b49b47458374cb903860faf6f`. A revisão
+  pós-correção ocorreu sobre
+  `main@dc3dde2437ad3cbb50b397358fcda043c9d6f4b3`, corpus `4.9.3` e working
+  tree limpa.
+- `AST-001`: o commit
+  `cfb93892571bec1beae3087b1f5ff44932d24693` passou a reconstruir e validar,
+  na transação de commit, a igualdade exata entre o conjunto completo de
+  documentos ativos e os nove campos generation-bound de cada binding. O
+  commit `dc3dde2437ad3cbb50b397358fcda043c9d6f4b3` adicionou a migration
+  `StrengthenOfficialBindingReferences`, com referências compostas de
+  snapshot/registro para observações, manifests e ativações. Disposição:
+  `RESOLVIDO`.
+- `AST-002`: o commit
+  `0b3c5be2c80f0f1ee83af82d2158e87360c33ea7` passou a resolver primeiro o
+  snapshot imutável e a exigir a revisão exata de registro, produto, documento
+  e adapter vinculada a ele. Disposição: `RESOLVIDO`.
+- `AST-003`: o commit
+  `d3fa9d77863092918dbef6fa7afee12992c2053f` introduziu o seletor vetorial
+  generation-bound de nove campos, incluiu corpus, geração e seletor em cada
+  hit e passou a validar toda a autoridade antes de threshold ou uso do modelo
+  de linguagem. Disposição: `RESOLVIDO`.
+- Evidência executável: 23 de 23 testes dirigidos de commit de geração, 5 de 5
+  testes dirigidos da migration e 35 de 35 na regressão ampliada passaram. A
+  consolidação aprovou build Release sem warning/erro, 87 testes unitários, 10
+  de arquitetura e 109 de integração, total 206 sem falha ou skip,
+  `dotnet format --verify-no-changes --no-restore`, ausência de mudança
+  pendente no modelo EF e `git diff --check`.
+- Compatibilidade: contrato canônico v1, API pública e OpenAPI permaneceram
+  inalterados; o contrato vetorial mudou somente no port interno entre
+  Application e Infrastructure.
+- Limitações e riscos residuais: a migration foi exercitada somente em bancos
+  SQLite descartáveis; nenhum banco real foi migrado. Inconsistência legada em
+  observação, manifest ou ativação bloqueia o upgrade e não é reparada
+  automaticamente. `document_versions` permanece sem FK direta ao snapshot
+  para preservar a ordem catálogo → snapshot; o commit de geração falha
+  fechado antes de persistir manifesto incompatível. Downgrade operacional ou
+  reparo de dados exige autoridade separada.
+- Limites externos: nenhuma fonte externa de vulnerabilidade, provider,
+  conta, secret, corpus ou fonte real, Linux executado, OCI, GitHub,
+  publicação, push, deploy ou DB-Notifier foi acessado ou alterado.
+- Gate boundary: o Automatic Quality Gate aprovado em
+  `main@9d7c4ce816eca049ba09942ab7fe8b1148aa73c9` permanece histórico, mas
+  não cobre os quatro commits AST posteriores. Esta reconciliação não repetiu
+  o gate e não autoriza Human Gate ou `STATE-07`.
+- Relatório atualizado:
+  [`STATE-06-Integration-Report.md`](../../docs/STATE-06-Integration-Report.md).
+- Aprovador: proprietário do RAG-Challenge.

@@ -833,3 +833,90 @@ remain untested. Ignored local artefacts and caches remain non-authoritative.
 No network, global cache, OCI, GitHub, public contract, OpenAPI, schema,
 migration, ADR, publication, deployment, Human Gate or `STATE-07` action
 occurred. `STATE-06` remains active.
+
+## Post-audit AST reconciliation — 2026-08-06
+
+### Authority and baseline
+
+After the approved Automatic Quality Gate, the owner authorised a separate
+static technical audit, followed by individually bounded corrective
+increments and this factual reconciliation. That authority did not reopen or
+repeat the gate, request a Human Gate, advance the lifecycle or permit an
+external action.
+
+The corrective sequence is a contiguous range after the pre-correction Git
+anchor. The post-correction review observed:
+
+| Fact | Observed value |
+| --- | --- |
+| Branch | `main` |
+| Pre-correction Git anchor | `bfc3aefc3a731b1b49b47458374cb903860faf6f` |
+| Corrective commits | `0b3c5be2c80f0f1ee83af82d2158e87360c33ea7`, `d3fa9d77863092918dbef6fa7afee12992c2053f`, `cfb93892571bec1beae3087b1f5ff44932d24693`, `dc3dde2437ad3cbb50b397358fcda043c9d6f4b3` |
+| Reviewed HEAD | `dc3dde2437ad3cbb50b397358fcda043c9d6f4b3` |
+| Prompt corpus | `4.9.3` |
+| Working tree | clean |
+| Review date | `2026-08-06` |
+
+Runtime preflight was `NOT_APPLICABLE` to the final static review and this
+documentation-only reconciliation. No process or listener was inspected or
+stopped during either activity.
+
+### Findings and corrective disposition
+
+| Finding | Confirmed pre-correction condition | Corrective evidence | Post-audit disposition |
+| --- | --- | --- | --- |
+| `AST-001` | Generation commit accepted caller-supplied bindings without proving exact equality with the complete active catalogue projection and its official snapshot/registration identity. | `cfb93892571bec1beae3087b1f5ff44932d24693` reconstructs and validates the complete nine-field generation-bound set inside the commit transaction. `dc3dde2437ad3cbb50b397358fcda043c9d6f4b3` adds composite snapshot/registration foreign keys for observations, generation manifests and activation bindings. | `RESOLVED` |
+| `AST-002` | Query activation resolution could select registration metadata without binding it to the immutable registration revision recorded by the selected snapshot. | `0b3c5be2c80f0f1ee83af82d2158e87360c33ea7` resolves the exact snapshot first and then requires the snapshot-bound registration revision, product, document and adapter. | `RESOLVED` |
+| `AST-003` | The vector boundary authorised retrieval primarily by document/version and did not require the returned hit to carry and match the complete generation-bound authority before thresholding. | `d3fa9d77863092918dbef6fa7afee12992c2053f` introduces the nine-field vector binding selector, returns corpus/generation/selector identity with each hit and validates every hit before score filtering or language-model use. | `RESOLVED` |
+
+The dispositions above belong to the separate AST post-correction review.
+They do not amend or substitute an Automatic Quality Gate disposition.
+
+### Verification record
+
+The accepted executable evidence was produced locally and offline on the
+reviewed HEAD:
+
+- the `AST-001` directed generation-commit set passed 23 of 23 tests;
+- the migration and composite-reference set passed 5 of 5 directed tests and
+  35 of 35 tests in the wider persistence/indexing/activation regression;
+- the consolidated Release build completed with zero warnings and errors;
+- the complete solution passed 87 unit, 10 architecture and 109 integration
+  tests, 206 total, with zero failure or skip;
+- `dotnet format --verify-no-changes --no-restore` passed;
+- Entity Framework reported no pending control-plane model change;
+- `git diff --check` passed; and
+- read-only comparison with the pre-correction anchor found no change to the
+  canonical v1 contract document or the versioned OpenAPI document.
+
+The final post-correction audit reviewed the current implementations and
+committed diffs without re-running these executable checks. No failed or
+intermediate migration attempt was accepted as final evidence.
+
+### Compatibility, limitations and residual risks
+
+- Public HTTP API, OpenAPI and canonical v1 contracts are unchanged. The
+  vector change is confined to the internal Application/Infrastructure port.
+- The local migration
+  `20260806193919_StrengthenOfficialBindingReferences` was exercised only on
+  disposable SQLite databases. It was not applied to a real or operational
+  database.
+- Legacy mismatches in observations, generation bindings or activation
+  bindings block the migration and remain unchanged; no automatic data repair
+  was performed or authorised.
+- `document_versions` intentionally has no direct snapshot foreign key because
+  the accepted flow records catalogue document metadata before the official
+  snapshot exists. The generation commit now fails closed on any mismatch
+  before a manifest can be persisted.
+- Migration rollback was exercised on disposable databases. Reverting source
+  commits does not downgrade an already migrated database; any operational
+  downgrade or data repair requires separate authority.
+- No external vulnerability source, provider, account, secret, real corpus,
+  real official source, Linux execution, OCI environment or operational store
+  was inspected by the AST correction sequence.
+
+The approved `STATE-06` Automatic Quality Gate remains factual evidence for
+`main@9d7c4ce816eca049ba09942ab7fe8b1148aa73c9`. The four AST corrective
+commits post-date that baseline and are therefore outside its audited diff.
+This reconciliation did not run another Automatic Quality Gate or Human Gate,
+and it did not authorise or enter `STATE-07`. `STATE-06` remains active.
