@@ -334,7 +334,7 @@ public sealed class SqlitePersistenceBoundaryTests
                     unvalidatedId,
                     new float[] { 1, 0, 0 },
                     maximumResults: 1,
-                    [binding])));
+                    [VectorSearchBindingSelector.FromBinding(binding)])));
 
         var activeDigest = BindingDigestCanonicalizer
             .CanonicaliseActiveDocumentSet([binding])
@@ -364,7 +364,7 @@ public sealed class SqlitePersistenceBoundaryTests
                 manifest.IndexGenerationId,
                 new float[] { 1, 0, 0 },
                 maximumResults: 1,
-                [binding]));
+                [VectorSearchBindingSelector.FromBinding(binding)]));
         var hit = Assert.Single(hits);
         Assert.Equal(manifest.IndexGenerationId, idempotentReplay.IndexGenerationId);
         Assert.Equal(0, hit.ChunkOrdinal);

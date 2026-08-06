@@ -78,7 +78,7 @@ public sealed class SqliteVectorScaleTests
                 manifest.IndexGenerationId,
                 query,
                 maximumResults: 3,
-                [binding]));
+                [VectorSearchBindingSelector.FromBinding(binding)]));
 
         Assert.Equal(3, hits.Count);
         Assert.Equal(0, hits[0].ChunkOrdinal);

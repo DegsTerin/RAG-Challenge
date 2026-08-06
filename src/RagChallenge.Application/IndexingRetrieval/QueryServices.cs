@@ -433,11 +433,18 @@ public sealed class QuestionAnsweringService : IQuestionAnsweringService
                     snapshot.ActivationRecord.IndexGenerationId,
                     embedding.Vectors[0],
                     MaximumResults,
-                    eligible.Select(binding => binding.Binding).ToArray(),
+                    eligible
+                        .Select(binding => VectorSearchBindingSelector.FromBinding(
+                            binding.Binding))
+                        .ToArray(),
                     request.DatabaseProductFilters,
                     request.DocumentFilters),
                 cancellationToken).ConfigureAwait(false);
-            var selected = SelectEvidence(hits, eligible);
+            var selected = SelectEvidence(
+                hits,
+                eligible,
+                snapshot.ActivationRecord.CorpusId,
+                snapshot.ActivationRecord.IndexGenerationId);
 
             if (selected.Count == 0)
             {
@@ -570,23 +577,37 @@ public sealed class QuestionAnsweringService : IQuestionAnsweringService
 
     private ReadOnlyCollection<SelectedEvidence> SelectEvidence(
         IReadOnlyCollection<VectorSearchHit> hits,
-        IReadOnlyCollection<QueryEvidenceBinding> eligible)
+        IReadOnlyCollection<QueryEvidenceBinding> eligible,
+        CorpusId expectedCorpusId,
+        IndexGenerationId expectedGenerationId)
     {
         var bindings = eligible.ToDictionary(
-            binding => (binding.Binding.DocumentId, binding.Binding.DocumentVersion));
-        var result = new List<SelectedEvidence>();
-        var scalars = 0;
+            binding => VectorSearchBindingSelector.FromBinding(binding.Binding));
+        var validated = new List<(VectorSearchHit Hit, QueryEvidenceBinding Binding)>();
 
-        foreach (var hit in hits.Where(hit => hit.Score >= minimumScore))
+        foreach (var hit in hits)
         {
-            if (!bindings.TryGetValue((hit.DocumentId, hit.DocumentVersion), out var binding) ||
+            if (hit is null ||
+                hit.CandidateBuildId is null ||
+                hit.CorpusId != expectedCorpusId ||
+                hit.IndexGenerationId != expectedGenerationId ||
+                hit.BindingSelector is null ||
+                !bindings.TryGetValue(hit.BindingSelector, out var binding) ||
                 hit.ContentLanguage != binding.ContentLanguage)
             {
                 throw new InvalidDataException(
                     "Retrieved evidence does not match the resolved activation binding.");
             }
 
-            var count = hit.ChunkText.EnumerateRunes().Count();
+            validated.Add((hit, binding));
+        }
+
+        var result = new List<SelectedEvidence>();
+        var scalars = 0;
+
+        foreach (var item in validated.Where(item => item.Hit.Score >= minimumScore))
+        {
+            var count = item.Hit.ChunkText.EnumerateRunes().Count();
 
             if (count > MaximumEvidenceScalars - scalars)
             {
@@ -594,9 +615,9 @@ public sealed class QuestionAnsweringService : IQuestionAnsweringService
             }
 
             result.Add(new SelectedEvidence(
-                $"chunk-{hit.ChunkDigest.Value}",
-                hit,
-                binding));
+                $"chunk-{item.Hit.ChunkDigest.Value}",
+                item.Hit,
+                item.Binding));
             scalars += count;
 
             if (result.Count == MaximumModelEvidence)

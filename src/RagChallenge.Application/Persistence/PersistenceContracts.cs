@@ -211,18 +211,51 @@ public sealed record VectorChunkWrite(
     long? RecordNumber = null,
     IReadOnlyDictionary<string, string>? Columns = null);
 
-public sealed record VectorSearchHit(
-    CandidateBuildId CandidateBuildId,
-    long ChunkOrdinal,
+public sealed record VectorSearchBindingSelector(
+    DatabaseProductId DatabaseProductId,
+    DatabaseProductRevision DatabaseProductRevision,
     DocumentId DocumentId,
     DocumentVersionNumber DocumentVersion,
+    DocumentFormat DocumentFormat,
+    SourceAdapterId SourceAdapterId,
+    SourceTrustClass SourceTrustClass,
+    OfficialSourceRegistrationId? OfficialSourceRegistrationId,
+    OfficialSnapshotId? OfficialSnapshotId)
+{
+    public static VectorSearchBindingSelector FromBinding(DocumentBinding binding)
+    {
+        ArgumentNullException.ThrowIfNull(binding);
+        return new VectorSearchBindingSelector(
+            binding.DatabaseProductId,
+            binding.DatabaseProductRevision,
+            binding.DocumentId,
+            binding.DocumentVersion,
+            binding.DocumentFormat,
+            binding.SourceAdapterId,
+            binding.SourceTrustClass,
+            binding.OfficialSourceRegistrationId,
+            binding.OfficialSnapshotId);
+    }
+}
+
+public sealed record VectorSearchHit(
+    CandidateBuildId CandidateBuildId,
+    CorpusId CorpusId,
+    IndexGenerationId IndexGenerationId,
+    VectorSearchBindingSelector BindingSelector,
+    long ChunkOrdinal,
     LogicalArtifactDigest ChunkDigest,
     string ChunkText,
     double Score,
     SupportedLanguage? ContentLanguage,
     int? PageNumber,
     long? RecordNumber,
-    IReadOnlyDictionary<string, string> Columns);
+    IReadOnlyDictionary<string, string> Columns)
+{
+    public DocumentId DocumentId => BindingSelector.DocumentId;
+
+    public DocumentVersionNumber DocumentVersion => BindingSelector.DocumentVersion;
+}
 
 public sealed class VectorSearchRequest
 {
@@ -231,7 +264,7 @@ public sealed class VectorSearchRequest
         IndexGenerationId indexGenerationId,
         ReadOnlyMemory<float> queryVector,
         int maximumResults,
-        IReadOnlyCollection<DocumentBinding> eligibleBindings,
+        IReadOnlyCollection<VectorSearchBindingSelector> eligibleSelectors,
         IReadOnlyCollection<DatabaseProductId>? databaseProductFilters = null,
         IReadOnlyCollection<DocumentId>? documentFilters = null)
     {
@@ -251,18 +284,31 @@ public sealed class VectorSearchRequest
             throw new ArgumentOutOfRangeException(nameof(maximumResults));
         }
 
-        ArgumentNullException.ThrowIfNull(eligibleBindings);
+        ArgumentNullException.ThrowIfNull(eligibleSelectors);
 
-        if (eligibleBindings.Count == 0)
+        if (eligibleSelectors.Count == 0)
         {
             throw new ArgumentException(
                 "A vector search request requires generation-bound eligible documents.",
-                nameof(eligibleBindings));
+                nameof(eligibleSelectors));
+        }
+
+        var materialisedSelectors = eligibleSelectors.ToArray();
+
+        if (materialisedSelectors.Any(selector => !IsValidSelector(selector)) ||
+            materialisedSelectors
+                .Select(selector => (selector.DocumentId, selector.DocumentVersion))
+                .Distinct()
+                .Count() != materialisedSelectors.Length)
+        {
+            throw new ArgumentException(
+                "Eligible vector selectors must be valid and unique by document version.",
+                nameof(eligibleSelectors));
         }
 
         QueryVector = queryVector.ToArray();
         MaximumResults = maximumResults;
-        EligibleBindings = Array.AsReadOnly(eligibleBindings.ToArray());
+        EligibleSelectors = Array.AsReadOnly(materialisedSelectors);
         DatabaseProductFilters = Array.AsReadOnly(
             databaseProductFilters?.Distinct().ToArray() ?? []);
         DocumentFilters = Array.AsReadOnly(
@@ -277,11 +323,26 @@ public sealed class VectorSearchRequest
 
     public int MaximumResults { get; }
 
-    public ReadOnlyCollection<DocumentBinding> EligibleBindings { get; }
+    public ReadOnlyCollection<VectorSearchBindingSelector> EligibleSelectors { get; }
 
     public ReadOnlyCollection<DatabaseProductId> DatabaseProductFilters { get; }
 
     public ReadOnlyCollection<DocumentId> DocumentFilters { get; }
+
+    private static bool IsValidSelector(VectorSearchBindingSelector? selector) =>
+        selector is not null &&
+        selector.DatabaseProductId is not null &&
+        selector.DatabaseProductRevision is not null &&
+        selector.DocumentId is not null &&
+        selector.DocumentVersion is not null &&
+        Enum.IsDefined(selector.DocumentFormat) &&
+        selector.SourceAdapterId is not null &&
+        Enum.IsDefined(selector.SourceTrustClass) &&
+        (selector.SourceTrustClass == SourceTrustClass.LocalAuthorised
+            ? selector.OfficialSourceRegistrationId is null &&
+                selector.OfficialSnapshotId is null
+            : selector.OfficialSourceRegistrationId is not null &&
+                selector.OfficialSnapshotId is not null);
 }
 
 public interface IVectorIndexStore

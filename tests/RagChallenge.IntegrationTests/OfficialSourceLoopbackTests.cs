@@ -347,7 +347,7 @@ public sealed class OfficialSourceLoopbackTests
                 manifest.IndexGenerationId,
                 new float[] { 1, 1, generationSeed.Length },
                 maximumResults: 1,
-                [binding]));
+                [VectorSearchBindingSelector.FromBinding(binding)]));
             Assert.Single(hits);
         }
         finally

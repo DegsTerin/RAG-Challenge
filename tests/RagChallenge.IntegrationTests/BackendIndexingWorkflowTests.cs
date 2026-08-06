@@ -112,9 +112,19 @@ public sealed class BackendIndexingWorkflowTests
                 activated.CurrentRecord.IndexGenerationId,
                 new float[] { 1, 0, 0 },
                 maximumResults: 2,
-                activated.CurrentRecord.DocumentBindings,
+                activated.CurrentRecord.DocumentBindings
+                    .Select(VectorSearchBindingSelector.FromBinding)
+                    .ToArray(),
                 [binding.DatabaseProductId]));
         Assert.Equal(2, hits.Count);
+        Assert.All(hits, hit =>
+        {
+            Assert.Equal(activated.CurrentRecord.CorpusId, hit.CorpusId);
+            Assert.Equal(activated.CurrentRecord.IndexGenerationId, hit.IndexGenerationId);
+            Assert.Equal(
+                VectorSearchBindingSelector.FromBinding(binding),
+                hit.BindingSelector);
+        });
         Assert.Equal("first indexed passage", hits[0].ChunkText);
         Assert.Equal(SupportedLanguage.EnGb, hits[0].ContentLanguage);
         Assert.Equal(1, hits[0].PageNumber);
@@ -125,7 +135,9 @@ public sealed class BackendIndexingWorkflowTests
                 activated.CurrentRecord.IndexGenerationId,
                 new float[] { 1, 0, 0 },
                 maximumResults: 2,
-                activated.CurrentRecord.DocumentBindings,
+                activated.CurrentRecord.DocumentBindings
+                    .Select(VectorSearchBindingSelector.FromBinding)
+                    .ToArray(),
                 [new DatabaseProductId("db-not-authorised")]));
         Assert.Empty(deniedByDatabaseFilter);
 
@@ -136,7 +148,9 @@ public sealed class BackendIndexingWorkflowTests
                     activated.CurrentRecord.IndexGenerationId,
                     new float[] { 1, 0, 0 },
                     maximumResults: 2,
-                    activated.CurrentRecord.DocumentBindings)));
+                    activated.CurrentRecord.DocumentBindings
+                        .Select(VectorSearchBindingSelector.FromBinding)
+                        .ToArray())));
 
         var replayedBuild = await service.BuildAsync(request);
         var replayedActivation = await activationService.ActivateAsync(activationRequest);

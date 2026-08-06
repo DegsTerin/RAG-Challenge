@@ -356,7 +356,7 @@ public sealed class SqliteVectorIndexStore(SqliteStoreOptions options)
                 $"Exact search must request 1..{MaximumSearchResults} results.");
         }
 
-        var eligibleKeys = SelectEligibleDocumentVersions(request);
+        var eligibleSelectors = SelectEligibleSelectors(request);
 
         await using var context = options.CreateVectorContext();
         var build = await context.VectorBuilds.AsNoTracking().SingleOrDefaultAsync(
@@ -380,20 +380,28 @@ public sealed class SqliteVectorIndexStore(SqliteStoreOptions options)
                 nameof(request));
         }
 
-        if (eligibleKeys.Count == 0)
+        if (eligibleSelectors.Count == 0)
         {
             return [];
         }
 
         var chunks = await context.VectorChunks.AsNoTracking()
             .Where(row => row.CandidateBuildId == build.CandidateBuildId)
-            .Where(CreateEligibleChunkPredicate(eligibleKeys))
+            .Where(CreateEligibleChunkPredicate(eligibleSelectors.Keys))
             .ToArrayAsync(cancellationToken)
             .ConfigureAwait(false);
         var scored = new List<VectorSearchHit>();
 
         foreach (var row in chunks)
         {
+            if (!eligibleSelectors.TryGetValue(
+                    (row.DocumentId, row.DocumentVersion),
+                    out var bindingSelector))
+            {
+                throw new InvalidDataException(
+                    "A retrieved vector chunk has no eligible binding selector.");
+            }
+
             var decoded = StoredVectorChunkCodec.Decode(row.ChunkText);
             var vector = DecodeVector(row.Vector, build.VectorDimensions);
             var vectorNorm = CalculateNorm(vector);
@@ -403,9 +411,10 @@ public sealed class SqliteVectorIndexStore(SqliteStoreOptions options)
                     (queryNorm * vectorNorm);
             scored.Add(new VectorSearchHit(
                 new CandidateBuildId(row.CandidateBuildId),
+                request.CorpusId,
+                request.IndexGenerationId,
+                bindingSelector,
                 row.ChunkOrdinal,
-                new DocumentId(row.DocumentId),
-                new DocumentVersionNumber(row.DocumentVersion),
                 new LogicalArtifactDigest(row.ChunkDigest),
                 decoded.Text,
                 score,
@@ -422,8 +431,8 @@ public sealed class SqliteVectorIndexStore(SqliteStoreOptions options)
             .ToArray();
     }
 
-    private static HashSet<(string DocumentId, long DocumentVersion)>
-        SelectEligibleDocumentVersions(VectorSearchRequest request)
+    private static Dictionary<(string DocumentId, long DocumentVersion),
+        VectorSearchBindingSelector> SelectEligibleSelectors(VectorSearchRequest request)
     {
         var databaseFilters = request.DatabaseProductFilters
             .Select(identifier => identifier.Value)
@@ -431,16 +440,15 @@ public sealed class SqliteVectorIndexStore(SqliteStoreOptions options)
         var documentFilters = request.DocumentFilters
             .Select(identifier => identifier.Value)
             .ToHashSet(StringComparer.Ordinal);
-        var bindings = request.EligibleBindings.Where(binding =>
+        var selectors = request.EligibleSelectors.Where(selector =>
             (databaseFilters.Count == 0 ||
-                databaseFilters.Contains(binding.DatabaseProductId.Value)) &&
+                databaseFilters.Contains(selector.DatabaseProductId.Value)) &&
             (documentFilters.Count == 0 ||
-                documentFilters.Contains(binding.DocumentId.Value)));
-        return bindings
-            .Select(binding => (
-                binding.DocumentId.Value,
-                binding.DocumentVersion.Value))
-            .ToHashSet();
+                documentFilters.Contains(selector.DocumentId.Value)));
+        return selectors.ToDictionary(
+            selector => (
+                selector.DocumentId.Value,
+                selector.DocumentVersion.Value));
     }
 
     private static Expression<Func<VectorChunkRow, bool>> CreateEligibleChunkPredicate(

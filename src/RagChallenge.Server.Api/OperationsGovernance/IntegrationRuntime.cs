@@ -398,7 +398,9 @@ internal sealed class SyntheticIntegrationRuntime :
             activation.IndexGenerationId,
             new float[] { 1, 0, 0 },
             maximumResults: 1,
-            activation.DocumentBindings), cancellationToken).ConfigureAwait(false);
+            activation.DocumentBindings
+                .Select(VectorSearchBindingSelector.FromBinding)
+                .ToArray()), cancellationToken).ConfigureAwait(false);
 
         if (hits.Count != 1)
         {
