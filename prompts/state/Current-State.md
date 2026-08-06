@@ -322,6 +322,29 @@ proprietários.
   real, publicação, deploy, DB-Notifier, Automatic Quality Gate, Human Gate e
   `STATE-07` permanecem fora da autoridade. `STATE-06` está ativo; `S06-A`
   está autorizado e ainda não executado neste registro.
+- Lote `S06-A`: concluído localmente, offline e sequencialmente em 2026-08-05.
+  O registro de entrada está no commit
+  `ad218b58210e41d0c3a2c76ef81b5886498fd01a`; a composição executável, os
+  testes E2E/loopback e os scripts de artefato estão no commit
+  `8041e25a554a7cc47ecebf4abe1fc8b94b12d12d`. O perfil explicitamente
+  habilitado no ambiente `Integration` usa stores SQLite e conteúdo imutável
+  existentes, fixture CSV sintética e providers determinísticos locais para
+  documento → índice → pergunta → resposta. O Dashboard publicado e a API v1
+  funcionam na mesma origem; respostas `pt-BR` e `en-GB`, citação, cobertura,
+  restart, catálogo, ativação, índice e conteúdo bruto persistido passaram. A
+  sincronização oficial foi exercitada somente por servidor HTTP falso em
+  loopback, com proxy e redirects desativados. O artefato local de 58 arquivos
+  foi produzido duas vezes sobre a baseline rastreada limpa
+  `main@8041e25a554a7cc47ecebf4abe1fc8b94b12d12d` com SHA-256 idêntico
+  `b2b6f50352c29a89f91640870564df263a2a5888f2009a94dc9a0ec1bb33b3c4`,
+  e a segunda cópia foi reproduzida com a mesma geração ativa após restart.
+  Format, build Release, 174 testes .NET, cobertura .NET aplicável, lint,
+  typecheck, 38 testes npm, build Vite e submissão pela UI publicada em
+  Chrome passaram. Ports 5086/5096 e runtimes temporários terminaram limpos.
+  O relatório proprietário é
+  [`STATE-06-Integration-Report.md`](../../docs/STATE-06-Integration-Report.md).
+  `STATE-06` permanece ativo; Automatic Quality Gate, Human Gate, `STATE-07`
+  e ações externas não foram autorizados nem executados.
 - Fechamento de `S04-A0`: `PdfPig` `0.1.15` e `CsvHelper` `33.1.0` foram
   selecionados condicionalmente para desenvolvimento local;
   `Sylvan.Data.Csv` `1.4.4` permanece fallback não selecionado e não
@@ -992,10 +1015,11 @@ portas 4173, 5173 e 9230 terminaram livres. `STATE-05` está encerrado.
 
 `STATE-06 INTEGRATION` está ativo por autorização explícita do proprietário
 sobre `main@8fb3b93532a569af953cdf24e190b82998020464`, corpus `4.9.2` e
-working tree limpa. Somente `S06-A` pode ser executado localmente, offline e
-sequencialmente depois do registro de entrada, com fixtures sintéticas, stores
-temporários e listeners loopback pertencentes à tarefa. Rede externa,
-providers, contas, secrets, corpus real, fontes oficiais reais do produto,
-armazenamento operacional, GitHub, OCI real, publicação, deploy, DB-Notifier,
-Automatic Quality Gate, Human Gate, `STATE-07` e estados posteriores continuam
-sem autorização.
+working tree limpa. O único lote autorizado, `S06-A`, foi concluído no limite
+local, offline, sintético e sequencial, com implementação focal em
+`8041e25a554a7cc47ecebf4abe1fc8b94b12d12d` e relatório próprio. Não existe
+autoridade vigente para outro lote, gate, estado ou ação externa. Rede
+externa, providers, contas, secrets, corpus real, fontes oficiais reais do
+produto, armazenamento operacional, GitHub, OCI real, publicação, deploy,
+DB-Notifier, Automatic Quality Gate, Human Gate, `STATE-07` e estados
+posteriores continuam sem autorização.

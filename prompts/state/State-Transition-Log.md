@@ -4106,3 +4106,70 @@ contém somente fatos cronológicos.
 - Próxima condição: concluir `S06-A` dentro do envelope autorizado e registrar
   resultados, verificações, limitações, riscos, rollback e baseline final.
 - Aprovador: proprietário do RAG-Challenge.
+
+## 2026-08-05 — S06-A E2E e artefato concluído
+
+- Estado preservado: `STATE-06 INTEGRATION` permanece ativo; esta entrada não
+  executa Automatic Quality Gate, Human Gate ou transição para `STATE-07`.
+- Autoridade: execução exclusivamente local, offline e sequencial de `S06-A`,
+  depois do registro anterior de entrada, com instalação existente, fixtures
+  sintéticas, stores temporários e listeners loopback pertencentes à tarefa.
+- Baseline de implementação: `main@8041e25a554a7cc47ecebf4abe1fc8b94b12d12d`,
+  corpus `4.9.2` e working tree rastreada limpa. O registro de entrada está no
+  commit `ad218b58210e41d0c3a2c76ef81b5886498fd01a` e a implementação focal
+  está no commit `8041e25a554a7cc47ecebf4abe1fc8b94b12d12d`.
+- Implementação: perfil `Integration` explícito e fail-closed, configuração
+  não secreta desabilitada por default, fixture CSV sintética, conteúdo
+  imutável, catálogo SQLite, geração vetorial determinística, ativação e
+  resposta grounded determinística nos idiomas `pt-BR` e `en-GB`. Dashboard e
+  API v1 são servidos na mesma origem somente nesse perfil; contratos públicos
+  e OpenAPI não mudaram.
+- E2E e persistência: listener Kestrel real em loopback integrou documento →
+  índice → pergunta → resposta, serviu o shell, devolveu citação/cobertura e
+  reabriu depois de restart o mesmo conteúdo bruto, catálogo, ativação, índice
+  e geração. A submissão visível pelo Dashboard em Chrome apresentou resposta
+  fundamentada `pt-BR`, cobertura 1/1 e citação CSV local, sem warning/erro de
+  console.
+- Fonte oficial: sincronização executada somente contra servidor HTTP falso em
+  `127.0.0.1`, com proxy e redirects desativados e rejeição test-only de alvo
+  não loopback. Snapshot, conteúdo imutável e observação foram persistidos;
+  nenhuma URL oficial real foi acessada.
+- Artefato: duas construções consecutivas na baseline limpa produziram 58
+  arquivos e o mesmo ZIP de 47.234.158 bytes, SHA-256
+  `b2b6f50352c29a89f91640870564df263a2a5888f2009a94dc9a0ec1bb33b3c4`.
+  A segunda cópia foi reproduzida em `127.0.0.1:5086`, respondeu nos dois
+  idiomas e preservou após restart a geração
+  `idxgen-795825d3ad7afad1acd3a16ef48f2448270dda36ea71725fe6f6231956ced2c5`.
+- Checks aceitos: format sem mudança; build Release com zero warning/erro; 74
+  testes unitários, 10 de arquitetura e 90 de integração aprovados; coletor
+  de cobertura da integração com 90,72% de linhas e 62,35% de branches; lint,
+  typecheck, 38 testes npm e build Vite aprovados. Uma invocação exploratória
+  `npm test -- --run` foi inválida na CLI e substituída pelo comando
+  proprietário correto; duas reproduções exploratórias anteriores expiraram
+  antes da correção do handling/diagnóstico do processo e não integram a
+  evidência aceita.
+- Higiene: UTF-8/LF/newline, diff, scan aparente de secrets e arquivos
+  protegidos passaram. `package.json`, `package-lock.json`, packages/lockfiles
+  .NET, contratos, OpenAPI e ADRs permaneceram inalterados; o hash OpenAPI
+  continua
+  `D6A686B94C926914BEB28B437F464430A01DE6560C2E2D476CF5C36025813E34`.
+  Os ports 5086 e 5096 terminaram livres e os runtimes da tarefa foram
+  removidos.
+- Limitações/riscos: a reprodução usa baseline Git limpa e instalação
+  existente, não clone/máquina sem assets restaurados; Node.js observado
+  `24.18.1` difere do pin `24.18.0`; cobertura percentual JavaScript continua
+  indisponível; providers, fonte oficial, corpus, OCI, Linux ARM64,
+  armazenamento/backup operacional, desempenho e captura de pacotes reais não
+  foram testados. Nenhum P0/P1 foi encontrado.
+- Escopo negativo preservado: sem dependência, instalação, rede externa,
+  provider/conta/secret/corpus/fonte oficial reais, GitHub, OCI real,
+  publicação, deploy, DB-Notifier, Automatic Quality Gate, Human Gate ou
+  `STATE-07`.
+- Relatório: [`STATE-06-Integration-Report.md`](../../docs/STATE-06-Integration-Report.md).
+- Rollback: não executado. Reversão futura exige autoridade própria, reverts
+  focais ordinários em ordem inversa e preservação append-only deste histórico;
+  o ZIP ignorado pode ser regenerado ou removido somente pelo caminho local
+  validado.
+- Próxima condição: nova autoridade humana explícita e separada antes de
+  qualquer outro lote, gate, estado ou ação externa.
+- Aprovador: proprietário do RAG-Challenge.
