@@ -306,6 +306,22 @@ proprietários.
   exclusivamente loopback foi encerrado, e as portas 4173, 5173 e 9230
   terminaram livres. `STATE-05` está encerrado; `STATE-06` permanece sem
   autorização e sem execução.
+- Entrada em `STATE-06 INTEGRATION`: autorizada e registrada em 2026-08-05
+  sobre `main@8fb3b93532a569af953cdf24e190b82998020464`, corpus `4.9.2` e
+  working tree limpa, depois de reconfirmar localização
+  `C:\Projects\RAG-Challenge`, Git top-level `C:/Projects/RAG-Challenge`,
+  Git directory `.git`, branch `main`, HEAD e corpus. A autoridade permite,
+  depois deste registro, executar localmente, offline e sequencialmente apenas
+  `S06-A`: fluxo sintético documento → índice → pergunta → resposta entre
+  backend e frontend; sincronização oficial somente por servidor HTTP falso
+  e loopback; restart e persistência; configuração não secreta por ambiente;
+  artefato local reproduzível; reprodução em baseline limpa; checks .NET/npm,
+  integração/E2E, build, higiene, documentação e commits locais focais.
+  Dependências, manifests/lockfiles, contratos, OpenAPI, ADRs, rede externa,
+  providers/contas reais, secrets, corpus/fonte oficial reais, GitHub, OCI
+  real, publicação, deploy, DB-Notifier, Automatic Quality Gate, Human Gate e
+  `STATE-07` permanecem fora da autoridade. `STATE-06` está ativo; `S06-A`
+  está autorizado e ainda não executado neste registro.
 - Fechamento de `S04-A0`: `PdfPig` `0.1.15` e `CsvHelper` `33.1.0` foram
   selecionados condicionalmente para desenvolvimento local;
   `Sylvan.Data.Csv` `1.4.4` permanece fallback não selecionado e não
@@ -796,8 +812,8 @@ autorizada.
    para cada banco antes de sua ativação.
 2. Validar e ativar individualmente novos registros de fonte oficial; a
    aceitação arquitetural não autoriza URL, rede, download ou crawling.
-3. Obter autoridade humana explícita e separada antes de entrar ou executar
-   `STATE-06`; o encerramento de `STATE-05` não concede essa autoridade.
+3. Executar e documentar o lote `S06-A` autorizado, preservando integralmente
+   o limite local, offline, sintético e sequencial registrado para `STATE-06`.
 4. Verificar tier, entitlement, spend limit e controles da conta OpenAI, além
    da recuperação/geração bilíngue, antes de usar ou anunciar os providers.
 5. Homologar desempenho e capacidade do `SqliteExactVectorStore`; a fixture
@@ -974,7 +990,12 @@ tree limpa, depois do resumo completo e da confirmação canônica do
 proprietário. O preview humano exclusivamente loopback foi encerrado e as
 portas 4173, 5173 e 9230 terminaram livres. `STATE-05` está encerrado.
 
-Rede externa, providers, contas, secrets, corpus real, fontes oficiais reais
-do produto, armazenamento operacional, GitHub, OCI, publicação, deploy,
-DB-Notifier, nova repetição do Automatic Quality Gate e entrada ou execução de
-`STATE-06` ou estados posteriores continuam sem autorização.
+`STATE-06 INTEGRATION` está ativo por autorização explícita do proprietário
+sobre `main@8fb3b93532a569af953cdf24e190b82998020464`, corpus `4.9.2` e
+working tree limpa. Somente `S06-A` pode ser executado localmente, offline e
+sequencialmente depois do registro de entrada, com fixtures sintéticas, stores
+temporários e listeners loopback pertencentes à tarefa. Rede externa,
+providers, contas, secrets, corpus real, fontes oficiais reais do produto,
+armazenamento operacional, GitHub, OCI real, publicação, deploy, DB-Notifier,
+Automatic Quality Gate, Human Gate, `STATE-07` e estados posteriores continuam
+sem autorização.

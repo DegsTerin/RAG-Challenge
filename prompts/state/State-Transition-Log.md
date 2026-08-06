@@ -4062,3 +4062,47 @@ contém somente fatos cronológicos.
 - Próxima condição: autoridade humana explícita e separada antes de entrar ou
   executar `STATE-06`; esta decisão não concede essa autoridade.
 - Aprovador: proprietário do RAG-Challenge.
+
+## 2026-08-05 — Entrada em STATE-06 e S06-A autorizados
+
+- Estado anterior: `STATE-05 FRONTEND_IMPLEMENTATION` encerrado após
+  Automatic Quality Gate aprovado e Human Gate aprovado sem ressalvas;
+  `STATE-06` ainda não iniciado.
+- Estado solicitado: `STATE-06 INTEGRATION`.
+- Autoridade: solicitação explícita do proprietário para registrar a entrada
+  e, somente depois desse registro, executar localmente, offline e
+  sequencialmente o lote `S06-A`.
+- Decisão: entrada em `STATE-06 INTEGRATION` autorizada e registrada; `S06-A`
+  autorizado nos limites descritos abaixo.
+- Escopo: integrar e verificar o fluxo sintético documento → índice → pergunta
+  → resposta entre backend e frontend; sincronizar fonte oficial somente por
+  servidor HTTP falso e loopback; validar restart e persistência de conteúdo
+  bruto, catálogo, ativação e índice; preparar configuração por ambiente sem
+  secrets; produzir artefato local reproduzível; demonstrar sua reprodução em
+  baseline limpa; executar checks .NET e npm, testes de integração/E2E, build,
+  higiene, documentação e commits locais focais.
+- Escopo negativo: sem dependência ou instalação; sem alteração de
+  `package.json`, `package-lock.json`, contratos, OpenAPI ou ADRs; sem rede
+  externa, provider ou conta real, secret, corpus ou fonte oficial real,
+  GitHub, OCI real, publicação, deploy, DB-Notifier, Automatic Quality Gate,
+  Human Gate ou `STATE-07`.
+- Pré-condições: localização `C:\Projects\RAG-Challenge`, Git top-level
+  `C:/Projects/RAG-Challenge`, Git directory `.git`, branch `main`, HEAD
+  `8fb3b93532a569af953cdf24e190b82998020464`, corpus `4.9.2` e working tree
+  limpa foram reconfirmados antes deste registro; nenhuma divergência material
+  foi observada.
+- Mudanças: somente o snapshot factual e este histórico append-only registram
+  a entrada antes da execução do lote.
+- Verificações/evidências: releitura integral das autoridades e relatórios
+  exigidos; baseline Git e corpus reconfirmados por comandos locais somente
+  leitura.
+- Limitações/riscos: os limites históricos de provider real, corpus real,
+  fonte oficial real, OCI, Linux ARM64 runtime e Node.js exato permanecem; o
+  lote deve parar diante das condições materiais definidas pelo proprietário.
+- Quality Gate: não autorizado nem executado.
+- Human Gate: não autorizado nem executado.
+- Estado resultante: `STATE-06 INTEGRATION` ativo; `S06-A` autorizado e ainda
+  não executado neste registro.
+- Próxima condição: concluir `S06-A` dentro do envelope autorizado e registrar
+  resultados, verificações, limitações, riscos, rollback e baseline final.
+- Aprovador: proprietário do RAG-Challenge.
