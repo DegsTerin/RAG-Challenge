@@ -3,6 +3,7 @@
   <!-- Hosts the versioned public query contract and health surface; administration remains outside HTTP. -->
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
+    <RuntimeIdentifiers>linux-arm64</RuntimeIdentifiers>
     <AssemblyName>RagChallenge.Server.Api</AssemblyName>
     <RootNamespace>RagChallenge.Server.Api</RootNamespace>
   </PropertyGroup>

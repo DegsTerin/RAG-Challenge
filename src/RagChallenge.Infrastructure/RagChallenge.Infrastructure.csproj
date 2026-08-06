@@ -3,6 +3,7 @@
   <!-- Hosts the selected persistence, parsing, provider and official-source adapters outside the inner layers. -->
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
+    <RuntimeIdentifiers>linux-arm64</RuntimeIdentifiers>
     <AssemblyName>RagChallenge.Infrastructure</AssemblyName>
     <RootNamespace>RagChallenge.Infrastructure</RootNamespace>
   </PropertyGroup>

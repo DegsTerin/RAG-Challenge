@@ -3,6 +3,7 @@
   <!-- Defines the framework-neutral domain boundary; outer frameworks and adapters are prohibited. -->
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
+    <RuntimeIdentifiers>linux-arm64</RuntimeIdentifiers>
     <AssemblyName>RagChallenge.Domain</AssemblyName>
     <RootNamespace>RagChallenge.Domain</RootNamespace>
   </PropertyGroup>

@@ -3,6 +3,7 @@
   <!-- Defines application orchestration and inward-facing ports; it depends only on Domain. -->
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
+    <RuntimeIdentifiers>linux-arm64</RuntimeIdentifiers>
     <AssemblyName>RagChallenge.Application</AssemblyName>
     <RootNamespace>RagChallenge.Application</RootNamespace>
   </PropertyGroup>
