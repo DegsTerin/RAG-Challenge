@@ -3,16 +3,14 @@
 Assistente RAG independente para consultar documentação sobre bancos de dados
 em linguagem natural, com respostas fundamentadas e referências às fontes.
 
-> Status em 2026-08-02: `STATE-00 DISCOVERY`, `GATE-B01
-> ARCHITECTURE_BOOTSTRAP_DECISION`, `STATE-01 PROJECT_SETUP` e `STATE-02
-> ARCHITECTURE` estão encerrados com seus gates aprovados. `STATE-03
-> DATA_AND_INDEX_MODELING` está ativo somente para o lote local e sequencial
-> `S03-A`: o modelo em memória, os dois domínios canônicos de digest, as
-> validações pré-CAS, as invariantes de ativação/retenção/rollback e as
-> fixtures determinísticas existem sem persistência. `S03-B`, dependências,
-> migrations, stores, Automatic Quality Gate, Human Gate, encerramento do
-> estado e entrada em `STATE-04` permanecem pendentes ou bloqueados. Não
-> existe produto RAG funcional, corpus real, publicação ou deploy.
+> Status em 2026-08-06: `STATE-00` a `STATE-05` estão encerrados e
+> `STATE-06 INTEGRATION` está ativo. O lote `S06-A` integrou localmente o
+> Dashboard, a API e os stores persistentes com fixture e providers
+> determinísticos. O Automatic Quality Gate de `STATE-06` permanece
+> `REPROVADO` pelos achados P2 `AQG-S06-001` a `AQG-S06-003`; a implementação
+> corretiva `S06-CORR-01` presente nesta baseline não substitui o reteste
+> integral do gate. Não existe corpus, provider, fonte oficial, execução Linux,
+> OCI ou produção reais, nem publicação ou deploy.
 
 ## Problema
 
@@ -28,7 +26,7 @@ os repositórios. O RAG-Challenge será proprietário do OpenAPI público; o
 futuro adapter consumidor pertencerá ao DB-Notifier e aos gates desse
 repositório.
 
-## MVP proposto
+## Escopo do MVP
 
 O primeiro produto funcional deverá:
 
@@ -62,14 +60,16 @@ O primeiro produto funcional deverá:
 - possuir testes, configuração segura e documentação de execução;
 - publicar um contrato OpenAPI v1 versionado pertencente ao RAG-Challenge.
 
-O idioma visual, o tema e o idioma da consulta são seleções independentes. A
-seleção inicial, a persistência, o fallback e eventual preferência do sistema
-ainda serão decididos no estado responsável pelo frontend.
+O Dashboard implementa o idioma visual, o tema e o idioma da consulta como
+seleções independentes. As oito combinações de `pt-BR`/`en-GB` e
+`Light`/`Dark` possuem evidência local sintética do estado responsável pelo
+frontend; isso não constitui homologação do produto com corpus ou providers
+reais.
 
-O acervo de referência fornecido pelo curso não será usado automaticamente:
-ele permanece em `reference-materials/`, fora do Git. Antes da implementação,
-será escolhido ou criado um acervo de bancos de dados com direitos de uso e
-redistribuição verificados.
+O acervo de referência fornecido pelo curso não é usado automaticamente: ele
+permanece em `reference-materials/`, fora do Git. Antes de qualquer ativação de
+produto, o proprietário deverá fornecer ou autorizar um acervo com direitos de
+uso, proveniência e idioma verificados.
 
 ## Fora do MVP
 
@@ -131,11 +131,49 @@ e as regras específicas de RAG em
 
 ## Execução local, GitHub e OCI
 
-O scaffold local, as toolchains fixadas, o restore offline .NET, o build e os
-testes estruturais estão documentados em
-[`PROJECT-SETUP.md`](docs/PROJECT-SETUP.md). Esse procedimento valida apenas
-o setup e os endpoints de health; não representa uma aplicação RAG
-funcional.
+As toolchains fixadas, os restores governados e os checks completos estão
+documentados em [`PROJECT-SETUP.md`](docs/PROJECT-SETUP.md). Um cache ausente
+não autoriza fallback para a rede.
+
+Com as dependências já restauradas, o exemplo integrado local é executado da
+raiz do repositório:
+
+```powershell
+./src/RagChallenge.Server.Api/Build-IntegrationArtifact.ps1
+./src/RagChallenge.Server.Api/Test-IntegrationArtifact.ps1
+```
+
+O resultado sanitizado verificado em `STATE-06` contém:
+
+```json
+{
+  "Status": "Passed",
+  "DashboardServed": true,
+  "AnswerLanguages": ["en-GB", "pt-BR"],
+  "RestartPreservedGeneration": true,
+  "ControlStore": "control.db",
+  "VectorStore": "vectors.db"
+}
+```
+
+Esse exemplo usa somente uma fixture CSV sintética, providers determinísticos,
+stores SQLite temporários e um listener loopback no Windows. Ele demonstra o
+fluxo local integrado e a reabertura da mesma geração após restart; não alega
+corpus, provider ou fonte oficial reais, execução Linux, OCI, suporte de
+produção ou deploy.
+
+O rehearsal separado de empacotamento Linux ARM64 pode ser construído e
+verificado estaticamente, também sem restore:
+
+```powershell
+./src/RagChallenge.Server.Api/Build-OciRehearsalArtifact.ps1
+./src/RagChallenge.Server.Api/Test-OciRehearsalArtifact.ps1
+```
+
+O verificador confere manifesto, hashes, configuração fail-closed e identidade
+ELF AArch64. O binário ARM64 não é executado no Windows e nenhuma operação OCI
+é realizada. O plano e as limitações estão em
+[`STATE-06-OCI-Readiness-And-Rehearsal.md`](docs/STATE-06-OCI-Readiness-And-Rehearsal.md).
 
 O código poderá ser hospedado em um repositório público no GitHub. GitHub
 Pages, sozinho, hospeda apenas conteúdo estático e não executa o backend RAG
@@ -184,19 +222,20 @@ decisão explícita e adapter compatível.
 └── .gitignore
 ```
 
-Além dos artefatos de bootstrap, Domain e Application contêm o modelo lógico
-em memória autorizado para `S03-A`, documentado no
-[`dicionário de dados`](docs/data/STATE-03-S03-A-Data-Dictionary.md). Ainda não
-existem migrations, stores persistentes, parsers, providers, recuperação RAG
-ou administração funcional.
+Domain e Application contêm os modelos e casos de uso; Infrastructure contém
+migrations SQLite, stores persistentes, parsers PDF/CSV, adapters de provider e
+transporte governado; a API expõe health e consulta v1; e o Dashboard consome
+esse contrato. A integração executável autorizada usa somente composição
+sintética e local. Administração permanece one-shot fora de HTTP, e nenhum
+provider ou acervo real está configurado.
 
 ## Governança
 
 Comece por [`AGENTS.md`](AGENTS.md) e
 [`prompts/Start-Here.md`](prompts/Start-Here.md). O estado factual está em
 [`Current-State.md`](prompts/state/Current-State.md), e o relatório da
-descoberta está em
-[`STATE-00-Discovery-Report.md`](docs/STATE-00-Discovery-Report.md).
+integração está em
+[`STATE-06-Integration-Report.md`](docs/STATE-06-Integration-Report.md).
 A comunicação com o proprietário e os novos artefatos seguem a
 [`política de idioma`](prompts/governance/Language-Policy.md).
 
