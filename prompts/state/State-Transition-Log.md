@@ -4344,3 +4344,51 @@ contém somente fatos cronológicos.
 - Próxima condição: concluir sequencialmente o intake delimitado e as correções
   de `S06-CORR-01`; parar antes de qualquer novo gate.
 - Aprovador: proprietário do RAG-Challenge.
+
+## 2026-08-06 — S06-CORR-01 bloqueado no gate de dependência Linux ARM64
+
+- Estado anterior e resultante: `STATE-06 INTEGRATION` ativo; Automatic
+  Quality Gate `REPROVADO`; `AQG-S06-001` a `AQG-S06-003` abertos, todos P2;
+  sem transição e sem nova disposição.
+- Baseline de execução: commit normativo
+  `358a78fcf99179d5d5985cf356ced8ff7c4c959d`, corpus `4.9.3` e working tree
+  limpa.
+- Coleta externa autorizada: somente `api.nuget.org`, por HTTPS, sem redirect,
+  com limites de tamanho e destino. Uma rota opcional presumida para
+  `.nupkg.sha512` respondeu `404`, não foi repetida e foi substituída pelo
+  `packageHash` SHA-512 da entrada primária de catálogo no mesmo host.
+- Supply chain: os três packages Linux ARM64 `10.0.10` conferiram em identidade,
+  versão, estado listed/stable, SHA-512 de catálogo, assinatura author e
+  repository em revogação offline, licença MIT e fechamento com zero
+  dependência declarada. A base NuGet continha advisories históricos para as
+  famílias; avaliação exata dos ranges encontrou zero advisory aplicável a
+  `10.0.10`, e o update vigente estava vazio.
+- Cache: 42 packages de produção já locked foram copiados somente leitura do
+  cache existente para o cache isolado autorizado. Os três nupkgs verificados
+  formaram a única fonte local do restore; o cache global não foi alterado.
+- Restore: execução local com `eng/NuGet.Offline.config`, RID `linux-arm64`,
+  cache isolado e locked mode terminou com exit `1`/`NU1004`. Domain,
+  Application, Infrastructure e Server precisam registrar o RID nos
+  respectivos lockfiles.
+- Condição de parada: a autoridade permite alterar somente
+  `src/RagChallenge.Server.Api/packages.lock.json` e exige parada se outro
+  lockfile precisar mudar. Nenhum lockfile ou outro arquivo rastreado mudou;
+  não se tentou `--force-evaluate` nem uma alternativa que contornasse o grafo
+  completo.
+- Artefatos locais: nupkgs, catálogos, advisories, fonte verificada, cache
+  isolado e assets do restore falho permanecem ignorados sob
+  `artifacts-local/s06-dependencies/` ou `obj/`. Os targets RID gerados são não
+  autoritativos e não constituem evidência de build.
+- Runtime preflight: `NÃO APLICÁVEL`; nenhum comportamento executável foi
+  alterado ou validado e nenhum processo/listener foi inspecionado ou parado.
+- Resultado: `S06-CORR-01` está bloqueado no gate de dependência; C3/C4 não
+  foram iniciados. O resultado esperado
+  `CORRECTED_PENDING_GATE_RETEST` não foi alcançado.
+- Escopo negativo preservado: sem OCI, provider, conta, secret, corpus ou
+  fonte real, GitHub, publicação, deploy, ADR, contrato público, OpenAPI,
+  schema, migration, novo Automatic Quality Gate, Human Gate ou `STATE-07`.
+- Próxima condição: nova autoridade do proprietário para permitir exatamente
+  os lockfiles de Domain, Application, Infrastructure e Server no restore do
+  mesmo fechamento já verificado; qualquer package, versão, fonte ou lockfile
+  adicional continua sendo condição de parada.
+- Aprovador: proprietário do RAG-Challenge.

@@ -387,10 +387,16 @@ proprietários.
   corpus `4.9.3`. O proprietário também autorizou o intake isolado e
   estritamente delimitado dos três runtime packs Linux ARM64 `10.0.10`, as
   correções offline dos três achados, suas verificações e commits locais
-  focais. A execução corretiva continua sequencial; os achados permanecem
-  abertos e o Automatic Quality Gate permanece `REPROVADO` até registro de
-  evidência posterior. Human Gate, novo gate, OCI real e `STATE-07` não estão
-  autorizados.
+  focais. A verificação dos três pacotes aprovou identidade, versão, SHA-512 de
+  catálogo, assinaturas author/repository em revogação offline, licença MIT,
+  fechamento sem dependências e zero advisory aplicável a `10.0.10`. O restore
+  local e locked parou com `NU1004`: propagar `linux-arm64` exige atualizar os
+  lockfiles de Domain, Application, Infrastructure e Server, mas a autoridade
+  permite alterar somente o de Server. Nenhum lockfile ou outro arquivo
+  rastreado mudou; `S06-CORR-01` está bloqueado no gate de dependência e não
+  avançou para implementação ou checks executáveis. Os achados permanecem
+  abertos e o Automatic Quality Gate permanece `REPROVADO`. Human Gate, novo
+  gate, OCI real e `STATE-07` não estão autorizados.
 - Fechamento de `S04-A0`: `PdfPig` `0.1.15` e `CsvHelper` `33.1.0` foram
   selecionados condicionalmente para desenvolvimento local;
   `Sylvan.Data.Csv` `1.4.4` permanece fallback não selecionado e não
@@ -1079,7 +1085,12 @@ Quality Gate posterior foi executado sobre
 `S06-CORR-01` sobre `main@140c0516e4dbfc02808a90f0496550eb6b09da1b` e
 aceitou `NORM-S06-001`; o corpus `4.9.3` reconcilia o ownership do README. A
 execução sequencial autorizada inclui somente o intake Linux ARM64 delimitado,
-as correções offline, seus checks e commits locais focais. Um novo Automatic
-Quality Gate, Human Gate, `STATE-07`, OCI real, providers, contas, secrets,
-corpus ou fontes reais, armazenamento operacional, GitHub, publicação, deploy,
-DB-Notifier e estados posteriores continuam sem autorização.
+as correções offline, seus checks e commits locais focais. A supply chain dos
+três pacotes `10.0.10` foi aprovada, mas o restore locked demonstrou que todos
+os quatro lockfiles dos projetos de produção precisam incorporar o RID. Como
+somente o lockfile de Server pode mudar, o lote parou sem alteração rastreada
+de dependência e permanece bloqueado no gate de dependência. Um novo
+Automatic Quality Gate, Human Gate, `STATE-07`, OCI real, providers, contas,
+secrets, corpus ou fontes reais, armazenamento operacional, GitHub,
+publicação, deploy, DB-Notifier e estados posteriores continuam sem
+autorização.

@@ -531,3 +531,65 @@ because the available evidence is sufficient to determine that required
 STATE-06 deliverables are unmet. `STATE-06 INTEGRATION` remains active; the
 Human Gate is premature and was neither requested nor executed. `STATE-07`
 and every external action remain unauthorised.
+
+## S06-CORR-01 dependency-gate execution
+
+### Normative baseline
+
+On 2026-08-06, the owner accepted `NORM-S06-001` and authorised the sequential
+`AUTH-S06-NORM-001`, `AUTH-S06-DEP-001` and `AUTH-S06-CORR-001` envelopes on
+clean `main@140c0516e4dbfc02808a90f0496550eb6b09da1b`, corpus `4.9.2`.
+Lifecycle and the roadmap now keep the factually current, verified
+local/synthetic README example in `STATE-06` and the separately verified
+public OCI/real-product finalisation in `STATE-08`. The resulting corpus is
+`4.9.3`.
+
+### Runtime-pack evidence
+
+The bounded HTTPS collection used only `api.nuget.org`, refused redirects and
+stored bytes under the ignored `artifacts-local/s06-dependencies/` boundary.
+One assumed optional `.nupkg.sha512` route returned `404` and was not retried;
+the authoritative SHA-512 values came from each package catalogue entry and
+matched the downloaded package bytes exactly.
+
+| Package | Bytes | SHA-512 catalogue/package result | Supply-chain result |
+| --- | ---: | --- | --- |
+| `Microsoft.NETCore.App.Runtime.linux-arm64` `10.0.10` | 37,584,411 | `wvXLiOfFb1gKY6uBDbZ6xyxlmieVXJLvkmVjoxi7CHzo6LEqypq88xRYtCPX1pZvGBcOQIWHGxvQGvdaEn1oCw==` | Listed stable `DotnetPlatform`; MIT; zero declared dependencies; author and repository signatures valid with offline revocation; zero applicable advisory. |
+| `Microsoft.AspNetCore.App.Runtime.linux-arm64` `10.0.10` | 12,387,032 | `aBtCKth6hLH5uSd0l5zhKXub77x/B9rQtBRR7li1s/j/4/5rBG2UusqHShGzxmcGEsvLIe2YrWHPdgVIm5kf+g==` | Listed stable `DotnetPlatform`; MIT; zero declared dependencies; author and repository signatures valid with offline revocation; zero applicable advisory. |
+| `Microsoft.NETCore.App.Host.linux-arm64` `10.0.10` | 5,309,240 | `714TBU99meQpT9JXZuvrV3H9pDK0TwGhcuMvo38IOIjPuZSGExG6JcJToReQZrODB+5+ons0fil+xnrOpCDh3w==` | Listed stable `DotnetPlatform`; MIT; zero declared dependencies; author and repository signatures valid with offline revocation; zero applicable advisory. |
+
+The NuGet vulnerability base dated 2026-08-04 contained historical ranges for
+the three package families; exact `NuGet.Versioning` range evaluation found
+that `10.0.10` satisfied none of them. The 2026-08-06 update was empty. The
+three package identities therefore matched the authorised dependency matrix;
+no additional runtime-pack identity or version was discovered.
+
+### Locked-restore stop condition
+
+The isolated cache was seeded read-only with the 42 existing locked production
+package identities. The restore then used only the three-package verified
+local source, `eng/NuGet.Offline.config`, `linux-arm64`, the isolated package
+and HTTP caches, offline certificate revocation and locked mode. It contacted
+no package source during restore and did not mutate the global cache.
+
+The command exited `1` with `NU1004` for Domain, Application, Infrastructure
+and Server: adding the runtime identifier makes each corresponding lockfile
+inconsistent until that project records `linux-arm64`. The owner authorised a
+change only to `src/RagChallenge.Server.Api/packages.lock.json` and explicitly
+required a stop if another lockfile needed to change. Consequently:
+
+- no lockfile or other tracked file changed;
+- generated ignored `obj/project.assets.json` files contain non-authoritative
+  failed-restore targets and are not accepted build evidence;
+- no rehearsal build, executable test, README update or product correction
+  was attempted; and
+- the runtime preflight remained `NOT_APPLICABLE` because no executable
+  behaviour was changed or validated.
+
+`S06-CORR-01` is blocked at the dependency gate, not
+`CORRECTED_PENDING_GATE_RETEST`. `AQG-S06-001` to `AQG-S06-003` remain open,
+the Automatic Quality Gate remains **REPROVADO**, and the Human Gate remains
+premature. Continuing requires new owner authority that permits the exact
+Domain, Application, Infrastructure and Server lockfile set to record the
+same verified `linux-arm64` restore target. No new Automatic Quality Gate is
+authorised by that prerequisite.
