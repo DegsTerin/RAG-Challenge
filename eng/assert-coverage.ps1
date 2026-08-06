@@ -12,10 +12,10 @@ param(
 $ErrorActionPreference = "Stop"
 Set-StrictMode -Version Latest
 
-$reports = Get-ChildItem `
+$reports = @(Get-ChildItem `
     -LiteralPath $ResultsDirectory `
     -Recurse `
-    -Filter "coverage.cobertura.xml"
+    -Filter "coverage.cobertura.xml")
 
 if ($reports.Count -eq 0) {
     throw "No Cobertura reports were found in '$ResultsDirectory'."
@@ -26,34 +26,82 @@ $branchCoverage = @{}
 
 foreach ($report in $reports) {
     [xml]$document = Get-Content -LiteralPath $report.FullName -Raw
+    $reportLineCount = 0
 
     foreach ($class in $document.SelectNodes(
         "/coverage/packages/package/classes/class")) {
-        $file = $class.filename.Replace("\", "/")
+        $file = ([string]$class.filename).Replace("\", "/")
+
+        if ([string]::IsNullOrWhiteSpace($file)) {
+            throw "Cobertura report '$($report.FullName)' contains a class without a filename."
+        }
 
         foreach ($line in $class.SelectNodes("lines/line")) {
-            $lineKey = "${file}:$($line.number)"
-            $hits = [int]$line.hits
+            [long]$lineNumber = 0
+            [long]$hits = 0
+
+            if (-not [long]::TryParse(
+                [string]$line.number,
+                [ref]$lineNumber) -or
+                $lineNumber -le 0) {
+                throw "Cobertura report '$($report.FullName)' contains an invalid line number for '$file'."
+            }
+
+            if (-not [long]::TryParse(
+                [string]$line.hits,
+                [ref]$hits) -or
+                $hits -lt 0) {
+                throw "Cobertura report '$($report.FullName)' contains invalid hit data for '${file}:$lineNumber'."
+            }
+
+            $reportLineCount++
+            $lineKey = "${file}:$lineNumber"
 
             if (-not $lineHits.ContainsKey($lineKey) -or
                 $hits -gt $lineHits[$lineKey]) {
                 $lineHits[$lineKey] = $hits
             }
 
-            if ($line.branch -ne "True") {
+            $isBranch = $false
+
+            if ($line.HasAttribute("branch") -and
+                -not [bool]::TryParse(
+                    $line.GetAttribute("branch"),
+                    [ref]$isBranch)) {
+                throw "Cobertura report '$($report.FullName)' contains invalid branch metadata for '$lineKey'."
+            }
+
+            if (-not $isBranch) {
                 continue
             }
 
             $match = [regex]::Match(
-                [string]$line."condition-coverage",
-                "\((\d+)/(\d+)\)")
+                $line.GetAttribute("condition-coverage"),
+                "^\s*(?:\d+(?:\.\d+)?%\s*)?\((\d+)/(\d+)\)\s*$")
 
             if (-not $match.Success) {
-                continue
+                throw "Cobertura report '$($report.FullName)' contains malformed branch coverage for '$lineKey'."
             }
 
-            $covered = [int]$match.Groups[1].Value
-            $valid = [int]$match.Groups[2].Value
+            [long]$covered = 0
+            [long]$valid = 0
+
+            if (-not [long]::TryParse(
+                $match.Groups[1].Value,
+                [ref]$covered) -or
+                -not [long]::TryParse(
+                    $match.Groups[2].Value,
+                    [ref]$valid) -or
+                $valid -le 0 -or
+                $covered -lt 0 -or
+                $covered -gt $valid) {
+                throw "Cobertura report '$($report.FullName)' contains impossible branch coverage for '$lineKey'."
+            }
+
+            if ($branchCoverage.ContainsKey($lineKey) -and
+                $valid -ne $branchCoverage[$lineKey].Valid) {
+                throw "Cobertura reports contain inconsistent branch totals for '$lineKey'."
+            }
 
             if (-not $branchCoverage.ContainsKey($lineKey) -or
                 $covered -gt $branchCoverage[$lineKey].Covered) {
@@ -64,25 +112,28 @@ foreach ($report in $reports) {
             }
         }
     }
+
+    if ($reportLineCount -eq 0) {
+        throw "Cobertura report '$($report.FullName)' contains no valid instrumented lines."
+    }
 }
 
 $validLines = $lineHits.Count
-$coveredLines = @($lineHits.Values | Where-Object { $_ -gt 0 }).Count
-$validBranches = (
-    $branchCoverage.Values |
-        Measure-Object -Property Valid -Sum
-).Sum
-$coveredBranches = (
-    $branchCoverage.Values |
-        Measure-Object -Property Covered -Sum
-).Sum
 
-$lineRate = if ($validLines -eq 0) {
-    1.0
+if ($validLines -eq 0) {
+    throw "Cobertura reports contain no valid instrumented lines."
 }
-else {
-    $coveredLines / $validLines
+
+$coveredLines = @($lineHits.Values | Where-Object { $_ -gt 0 }).Count
+$validBranches = 0L
+$coveredBranches = 0L
+
+foreach ($coverage in $branchCoverage.Values) {
+    $validBranches += $coverage.Valid
+    $coveredBranches += $coverage.Covered
 }
+
+$lineRate = $coveredLines / $validLines
 $branchRate = if ($validBranches -eq 0) {
     1.0
 }
