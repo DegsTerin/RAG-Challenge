@@ -295,6 +295,12 @@ public sealed class ControlPlaneDbContext(DbContextOptions<ControlPlaneDbContext
                 table.HasCheckConstraint("ck_source_snapshots_retrieved_utc", UtcInstant("retrieved_at_utc"));
             });
             entity.HasKey(row => new { row.CorpusId, row.SnapshotId });
+            entity.HasAlternateKey(row => new
+            {
+                row.CorpusId,
+                row.SnapshotId,
+                row.RegistrationId,
+            });
             entity.HasOne<OfficialSourceRegistrationRow>().WithMany().HasForeignKey(row => new
             {
                 row.CorpusId,
@@ -319,6 +325,12 @@ public sealed class ControlPlaneDbContext(DbContextOptions<ControlPlaneDbContext
             {
                 row.CorpusId,
                 row.SnapshotId,
+                row.RegistrationId,
+            }).HasPrincipalKey(snapshot => new
+            {
+                snapshot.CorpusId,
+                snapshot.SnapshotId,
+                snapshot.RegistrationId,
             }).OnDelete(DeleteBehavior.Restrict);
             entity.HasIndex(row => new { row.CorpusId, row.JournalRevision }).IsUnique();
             entity.HasIndex(row => row.OperationId).IsUnique();
@@ -399,6 +411,17 @@ public sealed class ControlPlaneDbContext(DbContextOptions<ControlPlaneDbContext
                 row.DocumentId,
                 row.DocumentVersion,
             }).OnDelete(DeleteBehavior.Restrict);
+            entity.HasOne<OfficialSourceSnapshotRow>().WithMany().HasForeignKey(row => new
+            {
+                row.CorpusId,
+                row.OfficialSnapshotId,
+                row.OfficialRegistrationId,
+            }).HasPrincipalKey(snapshot => new
+            {
+                snapshot.CorpusId,
+                snapshot.SnapshotId,
+                snapshot.RegistrationId,
+            }).IsRequired(false).OnDelete(DeleteBehavior.Restrict);
         });
     }
 
@@ -472,6 +495,17 @@ public sealed class ControlPlaneDbContext(DbContextOptions<ControlPlaneDbContext
             {
                 row.CorpusId,
                 row.SourceObservationId,
+            }).IsRequired(false).OnDelete(DeleteBehavior.Restrict);
+            entity.HasOne<OfficialSourceSnapshotRow>().WithMany().HasForeignKey(row => new
+            {
+                row.CorpusId,
+                row.OfficialSnapshotId,
+                row.OfficialRegistrationId,
+            }).HasPrincipalKey(snapshot => new
+            {
+                snapshot.CorpusId,
+                snapshot.SnapshotId,
+                snapshot.RegistrationId,
             }).IsRequired(false).OnDelete(DeleteBehavior.Restrict);
         });
 

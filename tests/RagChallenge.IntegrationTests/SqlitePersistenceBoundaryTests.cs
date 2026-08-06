@@ -206,6 +206,106 @@ public sealed class SqlitePersistenceBoundaryTests
         }
     }
 
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task OfficialBindingMigrationPreservesValidLegacyRowsAndBlocksMismatches(
+        bool mismatchedRegistration)
+    {
+        await using var fixture = await SqlitePersistenceFixture.CreateAsync();
+        const string previousMigration = "20260804184939_AddAdministrationCommandJournal";
+        const string migrationName = "20260806193919_StrengthenOfficialBindingReferences";
+        await using (var context = fixture.Options.CreateControlContext())
+        {
+            var migrator = context.Database.GetService<IMigrator>();
+            await migrator.MigrateAsync(previousMigration);
+        }
+
+        _ = await fixture.CommitLocalCatalogueAsync();
+        var observationRegistration = mismatchedRegistration
+            ? "legacy-registration-mismatch"
+            : "legacy-registration";
+        await ExecuteAsync(
+            fixture.Options.ControlDatabasePath,
+            $"""
+            INSERT INTO official_source_registrations
+                (corpus_id, registration_id, registration_revision, product_id,
+                 document_id, source_adapter_id, canonical_https_url, status)
+            VALUES
+                ('fixture-corpus', 'legacy-registration', 1, 'db-fixture',
+                 'doc-fixture', 'local-fixture',
+                 'https://official.invalid/legacy.pdf', 'Active');
+
+            INSERT INTO official_source_snapshots
+                (corpus_id, snapshot_id, registration_id, registration_revision,
+                 content_sha256, byte_length, media_type, retrieved_at_utc)
+            SELECT
+                'fixture-corpus', 'legacy-snapshot', 'legacy-registration', 1,
+                content_sha256, byte_length, 'application/pdf',
+                '2026-01-02T12:00:00.0000000+00:00'
+            FROM document_versions
+            WHERE corpus_id = 'fixture-corpus'
+              AND document_id = 'doc-fixture'
+              AND document_version = 1;
+
+            UPDATE document_versions
+            SET source_trust_class = 'OfficialExternal',
+                official_registration_id = 'legacy-registration',
+                official_snapshot_id = 'legacy-snapshot'
+            WHERE corpus_id = 'fixture-corpus'
+              AND document_id = 'doc-fixture'
+              AND document_version = 1;
+
+            INSERT INTO source_observations
+                (corpus_id, observation_id, registration_id, snapshot_id,
+                 journal_revision, state, revalidated_at_utc, max_age_seconds,
+                 operation_id)
+            VALUES
+                ('fixture-corpus', 'legacy-observation', '{observationRegistration}',
+                 'legacy-snapshot', 1, 'Current',
+                 '2026-01-02T12:00:00.0000000+00:00', 3600, 'catalogue-1');
+            """);
+
+        if (mismatchedRegistration)
+        {
+            await using var context = fixture.Options.CreateControlContext();
+            var migrator = context.Database.GetService<IMigrator>();
+            _ = await Assert.ThrowsAnyAsync<Exception>(() => migrator.MigrateAsync());
+            Assert.Equal(0, await ScalarAsync(
+                fixture.Options.ControlDatabasePath,
+                $"SELECT COUNT(*) FROM __EFMigrationsHistory WHERE MigrationId = '{migrationName}';"));
+            Assert.Equal(1, await ScalarAsync(
+                fixture.Options.ControlDatabasePath,
+                """
+                SELECT COUNT(*)
+                FROM source_observations
+                WHERE registration_id = 'legacy-registration-mismatch';
+                """));
+            return;
+        }
+
+        await using (var context = fixture.Options.CreateControlContext())
+        {
+            var migrator = context.Database.GetService<IMigrator>();
+            await migrator.MigrateAsync();
+        }
+
+        Assert.Equal(1, await ScalarAsync(
+            fixture.Options.ControlDatabasePath,
+            $"SELECT COUNT(*) FROM __EFMigrationsHistory WHERE MigrationId = '{migrationName}';"));
+        Assert.Equal(0, await CountRowsAsync(
+            fixture.Options.ControlDatabasePath,
+            "PRAGMA foreign_key_check;"));
+        Assert.Equal(1, await ScalarAsync(
+            fixture.Options.ControlDatabasePath,
+            """
+            SELECT COUNT(*)
+            FROM source_observations
+            WHERE registration_id = 'legacy-registration'
+              AND snapshot_id = 'legacy-snapshot';
+            """));
+    }
+
     [Fact]
     public async Task ImmutableContentUsesSha256IdentityAndRejectsMismatches()
     {

@@ -311,6 +311,26 @@ public sealed class OfficialObservationRebindingTests
             "SELECT COUNT(*) FROM activation_records;"));
     }
 
+    [Theory]
+    [InlineData("source_observations", "registration_id")]
+    [InlineData("generation_manifest_bindings", "official_registration_id")]
+    [InlineData("activation_bindings", "official_registration_id")]
+    public async Task OfficialSnapshotForeignKeysRejectMismatchedRegistration(
+        string table,
+        string registrationColumn)
+    {
+        await using var fixture = await SqlitePersistenceFixture.CreateAsync();
+        _ = await CreateActiveOfficialSourceAsync(fixture);
+
+        await Assert.ThrowsAsync<SqliteException>(() => ExecuteAsync(
+            fixture.Options.ControlDatabasePath,
+            $"UPDATE {table} SET {registrationColumn} = 'registration-mismatch';"));
+
+        Assert.Equal(0, await CountRowsAsync(
+            fixture.Options.ControlDatabasePath,
+            "PRAGMA foreign_key_check;"));
+    }
+
     private static OfficialSourceSynchronisationService CreateSynchronisationService(
         SqlitePersistenceFixture fixture,
         IOfficialSourceTransport transport) =>
@@ -598,6 +618,34 @@ public sealed class OfficialObservationRebindingTests
             END;
             """;
         _ = await command.ExecuteNonQueryAsync();
+    }
+
+    private static async Task ExecuteAsync(string path, string sql)
+    {
+        await using var connection = new SqliteConnection(
+            $"Data Source={path};Mode=ReadWrite;Cache=Private");
+        await connection.OpenAsync();
+        await using var command = connection.CreateCommand();
+        command.CommandText = sql;
+        _ = await command.ExecuteNonQueryAsync();
+    }
+
+    private static async Task<long> CountRowsAsync(string path, string sql)
+    {
+        await using var connection = new SqliteConnection(
+            $"Data Source={path};Mode=ReadOnly;Cache=Private");
+        await connection.OpenAsync();
+        await using var command = connection.CreateCommand();
+        command.CommandText = sql;
+        await using var reader = await command.ExecuteReaderAsync();
+        var count = 0L;
+
+        while (await reader.ReadAsync())
+        {
+            count++;
+        }
+
+        return count;
     }
 
     private sealed record ActiveOfficialSource(
