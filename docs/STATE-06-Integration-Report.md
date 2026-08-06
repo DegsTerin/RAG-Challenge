@@ -593,3 +593,142 @@ premature. Continuing requires new owner authority that permits the exact
 Domain, Application, Infrastructure and Server lockfile set to record the
 same verified `linux-arm64` restore target. No new Automatic Quality Gate is
 authorised by that prerequisite.
+
+## S06-CORR-01 corrective completion
+
+### Authority continuation and baselines
+
+The dependency-gate section above remains the historical record of the first
+bounded stop. The owner subsequently expanded `AUTH-S06-DEP-001` on clean
+`main@872c62a093f4df6549357f3a601f2f1d61943e0d`, corpus `4.9.3`, to allow
+only the four production lockfiles to record `linux-arm64`. Force evaluation
+changed those four lockfiles only by adding the approved RID target and the
+three verified runtime packs. Locked restore then passed, and commit
+`4b808319b0c1abf0970f9f41c77fb1e08d295585` recorded that graph.
+
+`AUTH-S06-CORR-001` continued sequentially in these focused commits:
+
+| Commit | Corrective responsibility |
+| --- | --- |
+| `405ab20d3e76a75f1a0f50fd625ec71831b9134b` | Adds the bounded OCI readiness plan, Linux ARM64 rehearsal builder/verifier and structural assertions. |
+| `801f77625e68692fe7b4691798694b4e8d92433a` | Adds the internal deterministic composition seam and composed cancellation, provider-failure and official-source failure evidence. |
+| `9d72a1bb93325f6303516592fb4ff352a0a531ca` | Makes the existing `pt-BR` README factual and records only verified local/synthetic commands and boundaries. |
+
+The first C4 aggregate run then stopped at solution restore with `NU1004`:
+the four production project files did not declare the RID already present in
+their lockfiles. No later C4 check or C5 disposition was claimed from that
+attempt. On clean `main@9d72a1bb93325f6303516592fb4ff352a0a531ca`, the
+owner authorised `AUTH-S06-DEP-002` to add only
+`<RuntimeIdentifiers>linux-arm64</RuntimeIdentifiers>` to Domain, Application,
+Infrastructure and Server, and to complete the isolated cache by read-only
+copy of these already locked test packages:
+
+| Package | Version |
+| --- | --- |
+| `coverlet.collector` | `10.0.1` |
+| `Microsoft.CodeCoverage` | `18.7.0` |
+| `Microsoft.NET.Test.Sdk` | `18.7.0` |
+| `Microsoft.TestPlatform.ObjectModel` | `18.7.0` |
+| `Microsoft.TestPlatform.TestHost` | `18.7.0` |
+| `xunit` | `2.9.3` |
+| `xunit.abstractions` | `2.0.3` |
+| `xunit.analyzers` | `1.18.0` |
+| `xunit.assert` | `2.9.3` |
+| `xunit.core` | `2.9.3` |
+| `xunit.extensibility.core` | `2.9.3` |
+| `xunit.extensibility.execution` | `2.9.3` |
+| `xunit.runner.visualstudio` | `3.1.5` |
+
+Every authorised source directory existed in the global cache, every target
+directory was initially absent, and deterministic per-file SHA-256 tree
+digests matched before and after each copy. The source tree digest also
+remained unchanged. No global-cache write or network access occurred.
+
+The full solution restore used only
+`artifacts-local/s06-dependencies/verified-source`, the isolated package cache,
+`eng/NuGet.Offline.config`, offline certificate revocation, `--no-cache` and
+locked mode. It exited `0`. Raw SHA-256 and semantic graph digests for all
+seven lockfiles were identical before and after restore. Each restored assets
+file contained exactly the packages from its lockfile and only the isolated
+package folder; the four production projects contained `net10.0` and
+`net10.0/linux-arm64`, while the three test projects retained only `net10.0`.
+Commit `f1a02cd7c7acb50bcd3fa8b00e69e6c3f59b88c3` records only the four
+authorised project declarations.
+
+### C4 corrective verification
+
+C4 restarted from the beginning on clean
+`main@f1a02cd7c7acb50bcd3fa8b00e69e6c3f59b88c3`. Runtime preflight found no
+RAG-Challenge-owned process and no listener on ports 4173, 5086, 5096, 5173 or
+9230.
+
+The complete `eng/ci.ps1 -Offline` gate used the isolated NuGet cache and
+passed:
+
+- locked solution restore with zero lockfile byte or graph change;
+- format verification and Release build with zero warning or error;
+- 74 unit, 10 architecture and 95 integration tests, 179 total, with zero
+  failure or skip;
+- merged .NET coverage of 92.40% lines (17,798/19,262) and 66.60% branches
+  (2,469/3,707), above the repository floors;
+- offline `npm ci`, lint, typecheck, 38 tests and Vite build; and
+- repository audit for 198 non-ignored files and `git diff --check`.
+
+Two consecutive no-restore Linux ARM64 rehearsal builds from that same clean
+commit produced byte-identical evidence:
+
+| Evidence | Observed value |
+| --- | --- |
+| Archive SHA-256 | `0dfdf1c0604e8ccf9e3064d8131e48ae463cf655c0723dc57ebab4b06d2a2880` |
+| Archive bytes | 133,379,066 |
+| Archive/content files | 361 |
+| Manifest payload records | 360 |
+| Manifest SHA-256 | `ceafd82aadbf6552d16fd427dde534fc3feac54b2bcdf3069501ccbb8be54f65` |
+| Native ELF64 AArch64 files | 17 |
+
+The static verifier passed complete manifest readback, archive/path safety,
+required execute modes, Dashboard payload, fail-closed configuration, apparent
+secret/workstation-path scans and AArch64 identity for every native payload.
+It did not execute the ARM64 app host and contacted no OCI endpoint.
+
+The two commands published in the README were then executed literally from the
+repository root. The local integration builder produced 58 files and a
+47,234,206-byte ZIP with SHA-256
+`147586466ca5a92ac18760c77822d78899200ea4c72b0898a66b45b9aafb7301`.
+The verifier returned `Passed`, served the Dashboard, answered in `en-GB` and
+`pt-BR`, reopened generation
+`idxgen-795825d3ad7afad1acd3a16ef48f2448270dda36ea71725fe6f6231956ced2c5`
+after restart, and confirmed `control.db` and `vectors.db`. This evidence used
+only the synthetic CSV fixture, deterministic providers, temporary SQLite
+stores and loopback on Windows.
+
+Final C4 hygiene found a clean working tree, no diff error, no owned process
+and no relevant listener. Ignored build, coverage, package-cache and rehearsal
+outputs remain non-authoritative local evidence under their bounded paths.
+
+### Corrective disposition and gate boundary
+
+The evidence supports the following corrective status:
+
+| Finding | Corrective evidence | Status |
+| --- | --- | --- |
+| `AQG-S06-001` | State-owned readiness plan, exact locked ARM64 graph, two identical self-contained cross-publishes and passing static verifier. | `CORRECTED_PENDING_GATE_RETEST` |
+| `AQG-S06-002` | Deterministic composed cancellation and bounded provider/source failures, followed by successful query service and restart against the same active generation. | `CORRECTED_PENDING_GATE_RETEST` |
+| `AQG-S06-003` | Accepted ownership rule, reconciled corpus `4.9.3`, factual README and locally re-executed synthetic example commands/results. | `CORRECTED_PENDING_GATE_RETEST` |
+
+The original Automatic Quality Gate remains **REPROVADO** as historical fact.
+C4 and C5 are corrective verification and factual reconciliation, not
+`AUTH-S06-AQG-RETEST-001`; they do not resolve the findings or approve the
+gate. `STATE-06` remains active and its Human Gate remains premature.
+
+Linux ARM64 execution, OCI tenancy/IAM/capacity/network/storage/cost, TLS,
+operational backup/restore, providers, accounts, real corpus and real official
+sources remain untested and unauthorised. No OCI, GitHub, publication,
+deployment, public contract, OpenAPI, schema, migration, ADR, Human Gate,
+`STATE-07` or external product action occurred.
+
+Rollback was not executed. A future rollback requires ordinary focused reverts
+of the applicable corrective commits under separate authority, plus a
+compensating append-only factual record. Ignored task caches and outputs may be
+removed only from their validated paths under explicit cleanup authority; no
+external state exists to roll back.

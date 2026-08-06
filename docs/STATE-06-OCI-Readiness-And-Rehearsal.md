@@ -7,7 +7,7 @@ ARM64 cross-publish rehearsal for `RagChallenge.Server.Api` with the compiled
 Dashboard. It implements no OCI resource, tenancy policy, secret, public
 endpoint, service installation, publication or deployment. It is subordinate
 to accepted ADR-0005, the current factual state and the explicit
-`AUTH-S06-DEP-001` and `AUTH-S06-CORR-001` envelopes.
+`AUTH-S06-DEP-001`, `AUTH-S06-DEP-002` and `AUTH-S06-CORR-001` envelopes.
 
 The rehearsal is static Windows-hosted evidence for a self-contained
 `linux-arm64` payload. It is not evidence that the payload ran on Linux, that
@@ -21,7 +21,7 @@ an OCI shape is available, or that the application is production-ready.
 | Runtime-pack supply chain | Verified locally | The three authorised .NET/ASP.NET Core `10.0.10` packs passed identity, catalogue SHA-512, signature, licence, advisory and resolver-closure checks. |
 | Locked `linux-arm64` restore | Verified locally | The four production lockfiles record the approved RID and the locked restore uses only the verified local source and isolated cache. |
 | Rehearsal implementation | Implemented | Repository-owned build and verification scripts are bounded to ignored local output and contain no OCI operation. |
-| Rehearsal reproduction | Pending corrective verification | C4 must produce two byte-identical archives and pass manifest, configuration and AArch64 checks on the final correction baseline. |
+| Rehearsal reproduction | Verified locally | C4 produced two byte-identical archives and passed manifest, configuration and AArch64 checks on clean `main@f1a02cd7c7acb50bcd3fa8b00e69e6c3f59b88c3`. |
 | Linux ARM64 execution | Not tested | No ARM64 executable is run on the Windows rehearsal host. |
 | OCI verification or deployment | Not authorised or tested | No OCI account, endpoint, capacity, IAM, network, storage, cost or runtime evidence exists in this increment. |
 
@@ -68,6 +68,19 @@ every manifest record, rejects unsafe paths and Windows runtime payloads,
 requires the compiled Dashboard, and validates every native payload as ELF64
 little-endian AArch64. It explicitly records that the ARM64 app host was not
 executed and that OCI was not contacted.
+
+### Verified corrective result
+
+On 2026-08-06, two consecutive no-restore builds from clean
+`main@f1a02cd7c7acb50bcd3fa8b00e69e6c3f59b88c3` produced the same archive
+SHA-256
+`0dfdf1c0604e8ccf9e3064d8131e48ae463cf655c0723dc57ebab4b06d2a2880`,
+133,379,066 bytes and 361 archive entries. The 360-record manifest had SHA-256
+`ceafd82aadbf6552d16fd427dde534fc3feac54b2bcdf3069501ccbb8be54f65` in
+both runs. Static verification found 17 native ELF64 little-endian AArch64
+files, the compiled Dashboard and fail-closed configuration, with no apparent
+secret or unsafe workstation path. `LinuxArm64Executed` and `OciContacted`
+remained `false`.
 
 ## Planned host and storage boundary
 
@@ -177,7 +190,7 @@ none of those areas.
 ## Rollback
 
 The repository rollback is a focused revert of the rehearsal document,
-scripts, tests and four RID lockfile additions. Ignored task cache and rehearsal
-output are non-authoritative local artefacts and may be removed only from their
-validated task-owned paths under explicit cleanup authority. No external state
-exists to roll back.
+scripts, tests, four RID lockfile targets and four production-project RID
+declarations. Ignored task cache and rehearsal output are non-authoritative
+local artefacts and may be removed only from their validated task-owned paths
+under explicit cleanup authority. No external state exists to roll back.

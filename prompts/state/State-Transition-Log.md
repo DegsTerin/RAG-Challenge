@@ -4392,3 +4392,88 @@ contém somente fatos cronológicos.
   mesmo fechamento já verificado; qualquer package, versão, fonte ou lockfile
   adicional continua sendo condição de parada.
 - Aprovador: proprietário do RAG-Challenge.
+
+## 2026-08-06 — S06-CORR-01 corrigido e pendente de reteste do gate
+
+- Estado anterior e resultante: `STATE-06 INTEGRATION` permanece ativo; o
+  Automatic Quality Gate histórico permanece `REPROVADO`; não houve transição
+  nem execução de novo gate.
+- Reconciliação histórica: `Current-State` e o relatório ainda terminavam no
+  bloqueio anterior de dependência porque C5 não havia sido alcançado. Este
+  registro preserva aquela parada e incorpora as autoridades, commits e
+  evidências corretivas posteriores sem reescrever o resultado original.
+- Primeira ampliação de dependência: sobre
+  `main@872c62a093f4df6549357f3a601f2f1d61943e0d`, corpus `4.9.3` e working
+  tree limpa, o proprietário permitiu que somente os lockfiles de Domain,
+  Application, Infrastructure e Server incorporassem `linux-arm64` por
+  `--force-evaluate`, seguido de restore locked. O commit
+  `4b808319b0c1abf0970f9f41c77fb1e08d295585` adicionou apenas o target RID e
+  os três runtime packs Microsoft .NET/ASP.NET Core `10.0.10` já verificados.
+- Correções offline: o commit
+  `405ab20d3e76a75f1a0f50fd625ec71831b9134b` adicionou o plano e rehearsal
+  ARM64; `801f77625e68692fe7b4691798694b4e8d92433a` adicionou a seam interna e
+  as provas compostas de cancelamento, falha de provider/fonte, consulta
+  posterior e restart; `9d72a1bb93325f6303516592fb4ff352a0a531ca` tornou o README factual e
+  limitado ao exemplo local/sintético verificado.
+- Bloqueio intermediário de C4: o primeiro gate agregado parou no restore com
+  `NU1004`, porque os quatro projetos ainda não declaravam o RID contido nos
+  lockfiles. C5 não foi executado nem antecipado naquele ponto.
+- `AUTH-S06-DEP-002`: autorizada sobre
+  `main@9d72a1bb93325f6303516592fb4ff352a0a531ca`, corpus `4.9.3` e working
+  tree limpa, exclusivamente para declarar `linux-arm64` nos quatro projetos
+  de produção e copiar por leitura ao cache isolado os packages já locked
+  `coverlet.collector` `10.0.1`, `Microsoft.CodeCoverage`,
+  `Microsoft.NET.Test.Sdk`, `Microsoft.TestPlatform.ObjectModel` e
+  `Microsoft.TestPlatform.TestHost` `18.7.0`, `xunit` `2.9.3`,
+  `xunit.abstractions` `2.0.3`, `xunit.analyzers` `1.18.0`, `xunit.assert`,
+  `xunit.core`, `xunit.extensibility.core` e
+  `xunit.extensibility.execution` `2.9.3`, e `xunit.runner.visualstudio`
+  `3.1.5`.
+- Cache e restore: os 13 diretórios de origem existiam, os destinos estavam
+  ausentes e os digests SHA-256 determinísticos de cada árvore foram idênticos
+  entre origem e cópia; a origem permaneceu inalterada. O restore da solução
+  usou somente a fonte local verificada, cache isolado, revogação offline,
+  `--no-cache` e locked mode, terminou com exit `0` e não alterou bytes ou
+  grafos de qualquer um dos sete lockfiles. Os quatro projetos de produção
+  materializaram somente `net10.0` e `net10.0/linux-arm64`; os projetos de
+  teste conservaram somente `net10.0`. O commit
+  `f1a02cd7c7acb50bcd3fa8b00e69e6c3f59b88c3` registra apenas as quatro
+  declarações de projeto.
+- Gate técnico corretivo C4: `eng/ci.ps1 -Offline` passou com restore locked,
+  format, build Release sem warning/erro, 74 testes unitários, 10 de
+  arquitetura e 95 de integração, total 179 sem falha ou skip, cobertura de
+  92,40% de linhas e 66,60% de branches, `npm ci --offline`, lint, typecheck,
+  38 testes npm, build Vite, auditoria de 198 arquivos e higiene Git.
+- Reprodução ARM64: duas construções consecutivas no mesmo commit limpo
+  produziram ZIP idêntico de 133.379.066 bytes e 361 entradas, SHA-256
+  `0dfdf1c0604e8ccf9e3064d8131e48ae463cf655c0723dc57ebab4b06d2a2880`.
+  O manifesto de 360 payloads também foi idêntico, SHA-256
+  `ceafd82aadbf6552d16fd427dde534fc3feac54b2bcdf3069501ccbb8be54f65`;
+  o verificador aprovou 17 payloads ELF64 AArch64, integridade, paths,
+  Dashboard, configuração fail-closed e scan aparente de secrets. O binário
+  ARM64 não foi executado e OCI não foi contatado.
+- README: os dois comandos publicados foram executados literalmente. O
+  artefato local possui 58 arquivos e 47.234.206 bytes, SHA-256
+  `147586466ca5a92ac18760c77822d78899200ea4c72b0898a66b45b9aafb7301`;
+  a reprodução retornou `Passed`, serviu o Dashboard, respondeu em `en-GB` e
+  `pt-BR` e preservou a mesma geração ativa após restart. Fixture, providers,
+  stores e listener permaneceram locais/sintéticos.
+- Higiene final de C4: working tree limpa, `git diff --check` aprovado, zero
+  processo pertencente ao RAG-Challenge e zero listener nas portas 4173, 5086,
+  5096, 5173 e 9230.
+- Disposição corretiva: `AQG-S06-001`, `AQG-S06-002` e `AQG-S06-003` estão
+  `CORRECTED_PENDING_GATE_RETEST`. Essa classificação não os resolve, não
+  aprova o gate e não substitui sua repetição integral.
+- Escopo negativo preservado: sem rede nova, Linux executado, OCI, provider,
+  conta, secret, corpus ou fonte real, GitHub, publicação, deploy, ADR,
+  contrato público, OpenAPI, schema, migration, novo Automatic Quality Gate,
+  Human Gate, `STATE-07` ou DB-Notifier.
+- Rollback: não executado. Reversão futura exige autoridade própria, reverts
+  focais ordinários e registro compensatório append-only; não existe estado
+  externo a reverter.
+- Relatório reconciliado:
+  [`STATE-06-Integration-Report.md`](../../docs/STATE-06-Integration-Report.md).
+- Próxima condição: `AUTH-S06-AQG-RETEST-001` separada sobre baseline limpa
+  para reiniciar integralmente o Automatic Quality Gate; Human Gate continua
+  prematuro.
+- Aprovador: proprietário do RAG-Challenge.

@@ -383,20 +383,33 @@ proprietários.
   tree limpa. A decisão `NORM-S06-001` mantém em `STATE-06` um README
   factualmente atual com exemplo local/sintético realmente verificado e
   reserva para `STATE-08` sua finalização pública com evidência própria de OCI
-  e execução real do produto. A reconciliação normativa está registrada como
-  corpus `4.9.3`. O proprietário também autorizou o intake isolado e
-  estritamente delimitado dos três runtime packs Linux ARM64 `10.0.10`, as
-  correções offline dos três achados, suas verificações e commits locais
-  focais. A verificação dos três pacotes aprovou identidade, versão, SHA-512 de
-  catálogo, assinaturas author/repository em revogação offline, licença MIT,
-  fechamento sem dependências e zero advisory aplicável a `10.0.10`. O restore
-  local e locked parou com `NU1004`: propagar `linux-arm64` exige atualizar os
-  lockfiles de Domain, Application, Infrastructure e Server, mas a autoridade
-  permite alterar somente o de Server. Nenhum lockfile ou outro arquivo
-  rastreado mudou; `S06-CORR-01` está bloqueado no gate de dependência e não
-  avançou para implementação ou checks executáveis. Os achados permanecem
-  abertos e o Automatic Quality Gate permanece `REPROVADO`. Human Gate, novo
-  gate, OCI real e `STATE-07` não estão autorizados.
+  e execução real do produto; a reconciliação normativa está registrada como
+  corpus `4.9.3`. A supply chain dos três runtime packs Linux ARM64 `10.0.10`
+  aprovou identidade, versão, SHA-512 de catálogo, assinaturas
+  author/repository em revogação offline, licença MIT, fechamento sem
+  dependências e zero advisory aplicável. Depois das ampliações explícitas de
+  autoridade, os quatro lockfiles de produção registraram somente esse RID e
+  esses três packs no commit
+  `4b808319b0c1abf0970f9f41c77fb1e08d295585`; o rehearsal ARM64, as provas
+  compostas de cancelamento/resiliência e o README local/sintético foram
+  implementados nos commits
+  `405ab20d3e76a75f1a0f50fd625ec71831b9134b`,
+  `801f77625e68692fe7b4691798694b4e8d92433a` e
+  `9d72a1bb93325f6303516592fb4ff352a0a531ca`. `AUTH-S06-DEP-002` adicionou
+  somente `linux-arm64` aos quatro projetos de produção e completou o cache
+  isolado com os 13 packages de teste já locked; o commit
+  `f1a02cd7c7acb50bcd3fa8b00e69e6c3f59b88c3` materializa as quatro
+  declarações de projeto. O restore locked da solução aprovou somente com a
+  fonte local verificada e o cache isolado, sem mudar qualquer lockfile ou
+  grafo. C4 aprovou format, build Release sem warning, 179 testes .NET,
+  cobertura de 92,40% de linhas e 66,60% de branches, lint, typecheck, 38
+  testes npm, build Vite, auditoria de 198 arquivos, duas reproduções ARM64
+  idênticas, verificação estática e os comandos do README. O fluxo local
+  preservou a mesma geração após restart; os processos e listeners terminaram
+  ausentes. `AQG-S06-001` a `AQG-S06-003` estão
+  `CORRECTED_PENDING_GATE_RETEST`; o Automatic Quality Gate histórico permanece
+  `REPROVADO` e não foi repetido. Human Gate, `STATE-07`, execução Linux, OCI
+  real e demais ações externas permanecem não autorizados.
 - Fechamento de `S04-A0`: `PdfPig` `0.1.15` e `CsvHelper` `33.1.0` foram
   selecionados condicionalmente para desenvolvimento local;
   `Sylvan.Data.Csv` `1.4.4` permanece fallback não selecionado e não
@@ -895,8 +908,9 @@ autorizada.
    para cada banco antes de sua ativação.
 2. Validar e ativar individualmente novos registros de fonte oficial; a
    aceitação arquitetural não autoriza URL, rede, download ou crawling.
-3. Corrigir sob autoridade própria `AQG-S06-001` a `AQG-S06-003` e repetir
-   integralmente o Automatic Quality Gate de `STATE-06` antes de qualquer
+3. Repetir integralmente o Automatic Quality Gate de `STATE-06`, sob
+   `AUTH-S06-AQG-RETEST-001` separada, para dispor `AQG-S06-001` a
+   `AQG-S06-003`, hoje `CORRECTED_PENDING_GATE_RETEST`, antes de qualquer
    resumo de Human Gate.
 4. Verificar tier, entitlement, spend limit e controles da conta OpenAI, além
    da recuperação/geração bilíngue, antes de usar ou anunciar os providers.
@@ -1083,14 +1097,21 @@ Quality Gate posterior foi executado sobre
 `main@a6f0480b7f229b63c5ac24d65e61f55de1c6483a` e ficou `REPROVADO` por
 `AQG-S06-001` a `AQG-S06-003`, todos P2. O proprietário autorizou
 `S06-CORR-01` sobre `main@140c0516e4dbfc02808a90f0496550eb6b09da1b` e
-aceitou `NORM-S06-001`; o corpus `4.9.3` reconcilia o ownership do README. A
-execução sequencial autorizada inclui somente o intake Linux ARM64 delimitado,
-as correções offline, seus checks e commits locais focais. A supply chain dos
-três pacotes `10.0.10` foi aprovada, mas o restore locked demonstrou que todos
-os quatro lockfiles dos projetos de produção precisam incorporar o RID. Como
-somente o lockfile de Server pode mudar, o lote parou sem alteração rastreada
-de dependência e permanece bloqueado no gate de dependência. Um novo
-Automatic Quality Gate, Human Gate, `STATE-07`, OCI real, providers, contas,
-secrets, corpus ou fontes reais, armazenamento operacional, GitHub,
-publicação, deploy, DB-Notifier e estados posteriores continuam sem
-autorização.
+aceitou `NORM-S06-001`; o corpus `4.9.3` reconcilia o ownership do README. As
+ampliações posteriores de `AUTH-S06-DEP-001` e `AUTH-S06-DEP-002` permitiram
+somente os quatro lockfiles/projetos de produção, o RID `linux-arm64`, os três
+runtime packs verificados `10.0.10` e os 13 packages de teste já locked no
+cache isolado. Restore locked, implementação e C4 foram aprovados sem mudança
+de lockfile ou grafo além do fechamento previamente autorizado. Os commits
+`4b808319b0c1abf0970f9f41c77fb1e08d295585`,
+`405ab20d3e76a75f1a0f50fd625ec71831b9134b`,
+`801f77625e68692fe7b4691798694b4e8d92433a`,
+`9d72a1bb93325f6303516592fb4ff352a0a531ca` e
+`f1a02cd7c7acb50bcd3fa8b00e69e6c3f59b88c3` materializam a correção e a
+compatibilização final. `AQG-S06-001` a `AQG-S06-003` estão
+`CORRECTED_PENDING_GATE_RETEST`; o gate histórico permanece `REPROVADO` e não
+foi repetido. `STATE-06` continua ativo. Um novo Automatic Quality Gate exige
+`AUTH-S06-AQG-RETEST-001` separada; Human Gate, `STATE-07`, execução Linux,
+OCI real, providers, contas, secrets, corpus ou fontes reais, armazenamento
+operacional, GitHub, publicação, deploy, DB-Notifier e estados posteriores
+continuam sem autorização.
