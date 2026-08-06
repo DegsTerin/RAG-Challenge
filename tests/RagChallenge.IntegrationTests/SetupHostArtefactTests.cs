@@ -1,5 +1,6 @@
 // Purpose: Verifies setup-host configuration and health mappings without starting listeners or contacting external services.
 using System.Text.Json;
+using System.Text.RegularExpressions;
 
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
@@ -159,6 +160,56 @@ public sealed class SetupHostArtefactTests
         Assert.Contains(
             typeof(Domain.DomainAssemblyMarker).Assembly,
             Infrastructure.InfrastructureAssemblyMarker.ReferencedCoreAssemblies);
+    }
+
+    [Fact]
+    public void OciRehearsalBuilderRequiresTheRestoredOfflineArm64Boundary()
+    {
+        var serverRoot = Path.Combine(
+            FindRepositoryRoot(),
+            "src",
+            "RagChallenge.Server.Api");
+        var builder = File.ReadAllText(Path.Combine(
+            serverRoot,
+            "Build-OciRehearsalArtifact.ps1"));
+        var verifier = File.ReadAllText(Path.Combine(
+            serverRoot,
+            "Test-OciRehearsalArtifact.ps1"));
+        var scripts = builder + "\n" + verifier;
+
+        Assert.Contains("net10.0/linux-arm64", builder, StringComparison.Ordinal);
+        Assert.Contains("--runtime linux-arm64", builder, StringComparison.Ordinal);
+        Assert.Contains("--self-contained true", builder, StringComparison.Ordinal);
+        Assert.Contains("--no-restore", builder, StringComparison.Ordinal);
+        Assert.Contains(
+            "artifacts-local/s06-oci-rehearsal",
+            builder,
+            StringComparison.Ordinal);
+        Assert.Contains("artifact-manifest.sha256", scripts, StringComparison.Ordinal);
+        Assert.Contains("ZipFile]::OpenRead", verifier, StringComparison.Ordinal);
+        Assert.Contains("LinuxArm64Executed = $false", scripts, StringComparison.Ordinal);
+        Assert.DoesNotMatch(
+            new Regex(
+                @"(?im)^\s*(?:oci|docker|podman|curl)(?:[.]exe)?\b|Invoke-(?:WebRequest|RestMethod)|System[.]Net[.]Http"),
+            scripts);
+    }
+
+    [Fact]
+    public void OciRehearsalVerifierRequiresAarch64DashboardAndFailClosedConfiguration()
+    {
+        var verifier = File.ReadAllText(Path.Combine(
+            FindRepositoryRoot(),
+            "src",
+            "RagChallenge.Server.Api",
+            "Test-OciRehearsalArtifact.ps1"));
+
+        Assert.Contains("$machine -ne 183", verifier, StringComparison.Ordinal);
+        Assert.Contains("libe_sqlite3.so", verifier, StringComparison.Ordinal);
+        Assert.Contains("wwwroot/index.html", verifier, StringComparison.Ordinal);
+        Assert.Contains("runtimes/win-", verifier, StringComparison.Ordinal);
+        Assert.Contains("AllowExternalServices", verifier, StringComparison.Ordinal);
+        Assert.Contains("ExternalServicesEnabledByDefault = $false", verifier, StringComparison.Ordinal);
+        Assert.Contains("OciContacted = $false", verifier, StringComparison.Ordinal);
     }
 
     private static string FindRepositoryRoot()
