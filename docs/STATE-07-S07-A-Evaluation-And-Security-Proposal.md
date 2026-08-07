@@ -24,6 +24,18 @@ and the accepted architecture. A later approval must name the exact execution
 envelope. Approval of this proposal must not be interpreted as execution
 authority.
 
+## Planning baseline decision
+
+On 2026-08-07, the owner confirmed this proposal exclusively as the `S07-A`
+planning baseline on clean `main@183c8cd9fe303096a355ab731e72dc81748eb626`,
+prompt corpus `4.9.3`.
+
+The confirmation did not grant `AUTH-S07-A-DATASET-001`,
+`AUTH-S07-A-RUN-001`, dataset materialisation, evaluation, tests, load,
+dynamic security, browser, provider, real-source, network or external-action
+authority. All proposed authority identifiers remain ungranted until the
+owner supplies a later explicit and bounded approval.
+
 ## Confirmed proposal baseline
 
 The local read-only inspection on 2026-08-07 confirmed:

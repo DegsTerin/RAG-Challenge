@@ -518,6 +518,13 @@ proprietários.
   Dataset, avaliação RAG, testes, carga, segurança dinâmica, browser,
   providers, fontes reais, rede, OCI, GitHub, publicação, deploy, `STATE-08`
   e qualquer ação externa permanecem não autorizados e não executados.
+- Baseline de planejamento de `S07-A`: a proposta documental
+  [`STATE-07-S07-A-Evaluation-And-Security-Proposal.md`](../../docs/STATE-07-S07-A-Evaluation-And-Security-Proposal.md)
+  foi criada no commit `183c8cd9fe303096a355ab731e72dc81748eb626` e
+  confirmada pelo proprietário em 2026-08-07 exclusivamente como baseline de
+  planejamento. A confirmação não concedeu `AUTH-S07-A-DATASET-001`,
+  `AUTH-S07-A-RUN-001`, materialização de dataset, avaliação, testes, carga,
+  segurança dinâmica, browser, providers, fontes reais, rede ou ação externa.
 - Fechamento de `S04-A0`: `PdfPig` `0.1.15` e `CsvHelper` `33.1.0` foram
   selecionados condicionalmente para desenvolvimento local;
   `Sylvan.Data.Csv` `1.4.4` permanece fallback não selecionado e não
@@ -1315,3 +1322,11 @@ público necessários. `STATE-07` está ativo sem lote autorizado ou executado.
 Qualquer dataset, avaliação RAG, teste, carga, segurança dinâmica, browser,
 provider, fonte real, rede, OCI, GitHub, publicação, deploy, `STATE-08` ou
 ação externa exige autoridade humana explícita e separada.
+
+Em 2026-08-07, sobre
+`main@183c8cd9fe303096a355ab731e72dc81748eb626`, corpus `4.9.3` e working
+tree limpa, o proprietário confirmou a proposta documental de `S07-A`
+exclusivamente como baseline de planejamento. A confirmação não autorizou
+`AUTH-S07-A-DATASET-001`, `AUTH-S07-A-RUN-001`, materialização de dataset,
+avaliação, testes, carga, segurança dinâmica, browser, providers, fontes
+reais, rede ou ação externa. `S07-A` permanece não executado.

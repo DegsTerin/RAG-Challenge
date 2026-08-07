@@ -4934,3 +4934,46 @@ contém somente fatos cronológicos.
   delimitado de `STATE-07`, com dataset, checks, ambiente, escopo negativo e
   condições de parada próprios.
 - Aprovador da entrada: proprietário do RAG-Challenge.
+
+## 2026-08-07 — Proposta S07-A confirmada como baseline de planejamento
+
+- Estado anterior: `STATE-07 TESTING_HOMOLOGATION` ativo exclusivamente por
+  entrada documental; a proposta de `S07-A` estava registrada no commit
+  `183c8cd9fe303096a355ab731e72dc81748eb626`, sem autoridade de execução.
+- Baseline: branch `main`, commit
+  `183c8cd9fe303096a355ab731e72dc81748eb626`, corpus `4.9.3` e working tree
+  limpa, reconfirmados antes do registro.
+- Confirmação do proprietário:
+
+  ```text
+  Confirmo a proposta documental de S07-A exclusivamente como baseline de planejamento.
+
+  Esta confirmação não autoriza AUTH-S07-A-DATASET-001, AUTH-S07-A-RUN-001, materialização de dataset, avaliação, testes, carga, segurança dinâmica, browser, providers, fontes reais, rede ou qualquer ação externa.
+  ```
+
+- Decisão: confirmar a proposta documental somente como baseline de
+  planejamento; nenhum identificador de autoridade proposto foi concedido.
+- Escopo do registro: atualizar o status da proposta, o índice público, o
+  estado factual e este histórico append-only; validar o incremento e criar
+  um commit local focal.
+- Escopo negativo: sem materialização de dataset, avaliação, testes, carga,
+  segurança dinâmica, browser, providers, fontes reais, rede, OCI, GitHub,
+  publicação, deploy, `STATE-08`, Automatic Quality Gate, Human Gate ou ação
+  externa; sem código, dependências, lockfiles, contratos, OpenAPI, schema,
+  migrations ou ADRs.
+- Runtime preflight: `NÃO APLICÁVEL`; o incremento registra somente uma
+  decisão documental e não altera nem valida comportamento executável.
+- Conteúdo confirmado: identidade e freeze do dataset, proveniência/direitos,
+  os 15 thresholds aceitos de ADR-0004, matriz `pt-BR`/`en-GB`, ambientes,
+  verificações, evidências, autoridades futuras propostas, escopo negativo e
+  condições de parada.
+- Limitações: não existe evidência de corpus real, dataset materializado ou
+  congelado, campanha pontuada, provider, fonte real, ambiente homologado ou
+  ação externa. Fixtures sintéticas não substituem evidência de produto.
+- Resultado: `S07-A` possui baseline de planejamento confirmada, mas permanece
+  não autorizado para execução e não executado. Automatic Quality Gate e
+  Human Gate de `STATE-07` permanecem `PENDENTES` e não executados.
+- Próxima condição: autoridade humana explícita e separada para
+  `AUTH-S07-A-DATASET-001` ou outro envelope delimitado; a confirmação desta
+  proposta não satisfaz essa condição.
+- Aprovador da baseline de planejamento: proprietário do RAG-Challenge.
