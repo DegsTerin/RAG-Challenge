@@ -8,13 +8,16 @@ using RagChallenge.Domain.CorpusCatalog;
 
 namespace RagChallenge.Infrastructure.Persistence;
 
-public sealed class ImmutableContentStore : IImmutableContentStore
+public sealed class ImmutableContentStore : IDocumentContentStore
 {
     private const long AbsoluteMaximumByteLength = 512L * 1024 * 1024;
     private const int BufferSize = 64 * 1024;
     private const int CleanupPlanMaximumByteLength = 64 * 1024 * 1024;
     private const string CleanupPlanFileName = "cleanup-plan-v1.json";
     private const string CleanupPlanPartialFileName = "cleanup-plan-v1.json.partial";
+
+    private static readonly ContentStoreImplementationDescriptor ImplementationDescriptor =
+        new("filesystem-sha256-v1");
 
     private readonly string rootPath;
     private readonly string objectsPath;
@@ -34,24 +37,17 @@ public sealed class ImmutableContentStore : IImmutableContentStore
 
     internal string RootPath => rootPath;
 
-    public async Task<ContentWriteResult> PutAsync(
-        Stream content,
-        long maximumByteLength,
-        ContentObjectId? expectedContentObjectId = null,
+    public async Task<ContentObjectDescriptor> PutAndVerifyAsync(
+        BoundedContentInput input,
         CancellationToken cancellationToken = default)
     {
-        ArgumentNullException.ThrowIfNull(content);
+        ArgumentNullException.ThrowIfNull(input);
 
-        if (!content.CanRead)
-        {
-            throw new ArgumentException("Content must be readable.", nameof(content));
-        }
-
-        if (maximumByteLength <= 0 || maximumByteLength > AbsoluteMaximumByteLength)
+        if (input.MaximumByteLength > AbsoluteMaximumByteLength)
         {
             throw new ArgumentOutOfRangeException(
-                nameof(maximumByteLength),
-                maximumByteLength,
+                nameof(input),
+                input.MaximumByteLength,
                 $"Content must be bounded to 1..{AbsoluteMaximumByteLength} bytes.");
         }
 
@@ -81,7 +77,7 @@ public sealed class ImmutableContentStore : IImmutableContentStore
                 {
                     while (true)
                     {
-                        var read = await content
+                        var read = await input.Content
                             .ReadAsync(buffer.AsMemory(0, BufferSize), cancellationToken)
                             .ConfigureAwait(false);
 
@@ -92,7 +88,7 @@ public sealed class ImmutableContentStore : IImmutableContentStore
 
                         byteLength = checked(byteLength + read);
 
-                        if (byteLength > maximumByteLength)
+                        if (byteLength > input.MaximumByteLength)
                         {
                             throw new InvalidDataException(
                                 "Content exceeded its authorised byte limit.");
@@ -121,8 +117,8 @@ public sealed class ImmutableContentStore : IImmutableContentStore
 
             var contentObjectId = new ContentObjectId(digest);
 
-            if (expectedContentObjectId is not null &&
-                expectedContentObjectId != contentObjectId)
+            if (input.ExpectedContentObjectId is not null &&
+                input.ExpectedContentObjectId != contentObjectId)
             {
                 throw new InvalidDataException(
                     "Content did not match its expected SHA-256 identity.");
@@ -132,13 +128,14 @@ public sealed class ImmutableContentStore : IImmutableContentStore
 
             if (File.Exists(destination))
             {
-                await VerifyExistingAsync(
-                    destination,
+                var descriptor = await CreateVerifiedDescriptorAsync(
                     contentObjectId,
                     byteLength,
+                    input.MediaType,
+                    ContentObjectWriteOutcome.AlreadyExisted,
                     cancellationToken).ConfigureAwait(false);
                 DeleteQuarantineFile(quarantineFile);
-                return new ContentWriteResult(contentObjectId, byteLength, AlreadyExisted: true);
+                return descriptor;
             }
 
             try
@@ -147,21 +144,22 @@ public sealed class ImmutableContentStore : IImmutableContentStore
             }
             catch (IOException) when (File.Exists(destination))
             {
-                await VerifyExistingAsync(
-                    destination,
+                var descriptor = await CreateVerifiedDescriptorAsync(
                     contentObjectId,
                     byteLength,
+                    input.MediaType,
+                    ContentObjectWriteOutcome.AlreadyExisted,
                     cancellationToken).ConfigureAwait(false);
                 DeleteQuarantineFile(quarantineFile);
-                return new ContentWriteResult(contentObjectId, byteLength, AlreadyExisted: true);
+                return descriptor;
             }
 
-            await VerifyExistingAsync(
-                destination,
+            return await CreateVerifiedDescriptorAsync(
                 contentObjectId,
                 byteLength,
+                input.MediaType,
+                ContentObjectWriteOutcome.Published,
                 cancellationToken).ConfigureAwait(false);
-            return new ContentWriteResult(contentObjectId, byteLength, AlreadyExisted: false);
         }
         catch
         {
@@ -170,12 +168,21 @@ public sealed class ImmutableContentStore : IImmutableContentStore
         }
     }
 
-    public async ValueTask<Stream> OpenReadAsync(
+    public async ValueTask<VerifiedContentObject> OpenVerifiedAsync(
         ContentObjectId contentObjectId,
+        ExpectedHashAndLength expected,
         CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(contentObjectId);
+        ArgumentNullException.ThrowIfNull(expected);
         cancellationToken.ThrowIfCancellationRequested();
+
+        if (contentObjectId != expected.Sha256)
+        {
+            throw new InvalidDataException(
+                "The requested content identity does not match the expected SHA-256.");
+        }
+
         var path = ResolveObjectPath(contentObjectId, createDirectory: false);
         StoragePathSafety.EnsureExistingPathIsNotReparsePoint(path, nameof(contentObjectId));
 
@@ -189,6 +196,12 @@ public sealed class ImmutableContentStore : IImmutableContentStore
 
         try
         {
+            if (stream.Length != expected.ByteLength)
+            {
+                throw new InvalidDataException(
+                    "A content object no longer matches its expected byte length.");
+            }
+
             using var sha256 = SHA256.Create();
             var actual = Convert.ToHexString(
                 await sha256.ComputeHashAsync(stream, cancellationToken)
@@ -197,7 +210,7 @@ public sealed class ImmutableContentStore : IImmutableContentStore
 
             if (!string.Equals(
                     actual,
-                    contentObjectId.Value,
+                    expected.Sha256.Value,
                     StringComparison.Ordinal))
             {
                 throw new InvalidDataException(
@@ -205,13 +218,41 @@ public sealed class ImmutableContentStore : IImmutableContentStore
             }
 
             stream.Position = 0;
-            return stream;
+            return new VerifiedContentObject(
+                contentObjectId,
+                expected.Sha256,
+                expected.ByteLength,
+                stream,
+                ContentVerificationOutcome.Verified);
         }
         catch
         {
             await stream.DisposeAsync().ConfigureAwait(false);
             throw;
         }
+    }
+
+    private async Task<ContentObjectDescriptor> CreateVerifiedDescriptorAsync(
+        ContentObjectId contentObjectId,
+        long byteLength,
+        ContentMediaType mediaType,
+        ContentObjectWriteOutcome writeOutcome,
+        CancellationToken cancellationToken)
+    {
+        await using var reopened = await OpenVerifiedAsync(
+            contentObjectId,
+            new ExpectedHashAndLength(contentObjectId, byteLength),
+            cancellationToken).ConfigureAwait(false);
+        return new ContentObjectDescriptor(
+            contentObjectId,
+            contentObjectId,
+            byteLength,
+            mediaType,
+            ImplementationDescriptor,
+            writeOutcome,
+            new ContentObjectVerificationResult(
+                ContentVerificationOutcome.Verified,
+                reopened.ReopenVerification));
     }
 
     internal bool DeleteIfPresent(ContentObjectId contentObjectId)

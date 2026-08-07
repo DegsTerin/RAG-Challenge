@@ -63,7 +63,11 @@ internal sealed class SqlitePersistenceFixture : IAsyncDisposable
     {
         var bytes = Encoding.UTF8.GetBytes(contentText);
         await using var content = new MemoryStream(bytes, writable: false);
-        var contentResult = await ContentStore.PutAsync(content, bytes.Length);
+        var contentResult = await ContentStore.PutAndVerifyAsync(
+            new BoundedContentInput(
+                content,
+                bytes.Length,
+                ContentMediaType.ApplicationPdf));
         var productId = new DatabaseProductId("db-fixture");
         var productRevision = new DatabaseProductRevision(1);
         var documentId = new DocumentId("doc-fixture");

@@ -181,21 +181,287 @@ public interface IControlPlaneStore
         CancellationToken cancellationToken = default);
 }
 
-public sealed record ContentWriteResult(
-    ContentObjectId ContentObjectId,
-    long ByteLength,
-    bool AlreadyExisted);
-
-public interface IImmutableContentStore
+public sealed record ContentMediaType
 {
-    Task<ContentWriteResult> PutAsync(
+    private const int MaximumLength = 127;
+
+    public static ContentMediaType ApplicationPdf { get; } = new("application/pdf");
+
+    public static ContentMediaType ApplicationCsv { get; } = new("application/csv");
+
+    public static ContentMediaType ApplicationOctetStream { get; } =
+        new("application/octet-stream");
+
+    public static ContentMediaType ImagePng { get; } = new("image/png");
+
+    public static ContentMediaType TextCsv { get; } = new("text/csv");
+
+    public ContentMediaType(string value)
+    {
+        ArgumentNullException.ThrowIfNull(value);
+
+        if (value.Length is 0 or > MaximumLength ||
+            value.Any(character => character > 0x7f))
+        {
+            throw new ArgumentException(
+                "A media type must be bounded non-empty ASCII.",
+                nameof(value));
+        }
+
+        var separator = value.IndexOf('/');
+
+        if (separator <= 0 ||
+            separator != value.LastIndexOf('/') ||
+            separator == value.Length - 1 ||
+            !value[..separator].All(IsTokenCharacter) ||
+            !value[(separator + 1)..].All(IsTokenCharacter))
+        {
+            throw new ArgumentException(
+                "A media type must contain one concrete type/subtype token without parameters.",
+                nameof(value));
+        }
+
+        Value = value.ToLowerInvariant();
+    }
+
+    public string Value { get; }
+
+    public override string ToString() => Value;
+
+    private static bool IsTokenCharacter(char character) =>
+        character is >= 'a' and <= 'z' or >= 'A' and <= 'Z' or >= '0' and <= '9' ||
+        character is '!' or '#' or '$' or '%' or '&' or '\'' or '+' or '-' or '.' or
+            '^' or '_' or '`' or '|' or '~';
+}
+
+public sealed record ContentStoreImplementationDescriptor
+{
+    private const int MaximumLength = 128;
+
+    public ContentStoreImplementationDescriptor(string value)
+    {
+        ArgumentNullException.ThrowIfNull(value);
+
+        if (value.Length is 0 or > MaximumLength ||
+            !char.IsAsciiLetterOrDigit(value[0]) ||
+            value.Any(character =>
+                !char.IsAsciiLetterOrDigit(character) &&
+                character is not ('.' or '_' or ':' or '-')))
+        {
+            throw new ArgumentException(
+                "A content-store descriptor must be a stable non-secret ASCII identifier.",
+                nameof(value));
+        }
+
+        Value = value;
+    }
+
+    public string Value { get; }
+
+    public override string ToString() => Value;
+}
+
+public enum ContentObjectWriteOutcome
+{
+    Published,
+    AlreadyExisted,
+}
+
+public enum ContentVerificationOutcome
+{
+    Verified,
+}
+
+public sealed class ContentObjectVerificationResult
+{
+    public ContentObjectVerificationResult(
+        ContentVerificationOutcome writeVerification,
+        ContentVerificationOutcome reopenVerification)
+    {
+        if (!Enum.IsDefined(writeVerification))
+        {
+            throw new ArgumentOutOfRangeException(nameof(writeVerification));
+        }
+
+        if (!Enum.IsDefined(reopenVerification))
+        {
+            throw new ArgumentOutOfRangeException(nameof(reopenVerification));
+        }
+
+        WriteVerification = writeVerification;
+        ReopenVerification = reopenVerification;
+    }
+
+    public ContentVerificationOutcome WriteVerification { get; }
+
+    public ContentVerificationOutcome ReopenVerification { get; }
+}
+
+public sealed class ContentObjectDescriptor
+{
+    public ContentObjectDescriptor(
+        ContentObjectId contentObjectId,
+        ContentObjectId sha256,
+        long byteLength,
+        ContentMediaType mediaType,
+        ContentStoreImplementationDescriptor implementation,
+        ContentObjectWriteOutcome writeOutcome,
+        ContentObjectVerificationResult verification)
+    {
+        ArgumentNullException.ThrowIfNull(contentObjectId);
+        ArgumentNullException.ThrowIfNull(sha256);
+        ArgumentNullException.ThrowIfNull(mediaType);
+        ArgumentNullException.ThrowIfNull(implementation);
+        ArgumentNullException.ThrowIfNull(verification);
+
+        if (contentObjectId != sha256)
+        {
+            throw new ArgumentException(
+                "The content-object identity must equal the verified SHA-256.",
+                nameof(sha256));
+        }
+
+        ArgumentOutOfRangeException.ThrowIfNegativeOrZero(byteLength);
+
+        if (!Enum.IsDefined(writeOutcome))
+        {
+            throw new ArgumentOutOfRangeException(nameof(writeOutcome));
+        }
+
+        ContentObjectId = contentObjectId;
+        Sha256 = sha256;
+        ByteLength = byteLength;
+        MediaType = mediaType;
+        Implementation = implementation;
+        WriteOutcome = writeOutcome;
+        Verification = verification;
+    }
+
+    public ContentObjectId ContentObjectId { get; }
+
+    public ContentObjectId Sha256 { get; }
+
+    public long ByteLength { get; }
+
+    public ContentMediaType MediaType { get; }
+
+    public ContentStoreImplementationDescriptor Implementation { get; }
+
+    public ContentObjectWriteOutcome WriteOutcome { get; }
+
+    public ContentObjectVerificationResult Verification { get; }
+}
+
+public sealed class BoundedContentInput
+{
+    public BoundedContentInput(
         Stream content,
         long maximumByteLength,
-        ContentObjectId? expectedContentObjectId = null,
+        ContentMediaType mediaType,
+        ContentObjectId? expectedContentObjectId = null)
+    {
+        ArgumentNullException.ThrowIfNull(content);
+        ArgumentNullException.ThrowIfNull(mediaType);
+
+        if (!content.CanRead)
+        {
+            throw new ArgumentException("Content must be readable.", nameof(content));
+        }
+
+        ArgumentOutOfRangeException.ThrowIfNegativeOrZero(maximumByteLength);
+        Content = content;
+        MaximumByteLength = maximumByteLength;
+        MediaType = mediaType;
+        ExpectedContentObjectId = expectedContentObjectId;
+    }
+
+    public Stream Content { get; }
+
+    public long MaximumByteLength { get; }
+
+    public ContentMediaType MediaType { get; }
+
+    public ContentObjectId? ExpectedContentObjectId { get; }
+}
+
+public sealed class ExpectedHashAndLength
+{
+    public ExpectedHashAndLength(ContentObjectId sha256, long byteLength)
+    {
+        ArgumentNullException.ThrowIfNull(sha256);
+        ArgumentOutOfRangeException.ThrowIfNegativeOrZero(byteLength);
+        Sha256 = sha256;
+        ByteLength = byteLength;
+    }
+
+    public ContentObjectId Sha256 { get; }
+
+    public long ByteLength { get; }
+}
+
+public sealed class VerifiedContentObject : IAsyncDisposable
+{
+    public VerifiedContentObject(
+        ContentObjectId contentObjectId,
+        ContentObjectId sha256,
+        long byteLength,
+        Stream content,
+        ContentVerificationOutcome reopenVerification)
+    {
+        ArgumentNullException.ThrowIfNull(contentObjectId);
+        ArgumentNullException.ThrowIfNull(sha256);
+        ArgumentNullException.ThrowIfNull(content);
+
+        if (contentObjectId != sha256)
+        {
+            throw new ArgumentException(
+                "The reopened content identity must equal its verified SHA-256.",
+                nameof(sha256));
+        }
+
+        ArgumentOutOfRangeException.ThrowIfNegativeOrZero(byteLength);
+
+        if (!content.CanRead || !content.CanSeek || content.Position != 0)
+        {
+            throw new ArgumentException(
+                "Verified content must be readable, seekable and positioned at zero.",
+                nameof(content));
+        }
+
+        if (!Enum.IsDefined(reopenVerification))
+        {
+            throw new ArgumentOutOfRangeException(nameof(reopenVerification));
+        }
+
+        ContentObjectId = contentObjectId;
+        Sha256 = sha256;
+        ByteLength = byteLength;
+        Content = content;
+        ReopenVerification = reopenVerification;
+    }
+
+    public ContentObjectId ContentObjectId { get; }
+
+    public ContentObjectId Sha256 { get; }
+
+    public long ByteLength { get; }
+
+    public Stream Content { get; }
+
+    public ContentVerificationOutcome ReopenVerification { get; }
+
+    public ValueTask DisposeAsync() => Content.DisposeAsync();
+}
+
+public interface IDocumentContentStore
+{
+    Task<ContentObjectDescriptor> PutAndVerifyAsync(
+        BoundedContentInput input,
         CancellationToken cancellationToken = default);
 
-    ValueTask<Stream> OpenReadAsync(
+    ValueTask<VerifiedContentObject> OpenVerifiedAsync(
         ContentObjectId contentObjectId,
+        ExpectedHashAndLength expected,
         CancellationToken cancellationToken = default);
 }
 

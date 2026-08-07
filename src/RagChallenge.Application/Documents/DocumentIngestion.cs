@@ -400,6 +400,7 @@ public sealed class DeterministicChunkingStrategy : IChunkingStrategy
 public sealed record DocumentIngestionRequest(
     Stream Content,
     long MaximumByteLength,
+    ContentMediaType MediaType,
     ParserPolicy ParserPolicy,
     ChunkingPolicy ChunkingPolicy,
     DocumentChunkingContext ChunkingContext,
@@ -408,7 +409,7 @@ public sealed record DocumentIngestionRequest(
 public sealed class DocumentIngestionResult
 {
     public DocumentIngestionResult(
-        ContentWriteResult content,
+        ContentObjectDescriptor content,
         ParsedDocumentArtifact parsedArtifact,
         IReadOnlyList<DocumentChunk> chunks)
     {
@@ -417,7 +418,7 @@ public sealed class DocumentIngestionResult
         Chunks = chunks;
     }
 
-    public ContentWriteResult Content { get; }
+    public ContentObjectDescriptor Content { get; }
 
     public ParsedDocumentArtifact ParsedArtifact { get; }
 
@@ -426,12 +427,12 @@ public sealed class DocumentIngestionResult
 
 public sealed class DocumentIngestionService
 {
-    private readonly IImmutableContentStore contentStore;
+    private readonly IDocumentContentStore contentStore;
     private readonly Dictionary<DocumentFormat, IDocumentParser> parsers;
     private readonly IChunkingStrategy chunkingStrategy;
 
     public DocumentIngestionService(
-        IImmutableContentStore contentStore,
+        IDocumentContentStore contentStore,
         IEnumerable<IDocumentParser> parsers,
         IChunkingStrategy chunkingStrategy)
     {
@@ -461,6 +462,7 @@ public sealed class DocumentIngestionService
     {
         ArgumentNullException.ThrowIfNull(request);
         ArgumentNullException.ThrowIfNull(request.Content);
+        ArgumentNullException.ThrowIfNull(request.MediaType);
         ArgumentNullException.ThrowIfNull(request.ParserPolicy);
         ArgumentNullException.ThrowIfNull(request.ChunkingPolicy);
         ArgumentNullException.ThrowIfNull(request.ChunkingContext);
@@ -478,16 +480,28 @@ public sealed class DocumentIngestionService
                 DocumentParseFailureKind.UnsupportedFormat);
         }
 
-        var content = await contentStore.PutAsync(
-            request.Content,
-            request.MaximumByteLength,
-            request.ExpectedContentObjectId,
+        if (!MediaTypeMatchesFormat(
+                request.MediaType,
+                request.ChunkingContext.DocumentFormat))
+        {
+            throw new DocumentParseException(DocumentParseFailureKind.UnsupportedFormat);
+        }
+
+        var content = await contentStore.PutAndVerifyAsync(
+            new BoundedContentInput(
+                request.Content,
+                request.MaximumByteLength,
+                request.MediaType,
+                request.ExpectedContentObjectId),
             cancellationToken).ConfigureAwait(false);
         await using var verified = await contentStore
-            .OpenReadAsync(content.ContentObjectId, cancellationToken)
+            .OpenVerifiedAsync(
+                content.ContentObjectId,
+                new ExpectedHashAndLength(content.Sha256, content.ByteLength),
+                cancellationToken)
             .ConfigureAwait(false);
         var parsed = await parser
-            .ParseAsync(verified, request.ParserPolicy, cancellationToken)
+            .ParseAsync(verified.Content, request.ParserPolicy, cancellationToken)
             .ConfigureAwait(false);
         var chunks = chunkingStrategy.Chunk(
             parsed,
@@ -495,4 +509,16 @@ public sealed class DocumentIngestionService
             request.ChunkingPolicy);
         return new DocumentIngestionResult(content, parsed, chunks);
     }
+
+    private static bool MediaTypeMatchesFormat(
+        ContentMediaType mediaType,
+        DocumentFormat format) =>
+        format switch
+        {
+            DocumentFormat.Pdf => mediaType == ContentMediaType.ApplicationPdf,
+            DocumentFormat.Csv =>
+                mediaType == ContentMediaType.TextCsv ||
+                mediaType == ContentMediaType.ApplicationCsv,
+            _ => false,
+        };
 }

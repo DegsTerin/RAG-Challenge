@@ -42,6 +42,7 @@ public sealed class BackendEndToEndWorkflowTests
         var ingested = await ingestion.IngestAsync(new DocumentIngestionRequest(
             source,
             MaximumByteLength: 131_072,
+            ContentMediaType.TextCsv,
             new ParserPolicy(131_072, 32, 131_072, 32, 16_384),
             new ChunkingPolicy(128, 16, 160),
             context));

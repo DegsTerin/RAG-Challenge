@@ -207,10 +207,12 @@ public sealed class OfficialSourceSynchronisationService
         }
 
         await using var content = new MemoryStream(fetch.Content!, writable: false);
+        var mediaType = new ContentMediaType(fetch.MediaType!);
         var ingestion = await ingestionService.IngestAsync(
             new DocumentIngestionRequest(
                 content,
                 request.MaximumByteLength,
+                mediaType,
                 request.ParserPolicy,
                 request.ChunkingPolicy,
                 request.ChunkingContext),
@@ -238,7 +240,7 @@ public sealed class OfficialSourceSynchronisationService
             request.Registration.Id,
             ingestion.Content.ContentObjectId,
             ingestion.Content.ByteLength,
-            fetch.MediaType!,
+            ingestion.Content.MediaType.Value,
             request.SnapshotAuditContext.RequestedAt);
         var snapshotAuditDigest = request.SnapshotAuditContext.CreateDigest(
             request.Registration.Id.Value,

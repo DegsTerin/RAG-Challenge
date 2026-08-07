@@ -203,7 +203,7 @@ internal sealed class SyntheticIntegrationRuntime :
                 .ConfigureAwait(false);
             var controlStore = new SqliteControlPlaneStore(stores);
             var vectorStore = new SqliteVectorIndexStore(stores);
-            var contentStore = new ImmutableContentStore(stores);
+            IDocumentContentStore contentStore = new ImmutableContentStore(stores);
             var activation = await controlStore.ReadActiveActivationAsync(
                 CorpusId,
                 cancellationToken).ConfigureAwait(false);
@@ -243,7 +243,7 @@ internal sealed class SyntheticIntegrationRuntime :
     private static async Task BootstrapAsync(
         SqliteControlPlaneStore controlStore,
         SqliteVectorIndexStore vectorStore,
-        ImmutableContentStore contentStore,
+        IDocumentContentStore contentStore,
         CancellationToken cancellationToken)
     {
         var productId = new DatabaseProductId("db-s06-synthetic");
@@ -269,6 +269,7 @@ internal sealed class SyntheticIntegrationRuntime :
         var ingested = await ingestion.IngestAsync(new DocumentIngestionRequest(
             source,
             MaximumByteLength: 131_072,
+            ContentMediaType.TextCsv,
             new ParserPolicy(131_072, 32, 131_072, 32, 16_384),
             new ChunkingPolicy(128, 16, 160),
             context), cancellationToken).ConfigureAwait(false);
@@ -291,7 +292,7 @@ internal sealed class SyntheticIntegrationRuntime :
             CatalogueItemStatus.Active,
             ingested.Content.ContentObjectId,
             ingested.Content.ByteLength,
-            "text/csv",
+            ingested.Content.MediaType.Value,
             adapterId,
             SourceTrustClass.LocalAuthorised);
         var catalogue = new CatalogueSnapshot(
@@ -366,7 +367,7 @@ internal sealed class SyntheticIntegrationRuntime :
     private static async Task VerifyPersistedStateAsync(
         SqliteControlPlaneStore controlStore,
         SqliteVectorIndexStore vectorStore,
-        ImmutableContentStore contentStore,
+        IDocumentContentStore contentStore,
         CancellationToken cancellationToken)
     {
         var catalogue = await controlStore.ReadCurrentCatalogueAsync(
@@ -382,15 +383,12 @@ internal sealed class SyntheticIntegrationRuntime :
         {
             var document = catalogue.DocumentVersions.Single(item =>
                 item.Id == binding.DocumentId && item.Version == binding.DocumentVersion);
-            await using var content = await contentStore.OpenReadAsync(
+            await using var content = await contentStore.OpenVerifiedAsync(
                 document.ContentObjectId,
+                new ExpectedHashAndLength(
+                    document.ContentObjectId,
+                    document.ByteLength),
                 cancellationToken).ConfigureAwait(false);
-
-            if (content.Length != document.ByteLength)
-            {
-                throw new InvalidDataException(
-                    "The persisted raw content length does not match its catalogue record.");
-            }
         }
 
         var hits = await vectorStore.SearchExactAsync(new VectorSearchRequest(

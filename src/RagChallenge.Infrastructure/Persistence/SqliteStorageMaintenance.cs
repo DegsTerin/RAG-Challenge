@@ -628,15 +628,12 @@ public sealed class SqliteStorageMaintenance(SqliteStoreOptions options)
                     "A planned object is neither safely reserved nor durably reachable.");
             }
 
-            await using var stream = await contentStore.OpenReadAsync(
+            await using var content = await contentStore.OpenVerifiedAsync(
                 candidate.ContentObjectId,
+                new ExpectedHashAndLength(
+                    candidate.ContentObjectId,
+                    candidate.ByteLength),
                 cancellationToken).ConfigureAwait(false);
-
-            if (stream.Length != candidate.ByteLength)
-            {
-                throw new InvalidDataException(
-                    "A restored content object differs from its cleanup plan.");
-            }
 
             await transaction.CommitAsync(cancellationToken).ConfigureAwait(false);
         }

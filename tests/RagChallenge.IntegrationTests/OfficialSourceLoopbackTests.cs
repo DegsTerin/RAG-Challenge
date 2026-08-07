@@ -88,6 +88,7 @@ public sealed class OfficialSourceLoopbackTests
             var localIngestion = await ingestion.IngestAsync(new DocumentIngestionRequest(
                 localStream,
                 MaximumByteLength: 131_072,
+                ContentMediaType.TextCsv,
                 new ParserPolicy(131_072, 32, 131_072, 32, 16_384),
                 new ChunkingPolicy(128, 16, 160),
                 new DocumentChunkingContext(
@@ -189,9 +190,13 @@ public sealed class OfficialSourceLoopbackTests
             Assert.Equal("loopback", Assert.Single(result.Chunks).Columns["feature"]);
             Assert.Equal("\"s06-loopback-v1\"", result.ETag);
             Assert.Equal(Assert.Single(transport.RequestedUris), new Uri(address, "synthetic.csv"));
-            await using var stored = await fixture.ContentStore.OpenReadAsync(
-                result.Snapshot.ContentObjectId);
-            Assert.Equal(bytes.Length, stored.Length);
+            await using var stored = await fixture.ContentStore.OpenVerifiedAsync(
+                result.Snapshot.ContentObjectId,
+                new ExpectedHashAndLength(
+                    result.Snapshot.ContentObjectId,
+                    result.Snapshot.ByteLength));
+            Assert.Equal(bytes.Length, stored.Content.Length);
+            Assert.Equal(0, stored.Content.Position);
         }
         finally
         {

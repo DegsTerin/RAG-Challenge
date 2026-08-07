@@ -439,31 +439,61 @@ public sealed class SqlitePersistenceBoundaryTests
         await using var fixture = await SqlitePersistenceFixture.CreateAsync();
         var bytes = Encoding.UTF8.GetBytes("synthetic immutable content");
         await using var firstStream = new MemoryStream(bytes, writable: false);
-        var first = await fixture.ContentStore.PutAsync(firstStream, bytes.Length);
-        Assert.False(first.AlreadyExisted);
+        var first = await fixture.ContentStore.PutAndVerifyAsync(
+            new BoundedContentInput(
+                firstStream,
+                bytes.Length,
+                new ContentMediaType("TEXT/PLAIN")));
+        Assert.Equal(ContentObjectWriteOutcome.Published, first.WriteOutcome);
         Assert.Equal(SqlitePersistenceFixture.Hash("synthetic immutable content"), first.ContentObjectId.Value);
+        Assert.Equal(first.ContentObjectId, first.Sha256);
+        Assert.Equal(bytes.Length, first.ByteLength);
+        Assert.Equal("text/plain", first.MediaType.Value);
+        Assert.Equal("filesystem-sha256-v1", first.Implementation.Value);
+        Assert.DoesNotContain(fixture.Options.ContentStoreRoot, first.Implementation.Value);
+        Assert.Equal(
+            ContentVerificationOutcome.Verified,
+            first.Verification.WriteVerification);
+        Assert.Equal(
+            ContentVerificationOutcome.Verified,
+            first.Verification.ReopenVerification);
 
         await using var repeatedStream = new MemoryStream(bytes, writable: false);
-        var repeated = await fixture.ContentStore.PutAsync(
-            repeatedStream,
-            bytes.Length,
-            first.ContentObjectId);
-        Assert.True(repeated.AlreadyExisted);
+        var repeated = await fixture.ContentStore.PutAndVerifyAsync(
+            new BoundedContentInput(
+                repeatedStream,
+                bytes.Length,
+                new ContentMediaType("text/plain"),
+                first.ContentObjectId));
+        Assert.Equal(ContentObjectWriteOutcome.AlreadyExisted, repeated.WriteOutcome);
 
-        await using (var reopened = await fixture.ContentStore.OpenReadAsync(first.ContentObjectId))
-        using (var reader = new StreamReader(reopened, Encoding.UTF8))
+        await using (var reopened = await fixture.ContentStore.OpenVerifiedAsync(
+            first.ContentObjectId,
+            new ExpectedHashAndLength(first.Sha256, first.ByteLength)))
+        using (var reader = new StreamReader(reopened.Content, Encoding.UTF8))
         {
+            Assert.Equal(0, reopened.Content.Position);
+            Assert.Equal(ContentVerificationOutcome.Verified, reopened.ReopenVerification);
             Assert.Equal("synthetic immutable content", await reader.ReadToEndAsync());
         }
 
         await using var mismatchStream = new MemoryStream(bytes, writable: false);
         await Assert.ThrowsAsync<InvalidDataException>(
-            () => fixture.ContentStore.PutAsync(
-                mismatchStream,
-                bytes.Length,
-                new ContentObjectId(new string('0', 64))));
+            () => fixture.ContentStore.PutAndVerifyAsync(
+                new BoundedContentInput(
+                    mismatchStream,
+                    bytes.Length,
+                    new ContentMediaType("text/plain"),
+                    new ContentObjectId(new string('0', 64)))));
         Assert.Empty(Directory.EnumerateFiles(
             Path.Combine(fixture.Options.ContentStoreRoot, "quarantine")));
+
+        await Assert.ThrowsAsync<InvalidDataException>(async () =>
+        {
+            await using var _ = await fixture.ContentStore.OpenVerifiedAsync(
+                first.ContentObjectId,
+                new ExpectedHashAndLength(first.Sha256, first.ByteLength + 1));
+        });
 
         var objectPath = Path.Combine(
             fixture.Options.ContentStoreRoot,
@@ -473,8 +503,42 @@ public sealed class SqlitePersistenceBoundaryTests
         await File.WriteAllTextAsync(objectPath, "corrupted content");
         await Assert.ThrowsAsync<InvalidDataException>(async () =>
         {
-            await using var _ = await fixture.ContentStore.OpenReadAsync(first.ContentObjectId);
+            await using var _ = await fixture.ContentStore.OpenVerifiedAsync(
+                first.ContentObjectId,
+                new ExpectedHashAndLength(first.Sha256, first.ByteLength));
         });
+    }
+
+    [Fact]
+    public async Task ImmutableContentEnforcesExplicitWriteLimits()
+    {
+        await using var fixture = await SqlitePersistenceFixture.CreateAsync();
+        var bytes = "bounded"u8.ToArray();
+        await using var exactStream = new MemoryStream(bytes, writable: false);
+        var exact = await fixture.ContentStore.PutAndVerifyAsync(
+            new BoundedContentInput(
+                exactStream,
+                bytes.Length,
+                ContentMediaType.ApplicationOctetStream));
+        Assert.Equal(bytes.Length, exact.ByteLength);
+
+        await using var exceededStream = new MemoryStream(bytes, writable: false);
+        await Assert.ThrowsAsync<InvalidDataException>(
+            () => fixture.ContentStore.PutAndVerifyAsync(
+                new BoundedContentInput(
+                    exceededStream,
+                    bytes.Length - 1,
+                    ContentMediaType.ApplicationOctetStream)));
+
+        await using var absoluteLimitStream = new MemoryStream(bytes, writable: false);
+        await Assert.ThrowsAsync<ArgumentOutOfRangeException>(
+            () => fixture.ContentStore.PutAndVerifyAsync(
+                new BoundedContentInput(
+                    absoluteLimitStream,
+                    512L * 1024 * 1024 + 1,
+                    ContentMediaType.ApplicationOctetStream)));
+        Assert.Empty(Directory.EnumerateFiles(
+            Path.Combine(fixture.Options.ContentStoreRoot, "quarantine")));
     }
 
     [Fact]
@@ -655,9 +719,11 @@ public sealed class SqlitePersistenceBoundaryTests
         var (initialSnapshot, firstBinding) = await fixture.CommitLocalCatalogueAsync();
         var secondBytes = Encoding.UTF8.GetBytes("second active document");
         await using var secondStream = new MemoryStream(secondBytes, writable: false);
-        var secondContent = await fixture.ContentStore.PutAsync(
-            secondStream,
-            secondBytes.Length);
+        var secondContent = await fixture.ContentStore.PutAndVerifyAsync(
+            new BoundedContentInput(
+                secondStream,
+                secondBytes.Length,
+                ContentMediaType.ApplicationPdf));
         var firstDocument = Assert.Single(initialSnapshot.DocumentVersions);
         var secondDocument = new DocumentVersion(
             new DocumentId("doc-fixture-second"),
@@ -745,9 +811,11 @@ public sealed class SqlitePersistenceBoundaryTests
         var (_, binding) = await fixture.CommitLocalCatalogueAsync();
         var officialBytes = Encoding.UTF8.GetBytes("exact replay official snapshot");
         await using var officialStream = new MemoryStream(officialBytes, writable: false);
-        var officialContent = await fixture.ContentStore.PutAsync(
-            officialStream,
-            officialBytes.Length);
+        var officialContent = await fixture.ContentStore.PutAndVerifyAsync(
+            new BoundedContentInput(
+                officialStream,
+                officialBytes.Length,
+                ContentMediaType.ApplicationPdf));
         var registration = new OfficialSourceRegistration(
             new OfficialSourceRegistrationId("exact-replay-registration"),
             new SourceRegistrationRevision(1),

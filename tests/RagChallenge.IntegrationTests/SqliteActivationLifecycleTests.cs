@@ -172,9 +172,11 @@ public sealed class SqliteActivationLifecycleTests
         var (_, binding) = await fixture.CommitLocalCatalogueAsync();
         var officialBytes = Encoding.UTF8.GetBytes("unbound official snapshot");
         await using var officialStream = new MemoryStream(officialBytes, writable: false);
-        var officialContent = await fixture.ContentStore.PutAsync(
-            officialStream,
-            officialBytes.Length);
+        var officialContent = await fixture.ContentStore.PutAndVerifyAsync(
+            new BoundedContentInput(
+                officialStream,
+                officialBytes.Length,
+                ContentMediaType.ApplicationPdf));
         var officialRegistration = new OfficialSourceRegistration(
             new OfficialSourceRegistrationId("cleanup-official-registration"),
             new SourceRegistrationRevision(1),
@@ -200,7 +202,11 @@ public sealed class SqliteActivationLifecycleTests
         Assert.Equal(StoreMutationOutcome.Applied, officialCommit.Outcome);
         var sharedBytes = Encoding.UTF8.GetBytes("content referenced by another corpus");
         await using var sharedStream = new MemoryStream(sharedBytes, writable: false);
-        var sharedContent = await fixture.ContentStore.PutAsync(sharedStream, sharedBytes.Length);
+        var sharedContent = await fixture.ContentStore.PutAndVerifyAsync(
+            new BoundedContentInput(
+                sharedStream,
+                sharedBytes.Length,
+                ContentMediaType.ApplicationPdf));
         var sharedCorpusId = new CorpusId("shared-content-corpus");
         var sharedCategory = new DatabaseCategory(
             new DatabaseCategoryId("shared-content-category"),
@@ -319,7 +325,11 @@ public sealed class SqliteActivationLifecycleTests
 
         var orphanBytes = Encoding.UTF8.GetBytes("unreachable synthetic content");
         await using var orphanStream = new MemoryStream(orphanBytes, writable: false);
-        var orphan = await fixture.ContentStore.PutAsync(orphanStream, orphanBytes.Length);
+        var orphan = await fixture.ContentStore.PutAndVerifyAsync(
+            new BoundedContentInput(
+                orphanStream,
+                orphanBytes.Length,
+                ContentMediaType.ApplicationOctetStream));
         await RegisterOrphanContentAsync(fixture, orphan, SqlitePersistenceFixture.At(5));
         var cleanup = new SqliteStorageMaintenance(fixture.Options);
         var cleanupResult = await cleanup.RunManualCleanupAsync(
@@ -334,17 +344,21 @@ public sealed class SqliteActivationLifecycleTests
             $"SELECT COUNT(*) FROM vector_builds WHERE index_generation_id = '{generationB.IndexGenerationId.Value}';"));
         await Assert.ThrowsAsync<FileNotFoundException>(async () =>
         {
-            await using var _ = await fixture.ContentStore.OpenReadAsync(orphan.ContentObjectId);
+            await using var _ = await fixture.ContentStore.OpenVerifiedAsync(
+                orphan.ContentObjectId,
+                new ExpectedHashAndLength(orphan.Sha256, orphan.ByteLength));
         });
-        await using (var preservedOfficial = await fixture.ContentStore.OpenReadAsync(
-            officialContent.ContentObjectId))
+        await using (var preservedOfficial = await fixture.ContentStore.OpenVerifiedAsync(
+            officialContent.ContentObjectId,
+            new ExpectedHashAndLength(officialContent.Sha256, officialContent.ByteLength)))
         {
-            Assert.Equal(officialContent.ByteLength, preservedOfficial.Length);
+            Assert.Equal(officialContent.ByteLength, preservedOfficial.Content.Length);
         }
-        await using (var preservedShared = await fixture.ContentStore.OpenReadAsync(
-            sharedContent.ContentObjectId))
+        await using (var preservedShared = await fixture.ContentStore.OpenVerifiedAsync(
+            sharedContent.ContentObjectId,
+            new ExpectedHashAndLength(sharedContent.Sha256, sharedContent.ByteLength)))
         {
-            Assert.Equal(sharedContent.ByteLength, preservedShared.Length);
+            Assert.Equal(sharedContent.ByteLength, preservedShared.Content.Length);
         }
         Assert.Equal(0, await fixture.ScalarAsync(
             $"SELECT COUNT(*) FROM content_objects WHERE content_sha256 = '{orphan.ContentObjectId.Value}';"));
@@ -390,7 +404,11 @@ public sealed class SqliteActivationLifecycleTests
         await using var fixture = await SqlitePersistenceFixture.CreateAsync();
         var bytes = Encoding.UTF8.GetBytes("synthetic official snapshot");
         await using var content = new MemoryStream(bytes, writable: false);
-        var contentResult = await fixture.ContentStore.PutAsync(content, bytes.Length);
+        var contentResult = await fixture.ContentStore.PutAndVerifyAsync(
+            new BoundedContentInput(
+                content,
+                bytes.Length,
+                ContentMediaType.ApplicationPdf));
         var registrationId = new OfficialSourceRegistrationId("official-registration");
         var snapshotId = new OfficialSnapshotId("official-snapshot");
         var productId = new DatabaseProductId("db-official");
@@ -582,7 +600,7 @@ public sealed class SqliteActivationLifecycleTests
 
     private static async Task RegisterOrphanContentAsync(
         SqlitePersistenceFixture fixture,
-        ContentWriteResult content,
+        ContentObjectDescriptor content,
         DateTimeOffset registeredAt)
     {
         await using var connection = new SqliteConnection(

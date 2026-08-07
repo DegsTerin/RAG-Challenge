@@ -1743,14 +1743,15 @@ public sealed class SqliteControlPlaneStore(SqliteStoreOptions options)
                 row.DocumentId,
                 row.DocumentVersion,
                 row.ContentSha256,
+                row.ByteLength,
                 row.ContentLanguage,
             })
             .ToArrayAsync(cancellationToken)
             .ConfigureAwait(false);
         var contentByDocument = documentRows.ToDictionary(
             row => (row.DocumentId, row.DocumentVersion),
-            row => (row.ContentSha256, row.ContentLanguage));
-        var contentIds = new HashSet<string>(StringComparer.Ordinal);
+            row => (row.ContentSha256, row.ByteLength, row.ContentLanguage));
+        var contentObjects = new HashSet<(string ContentSha256, long ByteLength)>();
 
         foreach (var binding in requestedBindings)
         {
@@ -1760,22 +1761,27 @@ public sealed class SqliteControlPlaneStore(SqliteStoreOptions options)
                 return false;
             }
 
-            contentIds.Add(document.ContentSha256);
+            contentObjects.Add((document.ContentSha256, document.ByteLength));
         }
 
         var contentStore = new ImmutableContentStore(options);
 
         try
         {
-            foreach (var contentId in contentIds)
+            foreach (var contentObject in contentObjects)
             {
-                await using var content = await contentStore.OpenReadAsync(
-                    new ContentObjectId(contentId),
+                var contentObjectId = new ContentObjectId(contentObject.ContentSha256);
+                await using var content = await contentStore.OpenVerifiedAsync(
+                    contentObjectId,
+                    new ExpectedHashAndLength(
+                        contentObjectId,
+                        contentObject.ByteLength),
                     cancellationToken).ConfigureAwait(false);
             }
         }
         catch (Exception exception) when (
-            exception is IOException or InvalidDataException or UnauthorizedAccessException)
+            exception is IOException or InvalidDataException or UnauthorizedAccessException or
+                ArgumentException)
         {
             return false;
         }

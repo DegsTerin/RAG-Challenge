@@ -19,7 +19,10 @@ public sealed class SqliteStorageMaintenanceReservationTests
     public async Task RenderManifestSourceAndPageImageRemainGloballyReachable()
     {
         await using var fixture = await CreateInitialisedFixtureAsync();
-        var image = await PutAndRegisterAsync(fixture, "synthetic immutable PNG bytes");
+        var image = await PutAndRegisterAsync(
+            fixture,
+            "synthetic immutable PNG bytes",
+            ContentMediaType.ImagePng);
         const string manifestDigest =
             "9999999999999999999999999999999999999999999999999999999999999999";
         var manifestId = $"rendermanifest-{manifestDigest}";
@@ -75,10 +78,11 @@ public sealed class SqliteStorageMaintenanceReservationTests
 
         Assert.Equal(0, result.RemovedContentObjects);
         Assert.Equal(1, await CountContentRowsAsync(fixture, image.ContentObjectId));
-        await using var reopened = await fixture.ContentStore.OpenReadAsync(
+        await using var reopened = await fixture.ContentStore.OpenVerifiedAsync(
             image.ContentObjectId,
+            new ExpectedHashAndLength(image.Sha256, image.ByteLength),
             CancellationToken.None);
-        Assert.Equal(image.ByteLength, reopened.Length);
+        Assert.Equal(image.ByteLength, reopened.Content.Length);
     }
 
     [Fact]
@@ -188,9 +192,10 @@ public sealed class SqliteStorageMaintenanceReservationTests
         Assert.False(result.AlreadyApplied);
         Assert.Equal(0, result.RemovedContentObjects);
         Assert.Empty(fixture.ContentStore.EnumerateDeletionReservations(operationId));
-        await using var reopened = await fixture.ContentStore.OpenReadAsync(
-            content.ContentObjectId);
-        Assert.Equal(content.ByteLength, reopened.Length);
+        await using var reopened = await fixture.ContentStore.OpenVerifiedAsync(
+            content.ContentObjectId,
+            new ExpectedHashAndLength(content.Sha256, content.ByteLength));
+        Assert.Equal(content.ByteLength, reopened.Content.Length);
         Assert.Equal(1, await fixture.ScalarAsync(
             $"SELECT COUNT(*) FROM admin_operations WHERE operation_id = '{operationId.Value}' AND status = 'Applied';"));
     }
@@ -282,10 +287,12 @@ public sealed class SqliteStorageMaintenanceReservationTests
             contentText);
         var bytes = Encoding.UTF8.GetBytes(contentText);
         await using var replacement = new MemoryStream(bytes, writable: false);
-        var republished = await fixture.ContentStore.PutAsync(
-            replacement,
-            bytes.Length,
-            reserved.ContentObjectId);
+        var republished = await fixture.ContentStore.PutAndVerifyAsync(
+            new BoundedContentInput(
+                replacement,
+                bytes.Length,
+                ContentMediaType.ApplicationOctetStream,
+                reserved.ContentObjectId));
         Assert.Equal(reserved.ContentObjectId, republished.ContentObjectId);
 
         await Assert.ThrowsAsync<InvalidDataException>(() =>
@@ -401,7 +408,7 @@ public sealed class SqliteStorageMaintenanceReservationTests
 
     private static DocumentPageImageRow PageRow(
         string manifestId,
-        ContentWriteResult image,
+        ContentObjectDescriptor image,
         string sourceContentSha256) =>
         new()
         {
@@ -493,13 +500,18 @@ public sealed class SqliteStorageMaintenanceReservationTests
         await context.SaveChangesAsync();
     }
 
-    private static async Task<ContentWriteResult> PutAndRegisterAsync(
+    private static async Task<ContentObjectDescriptor> PutAndRegisterAsync(
         SqlitePersistenceFixture fixture,
-        string contentText)
+        string contentText,
+        ContentMediaType? mediaType = null)
     {
         var bytes = Encoding.UTF8.GetBytes(contentText);
         await using var content = new MemoryStream(bytes, writable: false);
-        var result = await fixture.ContentStore.PutAsync(content, bytes.Length);
+        var result = await fixture.ContentStore.PutAndVerifyAsync(
+            new BoundedContentInput(
+                content,
+                bytes.Length,
+                mediaType ?? ContentMediaType.ApplicationOctetStream));
         await using var context = fixture.Options.CreateControlContext();
         context.ContentObjects.Add(new ContentObjectRow
         {
@@ -661,9 +673,10 @@ public sealed class SqliteStorageMaintenanceReservationTests
         SqlitePersistenceFixture fixture,
         ReservedContent content)
     {
-        await using var stream = await fixture.ContentStore.OpenReadAsync(
-            content.ContentObjectId);
-        Assert.Equal(content.ByteLength, stream.Length);
+        await using var stream = await fixture.ContentStore.OpenVerifiedAsync(
+            content.ContentObjectId,
+            new ExpectedHashAndLength(content.ContentObjectId, content.ByteLength));
+        Assert.Equal(content.ByteLength, stream.Content.Length);
     }
 
     private static async Task<long> CountContentRowsAsync(

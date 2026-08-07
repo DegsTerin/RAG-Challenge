@@ -372,12 +372,18 @@ public sealed class OfficialObservationRebindingTests
     {
         var officialBytes = SyntheticParserFixtureFactory.CsvValidQuotedUtf8;
         await using var officialStream = new MemoryStream(officialBytes, writable: false);
-        var officialContent = await fixture.ContentStore.PutAsync(
-            officialStream,
-            officialBytes.Length);
+        var officialContent = await fixture.ContentStore.PutAndVerifyAsync(
+            new BoundedContentInput(
+                officialStream,
+                officialBytes.Length,
+                ContentMediaType.TextCsv));
         var localBytes = "local fallback"u8.ToArray();
         await using var localStream = new MemoryStream(localBytes, writable: false);
-        var localContent = await fixture.ContentStore.PutAsync(localStream, localBytes.Length);
+        var localContent = await fixture.ContentStore.PutAndVerifyAsync(
+            new BoundedContentInput(
+                localStream,
+                localBytes.Length,
+                ContentMediaType.TextCsv));
         var productId = new DatabaseProductId("db-observation-rebind");
         var productRevision = new DatabaseProductRevision(1);
         var officialDocumentId = new DocumentId("doc-official-rebind");

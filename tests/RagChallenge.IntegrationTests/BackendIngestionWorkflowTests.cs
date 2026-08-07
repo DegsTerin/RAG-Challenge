@@ -35,9 +35,19 @@ public sealed class BackendIngestionWorkflowTests
         var localFirst = await IngestAsync(ingestion, localBytes, localContext);
         var localReplay = await IngestAsync(ingestion, localBytes, localContext);
 
-        Assert.False(localFirst.Content.AlreadyExisted);
-        Assert.True(localReplay.Content.AlreadyExisted);
+        Assert.Equal(ContentObjectWriteOutcome.Published, localFirst.Content.WriteOutcome);
+        Assert.Equal(ContentObjectWriteOutcome.AlreadyExisted, localReplay.Content.WriteOutcome);
         Assert.Equal(localFirst.Content.ContentObjectId, localReplay.Content.ContentObjectId);
+        Assert.Equal(localFirst.Content.ContentObjectId, localFirst.Content.Sha256);
+        Assert.Equal(localBytes.Length, localFirst.Content.ByteLength);
+        Assert.Equal(ContentMediaType.TextCsv, localFirst.Content.MediaType);
+        Assert.Equal("filesystem-sha256-v1", localFirst.Content.Implementation.Value);
+        Assert.Equal(
+            ContentVerificationOutcome.Verified,
+            localFirst.Content.Verification.WriteVerification);
+        Assert.Equal(
+            ContentVerificationOutcome.Verified,
+            localFirst.Content.Verification.ReopenVerification);
         Assert.Equal(
             localFirst.Chunks.Select(chunk => chunk.Digest),
             localReplay.Chunks.Select(chunk => chunk.Digest));
@@ -239,6 +249,41 @@ public sealed class BackendIngestionWorkflowTests
             request => Assert.Equal(registration.Id, request.RegistrationId));
     }
 
+    [Fact]
+    public async Task IngestionRejectsAMediaTypeThatDoesNotMatchTheDocumentFormat()
+    {
+        await using var fixture = await SqlitePersistenceFixture.CreateAsync();
+        var ingestion = CreateIngestionService(fixture);
+        await using var content = new MemoryStream(
+            SyntheticParserFixtureFactory.CsvValidQuotedUtf8,
+            writable: false);
+        var context = new DocumentChunkingContext(
+            SqlitePersistenceFixture.CorpusId,
+            new DatabaseProductId("db-media-mismatch"),
+            new DatabaseProductRevision(1),
+            new DocumentId("doc-media-mismatch"),
+            new DocumentVersionNumber(1),
+            DocumentFormat.Csv,
+            DocumentContentLanguage.EnGb,
+            new SourceAdapterId("local-media-mismatch"),
+            SourceTrustClass.LocalAuthorised);
+
+        var failure = await Assert.ThrowsAsync<DocumentParseException>(
+            () => ingestion.IngestAsync(new DocumentIngestionRequest(
+                content,
+                MaximumByteLength: 131_072,
+                ContentMediaType.ApplicationPdf,
+                new ParserPolicy(131_072, 32, 131_072, 32, 16_384),
+                new ChunkingPolicy(128, 16, 160),
+                context)));
+
+        Assert.Equal(DocumentParseFailureKind.UnsupportedFormat, failure.FailureKind);
+        Assert.Empty(Directory.EnumerateFiles(
+            Path.Combine(fixture.Options.ContentStoreRoot, "objects"),
+            "*.bin",
+            SearchOption.AllDirectories));
+    }
+
     private static DocumentIngestionService CreateIngestionService(
         SqlitePersistenceFixture fixture) =>
         new(
@@ -256,6 +301,7 @@ public sealed class BackendIngestionWorkflowTests
             new DocumentIngestionRequest(
                 content,
                 MaximumByteLength: 131_072,
+                ContentMediaType.TextCsv,
                 new ParserPolicy(131_072, 32, 131_072, 32, 16_384),
                 new ChunkingPolicy(128, 16, 160),
                 context));
