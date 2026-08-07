@@ -35,6 +35,9 @@ presente factual pertence a
    execução factual, propostas e bloqueios do estado de arquitetura.
 10. [`STATE-03-Data-And-Index-Modeling-Report.md`](STATE-03-Data-And-Index-Modeling-Report.md):
     execução factual parcial de `S03-A` e bloqueio explícito de `S03-B`.
+11. [`STATE-07-S07-A-Evaluation-And-Security-Proposal.md`](STATE-07-S07-A-Evaluation-And-Security-Proposal.md):
+    proposta documental de dataset, thresholds, matriz de idioma, ambiente,
+    verificações e limites do primeiro lote, sem autoridade de execução.
 
 ## Produto e arquitetura
 
