@@ -4977,3 +4977,41 @@ contém somente fatos cronológicos.
   `AUTH-S07-A-DATASET-001` ou outro envelope delimitado; a confirmação desta
   proposta não satisfaz essa condição.
 - Aprovador da baseline de planejamento: proprietário do RAG-Challenge.
+
+## 2026-08-07 — Próxima ação concreta tornada obrigatória no handoff
+
+- Baseline anterior: branch `main`, commit
+  `66c47d94d423abf4f0c1509ba04b8064d3efd8ca`, corpus `4.9.3` e working tree
+  limpa.
+- Autoridade: solicitação explícita do proprietário para corrigir e documentar
+  permanentemente que todo handoff deve informar qual é o próximo passo,
+  tarefa, atividade ou ação.
+- Problema corrigido: a ausência canônica de `4.9.2` foi aplicada de forma
+  excessiva após uma solicitação concluída, embora ainda existisse uma ação
+  diretamente relacionada dependente de documentos e autoridade.
+- Decisão: todo handoff informa exatamente uma próxima ação concreta,
+  priorizada, diretamente relacionada, com responsável e condição/autoridade.
+  Falta de dado, documento, anexo, decisão ou autoridade torna sua obtenção a
+  próxima ação; não autoriza execução por implicação.
+- Exceção restrita: `nenhum — a solicitação atual não exige trabalho
+  adicional` só é válido depois de consultar o estado e os documentos
+  proprietários e confirmar que não existe continuação acionável diretamente
+  relacionada. A regra não permite importar lifecycle, gate, backlog ou
+  melhoria sem relação.
+- Corpus resultante: `4.9.4` (`PATCH`), com 13 arquivos ativos em `prompts/`.
+  AGENTS aplica o enforcement transversal; Governance possui a semântica;
+  Templates materializa o formato; o changelog registra a correção.
+- Escopo negativo: sem materialização de dataset, avaliação, testes, carga,
+  segurança dinâmica, browser, providers, fontes reais, rede, OCI, GitHub,
+  publicação, deploy, `STATE-08`, Automatic Quality Gate, Human Gate ou ação
+  externa; sem código, dependências, lockfiles, contratos, OpenAPI, schema,
+  migrations ou ADRs.
+- Runtime preflight: `NÃO APLICÁVEL`; a mudança é exclusivamente documental e
+  não altera nem valida comportamento executável.
+- Estado resultante: `STATE-07 TESTING_HOMOLOGATION` permanece ativo; `S07-A`
+  mantém somente a baseline de planejamento confirmada, sem autoridade de
+  execução.
+- Próxima ação concreta: o proprietário fornece ou indica os documentos
+  PDF/CSV candidatos e autoriza somente a verificação local de elegibilidade,
+  proveniência e direitos antes de qualquer `AUTH-S07-A-DATASET-001`.
+- Aprovador da correção permanente: proprietário do RAG-Challenge.

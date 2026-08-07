@@ -761,7 +761,7 @@ proprietários.
   a política de idioma acrescentou o 21º documento público por incremento
   versionado, e o ADR-0003 acrescentou o 22º.
 - A baseline aprovada no Human Gate de `STATE-00` permanece `3.4.0`.
-- O corpus de instruções vigente possui versão `4.9.3` e 13 arquivos em
+- O corpus de instruções vigente possui versão `4.9.4` e 13 arquivos em
   `prompts/`.
 - Visão, requisitos, arquitetura, RAG, segurança, qualidade, lifecycle,
   roadmap, backlog, estado, histórico e templates estão documentados.
@@ -874,6 +874,13 @@ proprietários.
   pública com evidência separadamente verificada de OCI e execução real do
   produto. A mudança elimina a divergência de ownership sem alterar a ordem do
   lifecycle, dispor os achados ou repetir o gate.
+- O corpus `4.9.4` corrige o enforcement do próximo trabalho recomendado:
+  todo handoff informa exatamente uma ação concreta, priorizada, diretamente
+  relacionada, com responsável e condição/autoridade. Solicitação concluída,
+  projeto em espera ou falta de autoridade não justificam omissão quando dado,
+  documento, decisão ou autorização ainda puder desbloquear a continuidade.
+  A ausência canônica fica restrita à inexistência real de continuação
+  acionável e não permite importar lifecycle ou backlog sem relação.
 - O Human Gate de `STATE-02` foi confirmado na mesma conversa que apresentou
   o resumo completo da baseline vigente `main@6e61c4c`, corpus `4.9.1`. A
   decisão aceitou a arquitetura documental sem ressalvas, preservou todas as
@@ -1330,3 +1337,10 @@ exclusivamente como baseline de planejamento. A confirmação não autorizou
 `AUTH-S07-A-DATASET-001`, `AUTH-S07-A-RUN-001`, materialização de dataset,
 avaliação, testes, carga, segurança dinâmica, browser, providers, fontes
 reais, rede ou ação externa. `S07-A` permanece não executado.
+
+Em 2026-08-07, sobre
+`main@66c47d94d423abf4f0c1509ba04b8064d3efd8ca`, corpus `4.9.3` e working
+tree limpa, o proprietário determinou a correção permanente do handoff para
+sempre informar exatamente uma próxima ação concreta. O corpus `4.9.4`
+registra essa regra em AGENTS, Governance e Templates, preservando o limite
+temático e a ausência de autoridade para `S07-A` ou qualquer execução.

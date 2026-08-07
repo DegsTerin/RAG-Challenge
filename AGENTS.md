@@ -250,6 +250,17 @@ condition when relevant; the owner's immediate action; conversation route,
 target and reason; copy-ready text when required; reasoning level,
 justification and fallback; and the parallel-work classification and reason.
 
+Every final hand-off answers the owner's standing question — what the next
+step, task, activity or action is — with exactly one concrete, prioritised and
+directly related next action, its owner and its authority or entry condition.
+A completed request, a project that can wait or the absence of current
+execution authority does not by itself justify omitting that action. When a
+required datum, decision or authority is missing, obtaining it is the next
+action and the hand-off supplies the exact owner action and copy-ready payload.
+Use the canonical absence form only after checking Current State and the
+relevant owner documents and finding no directly related actionable
+continuation at all.
+
 Keep those concepts separate. A future deliverable, state/gate, owner action
 and conversation route neither substitute for one another nor grant
 authority. Use conditional fields only when applicable, do not repeat body

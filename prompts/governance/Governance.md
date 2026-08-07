@@ -138,19 +138,24 @@ Usar estes termos sem intercâmbio:
 - `Solicitação`: combina situação (`concluída`, `parcial` ou `bloqueada`),
   resultado concreto e pendências da solicitação atual; não inclui backlog
   futuro, outro gate ou melhoria opcional;
-- `Próximo trabalho recomendado`: uma única entrega concreta diretamente
-  relacionada à solicitação atual que pode ocorrer depois desta resposta, com
-  responsável e condição/autoridade; não é a ação de navegação do
-  proprietário nem autorização ou transição automática. Quando nenhuma
-  entrega relacionada existir, usar `nenhum — a solicitação atual não exige
-  trabalho adicional` e não buscar um item no lifecycle ou backlog apenas para
+- `Próximo trabalho recomendado`: uma única entrega concreta formulada como
+  ação priorizada e diretamente relacionada à solicitação atual que pode
+  ocorrer depois desta resposta, com responsável e condição/autoridade; é a
+  resposta canônica à pergunta do proprietário sobre o próximo passo, tarefa,
+  atividade ou ação. Não é a ação de navegação do proprietário nem autorização
+  ou transição automática. Quando faltar dado, decisão ou autoridade para a
+  continuação relacionada, obtê-lo é o próximo trabalho e o handoff informa a
+  condição exata. Somente quando nenhuma continuação acionável diretamente
+  relacionada existir, usar `nenhum — a solicitação atual não exige trabalho
+  adicional`; não buscar item sem relação no lifecycle ou backlog apenas para
   preencher o campo;
 - `Estado/gate`: posição atual do lifecycle, próximo estado ou gate nomeado e
   condição de entrada somente quando material para o pedido atual; informar
   `sem mudança` quando não houver transição aplicável ao tema;
 - `Sua ação agora`: somente a resposta, decisão, autorização, dado ou
-  navegação que o proprietário precisa executar imediatamente; usar `nenhuma`
-  quando o projeto puder aguardar;
+  navegação que o proprietário precisa executar imediatamente para viabilizar
+  o próximo trabalho; usar `nenhuma` apenas quando a próxima ação não depender
+  do proprietário ou quando realmente não existir continuação acionável;
 - `Conversa recomendada`: local sugerido para o próximo trabalho, com rota,
   target e motivo; não descreve a entrega e não concede autoridade;
 - `Texto para copiar e enviar`: payload completo que materializa a ação do
@@ -174,6 +179,16 @@ Aplicar a situação da solicitação:
 - `bloqueada`: pendências identificam o bloqueio; o próximo trabalho é a
   condição de desbloqueio e `Sua ação agora` informa exatamente o que o
   proprietário precisa fornecer, quando aplicável.
+
+Todo handoff informa exatamente um próximo trabalho recomendado. Concluir a
+solicitação atual, poder aguardar ou ainda não possuir autoridade de execução
+não elimina uma continuação diretamente relacionada. Antes de usar a ausência
+canônica, consultar o estado factual e os documentos proprietários para
+identificar a primeira ação útil e governada. Se ela depender de autoridade,
+dado, documento, decisão ou anexo do proprietário, o handoff nomeia essa
+obtenção como próximo trabalho, preenche `Sua ação agora` e fornece o payload
+completo. A regra não autoriza importar estado, gate, backlog ou melhoria sem
+relação direta.
 
 O handoff final classifica explicitamente a próxima interação:
 
@@ -251,7 +266,9 @@ Quando não houver entrega posterior diretamente relacionada, declarar
 `Próximo trabalho recomendado: nenhum — a solicitação atual não exige trabalho
 adicional`. Essa ausência é preferível a importar o próximo estado geral do
 projeto, criar uma decisão para o proprietário ou transformar uma resposta
-informativa em autorização implícita.
+informativa em autorização implícita. Solicitação concluída, projeto em espera
+ou falta de autoridade vigente não bastam para essa ausência quando ainda
+existir uma ação concreta diretamente relacionada.
 
 O formato padrão agrupa dados relacionados em linhas compactas: rota, target,
 título quando aplicável e motivo em `Conversa recomendada`; nível,

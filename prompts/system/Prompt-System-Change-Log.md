@@ -2,10 +2,10 @@
 
 ## Versão atual
 
-- Versão: `4.9.3`
-- Data: 2026-08-06
-- Status: ownership do README de `STATE-06` e `STATE-08` reconciliado;
-  `STATE-06` ativo com Automatic Quality Gate reprovado
+- Versão: `4.9.4`
+- Data: 2026-08-07
+- Status: `STATE-07` ativo; baseline de planejamento de `S07-A` confirmada,
+  sem autoridade de execução
 - Escopo: 13 arquivos ativos em `prompts/`
 
 A versão do corpus é independente da versão futura do software.
@@ -19,6 +19,31 @@ A versão do corpus é independente da versão futura do software.
 
 Toda alteração atualiza este arquivo e, quando necessário,
 [`../Start-Here.md`](../Start-Here.md).
+
+## 4.9.4 — 2026-08-07
+
+- Corrige a aplicação excessiva da ausência canônica introduzida em `4.9.2`,
+  que permitiu omitir uma continuação diretamente relacionada apenas porque a
+  solicitação estava concluída ou a execução ainda não tinha autoridade.
+- Exige que todo handoff responda com exatamente uma ação concreta, priorizada,
+  responsável e condição/autoridade à pergunta do proprietário sobre o
+  próximo passo, tarefa, atividade ou ação.
+- Determina que dado, documento, anexo, decisão ou autoridade ausente seja
+  apresentado como a próxima ação quando ele desbloquear a continuação
+  diretamente relacionada.
+- Restringe `nenhum — a solicitação atual não exige trabalho adicional` aos
+  casos em que a consulta ao estado factual e aos documentos proprietários não
+  encontra nenhuma continuação acionável diretamente relacionada.
+- Preserva a proibição de importar lifecycle, gate, backlog ou melhoria sem
+  relação direta e não transforma recomendação em autoridade implícita.
+- Atualiza AGENTS, Governance e Templates sem criar estado, gate, capacidade
+  executável ou ação externa. A mudança é `PATCH` porque corrige enforcement e
+  clareza do handoff sem alterar autoridade ou lifecycle.
+- `STATE-07 TESTING_HOMOLOGATION` permanece ativo; `S07-A` conserva somente sua
+  baseline de planejamento confirmada. Dataset, avaliação, testes, carga,
+  segurança dinâmica, browser, providers, fontes reais, rede, OCI, GitHub,
+  publicação, deploy, Automatic Quality Gate, Human Gate e `STATE-08`
+  permanecem não autorizados e não executados.
 
 ## 4.9.3 — 2026-08-06
 

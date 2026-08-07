@@ -20,8 +20,9 @@ claras no corpo da resposta. Literais técnicos preservam a grafia canônica.
 
 - Solicitação: `concluída` / `parcial` / `bloqueada` — resultado concreto;
   pendências com nomes e quantidade exatos, ou `0`
-- Próximo trabalho recomendado: uma entrega concreta diretamente relacionada
-  à solicitação atual; responsável; condição ou autoridade necessária; ou
+- Próximo trabalho recomendado: exatamente uma ação concreta, priorizada e
+  diretamente relacionada à solicitação atual; responsável; condição ou
+  autoridade necessária; ou, somente sem continuação acionável,
   `nenhum — a solicitação atual não exige trabalho adicional`
 - Estado/gate: posição atual; próximo estado ou gate; condição de entrada, ou
   `sem mudança`
@@ -38,6 +39,15 @@ Todos os campos permanecem no limite temático da solicitação atual. Não usar
 handoff para reintroduzir o próximo estado geral, backlog, melhoria opcional ou
 assunto anterior quando eles não forem necessários para responder, concluir
 ou desbloquear o pedido presente.
+
+O campo `Próximo trabalho recomendado` responde sempre à pergunta do
+proprietário sobre o próximo passo, tarefa, atividade ou ação. Informar uma
+única ação mesmo quando a solicitação atual estiver concluída ou a execução
+depender de nova autoridade. Nesse caso, obter a autoridade, decisão, dado,
+documento ou anexo é a ação, e `Sua ação agora` mais o texto copiável tornam a
+condição executável. Usar a ausência canônica somente depois de verificar que
+não existe continuação diretamente relacionada; não confundir falta de
+autoridade com falta de próxima ação.
 
 ### Valores aceitos
 
