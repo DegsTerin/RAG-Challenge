@@ -497,6 +497,18 @@ proprietários.
   `APROVADO`, sem novo P0, P1, P2 ou P3; `AQG-S06-005` está `RESOLVIDO` e
   `AQG-S06-001` a `AQG-S06-005` permanecem `RESOLVIDOS`. `STATE-06` continua
   ativo; Human Gate, `STATE-07`, rede externa e OCI não foram executados.
+- Human Gate de `STATE-06`: o proprietário recebeu e revisou na mesma
+  conversa o resumo completo sobre
+  `main@2f70705dcbe293b22ccd039d0764b2b9ca4b2e8a`, corpus `4.9.3` e working
+  tree limpa, incluindo entregáveis, Automatic Quality Gate, achados
+  históricos, amostras técnicas, limitações, rollback e escopo negativo. A
+  decisão foi `APROVADO COM RESSALVAS` após a confirmação canônica
+  `Confirmo a decisão acima exclusivamente para STATE-06`. As ressalvas
+  preservam a ausência de execução Linux ARM64, OCI real, providers, corpus e
+  fontes reais, armazenamento operacional, cobertura percentual JavaScript,
+  observação de rede em nível de pacotes e migration em banco real.
+  `STATE-06 INTEGRATION` está encerrado. A decisão não autorizou nem iniciou
+  `STATE-07`, rede, OCI, publicação ou deploy.
 - Fechamento de `S04-A0`: `PdfPig` `0.1.15` e `CsvHelper` `33.1.0` foram
   selecionados condicionalmente para desenvolvimento local;
   `Sylvan.Data.Csv` `1.4.4` permanece fallback não selecionado e não
@@ -995,10 +1007,9 @@ autorizada.
    para cada banco antes de sua ativação.
 2. Validar e ativar individualmente novos registros de fonte oficial; a
    aceitação arquitetural não autoriza URL, rede, download ou crawling.
-3. Preparar o resumo completo do Human Gate de `STATE-06`, somente mediante
-   autoridade separada e sobre uma baseline nomeada e limpa; o Automatic
-   Quality Gate mais recente está `APROVADO` e `AQG-S06-005` está
-   `RESOLVIDO`.
+3. Manter `STATE-07` sem entrada ou execução até autoridade explícita e
+   separada do proprietário; o Human Gate de `STATE-06` está `APROVADO COM
+   RESSALVAS`, mas não concede essa autoridade.
 4. Verificar tier, entitlement, spend limit e controles da conta OpenAI, além
    da recuperação/geração bilíngue, antes de usar ou anunciar os providers.
 5. Homologar desempenho e capacidade do `SqliteExactVectorStore`; a fixture
@@ -1274,3 +1285,14 @@ testes .NET, 38 testes npm, 93,11% de linhas, 66,89% de branches e dois ZIPs
 ARM64 idênticos com 17 ELF64 AArch64. O Automatic Quality Gate está
 `APROVADO`, sem novo P0, P1, P2 ou P3, e `AQG-S06-005` está `RESOLVIDO`.
 Human Gate e `STATE-07` não foram executados; `STATE-06` continua ativo.
+
+O proprietário recebeu o resumo completo do Human Gate sobre
+`main@2f70705dcbe293b22ccd039d0764b2b9ca4b2e8a`, corpus `4.9.3` e working
+tree limpa e confirmou exatamente
+`Confirmo a decisão acima exclusivamente para STATE-06`. O Human Gate foi
+`APROVADO COM RESSALVAS` para a fronteira local, offline, sintética e
+estática documentada. As limitações de Linux ARM64, OCI, providers, corpus,
+fontes e armazenamento reais, cobertura percentual JavaScript, observação de
+pacotes e migration real permanecem explícitas. `STATE-06 INTEGRATION` está
+encerrado; `STATE-07` não foi autorizado nem iniciado, e nenhuma ação externa
+foi executada.

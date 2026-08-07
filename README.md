@@ -3,15 +3,17 @@
 Assistente RAG independente para consultar documentação sobre bancos de dados
 em linguagem natural, com respostas fundamentadas e referências às fontes.
 
-> Status em 2026-08-06: `STATE-00` a `STATE-05` estão encerrados e
-> `STATE-06 INTEGRATION` está ativo. O lote `S06-A` integrou localmente o
+> Status em 2026-08-06: `STATE-00` a `STATE-06` estão encerrados. O lote
+> `S06-A` integrou localmente o
 > Dashboard, a API e os stores persistentes com fixture e providers
 > determinísticos. O Automatic Quality Gate mais recente, sobre
 > `main@616bef4e2ae8c0b26c10781cd728dc6089136a60`, está `APROVADO`, sem
 > novo P0, P1, P2 ou P3. Os controles fail-closed integrados foram repetidos
 > pelo entry point automático, e `AQG-S06-005` está `RESOLVIDO`, assim como
-> `AQG-S06-001` a `AQG-S06-004`. `STATE-06` continua ativo; Human Gate e
-> `STATE-07` não foram executados ou autorizados. Não existe
+> `AQG-S06-001` a `AQG-S06-004`. O Human Gate de `STATE-06` foi `APROVADO
+> COM RESSALVAS` sobre
+> `main@2f70705dcbe293b22ccd039d0764b2b9ca4b2e8a`; `STATE-07` não foi
+> iniciado nem autorizado. Não existe
 > corpus, provider, fonte oficial, execução Linux, OCI ou produção reais, nem
 > publicação ou deploy.
 

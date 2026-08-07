@@ -4826,3 +4826,53 @@ contém somente fatos cronológicos.
 - Relatório atualizado:
   [`STATE-06-Integration-Report.md`](../../docs/STATE-06-Integration-Report.md).
 - Aprovador: proprietário do RAG-Challenge.
+
+## 2026-08-06 — Human Gate de STATE-06 aprovado com ressalvas
+
+- Estado anterior: `STATE-06 INTEGRATION` ativo, Automatic Quality Gate
+  `APROVADO`, `AQG-S06-001` a `AQG-S06-005` e `AST-001` a `AST-003`
+  `RESOLVIDOS`, Human Gate `PENDENTE` e `STATE-07` não autorizado.
+- Baseline: `main@2f70705dcbe293b22ccd039d0764b2b9ca4b2e8a`, corpus `4.9.3` e working
+  tree limpa, reconfirmados antes e depois da preparação do resumo.
+- Autoridade: preparar e apresentar somente o resumo completo do Human Gate de
+  `STATE-06`, sem executar `STATE-07`, rede, OCI ou ação externa. Runtime
+  preflight foi `NÃO APLICÁVEL` ao trabalho documental/read-only.
+- Resumo revisado: entregáveis e critérios de aceite de `STATE-06`, Automatic
+  Quality Gate aprovado, achados históricos e disposições, supply chain e
+  restore locked isolado, 206 testes .NET, 38 testes npm, cobertura, stores e
+  restart, cancelamento/resiliência, migration/EF, duas reproduções ARM64,
+  comandos do README, segurança, rollback, limitações e escopo negativo foram
+  apresentados na mesma conversa.
+- Amostras técnicas repetidas pelo Automatic Quality Gate: fluxo same-origin
+  nos dois idiomas, fonte oficial falsa em loopback, persistência e restart,
+  cancelamento, falhas limitadas de provider/fonte, recuperação, migration em
+  SQLite descartável, verificação EF, duas reproduções ARM64 idênticas e os
+  comandos literais do README.
+- Amostras humanas não executadas nesta autoridade: fluxo PDF ao vivo,
+  execução Linux ARM64, OCI real, providers, corpus e fontes oficiais reais,
+  armazenamento operacional e migration de banco real. O proprietário aceitou
+  a evidência automática e manteve essas ausências como ressalvas explícitas.
+- Confirmação humana exata:
+
+  ```text
+  Confirmo a decisão acima exclusivamente para STATE-06
+  ```
+
+- Decisão: Human Gate de `STATE-06` `APROVADO COM RESSALVAS`, exclusivamente
+  para a fronteira local, offline, sintética e estática documentada.
+- Ressalvas preservadas: sem execução Linux ARM64; sem OCI real e seus
+  controles de tenancy, IAM, capacidade, rede, TLS, storage, custo, backup ou
+  restore; sem provider, conta, secret, corpus, fonte oficial ou armazenamento
+  operacional reais; sem cobertura percentual JavaScript ou observação de
+  rede em nível de pacotes; migration somente em SQLite descartável, sem
+  aplicação ou reparo em banco real; artefactos ignorados não autoritativos.
+- Resultado do lifecycle: `STATE-06 INTEGRATION` está encerrado. A decisão não
+  autoriza nem inicia `STATE-07` e não concede autoridade externa.
+- Mudanças deste registro: somente README e os três artefatos factuais de
+  `STATE-06`; nenhum código, teste, workflow, dependência, lockfile, contrato,
+  OpenAPI, schema, migration ou ADR foi alterado.
+- Escopo negativo preservado: sem `STATE-07`, rede, OCI, provider, conta,
+  secret, fonte real, GitHub, publicação, push ou deploy.
+- Relatório atualizado:
+  [`STATE-06-Integration-Report.md`](../../docs/STATE-06-Integration-Report.md).
+- Aprovador: proprietário do RAG-Challenge.

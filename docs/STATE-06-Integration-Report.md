@@ -1282,3 +1282,72 @@ store was used; JavaScript percentage coverage and packet-level network
 observation were not performed; and no migration was applied to a real
 database or used to repair data. No GitHub, publication, push, deployment,
 Human Gate or `STATE-07` action occurred. `STATE-06` remains active.
+
+## Human Gate — 2026-08-06
+
+### Baseline, review and samples
+
+The owner authorised preparation of the complete `STATE-06` Human Gate
+summary on `main@2f70705dcbe293b22ccd039d0764b2b9ca4b2e8a`, prompt corpus
+`4.9.3`, with a clean working tree. The summary and decision were handled in
+the same conversation. Runtime preflight was `NOT_APPLICABLE` because the
+preparation and decision record were documentation-only and read-only with
+respect to executable behaviour.
+
+The owner was presented with the complete current-baseline summary covering
+the state deliverables, the approved Automatic Quality Gate, all historical
+findings and dispositions, critical technical samples, environment and
+security boundaries, residual limitations, rollback and the exact decision
+effect. No new runtime sample was executed under the summary-preparation
+authority. The critical samples already repeated by the Automatic Quality
+Gate comprised:
+
+- the local same-origin Dashboard/API flow in both answer languages;
+- fake loopback official-source synchronisation;
+- restart with the same active generation and persistent control, vector and
+  raw-content stores;
+- composed cancellation, bounded provider/source failure, recovery and
+  restart;
+- disposable-SQLite migration and composite-reference checks plus the final
+  no-pending-model-change result;
+- two byte-identical Linux ARM64 rehearsal archives and their static AArch64
+  verification; and
+- both literal README integration commands.
+
+The integrated artefact uses a bounded synthetic CSV fixture. PDF and CSV
+parsing remain covered by the applicable automated suites, but no live human
+PDF sample was repeated for this decision. Linux ARM64 execution, real OCI,
+real providers, corpus and official sources, operational storage and a real
+database migration were not sampled because they were outside the authorised
+and evidenced `STATE-06` boundary.
+
+### Decision, caveats and effect
+
+The owner accepted the local, offline, synthetic and static evidence with the
+following documented caveats:
+
+- the Linux ARM64 payload was statically verified but not executed;
+- no OCI tenancy, IAM, capacity, network, TLS, storage, cost, backup or restore
+  path was verified;
+- no provider, account, secret, real corpus, real official source or
+  operational store was used;
+- JavaScript percentage coverage and packet-level network observation remain
+  unavailable;
+- the migration was exercised only against disposable SQLite stores, without
+  real data migration or repair; and
+- ignored local artefacts and caches remain non-authoritative and do not
+  constitute a signed release or production evidence.
+
+With `AQG-S06-001` to `AQG-S06-005` and `AST-001` to `AST-003` resolved, no
+open finding remained. The owner supplied the exact canonical confirmation:
+
+```text
+Confirmo a decisão acima exclusivamente para STATE-06
+```
+
+Human Gate result: **APPROVED WITH DOCUMENTED CAVEATS**. This decision closes
+only `STATE-06 INTEGRATION` after its factual state and append-only history are
+updated. It does not authorise or enter `STATE-07`, contact OCI or any network,
+use an external provider, publish, push or deploy. No executable product,
+test, dependency, lockfile, contract, OpenAPI, schema, migration or ADR was
+changed by the Human Gate record.
