@@ -27,20 +27,30 @@ jobs:
         with:
           persist-credentials: false
 
-      - name: Verify pinned toolchains
+      - name: Verify toolchains
         shell: pwsh
         run: |
+          $ErrorActionPreference = "Stop"
+          . ./eng/ci-policy.ps1
+
           $expectedDotnet = (Get-Content global.json | ConvertFrom-Json).sdk.version
-          $expectedNode = (Get-Content .nvmrc).Trim()
+          $dashboardPackage = Get-Content src/RagChallenge.Dashboard.Web/package.json -Raw | ConvertFrom-Json
           if ((dotnet --version) -ne $expectedDotnet) {
             throw "Expected .NET SDK $expectedDotnet."
           }
-          if ((node --version).TrimStart("v") -ne $expectedNode) {
-            throw "Expected Node.js $expectedNode."
+
+          $nodeVersion = (node --version).TrimStart("v")
+          if ($LASTEXITCODE -ne 0) {
+            throw "Node.js version discovery failed with exit code $LASTEXITCODE."
           }
-          if ((npm --version) -ne "11.16.0") {
-            throw "Expected npm 11.16.0."
+
+          $npmVersion = npm --version
+          if ($LASTEXITCODE -ne 0) {
+            throw "npm version discovery failed with exit code $LASTEXITCODE."
           }
+
+          Assert-VersionSatisfiesRange -Name "Node.js" -ActualVersion $nodeVersion -Range $dashboardPackage.engines.node
+          Assert-VersionSatisfiesRange -Name "npm" -ActualVersion $npmVersion -Range $dashboardPackage.engines.npm
 
       - name: Run setup gate
         shell: pwsh

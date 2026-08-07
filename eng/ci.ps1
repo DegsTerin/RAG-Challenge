@@ -13,6 +13,8 @@ $env:DOTNET_CLI_TELEMETRY_OPTOUT = "1"
 $env:DOTNET_NOLOGO = "1"
 $env:DOTNET_SKIP_FIRST_TIME_EXPERIENCE = "1"
 
+. (Join-Path $PSScriptRoot "ci-policy.ps1")
+
 function Assert-LastExitCode {
     param([Parameter(Mandatory)][string]$Operation)
 
@@ -21,37 +23,27 @@ function Assert-LastExitCode {
     }
 }
 
-function Convert-NuGetLockFileLineEndings {
-    $trackedLockFiles = & git ls-files -- "*packages.lock.json"
+function Assert-NuGetLockFileLineEndings {
+    $trackedLockFiles = @(& git ls-files -- "*packages.lock.json")
     Assert-LastExitCode "Tracked NuGet lockfile discovery"
 
-    $utf8WithoutBom = [System.Text.UTF8Encoding]::new($false)
-    $normalisedFiles = [System.Collections.Generic.List[string]]::new()
-
-    foreach ($relativePath in $trackedLockFiles) {
-        $absolutePath = Join-Path $repositoryRoot $relativePath
-        $content = [System.IO.File]::ReadAllText($absolutePath)
-        $normalisedContent = $content.Replace("`r`n", "`n").Replace("`r", "`n")
-
-        if ($content -cne $normalisedContent) {
-            [System.IO.File]::WriteAllText(
-                $absolutePath,
-                $normalisedContent,
-                $utf8WithoutBom)
-            $normalisedFiles.Add($relativePath)
-        }
+    if ($trackedLockFiles.Count -eq 0) {
+        throw "No tracked NuGet lockfiles were found."
     }
 
-    if ($normalisedFiles.Count -gt 0) {
-        Write-Output (
-            "Normalised NuGet lockfiles to repository LF endings: " +
-            ($normalisedFiles -join ", "))
-    }
+    $absolutePaths = @(
+        $trackedLockFiles | ForEach-Object {
+            Join-Path $repositoryRoot $_
+        })
+
+    Assert-FilesUseLfOnly -Paths $absolutePaths
 }
 
 Push-Location $repositoryRoot
 
 try {
+    Assert-NuGetLockFileLineEndings
+
     if ($Offline) {
         dotnet restore RAG-Challenge.sln `
             --configfile eng/NuGet.Offline.config `
@@ -63,7 +55,7 @@ try {
         Assert-LastExitCode ".NET restore"
     }
 
-    Convert-NuGetLockFileLineEndings
+    Assert-NuGetLockFileLineEndings
 
     dotnet format RAG-Challenge.sln --verify-no-changes --no-restore
     Assert-LastExitCode ".NET format verification"
