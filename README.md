@@ -7,13 +7,11 @@ em linguagem natural, com respostas fundamentadas e referências às fontes.
 > `STATE-06 INTEGRATION` está ativo. O lote `S06-A` integrou localmente o
 > Dashboard, a API e os stores persistentes com fixture e providers
 > determinísticos. O Automatic Quality Gate mais recente, sobre
-> `main@f92e26c7008a2d124bd10edb2e3f03c0c9ad2bf6`, está `REPROVADO` pelo
-> achado P2 `AQG-S06-005`: os testes dos controles fail-closed de cobertura e
-> CI não integravam o entry point automático. A correção focal está
-> `CORRECTED_PENDING_GATE_RETEST`; ela não substitui o reinício integral do
-> gate. Os achados anteriores
-> `AQG-S06-001` a `AQG-S06-004` permanecem `RESOLVIDOS`. `STATE-06` continua
-> ativo; Human Gate e `STATE-07` não foram executados ou autorizados. Não existe
+> `main@616bef4e2ae8c0b26c10781cd728dc6089136a60`, está `APROVADO`, sem
+> novo P0, P1, P2 ou P3. Os controles fail-closed integrados foram repetidos
+> pelo entry point automático, e `AQG-S06-005` está `RESOLVIDO`, assim como
+> `AQG-S06-001` a `AQG-S06-004`. `STATE-06` continua ativo; Human Gate e
+> `STATE-07` não foram executados ou autorizados. Não existe
 > corpus, provider, fonte oficial, execução Linux, OCI ou produção reais, nem
 > publicação ou deploy.
 

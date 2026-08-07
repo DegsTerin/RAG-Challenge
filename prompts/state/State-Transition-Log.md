@@ -4761,3 +4761,68 @@ contém somente fatos cronológicos.
 - Relatório atualizado:
   [`STATE-06-Integration-Report.md`](../../docs/STATE-06-Integration-Report.md).
 - Aprovador: proprietário do RAG-Challenge.
+
+## 2026-08-06 — Automatic Quality Gate aprovado após correção de AQG-S06-005
+
+- Estado anterior e resultante: `STATE-06 INTEGRATION` permanece ativo; não
+  houve Human Gate, transição ou entrada em `STATE-07`.
+- Autoridade e baseline: o proprietário autorizou o reinício integral, local,
+  offline, sequencial e sem correção silenciosa sobre
+  `main@616bef4e2ae8c0b26c10781cd728dc6089136a60`, corpus `4.9.3` e working
+  tree limpa, com parada diante de achado, divergência ou mudança concorrente.
+- Preflight restrito: zero processo pertencente ao RAG-Challenge e zero
+  listener nas portas 4173, 5086, 5096, 5173 e 9230 no início e no fim.
+- Supply chain: os três runtime packs Linux ARM64 `10.0.10` foram reconciliados
+  com catálogo local, SHA-256, SHA-512, tamanho, licença, identidade e
+  assinatura; o restore locked usou somente a fonte verificada e caches .NET
+  isolados, sem alteração dos sete lockfiles .NET.
+- Controles automáticos: `eng/ci.ps1 -Offline` executou antes do restore os 11
+  casos de `test-assert-coverage.ps1` e os 14 controles de
+  `test-ci-policy.ps1`, incluindo sucesso, falha propagada, script ausente,
+  invocação única e workflow como consumidor do entry point canônico.
+- Gate técnico: restore, format, build Release sem warning/erro, 87 testes
+  unitários, 10 de arquitetura e 109 de integração passaram, total 206 sem
+  falha ou skip; cobertura .NET foi 93,11% de linhas e 66,89% de branches;
+  `npm ci --offline`, lint, typecheck, 38 testes npm, build Vite e auditoria de
+  203 arquivos passaram.
+- Persistência e resiliência: cinco testes focais de migration/referências
+  compostas e quatro de host/loopback passaram; EF `10.0.10` informou ausência
+  de mudança pendente no modelo com store root temporário explícito. Nenhuma
+  migration foi aplicada a banco real.
+- Reprodução ARM64: duas construções produziram ZIPs idênticos de 133.455.866
+  bytes e 361 arquivos, SHA-256
+  `539a187debc1f9a39cf95ee8519763434e7e96e76e6eeaae0812ad697b8200a9`;
+  manifests de 360 payloads idênticos tiveram SHA-256
+  `4c3c18da88658dbb2671f7183249fe1db1ca1b442d9e4224f1762c8c5dc74ea3`.
+  O verificador aprovou 17 ELF64 AArch64 sem executar Linux nem contatar OCI.
+- Integridade da evidência ARM64: uma asserção ad hoc inicialmente tratou o
+  JSON compactado do verificador como objeto PowerShell e produziu falso
+  status nulo; comparação direta de ZIP, manifest e conteúdo e duas leituras
+  com `ConvertFrom-Json` confirmaram equivalência e aprovação. A tentativa
+  intermediária com parâmetro inexistente não produziu evidência do projeto.
+- README: os comandos literais produziram artefato ignorado de 58 arquivos e
+  47.324.394 bytes, SHA-256
+  `260f072109bf44b9ea09f737995ff9cf036c7f1de853c67307e1c2f2d245a763`;
+  a verificação passou com Dashboard loopback, `en-GB`/`pt-BR`, geração
+  preservada após restart, `control.db` e `vectors.db`.
+- Segurança e higiene: nenhum path protegido inesperado mudou, nenhum
+  `reference-materials/` está rastreado, os blobs de OpenAPI e contrato
+  canônico v1 permaneceram
+  `a5fb3602fbab33bda6aa56cc4caaa9fdc37c8160` e
+  `eed1021776fc6513d0054c5a6a8babe3a4534150`; auditoria e
+  `git diff --check` passaram. Os diretórios exclusivos do gate e da cobertura
+  foram removidos; fonte/cache local verificada e artefato ignorado do README
+  foram preservados.
+- Disposição: `AQG-S06-005` está `RESOLVIDO`; o Automatic Quality Gate está
+  `APROVADO`, sem novo P0, P1, P2 ou P3. `AQG-S06-001` a `AQG-S06-005`
+  permanecem `RESOLVIDOS`.
+- Limitações: sem execução Linux ARM64, OCI real, provider, conta, secret,
+  corpus ou fonte real, armazenamento operacional, cobertura percentual
+  JavaScript, observação de rede em nível de pacotes, migration em banco real
+  ou reparo de dados.
+- Escopo negativo preservado: sem correção silenciosa, dependência, lockfile,
+  contrato, OpenAPI, schema, migration, ADR, rede externa, OCI, GitHub,
+  publicação, push, deploy, Human Gate ou `STATE-07`.
+- Relatório atualizado:
+  [`STATE-06-Integration-Report.md`](../../docs/STATE-06-Integration-Report.md).
+- Aprovador: proprietário do RAG-Challenge.

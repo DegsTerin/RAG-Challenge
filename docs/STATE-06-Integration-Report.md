@@ -1148,3 +1148,137 @@ coverage, persistence/migration and Entity Framework checks,
 cancellation/resilience tests, ARM64 reproduction and README commands were not
 executed by this correction. No Human Gate, `STATE-07`, network, GitHub,
 publication or deployment action occurred.
+
+## Automatic Quality Gate restart after AQG-S06-005 correction — 2026-08-06
+
+### Authority, baseline and preflight
+
+The owner authorised a complete, local, offline and sequential restart of the
+`STATE-06` Automatic Quality Gate on
+`main@616bef4e2ae8c0b26c10781cd728dc6089136a60`, prompt corpus `4.9.3`, with
+a clean working tree and no silent correction. The run started at
+`2026-08-07T01:27:16.0250144Z`. The recorded toolchain was PowerShell `7.6.4`,
+Git `2.55.0.windows.3`, .NET SDK `10.0.302`, Node.js `24.19.0` and npm
+`11.17.0`.
+
+The restricted initial preflight found no RAG-Challenge-owned product process
+and no listener on ports 4173, 5086, 5096, 5173 or 9230. The authorised
+correction range from `000dca0210e220a9f247159178c6d97d9fc4fd55` to the
+baseline contained the three intended engineering changes and their four
+factual documentation updates. It contained no product source, .NET/npm test
+project, workflow, dependency, lockfile, public contract, OpenAPI, schema,
+migration or ADR change. The workflow still invokes only `./eng/ci.ps1`, the
+canonical automatic entry point.
+
+### Supply chain and isolated locked restore
+
+The three Linux ARM64 runtime packs in the verified local source were matched
+again to their local catalog records, including version, listed status, MIT
+licence expression, SHA-512, size and source-download SHA-256. Their local
+archive identities were:
+
+| Package | Version | Bytes | SHA-256 |
+| --- | --- | ---: | --- |
+| `Microsoft.AspNetCore.App.Runtime.linux-arm64` | `10.0.10` | 12,387,032 | `57e8c8daff5e3a83909aa7af9b1d2cd52448adfc82cdfd45b453e25b25cf2e7e` |
+| `Microsoft.NETCore.App.Host.linux-arm64` | `10.0.10` | 5,309,240 | `9cca12665d6bf35f7823300cf77c5c4fd2c35daa5a5f7f99d1e70109df912b52` |
+| `Microsoft.NETCore.App.Runtime.linux-arm64` | `10.0.10` | 37,584,411 | `9a9d718da744f99e2c6614bac001d233d387500cde6a0897a8f15fdaf93eed92` |
+
+Each package had an empty dependency set in its nuspec. `dotnet nuget verify
+--all` passed author and repository signatures for all three packages with
+offline revocation behaviour. Explicit restore used
+`eng/NuGet.Offline.config`, only the verified local source, isolated NuGet
+packages, HTTP cache and CLI home, `--locked-mode` and `--no-cache`. It passed
+without changing any of the seven .NET lockfiles. The four production assets
+files resolved only `net10.0` and `net10.0/linux-arm64`, the three test assets
+resolved only `net10.0`, and every resolved package folder was under the
+isolated package root.
+
+An initial assets-path diagnostic compared equivalent roots before normalising
+their trailing separators and was discarded. The corrected ordinal path
+comparison passed and is the accepted evidence.
+
+### Automatic entry point, technical gate and focused behaviour
+
+`eng/ci.ps1 -Offline` completed with exit code 0 in 98.8 seconds using the
+isolated .NET dependency environment. Before restore, the integrated
+fail-closed controls ran through the canonical entry point: all 11 coverage
+parser cases and all 14 CI-policy controls passed. The latter included
+required-test success, propagated failure, missing-script failure, exactly one
+invocation of each policy test and the workflow's single canonical consumer.
+
+The same run passed locked restore, format verification and Release build with
+zero warnings and errors. It passed 87 unit, 10 architecture and 109
+integration tests, totalling 206 with no failure or skip. Merged production
+coverage was 19,943 of 21,419 lines (`93.11%`) and 2,544 of 3,803 branches
+(`66.89%`). `npm ci --offline`, lint, typecheck, all 38 npm tests and the Vite
+build passed. The repository audit passed for 203 non-ignored files.
+
+Five focused migration and composite-reference tests passed using disposable
+SQLite stores. Four focused `IntegrationHostEndToEndTests` and
+`OfficialSourceLoopbackTests` passed, covering cancellation, resilience,
+recovery, restart and the synthetic loopback boundary. `dotnet-ef` `10.0.10`
+reported no pending model change for `ControlPlaneDbContext` when
+Infrastructure was used as both project and startup project, Release
+`--no-build` was selected and an explicit temporary design-time store root was
+provided. No migration was applied to a real database and no data was
+repaired.
+
+### ARM64 reproduction and README commands
+
+Two independent ARM64 rehearsal builds produced byte-identical archives of
+133,455,866 bytes and 361 files, SHA-256
+`539a187debc1f9a39cf95ee8519763434e7e96e76e6eeaae0812ad697b8200a9`.
+Their 360-payload manifests were identical, with SHA-256
+`4c3c18da88658dbb2671f7183249fe1db1ca1b442d9e4224f1762c8c5dc74ea3`,
+and a direct content comparison found zero differing file. The static
+verifier passed both archives and identified 17 ELF64 AArch64 payloads. It
+reported compiled Dashboard assets, external services disabled by default,
+`LinuxArm64Executed: false` and `OciContacted: false`.
+
+The first ad hoc aggregate assertion treated each verifier's compressed JSON
+text as a PowerShell object and therefore observed a null status. That harness
+result was discarded. Direct archive, manifest and content comparisons plus
+two `ConvertFrom-Json` verifier results established the accepted equivalent
+evidence above. An interim diagnostic with the wrong parameter name stopped
+before verification and also produced no project evidence.
+
+The two literal README integration commands passed. They produced an ignored
+58-file, 47,324,394-byte artefact at
+`artifacts-local/s06-a/rag-challenge-s06-a.zip`, SHA-256
+`260f072109bf44b9ea09f737995ff9cf036c7f1de853c67307e1c2f2d245a763`.
+Verification returned `Passed`, served the Dashboard on loopback, answered in
+`en-GB` and `pt-BR`, preserved generation
+`idxgen-795825d3ad7afad1acd3a16ef48f2448270dda36ea71725fe6f6231956ced2c5`
+across restart and confirmed persistent `control.db` and `vectors.db` with one
+raw content object.
+
+### Security, hygiene, disposition and limitations
+
+Final inspection found no unexpected protected-path change and no tracked
+`reference-materials/`. The versioned OpenAPI Git blob remained
+`a5fb3602fbab33bda6aa56cc4caaa9fdc37c8160`, and the canonical v1 contract
+Git blob remained `eed1021776fc6513d0054c5a6a8babe3a4534150`. Repository
+audit and `git diff --check` passed. Final runtime preflight found zero task
+listener and zero RAG-Challenge-owned process.
+
+The unique gate root `artifacts-local/aqg-s06-616bef4` and coverage directory
+`TestResults/8874f68f1e754e078f7ad21782d302d1` were removed after evidence
+capture. The verified dependency source/cache and the ignored artefact from
+the literal README command were preserved. The authorised branch and commit
+remained unchanged and the tracked working tree was clean before this factual
+record was edited.
+
+`AQG-S06-005` is **RESOLVED** because the complete automatic entry point
+repeated the integrated fail-closed tests and all downstream gate evidence.
+The Automatic Quality Gate is **APPROVED**, with no new P0, P1, P2 or P3
+finding. `AQG-S06-001` to `AQG-S06-005` are `RESOLVED`. This disposition does
+not erase the historical failed gates or make the focused correction alone an
+approval.
+
+Residual limitations remain: the Linux ARM64 payload was not executed; no
+real OCI tenancy, IAM, capacity, network, storage, cost or TLS path was tested;
+no provider, account, secret, real corpus, real official source or operational
+store was used; JavaScript percentage coverage and packet-level network
+observation were not performed; and no migration was applied to a real
+database or used to repair data. No GitHub, publication, push, deployment,
+Human Gate or `STATE-07` action occurred. `STATE-06` remains active.

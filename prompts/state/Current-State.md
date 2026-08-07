@@ -482,6 +482,21 @@ proprietários.
   arquivos. O Automatic Quality Gate completo não foi reiniciado e nenhuma
   outra suíte foi executada. `AQG-S06-005` está
   `CORRECTED_PENDING_GATE_RETEST`; Human Gate permanece prematuro.
+- Reinício integral posterior à correção de `AQG-S06-005`: autorizado pelo
+  proprietário e executado localmente, offline e de forma sequencial em
+  2026-08-06 sobre
+  `main@616bef4e2ae8c0b26c10781cd728dc6089136a60`, corpus `4.9.3` e working
+  tree limpa. A fonte local dos três runtime packs ARM64 `10.0.10`, suas
+  assinaturas e o restore locked isolado foram revalidados sem mudança de
+  lockfile. O entry point automático executou e aprovou os 11 casos de
+  coverage e os 14 controles de política antes do gate técnico. Build Release,
+  206 testes .NET, cobertura de 93,11% de linhas e 66,89% de branches, 38
+  testes npm, persistência/migration, EF sem mudança pendente,
+  cancelamento/resiliência, duas reproduções ARM64 idênticas, verificador
+  estático, comandos do README, segurança e higiene passaram. O gate está
+  `APROVADO`, sem novo P0, P1, P2 ou P3; `AQG-S06-005` está `RESOLVIDO` e
+  `AQG-S06-001` a `AQG-S06-005` permanecem `RESOLVIDOS`. `STATE-06` continua
+  ativo; Human Gate, `STATE-07`, rede externa e OCI não foram executados.
 - Fechamento de `S04-A0`: `PdfPig` `0.1.15` e `CsvHelper` `33.1.0` foram
   selecionados condicionalmente para desenvolvimento local;
   `Sylvan.Data.Csv` `1.4.4` permanece fallback não selecionado e não
@@ -980,9 +995,10 @@ autorizada.
    para cada banco antes de sua ativação.
 2. Validar e ativar individualmente novos registros de fonte oficial; a
    aceitação arquitetural não autoriza URL, rede, download ou crawling.
-3. Reiniciar integralmente o Automatic Quality Gate sobre baseline limpa para
-   dispor `AQG-S06-005`, hoje `CORRECTED_PENDING_GATE_RETEST`, antes de
-   qualquer resumo do Human Gate de `STATE-06`.
+3. Preparar o resumo completo do Human Gate de `STATE-06`, somente mediante
+   autoridade separada e sobre uma baseline nomeada e limpa; o Automatic
+   Quality Gate mais recente está `APROVADO` e `AQG-S06-005` está
+   `RESOLVIDO`.
 4. Verificar tier, entitlement, spend limit e controles da conta OpenAI, além
    da recuperação/geração bilíngue, antes de usar ou anunciar os providers.
 5. Homologar desempenho e capacidade do `SqliteExactVectorStore`; a fixture
@@ -1247,3 +1263,14 @@ coverage, 14 controles de política/integração, `git diff --check` e auditoria
 de 203 arquivos passaram localmente e offline. O workflow não mudou. O gate
 integral não foi reiniciado; `AQG-S06-005` está
 `CORRECTED_PENDING_GATE_RETEST`, e Human Gate continua prematuro.
+
+O reinício integral subsequente, autorizado sobre
+`main@616bef4e2ae8c0b26c10781cd728dc6089136a60`, corpus `4.9.3` e working
+tree limpa, repetiu desde o início supply chain, restore locked isolado,
+controles fail-closed, gate técnico, cobertura, persistência/migration,
+cancelamento/resiliência, duas reproduções ARM64, verificador estático,
+comandos do README, segurança e higiene. Todos os controles passaram: 206
+testes .NET, 38 testes npm, 93,11% de linhas, 66,89% de branches e dois ZIPs
+ARM64 idênticos com 17 ELF64 AArch64. O Automatic Quality Gate está
+`APROVADO`, sem novo P0, P1, P2 ou P3, e `AQG-S06-005` está `RESOLVIDO`.
+Human Gate e `STATE-07` não foram executados; `STATE-06` continua ativo.
