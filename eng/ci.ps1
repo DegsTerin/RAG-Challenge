@@ -42,6 +42,13 @@ function Assert-NuGetLockFileLineEndings {
 Push-Location $repositoryRoot
 
 try {
+    Invoke-RequiredPolicyTest `
+        -Name "fail-closed coverage aggregation" `
+        -ScriptPath (Join-Path $PSScriptRoot "test-assert-coverage.ps1")
+    Invoke-RequiredPolicyTest `
+        -Name "shared CI policy" `
+        -ScriptPath (Join-Path $PSScriptRoot "test-ci-policy.ps1")
+
     Assert-NuGetLockFileLineEndings
 
     if ($Offline) {

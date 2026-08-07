@@ -469,6 +469,19 @@ proprietários.
   build, suítes, coverage, migration, ARM64 ou comandos do README e está
   `REPROVADO`. `AQG-S06-005` permanece `ABERTO`; Human Gate continua
   prematuro, e `STATE-07` e ações externas permanecem não autorizados.
+- Correção focal de `AQG-S06-005`: autorizada pelo proprietário em 2026-08-06
+  sobre `main@000dca0210e220a9f247159178c6d97d9fc4fd55`, corpus `4.9.3` e
+  working tree limpa. `eng/ci-policy.ps1` agora fornece uma invocação
+  obrigatória que falha quando o script não existe e propaga qualquer exceção
+  com contexto; `eng/ci.ps1` executa os testes de cobertura e política uma vez
+  cada, antes de restore; e `eng/test-ci-policy.ps1` prova sucesso, propagação
+  de falha, script ausente, invocação única dos dois testes e consumo único do
+  entry point canônico pelo workflow. O workflow permaneceu inalterado. A
+  verificação focal aprovou parsing dos três scripts, 11 casos de coverage, 14
+  controles de política/integração, `git diff --check` e auditoria de 203
+  arquivos. O Automatic Quality Gate completo não foi reiniciado e nenhuma
+  outra suíte foi executada. `AQG-S06-005` está
+  `CORRECTED_PENDING_GATE_RETEST`; Human Gate permanece prematuro.
 - Fechamento de `S04-A0`: `PdfPig` `0.1.15` e `CsvHelper` `33.1.0` foram
   selecionados condicionalmente para desenvolvimento local;
   `Sylvan.Data.Csv` `1.4.4` permanece fallback não selecionado e não
@@ -967,8 +980,8 @@ autorizada.
    para cada banco antes de sua ativação.
 2. Validar e ativar individualmente novos registros de fonte oficial; a
    aceitação arquitetural não autoriza URL, rede, download ou crawling.
-3. Corrigir `AQG-S06-005` somente sob autoridade separada e depois reiniciar
-   integralmente o Automatic Quality Gate sobre baseline limpa antes de
+3. Reiniciar integralmente o Automatic Quality Gate sobre baseline limpa para
+   dispor `AQG-S06-005`, hoje `CORRECTED_PENDING_GATE_RETEST`, antes de
    qualquer resumo do Human Gate de `STATE-06`.
 4. Verificar tier, entitlement, spend limit e controles da conta OpenAI, além
    da recuperação/geração bilíngue, antes de usar ou anunciar os providers.
@@ -1224,3 +1237,13 @@ nenhum entry point automático, inclusive `eng/ci.ps1` e o workflow. O gate
 está `REPROVADO`, o achado permanece `ABERTO` e nenhuma etapa executável
 posterior foi iniciada. `STATE-06` continua ativo; Human Gate, `STATE-07` e
 ações externas permanecem não autorizados.
+
+A correção focal posterior, autorizada sobre
+`main@000dca0210e220a9f247159178c6d97d9fc4fd55`, integrou os dois testes ao
+início de `eng/ci.ps1` por um helper fail-closed compartilhado e ampliou o
+teste de política para provar sucesso, propagação de falha, ausência de script,
+invocação única e consumo canônico pelo workflow. Parsing, 11 casos de
+coverage, 14 controles de política/integração, `git diff --check` e auditoria
+de 203 arquivos passaram localmente e offline. O workflow não mudou. O gate
+integral não foi reiniciado; `AQG-S06-005` está
+`CORRECTED_PENDING_GATE_RETEST`, e Human Gate continua prematuro.

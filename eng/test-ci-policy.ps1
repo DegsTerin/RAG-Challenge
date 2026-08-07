@@ -174,6 +174,41 @@ try {
         } `
         -ExpectedPattern "does not exist"
 
+    $passingPolicyTest = Join-Path $temporaryRoot "passing-policy-test.ps1"
+    $failingPolicyTest = Join-Path $temporaryRoot "failing-policy-test.ps1"
+    [System.IO.File]::WriteAllText(
+        $passingPolicyTest,
+        'Write-Output "fixture policy test passed"',
+        [System.Text.UTF8Encoding]::new($false))
+    [System.IO.File]::WriteAllText(
+        $failingPolicyTest,
+        'throw "fixture policy failure"',
+        [System.Text.UTF8Encoding]::new($false))
+
+    Invoke-ExpectedSuccess -Name "required-policy-test-success" -Action {
+        Invoke-RequiredPolicyTest `
+            -Name "passing fixture" `
+            -ScriptPath $passingPolicyTest
+    }
+
+    Invoke-ExpectedFailure `
+        -Name "required-policy-test-failure-propagates" `
+        -Action {
+            Invoke-RequiredPolicyTest `
+                -Name "failing fixture" `
+                -ScriptPath $failingPolicyTest
+        } `
+        -ExpectedPattern "Required policy test 'failing fixture' failed: fixture policy failure"
+
+    Invoke-ExpectedFailure `
+        -Name "required-policy-test-missing-fails-closed" `
+        -Action {
+            Invoke-RequiredPolicyTest `
+                -Name "missing fixture" `
+                -ScriptPath (Join-Path $temporaryRoot "missing-policy-test.ps1")
+        } `
+        -ExpectedPattern "Required policy test 'missing fixture' does not exist"
+
     $ciScript = Get-Content -LiteralPath (Join-Path $PSScriptRoot "ci.ps1") -Raw
     $workflow = Get-Content -LiteralPath (
         Join-Path (Split-Path -Parent $PSScriptRoot) ".github/workflows/ci.yml") -Raw
@@ -192,6 +227,32 @@ try {
 
     if ($lockfilePolicyCalls -ne 2) {
         throw "The CI entry point must validate lockfiles before and after restore."
+    }
+
+    foreach ($requiredTest in @(
+            "test-assert-coverage.ps1",
+            "test-ci-policy.ps1")) {
+        $requiredTestPattern =
+            '(?m)^\s*-ScriptPath\s+\(Join-Path\s+\$PSScriptRoot\s+"' +
+            [regex]::Escape($requiredTest) +
+            '"\)\s*$'
+        $requiredTestCalls = [regex]::Matches(
+            $ciScript,
+            $requiredTestPattern).Count
+
+        if ($requiredTestCalls -ne 1) {
+            throw (
+                "The CI entry point must invoke '$requiredTest' exactly once through " +
+                "the fail-closed policy helper.")
+        }
+    }
+
+    $workflowEntryPointCalls = [regex]::Matches(
+        $workflow,
+        '(?m)^\s*run:\s*\./eng/ci\.ps1\s*$').Count
+
+    if ($workflowEntryPointCalls -ne 1) {
+        throw "The workflow must invoke the canonical CI entry point exactly once."
     }
 
     if ($workflow -notmatch 'Assert-VersionSatisfiesRange' -or

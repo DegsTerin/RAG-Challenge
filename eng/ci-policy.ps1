@@ -71,3 +71,31 @@ function Assert-FilesUseLfOnly {
             ($invalidFiles -join ", "))
     }
 }
+
+function Invoke-RequiredPolicyTest {
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory)]
+        [string]$Name,
+
+        [Parameter(Mandatory)]
+        [string]$ScriptPath
+    )
+
+    if ([string]::IsNullOrWhiteSpace($Name)) {
+        throw "A required policy test must have a name."
+    }
+
+    if (-not [System.IO.File]::Exists($ScriptPath)) {
+        throw "Required policy test '$Name' does not exist at '$ScriptPath'."
+    }
+
+    try {
+        & $ScriptPath
+    }
+    catch {
+        throw [System.InvalidOperationException]::new(
+            "Required policy test '$Name' failed: $($_.Exception.Message)",
+            $_.Exception)
+    }
+}

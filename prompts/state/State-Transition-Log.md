@@ -4722,3 +4722,42 @@ contém somente fatos cronológicos.
 - Relatório atualizado:
   [`STATE-06-Integration-Report.md`](../../docs/STATE-06-Integration-Report.md).
 - Aprovador: proprietário do RAG-Challenge.
+
+## 2026-08-06 — Correção focal de AQG-S06-005 concluída
+
+- Estado anterior e resultante: `STATE-06 INTEGRATION` permanece ativo; o
+  Automatic Quality Gate continua historicamente `REPROVADO` e não houve
+  Human Gate, transição ou entrada em `STATE-07`.
+- Autoridade e baseline: o proprietário autorizou somente a correção focal de
+  `AQG-S06-005` sobre
+  `main@000dca0210e220a9f247159178c6d97d9fc4fd55`, corpus `4.9.3` e working
+  tree limpa, com verificações focais locais/offline e commit local.
+- Preflight restrito: zero processo pertencente ao RAG-Challenge e zero
+  listener nas portas 4173, 5086, 5096, 5173 e 9230.
+- Implementação: `eng/ci-policy.ps1` ganhou o helper
+  `Invoke-RequiredPolicyTest`, que falha se o script estiver ausente e propaga
+  exceção do teste com contexto; `eng/ci.ps1` chama os testes de coverage e
+  política exatamente uma vez antes de restore; `eng/test-ci-policy.ps1`
+  valida sucesso, falha propagada, script ausente, as duas invocações únicas e
+  o workflow como consumidor único do entry point canônico.
+- Workflow: `.github/workflows/ci.yml` permaneceu sem mudança e continua
+  chamando somente `./eng/ci.ps1`.
+- Verificação focal aceita: parsing dos três scripts alterados; 11 casos de
+  `eng/test-assert-coverage.ps1`; 14 controles de `eng/test-ci-policy.ps1`;
+  `git diff --check`; e auditoria de 203 arquivos não ignorados passaram.
+- Tentativa diagnóstica não aceita: a primeira wrapper de verificação tinha
+  interpolação PowerShell inválida e parou antes de analisar arquivo do projeto
+  ou executar teste. A invocação corrigida produziu toda a evidência aceita.
+- Disposição: `AQG-S06-005` está `CORRECTED_PENDING_GATE_RETEST`; a correção
+  não resolve o achado nem substitui novo reinício integral do gate sobre
+  baseline limpa.
+- Verificações não executadas: restore, build, suítes .NET/npm, coverage de
+  produção, persistence/migration, EF, cancelamento/resiliência, ARM64 e
+  comandos do README ficaram fora da correção focal.
+- Escopo negativo preservado: sem produto, dependência, lockfile, contrato,
+  OpenAPI, schema, migration, ADR, rede, cache global, OCI, provider, conta,
+  secret, corpus ou fonte real, GitHub, publicação, deploy, Human Gate ou
+  `STATE-07`.
+- Relatório atualizado:
+  [`STATE-06-Integration-Report.md`](../../docs/STATE-06-Integration-Report.md).
+- Aprovador: proprietário do RAG-Challenge.

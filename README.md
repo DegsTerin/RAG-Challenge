@@ -9,7 +9,9 @@ em linguagem natural, com respostas fundamentadas e referências às fontes.
 > determinísticos. O Automatic Quality Gate mais recente, sobre
 > `main@f92e26c7008a2d124bd10edb2e3f03c0c9ad2bf6`, está `REPROVADO` pelo
 > achado P2 `AQG-S06-005`: os testes dos controles fail-closed de cobertura e
-> CI não integram o entry point automático. Os achados anteriores
+> CI não integravam o entry point automático. A correção focal está
+> `CORRECTED_PENDING_GATE_RETEST`; ela não substitui o reinício integral do
+> gate. Os achados anteriores
 > `AQG-S06-001` a `AQG-S06-004` permanecem `RESOLVIDOS`. `STATE-06` continua
 > ativo; Human Gate e `STATE-07` não foram executados ou autorizados. Não existe
 > corpus, provider, fonte oficial, execução Linux, OCI ou produção reais, nem

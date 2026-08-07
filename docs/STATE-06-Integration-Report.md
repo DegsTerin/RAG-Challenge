@@ -1096,3 +1096,55 @@ migration or ADR was corrected or changed by the audit. No network, global
 cache, OCI, provider, account, secret, real corpus, real source, GitHub,
 publication, deployment, Human Gate or `STATE-07` action occurred.
 `STATE-06` remains active and its Human Gate is premature.
+
+## AQG-S06-005 focused correction — 2026-08-06
+
+### Authority and implementation
+
+The owner authorised only the focused correction of `AQG-S06-005` on
+`main@000dca0210e220a9f247159178c6d97d9fc4fd55`, prompt corpus `4.9.3`, with
+a clean working tree. The authority excluded the complete Automatic Quality
+Gate, Human Gate, `STATE-07`, network and external action.
+
+The correction changed three engineering files:
+
+- `eng/ci-policy.ps1` now provides `Invoke-RequiredPolicyTest`, which rejects
+  a missing script and wraps any test exception in a terminating contextual
+  failure;
+- `eng/ci.ps1` invokes `test-assert-coverage.ps1` and `test-ci-policy.ps1`
+  exactly once through that helper before dependency restore; and
+- `eng/test-ci-policy.ps1` now exercises a passing test, propagated test
+  failure and missing test, asserts exactly one canonical invocation of each
+  policy test, and asserts that the workflow invokes `./eng/ci.ps1` exactly
+  once.
+
+`.github/workflows/ci.yml` was not changed and remains a consumer of the
+canonical entry point. No product source, dependency, lockfile, contract,
+OpenAPI, schema, migration or ADR changed.
+
+### Focused verification and disposition
+
+The correction completed its focused local and offline verification at
+`2026-08-07T01:14:12.4074608Z`:
+
+| Check | Result |
+| --- | --- |
+| PowerShell parser for the three changed scripts | Passed |
+| `eng/test-assert-coverage.ps1` | 11 cases passed, including missing, empty, malformed, impossible, inconsistent and threshold-boundary reports |
+| `eng/test-ci-policy.ps1` | 14 controls passed, including version ranges, LF fail-closed behaviour, required-test success/failure/missing cases and canonical consumer wiring |
+| `git diff --check` | Passed |
+| `eng/check-repository.ps1` | Passed for 203 non-ignored files |
+| Workflow comparison with `HEAD` | Unchanged |
+
+The first diagnostic wrapper used to launch these checks contained an invalid
+PowerShell interpolation and stopped before parsing a project file or running
+a test. It produced no project evidence. The corrected invocation produced all
+accepted results above.
+
+`AQG-S06-005` is `CORRECTED_PENDING_GATE_RETEST`. This focused verification
+does not resolve the finding and does not replace the required complete gate
+restart. Dependency restore, build, .NET/npm suites, merged production
+coverage, persistence/migration and Entity Framework checks,
+cancellation/resilience tests, ARM64 reproduction and README commands were not
+executed by this correction. No Human Gate, `STATE-07`, network, GitHub,
+publication or deployment action occurred.
