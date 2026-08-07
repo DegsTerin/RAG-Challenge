@@ -49,6 +49,14 @@ condição executável. Usar a ausência canônica somente depois de verificar q
 não existe continuação diretamente relacionada; não confundir falta de
 autoridade com falta de próxima ação.
 
+Se houver ordem de dependência ou sequência nomeada, preencher o campo com o
+primeiro item ainda não concluído ou com a obtenção de sua autoridade exata.
+Não usar `revisar commits`, `considerar próximos passos`, `decidir se deseja
+continuar` ou equivalentes como substituto, salvo quando essa revisão ou
+decisão for um gate, pré-requisito ou entregável formal. Em resposta a uma
+pergunta direta sobre o próximo passo, apresentar primeiro a ação concreta e
+depois, se necessário, o resumo.
+
 ### Valores aceitos
 
 - `<ROUTE>`: `CONTINUE_CURRENT`, `START_NEW` ou `RETURN_TO_EXISTING`;

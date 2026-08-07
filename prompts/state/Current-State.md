@@ -941,6 +941,12 @@ proprietários.
   documento, decisão ou autorização ainda puder desbloquear a continuidade.
   A ausência canônica fica restrita à inexistência real de continuação
   acionável e não permite importar lifecycle ou backlog sem relação.
+- O corpus `4.9.7` corrige uma recorrência posterior: revisão genérica de
+  commits ou resultados concluídos não pode substituir o primeiro item ainda
+  não concluído de uma ordem de dependência. Quando faltar autoridade para
+  esse item, obtê-la do proprietário é a próxima ação e o handoff fornece o
+  payload delimitado. Perguntas diretas sobre o próximo passo recebem a ação
+  antes da recapitulação.
 - O Human Gate de `STATE-02` foi confirmado na mesma conversa que apresentou
   o resumo completo da baseline vigente `main@6e61c4c`, corpus `4.9.1`. A
   decisão aceitou a arquitetura documental sem ressalvas, preservou todas as
@@ -1118,12 +1124,21 @@ autorizada.
 8. Materializar `rag-eval-catalogue-v1`, a rubrica e thresholds antes de cada
    execução pontuada, preservando a matriz `pt-BR`/`en-GB` e acrescentando
    estratos por tag documental exata sem contar `en` como `en-GB`.
-9. Obter autoridade separada antes de implementar os tipos, schema/migration,
-   content store permanente, renderer/manifests, lifecycle, serving visual e
-   contrato v2 reconciliados; a reconciliação documental não autoriza nenhuma
-   dessas mudanças.
+9. `S03-CORR-01` concluiu os tipos, schema/migration e reachability do primeiro
+   item da ordem de dependência. Obter autoridade separada para o segundo item,
+   com owner técnico de `STATE-04`: content store permanente de fonte/PNG,
+   renderização determinística, direitos, ativação atômica e contrato v2,
+   preservando a OpenAPI v1.
 
 ## Próxima autoridade
+
+O primeiro refinamento arquitetural ainda não concluído é o item 2 da ordem
+registrada em Lifecycle. Não existe autoridade de execução para ele. A próxima
+ação concreta é o proprietário autorizar um incremento delimitado, com owner
+técnico de `STATE-04`, para preparar seu envelope executável de content store,
+renderer, direitos, ativação e v2, preservando v1 e parando diante de qualquer
+dependência, ADR ou semântica ainda não decidida. Revisar os commits já
+concluídos de `S03-CORR-01` não substitui essa ação.
 
 `STATE-04 BACKEND_IMPLEMENTATION` está encerrado após Automatic Quality Gate
 aprovado e Human Gate aprovado com as ressalvas documentadas em 2026-08-04. O

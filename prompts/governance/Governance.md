@@ -190,6 +190,17 @@ obtenção como próximo trabalho, preenche `Sua ação agora` e fornece o paylo
 completo. A regra não autoriza importar estado, gate, backlog ou melhoria sem
 relação direta.
 
+Quando um documento proprietário registrar uma ordem de dependência ou uma
+sequência nomeada de incrementos e o item atual estiver concluído, o primeiro
+item ainda não concluído dessa ordem tem prioridade como próximo trabalho. Se
+ele ainda não possuir autoridade, a próxima ação é obter do proprietário a
+autoridade delimitada, não revisar genericamente o resultado já concluído.
+`Revisar os commits`, `considerar a continuidade`, `avaliar se deseja seguir`
+ou formulação equivalente só pode ocupar o campo quando essa revisão ou
+decisão for um gate, pré-requisito ou entregável explicitamente nomeado. Ao
+perguntar diretamente qual é o próximo passo, tarefa, atividade ou ação, o
+proprietário recebe essa ação antes da recapitulação do trabalho encerrado.
+
 O handoff final classifica explicitamente a próxima interação:
 
 - `CONTINUE_CURRENT`: o mesmo estado/lote e objetivo continuam ativos, o

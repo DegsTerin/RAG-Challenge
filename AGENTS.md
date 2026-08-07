@@ -261,6 +261,16 @@ Use the canonical absence form only after checking Current State and the
 relevant owner documents and finding no directly related actionable
 continuation at all.
 
+When an owner document defines an ordered dependency sequence or named
+follow-on increments and the current item is complete, the next action is the
+first incomplete item in that sequence, or obtaining its exact bounded
+authority when execution is not yet authorised. Never substitute a generic
+request to review commits, inspect results, consider options or decide whether
+to continue unless that review or decision is itself a named gate,
+prerequisite or deliverable. When the owner asks directly for the next step,
+task, activity or action, lead the owner-facing answer with that action before
+any recap.
+
 Keep those concepts separate. A future deliverable, state/gate, owner action
 and conversation route neither substitute for one another nor grant
 authority. Use conditional fields only when applicable, do not repeat body

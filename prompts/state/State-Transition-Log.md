@@ -5220,3 +5220,34 @@ contém somente fatos cronológicos.
   `S03-CORR-01` está implementado e validado somente na fronteira local,
   offline, sintética e estática descrita. Nenhum incremento posterior foi
   iniciado.
+
+## 2026-08-07 — Próxima ação ordenada não pode ser substituída por revisão genérica
+
+- Baseline: branch `main`, commit
+  `28bc0e347cb65c3daef1d3dacdcac3632c6f048e`, corpus `4.9.6` e working tree
+  limpa.
+- Autoridade: solicitação explícita do proprietário para corrigir e documentar
+  permanentemente a obrigação de informar o próximo passo, tarefa, atividade
+  ou ação real.
+- Recorrência observada: o handoff de `S03-CORR-01` indicou `revisar os dois
+  commits locais`, embora o item 1 estivesse concluído e Lifecycle registrasse
+  uma ordem de dependência com item 2 ainda não executado.
+- Regra corrigida: o primeiro item não concluído de uma ordem governada tem
+  prioridade; quando sua execução não estiver autorizada, obter a autoridade
+  delimitada é a próxima ação. Revisão genérica só é válida quando constitui
+  gate, pré-requisito ou entregável formal.
+- Apresentação: perguntas diretas sobre o próximo passo recebem a ação concreta
+  antes de qualquer recapitulação.
+- Próxima ação factual: o proprietário autoriza um incremento delimitado, com
+  owner técnico de `STATE-04`, para preparar o envelope executável do segundo
+  refinamento — content store de fonte/PNG, renderer determinístico, direitos,
+  ativação atômica e v2, preservando v1 — ou a execução permanece parada.
+- Corpus: `4.9.7` (`PATCH`), com alteração somente de AGENTS, Governance,
+  Templates, Current State, este histórico append-only e Prompt System Change
+  Log.
+- Escopo negativo: sem implementar o segundo refinamento, aceitar ADR, alterar
+  código, dependência, lockfile, contrato, OpenAPI, schema, migration ou dados;
+  sem Automatic Quality Gate, Human Gate, lifecycle, rede ou ação externa.
+- Runtime preflight: `NÃO APLICÁVEL`; a correção é exclusivamente documental.
+- Estado resultante: `STATE-07 TESTING_HOMOLOGATION` permanece ativo;
+  `S03-CORR-01` continua concluído e nenhum incremento posterior foi iniciado.

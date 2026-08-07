@@ -2,10 +2,10 @@
 
 ## Versão atual
 
-- Versão: `4.9.6`
+- Versão: `4.9.7`
 - Data: 2026-08-07
-- Status: `STATE-07` ativo; `S03-CORR-01` implementado e validado localmente,
-  sem Automatic Quality Gate, Human Gate ou mudança de lifecycle
+- Status: `STATE-07` ativo; próxima ação de dependência corrigida, sem
+  autoridade para o segundo refinamento, gate ou mudança de lifecycle
 - Escopo: 13 arquivos ativos em `prompts/`
 
 A versão do corpus é independente da versão futura do software.
@@ -19,6 +19,25 @@ A versão do corpus é independente da versão futura do software.
 
 Toda alteração atualiza este arquivo e, quando necessário,
 [`../Start-Here.md`](../Start-Here.md).
+
+## 4.9.7 — 2026-08-07
+
+- Corrige a recorrência em que o handoff de `S03-CORR-01` indicou uma revisão
+  genérica de commits, embora Lifecycle registrasse um próximo item concreto
+  na ordem de dependência.
+- Determina que o primeiro item ainda não concluído de uma ordem governada tem
+  prioridade como próximo trabalho; se faltar autoridade, obtê-la é a ação.
+- Proíbe substituir esse avanço por `revisar commits`, `considerar próximos
+  passos` ou decidir opcionalmente se deseja continuar, salvo quando a revisão
+  ou decisão for gate, pré-requisito ou entregável formal.
+- Exige que respostas diretas sobre próximo passo, tarefa, atividade ou ação
+  apresentem primeiro a ação concreta e somente depois a recapitulação.
+- Registra como próxima ação atual a obtenção de autoridade delimitada para
+  preparar o segundo refinamento da ordem, com owner técnico de `STATE-04`,
+  preservando v1 e sem inferir execução.
+- Atualiza AGENTS, Governance, Templates, Current State, histórico e este
+  changelog. A mudança é `PATCH`, exclusivamente documental, sem produto,
+  dependência, lockfile, OpenAPI, gate, lifecycle ou ação externa.
 
 ## 4.9.6 — 2026-08-07
 
