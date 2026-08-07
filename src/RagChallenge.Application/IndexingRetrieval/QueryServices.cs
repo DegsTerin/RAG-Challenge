@@ -22,17 +22,25 @@ public sealed record QueryEvidenceBinding
 {
     public QueryEvidenceBinding(
         DocumentBinding binding,
-        SupportedLanguage contentLanguage,
+        DocumentContentLanguage contentLanguage,
         SourceFreshness freshness,
         string? title = null,
         string? canonicalUrl = null,
         DateTimeOffset? revalidatedAt = null)
     {
         Binding = binding ?? throw new ArgumentNullException(nameof(binding));
+        ArgumentNullException.ThrowIfNull(contentLanguage);
 
-        if (!Enum.IsDefined(contentLanguage) || !Enum.IsDefined(freshness))
+        if (!contentLanguage.IsSupportedByV1)
         {
-            throw new ArgumentOutOfRangeException(nameof(contentLanguage));
+            throw new ArgumentException(
+                "Runtime v1 cannot query evidence outside its closed language set.",
+                nameof(contentLanguage));
+        }
+
+        if (!Enum.IsDefined(freshness))
+        {
+            throw new ArgumentOutOfRangeException(nameof(freshness));
         }
 
         if (title?.Length > 512 || canonicalUrl?.Length > 2048 ||
@@ -70,7 +78,7 @@ public sealed record QueryEvidenceBinding
 
     public DocumentBinding Binding { get; }
 
-    public SupportedLanguage ContentLanguage { get; }
+    public DocumentContentLanguage ContentLanguage { get; }
 
     public SourceFreshness Freshness { get; }
 
@@ -158,7 +166,7 @@ public sealed record LanguageModelDescriptor
 public sealed record GroundedEvidence(
     string ChunkId,
     string Text,
-    SupportedLanguage ContentLanguage);
+    DocumentContentLanguage ContentLanguage);
 
 public sealed class GroundedGenerationRequest
 {
@@ -166,7 +174,7 @@ public sealed class GroundedGenerationRequest
         string trustedInstructions,
         string promptVersion,
         string question,
-        SupportedLanguage questionLanguage,
+        SupportedQueryLanguage questionLanguage,
         IReadOnlyCollection<GroundedEvidence> evidence,
         int maximumOutputCharacters)
     {
@@ -195,7 +203,7 @@ public sealed class GroundedGenerationRequest
 
     public string Question { get; }
 
-    public SupportedLanguage QuestionLanguage { get; }
+    public SupportedQueryLanguage QuestionLanguage { get; }
 
     public ReadOnlyCollection<GroundedEvidence> Evidence { get; }
 
@@ -204,7 +212,7 @@ public sealed class GroundedGenerationRequest
 
 public sealed record GroundedGenerationResult(
     LanguageModelDescriptor ObservedDescriptor,
-    SupportedLanguage AnswerLanguage,
+    SupportedQueryLanguage AnswerLanguage,
     string Answer,
     IReadOnlyCollection<string> CitedChunkIds);
 
@@ -239,7 +247,7 @@ public enum QueryFailureKind
 
 public sealed record QueryRequest(
     CorpusId CorpusId,
-    SupportedLanguage QuestionLanguage,
+    SupportedQueryLanguage QuestionLanguage,
     string Question,
     string CorrelationId,
     IReadOnlyCollection<DatabaseProductId>? DatabaseProductFilters = null,
@@ -260,7 +268,7 @@ public sealed record QueryCitation(
     DocumentId DocumentId,
     DocumentVersionNumber DocumentVersion,
     DocumentFormat DocumentFormat,
-    SupportedLanguage ContentLanguage,
+    DocumentContentLanguage ContentLanguage,
     string ChunkId,
     SourceAdapterId SourceAdapterId,
     SourceTrustClass SourceTrustClass,
@@ -278,7 +286,7 @@ public sealed record QueryCitation(
 
 public sealed record QueryCompletion(
     QueryOutcome Outcome,
-    SupportedLanguage AnswerLanguage,
+    SupportedQueryLanguage AnswerLanguage,
     string? Answer,
     IReadOnlyCollection<QueryCitation> Citations,
     EvidenceCoverage EvidenceCoverage,

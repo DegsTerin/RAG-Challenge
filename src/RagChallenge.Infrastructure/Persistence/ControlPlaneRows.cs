@@ -68,6 +68,8 @@ internal sealed class DocumentVersionRow
 
     public required string ContentLanguage { get; set; }
 
+    public string? SourceDeclaredLanguage { get; set; }
+
     public required string ContentSha256 { get; set; }
 
     public long ByteLength { get; set; }
@@ -81,6 +83,62 @@ internal sealed class DocumentVersionRow
     public string? OfficialRegistrationId { get; set; }
 
     public string? OfficialSnapshotId { get; set; }
+}
+
+internal sealed class DocumentRenderManifestRow
+{
+    public required string RenderManifestId { get; set; }
+
+    public required string ManifestSha256 { get; set; }
+
+    public int SchemaVersion { get; set; }
+
+    public required string CorpusId { get; set; }
+
+    public required string DocumentId { get; set; }
+
+    public long DocumentVersion { get; set; }
+
+    public required string SourceContentSha256 { get; set; }
+
+    public int SourcePageCount { get; set; }
+
+    public required string RenderProfileId { get; set; }
+
+    public required string RendererDescriptor { get; set; }
+
+    public required string GeneratedAtUtc { get; set; }
+}
+
+internal sealed class DocumentPageImageRow
+{
+    public required string RenderManifestId { get; set; }
+
+    public int PageNumber { get; set; }
+
+    public required string CorpusId { get; set; }
+
+    public required string DocumentId { get; set; }
+
+    public long DocumentVersion { get; set; }
+
+    public required string SourceContentSha256 { get; set; }
+
+    public required string RenderProfileId { get; set; }
+
+    public required string RendererDescriptor { get; set; }
+
+    public required string ImageContentSha256 { get; set; }
+
+    public required string ImageSha256 { get; set; }
+
+    public long ByteLength { get; set; }
+
+    public required string MediaType { get; set; }
+
+    public int WidthPixels { get; set; }
+
+    public int HeightPixels { get; set; }
 }
 
 internal sealed class CatalogueRevisionRow

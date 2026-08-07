@@ -16,6 +16,72 @@ namespace RagChallenge.IntegrationTests;
 public sealed class SqliteStorageMaintenanceReservationTests
 {
     [Fact]
+    public async Task RenderManifestSourceAndPageImageRemainGloballyReachable()
+    {
+        await using var fixture = await CreateInitialisedFixtureAsync();
+        var image = await PutAndRegisterAsync(fixture, "synthetic immutable PNG bytes");
+        const string manifestDigest =
+            "9999999999999999999999999999999999999999999999999999999999999999";
+        var manifestId = $"rendermanifest-{manifestDigest}";
+        string sourceContent;
+
+        await using (var context = fixture.Options.CreateControlContext())
+        {
+            sourceContent = await context.DocumentVersions
+                .Where(row => row.CorpusId == SqlitePersistenceFixture.CorpusId.Value &&
+                    row.DocumentId == "doc-fixture" &&
+                    row.DocumentVersion == 1)
+                .Select(row => row.ContentSha256)
+                .SingleAsync();
+            context.DocumentRenderManifests.Add(new DocumentRenderManifestRow
+            {
+                RenderManifestId = manifestId,
+                ManifestSha256 = manifestDigest,
+                SchemaVersion = 1,
+                CorpusId = SqlitePersistenceFixture.CorpusId.Value,
+                DocumentId = "doc-fixture",
+                DocumentVersion = 1,
+                SourceContentSha256 = sourceContent,
+                SourcePageCount = 1,
+                RenderProfileId = "pdf-page-png-v1",
+                RendererDescriptor = "synthetic-renderer:v1",
+                GeneratedAtUtc = SqlitePersistenceFixture.At(5).ToString(
+                    "O",
+                    CultureInfo.InvariantCulture),
+            });
+            await context.SaveChangesAsync();
+        }
+
+        await using (var mismatched = fixture.Options.CreateControlContext())
+        {
+            mismatched.DocumentPageImages.Add(PageRow(
+                manifestId,
+                image,
+                sourceContentSha256: image.ContentObjectId.Value));
+            await Assert.ThrowsAsync<DbUpdateException>(() => mismatched.SaveChangesAsync());
+        }
+
+        await using (var context = fixture.Options.CreateControlContext())
+        {
+            context.DocumentPageImages.Add(PageRow(manifestId, image, sourceContent));
+            await context.SaveChangesAsync();
+        }
+
+        var result = await new SqliteStorageMaintenance(fixture.Options)
+            .RunManualCleanupAsync(
+                new OperationId("cleanup-render-manifest-reachability"),
+                SqlitePersistenceFixture.CorpusId,
+                SqlitePersistenceFixture.At(6));
+
+        Assert.Equal(0, result.RemovedContentObjects);
+        Assert.Equal(1, await CountContentRowsAsync(fixture, image.ContentObjectId));
+        await using var reopened = await fixture.ContentStore.OpenReadAsync(
+            image.ContentObjectId,
+            CancellationToken.None);
+        Assert.Equal(image.ByteLength, reopened.Length);
+    }
+
+    [Fact]
     public async Task AppliedReplayRestoresReservationReferencedByDocumentAfterCrash()
     {
         await using var fixture = await CreateInitialisedFixtureAsync();
@@ -332,6 +398,28 @@ public sealed class SqliteStorageMaintenanceReservationTests
         _ = await fixture.CommitLocalCatalogueAsync();
         return fixture;
     }
+
+    private static DocumentPageImageRow PageRow(
+        string manifestId,
+        ContentWriteResult image,
+        string sourceContentSha256) =>
+        new()
+        {
+            RenderManifestId = manifestId,
+            PageNumber = 1,
+            CorpusId = SqlitePersistenceFixture.CorpusId.Value,
+            DocumentId = "doc-fixture",
+            DocumentVersion = 1,
+            SourceContentSha256 = sourceContentSha256,
+            RenderProfileId = "pdf-page-png-v1",
+            RendererDescriptor = "synthetic-renderer:v1",
+            ImageContentSha256 = image.ContentObjectId.Value,
+            ImageSha256 = image.ContentObjectId.Value,
+            ByteLength = image.ByteLength,
+            MediaType = "image/png",
+            WidthPixels = 1024,
+            HeightPixels = 768,
+        };
 
     private static async Task<ReservedContent> CreateAppliedReservationAsync(
         SqlitePersistenceFixture fixture,

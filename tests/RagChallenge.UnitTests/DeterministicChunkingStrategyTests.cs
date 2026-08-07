@@ -14,7 +14,7 @@ public sealed class DeterministicChunkingStrategyTests
         new DocumentId("chunking-document"),
         new DocumentVersionNumber(1),
         DocumentFormat.Pdf,
-        SupportedLanguage.EnGb,
+        DocumentContentLanguage.EnGb,
         new SourceAdapterId("synthetic-pdf"),
         SourceTrustClass.LocalAuthorised);
 

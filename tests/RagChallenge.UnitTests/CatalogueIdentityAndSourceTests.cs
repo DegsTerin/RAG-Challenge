@@ -98,10 +98,10 @@ public sealed class CatalogueIdentityAndSourceTests
     [Fact]
     public void LanguageTagsAreClosedAndCanonical()
     {
-        Assert.Equal("pt-BR", SupportedLanguage.PtBr.ToCanonicalTag());
-        Assert.Equal("en-GB", SupportedLanguage.EnGb.ToCanonicalTag());
+        Assert.Equal("pt-BR", SupportedQueryLanguage.PtBr.ToCanonicalTag());
+        Assert.Equal("en-GB", SupportedQueryLanguage.EnGb.ToCanonicalTag());
         Assert.Throws<ArgumentOutOfRangeException>(
-            () => ((SupportedLanguage)99).ToCanonicalTag());
+            () => ((SupportedQueryLanguage)99).ToCanonicalTag());
     }
 
     [Fact]

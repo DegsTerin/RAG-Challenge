@@ -22,6 +22,11 @@ public sealed class ControlPlaneDbContext(DbContextOptions<ControlPlaneDbContext
 
     internal DbSet<DocumentVersionRow> DocumentVersions => Set<DocumentVersionRow>();
 
+    internal DbSet<DocumentRenderManifestRow> DocumentRenderManifests =>
+        Set<DocumentRenderManifestRow>();
+
+    internal DbSet<DocumentPageImageRow> DocumentPageImages => Set<DocumentPageImageRow>();
+
     internal DbSet<CatalogueRevisionRow> CatalogueRevisions => Set<CatalogueRevisionRow>();
 
     internal DbSet<CatalogueRevisionProductRow> CatalogueRevisionProducts =>
@@ -161,7 +166,10 @@ public sealed class ControlPlaneDbContext(DbContextOptions<ControlPlaneDbContext
                 table.HasCheckConstraint("ck_document_versions_id", StableId("document_id"));
                 table.HasCheckConstraint("ck_document_versions_version", "document_version > 0");
                 table.HasCheckConstraint("ck_document_versions_format", "document_format IN ('Pdf', 'Csv')");
-                table.HasCheckConstraint("ck_document_versions_language", "content_language IN ('pt-BR', 'en-GB')");
+                table.HasCheckConstraint("ck_document_versions_language", Bcp47Shape("content_language"));
+                table.HasCheckConstraint(
+                    "ck_document_versions_declared_language",
+                    $"source_declared_language IS NULL OR ({Bcp47Shape("source_declared_language")})");
                 table.HasCheckConstraint("ck_document_versions_length", "byte_length > 0");
                 table.HasCheckConstraint("ck_document_versions_media_type", "length(media_type) BETWEEN 1 AND 128");
                 table.HasCheckConstraint("ck_document_versions_trust", TrustClass("source_trust_class"));
@@ -171,6 +179,15 @@ public sealed class ControlPlaneDbContext(DbContextOptions<ControlPlaneDbContext
                     "(source_trust_class = 'OfficialExternal' AND official_registration_id IS NOT NULL AND official_snapshot_id IS NOT NULL)");
             });
             entity.HasKey(row => new { row.CorpusId, row.DocumentId, row.DocumentVersion });
+            entity.HasAlternateKey(row => new
+            {
+                row.CorpusId,
+                row.DocumentId,
+                row.DocumentVersion,
+                row.ContentSha256,
+            });
+            entity.Property(row => row.ContentLanguage).HasMaxLength(128);
+            entity.Property(row => row.SourceDeclaredLanguage).HasMaxLength(128);
             entity.HasOne<DatabaseProductRevisionRow>().WithMany().HasForeignKey(row => new
             {
                 row.CorpusId,
@@ -178,6 +195,131 @@ public sealed class ControlPlaneDbContext(DbContextOptions<ControlPlaneDbContext
                 row.ProductRevision,
             }).OnDelete(DeleteBehavior.Restrict);
             entity.HasOne<ContentObjectRow>().WithMany().HasForeignKey(row => row.ContentSha256).OnDelete(DeleteBehavior.Restrict);
+        });
+
+        modelBuilder.Entity<DocumentRenderManifestRow>(entity =>
+        {
+            entity.ToTable("document_render_manifests", table =>
+            {
+                table.HasCheckConstraint(
+                    "ck_render_manifests_identity",
+                    "length(render_manifest_id) = 79 AND " +
+                    "substr(render_manifest_id, 1, 15) = 'rendermanifest-' AND " +
+                    "substr(render_manifest_id, 16) = manifest_sha256");
+                table.HasCheckConstraint("ck_render_manifests_sha", Sha256("manifest_sha256"));
+                table.HasCheckConstraint("ck_render_manifests_schema", "schema_version = 1");
+                table.HasCheckConstraint("ck_render_manifests_pages", "source_page_count > 0");
+                table.HasCheckConstraint(
+                    "ck_render_manifests_profile",
+                    "render_profile_id = 'pdf-page-png-v1'");
+                table.HasCheckConstraint(
+                    "ck_render_manifests_renderer",
+                    StableId("renderer_descriptor"));
+                table.HasCheckConstraint(
+                    "ck_render_manifests_generated_utc",
+                    UtcInstant("generated_at_utc"));
+            });
+            entity.HasKey(row => row.RenderManifestId);
+            entity.Property(row => row.RenderManifestId).HasMaxLength(79);
+            entity.Property(row => row.ManifestSha256).HasMaxLength(64);
+            entity.Property(row => row.CorpusId).HasMaxLength(128);
+            entity.Property(row => row.DocumentId).HasMaxLength(128);
+            entity.Property(row => row.SourceContentSha256).HasMaxLength(64);
+            entity.Property(row => row.RenderProfileId).HasMaxLength(128);
+            entity.Property(row => row.RendererDescriptor).HasMaxLength(128);
+            entity.Property(row => row.GeneratedAtUtc).HasMaxLength(33);
+            entity.HasAlternateKey(row => new
+            {
+                row.RenderManifestId,
+                row.CorpusId,
+                row.DocumentId,
+                row.DocumentVersion,
+                row.SourceContentSha256,
+                row.RenderProfileId,
+                row.RendererDescriptor,
+            });
+            entity.HasIndex(row => row.ManifestSha256).IsUnique();
+            entity.HasOne<DocumentVersionRow>().WithMany().HasForeignKey(row => new
+            {
+                row.CorpusId,
+                row.DocumentId,
+                row.DocumentVersion,
+                ContentSha256 = row.SourceContentSha256,
+            }).HasPrincipalKey(row => new
+            {
+                row.CorpusId,
+                row.DocumentId,
+                row.DocumentVersion,
+                row.ContentSha256,
+            }).OnDelete(DeleteBehavior.Restrict);
+            entity.HasOne<ContentObjectRow>().WithMany()
+                .HasForeignKey(row => row.SourceContentSha256)
+                .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        modelBuilder.Entity<DocumentPageImageRow>(entity =>
+        {
+            entity.ToTable("document_page_images", table =>
+            {
+                table.HasCheckConstraint("ck_page_images_page", "page_number > 0");
+                table.HasCheckConstraint(
+                    "ck_page_images_profile",
+                    "render_profile_id = 'pdf-page-png-v1'");
+                table.HasCheckConstraint(
+                    "ck_page_images_renderer",
+                    StableId("renderer_descriptor"));
+                table.HasCheckConstraint("ck_page_images_sha", Sha256("image_sha256"));
+                table.HasCheckConstraint(
+                    "ck_page_images_content_identity",
+                    "image_content_sha256 = image_sha256");
+                table.HasCheckConstraint("ck_page_images_length", "byte_length > 0");
+                table.HasCheckConstraint("ck_page_images_media_type", "media_type = 'image/png'");
+                table.HasCheckConstraint(
+                    "ck_page_images_dimensions",
+                    "width_pixels BETWEEN 1 AND 4096 AND height_pixels BETWEEN 1 AND 4096");
+            });
+            entity.HasKey(row => new { row.RenderManifestId, row.PageNumber });
+            entity.Property(row => row.RenderManifestId).HasMaxLength(79);
+            entity.Property(row => row.CorpusId).HasMaxLength(128);
+            entity.Property(row => row.DocumentId).HasMaxLength(128);
+            entity.Property(row => row.SourceContentSha256).HasMaxLength(64);
+            entity.Property(row => row.RenderProfileId).HasMaxLength(128);
+            entity.Property(row => row.RendererDescriptor).HasMaxLength(128);
+            entity.Property(row => row.ImageContentSha256).HasMaxLength(64);
+            entity.Property(row => row.ImageSha256).HasMaxLength(64);
+            entity.Property(row => row.MediaType).HasMaxLength(9);
+            entity.HasIndex(row => new
+            {
+                row.CorpusId,
+                row.DocumentId,
+                row.DocumentVersion,
+                row.SourceContentSha256,
+                row.PageNumber,
+                row.RenderProfileId,
+                row.RendererDescriptor,
+            }).IsUnique();
+            entity.HasOne<DocumentRenderManifestRow>().WithMany().HasForeignKey(row => new
+            {
+                row.RenderManifestId,
+                row.CorpusId,
+                row.DocumentId,
+                row.DocumentVersion,
+                row.SourceContentSha256,
+                row.RenderProfileId,
+                row.RendererDescriptor,
+            }).HasPrincipalKey(row => new
+            {
+                row.RenderManifestId,
+                row.CorpusId,
+                row.DocumentId,
+                row.DocumentVersion,
+                row.SourceContentSha256,
+                row.RenderProfileId,
+                row.RendererDescriptor,
+            }).OnDelete(DeleteBehavior.Restrict);
+            entity.HasOne<ContentObjectRow>().WithMany()
+                .HasForeignKey(row => row.ImageContentSha256)
+                .OnDelete(DeleteBehavior.Restrict);
         });
 
         modelBuilder.Entity<CatalogueRevisionRow>(entity =>
@@ -668,6 +810,12 @@ public sealed class ControlPlaneDbContext(DbContextOptions<ControlPlaneDbContext
 
     private static string Sha256(string column) =>
         $"length({column}) = 64 AND {column} NOT GLOB '*[^0-9a-f]*'";
+
+    private static string Bcp47Shape(string column) =>
+        $"length({column}) BETWEEN 1 AND 128 AND " +
+        $"{column} NOT GLOB '*[^A-Za-z0-9-]*' AND " +
+        $"substr({column}, 1, 1) <> '-' AND substr({column}, -1) <> '-' AND " +
+        $"instr({column}, '--') = 0";
 
     private static string GenerationId(string column) =>
         $"length({column}) = 71 AND substr({column}, 1, 7) = 'idxgen-' AND " +

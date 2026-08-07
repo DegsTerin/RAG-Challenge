@@ -258,7 +258,7 @@ internal sealed class SyntheticIntegrationRuntime :
             documentId,
             documentVersion,
             DocumentFormat.Csv,
-            SupportedLanguage.EnGb,
+            DocumentContentLanguage.EnGb,
             adapterId,
             SourceTrustClass.LocalAuthorised);
         var ingestion = new DocumentIngestionService(
@@ -287,7 +287,7 @@ internal sealed class SyntheticIntegrationRuntime :
             productId,
             productRevision,
             DocumentFormat.Csv,
-            SupportedLanguage.EnGb,
+            DocumentContentLanguage.EnGb,
             CatalogueItemStatus.Active,
             ingested.Content.ContentObjectId,
             ingested.Content.ByteLength,
@@ -335,7 +335,7 @@ internal sealed class SyntheticIntegrationRuntime :
             specification,
             [new IndexDocumentInput(
                 binding,
-                SupportedLanguage.EnGb,
+                DocumentContentLanguage.EnGb,
                 ingested.Chunks,
                 ingested.ParsedArtifact.ParserDescriptor,
                 profile.ChunkingPolicy)],
@@ -468,7 +468,7 @@ internal sealed class SyntheticIntegrationRuntime :
         {
             cancellationToken.ThrowIfCancellationRequested();
             var evidence = request.Evidence.First();
-            var answer = request.QuestionLanguage == SupportedLanguage.PtBr
+            var answer = request.QuestionLanguage == SupportedQueryLanguage.PtBr
                 ? "Resposta sintética fundamentada na evidência persistida."
                 : "Synthetic answer grounded in persisted evidence.";
             return Task.FromResult(new GroundedGenerationResult(

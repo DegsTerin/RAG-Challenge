@@ -366,7 +366,7 @@ public sealed class IntegrationHostEndToEndTests
 
             cancellationToken.ThrowIfCancellationRequested();
             var evidence = Assert.Single(request.Evidence);
-            var answer = request.QuestionLanguage == SupportedLanguage.PtBr
+            var answer = request.QuestionLanguage == SupportedQueryLanguage.PtBr
                 ? "Resposta sintética fundamentada na evidência persistida."
                 : "Synthetic answer grounded in persisted evidence.";
             return new GroundedGenerationResult(

@@ -54,7 +54,7 @@ public sealed class BackendIndexingWorkflowTests
             specification,
             [new IndexDocumentInput(
                 binding,
-                SupportedLanguage.EnGb,
+                DocumentContentLanguage.EnGb,
                 chunks,
                 PdfPigDocumentParser.CompatibilityDescriptor,
                 compatibilityProfile.ChunkingPolicy)],
@@ -72,7 +72,7 @@ public sealed class BackendIndexingWorkflowTests
             [
                 new IndexDocumentInput(
                     binding,
-                    SupportedLanguage.EnGb,
+                    DocumentContentLanguage.EnGb,
                     chunks,
                     "unapproved-parser/1",
                     compatibilityProfile.ChunkingPolicy),
@@ -104,7 +104,7 @@ public sealed class BackendIndexingWorkflowTests
             .ReadAsync(SqlitePersistenceFixture.CorpusId, SqlitePersistenceFixture.At(4));
         Assert.NotNull(querySnapshot);
         var resolvedBinding = Assert.Single(querySnapshot.EvidenceBindings);
-        Assert.Equal(SupportedLanguage.EnGb, resolvedBinding.ContentLanguage);
+        Assert.Equal(DocumentContentLanguage.EnGb, resolvedBinding.ContentLanguage);
         Assert.Equal(SourceFreshness.Local, resolvedBinding.Freshness);
         var hits = await fixture.VectorStore.SearchExactAsync(
             new VectorSearchRequest(
@@ -126,7 +126,7 @@ public sealed class BackendIndexingWorkflowTests
                 hit.BindingSelector);
         });
         Assert.Equal("first indexed passage", hits[0].ChunkText);
-        Assert.Equal(SupportedLanguage.EnGb, hits[0].ContentLanguage);
+        Assert.Equal(DocumentContentLanguage.EnGb, hits[0].ContentLanguage);
         Assert.Equal(1, hits[0].PageNumber);
 
         var deniedByDatabaseFilter = await fixture.VectorStore.SearchExactAsync(

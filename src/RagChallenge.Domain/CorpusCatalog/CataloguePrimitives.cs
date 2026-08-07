@@ -15,7 +15,7 @@ public enum DocumentFormat
     Csv,
 }
 
-public enum SupportedLanguage
+public enum SupportedQueryLanguage
 {
     PtBr,
     EnGb,
@@ -35,17 +35,17 @@ public enum OfficialObservationState
     Deactivated,
 }
 
-public static class SupportedLanguageExtensions
+public static class SupportedQueryLanguageExtensions
 {
-    public static string ToCanonicalTag(this SupportedLanguage language) =>
+    public static string ToCanonicalTag(this SupportedQueryLanguage language) =>
         language switch
         {
-            SupportedLanguage.PtBr => "pt-BR",
-            SupportedLanguage.EnGb => "en-GB",
+            SupportedQueryLanguage.PtBr => "pt-BR",
+            SupportedQueryLanguage.EnGb => "en-GB",
             _ => throw new ArgumentOutOfRangeException(
                 nameof(language),
                 language,
-                "The language must belong to the closed MVP set."),
+                "The query language must belong to the closed API v1 set."),
         };
 }
 

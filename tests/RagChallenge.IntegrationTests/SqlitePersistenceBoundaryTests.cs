@@ -74,6 +74,32 @@ public sealed class SqlitePersistenceBoundaryTests
     }
 
     [Fact]
+    public async Task CataloguePersistsCanonicalDocumentLanguageAndExactSourceDeclaration()
+    {
+        await using var fixture = await SqlitePersistenceFixture.CreateAsync();
+        _ = await fixture.CommitLocalCatalogueAsync(
+            "candidate English document",
+            new DocumentContentLanguage("en"),
+            new SourceDeclaredLanguage("EN"),
+            CatalogueItemStatus.Candidate);
+
+        var snapshot = Assert.IsType<CatalogueSnapshot>(
+            await fixture.ControlStore.ReadCurrentCatalogueAsync(
+                SqlitePersistenceFixture.CorpusId));
+        var document = Assert.Single(snapshot.DocumentVersions);
+
+        Assert.Equal("en", document.ContentLanguage.CanonicalTag);
+        Assert.Equal("EN", document.SourceDeclaredLanguage!.ObservedTag);
+        Assert.Equal(1, await fixture.ScalarAsync(
+            """
+            SELECT COUNT(*)
+            FROM document_versions
+            WHERE content_language = 'en'
+              AND source_declared_language = 'EN';
+            """));
+    }
+
+    [Fact]
     public async Task AdministrationMigrationsBackfillExistingCatalogueProjectionWithoutDataLoss()
     {
         var root = Path.Combine(
@@ -206,6 +232,107 @@ public sealed class SqlitePersistenceBoundaryTests
         }
     }
 
+    [Fact]
+    public async Task DocumentLanguageMigrationPreservesLegacyTagsAndSupportsRollbackReapply()
+    {
+        const string previousMigration =
+            "20260806193919_StrengthenOfficialBindingReferences";
+        const string migration =
+            "20260807161323_AddDocumentLanguageAndRenderManifestModel";
+        var root = Path.Combine(
+            Path.GetTempPath(),
+            "rag-challenge-document-language-migration-tests",
+            Guid.NewGuid().ToString("N"));
+        Directory.CreateDirectory(root);
+        var options = new SqliteStoreOptions(
+            Path.Combine(root, "control.db"),
+            Path.Combine(root, "vectors.db"),
+            Path.Combine(root, "content"));
+
+        try
+        {
+            await using (var context = options.CreateControlContext())
+            {
+                await context.Database.GetService<IMigrator>().MigrateAsync(previousMigration);
+            }
+
+            await ExecuteAsync(
+                options.ControlDatabasePath,
+                """
+                INSERT INTO corpora
+                    (corpus_id, corpus_revision, created_at_utc)
+                VALUES
+                    ('language-upgrade', 1, '2026-08-07T12:00:00.0000000+00:00');
+
+                INSERT INTO database_product_revisions
+                    (corpus_id, product_id, product_revision, display_name, status)
+                VALUES
+                    ('language-upgrade', 'database-upgrade', 1,
+                     'Language migration database', 'Candidate');
+
+                INSERT INTO content_objects
+                    (content_sha256, byte_length, registered_at_utc)
+                VALUES
+                    ('1111111111111111111111111111111111111111111111111111111111111111',
+                     1, '2026-08-07T12:00:00.0000000+00:00'),
+                    ('2222222222222222222222222222222222222222222222222222222222222222',
+                     1, '2026-08-07T12:00:00.0000000+00:00');
+
+                INSERT INTO document_versions
+                    (corpus_id, document_id, document_version, product_id,
+                     product_revision, document_format, content_language,
+                     content_sha256, byte_length, media_type, source_adapter_id,
+                     source_trust_class, official_registration_id,
+                     official_snapshot_id)
+                VALUES
+                    ('language-upgrade', 'document-en-gb', 1, 'database-upgrade',
+                     1, 'Pdf', 'en-GB',
+                     '1111111111111111111111111111111111111111111111111111111111111111',
+                     1, 'application/pdf', 'local-upgrade', 'LocalAuthorised',
+                     NULL, NULL),
+                    ('language-upgrade', 'document-pt-br', 1, 'database-upgrade',
+                     1, 'Csv', 'pt-BR',
+                     '2222222222222222222222222222222222222222222222222222222222222222',
+                     1, 'text/csv', 'local-upgrade', 'LocalAuthorised',
+                     NULL, NULL);
+                """);
+
+            await MigrateControlAsync(options, migration);
+            await AssertLanguageMigrationStateAsync(options.ControlDatabasePath);
+            await MigrateControlAsync(options, previousMigration);
+            Assert.Equal(2, await ScalarAsync(
+                options.ControlDatabasePath,
+                "SELECT COUNT(*) FROM document_versions WHERE content_language IN ('pt-BR', 'en-GB');"));
+            await MigrateControlAsync(options, migration);
+            await AssertLanguageMigrationStateAsync(options.ControlDatabasePath);
+        }
+        finally
+        {
+            SqliteConnection.ClearAllPools();
+
+            if (Directory.Exists(root))
+            {
+                Directory.Delete(root, recursive: true);
+            }
+        }
+    }
+
+    [Theory]
+    [InlineData("pt-BR")]
+    [InlineData("en-GB")]
+    [InlineData("en")]
+    public void StoredVectorMetadataLoadsDocumentLanguageWithoutRegionalInference(string tag)
+    {
+        var metadata = Convert.ToBase64String(
+            Encoding.UTF8.GetBytes(
+                $"{{\"ContentLanguage\":\"{tag}\",\"PageNumber\":1," +
+                "\"RecordNumber\":null,\"Columns\":{}}"));
+        var decoded = StoredVectorChunkCodec.Decode($"RAG-CHUNK-V1:{metadata}\nEvidence");
+
+        Assert.Equal(tag, decoded.ContentLanguage!.CanonicalTag);
+        Assert.Equal("Evidence", decoded.Text);
+    }
+
     [Theory]
     [InlineData(false)]
     [InlineData(true)]
@@ -215,13 +342,13 @@ public sealed class SqlitePersistenceBoundaryTests
         await using var fixture = await SqlitePersistenceFixture.CreateAsync();
         const string previousMigration = "20260804184939_AddAdministrationCommandJournal";
         const string migrationName = "20260806193919_StrengthenOfficialBindingReferences";
+        _ = await fixture.CommitLocalCatalogueAsync();
         await using (var context = fixture.Options.CreateControlContext())
         {
             var migrator = context.Database.GetService<IMigrator>();
             await migrator.MigrateAsync(previousMigration);
         }
 
-        _ = await fixture.CommitLocalCatalogueAsync();
         var observationRegistration = mismatchedRegistration
             ? "legacy-registration-mismatch"
             : "legacy-registration";
@@ -538,7 +665,7 @@ public sealed class SqlitePersistenceBoundaryTests
             firstDocument.DatabaseProductId,
             firstDocument.DatabaseProductRevision,
             DocumentFormat.Pdf,
-            SupportedLanguage.EnGb,
+            DocumentContentLanguage.EnGb,
             CatalogueItemStatus.Active,
             secondContent.ContentObjectId,
             secondContent.ByteLength,
@@ -716,6 +843,34 @@ public sealed class SqlitePersistenceBoundaryTests
             "SELECT COUNT(*) FROM source_observations;"));
         Assert.Equal(1, await fixture.ScalarAsync(
             "SELECT COUNT(*) FROM generation_manifests;"));
+    }
+
+    private static async Task MigrateControlAsync(
+        SqliteStoreOptions options,
+        string targetMigration)
+    {
+        await using var context = options.CreateControlContext();
+        await context.Database.GetService<IMigrator>().MigrateAsync(targetMigration);
+    }
+
+    private static async Task AssertLanguageMigrationStateAsync(string controlPath)
+    {
+        Assert.Equal(1, await ScalarAsync(
+            controlPath,
+            "SELECT COUNT(*) FROM document_versions WHERE document_id = 'document-pt-br' AND content_language = 'pt-BR';"));
+        Assert.Equal(1, await ScalarAsync(
+            controlPath,
+            "SELECT COUNT(*) FROM document_versions WHERE document_id = 'document-en-gb' AND content_language = 'en-GB';"));
+        Assert.Equal(2, await ScalarAsync(
+            controlPath,
+            "SELECT COUNT(*) FROM document_versions WHERE source_declared_language IS NULL;"));
+        Assert.Equal(0, await ScalarAsync(
+            controlPath,
+            "SELECT COUNT(*) FROM document_render_manifests;"));
+        Assert.Equal(0, await ScalarAsync(
+            controlPath,
+            "SELECT COUNT(*) FROM document_page_images;"));
+        Assert.Equal(0, await CountRowsAsync(controlPath, "PRAGMA foreign_key_check;"));
     }
 
     private static async Task<string?> ReadPragmaAsync(string path, string sql)

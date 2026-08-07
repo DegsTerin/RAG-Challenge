@@ -158,9 +158,9 @@ internal static class QueryEndpoints
         {
             var language = request.QuestionLanguage switch
             {
-                "pt-BR" => SupportedLanguage.PtBr,
-                "en-GB" => SupportedLanguage.EnGb,
-                _ => (SupportedLanguage?)null,
+                "pt-BR" => SupportedQueryLanguage.PtBr,
+                "en-GB" => SupportedQueryLanguage.EnGb,
+                _ => (SupportedQueryLanguage?)null,
             };
 
             var question = request.Question?.Trim().Normalize(NormalizationForm.FormC);

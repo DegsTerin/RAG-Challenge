@@ -1506,14 +1506,19 @@ public sealed class SqliteControlPlaneStore(SqliteStoreOptions options)
         string.Equals(row.CanonicalHttpsUrl, registration.CanonicalHttpsUrl, StringComparison.Ordinal) &&
         string.Equals(row.Status, registration.Status.ToString(), StringComparison.Ordinal);
 
-    private static SupportedLanguage ParseLanguage(string value) =>
-        value switch
+    private static DocumentContentLanguage ParseLanguage(string value)
+    {
+        try
         {
-            "pt-BR" => SupportedLanguage.PtBr,
-            "en-GB" => SupportedLanguage.EnGb,
-            _ => throw new InvalidDataException(
-                "A persisted content language is outside the supported set."),
-        };
+            return new DocumentContentLanguage(value);
+        }
+        catch (ArgumentException exception)
+        {
+            throw new InvalidDataException(
+                "A persisted content language is not a valid BCP 47 value.",
+                exception);
+        }
+    }
 
     private static async Task AddCatalogueSnapshotAsync(
         ControlPlaneDbContext context,
@@ -1629,6 +1634,7 @@ public sealed class SqliteControlPlaneStore(SqliteStoreOptions options)
                     ProductRevision = document.DatabaseProductRevision.Value,
                     DocumentFormat = document.Format.ToString(),
                     ContentLanguage = document.ContentLanguage.ToCanonicalTag(),
+                    SourceDeclaredLanguage = document.SourceDeclaredLanguage?.ObservedTag,
                     ContentSha256 = document.ContentObjectId.Value,
                     ByteLength = document.ByteLength,
                     MediaType = document.MediaType,
@@ -1711,6 +1717,7 @@ public sealed class SqliteControlPlaneStore(SqliteStoreOptions options)
         row.ProductId == document.DatabaseProductId.Value &&
         row.DocumentFormat == document.Format.ToString() &&
         row.ContentLanguage == document.ContentLanguage.ToCanonicalTag() &&
+        row.SourceDeclaredLanguage == document.SourceDeclaredLanguage?.ObservedTag &&
         row.ContentSha256 == document.ContentObjectId.Value &&
         row.ByteLength == document.ByteLength &&
         row.MediaType == document.MediaType &&
@@ -1736,22 +1743,24 @@ public sealed class SqliteControlPlaneStore(SqliteStoreOptions options)
                 row.DocumentId,
                 row.DocumentVersion,
                 row.ContentSha256,
+                row.ContentLanguage,
             })
             .ToArrayAsync(cancellationToken)
             .ConfigureAwait(false);
         var contentByDocument = documentRows.ToDictionary(
             row => (row.DocumentId, row.DocumentVersion),
-            row => row.ContentSha256);
+            row => (row.ContentSha256, row.ContentLanguage));
         var contentIds = new HashSet<string>(StringComparer.Ordinal);
 
         foreach (var binding in requestedBindings)
         {
-            if (!contentByDocument.TryGetValue(binding, out var contentId))
+            if (!contentByDocument.TryGetValue(binding, out var document) ||
+                !ParseLanguage(document.ContentLanguage).IsSupportedByV1)
             {
                 return false;
             }
 
-            contentIds.Add(contentId);
+            contentIds.Add(document.ContentSha256);
         }
 
         var contentStore = new ImmutableContentStore(options);
@@ -1815,6 +1824,7 @@ public sealed class SqliteControlPlaneStore(SqliteStoreOptions options)
                 document.DocumentId,
                 document.DocumentVersion,
                 document.DocumentFormat,
+                document.ContentLanguage,
                 document.SourceAdapterId,
                 document.SourceTrustClass,
                 document.OfficialRegistrationId,
@@ -1865,7 +1875,8 @@ public sealed class SqliteControlPlaneStore(SqliteStoreOptions options)
                     row.CatalogueProductId,
                     row.DocumentProductId,
                     StringComparison.Ordinal) ||
-                row.CatalogueProductRevision != row.DocumentProductRevision)
+                row.CatalogueProductRevision != row.DocumentProductRevision ||
+                !ParseLanguage(row.ContentLanguage).IsSupportedByV1)
             {
                 return null;
             }
@@ -2469,7 +2480,10 @@ public sealed class SqliteControlPlaneStore(SqliteStoreOptions options)
                     : new OfficialSourceRegistrationId(row.OfficialRegistrationId),
                 row.OfficialSnapshotId is null
                     ? null
-                    : new OfficialSnapshotId(row.OfficialSnapshotId));
+                    : new OfficialSnapshotId(row.OfficialSnapshotId),
+                row.SourceDeclaredLanguage is null
+                    ? null
+                    : new SourceDeclaredLanguage(row.SourceDeclaredLanguage));
         }).ToArray();
         return new CatalogueSnapshot(
             corpusId,
@@ -2532,6 +2546,7 @@ public sealed class SqliteControlPlaneStore(SqliteStoreOptions options)
             document.DatabaseProductRevision.ToCanonicalString(),
             document.Format.ToString(),
             document.ContentLanguage.ToCanonicalTag(),
+            document.SourceDeclaredLanguage?.ObservedTag ?? string.Empty,
             document.Status.ToString(),
             document.ContentObjectId.Value,
             document.ByteLength.ToString(System.Globalization.CultureInfo.InvariantCulture),

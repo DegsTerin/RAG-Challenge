@@ -395,6 +395,8 @@ internal sealed class SqliteAdministrativeCommandExecutor(IControlPlaneStore sto
 
         public required string ContentLanguage { get; init; }
 
+        public string? SourceDeclaredLanguage { get; init; }
+
         public required string Status { get; init; }
 
         public required string ContentObjectId { get; init; }
@@ -430,7 +432,10 @@ internal sealed class SqliteAdministrativeCommandExecutor(IControlPlaneStore sto
                     : new OfficialSourceRegistrationId(OfficialSourceRegistrationId),
                 OfficialSnapshotId is null
                     ? null
-                    : new OfficialSnapshotId(OfficialSnapshotId));
+                    : new OfficialSnapshotId(OfficialSnapshotId),
+                SourceDeclaredLanguage is null
+                    ? null
+                    : new SourceDeclaredLanguage(SourceDeclaredLanguage));
     }
 
     private sealed class OfficialSourceRegistrationPayload
@@ -559,13 +564,7 @@ internal sealed class SqliteAdministrativeCommandExecutor(IControlPlaneStore sto
     private static CatalogueItemStatus ParseStatus(string value) =>
         Enum.Parse<CatalogueItemStatus>(value, ignoreCase: false);
 
-    private static SupportedLanguage ParseLanguage(string value) =>
-        value switch
-        {
-            "pt-BR" => SupportedLanguage.PtBr,
-            "en-GB" => SupportedLanguage.EnGb,
-            _ => throw new InvalidDataException("The content language is unsupported."),
-        };
+    private static DocumentContentLanguage ParseLanguage(string value) => new(value);
 
     private static class CatalogueCommandPolicy
     {
@@ -1165,6 +1164,7 @@ internal sealed class SqliteAdministrativeCommandExecutor(IControlPlaneStore sto
             left.DatabaseProductRevision == right.DatabaseProductRevision &&
             left.Format == right.Format &&
             left.ContentLanguage == right.ContentLanguage &&
+            left.SourceDeclaredLanguage == right.SourceDeclaredLanguage &&
             left.ContentObjectId == right.ContentObjectId &&
             left.ByteLength == right.ByteLength &&
             string.Equals(left.MediaType, right.MediaType, StringComparison.Ordinal) &&
@@ -1181,6 +1181,7 @@ internal sealed class SqliteAdministrativeCommandExecutor(IControlPlaneStore sto
             left.DatabaseProductId == right.DatabaseProductId &&
             left.Format == right.Format &&
             left.ContentLanguage == right.ContentLanguage &&
+            left.SourceDeclaredLanguage == right.SourceDeclaredLanguage &&
             left.Status == right.Status &&
             left.ContentObjectId == right.ContentObjectId &&
             left.ByteLength == right.ByteLength &&
@@ -1198,6 +1199,7 @@ internal sealed class SqliteAdministrativeCommandExecutor(IControlPlaneStore sto
             left.DatabaseProductId == right.DatabaseProductId &&
             left.Format == right.Format &&
             left.ContentLanguage == right.ContentLanguage &&
+            left.SourceDeclaredLanguage == right.SourceDeclaredLanguage &&
             left.ContentObjectId == right.ContentObjectId &&
             left.ByteLength == right.ByteLength &&
             string.Equals(left.MediaType, right.MediaType, StringComparison.Ordinal) &&
@@ -1237,6 +1239,7 @@ internal sealed class SqliteAdministrativeCommandExecutor(IControlPlaneStore sto
                 document.DatabaseProductRevision.ToCanonicalString(),
                 document.Format.ToString(),
                 document.ContentLanguage.ToCanonicalTag(),
+                document.SourceDeclaredLanguage?.ObservedTag ?? string.Empty,
                 document.Status.ToString(),
                 document.ContentObjectId.Value,
                 document.ByteLength.ToString(System.Globalization.CultureInfo.InvariantCulture),

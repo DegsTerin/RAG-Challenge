@@ -32,7 +32,7 @@ public sealed class BackendEndToEndWorkflowTests
             documentId,
             documentVersion,
             DocumentFormat.Csv,
-            SupportedLanguage.EnGb,
+            DocumentContentLanguage.EnGb,
             adapterId,
             SourceTrustClass.LocalAuthorised);
         await using var source = new MemoryStream(
@@ -61,7 +61,7 @@ public sealed class BackendEndToEndWorkflowTests
             productId,
             productRevision,
             DocumentFormat.Csv,
-            SupportedLanguage.EnGb,
+            DocumentContentLanguage.EnGb,
             CatalogueItemStatus.Active,
             ingested.Content.ContentObjectId,
             ingested.Content.ByteLength,
@@ -119,7 +119,7 @@ public sealed class BackendEndToEndWorkflowTests
             specification,
             [new IndexDocumentInput(
                 binding,
-                SupportedLanguage.EnGb,
+                DocumentContentLanguage.EnGb,
                 ingested.Chunks,
                 ingested.ParsedArtifact.ParserDescriptor,
                 compatibilityProfile.ChunkingPolicy)],
@@ -149,7 +149,7 @@ public sealed class BackendEndToEndWorkflowTests
         var result = await answering.AskAsync(
             new QueryRequest(
                 SqlitePersistenceFixture.CorpusId,
-                SupportedLanguage.EnGb,
+                SupportedQueryLanguage.EnGb,
                 "What evidence is available?",
                 "correlation-end-to-end"),
             SqlitePersistenceFixture.At(4));
@@ -162,7 +162,7 @@ public sealed class BackendEndToEndWorkflowTests
         var citation = Assert.Single(completion.Citations);
         Assert.Equal(documentId, citation.DocumentId);
         Assert.Equal(DocumentFormat.Csv, citation.DocumentFormat);
-        Assert.Equal(SupportedLanguage.EnGb, citation.ContentLanguage);
+        Assert.Equal(DocumentContentLanguage.EnGb, citation.ContentLanguage);
         Assert.Equal(SourceTrustClass.LocalAuthorised, citation.SourceTrustClass);
         Assert.Equal(1, citation.RecordStart);
         Assert.NotEmpty(citation.Columns);

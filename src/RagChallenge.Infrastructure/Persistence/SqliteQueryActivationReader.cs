@@ -60,13 +60,24 @@ public sealed class SqliteQueryActivationReader(SqliteStoreOptions options)
                 row.ProductRevision == binding.DatabaseProductRevision.Value) ??
                 throw new InvalidDataException(
                     "An active binding has no exact database revision metadata.");
-            var language = document.ContentLanguage switch
+            DocumentContentLanguage language;
+
+            try
             {
-                "pt-BR" => SupportedLanguage.PtBr,
-                "en-GB" => SupportedLanguage.EnGb,
-                _ => throw new InvalidDataException(
-                    "An active document has an unsupported content language."),
-            };
+                language = new DocumentContentLanguage(document.ContentLanguage);
+            }
+            catch (ArgumentException exception)
+            {
+                throw new InvalidDataException(
+                    "An active document has an invalid BCP 47 content language.",
+                    exception);
+            }
+
+            if (!language.IsSupportedByV1)
+            {
+                throw new InvalidDataException(
+                    "An active document has a content language unsupported by runtime v1.");
+            }
 
             if (binding.SourceTrustClass == SourceTrustClass.LocalAuthorised)
             {

@@ -12,21 +12,23 @@ namespace RagChallenge.UnitTests;
 public sealed class QuestionAnsweringServiceTests
 {
     [Theory]
-    [InlineData(SupportedLanguage.PtBr, SupportedLanguage.PtBr)]
-    [InlineData(SupportedLanguage.EnGb, SupportedLanguage.EnGb)]
-    [InlineData(SupportedLanguage.PtBr, SupportedLanguage.EnGb)]
-    [InlineData(SupportedLanguage.EnGb, SupportedLanguage.PtBr)]
+    [InlineData(SupportedQueryLanguage.PtBr, SupportedQueryLanguage.PtBr)]
+    [InlineData(SupportedQueryLanguage.EnGb, SupportedQueryLanguage.EnGb)]
+    [InlineData(SupportedQueryLanguage.PtBr, SupportedQueryLanguage.EnGb)]
+    [InlineData(SupportedQueryLanguage.EnGb, SupportedQueryLanguage.PtBr)]
     public async Task AnswerUsesQuestionLanguageAndCitationPreservesEvidenceLanguage(
-        SupportedLanguage questionLanguage,
-        SupportedLanguage evidenceLanguage)
+        SupportedQueryLanguage questionLanguage,
+        SupportedQueryLanguage evidenceLanguage)
     {
+        var documentLanguage = new DocumentContentLanguage(
+            evidenceLanguage.ToCanonicalTag());
         var context = CreateContext(evidenceLanguage);
 
         var result = await context.Service.AskAsync(
             new QueryRequest(
                 CorpusId,
                 questionLanguage,
-                questionLanguage == SupportedLanguage.PtBr
+                questionLanguage == SupportedQueryLanguage.PtBr
                     ? "Qual é a evidência?"
                     : "What is the evidence?",
                 "correlation-matrix"),
@@ -38,7 +40,7 @@ public sealed class QuestionAnsweringServiceTests
         Assert.Equal(QueryOutcome.Answered, completion.Outcome);
         Assert.Equal(questionLanguage, completion.AnswerLanguage);
         var citation = Assert.Single(completion.Citations);
-        Assert.Equal(evidenceLanguage, citation.ContentLanguage);
+        Assert.Equal(documentLanguage, citation.ContentLanguage);
         Assert.Equal(SourceText, citation.Excerpt);
         Assert.Equal(1, citation.PageStart);
         Assert.DoesNotContain(
@@ -50,10 +52,10 @@ public sealed class QuestionAnsweringServiceTests
     [Fact]
     public async Task NoRetrievedEvidenceReturnsExplicitInsufficientEvidenceWithoutModelCall()
     {
-        var context = CreateContext(SupportedLanguage.EnGb, returnHit: false);
+        var context = CreateContext(SupportedQueryLanguage.EnGb, returnHit: false);
 
         var result = await context.Service.AskAsync(
-            new QueryRequest(CorpusId, SupportedLanguage.EnGb, "Unsupported?", "correlation-none"),
+            new QueryRequest(CorpusId, SupportedQueryLanguage.EnGb, "Unsupported?", "correlation-none"),
             At(5));
 
         Assert.NotNull(result.Completion);
@@ -67,12 +69,12 @@ public sealed class QuestionAnsweringServiceTests
     [Fact]
     public async Task UnsupportedLanguageIsRejectedBeforeAnyProvider()
     {
-        var context = CreateContext(SupportedLanguage.EnGb);
+        var context = CreateContext(SupportedQueryLanguage.EnGb);
 
         var result = await context.Service.AskAsync(
             new QueryRequest(
                 CorpusId,
-                (SupportedLanguage)99,
+                (SupportedQueryLanguage)99,
                 "Question",
                 "correlation-invalid-language"),
             At(5));
@@ -86,11 +88,11 @@ public sealed class QuestionAnsweringServiceTests
     public async Task UnsupportedModelCitationFailsClosedAsInsufficientEvidence()
     {
         var context = CreateContext(
-            SupportedLanguage.EnGb,
+            SupportedQueryLanguage.EnGb,
             citedChunkId: $"chunk-{Hash("hallucinated")}");
 
         var result = await context.Service.AskAsync(
-            new QueryRequest(CorpusId, SupportedLanguage.EnGb, "Question", "correlation-citation"),
+            new QueryRequest(CorpusId, SupportedQueryLanguage.EnGb, "Question", "correlation-citation"),
             At(5));
 
         Assert.NotNull(result.Completion);
@@ -103,10 +105,10 @@ public sealed class QuestionAnsweringServiceTests
     [Fact]
     public async Task EmbeddingOutageMapsToTypedFailureWithoutCallingTheLanguageModel()
     {
-        var context = CreateContext(SupportedLanguage.EnGb, embeddingUnavailable: true);
+        var context = CreateContext(SupportedQueryLanguage.EnGb, embeddingUnavailable: true);
 
         var result = await context.Service.AskAsync(
-            new QueryRequest(CorpusId, SupportedLanguage.EnGb, "Question", "correlation-provider"),
+            new QueryRequest(CorpusId, SupportedQueryLanguage.EnGb, "Question", "correlation-provider"),
             At(5));
 
         Assert.Equal(QueryFailureKind.EmbeddingUnavailable, result.Failure!.Kind);
@@ -119,7 +121,7 @@ public sealed class QuestionAnsweringServiceTests
         var context = CreateOfficialContext(SourceFreshness.Current);
 
         var result = await context.Service.AskAsync(
-            new QueryRequest(CorpusId, SupportedLanguage.EnGb, "Question", "correlation-official"),
+            new QueryRequest(CorpusId, SupportedQueryLanguage.EnGb, "Question", "correlation-official"),
             At(5));
 
         var completion = result.Completion!;
@@ -141,7 +143,7 @@ public sealed class QuestionAnsweringServiceTests
         var context = CreateOfficialContext(SourceFreshness.Stale);
 
         var result = await context.Service.AskAsync(
-            new QueryRequest(CorpusId, SupportedLanguage.EnGb, "Question", "correlation-stale"),
+            new QueryRequest(CorpusId, SupportedQueryLanguage.EnGb, "Question", "correlation-stale"),
             At(5));
 
         Assert.Equal(QueryFailureKind.SourceStale, result.Failure!.Kind);
@@ -152,10 +154,10 @@ public sealed class QuestionAnsweringServiceTests
     [Fact]
     public async Task LanguageModelOutageMapsToTypedFailureAfterRetrieval()
     {
-        var context = CreateContext(SupportedLanguage.EnGb, languageModelUnavailable: true);
+        var context = CreateContext(SupportedQueryLanguage.EnGb, languageModelUnavailable: true);
 
         var result = await context.Service.AskAsync(
-            new QueryRequest(CorpusId, SupportedLanguage.EnGb, "Question", "correlation-model"),
+            new QueryRequest(CorpusId, SupportedQueryLanguage.EnGb, "Question", "correlation-model"),
             At(5));
 
         Assert.Equal(QueryFailureKind.LanguageModelUnavailable, result.Failure!.Kind);
@@ -182,7 +184,7 @@ public sealed class QuestionAnsweringServiceTests
             hitTransform: hit => CreateMismatchedHit(hit, mismatch));
 
         var result = await context.Service.AskAsync(
-            new QueryRequest(CorpusId, SupportedLanguage.EnGb, "Question", "correlation-vector"),
+            new QueryRequest(CorpusId, SupportedQueryLanguage.EnGb, "Question", "correlation-vector"),
             At(5));
 
         Assert.Equal(QueryFailureKind.IndexUnavailable, result.Failure!.Kind);
@@ -201,7 +203,7 @@ public sealed class QuestionAnsweringServiceTests
             });
 
         var result = await context.Service.AskAsync(
-            new QueryRequest(CorpusId, SupportedLanguage.EnGb, "Question", "correlation-low"),
+            new QueryRequest(CorpusId, SupportedQueryLanguage.EnGb, "Question", "correlation-low"),
             At(5));
 
         Assert.Equal(QueryFailureKind.IndexUnavailable, result.Failure!.Kind);
@@ -220,12 +222,14 @@ public sealed class QuestionAnsweringServiceTests
     }
 
     private static TestContext CreateContext(
-        SupportedLanguage evidenceLanguage,
+        SupportedQueryLanguage evidenceLanguage,
         bool returnHit = true,
         string? citedChunkId = null,
         bool embeddingUnavailable = false,
         bool languageModelUnavailable = false)
     {
+        var contentLanguage = new DocumentContentLanguage(
+            evidenceLanguage.ToCanonicalTag());
         var binding = new DocumentBinding(
             new DatabaseProductId("database-1"),
             new DatabaseProductRevision(1),
@@ -248,7 +252,7 @@ public sealed class QuestionAnsweringServiceTests
             activation,
             [new QueryEvidenceBinding(
                 binding,
-                evidenceLanguage,
+                contentLanguage,
                 SourceFreshness.Local,
                 "Synthetic database")]);
         var embeddingDescriptor = new EmbeddingProviderDescriptor(
@@ -271,7 +275,7 @@ public sealed class QuestionAnsweringServiceTests
         var vectorStore = new FakeVectorStore(returnHit
             ? [CreateVectorHit(
                 binding,
-                evidenceLanguage,
+                contentLanguage,
                 new CandidateBuildId("candidate-query"),
                 pageNumber: 1)]
             : []);
@@ -306,7 +310,7 @@ public sealed class QuestionAnsweringServiceTests
             activation,
             [new QueryEvidenceBinding(
                 binding,
-                SupportedLanguage.PtBr,
+                DocumentContentLanguage.PtBr,
                 freshness,
                 "Banco sintético",
                 "https://docs.example.invalid/reference.csv",
@@ -324,7 +328,7 @@ public sealed class QuestionAnsweringServiceTests
             unavailable: false);
         var hit = CreateVectorHit(
             binding,
-            SupportedLanguage.PtBr,
+            DocumentContentLanguage.PtBr,
             new CandidateBuildId("candidate-official"),
             recordNumber: 3,
             columns: new Dictionary<string, string>
@@ -360,7 +364,7 @@ public sealed class QuestionAnsweringServiceTests
 
     private static VectorSearchHit CreateVectorHit(
         DocumentBinding binding,
-        SupportedLanguage contentLanguage,
+        DocumentContentLanguage contentLanguage,
         CandidateBuildId candidateBuildId,
         int? pageNumber = null,
         long? recordNumber = null,
@@ -566,7 +570,7 @@ public sealed class QuestionAnsweringServiceTests
                     "Synthetic language-model outage.");
             }
 
-            var answer = request.QuestionLanguage == SupportedLanguage.PtBr
+            var answer = request.QuestionLanguage == SupportedQueryLanguage.PtBr
                 ? "Resposta fundamentada."
                 : "Grounded answer.";
             return Task.FromResult(new GroundedGenerationResult(

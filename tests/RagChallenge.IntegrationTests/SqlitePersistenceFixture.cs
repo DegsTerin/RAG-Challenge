@@ -56,7 +56,10 @@ internal sealed class SqlitePersistenceFixture : IAsyncDisposable
     }
 
     internal async Task<(CatalogueSnapshot Snapshot, DocumentBinding Binding)> CommitLocalCatalogueAsync(
-        string contentText = "deterministic local fixture")
+        string contentText = "deterministic local fixture",
+        DocumentContentLanguage? contentLanguage = null,
+        SourceDeclaredLanguage? sourceDeclaredLanguage = null,
+        CatalogueItemStatus status = CatalogueItemStatus.Active)
     {
         var bytes = Encoding.UTF8.GetBytes(contentText);
         await using var content = new MemoryStream(bytes, writable: false);
@@ -72,7 +75,7 @@ internal sealed class SqlitePersistenceFixture : IAsyncDisposable
             productId,
             productRevision,
             "Fixture Database",
-            CatalogueItemStatus.Active,
+            status,
             [category.Id]);
         var document = new DocumentVersion(
             documentId,
@@ -80,13 +83,14 @@ internal sealed class SqlitePersistenceFixture : IAsyncDisposable
             productId,
             productRevision,
             DocumentFormat.Pdf,
-            SupportedLanguage.EnGb,
-            CatalogueItemStatus.Active,
+            contentLanguage ?? DocumentContentLanguage.EnGb,
+            status,
             contentResult.ContentObjectId,
             contentResult.ByteLength,
             "application/pdf",
             new SourceAdapterId("local-fixture"),
-            SourceTrustClass.LocalAuthorised);
+            SourceTrustClass.LocalAuthorised,
+            sourceDeclaredLanguage: sourceDeclaredLanguage);
         var snapshot = new CatalogueSnapshot(
             CorpusId,
             new CatalogueRevision(1),

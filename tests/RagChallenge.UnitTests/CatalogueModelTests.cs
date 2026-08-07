@@ -67,7 +67,7 @@ public sealed class CatalogueModelTests
         Assert.Equal(product, Assert.Single(snapshot.DatabaseProducts));
         Assert.Equal(document, Assert.Single(snapshot.DocumentVersions));
         Assert.Equal("application/pdf", document.MediaType);
-        Assert.Equal(SupportedLanguage.EnGb, document.ContentLanguage);
+        Assert.Equal(DocumentContentLanguage.EnGb, document.ContentLanguage);
     }
 
     [Fact]
@@ -200,7 +200,7 @@ public sealed class CatalogueModelTests
                 new DatabaseProductId("postgresql"),
                 new DatabaseProductRevision(1),
                 DocumentFormat.Pdf,
-                SupportedLanguage.EnGb,
+                DocumentContentLanguage.EnGb,
                 CatalogueItemStatus.Candidate,
                 new ContentObjectId(new string('a', 64)),
                 100,
@@ -215,7 +215,7 @@ public sealed class CatalogueModelTests
                 new DatabaseProductId("redis"),
                 new DatabaseProductRevision(1),
                 DocumentFormat.Csv,
-                SupportedLanguage.PtBr,
+                DocumentContentLanguage.PtBr,
                 CatalogueItemStatus.Candidate,
                 new ContentObjectId(new string('a', 64)),
                 100,
@@ -229,7 +229,7 @@ public sealed class CatalogueModelTests
                 new DatabaseProductId("redis"),
                 new DatabaseProductRevision(1),
                 DocumentFormat.Csv,
-                SupportedLanguage.PtBr,
+                DocumentContentLanguage.PtBr,
                 CatalogueItemStatus.Active,
                 new ContentObjectId(new string('a', 64)),
                 100,
@@ -260,7 +260,7 @@ public sealed class CatalogueModelTests
             new DatabaseProductId("postgresql"),
             new DatabaseProductRevision(databaseProductRevision),
             DocumentFormat.Pdf,
-            SupportedLanguage.EnGb,
+            DocumentContentLanguage.EnGb,
             status,
             new ContentObjectId(new string('a', 64)),
             byteLength,

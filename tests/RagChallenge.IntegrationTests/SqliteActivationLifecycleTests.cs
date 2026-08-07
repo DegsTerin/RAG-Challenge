@@ -15,6 +15,50 @@ namespace RagChallenge.IntegrationTests;
 public sealed class SqliteActivationLifecycleTests
 {
     [Fact]
+    public async Task ActivationAndQueryRejectDocumentLanguageOutsideRuntimeV1()
+    {
+        await using var fixture = await SqlitePersistenceFixture.CreateAsync();
+        var (_, binding) = await fixture.CommitLocalCatalogueAsync();
+        var manifest = await fixture.CommitGenerationAsync(binding, "language-gate");
+        var proposed = ActivationRecordFactory.CreateInitial(
+            manifest,
+            [binding],
+            SqlitePersistenceFixture.At(2));
+        await ExecuteAsync(
+            fixture.Options.ControlDatabasePath,
+            "UPDATE document_versions SET content_language = 'en';");
+
+        var rejected = await ActivateAsync(
+            fixture,
+            "activation-language-rejected",
+            ActivationMutationKind.Initial,
+            expectedRevision: 0,
+            proposed,
+            SqlitePersistenceFixture.At(2));
+
+        Assert.Equal(StoreMutationOutcome.ValidationFailed, rejected.Outcome);
+        await ExecuteAsync(
+            fixture.Options.ControlDatabasePath,
+            "UPDATE document_versions SET content_language = 'en-GB';");
+        var activated = await ActivateAsync(
+            fixture,
+            "activation-language-accepted",
+            ActivationMutationKind.Initial,
+            expectedRevision: 0,
+            proposed,
+            SqlitePersistenceFixture.At(2));
+        Assert.Equal(StoreMutationOutcome.Applied, activated.Outcome);
+        await ExecuteAsync(
+            fixture.Options.ControlDatabasePath,
+            "UPDATE document_versions SET content_language = 'en';");
+
+        await Assert.ThrowsAsync<InvalidDataException>(() =>
+            new SqliteQueryActivationReader(fixture.Options).ReadAsync(
+                SqlitePersistenceFixture.CorpusId,
+                SqlitePersistenceFixture.At(3)));
+    }
+
+    [Fact]
     public async Task CasRejectsAllThreeDigestMismatchesBeforeActivation()
     {
         await using var fixture = await SqlitePersistenceFixture.CreateAsync();
@@ -173,7 +217,7 @@ public sealed class SqliteActivationLifecycleTests
             sharedProduct.Id,
             sharedProduct.Revision,
             DocumentFormat.Pdf,
-            SupportedLanguage.EnGb,
+            DocumentContentLanguage.EnGb,
             CatalogueItemStatus.Active,
             sharedContent.ContentObjectId,
             sharedContent.ByteLength,
@@ -369,7 +413,7 @@ public sealed class SqliteActivationLifecycleTests
             productId,
             productRevision,
             DocumentFormat.Pdf,
-            SupportedLanguage.EnGb,
+            DocumentContentLanguage.EnGb,
             CatalogueItemStatus.Active,
             contentResult.ContentObjectId,
             contentResult.ByteLength,

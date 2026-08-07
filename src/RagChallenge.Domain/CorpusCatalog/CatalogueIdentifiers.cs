@@ -189,6 +189,75 @@ public sealed record ContentObjectId : LowercaseSha256
     }
 }
 
+public sealed record ImageSha256 : LowercaseSha256
+{
+    public ImageSha256(string value)
+        : base(value, nameof(value))
+    {
+    }
+}
+
+public sealed record ManifestSha256 : LowercaseSha256
+{
+    public ManifestSha256(string value)
+        : base(value, nameof(value))
+    {
+    }
+}
+
+public sealed record RenderProfileId : StableIdentifier
+{
+    public const string PdfPagePngV1 = "pdf-page-png-v1";
+
+    public RenderProfileId(string value)
+        : base(value, nameof(value))
+    {
+        if (!string.Equals(value, PdfPagePngV1, StringComparison.Ordinal))
+        {
+            throw new ArgumentException(
+                "The render profile must be the accepted 'pdf-page-png-v1' profile.",
+                nameof(value));
+        }
+    }
+}
+
+public sealed record RendererDescriptor : StableIdentifier
+{
+    public RendererDescriptor(string value)
+        : base(value, nameof(value))
+    {
+    }
+}
+
+public sealed record RenderManifestId
+{
+    private const string Prefix = "rendermanifest-";
+
+    public RenderManifestId(string value)
+    {
+        ArgumentNullException.ThrowIfNull(value);
+
+        if (value.Length != Prefix.Length + 64 ||
+            !value.StartsWith(Prefix, StringComparison.Ordinal))
+        {
+            throw new ArgumentException(
+                "A render manifest ID must use 'rendermanifest-' followed by a lowercase SHA-256 digest.",
+                nameof(value));
+        }
+
+        _ = new ManifestSha256(value[Prefix.Length..]);
+        Value = value;
+    }
+
+    public string Value { get; }
+
+    public static RenderManifestId FromManifestSha256(ManifestSha256 manifestSha256)
+    {
+        ArgumentNullException.ThrowIfNull(manifestSha256);
+        return new RenderManifestId(Prefix + manifestSha256.Value);
+    }
+}
+
 public sealed record ActiveDocumentSetDigest : LowercaseSha256
 {
     public ActiveDocumentSetDigest(string value)

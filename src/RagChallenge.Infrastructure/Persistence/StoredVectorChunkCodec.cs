@@ -56,11 +56,8 @@ internal static class StoredVectorChunkCodec
                 throw new InvalidDataException("Stored chunk metadata is missing.");
             var language = metadata.ContentLanguage switch
             {
-                null => (SupportedLanguage?)null,
-                "pt-BR" => SupportedLanguage.PtBr,
-                "en-GB" => SupportedLanguage.EnGb,
-                _ => throw new InvalidDataException(
-                    "Stored chunk metadata contains an unsupported language."),
+                null => null,
+                _ => new DocumentContentLanguage(metadata.ContentLanguage),
             };
             return new DecodedStoredChunk(
                 storedValue[(separator + 1)..],
@@ -77,11 +74,17 @@ internal static class StoredVectorChunkCodec
         {
             throw new InvalidDataException("Stored chunk metadata is not valid JSON.", exception);
         }
+        catch (ArgumentException exception)
+        {
+            throw new InvalidDataException(
+                "Stored chunk metadata contains an invalid document language.",
+                exception);
+        }
     }
 
     internal sealed record DecodedStoredChunk(
         string Text,
-        SupportedLanguage? ContentLanguage,
+        DocumentContentLanguage? ContentLanguage,
         int? PageNumber,
         long? RecordNumber,
         IReadOnlyDictionary<string, string> Columns);

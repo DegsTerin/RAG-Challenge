@@ -126,16 +126,20 @@ public sealed class IndexDocumentInput
 {
     public IndexDocumentInput(
         DocumentBinding binding,
-        SupportedLanguage contentLanguage,
+        DocumentContentLanguage contentLanguage,
         IReadOnlyCollection<DocumentChunk> chunks,
         string parserDescriptor,
         ChunkingPolicy chunkingPolicy)
     {
         Binding = binding ?? throw new ArgumentNullException(nameof(binding));
 
-        if (!Enum.IsDefined(contentLanguage))
+        ArgumentNullException.ThrowIfNull(contentLanguage);
+
+        if (!contentLanguage.IsSupportedByV1)
         {
-            throw new ArgumentOutOfRangeException(nameof(contentLanguage));
+            throw new ArgumentException(
+                "Runtime v1 cannot index a document outside its closed query-language set.",
+                nameof(contentLanguage));
         }
 
         ContentLanguage = contentLanguage;
@@ -157,7 +161,7 @@ public sealed class IndexDocumentInput
 
     public DocumentBinding Binding { get; }
 
-    public SupportedLanguage ContentLanguage { get; }
+    public DocumentContentLanguage ContentLanguage { get; }
 
     public ReadOnlyCollection<DocumentChunk> Chunks { get; }
 

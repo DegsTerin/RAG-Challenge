@@ -71,7 +71,7 @@ public sealed record DocumentChunkingContext(
     DocumentId DocumentId,
     DocumentVersionNumber DocumentVersion,
     DocumentFormat DocumentFormat,
-    SupportedLanguage ContentLanguage,
+    DocumentContentLanguage ContentLanguage,
     SourceAdapterId SourceAdapterId,
     SourceTrustClass SourceTrustClass);
 
@@ -175,10 +175,10 @@ public sealed class DeterministicChunkingStrategy : IChunkingStrategy
         ArgumentNullException.ThrowIfNull(context.DatabaseProductRevision);
         ArgumentNullException.ThrowIfNull(context.DocumentId);
         ArgumentNullException.ThrowIfNull(context.DocumentVersion);
+        ArgumentNullException.ThrowIfNull(context.ContentLanguage);
         ArgumentNullException.ThrowIfNull(context.SourceAdapterId);
 
         if (!Enum.IsDefined(context.DocumentFormat) ||
-            !Enum.IsDefined(context.ContentLanguage) ||
             !Enum.IsDefined(context.SourceTrustClass))
         {
             throw new ArgumentException(

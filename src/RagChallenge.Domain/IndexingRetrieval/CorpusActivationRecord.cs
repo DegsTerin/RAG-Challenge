@@ -132,7 +132,8 @@ public sealed class RetentionReachability
 
     public RetentionReachability(
         GenerationRetentionReference activeGeneration,
-        GenerationRetentionReference? rollbackGeneration)
+        GenerationRetentionReference? rollbackGeneration,
+        IEnumerable<DocumentRenderManifest>? renderManifests = null)
     {
         ArgumentNullException.ThrowIfNull(activeGeneration);
 
@@ -146,8 +147,20 @@ public sealed class RetentionReachability
 
         ActiveGeneration = activeGeneration;
         RollbackGeneration = rollbackGeneration;
+        var manifests = renderManifests?.ToArray() ?? [];
+
+        if (manifests.Any(manifest => manifest is null))
+        {
+            throw new ArgumentException(
+                "Render-manifest reachability cannot contain a null manifest.",
+                nameof(renderManifests));
+        }
+
         reachableContentObjectIds = activeGeneration.ContentObjectIds
             .Concat(rollbackGeneration?.ContentObjectIds ?? [])
+            .Concat(manifests.Select(manifest => manifest.SourceContentObjectId))
+            .Concat(manifests.SelectMany(manifest =>
+                manifest.OrderedPageImages.Select(page => page.ImageContentObjectId)))
             .ToHashSet();
     }
 

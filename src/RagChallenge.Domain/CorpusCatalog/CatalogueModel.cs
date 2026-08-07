@@ -83,7 +83,7 @@ public sealed class DocumentVersion
         DatabaseProductId databaseProductId,
         DatabaseProductRevision databaseProductRevision,
         DocumentFormat format,
-        SupportedLanguage contentLanguage,
+        DocumentContentLanguage contentLanguage,
         CatalogueItemStatus status,
         ContentObjectId contentObjectId,
         long byteLength,
@@ -91,12 +91,14 @@ public sealed class DocumentVersion
         SourceAdapterId sourceAdapterId,
         SourceTrustClass sourceTrustClass,
         OfficialSourceRegistrationId? officialSourceRegistrationId = null,
-        OfficialSnapshotId? officialSnapshotId = null)
+        OfficialSnapshotId? officialSnapshotId = null,
+        SourceDeclaredLanguage? sourceDeclaredLanguage = null)
     {
         ArgumentNullException.ThrowIfNull(id);
         ArgumentNullException.ThrowIfNull(version);
         ArgumentNullException.ThrowIfNull(databaseProductId);
         ArgumentNullException.ThrowIfNull(databaseProductRevision);
+        ArgumentNullException.ThrowIfNull(contentLanguage);
         ArgumentNullException.ThrowIfNull(contentObjectId);
         ArgumentNullException.ThrowIfNull(sourceAdapterId);
         ArgumentException.ThrowIfNullOrWhiteSpace(mediaType);
@@ -109,12 +111,11 @@ public sealed class DocumentVersion
                 "A document format must belong to the closed MVP set.");
         }
 
-        if (!Enum.IsDefined(contentLanguage))
+        if (status == CatalogueItemStatus.Active && !contentLanguage.IsSupportedByV1)
         {
-            throw new ArgumentOutOfRangeException(
-                nameof(contentLanguage),
-                contentLanguage,
-                "A content language must belong to the closed bilingual set.");
+            throw new ArgumentException(
+                "An active document must use a content language supported by runtime v1.",
+                nameof(contentLanguage));
         }
 
         if (!Enum.IsDefined(status))
@@ -161,6 +162,7 @@ public sealed class DocumentVersion
         SourceTrustClass = sourceTrustClass;
         OfficialSourceRegistrationId = officialSourceRegistrationId;
         OfficialSnapshotId = officialSnapshotId;
+        SourceDeclaredLanguage = sourceDeclaredLanguage;
     }
 
     public DocumentId Id { get; }
@@ -173,7 +175,9 @@ public sealed class DocumentVersion
 
     public DocumentFormat Format { get; }
 
-    public SupportedLanguage ContentLanguage { get; }
+    public DocumentContentLanguage ContentLanguage { get; }
+
+    public SourceDeclaredLanguage? SourceDeclaredLanguage { get; }
 
     public CatalogueItemStatus Status { get; }
 

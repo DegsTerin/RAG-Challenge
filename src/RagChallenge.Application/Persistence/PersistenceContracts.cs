@@ -206,7 +206,7 @@ public sealed record VectorChunkWrite(
     LogicalArtifactDigest ChunkDigest,
     string ChunkText,
     ReadOnlyMemory<float> Vector,
-    SupportedLanguage? ContentLanguage = null,
+    DocumentContentLanguage? ContentLanguage = null,
     int? PageNumber = null,
     long? RecordNumber = null,
     IReadOnlyDictionary<string, string>? Columns = null);
@@ -247,7 +247,7 @@ public sealed record VectorSearchHit(
     LogicalArtifactDigest ChunkDigest,
     string ChunkText,
     double Score,
-    SupportedLanguage? ContentLanguage,
+    DocumentContentLanguage? ContentLanguage,
     int? PageNumber,
     long? RecordNumber,
     IReadOnlyDictionary<string, string> Columns)

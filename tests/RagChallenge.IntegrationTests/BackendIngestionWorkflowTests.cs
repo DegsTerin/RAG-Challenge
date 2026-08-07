@@ -28,7 +28,7 @@ public sealed class BackendIngestionWorkflowTests
             localDocumentId,
             new DocumentVersionNumber(1),
             DocumentFormat.Csv,
-            SupportedLanguage.EnGb,
+            DocumentContentLanguage.EnGb,
             new SourceAdapterId("local-csv"),
             SourceTrustClass.LocalAuthorised);
         var localBytes = SyntheticParserFixtureFactory.CsvValidQuotedUtf8;
@@ -58,7 +58,7 @@ public sealed class BackendIngestionWorkflowTests
             productId,
             productRevision,
             DocumentFormat.Csv,
-            SupportedLanguage.EnGb,
+            DocumentContentLanguage.EnGb,
             CatalogueItemStatus.Active,
             localFirst.Content.ContentObjectId,
             localFirst.Content.ByteLength,
@@ -72,7 +72,7 @@ public sealed class BackendIngestionWorkflowTests
             productId,
             productRevision,
             DocumentFormat.Csv,
-            SupportedLanguage.PtBr,
+            DocumentContentLanguage.PtBr,
             CatalogueItemStatus.Candidate,
             localFirst.Content.ContentObjectId,
             localFirst.Content.ByteLength,
@@ -174,7 +174,7 @@ public sealed class BackendIngestionWorkflowTests
             officialDocumentId,
             new DocumentVersionNumber(1),
             DocumentFormat.Csv,
-            SupportedLanguage.PtBr,
+            DocumentContentLanguage.PtBr,
             officialAdapterId,
             SourceTrustClass.OfficialExternal);
         var firstSync = await synchroniser.SynchroniseAsync(

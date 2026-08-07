@@ -75,12 +75,12 @@ public sealed class OpenAiHttpAdapterContractTests
             "Trusted instruction.",
             "prompt-v1",
             "Question?",
-            SupportedLanguage.EnGb,
-            new[] { new GroundedEvidence("chunk-allowed", "Synthetic evidence.", SupportedLanguage.EnGb) },
+            SupportedQueryLanguage.EnGb,
+            new[] { new GroundedEvidence("chunk-allowed", "Synthetic evidence.", DocumentContentLanguage.EnGb) },
             maximumOutputCharacters: 1024));
 
         Assert.Equal(descriptor, result.ObservedDescriptor);
-        Assert.Equal(SupportedLanguage.EnGb, result.AnswerLanguage);
+        Assert.Equal(SupportedQueryLanguage.EnGb, result.AnswerLanguage);
         Assert.Equal("Grounded answer.", result.Answer);
         Assert.Equal("chunk-allowed", Assert.Single(result.CitedChunkIds));
         Assert.Equal("https://api.openai.com/v1/responses", handler.Uri!.AbsoluteUri);
@@ -182,13 +182,13 @@ public sealed class OpenAiHttpAdapterContractTests
             "Trusted instruction.",
             "prompt-v1",
             "Question?",
-            SupportedLanguage.EnGb,
+            SupportedQueryLanguage.EnGb,
             new[]
             {
                 new GroundedEvidence(
                     "chunk-allowed",
                     "Synthetic evidence.",
-                    SupportedLanguage.EnGb),
+                    DocumentContentLanguage.EnGb),
             },
             maximumOutputCharacters: 1024);
 

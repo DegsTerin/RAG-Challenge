@@ -782,7 +782,18 @@ public sealed class SqliteStorageMaintenance(SqliteStoreOptions options)
         var referencedBySnapshot = await context.OfficialSourceSnapshots.AsNoTracking().AnyAsync(
             item => item.ContentSha256 == contentObjectId.Value,
             cancellationToken).ConfigureAwait(false);
-        return new ContentReferenceState(row, referencedByDocument, referencedBySnapshot);
+        var referencedByRenderSource = await context.DocumentRenderManifests.AsNoTracking().AnyAsync(
+            item => item.SourceContentSha256 == contentObjectId.Value,
+            cancellationToken).ConfigureAwait(false);
+        var referencedByPageImage = await context.DocumentPageImages.AsNoTracking().AnyAsync(
+            item => item.ImageContentSha256 == contentObjectId.Value,
+            cancellationToken).ConfigureAwait(false);
+        return new ContentReferenceState(
+            row,
+            referencedByDocument,
+            referencedBySnapshot,
+            referencedByRenderSource,
+            referencedByPageImage);
     }
 
     private static async Task<HashSet<string>> FindGloballyReferencedContentAsync(
@@ -799,6 +810,16 @@ public sealed class SqliteStorageMaintenance(SqliteStoreOptions options)
             .ToArrayAsync(cancellationToken)
             .ConfigureAwait(false);
         referenced.UnionWith(officialSnapshots);
+        var renderSources = await context.DocumentRenderManifests.AsNoTracking()
+            .Select(row => row.SourceContentSha256)
+            .ToArrayAsync(cancellationToken)
+            .ConfigureAwait(false);
+        referenced.UnionWith(renderSources);
+        var pageImages = await context.DocumentPageImages.AsNoTracking()
+            .Select(row => row.ImageContentSha256)
+            .ToArrayAsync(cancellationToken)
+            .ConfigureAwait(false);
+        referenced.UnionWith(pageImages);
         return referenced;
     }
 
@@ -986,8 +1007,14 @@ public sealed class SqliteStorageMaintenance(SqliteStoreOptions options)
     private sealed record ContentReferenceState(
         ContentObjectRow? ContentObject,
         bool ReferencedByDocument,
-        bool ReferencedBySnapshot)
+        bool ReferencedBySnapshot,
+        bool ReferencedByRenderSource,
+        bool ReferencedByPageImage)
     {
-        public bool HasDurableReference => ReferencedByDocument || ReferencedBySnapshot;
+        public bool HasDurableReference =>
+            ReferencedByDocument ||
+            ReferencedBySnapshot ||
+            ReferencedByRenderSource ||
+            ReferencedByPageImage;
     }
 }

@@ -439,8 +439,8 @@ public sealed class OpenAiHttpLanguageModel : ILanguageModel
                 structuredRoot,
                 "answerLanguage") switch
             {
-                "pt-BR" => SupportedLanguage.PtBr,
-                "en-GB" => SupportedLanguage.EnGb,
+                "pt-BR" => SupportedQueryLanguage.PtBr,
+                "en-GB" => SupportedQueryLanguage.EnGb,
                 _ => throw new JsonException("Answer language is unsupported."),
             };
             var answer = OpenAiHttpEmbeddingProvider.ReadRequiredString(
