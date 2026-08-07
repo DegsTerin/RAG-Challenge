@@ -7,12 +7,18 @@ authorised `S03-A` increment of `STATE-03 DATA_AND_INDEX_MODELING`. It is
 normatively constrained by the accepted architecture and canonical contracts;
 it does not authorise or describe a physical database schema.
 
-`S03-B` remains blocked. Consequently this increment contains no ORM mapping,
-DDL, migration, persistent store, lockfile change, dependency selection or
-package installation. Physical types, keys, indexes, transaction isolation,
-recovery mechanics and adapter-specific readback must be decided and verified
-in that separately authorised increment without changing the logical
-invariants below.
+Accepted ADR-0008 and ADR-0009 now define a planned successor delta for
+durable page-image evidence and separate query/document-language domains. The
+existing tables continue to describe the implemented S03-A model exactly. The
+delta is recorded separately below and is not a type, schema, migration or data
+change.
+
+`S03-B` was blocked when this S03-A artefact was created, so this document
+contains no ORM mapping, DDL, migration, persistent store, lockfile change,
+dependency selection or package installation. The later S03-B implementation
+and evidence are recorded in Current State and their owning report; they did
+not rewrite this logical S03-A baseline. The ADR-0008/0009 successor delta still
+has no physical mapping or migration.
 
 ## Ownership boundaries
 
@@ -30,6 +36,8 @@ invariants below.
 | `CorpusId` | Lower-case slug | 1–128 lower-case ASCII letters, digits, `.`, `_` or `-`; begins with a letter or digit. |
 | Positive revision | Signed 64-bit integer in memory; invariant decimal in canonical text | Greater than zero. Each revision domain is a distinct type. |
 | SHA-256 value | String | Exactly 64 lower-case hexadecimal characters. |
+| `DocumentContentLanguage` (planned) | Canonical BCP 47 string | Validated, bounded and never made more specific by inference. |
+| `SourceDeclaredLanguage` (planned) | Exact observed BCP 47 string | Preserved with publisher/embedded evidence; optional when no declaration exists. |
 | `IndexGenerationId` | String | `idxgen-` followed by the complete manifest's 64-character lower-case SHA-256 digest. |
 | UTC instant | `DateTimeOffset` | Offset must be zero. Technical exchange uses ISO 8601. |
 | Duration | `TimeSpan` | Positive where used for observation `maxAge`. |
@@ -108,6 +116,59 @@ A logical document has at most one active version in a catalogue snapshot.
 Every active document belongs to an active product. Every active product has at
 least one active document; removing or deactivating its last active document
 therefore requires the product deactivation in the same future transaction.
+
+## Accepted successor delta — not implemented
+
+The current closed `SupportedLanguage` field remains unchanged for the v1
+runtime. A separately authorised implementation must split its responsibilities
+as follows without rewriting existing `pt-BR` or `en-GB` values:
+
+| Planned contract | Field | Invariant |
+|---|---|---|
+| `SupportedQueryLanguage` | `questionLanguage` / `answerLanguage` | Closed exact values `pt-BR` and `en-GB`; answer equals the accepted question language. |
+| `DocumentContentLanguage` | `DocumentVersion.contentLanguage` | Required canonical BCP 47 tag; distinct from query support. |
+| `SourceDeclaredLanguage` | `DocumentVersion.sourceDeclaredLanguage?` | Exact observed publisher/embedded tag and evidence; `en` is never inferred as `en-GB`. |
+
+Broader document-language values are catalogue data, not code branches or
+provider selections. A candidate whose language is outside v1 remains
+ineligible for v1 activation until compatible model, dataset, runtime and
+planned v2 contracts are separately implemented and verified.
+
+### `DocumentPageImage` (planned)
+
+| Field | Type | Null | Invariant |
+|---|---|---:|---|
+| `documentId` | `DocumentId` | No | Names the immutable source document. |
+| `documentVersion` | `DocumentVersionNumber` | No | Exact source version. |
+| `sourceContentObjectId` | `ContentObjectId` | No | Verified PDF source bytes. |
+| `pageNumber` | Positive integer | No | One-based physical PDF page. |
+| `renderProfileId` | Stable identifier | No | Initial accepted value `pdf-page-png-v1`. |
+| `rendererDescriptor` | Non-secret descriptor | No | Stable renderer ID/version and canonical settings. |
+| `imageContentObjectId` | `ContentObjectId` | No | SHA-256 identity of exact PNG bytes. |
+| `imageSha256` | SHA-256 value | No | Equals the image content identity. |
+| `byteLength` | Positive integer | No | Bounded and verified on reopen. |
+| `mediaType` | String | No | Exactly `image/png`. |
+| `widthPixels` / `heightPixels` | Positive integer | No | Each at most 4,096 for the accepted profile. |
+
+### `DocumentRenderManifest` (planned)
+
+| Field | Type | Null | Invariant |
+|---|---|---:|---|
+| `schemaVersion` | Positive integer | No | Versioned canonical schema. |
+| `documentId` / `documentVersion` | Typed identity pair | No | Exact PDF version. |
+| `sourceContentObjectId` | `ContentObjectId` | No | Matches the rendered source. |
+| `sourcePageCount` | Positive integer | No | Equals the complete physical page count. |
+| `renderProfileId` | Stable identifier | No | Matches every page binding. |
+| `rendererDescriptor` | Non-secret descriptor | No | Matches every page binding. |
+| `orderedPageImages[]` | Ordered `DocumentPageImage` | No | Exactly one unique entry for every consecutive page. |
+| `manifestSha256` | SHA-256 value | No | Canonical UTF-8 digest over identity/measurement fields excluding `generatedAt`. |
+| `generatedAt` | UTC instant | No | Operational evidence outside manifest identity. |
+
+Source and page-image objects share the immutable `ContentObjectId` domain and
+the durable `IDocumentContentStore`; catalogue, Git, Git LFS, quarantine and
+vector storage are not binary systems of record. A PDF visual-evidence
+candidate is complete only after every object and the canonical manifest pass
+verified reopen. CSV has no implicit page-image model.
 
 ### `CatalogueSnapshot`
 
@@ -313,9 +374,12 @@ failure result and grants no authority to change the current record.
 `GenerationRetentionReference` names a protected generation and a non-empty,
 deduplicated set of reopenable `ContentObjectId` values. `RetentionReachability`
 protects the active generation and at most one distinct rollback generation.
-Physical deletion is permitted only for content unreachable from both. It is
-therefore impossible for normal cleanup policy to delete raw content required
-by the active generation or the single bounded rollback target.
+Under the accepted planned delta, reachability also traverses source objects,
+render manifests, page-image objects and answer-evidence records. Physical
+deletion is permitted only for content unreachable from every applicable root.
+It is therefore impossible for normal cleanup policy to delete source or image
+content required by the active generation or the single bounded rollback
+target.
 
 This logical rule is not evidence of durable storage, readback, backup or
 restore. Those require the S03-B physical model and later authorised
@@ -332,9 +396,11 @@ All initial catalogue products remain `Candidate` and have no document bytes.
 The fixture is model evidence, not a hard-coded runtime catalogue and not a
 real product corpus.
 
-## Deferred physical constraints
+## Physical mapping boundary
 
-A later S03-B decision must map, without weakening this model:
+The completed S03-B increment mapped the original implemented model under its
+own authority and evidence. Any future corrective data increment must map the
+accepted successor delta without weakening these invariants:
 
 - immutable uniqueness for typed identities and version pairs;
 - the category many-to-many key;
@@ -344,6 +410,8 @@ A later S03-B decision must map, without weakening this model:
 - one current activation authority per corpus with compare-and-swap;
 - final-manifest uniqueness and immutable generation identity;
 - content reachability, orphan cleanup authority and reopen/readback evidence;
+- mappings for the planned language split, render manifests and page-image
+  relationships only after separate implementation authority;
 - migration, recovery, lock and transaction semantics.
 
 No dependency, physical index or store technology is selected by this

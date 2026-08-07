@@ -242,10 +242,11 @@ rights, identity, accessibility and contract decision.
 
 ## Query and visual-evidence contract
 
-`QueryResponseV1` and `CitationV1` remain unchanged. Acceptance of this ADR
-would require a separately versioned `QueryResponseV2` before visual evidence
-is implemented. `QueryResponseV2` retains the completed response semantics and
-uses `CitationV2[]` in place of `CitationV1[]`.
+`QueryResponseV1` and `CitationV1` remain unchanged. The accepted architecture
+requires a separately versioned `QueryResponseV2` before visual evidence is
+implemented. This v2 direction is planned, not an implemented contract or
+OpenAPI artefact. `QueryResponseV2` retains the completed response semantics
+and uses `CitationV2[]` in place of `CitationV1[]`.
 
 `CitationV2` retains every `CitationV1` field and adds
 `pageImages: PageImageEvidenceV1[]`. The collection is empty for CSV. An active
@@ -438,3 +439,8 @@ Separate follow-on increments are required for:
 
 Each increment retains its own baseline, scope, checks, stop conditions and
 Human Gate where required. No item above is authorised by this acceptance.
+
+The separately authorised semantic reconciliation on 2026-08-07 applies this
+decision together with ADR-0009 across its named normative owners as prompt
+corpus `4.9.5`. It preserves OpenAPI v1 byte for byte and does not implement,
+import, render, index, activate, evaluate, publish or deploy any content.

@@ -3,8 +3,10 @@
 ## Status
 
 Contrato arquitetural vigente para o MVP e sua evolução, reconciliado com os
-ADRs aceitos. Nenhum pipeline, provider, índice, corpus ou modelo está
-implementado ou ativo.
+ADRs aceitos. O estado implementado e testado pertence ao Current State e aos
+relatórios dos estados; a semântica de armazenamento visual e idiomas dos
+ADRs 0008/0009 permanece planejada e não implementada. Nenhum corpus real,
+provider real ou conteúdo real está ativo.
 
 ## Objetivo e limites
 
@@ -25,6 +27,7 @@ Governed local document or official snapshot (PDF/CSV)
   -> Discovery
   -> Validation
   -> Content-addressed persistence and verified reopen
+  -> Deterministic complete page rendering for PDF visual evidence
   -> Parsing
   -> Normalisation
   -> Chunking
@@ -55,7 +58,8 @@ Unidade lógica de conhecimento com:
 - nome e descrição;
 - estado `Active`, `Inactive` ou `Unavailable`;
 - política de fonte;
-- idiomas de conteúdo declarados, restritos no MVP a `pt-BR` e `en-GB`;
+- idiomas de conteúdo declarados por tags BCP 47 canônicas; isso não amplia os
+  idiomas de pergunta/resposta suportados;
 - revisão declarada;
 - referência lógica à geração de índice ativa, cujo registro canônico pertence
   exclusivamente ao `IIndexGenerationStore`.
@@ -92,7 +96,9 @@ atômica do banco.
 - versão declarada quando disponível;
 - data da fonte;
 - data de ingestão;
-- `contentLanguage` declarado como `pt-BR` ou `en-GB`;
+- `contentLanguage` como `DocumentContentLanguage` BCP 47 canônico;
+- `sourceDeclaredLanguage` exato quando publisher ou metadado embutido fornecer
+  uma tag, sem inferir região ou script;
 - `sourceAdapterId`;
 - `SourceTrustClass`;
 - locator sanitizado;
@@ -112,6 +118,36 @@ Parser e configuração não alteram `DocumentVersion`. Um artefato textual
 derivado é identificado separadamente por `DocumentVersion` mais descriptor
 do parser/normalização e sua configuração não secreta; essa compatibilidade
 integra a geração do índice.
+
+O runtime v1 atualmente implementado conserva o tipo fechado
+`SupportedLanguage` para `pt-BR` e `en-GB`. A separação em
+`SupportedQueryLanguage` e `DocumentContentLanguage`, inclusive o valor `en`
+do candidato PostgreSQL, requer implementação própria e o contrato v2
+planejado; esta reconciliação não altera tipo, schema ou dados.
+
+### Conteúdo e evidência visual de página
+
+`IDocumentContentStore` é a única fonte de verdade binária para bytes exatos
+da fonte e PNGs persistentes. Cada objeto é imutável, identificado pelo SHA-256
+dos próprios bytes, gravado idempotentemente e reaberto com hash e tamanho
+verificados. Git, Git LFS, `artifacts-local/`, catálogo e vector store não são
+substitutos.
+
+Para PDF, o perfil aceito `pdf-page-png-v1` produz uma imagem `image/png` por
+página física, numerada a partir de 1, a 144 DPI, RGB de 8 bits, fundo branco,
+aspect ratio preservado e dimensões de até 4.096 pixels por eixo. O binding
+`DocumentPageImage` liga documento/versão, conteúdo fonte, página,
+perfil/renderer e conteúdo PNG. `DocumentRenderManifest` registra o conjunto
+completo e ordinal, page count, descriptors e digest canônico. Falha, lacuna,
+duplicidade, limite excedido, assinatura inválida ou readback inconsistente
+reprova a candidata inteira. CSV não recebe visualização implícita.
+
+Importar ou renderizar não ativa conteúdo. Um PDF com evidência visual só
+pode ficar `Active` quando direitos, objeto fonte, manifesto completo, todos os
+PNGs e geração textual/indexada finalizada forem vinculados atomicamente.
+Documento `Deactivated` ou `Removed` não serve imagem, e cleanup precisa provar
+ausência de reachability por documento ativo/retido, manifesto, evidência de
+resposta e rollback.
 
 ### Chunk
 
@@ -215,7 +251,7 @@ silenciosa de artefatos incompatíveis.
 | `IEmbeddingProvider` | Gerar vetores com descriptor de modelo e dimensão. |
 | `IVectorStore` | Escrever gerações imutáveis e consultar por `VectorSearchRequest` com `CorpusId`, `IndexGenerationId`, seletores generation-bound elegíveis e filtros administrativos opcionais; provar hard pre-filter antes do top-k e não gerir ativação. |
 | `ILanguageModel` | Gerar resposta limitada ao prompt e às evidências. |
-| `IDocumentContentStore` | Persistir e reabrir bytes imutáveis content-addressed de versões locais e snapshots oficiais. |
+| `IDocumentContentStore` | Persistir e reabrir bytes imutáveis content-addressed de fontes, snapshots oficiais e PNGs de páginas. |
 | `IDocumentCatalog` | Persistir identidades, versões, proveniência e estado. |
 | `IIndexGenerationStore` | Persistir manifestos e ser a única fonte de verdade do `CorpusActivationRecord`, com compare-and-swap e rollback. |
 
@@ -225,9 +261,10 @@ MVP; plug-ins dinâmicos ficam fora do escopo.
 
 O `IDocumentContentStore` usa gravação idempotente por hash, valida o conteúdo
 reaberto e impede sobrescrita. Catálogo e manifesto guardam referências
-estáveis; a política de retenção impede remover conteúdo alcançável pela
-geração ativa ou pelo único alvo de rollback. Vector store guarda derivados e
-não substitui a fonte bruta necessária para reconstrução.
+estáveis; a política de retenção impede remover conteúdo fonte ou imagem
+alcançável por documento/manifests/evidência ativos ou retidos e pelo único
+alvo de rollback. Vector store guarda derivados e não substitui a fonte bruta
+necessária para reconstrução.
 
 O Application orquestra ativação. O vector store não mantém uma segunda
 autoridade de estado ativo; eventual alias técnico de um adapter é somente
@@ -295,6 +332,8 @@ classificação de confiança é fechada e não concede autorização por si só
 - conteúdo hashado antes da indexação;
 - bytes validados promovidos idempotentemente ao `IDocumentContentStore` e
   reabertos com hash verificado antes de qualquer ativação;
+- para PDF visual, renderização completa e persistência/reabertura verificadas
+  de todos os PNGs antes de qualquer ativação;
 - nenhuma dependência de `reference-materials/`.
 
 ### Fontes oficiais externas
@@ -319,6 +358,8 @@ Implementação separada com `SourceTrustClass=OfficialExternal` e
 - snapshot de conteúdo imutável com `sourceKey`, `snapshotId`, URL canônica,
   ETag/Last-Modified observados na captura, hash, `retrievedAt` e licença;
 - bytes do snapshot persistidos pelo `IDocumentContentStore`;
+- páginas PDF derivadas persistidas no mesmo content store somente depois de
+  direitos específicos e autoridade de renderização;
 - observações de revalidação append-only com `observationId`, `snapshotId`,
   validators condicionais enviados, status HTTP, ETag/Last-Modified
   observados, `revalidatedAt`, `maxAge`, resultado e evidência sanitizada;
@@ -385,13 +426,15 @@ O MVP mantém o fluxo simples:
 2. validar formato, proveniência, licença, identidade e hash de cada documento;
 3. persistir ou reutilizar o objeto imutável por hash, reabri-lo pelo
    `IDocumentContentStore` e conferir seus bytes;
-4. construir uma geração única com todos os chunks elegíveis e metadados de
+4. para PDF com evidência visual, finalizar e verificar o manifesto completo
+   de páginas antes de considerar a candidata visualmente completa;
+5. construir uma geração única com todos os chunks elegíveis e metadados de
    banco, documento, formato, origem e confiança;
-5. validar manifesto, referências reabríveis, compatibilidade, elegibilidade,
+6. validar manifesto, referências reabríveis, compatibilidade, elegibilidade,
    cobertura, os dois domínios de binding e smoke queries;
-6. trocar por compare-and-swap o `CorpusActivationRecord` completo no
+7. trocar por compare-and-swap o `CorpusActivationRecord` completo no
    `IIndexGenerationStore`, incluindo todos os bindings documentais;
-7. manter a geração ativa e ao menos uma geração anterior validada até cleanup
+8. manter a geração ativa e ao menos uma geração anterior validada até cleanup
    explícito após a janela de rollback definida.
 
 O MVP pode reconstruir a geração completa. Ele não precisa implementar diff
@@ -497,7 +540,8 @@ O MVP fixa um único corpus por configuração e não expõe administração rem
 ## Recuperação e geração
 
 - Normalizar e limitar a pergunta.
-- Exigir `questionLanguage=pt-BR|en-GB` e validá-lo antes de qualquer chamada
+- Exigir `questionLanguage=pt-BR|en-GB` como `SupportedQueryLanguage` e
+  validá-lo antes de qualquer chamada
   externa; não inferir silenciosamente outro idioma em perguntas curtas ou
   ambíguas.
 - Não aceitar URL, domínio, banco, documento, origem ou adapter como campo de
@@ -582,9 +626,21 @@ Quando disponíveis, também inclui:
 - página/bloco para PDF ou linha/coluna/cabeçalho para CSV;
 - locator seguro para exibição.
 
-Título, seção, trecho e qualquer outro texto derivado da fonte permanecem no
-`contentLanguage` original. A geração pode explicar a evidência no idioma da
-pergunta, mas não reescreve nem traduz o conteúdo apresentado como citação.
+Título, seção, trecho, rótulo de página e qualquer outro texto derivado da
+fonte permanecem no `DocumentContentLanguage` original. A geração pode explicar
+a evidência no idioma da pergunta, mas não reescreve nem traduz o conteúdo
+apresentado como citação. No contrato v1 implementado, `contentLanguage`
+continua fechado em `pt-BR|en-GB`; uma tag mais ampla não é coagida nem ativada
+por essa superfície.
+
+O contrato v2 aceito permanece planejado e não implementado. Ele conserva
+`questionLanguage`/`answerLanguage` fechados, amplia `CitationV2.contentLanguage`
+para BCP 47, preserva `sourceDeclaredLanguage` e adiciona referências
+`PageImageEvidenceV1`. A resposta não embute PNG nem path; no máximo cinco
+páginas distintas citadas são referenciadas, e um futuro endpoint same-origin
+revalida binding ativo/manifests antes de servir bytes limitados. Evidência
+textual adjacente continua acessível. O LLM recebe somente texto; imagem exige
+autoridade separada de provider/egress/dados/custo.
 
 A resposta inclui metadados técnicos:
 
@@ -610,6 +666,10 @@ universal sem calibração.
 - PDFs e CSVs são entrada não confiável; parsing ocorre com limites. Anexos,
   ações, links, fórmulas e instruções embutidas não recebem autoridade nem são
   executados.
+- Renderização PDF ocorre com limites de bytes, páginas, tempo, memória,
+  dimensões e concorrência; saída e manifests são revalidados antes de servir.
+- Direitos de renderização, derivados, retenção, exibição e distribuição são
+  independentes da permissão de ler, indexar ou citar texto.
 - Cada conexão oficial usa somente IP previamente resolvido e autorizado,
   preserva host/SNI e não refaz resolução por hostname no socket.
 - A fonte oficial é anônima e sua validação TLS não inicia downloads
@@ -667,6 +727,13 @@ idioma da evidência: `pt-BR→pt-BR`, `en-GB→en-GB`, `pt-BR→en-GB` e
 evidência, testes unitários, de contrato e de integração usam fixtures
 sintéticas autorizadas e claramente separadas do corpus do produto. Essa
 matriz não decide o idioma visual da interface.
+
+Cada outro `DocumentContentLanguage` presente no corpus pontuado cria um
+estrato exato adicional por idioma de evidência, sem agrupamento silencioso.
+Para o candidato PostgreSQL `en`, a campanha deve separar ao menos
+`pt-BR→en` e `en-GB→en`; essas linhas não contam como evidência `en-GB` e não
+substituem a matriz obrigatória. Relatórios nomeiam tags, documentos, dataset,
+provider e ambiente exatos.
 
 Dataset, rubrica e thresholds iniciais pertencem ao `STATE-02`. O `STATE-07`
 executa a campanha; qualquer revisão exige decisão formal registrada antes da

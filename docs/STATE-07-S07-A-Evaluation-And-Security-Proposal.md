@@ -36,6 +36,12 @@ dynamic security, browser, provider, real-source, network or external-action
 authority. All proposed authority identifiers remain ungranted until the
 owner supplies a later explicit and bounded approval.
 
+On 2026-08-07, prompt corpus `4.9.5` reconciled the accepted ADR-0008 and
+ADR-0009 architecture into this planning baseline. The reconciliation adds
+preconditions for durable source/page-image content, rights, exact BCP 47
+document languages and evaluation strata. It does not grant either authority,
+materialise data, implement v2 or change the byte-for-byte OpenAPI v1 surface.
+
 ## Confirmed proposal baseline
 
 The local read-only inspection on 2026-08-07 confirmed:
@@ -88,6 +94,15 @@ are resolved on a newly confirmed clean baseline:
   the candidate product corpus;
 - provenance, content language, immutable version, hash and intended-use
   rights are evidenced for every candidate document;
+- every exact publisher-declared language is preserved; `contentLanguage` is a
+  canonical BCP 47 tag and no `en` value is inferred as `en-GB`;
+- source bytes reside in the durable content store with verified reopen; a PDF
+  intended to provide visual evidence also has compatible rendering/derivative
+  rights, a complete finalised render manifest and verified PNG objects;
+- the implemented runtime/API can represent every activated document language
+  and visual-evidence binding. Until a separately authorised v2 implementation
+  exists, v1 remains closed to its existing values and cannot activate a
+  broader-language document by coercion;
 - every database claimed as active has at least one active validated document;
 - the dataset manifest and case inventory have been reviewed but not exposed
   to a scored result;
@@ -158,13 +173,17 @@ Every case must have a stable case ID and record:
 - dataset revision and case classification;
 - database ID and catalogue revision;
 - document ID, immutable version, content hash and format;
+- canonical BCP 47 `contentLanguage`, exact `sourceDeclaredLanguage` when
+  observed and the evidence/method for any curator-assigned language;
 - source adapter and `LocalAuthorised` or `OfficialExternal` trust class;
-- document content language and declared `questionLanguage`;
+- declared `questionLanguage`;
 - one or more relevant document locations;
 - required facts and prohibited extrapolations;
 - expected provenance and citation identity;
 - applicable database/document/generation/corpus filters;
-- expected answerable or insufficient-evidence outcome; and
+- expected answerable or insufficient-evidence outcome;
+- for an eligible visually evidenced PDF, render-manifest ID and exact cited
+  page-image identities without binary content; and
 - reviewer identity by stable role, review date and disposition without a
   workstation or device name.
 
@@ -181,7 +200,7 @@ record containing:
 | --- | --- |
 | Identity | Stable database/document IDs, immutable version, hash and format. |
 | Provenance | Original owner/publisher, acquisition channel, trust class and source adapter. |
-| Rights | Primary evidence for parsing, indexing, retention, quotation, citation and the intended distribution/publication boundary. |
+| Rights | Primary evidence for parsing, indexing, source-byte retention, quotation, citation and the intended distribution/publication boundary; for visual PDF evidence, page rendering, derivative-image creation/retention and runtime display are separately disposed. |
 | Attribution | Required notices, licence link, change notice and preserved copyright text. |
 | Language | Exact BCP 47 content language used by the evaluation matrix. |
 | Approval | Owner decision, date, scope and any restriction or expiry. |
@@ -229,7 +248,7 @@ authority.
 ## Language matrix
 
 The scored product cases and clearly separated deterministic fixtures must
-together cover all four pairs:
+together cover all four compatibility pairs:
 
 | Question language | Evidence language | Required answer language | Citation text |
 | --- | --- | --- | --- |
@@ -243,6 +262,15 @@ independent and must not change answer-language scoring. If the approved real
 corpus lacks one evidence language, authorised synthetic fixtures may prove
 the missing contract direction, but the report must disclose the real-corpus
 coverage gap.
+
+This fixed matrix remains mandatory but covers only the `pt-BR` and `en-GB`
+evidence strata. Every other exact `DocumentContentLanguage` in the product
+corpus creates two additional reported strata, one for each supported question
+language. Distinct tags are not merged. For the PostgreSQL candidate tagged
+`en`, the product campaign must report at least `pt-BR -> en` and
+`en-GB -> en`; neither row counts as `en-GB` evidence, so an independently
+authorised `en-GB` document or clearly separated fixture must still supply the
+mandatory `en-GB` evidence rows.
 
 ## Environment and provider matrix
 
@@ -273,6 +301,11 @@ a later product claim.
 ### Dataset and retrieval
 
 - validate manifest schema, stable IDs, sorted entries, hashes and counts;
+- validate exact document/source-declared language tags and per-language
+  strata without coercion or silent aggregation;
+- when visual evidence is in scope, validate the source content object,
+  `pdf-page-png-v1` profile, complete canonical render manifest, every PNG
+  hash/signature/dimension/readback and retention reachability;
 - prove that every active database/document/format/source is represented;
 - prove the evaluation dataset is absent from the runtime corpus and artefact;
 - compute Recall@5 and MRR@5 overall and per reportable stratum; and
@@ -283,10 +316,14 @@ a later product claim.
 
 - score required facts, prohibited extrapolations and insufficient evidence;
 - validate citation document identity, version and exact location;
+- validate each page-image reference against the same active document version,
+  cited page, generation and finalised render manifest;
 - execute all four language pairs and preserve citation text in its original
   language without translation;
 - reject degraded-source substitution and disclose coverage/freshness; and
-- use a documented two-person rubric for the human answer-quality sample.
+- use a documented two-person rubric for the human answer-quality sample; and
+- prove that OpenAPI v1 is byte-for-byte unchanged and that broader language or
+  image fields exist only in a separately implemented/versioned v2 boundary.
 
 ### Security and abuse
 
@@ -296,7 +333,9 @@ a later product claim.
   URL/path rules, media type, compressed/decompressed limits and refusal of
   authentication or ambient credentials;
 - prove absence of lateral AIA/CRL/OCSP egress under the selected TLS policy;
-  and
+- test bounded renderer failure, malicious PDF page structures, partial
+  manifests, guessed/cross-generation image IDs, deactivated/removed denial,
+  PNG-only same-origin serving, immutable ETag, `nosniff` and cache policy; and
 - verify that stale, withdrawn, deactivated or mismatched sources do not call
   embedding or language-model providers.
 
@@ -313,9 +352,12 @@ as synthetic.
 - test crash boundaries for observation append, digest, audit, activation and
   rollback by a new `CorpusActivationRecord`, without replaying historical
   freshness;
-- prove restart and recovery against the intended eligible generation; and
+- prove restart and recovery against the intended eligible generation;
 - repeat the supported `pt-BR`/`en-GB`, `Light`/`Dark`, keyboard, focus,
-  contrast, reflow, loading, empty and error-state accessibility matrix.
+  contrast, reflow, loading, empty and error-state accessibility matrix; and
+- when visual evidence is implemented, prove adjacent source-language textual
+  evidence, keyboard/focus/reflow behaviour and absence of image-only factual
+  or navigation meaning.
 
 The exact executable commands must be frozen in the future authority after
 the dataset and harness paths exist. Missing or ambiguous commands are a stop
@@ -330,6 +372,8 @@ a validated ignored task-owned path such as
 
 - authority ID, baseline, date, scope and negative scope;
 - dataset, catalogue, document and generation identities and digests;
+- exact content/source-declared language strata and, when applicable, render
+  profile, manifest and cited page-image digests;
 - provenance/rights disposition and excluded documents without document
   content;
 - environment/provider matrix and exact sanitised commands;

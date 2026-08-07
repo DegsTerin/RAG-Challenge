@@ -4,9 +4,11 @@
 
 This document defines the canonical application, provider and public contract
 semantics accepted for `STATE-02 ARCHITECTURE`. It refines accepted ADR-0002,
-ADR-0006 and corrective ADR-0007 without implementing types, schemas or
-endpoints. Acceptance freezes the architecture semantics; it does not prove or
-authorise an implementation.
+ADR-0006, corrective ADR-0007, ADR-0008 and ADR-0009 without implementing
+types, schemas or endpoints. Acceptance freezes the architecture semantics; it
+does not prove or authorise an implementation. The ADR-0008/0009 refinements
+below are planned successor contracts; the implemented v1 surface and its
+OpenAPI artefact remain unchanged.
 
 The contracts preserve inward dependencies: Domain owns identities and
 invariants; Application owns ports, use cases and failure semantics;
@@ -18,8 +20,10 @@ Infrastructure owns adapters; Server owns HTTP mapping and composition.
   prefix or slug format.
 - Instants use UTC ISO 8601 and durations use explicit units.
 - Public payloads use camelCase; .NET concepts below use PascalCase.
-- Language values use exact BCP 47 tags from the closed MVP set `pt-BR` and
-  `en-GB`; casing and region subtags are canonical.
+- Query and answer language values use the exact closed tags `pt-BR` and
+  `en-GB`. Document and citation content languages use a separate canonical
+  BCP 47 value; a source-declared tag is preserved exactly as provenance and is
+  never made more specific by inference.
 - Required bounds are validated before external or persistence work.
 - Every asynchronous port accepts cancellation and an explicit operation
   budget; no port reads ambient authority from model or document content.
@@ -38,9 +42,11 @@ Infrastructure owns adapters; Server owns HTTP mapping and composition.
 | `DatabaseCategoryAssignment` | Many-to-many link; one database identity may belong to several categories. |
 | `CatalogueItemStatus` | `Candidate`, `Active`, `Deactivated` or logical tombstone `Removed`. |
 | `DocumentId` | Stable logical identity independent of filename. |
-| `DocumentVersion` | Database ID, SHA-256, byte length, format `Pdf` or `Csv`, media type, `contentLanguage`, source metadata and licence/provenance state. |
+| `DocumentVersion` | Database ID, SHA-256, byte length, format `Pdf` or `Csv`, media type, canonical BCP 47 `contentLanguage`, optional exact `sourceDeclaredLanguage`, source metadata and licence/provenance state. |
 | `ContentObjectId` | Lower-case SHA-256 identity for immutable reopened bytes. |
-| `SupportedLanguage` | Closed enum backed by exact tags `pt-BR` or `en-GB`; no neutral, inferred or fallback value. |
+| `SupportedQueryLanguage` | Closed enum backed by exact tags `pt-BR` or `en-GB`; no neutral, inferred or fallback value. |
+| `DocumentContentLanguage` | Validated canonical BCP 47 value for document/evidence content; distinct from the supported query enum. |
+| `SourceDeclaredLanguage` | Exact bounded BCP 47 tag observed from publisher or embedded metadata and retained with its evidence. |
 | `SourceTrustClass` | Closed enum `LocalAuthorised` or `OfficialExternal`. |
 | `OfficialSourceRegistrationId` | Identity of an immutable/versioned trusted administrative record containing one exact canonical allowlisted URL and policy reference. |
 | `OfficialSnapshotId` | Immutable source key, canonical URL and content hash identity. |
@@ -53,6 +59,11 @@ Infrastructure owns adapters; Server owns HTTP mapping and composition.
 Value types reject empty, overlong, malformed or normalisation-ambiguous
 input when constructed. Domain has no filesystem path, URI parser, SQL, PDF,
 HTTP or provider SDK type.
+
+The current implementation's closed `SupportedLanguage` type remains the v1
+runtime representation for `pt-BR` and `en-GB`. Splitting that responsibility
+into `SupportedQueryLanguage` and `DocumentContentLanguage` is planned and
+unimplemented; this reconciliation does not change code, schema or stored data.
 
 ## Source and parsing ports
 
@@ -103,6 +114,49 @@ units, safe location metadata, parser descriptor and warnings. PDF units use
 page/block locations; CSV units use record ranges, columns and headers. It
 cannot return an executable attachment/formula, raw link authority or
 filesystem path.
+
+### Planned PDF render contracts
+
+PDF visual evidence is a separate deterministic derivative boundary. The
+accepted `pdf-page-png-v1` profile consumes one verified PDF content object and
+produces one immutable `image/png` content object for every one-based physical
+page. The renderer records its stable ID/version and non-secret settings;
+missing, failed, oversized or unverifiable pages fail the complete candidate.
+
+```text
+DocumentPageImage
+  documentId
+  documentVersion
+  sourceContentObjectId
+  pageNumber
+  renderProfileId
+  rendererDescriptor
+  imageContentObjectId
+  imageSha256
+  byteLength
+  mediaType
+  widthPixels
+  heightPixels
+
+DocumentRenderManifest
+  schemaVersion
+  documentId
+  documentVersion
+  sourceContentObjectId
+  sourcePageCount
+  renderProfileId
+  rendererDescriptor
+  orderedPageImages[]
+  manifestSha256
+  generatedAt
+```
+
+`orderedPageImages[]` contains exactly one entry per physical page in
+consecutive order. The versioned canonical UTF-8 manifest digest excludes only
+`generatedAt`; finalisation recalculates every hash, validates PNG signatures,
+dimensions, counts and bindings, and verifies reopen of every source and image
+object. CSV has no implicit render contract. These types and the rendering
+capability are accepted plans, not current runtime types.
 
 ### `IChunkingStrategy`
 
@@ -203,15 +257,20 @@ DeleteUnreferencedAsync(ContentObjectId, CleanupAuthority,
 ```
 
 Writes are idempotent by content hash, never overwrite and reopen before
-success. Deletion requires evidence that no active/retained record references
-the object.
+success. The same store is the sole product system of record for authorised
+source bytes and persistent page-image bytes; Git, Git LFS, intake quarantine
+and vector storage are not substitutes. Deletion requires evidence that no
+active/retained document, render manifest, answer-evidence record or rollback
+target reaches the object.
 
 ### `IDocumentCatalog`
 
 Owns database identities/revisions/statuses, category assignments, document
 identities/versions/statuses, source registrations/descriptors, snapshots,
-append-only observations and provenance. It does not own the active generation
-pointer. Data-driven compatible additions do not add code branches.
+append-only observations, exact language evidence, rights/provenance and,
+after separately authorised implementation, render-manifest bindings. It does
+not own the active generation pointer. Data-driven compatible additions do not
+add code branches.
 
 ### `IIndexGenerationStore`
 
@@ -346,6 +405,12 @@ a new finalised candidate generation.
 | `AskQuestion` | Returns `Answered`, `InsufficientEvidence` or canonical failure over all active/current bindings. |
 | `GetSystemReadiness` | Returns sanitised global and per-document/source coverage without external probing. |
 
+For the planned visual-evidence lifecycle, PDF activation additionally requires
+the verified source content object, applicable rendering/derivative rights, a
+complete finalised render manifest, every referenced page-image object and the
+finalised text/index generation. Import or rendering alone grants no active
+status. Deactivated and removed documents cannot serve page images.
+
 ## Query contract v1
 
 ### Request
@@ -422,6 +487,64 @@ and `Dark`; no public query field selects its locale or theme.
 `EvidenceCoverageV1` is derived from the activation record and contains only
 sanitised IDs/counts/statuses. It never exposes a local path, unapproved URL,
 licence text, provider configuration or reason for an administrative action.
+
+The complete `QueryRequestV1`, `QueryResponseV1` and `CitationV1` semantics
+above remain unchanged, as does the versioned OpenAPI v1 artefact. In
+particular, `CitationV1.contentLanguage` retains its closed `pt-BR | en-GB`
+values. A document governed with another BCP 47 tag cannot become active
+through v1 by coercion or inference.
+
+## Planned query contract v2 — not implemented
+
+ADR-0008 and ADR-0009 establish a single planned successor boundary. No v2
+OpenAPI artefact, endpoint, type, schema or runtime behaviour is created by
+this document.
+
+```text
+QueryRequestV2
+  corpusId
+  questionLanguage: pt-BR | en-GB
+  question
+
+QueryResponseV2
+  outcome: Answered | InsufficientEvidence
+  answerLanguage: pt-BR | en-GB
+  answer?
+  citations: CitationV2[]
+  evidenceCoverage
+  indexGenerationId
+  retrievalPolicyVersion
+  promptVersion
+  languageModelDescriptor
+  correlationId
+
+CitationV2
+  every CitationV1 identity, provenance and location field
+  contentLanguage: canonical BCP 47 tag
+  sourceDeclaredLanguage?: exact observed BCP 47 tag
+  pageImages: PageImageEvidenceV1[]
+
+PageImageEvidenceV1
+  pageNumber
+  renderManifestId
+  imageContentObjectId
+  mediaType: image/png
+  widthPixels
+  heightPixels
+  contentSha256
+```
+
+`CitationV2` preserves source-derived title, section, excerpt, page label and
+quotation in the original governed language. `pageImages` is empty for CSV and
+contains only distinct pages referenced by validated citations, with at most
+five references per response and no duplicate document-version/page tuple.
+The JSON never inlines PNG bytes or exposes a path.
+
+A separately defined same-origin read-only evidence endpoint must revalidate
+the active citation and render-manifest binding before streaming exact bounded
+PNG bytes with immutable ETag and `X-Content-Type-Options: nosniff`. Textual
+evidence remains available to assistive technology. The language model receives
+text only; image disclosure to a provider requires separate authority.
 
 ## Failure taxonomy and HTTP mapping
 
@@ -505,6 +628,8 @@ structured stderr/audit without secret content.
   outcome classification or `CH_*` meaning needs an ADR.
 - OpenAPI v1 breaking changes require v2 unless the owner explicitly accepts a
   pre-release reset before any external consumer exists.
+- Broader document-language values and page-image references belong only to the
+  planned v2 boundary; they never widen v1 by inference.
 - Parser, normalisation, chunking, embedding or vector schema changes require
   a new `IndexCompatibilityKey` and generation.
 - Prompt/model changes require a new prompt/model descriptor and evaluation
@@ -546,6 +671,15 @@ structured stderr/audit without secret content.
   `pt-BR→en-GB` and `en-GB→pt-BR` between question and evidence, including
   exact answer-language equality and preservation of source-derived citation
   text.
+- Dataset/evaluation tests retain that mandatory matrix and report every
+  additional exact `DocumentContentLanguage` as its own evidence stratum. `en`
+  is never counted as `en-GB`.
+- Planned visual-evidence tests cover deterministic full-page rendering,
+  canonical manifest/hash validation, verified reopen, rights gating,
+  lifecycle/reachability, citation-to-image binding, bounded same-origin
+  serving, cache headers and text-equivalent accessibility.
+- OpenAPI regression proves the v1 artefact is byte-for-byte unchanged; future
+  v2 implementation and compatibility evidence require separate authority.
 - Readiness tests proving per-source degradation is explicit, never silently
   substituted and remains servable only while eligible evidence exists.
 

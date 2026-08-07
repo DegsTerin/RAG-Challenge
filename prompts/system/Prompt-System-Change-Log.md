@@ -2,7 +2,7 @@
 
 ## Versão atual
 
-- Versão: `4.9.4`
+- Versão: `4.9.5`
 - Data: 2026-08-07
 - Status: `STATE-07` ativo; baseline de planejamento de `S07-A` confirmada,
   sem autoridade de execução
@@ -19,6 +19,45 @@ A versão do corpus é independente da versão futura do software.
 
 Toda alteração atualiza este arquivo e, quando necessário,
 [`../Start-Here.md`](../Start-Here.md).
+
+## 4.9.5 — 2026-08-07
+
+- Aplica, sob autoridade separada, a reconciliação semântica conjunta dos ADRs
+  0008 e 0009 sobre `main@3d15ad4f2726f715c8dcf880491927ad0ff37b2f`,
+  corpus `4.9.4` e working tree limpa.
+- Confirma `IDocumentContentStore` como única autoridade permanente de produto
+  para bytes de fonte e PNGs content-addressed, separados de Git, Git LFS,
+  quarentena, catálogo e vector store.
+- Torna explícitos `pdf-page-png-v1`, `DocumentPageImage`,
+  `DocumentRenderManifest`, renderização integral fail-closed, binding de
+  lifecycle, reachability e backup/restore, todos ainda não implementados.
+- Amplia o gate de direitos por documento para retenção da fonte, rendering,
+  criação/retenção de derivados, display e distribuição/publicação pretendida;
+  a expansão específica do candidato PostgreSQL permanece pendente.
+- Separa `SupportedQueryLanguage=pt-BR|en-GB` de
+  `DocumentContentLanguage` BCP 47, preserva `sourceDeclaredLanguage` e proíbe
+  inferir `en` como `en-GB`.
+- Preserva textos derivados da fonte no idioma original das citações e mantém
+  a matriz obrigatória de quatro pares, acrescentando estratos exatos por cada
+  idioma documental adicional sem fusão silenciosa.
+- Preserva OpenAPI v1 byte a byte com SHA-256
+  `d6a686b94c926914beb28b437f464430a01de6560c2e2d476cf5c36025813e34`.
+  `QueryResponseV2`, `CitationV2`, `PageImageEvidenceV1` e o endpoint visual
+  permanecem somente contratos planejados e não implementados; nenhum artefato
+  OpenAPI v2 foi criado.
+- Reconciliam-se ADR-0002, ADR-0004, ADR-0008, ADR-0009, índice arquitetural,
+  contratos canônicos, data dictionary, arquitetura da solução, módulo RAG,
+  segurança, lifecycle, Quality Gates, threat model, planejamento S07-A,
+  índice documental, estado factual e histórico append-only: 18 arquivos.
+- A mudança é `PATCH`: torna correntes decisões arquiteturais já aceitas sem
+  introduzir nova autoridade, capacidade executável, estado ou contrato
+  implementado.
+- Não altera código, testes, schema, migrations, dados, dataset, registro de
+  elegibilidade, dependências, lockfiles, PDF ou OpenAPI; não gera PNGs,
+  indexa, ativa, executa provider/browser/rede, publica, faz deploy ou realiza
+  ação externa.
+- `STATE-07 TESTING_HOMOLOGATION` permanece ativo; `S07-A` conserva somente a
+  baseline de planejamento confirmada, sem autoridade de dataset ou execução.
 
 ## 4.9.4 — 2026-08-07
 

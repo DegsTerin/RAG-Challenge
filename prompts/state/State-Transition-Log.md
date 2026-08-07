@@ -5129,3 +5129,51 @@ contém somente fatos cronológicos.
 - Próxima condição: autoridade humana explícita e separada para reconciliar
   semanticamente ADR-0008 e ADR-0009 com os documentos normativos aplicáveis.
 - Aprovador da decisão: proprietário do RAG-Challenge.
+
+## 2026-08-07 — Reconciliação semântica conjunta de ADR-0008 e ADR-0009
+
+- Baseline: branch `main`, commit
+  `3d15ad4f2726f715c8dcf880491927ad0ff37b2f`, corpus `4.9.4` e working tree
+  limpa, confirmados antes de qualquer edição.
+- Autoridade: solicitação explícita do proprietário para reconciliar somente a
+  semântica já aceita dos ADRs 0008/0009 nos documentos canônicos nomeados,
+  preservar OpenAPI v1 byte a byte, validar o pacote e criar um único commit
+  local focal somente se todos os checks fossem aprovados.
+- Classificação: corpus `4.9.5` (`PATCH`), pois a mudança torna correntes
+  decisões arquiteturais já aceitas sem nova autoridade, capacidade
+  executável, estado ou contrato implementado; permanecem 13 arquivos ativos
+  em `prompts/`.
+- Escopo canônico: ADR-0002, ADR-0004, ADR-0008, ADR-0009, índice
+  arquitetural, contratos canônicos, data dictionary, Solution Architecture,
+  RAG Module, Security and Access, Lifecycle, Quality Gates, threat model,
+  planejamento S07-A, índice documental, Current State, este histórico
+  append-only e Prompt System Change Log: exatamente 18 arquivos.
+- Semântica aplicada: `IDocumentContentStore` é a autoridade permanente para
+  fonte/PNG content-addressed; PDF visual exige `pdf-page-png-v1`, manifesto
+  completo, lifecycle/reachability e direitos específicos; query/answer
+  permanecem `pt-BR|en-GB`, conteúdo documental usa BCP 47 separado,
+  `sourceDeclaredLanguage=en` não é inferido como `en-GB`, citações preservam
+  a fonte e avaliação adiciona estratos exatos.
+- Compatibilidade: OpenAPI v1 permaneceu byte a byte idêntica, com SHA-256
+  `d6a686b94c926914beb28b437f464430a01de6560c2e2d476cf5c36025813e34` e blob
+  Git `a5fb3602fbab33bda6aa56cc4caaa9fdc37c8160`; v2 permanece somente planejado
+  e não implementado, sem artefato OpenAPI v2.
+- Escopo negativo observado: sem alteração de código, testes, schema,
+  migrations, dados, dataset, registro de elegibilidade, dependências,
+  lockfiles, PDF ou OpenAPI; sem geração de PNG, indexação, ativação,
+  provider, browser, rede, OCI, GitHub, publicação, deploy ou ação externa.
+- Runtime preflight: `NÃO APLICÁVEL`; a mudança e as verificações foram
+  exclusivamente documentais, sem inspeção ou encerramento de processo.
+- Validação: baseline/escopo, rastreabilidade ADR-owner, preservação append-only,
+  links, UTF-8 sem BOM, LF, newline final, whitespace, NUL, coerência factual,
+  hash/blob do OpenAPI v1, `eng/check-repository.ps1` e `git diff --check`
+  foram aprovados; o diff integral foi revisado antes do commit.
+- Estado resultante: ADR-0008 e ADR-0009 permanecem `accepted`; reconciliação
+  semântica concluída no corpus `4.9.5`; implementação, direitos específicos
+  pendentes, import, renderização, v2, dataset, avaliação e qualquer execução
+  continuam não autorizados. `STATE-07 TESTING_HOMOLOGATION` permanece ativo
+  sem Automatic Quality Gate ou Human Gate executado.
+- Próxima condição: autoridade humana explícita e separada para um incremento
+  implementável que nomeie tipos, schema/migration, content store, renderer,
+  lifecycle, serving, v2 e testes aplicáveis, ou um subconjunto coerente deles.
+- Aprovador da reconciliação: proprietário do RAG-Challenge.

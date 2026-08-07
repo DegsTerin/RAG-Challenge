@@ -8,7 +8,11 @@ vigente pertence ao ADR-0003, que incorpora as decisões não relacionadas a
 nomenclatura do ADR-0001; o lifecycle RAG e as seleções condicionais pertencem
 ao ADR-0002 e aos ADR-0004 a ADR-0006. Os ADRs estão indexados em
 [`../../docs/architecture/`](../../docs/architecture/README.md). Esta visão não
-representa implementação, teste, deploy ou homologação.
+representa por si só implementação, teste, deploy ou homologação. O ADR-0007
+corrige identidade de geração/freshness; os ADRs aceitos 0008 e 0009 refinam
+armazenamento/evidência visual e idiomas documentais. O estado implementado
+permanece no snapshot factual; esses dois últimos refinamentos continuam
+planejados e não implementados.
 
 ## Princípios
 
@@ -18,8 +22,12 @@ representa implementação, teste, deploy ou homologação.
 - Portas tipadas para fontes, parsing, embeddings, vetores e LLM.
 - Configuração fail-closed, sem segredos persistidos.
 - Proveniência e versão preservadas do documento à citação.
-- Pergunta e resposta suportadas em `pt-BR` e `en-GB`, com idioma explícito e
-  conteúdo citado preservado no idioma da fonte.
+- `SupportedQueryLanguage` fechado em `pt-BR` e `en-GB`, com resposta no
+  idioma explícito da pergunta; `DocumentContentLanguage` separado e aberto a
+  tags BCP 47 canônicas, sem inferir `en` como `en-GB`.
+- Conteúdo derivado da fonte preservado no idioma original da citação.
+- Bytes de fonte e PNGs persistentes endereçados por conteúdo, com renderização
+  PDF determinística e manifesto completo antes de evidência visual ativa.
 - Índices construídos de forma imutável antes da ativação.
 - Falha externa isolada e explicitamente classificada.
 - Origem local e oficial preservadas como proveniência e confiança, com todos
@@ -166,14 +174,16 @@ Conceitos candidatos:
   `DatabaseCategoryAssignment`;
 - `DocumentId`, `DocumentVersion`, `DocumentStatus`, `DocumentFormat` e
   `SourceDescriptor`;
-- `ContentObjectId` e referência imutável ao conteúdo bruto;
+- `ContentObjectId`, `DocumentPageImage`, `DocumentRenderManifest` e
+  referências imutáveis ao conteúdo de fonte e aos derivados visuais;
 - `SourceTrustClass`, `OfficialSourceRegistration`, `OfficialSourceSnapshot`,
   `OfficialSourceObservation` e `SourceFreshness`;
 - `ChunkIdentity` e `Citation`;
 - `CandidateBuildId`, `IndexGenerationId`, `IndexGenerationStatus` e
   `CorpusActivationRecord`;
 - `ProviderDescriptor`;
-- `SupportedLanguage`, restrito a `pt-BR` e `en-GB` no MVP;
+- `SupportedQueryLanguage`, restrito a `pt-BR` e `en-GB`, e
+  `DocumentContentLanguage`, BCP 47 canônico e separado;
 - `QueryRequest`, `RetrievedEvidence` e `AnswerOutcome`.
 
 O Domain não conhece caminhos de arquivo, PDF, SQL, HTTP, SDKs ou modelos.
@@ -202,8 +212,11 @@ adapter prova hard pre-filter de corpus, geração, bindings elegíveis e filtro
 antes do top-k ou usa partição física equivalente; post-filter de busca global
 não satisfaz o contrato. Ele não possui autoridade de ativação.
 
-`IDocumentContentStore` persiste e reabre bytes imutáveis endereçados por
-conteúdo. `IDocumentCatalog` mantém identidades e referências, e
+`IDocumentContentStore` é a única autoridade de produto que persiste e reabre
+bytes imutáveis endereçados por conteúdo para fontes e PNGs de páginas. Git,
+Git LFS, quarentena e vector store não o substituem. `IDocumentCatalog` mantém
+identidades, idioma/proveniência/direitos, manifestos de renderização e
+referências, e
 `IIndexGenerationStore` é a única fonte de verdade do
 `CorpusActivationRecord`, que vincula atomicamente a geração ativa e um
 conjunto ordenado de bindings de banco, documento, versão, snapshot e observação
@@ -242,6 +255,11 @@ não ocorre no fluxo de pergunta.
   filesystem local é candidato para o MVP, com caminho durável equivalente no
   alvo OCI. Vector store não substitui os bytes necessários a rebuild,
   retenção ou rollback.
+- O mesmo content store preserva PNGs determinísticos de páginas. Cada PDF usa
+  o perfil `pdf-page-png-v1`, um binding imutável por página física e um
+  `DocumentRenderManifest` canônico completo; CSV não recebe imagem implícita.
+- Renderização e serving continuam capacidades planejadas: não há renderer,
+  PNG persistente ou endpoint visual implementado por esta reconciliação.
 - O armazenamento vetorial permanece atrás de `IVectorStore`.
 - Vector store gerenciado exige política de egress e tratamento de dados
   próprios; escolher implementação local evita esse egress no MVP.
@@ -255,7 +273,8 @@ não ocorre no fluxo de pergunta.
 
 ### Server/API
 
-Contratos conceituais, ainda não implementados:
+Superfície HTTP v1 implementada e versionada, descrita aqui apenas em nível
+arquitetural:
 
 | Método e rota | Uso |
 |---|---|
@@ -299,17 +318,41 @@ Cada citação preserva corpus, banco, documento, versão, formato, classe de
 confiança, geração e localização. Citação oficial inclui URL canônica,
 snapshot, `revalidatedAt` e freshness; PDF usa páginas/blocos e CSV usa
 linhas/colunas/cabeçalhos.
-Toda citação declara `contentLanguage=pt-BR|en-GB`; títulos, seções e trechos
-derivados da fonte permanecem nesse idioma original. `answerLanguage` é sempre
-igual ao `questionLanguage` aceito, inclusive quando a evidência usa o outro
-idioma.
+No v1, toda citação continua declarando
+`contentLanguage=pt-BR|en-GB`; títulos, seções e trechos derivados da fonte
+permanecem nesse idioma original. `answerLanguage` é sempre igual ao
+`questionLanguage` aceito, inclusive quando a evidência usa o outro idioma.
 `languageModelDescriptor` contém apenas provider, modelo e revisão não
 secretos; não contém endpoint, credencial ou configuração interna.
 
 O artefato OpenAPI v1 pertence ao RAG-Challenge, é gerado e versionado com a API,
 inclui pergunta, respostas concluídas, citações e Problem Details, e passa por
-teste de compatibilidade. A política de breaking changes pertence ao
-`STATE-02`; a implementação e a prova do artefato pertencem ao `STATE-04`.
+teste de compatibilidade. Ele permanece byte a byte inalterado nesta
+reconciliação. A política de breaking changes pertence ao `STATE-02`; a
+implementação e a prova do artefato pertencem ao `STATE-04`.
+
+O sucessor aceito é somente contrato planejado e não implementado:
+
+```text
+QueryRequestV2
+  questionLanguage: pt-BR | en-GB
+
+QueryResponseV2
+  answerLanguage: pt-BR | en-GB
+  citations: CitationV2[]
+
+CitationV2
+  contentLanguage: canonical BCP 47 tag
+  sourceDeclaredLanguage?: exact observed BCP 47 tag
+  pageImages: PageImageEvidenceV1[]
+```
+
+`CitationV2` conserva os demais campos do v1, expõe somente referências PNG
+validadas pelo binding ativo e preserva todo texto da fonte no idioma original.
+O JSON não embute bytes nem paths. Um futuro endpoint same-origin, somente
+leitura, revalida citação e manifesto antes de servir o PNG limitado. O modelo
+de linguagem continua recebendo somente evidência textual. Criar OpenAPI v2,
+tipos, endpoint e compatibilidade exige autoridade própria.
 
 Os campos de idioma pertencem ao contrato de consulta e não selecionam o
 idioma visual. O Dashboard suporta separadamente `interfaceLanguage=pt-BR` ou
@@ -361,13 +404,15 @@ configured logical corpus and catalogue
   -> resolve Candidate database/document versions and retained source snapshots
   -> validate and hash
   -> persist content by hash and reopen/verify
+  -> for PDF visual evidence, render and verify the complete page-image manifest
   -> parse
   -> chunk with versioned strategy
   -> embed
   -> write under temporary candidate build identity
   -> finalise canonical manifest with logical artifact digest/counts
   -> validate readback, manifest and smoke queries
-  -> compare-and-swap complete CorpusActivationRecord in IIndexGenerationStore
+  -> atomically bind eligible source/render/index artefacts and compare-and-swap
+     the complete CorpusActivationRecord in IIndexGenerationStore
 ```
 
 Cada binding oficial selecionado para a candidata preserva snapshot e
@@ -415,7 +460,8 @@ question
 - Overrides por ambiente e variáveis protegidas.
 - Secrets somente por referências ou nomes de variáveis.
 - Startup valida provider, modelo, dimensão, limites, catálogo, content store,
-  durabilidade mínima e compatibilidade do índice. O perfil oficial valida cada
+  durabilidade mínima, compatibilidade do índice e, quando a capacidade visual
+  for implementada, perfil/renderer/manifests. O perfil oficial valida cada
   registro de URL/allowlist, política de egress e freshness sem executar
   sincronização.
 - Capacidade incompleta permanece desativada; não há fallback silencioso.
@@ -472,7 +518,8 @@ criam taxonomias paralelas.
 
 - Logs estruturados com correlation ID, operation ID e códigos estáveis.
 - Métricas de ingestão/sincronização: duração, bancos, documentos, formatos,
-  páginas/linhas, bytes, chunks, freshness, falhas e versão.
+  páginas/linhas, bytes de fonte/imagem, render manifests, chunks, freshness,
+  falhas e versão, sem conteúdo bruto.
 - Métricas de consulta: latência por estágio, candidatos, recusas e falhas de
   provider.
 - Custo/tokens somente quando o provider oferece metadados seguros.

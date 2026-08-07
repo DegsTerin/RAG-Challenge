@@ -12,6 +12,13 @@
   [ADR-0007](ADR-0007-Generation-Identity-And-Freshness-Observation-Rebinding.md),
   which supersedes only the observation-inclusive generation-identity and
   exact-record rollback clauses
+- Refined by: accepted
+  [ADR-0008](ADR-0008-Product-Corpus-Storage-And-Page-Image-Evidence.md) for
+  durable source/page-image storage and render lifecycle, and accepted
+  [ADR-0009](ADR-0009-Document-Evidence-And-Query-Language-Taxonomy.md) for
+  separate query and document-language domains. These refinements are
+  architecturally current but remain unimplemented unless current factual
+  evidence says otherwise.
 
 ## Context
 
@@ -58,9 +65,16 @@ The accepted decision is:
   Physical deletion follows retention and reachability policy. A database is
   active only with at least one active document; removing or deactivating its
   last active document requires explicit atomic database deactivation.
-- Persist the raw bytes of local versions and official snapshots through
-  `IDocumentContentStore`; vector data is derivative and cannot replace the
-  source needed for restart, rebuild or rollback.
+- Use `IDocumentContentStore` as the sole product system of record for exact
+  source bytes and persistent PDF page-image bytes. Store every object
+  immutably by SHA-256, verify it after write and on reopen, and keep Git, Git
+  LFS, intake quarantine and the vector store outside this authority. Vector
+  and page-image data are derivatives and cannot replace source bytes needed
+  for restart, rebuild, rollback or reproducibility.
+- Govern each PDF render through the accepted `pdf-page-png-v1` profile, an
+  immutable `DocumentPageImage` binding per physical page and a finalised
+  `DocumentRenderManifest` covering the complete ordered page set. CSV has no
+  implicit page-image derivative.
 - Preserve parser, chunking, provider, model, dimensions and schema in an
   immutable index-generation manifest.
 - Make the index-generation store the sole system of record for a
@@ -129,6 +143,15 @@ The accepted decision is:
   an old snapshot fresh without a real revalidation.
 - Preserve provenance in every citation and return
   `INSUFFICIENT_EVIDENCE` when retrieved content does not support an answer.
+- Keep `SupportedQueryLanguage` closed to exact `pt-BR` and `en-GB` values for
+  questions and answers. Model document `contentLanguage` separately as a
+  canonical BCP 47 `DocumentContentLanguage`, preserve any publisher-declared
+  tag as `sourceDeclaredLanguage`, and never infer a more specific tag. In
+  particular, `en` is not `en-GB`.
+- Preserve every source-derived citation title, section, excerpt, page label
+  and quotation in its governed original language. The answer may explain the
+  evidence in the supported question language but cannot rewrite citation
+  content as if it came from the source.
 - Resolve the complete activation record once at query start and use its
   explicit generation and ordered binding identities throughout retrieval,
   validation, coverage, response metadata and citations.
@@ -136,6 +159,10 @@ The accepted decision is:
   consumer adapters, including a future DB-Notifier adapter, belong to their
   consumer repositories and gates. Do not expose Domain entities or provider
   ports.
+- Preserve `QueryRequestV1`, `QueryResponseV1`, `CitationV1` and the OpenAPI v1
+  artefact unchanged. The accepted `QueryResponseV2`/`CitationV2` direction is
+  planned and unimplemented; only that future contract may expose broader BCP
+  47 citation tags and validated page-image references.
 
 The minimum index manifest contains:
 
@@ -227,6 +254,8 @@ tests; production adapters are added only when needed.
 - Catalogue and vector storage lifecycles are coordinated but not conflated.
 - Raw-content retention is explicit and may require durable filesystem or
   object storage in OCI; the catalogue stores references rather than bytes.
+- Persistent page images inherit the source classification and add bounded
+  rendering, backup, serving, accessibility, retention and rights obligations.
 - There is one activation authority, avoiding split-brain between catalogue
   metadata, freshness observations and vector-store aliases.
 - Source licensing and provenance become first-class delivery criteria.
@@ -299,6 +328,15 @@ tests; production adapters are added only when needed.
 - Compatible database/document/source records add data and tests without
   changing Domain semantics. Formats beyond PDF/CSV or new integration classes
   add adapters, capability declarations and potentially a new ADR.
+- The implemented closed `SupportedLanguage` type remains the v1 runtime
+  boundary until a separately authorised change introduces
+  `SupportedQueryLanguage` and `DocumentContentLanguage`. Existing `pt-BR` and
+  `en-GB` document tags retain their exact values; broader tags require the
+  planned v2 contract and compatible catalogue, dataset and runtime support.
+- A PDF version requiring visual evidence can become active only when source
+  bytes, the complete render manifest, every referenced PNG, the text/index
+  generation and all applicable rights are validated and atomically bound.
+  Rendering or import alone never activates content.
 
 ## Acceptance checks
 
@@ -306,6 +344,12 @@ tests; production adapters are added only when needed.
 - The same use case runs against deterministic test doubles.
 - Raw PDF/CSV local and official content can be reopened by hash after restart while
   referenced by the active or retained rollback generation.
+- Every PDF visual-evidence candidate has a complete, consecutive, canonical
+  render manifest; source and PNG hashes, byte lengths, dimensions, media type,
+  renderer/profile descriptors and verified reopen all match before activation.
+- Deactivated or removed documents cannot serve page images. Cleanup proves
+  that no active/retained document, render manifest, answer-evidence record or
+  rollback target reaches the source or derivative object.
 - Every candidate reopens and verifies each referenced content object before
   activation.
 - Candidate staging remains unqueryable until final counts, canonical logical
@@ -355,6 +399,12 @@ tests; production adapters are added only when needed.
   refusal of certificate-validation egress.
 - The generated OpenAPI v1 artefact has compatibility tests and exposes no
   Domain or provider SDK types; its consumer adapter is outside RAG-Challenge.
+- OpenAPI v1 remains byte-for-byte compatible. Any future v2 artefact is
+  separately authorised, implemented and compatibility-tested; an accepted
+  planned schema is not an endpoint or runtime capability.
+- Evaluation retains the four mandatory `pt-BR`/`en-GB` question/evidence
+  pairs and reports every additional exact document-language tag as a distinct
+  evidence stratum without coercion or silent aggregation.
 - Readiness reports degradation per source/document without making a remaining
   healthy active-document path globally unready.
 - Architecture tests prevent direct controller-to-provider coupling.
@@ -364,6 +414,8 @@ tests; production adapters are added only when needed.
 - [ADR-0004 — MVP Catalogue, Governed Documents, Official Sources and Evaluation](ADR-0004-MVP-Corpus-Official-Source-And-Evaluation.md)
 - [ADR-0005 — MVP Providers, Persistence and OCI Deployment](ADR-0005-MVP-Providers-Persistence-And-OCI-Deployment.md)
 - [ADR-0006 — Security, Egress, Administration and HTTP Contracts](ADR-0006-Security-Egress-Administration-And-HTTP-Contracts.md)
+- [ADR-0008 — Product Corpus Storage and Page-Image Evidence](ADR-0008-Product-Corpus-Storage-And-Page-Image-Evidence.md)
+- [ADR-0009 — Document, Evidence and Query Language Taxonomy](ADR-0009-Document-Evidence-And-Query-Language-Taxonomy.md)
 - [STATE-02 Canonical Contracts](STATE-02-Canonical-Contracts.md)
 - [STATE-02 Threat Model](../security/STATE-02-Threat-Model.md)
 

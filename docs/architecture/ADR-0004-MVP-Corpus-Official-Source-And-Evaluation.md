@@ -7,6 +7,9 @@
   `main@39e2f803bf73cb4e2b59e56a0596e2858a3aed51`, corpus `4.7.0`
 - Owners: RAG-Challenge product, RAG evaluation and security
 - State: `STATE-02 ARCHITECTURE`
+- Refined by: accepted ADR-0008 for durable source/page-image storage and
+  visual-evidence rights, and accepted ADR-0009 for separate query and
+  document-language domains; implementation remains separately authorised
 - Verification status: substantially complete only for the first PostgreSQL
   source candidate; no conflicting robots or terms policy was found, no
   publisher rate guidance was located, and every later source requires its own
@@ -96,13 +99,22 @@ The accepted decision is:
 | Em memória | Redis; SAP HANA; SingleStore |
 
 - Associate each document with a database product and record its immutable
-  version, PDF/CSV format, content language, provenance, licence/use rights,
-  hash, source adapter and trust classification.
+  version, PDF/CSV format, canonical BCP 47 `DocumentContentLanguage`, exact
+  publisher-declared language evidence when available, provenance,
+  licence/use rights, hash, source adapter and trust classification. Language
+  values are catalogue evidence and do not select a provider or imply query
+  support.
 - Require each active database to have at least one active document; permit any
   number of additional documents without a product ceiling.
 - Permit owner-authored, owner-authorised or official external documents only
   when their rights and provenance permit the intended parsing, indexing,
-  quotation, citation, retention and any publication.
+  source-byte retention, quotation, citation and any publication. A PDF that
+  will provide visual evidence additionally requires explicit rights for page
+  rendering, creation and retention of derivative images, runtime display and
+  the intended source/derivative distribution boundary.
+- Persist authorised source bytes and page-image derivatives only through the
+  content-addressed `IDocumentContentStore`. An intake path, Git checkout, Git
+  LFS pointer, catalogue row or vector index is not durable product content.
 - Keep `reference-materials/` excluded. Its contents do not become product
   corpus by catalogue registration.
 - Apply bounded byte, page/line, parser-working-set, time and concurrency
@@ -188,12 +200,19 @@ introduces a new integration or policy class.
   version, one or more relevant locations, required facts, prohibited
   extrapolations and expected provenance.
 - Annotate every case with `questionLanguage` and the expected
-  `contentLanguage` of its evidence. Include answerable questions in both
-  `pt-BR` and `en-GB` against the approved evidence across the dataset.
+  exact canonical BCP 47 `contentLanguage` of its evidence, plus the preserved
+  `sourceDeclaredLanguage` when present. Include answerable questions in both
+  supported query languages, `pt-BR` and `en-GB`, against the approved evidence
+  across the dataset.
 - Supplement the scored product-corpus cases with deterministic contract and
   integration fixtures that cover `pt-BR→pt-BR`, `en-GB→en-GB`,
   `pt-BR→en-GB` and `en-GB→pt-BR` between question and evidence. Fixtures are
   not product corpus and are never reported as product-source coverage.
+- Keep each additional exact document-language tag in its own reported
+  evidence stratum. Do not count `en` as `en-GB` or silently merge language
+  strata. A PostgreSQL product-corpus campaign therefore requires at least
+  `pt-BR -> en` and `en-GB -> en`; the mandatory `en-GB` evidence rows require
+  an independently authorised `en-GB` document or clearly separated fixtures.
 - Keep evaluation questions and expected answers out of the runtime corpus.
 - Use deterministic retrieval evaluation and a documented two-person human
   rubric for answer quality. A model judge may be supplementary but cannot be
@@ -233,7 +252,9 @@ another source:
 1. the candidate PDF responds from the exact URL without redirect;
 2. the official publisher controls the host and path;
 3. the current licence and terms permit the intended download, local snapshot,
-   parsing, indexing, quotation and citation;
+   parsing, indexing, source-byte retention, quotation and citation, and, when
+   visual evidence is required, page rendering, derivative-image creation and
+   retention, runtime display and the intended distribution boundary;
 4. robots and published rate guidance permit the accepted manual frequency;
 5. the response is an anonymous PDF within the accepted limits;
 6. certificate validation can operate with the no-lateral-egress TLS policy;
@@ -246,7 +267,7 @@ Evidence status on 2026-07-31:
 |---|---|---|
 | 1 | Verified | Exact URL returned without redirect. |
 | 2 | Verified | The official documentation index and PDF use the exact `www.postgresql.org` authority and versioned path. |
-| 3 | Verified with qualification | The PostgreSQL Licence supplies the use/copy basis and required notices; the official policies index lists no separate general terms-of-use policy. |
+| 3 | Partially verified; visual rights expansion pending | The PostgreSQL Licence supplies the recorded use/copy basis and required notices. Before rendering or visual activation, the eligibility record must explicitly dispose page rendering, derivative-image creation/retention, runtime display and the intended distribution boundary. |
 | 4 | Verified with qualification | `robots.txt` does not disallow the exact path; no publisher download-rate guidance was located, so the accepted daily ceiling remains a project-owned conservative limit. |
 | 5 | Verified | Anonymous PDF, `application/pdf`, 15,771,040 bytes and valid leading signature. |
 | 6 | Verified locally | TLS 1.3 and a four-element offline chain validated with certificate downloads disabled and revocation `NoCheck`; clean-environment and OCI reproduction remain later acceptance tests. |
@@ -299,6 +320,12 @@ more clearly while remaining separate from the software licence.
 - Cross-language retrieval or answer-language failures reject the candidate
   provider or prompt baseline; they do not justify translating citations or
   weakening the accepted language requirement.
+- Broader document-language support increases dataset strata without expanding
+  the closed `pt-BR`/`en-GB` query-language contract. Results name exact tags,
+  documents, dataset revision, provider and environment.
+- PDF visual evidence increases durable storage, rendering, backup, security,
+  accessibility and rights work; a partial or unverifiable render candidate
+  blocks activation rather than degrading silently.
 
 ## Security, privacy and operations
 
@@ -307,8 +334,9 @@ more clearly while remaining separate from the software licence.
   sources.
 - Initial external sources are anonymous and must not receive a secret-bearing header,
   environment credential or signed query.
-- Snapshot bytes stay outside Git unless the verified licence expressly
-  permits redistribution and the owner separately authorises it.
+- Source and page-image bytes stay outside ordinary Git and Git LFS as product
+  storage. A separately authorised licence-safe export remains a distribution
+  artefact, never the runtime system of record.
 - Any retained PostgreSQL documentation copy preserves the licence copyright
   notice and required paragraphs in the governed source record or
   distribution bundle.
@@ -325,8 +353,14 @@ more clearly while remaining separate from the software licence.
 - Every active database has at least one active, hash-verified PDF/CSV document;
   every document records format, language, rights, provenance and location
   semantics.
+- Every document records a canonical BCP 47 `contentLanguage`; any observed
+  publisher tag is preserved exactly, and no generic `en` value is inferred as
+  `en-GB`.
 - Rights and attribution are independently checked for software and each
   document/snapshot.
+- Every visually active PDF has compatible rendering and derivative rights, a
+  complete finalised render manifest and verified content-addressed PNGs; CSV
+  receives no implicit page-image derivative.
 - Candidate, activation, deactivation and logical removal preserve history;
   the last active document cannot leave an active database.
 - Dataset membership and thresholds are frozen before any scored run.
@@ -334,6 +368,8 @@ more clearly while remaining separate from the software licence.
   provenance; the active dataset covers every active database.
 - Every case declares exactly one `questionLanguage`; the combined scored and
   deterministic suites cover both same-language pairs and both cross-language
-  directions without changing citation text.
+  directions without changing citation text. Additional exact
+  document-language tags are reported as separate strata and never substitute
+  for a mandatory matrix row.
 - The decision does not authorise a real network synchronisation or create a
   product snapshot.

@@ -82,11 +82,11 @@ Um lote está pronto quando:
 |---|---|
 | Unitário | Invariantes, versionamento, hashing, políticas, limites e falhas. |
 | Arquitetura | Dependências para dentro e superfícies proibidas. |
-| Contrato | Adapters PDF/CSV, catálogo, conteúdo bruto, embeddings, vetor, LLM, OpenAPI e API. |
-| Integração | Persistência, digests separados de geração/ativação, rebinding de observação, ativação atômica, rollback por novo registro, restart e HTTP. |
-| RAG evaluation | Recuperação, groundedness, citações, recusa e matriz `pt-BR`/`en-GB` entre pergunta e evidência. |
-| Segurança | PDF/CSV malicioso, poisoning de registro, prompt injection, SSRF, source leakage, secrets e abuso. |
-| Acessibilidade | Teclado, foco, semântica, contraste, reflow, localização `pt-BR`/`en-GB` e temas `Light`/`Dark`. |
+| Contrato | Adapters PDF/CSV, catálogo, conteúdo fonte/PNG, render manifest, idiomas separados, embeddings, vetor, LLM, OpenAPI v1 preservado e v2 planejado. |
+| Integração | Persistência, digests separados de geração/ativação, rebinding de observação, render/lifecycle, ativação atômica, rollback por novo registro, restart e HTTP. |
+| RAG evaluation | Recuperação, groundedness, citações, recusa, matriz `pt-BR`/`en-GB` e estratos adicionais por idioma documental exato. |
+| Segurança | PDF/CSV/renderer malicioso, binding de imagem, language coercion, poisoning de registro, prompt injection, SSRF, source leakage, secrets e abuso. |
+| Acessibilidade | Teclado, foco, semântica, contraste, reflow, localização `pt-BR`/`en-GB`, temas `Light`/`Dark` e equivalente textual da evidência visual. |
 | E2E | Documento até resposta e deploy até smoke. |
 | Performance | Latência, limites, memória, custo e carga definidos. |
 | Recuperação | Falha de indexação, geração incompatível, mismatch de observação e rollback sem replay de freshness. |
@@ -180,15 +180,20 @@ coordenação ou validação.
 
 ## Verificações por estado
 
+Os itens de ADR-0008/0009 acrescentados abaixo são critérios para incrementos
+corretivos futuros e para claims que dependam deles. Não reescrevem resultados
+históricos dos estados já encerrados nem constituem evidência de implementação;
+o Current State conserva essa separação factual.
+
 | Estado | Verificações adicionais |
 |---|---|
 | `STATE-01` | Clone/bootstrap limpo, lockfiles, configuração, CI e ausência de domínio prematuro. |
-| `STATE-02` | ADRs, contratos, threat model, providers, catálogo inicial 51/54/9, PDF/CSV, fontes/licenças/allowlists, contrato `pt-BR`/`en-GB`, quatro políticas de egress, persistência durável, erros/readiness/OpenAPI e rollback. |
-| `STATE-03` | Constraints, bancos/categorias/documentos/estados, conteúdo reabrível, hashes, snapshots, journal de observações/freshness separado de `catalogueRevision`, vetores canônicos para `sourceBindingSetDigest` sem observação e `activationBindingSetDigest` completo, staging não consultável, três validações de projeção, manifesto íntegro, retenção, migrations e `CorpusActivationRecord` atômico; rollback constrói registro novo com observações compatíveis/elegíveis. |
-| `STATE-04` | Arquitetura, administração de bancos/documentos, parsers PDF/CSV, sync oficial manual, `304`/hash idêntico com campos preservados/alterados exatos, rejeição de mismatch, retry idempotente, hard pre-filter de bindings elegíveis antes do top-k, recuperação unificada, OpenAPI, contrato bilíngue, citações, recusa, falhas e adapters. |
-| `STATE-05` | Cobertura/proveniência, `interfaceLanguage` `pt-BR`/`en-GB`, temas `Light`/`Dark`, independência de `questionLanguage`, freshness, estados de UI, teclado, contraste e acessibilidade. |
-| `STATE-06` | E2E com HTTP falso, smoke real opt-in autorizado, restart, artefato e sandbox OCI. |
-| `STATE-07` | Dataset estratificado por banco/documento/formato, matriz `pt-BR`/`en-GB`, source leakage, DNS rebinding/pinning/redirect, stale, groundedness, carga, crash boundaries e recuperação. |
+| `STATE-02` | ADRs, contratos, threat model, providers, catálogo inicial 51/54/9, PDF/CSV, fontes/licenças/allowlists, query `pt-BR`/`en-GB`, idioma documental BCP 47, content/page-image storage, quatro políticas de egress, persistência durável, erros/readiness/OpenAPI e rollback. |
+| `STATE-03` | Constraints, bancos/categorias/documentos/estados, idioma documental/source declaration, conteúdo fonte/PNG reabrível, render manifest/reachability, hashes, snapshots, journal de observações/freshness separado de `catalogueRevision`, vetores canônicos para `sourceBindingSetDigest` sem observação e `activationBindingSetDigest` completo, staging não consultável, três validações de projeção, manifesto íntegro, retenção, migrations e `CorpusActivationRecord` atômico; rollback constrói registro novo com observações compatíveis/elegíveis. |
+| `STATE-04` | Arquitetura, administração de bancos/documentos, parsers PDF/CSV, renderer/manifests/serving de imagem quando autorizados, sync oficial manual, `304`/hash idêntico com campos preservados/alterados exatos, rejeição de mismatch, retry idempotente, hard pre-filter de bindings elegíveis antes do top-k, recuperação unificada, OpenAPI v1 preservado e v2 separadamente versionado, query bilíngue, citações, recusa, falhas e adapters. |
+| `STATE-05` | Cobertura/proveniência, `interfaceLanguage` `pt-BR`/`en-GB`, temas `Light`/`Dark`, independência de `questionLanguage`, freshness, evidência visual com alternativa textual, estados de UI, teclado, contraste e acessibilidade. |
+| `STATE-06` | E2E com HTTP falso, source/render/index restart, backup/restore, serving visual, smoke real opt-in autorizado, artefato e sandbox OCI. |
+| `STATE-07` | Dataset estratificado por banco/documento/formato e idioma documental exato, matriz `pt-BR`/`en-GB`, visual-evidence rights/integrity/accessibility, source leakage, language coercion, DNS rebinding/pinning/redirect, stale, groundedness, carga, crash boundaries e recuperação. |
 | `STATE-08` | Artefato, egress oficial autorizado, deploy, smoke, health, evidência e rollback. |
 
 ## Estratégia de CI
@@ -218,6 +223,11 @@ A campanha define antes da execução:
 - conjunto de perguntas e casos sem resposta;
 - `questionLanguage` e `contentLanguage` de cada caso, com os pares
   `pt-BR→pt-BR`, `en-GB→en-GB`, `pt-BR→en-GB` e `en-GB→pt-BR` cobertos;
+- `SupportedQueryLanguage` fechado e `DocumentContentLanguage` BCP 47 exato;
+  cada tag documental adicional gera estrato próprio para `pt-BR` e `en-GB`,
+  sem coerção ou fusão silenciosa;
+- identidade do render manifest e das páginas citadas quando evidência visual
+  integrar a candidata;
 - providers, modelos, prompts e parâmetros;
 - versão do índice;
 - rubrica e thresholds;
@@ -230,6 +240,9 @@ Medidas candidatas:
 - precisão de citações;
 - correspondência exata entre idioma da resposta e da pergunta;
 - preservação do idioma original do texto derivado da fonte nas citações;
+- métricas por tag documental exata; `en` nunca integra o denominador `en-GB`;
+- integridade/rights do binding página-citação, serving bounded e equivalente
+  textual acessível quando a capacidade visual estiver implementada;
 - groundedness;
 - taxa de respostas indevidas em casos sem evidência;
 - latência e custo;

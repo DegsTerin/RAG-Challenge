@@ -14,6 +14,11 @@ in the explicit ADR acceptance. That acceptance settles the architecture risk
 boundary only: runtime controls, account facts, egress authority and test
 evidence remain unverified or absent as stated below.
 
+Accepted ADR-0008 and ADR-0009 refine this model with persistent PDF page-image
+evidence and distinct query/document-language domains. The refinements are
+architectural only: no renderer, PNG, v2 contract or broader-language runtime
+support is implemented by this document, and OpenAPI v1 remains unchanged.
+
 ## Scope
 
 Included:
@@ -43,7 +48,7 @@ Excluded until a later decision:
 |---|---|
 | Repository and build inputs | Integrity, reproducibility and no secrets. |
 | Database catalogue, PDF/CSV documents and official snapshots | Authorised provenance, integrity, bounded disclosure and retention. |
-| Content objects and backups | Immutability, confidentiality matching source, availability and verified recovery. |
+| Source/page-image content objects, render manifests and backups | Immutability, confidentiality matching source, binding integrity, availability and verified recovery. |
 | Catalogue and activation history | Atomic integrity, traceability and rollback availability. |
 | Vectors and chunks | Catalogue/generation isolation and source-equivalent protection. |
 | Provider credentials | Confidentiality, least privilege and revocability. |
@@ -62,7 +67,8 @@ Untrusted browser
   -> Application policy
      -> SQLite control plane
      -> local exact vector adapter
-     -> immutable content store
+     -> immutable source/page-image content store
+     -> bounded PDF renderer (planned)
      -> external AI adapter (separate egress)
 
 Local authorised operator
@@ -82,6 +88,8 @@ output and local file content remain untrusted after crossing their boundary.
 ## Assumptions requiring validation
 
 - Every active database has at least one active authorised PDF/CSV document.
+- Every visually active PDF has explicit rendering/derivative/display rights
+  and one complete verified render manifest.
 - Each candidate official URL is anonymous, stable and legally usable.
 - The external AI provider's current terms permit the approved data classes.
 - The chosen OCI shape and volume meet durability and performance needs.
@@ -132,6 +140,9 @@ change rather than weakening a control.
 | `THR-S02-034` | Deactivation/removal or a withdrawal observation leaves stale vectors queryable, or cleanup removes historical bytes prematurely. | False answers or irrecoverable audit/rollback. | New generation for catalogue membership/lifecycle changes; new activation record for observation-only withdrawal; eligible-binding hard filter; last-document invariant, tombstone, reachability/retention and adversarial query. | S03/S04/S07. | Open. |
 | `THR-S02-035` | Unbounded catalogue additions exhaust storage, queue, parser or provider budget. | Denial of service or unexpected cost. | Per-operation limits, quotas/budget circuit, capacity gate and activation refusal without truncation. | S03/S04/S07/S08. | Open. |
 | `THR-S02-036` | Database/document activation races produce an active database without active evidence. | Broken invariant and misleading availability. | One lease/transaction, expected revision, complete binding validation and crash matrix. | S03/S04/S07. | Open. |
+| `THR-S02-037` | A malformed or hostile PDF exploits or exhausts the renderer, or produces a partial/oversized page set. | Code execution, denial of service or incomplete visual evidence. | Isolated bounded renderer; fixed profile; page/time/memory/dimension/concurrency limits; complete consecutive manifest; PNG/hash/readback validation; no partial activation. | Future implementation; S07 evidence. | Open; architecture mitigated. |
+| `THR-S02-038` | A page image is served for the wrong document version, page, generation or lifecycle state, or a model-controlled value selects an image/path. | False citation, cross-document disclosure, path exposure or XSS/content confusion. | Server-built citation binding; active generation/document/render-manifest revalidation; same-origin opaque content ID; bounded PNG-only response; no path/URL from model; `nosniff`; immutable ETag; deactivated/removed denial. | Future implementation; S07 evidence. | Open; architecture mitigated. |
+| `THR-S02-039` | Language metadata is coerced (`en` to `en-GB`), used as resource/provider authority or silently merged in evaluation. | Misleading provenance/support claim, unsafe resource selection or false homologation. | Strict bounded BCP 47 parser; exact source-declared tag retention; separate closed query enum; no tag-driven path/provider; exact evaluation strata and v1 regression. | Future implementation; S07 evidence. | Open; architecture mitigated. |
 
 ## Abuse cases
 
@@ -153,10 +164,24 @@ insufficient evidence; no source fetch or authority change.
   payloads or malicious multiline quoting.
 - Instruction text imitating system messages.
 - Hidden/overlaid text and misleading page order.
+- Renderer bombs, malformed page trees, extreme dimensions and metadata that
+  attempts to disclose a local path or host.
 - Content that cites an unauthorised external URL.
 
 Expected result: parser/policy failure or untrusted bounded evidence; no active
 content execution and no policy change.
+
+### Visual-evidence abuse
+
+- Guessing an image content ID, replaying a citation from another generation or
+  requesting a page from a deactivated/removed document.
+- Returning a mismatched PNG, incomplete manifest, duplicate/missing page or
+  image whose dimensions/hash differ from the manifest.
+- Supplying a model-generated path, external URL or language tag as the image
+  selector.
+
+Expected result: bounded denial with no path disclosure or bytes served; active
+textual evidence and lifecycle authority remain unchanged.
 
 ### Network abuse
 
@@ -193,6 +218,9 @@ succeeds; a deterministic status allows safe operator recovery.
 | `SEC-DATA-01` | Content-store traversal, overwrite, symlink/reparse and deletion refusal, including reachability from retained generations and observation history. |
 | `SEC-ACT-01` | Canonical `sourceBindingSetDigest`/`activationBindingSetDigest` vectors; observation registration/snapshot mismatch; exact `304` field transition; idempotent retry; new-record rollback; crash/concurrency around observation append, manifest, digest, audit and activation writes. |
 | `SEC-CAT-01` | Exact 51/54/9 seed, many-to-many uniqueness, lifecycle, tombstone and last-active-document invariant. |
+| `SEC-IMG-01` | Renderer isolation and limits; complete `pdf-page-png-v1` page set; canonical manifest, PNG signature/hash/dimensions and verified reopen; no partial activation. |
+| `SEC-IMG-02` | Citation-to-image binding, active generation/lifecycle revalidation, guessed/cross-generation IDs, same-origin PNG-only serving, ETag, `nosniff`, cache and accessible text equivalent. |
+| `SEC-LANG-01` | Bounded canonical BCP 47 validation, exact `sourceDeclaredLanguage`, no `en` to `en-GB` coercion, no tag-driven resource/provider selection and separate evaluation strata. |
 | `SEC-COV-01` | Unified retrieval, observation-only withdrawal/`304` eligibility, per-source degradation, explicit coverage and no silent provenance substitution. |
 | `SEC-API-01` | Payload bounds, exact `questionLanguage` enum, unknown fields, CORS, rate, cancellation and sanitised errors. |
 | `SEC-UI-01` | XSS through question, evidence, answer, citation and Problem Details; localisation completeness in `pt-BR` and `en-GB`; independence between interface and query languages; and contrast, focus and state visibility in `Light` and `Dark`. |

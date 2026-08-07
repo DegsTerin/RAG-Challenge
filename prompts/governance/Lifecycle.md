@@ -263,6 +263,10 @@ Entregáveis:
 - dataset e relatório de avaliação;
 - matriz de idioma pergunta/evidência para `pt-BR` e `en-GB`, nos pares iguais
   e nas duas direções cruzadas;
+- estratos adicionais por tag BCP 47 documental exata, sem inferir `en` como
+  `en-GB` ou fundir resultados;
+- quando implementada e elegível, evidência de direitos, render manifest,
+  serving e acessibilidade dos PNGs de páginas citadas;
 - testes negativos e prompt injection;
 - SSRF, DNS rebinding, resposta DNS mista, pinning IP/Host/SNI, redirect, URL,
   media type, tamanho, freshness e source leakage;
@@ -277,11 +281,41 @@ Aceite:
 - thresholds previamente aprovados são atendidos;
 - respostas usam o idioma declarado da pergunta e textos de citação mantêm o
   idioma original em todos os quatro pares da matriz;
+- cada idioma documental adicional é reportado separadamente para as duas
+  linguagens de pergunta suportadas, sem substituir os quatro pares
+  obrigatórios;
+- evidência visual, quando fizer parte da candidata, deriva somente de citação
+  validada, mantém alternativa textual acessível e falha fechada diante de
+  manifesto, binding, rights ou lifecycle incompatível;
 - limitações e custos são explícitos;
 - nenhuma vulnerabilidade bloqueadora;
 - fonte oficial real é testada somente quando egress específico foi autorizado;
 - afirmações públicas correspondem à matriz testada;
 - Human Gate repete amostras críticas.
+
+## Refinamentos arquiteturais aceitos durante STATE-07
+
+Os ADRs 0008 e 0009 foram aceitos depois do encerramento dos estados donos das
+implementações originais. A reconciliação documental não reabre nem reescreve
+evidência histórica e não declara essas capacidades implementadas. Antes de
+qualquer claim dependente, uma autoridade corretiva separada deve entregar e
+verificar, na ordem de dependência:
+
+1. modelo lógico e físico compatível para `DocumentContentLanguage`,
+   `sourceDeclaredLanguage`, `DocumentPageImage`, `DocumentRenderManifest` e
+   reachability, sem alterar dados ou schema por inferência;
+2. content store permanente para fonte/PNG, renderização determinística,
+   direitos, ativação atômica e o contrato v2 planejado, preservando v1;
+3. apresentação same-origin segura e acessível de evidência visual;
+4. integração, restart, backup/restore e limites; e
+5. dataset/homologação estratificados por idioma documental exato e pela
+   capacidade visual realmente implementada.
+
+Essas responsabilidades correspondem respectivamente aos owners técnicos de
+`STATE-03` a `STATE-07`, mas não promovem, retrocedem ou encerram estado por si
+sós. `STATE-07` permanece ativo; enquanto implementação/evidência faltarem, o
+OpenAPI v1 e o runtime atual conservam a superfície fechada `pt-BR|en-GB`, e o
+v2 permanece planejado e não implementado.
 
 ## STATE-08 PRODUCTION_RELEASE
 

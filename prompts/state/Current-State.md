@@ -1,6 +1,6 @@
 # Estado Atual
 
-Este documento é o snapshot factual vigente do workspace em 2026-08-06. Ele
+Este documento é o snapshot factual vigente do workspace em 2026-08-07. Ele
 não concede autoridade. Evolução e decisões no contexto original pertencem ao
 [`State-Transition-Log.md`](State-Transition-Log.md) e aos relatórios
 proprietários.
@@ -542,10 +542,22 @@ proprietários.
   `en-GB`; `DocumentContentLanguage` é um domínio BCP 47 distinto; o `en`
   declarado pelo PDF PostgreSQL não é inferido como `en-GB`; citações
   preservam o idioma original; e OpenAPI v1 permanece inalterada. A aceitação
-  remove somente o bloqueio decisório. A reconciliação semântica da ADR-0008
-  permanece não executada e depende de autoridade posterior e separada;
-  contratos, corpus normativo, dataset e runtime permanecem inalterados, e a
-  implementação continua não autorizada.
+  removeu somente o bloqueio decisório. Naquele registro, a reconciliação
+  semântica da ADR-0008 ainda não havia sido executada; contratos, corpus
+  normativo, dataset e runtime permaneceram inalterados, e a implementação
+  continuou não autorizada.
+- Reconciliação semântica conjunta de ADR-0008/0009: autorizada pelo
+  proprietário em 2026-08-07 sobre
+  `main@3d15ad4f2726f715c8dcf880491927ad0ff37b2f`, corpus `4.9.4` e working
+  tree limpa. O corpus `4.9.5` alinha os 18 documentos canônicos confirmados
+  confirmados para armazenamento permanente de fonte/PNG, content addressing,
+  render lifecycle e direitos; separa `SupportedQueryLanguage=pt-BR|en-GB` de
+  `DocumentContentLanguage` BCP 47; preserva `en`, citações no idioma original
+  e estratos exatos de avaliação. OpenAPI v1 foi preservada byte a byte; v2 é
+  somente contrato planejado e não implementado. O lote não alterou código,
+  testes, schema, migrations, dados, dataset, registro de elegibilidade,
+  dependências, lockfiles ou PDF; não gerou PNGs, indexou, ativou, executou
+  provider/browser/rede nem realizou ação externa.
 - Fechamento de `S04-A0`: `PdfPig` `0.1.15` e `CsvHelper` `33.1.0` foram
   selecionados condicionalmente para desenvolvimento local;
   `Sylvan.Data.Csv` `1.4.4` permanece fallback não selecionado e não
@@ -774,7 +786,9 @@ proprietários.
   sem alteração todas as decisões não relacionadas a nomenclatura do
   ADR-0001; ADR-0004, ADR-0005 e ADR-0006: `accepted` por decisões humanas
   explícitas e independentes em 2026-08-01; ADR-0007: `accepted` por decisão
-  humana explícita em 2026-08-02.
+  humana explícita em 2026-08-02; ADR-0008 e ADR-0009: `accepted` por decisões
+  humanas explícitas e independentes em 2026-08-07, com reconciliação semântica
+  conjunta aplicada no corpus `4.9.5` e implementação ainda não autorizada.
 
 ## Baseline documental
 
@@ -782,7 +796,7 @@ proprietários.
   a política de idioma acrescentou o 21º documento público por incremento
   versionado, e o ADR-0003 acrescentou o 22º.
 - A baseline aprovada no Human Gate de `STATE-00` permanece `3.4.0`.
-- O corpus de instruções vigente possui versão `4.9.4` e 13 arquivos em
+- O corpus de instruções vigente possui versão `4.9.5` e 13 arquivos em
   `prompts/`.
 - Visão, requisitos, arquitetura, RAG, segurança, qualidade, lifecycle,
   roadmap, backlog, estado, histórico e templates estão documentados.
@@ -1018,6 +1032,10 @@ proprietários.
 - Resposta grounded com citações e evidência insuficiente explícita.
 - Perguntas e respostas com idioma explícito `pt-BR` ou `en-GB`, resposta no
   idioma da pergunta e citações preservadas no idioma original da fonte.
+- Arquitetura aceita separa `SupportedQueryLanguage` fechado em `pt-BR` e
+  `en-GB` de `DocumentContentLanguage` BCP 47; preserva a declaração exata
+  `sourceDeclaredLanguage` e não converte `en` em `en-GB`. O runtime v1 ainda
+  conserva o modelo fechado implementado.
 - Interface com seleção explícita entre `pt-BR` e `en-GB`, independente do
   idioma da pergunta, da resposta e da evidência.
 - Interface com seleção explícita entre `Light` e `Dark`, independente dos
@@ -1027,8 +1045,14 @@ proprietários.
 - Conteúdo bruto imutável/reabrível, staging não consultável, manifesto final
   íntegro, digest generation-bound separado do digest completo de ativação e
   ativação/rollback por nova revisão do registro completo versionado.
+- Arquitetura aceita torna `IDocumentContentStore` a autoridade permanente para
+  fonte e PNGs content-addressed, exige render manifest PDF completo, direitos
+  específicos e serving visual vinculado à citação. Essa capacidade não está
+  implementada; nenhum PNG existe sob esta reconciliação.
 - Contrato HTTP/OpenAPI v1 versionado pertencente ao RAG-Challenge; adapters
   consumidores permanecem fora deste repositório.
+- Contrato v2 com BCP 47 documental e evidência visual permanece somente
+  planejado e não implementado; OpenAPI v1 permanece inalterada.
 - Execução local e futuro deploy OCI.
 - GitHub Pages somente como frontend estático opcional.
 
@@ -1067,10 +1091,13 @@ autorizada.
 7. Verificar capacidade, entitlement, IAM, restore, custo e cobrança reais da
    tenancy OCI; as fontes públicas ainda divergem sobre a franquia gratuita.
 8. Materializar `rag-eval-catalogue-v1`, a rubrica e thresholds antes de cada
-   execução pontuada, preservando a matriz `pt-BR`/`en-GB` aceita.
-9. Reconciliar semanticamente a ADR-0008 com ADR-0002, ADR-0004, segurança,
-   módulo RAG, contratos canônicos, data dictionary, threat model, OpenAPI e
-   demais documentos normativos somente sob autoridade posterior e separada.
+   execução pontuada, preservando a matriz `pt-BR`/`en-GB` e acrescentando
+   estratos por tag documental exata sem contar `en` como `en-GB`.
+9. Obter autoridade separada antes de implementar os tipos, schema/migration,
+   content store permanente, renderer/manifests, lifecycle, serving visual e
+   contrato v2 reconciliados; a reconciliação documental não autoriza nenhuma
+   dessas mudanças.
+
 ## Próxima autoridade
 
 `STATE-04 BACKEND_IMPLEMENTATION` está encerrado após Automatic Quality Gate
@@ -1367,3 +1394,11 @@ tree limpa, o proprietário determinou a correção permanente do handoff para
 sempre informar exatamente uma próxima ação concreta. O corpus `4.9.4`
 registra essa regra em AGENTS, Governance e Templates, preservando o limite
 temático e a ausência de autoridade para `S07-A` ou qualquer execução.
+
+Em 2026-08-07, sobre
+`main@3d15ad4f2726f715c8dcf880491927ad0ff37b2f`, corpus `4.9.4` e working
+tree limpa, o proprietário autorizou exclusivamente a reconciliação semântica
+conjunta dos ADRs 0008/0009. O corpus `4.9.5` registra a arquitetura aceita nos
+18 arquivos confirmados, preserva OpenAPI v1 byte a byte e mantém implementação,
+dataset, conteúdo, renderização, indexação, ativação, execução e ação externa
+fora da autoridade.

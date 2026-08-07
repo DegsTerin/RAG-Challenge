@@ -20,6 +20,7 @@
 | Pergunta do usuário | Não confiável; potencialmente confidencial | Não persistir/logar integralmente por padrão. |
 | Trecho e resposta | Derivado do corpus | Limitar, citar e aplicar retenção. |
 | Bytes brutos e snapshots | Mesma classificação da origem | Content store durável, imutável, fora do Git e com retenção referencial. |
+| PNGs de páginas e render manifests | Derivado com a mesma classificação da origem | Content store durável, imutável, fora de Git/Git LFS; servir somente por binding ativo validado. |
 | Embedding/índice | Dado derivado | Proteger como o corpus de origem. |
 | API key/token | Secreto | Secret store; nunca logar ou persistir em claro. |
 | Telemetria | Interno sanitizado | Minimização e retenção. |
@@ -36,6 +37,7 @@ base, autorização e controles específicos.
 - Application ↔ embedding provider.
 - Application ↔ vector store.
 - Application ↔ document content store.
+- Application ↔ renderer PDF isolado e limitado (planejado; não implementado).
 - Application ↔ language model.
 - Aplicação ↔ catálogo/persistência.
 - Cada fonte oficial externa registrada ↔ sincronizador governado.
@@ -130,6 +132,33 @@ recuperação, nunca apenas depois da geração.
 - Atualizar dependências e responder a vulnerabilidades.
 
 Upload público permanece fora do MVP.
+
+## Renderização e evidência visual
+
+- PDF é entrada não confiável também para o renderer; limitar bytes, páginas,
+  tempo, memória, dimensões, concorrência e quantidade total por operação.
+- O perfil `pdf-page-png-v1` remove metadados capazes de revelar path, host ou
+  comando e produz somente PNG RGB opaco dentro dos limites aceitos.
+- Recalcular hash, validar assinatura PNG, dimensões, page count, numeração
+  consecutiva e manifesto canônico; reabrir fonte e todos os objetos antes de
+  finalizar a candidata.
+- `IDocumentContentStore` é a única autoridade binária de produto para fontes e
+  PNGs persistentes. Git, Git LFS, quarentena, catálogo e vector store não
+  provam durabilidade ou readback.
+- Uma imagem só pode ser servida quando uma citação validada referencia a mesma
+  versão documental, página, geração ativa e render manifest finalizado.
+  Documento `Deactivated` ou `Removed` nunca serve imagem.
+- O contrato planejado não embute bytes nem expõe path. Um futuro endpoint
+  same-origin, read-only, revalida o binding, limita o corpo, usa ETag imutável,
+  `X-Content-Type-Options: nosniff`, política de cache adequada e autorização
+  equivalente à evidência textual.
+- Evidência textual adjacente permanece acessível; PNG nunca é o único portador
+  de uma afirmação ou significado de navegação.
+- O LLM recebe somente texto. Enviar imagem ou derivado a provider exige
+  autoridade própria de egress, classificação, retenção, residência e custo.
+- Direito de ler, indexar ou citar não implica renderizar, criar/reter derivado,
+  exibir ou distribuir. Ambiguidade em qualquer direito aplicável bloqueia a
+  ativação visual.
 
 ## Políticas de egress
 
@@ -248,6 +277,8 @@ autorizados permanece bloqueado. A política é validada no ambiente alvo.
 - CORS restrito ao frontend autorizado.
 - TLS no ambiente público.
 - Problem Details sem stack trace ou dado sensível.
+- OpenAPI v1 e seus enums de idioma permanecem inalterados; nenhum valor BCP 47
+  adicional ou referência de imagem é aceito/emitido por coerção.
 - Liveness barato e independente de serviço externo.
 - Readiness sanitizado distingue núcleo, dependências de consulta e cobertura
   por fonte/documento. Item stale/indisponível degrada cobertura e não falha
@@ -261,6 +292,11 @@ autorizados permanece bloqueado. A política é validada no ambiente alvo.
 - Permitir apenas schemes de URL aprovados, sem links de citação executáveis
   derivados diretamente do modelo.
 - Aplicar Content Security Policy e codificação contextual.
+- Para a futura evidência visual, aceitar somente a referência same-origin
+  criada pelo servidor, com tamanho/mime conhecidos; nunca construir `src` a
+  partir de texto do modelo, tag de idioma, URL documental ou path.
+- Preservar o texto original da citação e alternativa acessível junto da página
+  exibida; não traduzir conteúdo derivado da fonte.
 - Testar XSS armazenado/refletido em documento, pergunta, resposta, erro e
   metadados de citação.
 
@@ -274,12 +310,15 @@ Pode registrar:
 - provider/model version;
 - duração, contagem, status e código de erro;
 - hash ou tamanho, nunca secret ou conteúdo integral.
+- tag BCP 47 canônica, render profile, contagem/dimensões e hashes de imagem,
+  sem bytes ou texto integral.
 
 Não registrar:
 
 - API keys, tokens ou headers de autorização;
 - prompts e respostas integrais por padrão;
 - texto completo do documento;
+- bytes de fonte ou imagem e metadados brutos do renderer;
 - caminhos absolutos com nome de usuário/host;
 - stack trace ou payload em resposta pública.
 
@@ -290,6 +329,8 @@ Eventos mínimos:
 - mudança de configuração sanitizada;
 - início, conclusão e falha de ingestão;
 - criação e ativação de geração;
+- import/reopen de conteúdo, finalização/rejeição de render manifest e serving
+  visual recusado por binding ou lifecycle;
 - troca atômica do `CorpusActivationRecord`, incluindo o conjunto de bindings;
 - rollback;
 - mudança de banco, categoria, documento, versão ou fonte;
@@ -329,12 +370,16 @@ trilha nominal.
 
 - Threat model e trust boundaries atualizados.
 - Licença/proveniência do corpus verificadas.
+- Direitos de retenção da fonte e, para PDF visual, rendering, criação/retenção
+  de derivados, display e distribuição pretendida verificados por documento.
 - Secret e dependency scans aprovados.
 - Arquivos e payloads limitados.
 - Prompt injection e citação falsa testadas.
 - Rate limit, timeout e cancelamento exercitados.
 - Logs sem dados sensíveis.
 - Rollback de geração verificado.
+- Conteúdo fonte/PNG, render manifest, reachability, backup/restore e serving
+  visual fail-closed verificados quando a capacidade for implementada.
 - `AI_PROVIDER_EGRESS` é local ou possui provider, classificação e endpoints
   explicitamente autorizados e testados.
 - `VECTOR_STORE_EGRESS` permanece vazio para adapter local ou possui endpoint,
@@ -348,4 +393,6 @@ trilha nominal.
   bloqueados, ausência de autenticação e egress de AIA/CRL/OCSP são testados
   com servidor controlado.
 - Saída do Dashboard é codificada/sanitizada e testada contra XSS.
+- Tags de idioma são BCP 47 limitadas, não selecionam recurso/provider e
+  preservam a declaração exata; `en` não é inferido como `en-GB`.
 - Permissões negativas testadas quando introduzidas.

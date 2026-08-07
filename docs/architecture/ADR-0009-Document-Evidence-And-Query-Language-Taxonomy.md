@@ -164,9 +164,9 @@ language values. A document whose governed `contentLanguage` is outside that
 contract cannot become active through the v1 query surface by inference or
 silent coercion.
 
-ADR-0009 and ADR-0008 are both accepted as architectural authority. If their
-semantics are later reconciled under separate authority, the planned v2
-contract should use:
+ADR-0009 and ADR-0008 are both accepted as architectural authority. Their
+separately authorised semantic reconciliation fixes the following planned v2
+direction without creating an implemented contract or OpenAPI artefact:
 
 ```text
 QueryRequestV2
@@ -307,3 +307,8 @@ provider, render page images or authorise an external action.
   evaluation and lifecycle preconditions are implemented and verified.
 - Any semantic reconciliation must cite this recorded owner decision and
   remains subject to separate authority.
+
+The separately authorised semantic reconciliation on 2026-08-07 applies this
+decision together with ADR-0008 across its named normative owners as prompt
+corpus `4.9.5`. It preserves OpenAPI v1 byte for byte and does not implement a
+type, schema, migration, endpoint, dataset or runtime behaviour.

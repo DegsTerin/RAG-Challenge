@@ -13,6 +13,14 @@ on 2026-08-01 against
 Acceptance records architecture authority but does not authorise
 implementation or prove runtime behaviour.
 
+The owner later accepted ADR-0008 and ADR-0009 on 2026-08-07. Prompt corpus
+`4.9.5` applies their separately authorised semantic reconciliation: durable
+content-addressed source/page-image storage, deterministic PDF render
+manifests, expanded rights gates, separate closed query and open BCP 47
+document-language domains, original-language citations and stratified
+evaluation. This is architecture documentation only; OpenAPI v1 remains
+byte-for-byte unchanged and v2 remains planned and unimplemented.
+
 The later combined audit failed on `AQG-S02-001`, an internal contradiction
 between observation-inclusive generation identity and observation-only
 freshness rebinding. The owner accepted ADR-0007 explicitly on 2026-08-02. It
@@ -115,8 +123,12 @@ Dashboard -- versioned HTTP --> API
   and generation IDs. Accepted ADR-0007 separates the generation-bound source
   digest from the activation-record digest that also covers observation
   identity; the accepted semantic documents are reconciled in corpus `4.9.1`.
-- Raw document and snapshot bytes remain content-addressed and reopenable;
-  vector data is derivative, not the source of truth.
+- Authorised source bytes and persistent page-image bytes remain
+  content-addressed and reopenable in the document content store; Git, Git LFS,
+  intake quarantine and vector data are not the product source of truth.
+- A visually active PDF requires the complete deterministic render manifest,
+  every verified page-image object and applicable derivative/display rights;
+  CSV has no implicit page-image evidence.
 - Document, provider and index incompatibility fail closed.
 - External failures are isolated and returned as typed outcomes.
 - Unknown or insufficient evidence never maps to a confident answer.
@@ -128,8 +140,10 @@ Dashboard -- versioned HTTP --> API
   a silent fallback.
 - Official freshness is validated per source before retrieval; query-time never
   accesses the web.
-- Query contracts use explicit `pt-BR`/`en-GB` language tags; answer language
-  matches the question and citation content remains in its source language.
+- Query contracts use the closed explicit `pt-BR`/`en-GB` language tags;
+  document/evidence content uses a distinct canonical BCP 47 domain. Answer
+  language matches the question, publisher `en` is not inferred as `en-GB`,
+  and source-derived citation content remains in its original language.
 
 ## Deployment shapes
 
@@ -165,11 +179,11 @@ Dashboard -- versioned HTTP --> API
   (`accepted`; corrective semantic reconciliation applied and renewed audit
   approved)
 - [ADR-0008 — Product Corpus Storage and Page-Image Evidence](ADR-0008-Product-Corpus-Storage-And-Page-Image-Evidence.md)
-  (`accepted`; separately authorised semantic reconciliation and implementation
-  remain required)
+  (`accepted`; semantic reconciliation applied in corpus `4.9.5`;
+  implementation remains separately authorised)
 - [ADR-0009 — Document, Evidence and Query Language Taxonomy](ADR-0009-Document-Evidence-And-Query-Language-Taxonomy.md)
-  (`accepted`; semantic reconciliation and implementation remain separately
-  authorised)
+  (`accepted`; semantic reconciliation applied in corpus `4.9.5`;
+  implementation remains separately authorised)
 
 ## STATE-02 design artefacts
 
@@ -225,3 +239,11 @@ as architectural authority. The decision separates document and evidence
 language tags from query and answer languages, rejects implicit `en` to
 `en-GB` mapping and keeps OpenAPI v1 unchanged. Acceptance does not reconcile
 other normative documents or authorise implementation.
+
+On 2026-08-07, the owner then authorised the bounded joint semantic
+reconciliation on clean
+`main@3d15ad4f2726f715c8dcf880491927ad0ff37b2f`, corpus `4.9.4`. The resulting
+corpus `4.9.5` updates only the named normative owners and factual records. It
+does not change code, tests, data, schema, migrations, dependencies, lockfiles,
+the eligibility register, the dataset or the OpenAPI v1 bytes; it does not
+import, render, index, activate, evaluate or perform an external action.
