@@ -14,13 +14,131 @@ using RagChallenge.Domain.IndexingRetrieval;
 namespace RagChallenge.Infrastructure.Persistence;
 
 public sealed class SqliteControlPlaneStore(SqliteStoreOptions options)
-    : IControlPlaneStore
+    : IControlPlaneStore, IDocumentRenderManifestStore
 {
     public static readonly TimeSpan MinimumPreviousGenerationRetention =
         TimeSpan.FromDays(14);
 
     private readonly SqliteStoreOptions options =
         options ?? throw new ArgumentNullException(nameof(options));
+
+    public async Task<RenderManifestCommitResult> CommitAsync(
+        RenderManifestCommitRequest request,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(request);
+        ArgumentNullException.ThrowIfNull(request.CorpusId);
+        ArgumentNullException.ThrowIfNull(request.Manifest);
+
+        await using var context = options.CreateControlContext();
+        await using var transaction = await BeginImmediateAsync(
+            context,
+            cancellationToken).ConfigureAwait(false);
+        var manifest = request.Manifest;
+        var existing = await context.DocumentRenderManifests.AsNoTracking()
+            .FirstOrDefaultAsync(
+                row => row.CorpusId == request.CorpusId.Value &&
+                    row.DocumentId == manifest.DocumentId.Value &&
+                    row.DocumentVersion == manifest.DocumentVersion.Value &&
+                    row.SourceContentSha256 == manifest.SourceContentObjectId.Value &&
+                    row.RenderProfileId == manifest.RenderProfileId.Value &&
+                    row.RendererDescriptor == manifest.RendererDescriptor.Value,
+                cancellationToken).ConfigureAwait(false);
+
+        if (existing is not null)
+        {
+            var persisted = await ReadRenderManifestAsync(
+                context,
+                existing,
+                cancellationToken).ConfigureAwait(false);
+            await transaction.CommitAsync(cancellationToken).ConfigureAwait(false);
+            return new RenderManifestCommitResult(
+                persisted.RenderManifestId == manifest.RenderManifestId &&
+                    persisted.ManifestSha256 == manifest.ManifestSha256
+                    ? StoreMutationOutcome.AlreadyApplied
+                    : StoreMutationOutcome.RevisionConflict,
+                persisted);
+        }
+
+        var sourceExists = await context.DocumentVersions.AsNoTracking().AnyAsync(
+            row => row.CorpusId == request.CorpusId.Value &&
+                row.DocumentId == manifest.DocumentId.Value &&
+                row.DocumentVersion == manifest.DocumentVersion.Value &&
+                row.ContentSha256 == manifest.SourceContentObjectId.Value &&
+                row.DocumentFormat == DocumentFormat.Pdf.ToString(),
+            cancellationToken).ConfigureAwait(false);
+
+        if (!sourceExists)
+        {
+            await transaction.CommitAsync(cancellationToken).ConfigureAwait(false);
+            return new RenderManifestCommitResult(StoreMutationOutcome.NotFound, null);
+        }
+
+        foreach (var page in manifest.OrderedPageImages)
+        {
+            await AddOrValidateContentObjectAsync(
+                context,
+                page.ImageContentObjectId.Value,
+                page.ByteLength,
+                manifest.GeneratedAt,
+                cancellationToken).ConfigureAwait(false);
+        }
+
+        context.DocumentRenderManifests.Add(new DocumentRenderManifestRow
+        {
+            RenderManifestId = manifest.RenderManifestId.Value,
+            ManifestSha256 = manifest.ManifestSha256.Value,
+            SchemaVersion = manifest.SchemaVersion,
+            CorpusId = request.CorpusId.Value,
+            DocumentId = manifest.DocumentId.Value,
+            DocumentVersion = manifest.DocumentVersion.Value,
+            SourceContentSha256 = manifest.SourceContentObjectId.Value,
+            SourcePageCount = manifest.SourcePageCount,
+            RenderProfileId = manifest.RenderProfileId.Value,
+            RendererDescriptor = manifest.RendererDescriptor.Value,
+            GeneratedAtUtc = ControlPlaneMapping.FormatUtc(manifest.GeneratedAt),
+        });
+        context.DocumentPageImages.AddRange(manifest.OrderedPageImages.Select(page =>
+            new DocumentPageImageRow
+            {
+                RenderManifestId = manifest.RenderManifestId.Value,
+                PageNumber = page.PageNumber,
+                CorpusId = request.CorpusId.Value,
+                DocumentId = page.DocumentId.Value,
+                DocumentVersion = page.DocumentVersion.Value,
+                SourceContentSha256 = page.SourceContentObjectId.Value,
+                RenderProfileId = page.RenderProfileId.Value,
+                RendererDescriptor = page.RendererDescriptor.Value,
+                ImageContentSha256 = page.ImageContentObjectId.Value,
+                ImageSha256 = page.ImageSha256.Value,
+                ByteLength = page.ByteLength,
+                MediaType = page.MediaType,
+                WidthPixels = page.WidthPixels,
+                HeightPixels = page.HeightPixels,
+            }));
+        await context.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
+        await transaction.CommitAsync(cancellationToken).ConfigureAwait(false);
+        return new RenderManifestCommitResult(StoreMutationOutcome.Applied, manifest);
+    }
+
+    public async Task<DocumentRenderManifest?> ReadAsync(
+        CorpusId corpusId,
+        RenderManifestId renderManifestId,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(corpusId);
+        ArgumentNullException.ThrowIfNull(renderManifestId);
+        await using var context = options.CreateControlContext();
+        var row = await context.DocumentRenderManifests.AsNoTracking()
+            .SingleOrDefaultAsync(
+                item => item.CorpusId == corpusId.Value &&
+                    item.RenderManifestId == renderManifestId.Value,
+                cancellationToken).ConfigureAwait(false);
+        return row is null
+            ? null
+            : await ReadRenderManifestAsync(context, row, cancellationToken)
+                .ConfigureAwait(false);
+    }
 
     public async Task<StoreMutationResult> CommitCatalogueAsync(
         CatalogueCommitRequest request,
@@ -1680,6 +1798,59 @@ public sealed class SqliteControlPlaneStore(SqliteStoreOptions options)
                     ProductRevision = document.DatabaseProductRevision.Value,
                     Status = document.Status.ToString(),
                 }));
+    }
+
+    private static async Task<DocumentRenderManifest> ReadRenderManifestAsync(
+        ControlPlaneDbContext context,
+        DocumentRenderManifestRow row,
+        CancellationToken cancellationToken)
+    {
+        if (row.SchemaVersion != DocumentRenderManifest.CurrentSchemaVersion)
+        {
+            throw new InvalidDataException(
+                "A persisted render manifest uses an unsupported schema version.");
+        }
+
+        var pages = await context.DocumentPageImages.AsNoTracking()
+            .Where(item => item.RenderManifestId == row.RenderManifestId)
+            .OrderBy(item => item.PageNumber)
+            .ToArrayAsync(cancellationToken).ConfigureAwait(false);
+        var documentId = new DocumentId(row.DocumentId);
+        var documentVersion = new DocumentVersionNumber(row.DocumentVersion);
+        var sourceContentObjectId = new ContentObjectId(row.SourceContentSha256);
+        var profile = new RenderProfileId(row.RenderProfileId);
+        var renderer = new RendererDescriptor(row.RendererDescriptor);
+        var pageImages = pages.Select(page => new DocumentPageImage(
+            documentId,
+            documentVersion,
+            sourceContentObjectId,
+            page.PageNumber,
+            profile,
+            renderer,
+            new ContentObjectId(page.ImageContentSha256),
+            new ImageSha256(page.ImageSha256),
+            page.ByteLength,
+            page.MediaType,
+            page.WidthPixels,
+            page.HeightPixels));
+        var manifest = DocumentRenderManifest.Rehydrate(
+            documentId,
+            documentVersion,
+            sourceContentObjectId,
+            row.SourcePageCount,
+            profile,
+            renderer,
+            pageImages,
+            new ManifestSha256(row.ManifestSha256),
+            ControlPlaneMapping.ParseUtc(row.GeneratedAtUtc));
+
+        if (manifest.RenderManifestId.Value != row.RenderManifestId)
+        {
+            throw new InvalidDataException(
+                "A persisted render-manifest identifier does not match its canonical digest.");
+        }
+
+        return manifest;
     }
 
     private static async Task AddOrValidateContentObjectAsync(

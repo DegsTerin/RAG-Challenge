@@ -66,6 +66,8 @@ public sealed class ProjectBoundaryTests
             "Microsoft.EntityFrameworkCore",
             "OpenAI",
             "Oracle",
+            "PDFtoImage",
+            "SkiaSharp",
         ];
 
         foreach (var assembly in coreAssemblies)

@@ -181,6 +181,26 @@ public interface IControlPlaneStore
         CancellationToken cancellationToken = default);
 }
 
+public sealed record RenderManifestCommitRequest(
+    CorpusId CorpusId,
+    DocumentRenderManifest Manifest);
+
+public sealed record RenderManifestCommitResult(
+    StoreMutationOutcome Outcome,
+    DocumentRenderManifest? CurrentManifest);
+
+public interface IDocumentRenderManifestStore
+{
+    Task<RenderManifestCommitResult> CommitAsync(
+        RenderManifestCommitRequest request,
+        CancellationToken cancellationToken = default);
+
+    Task<DocumentRenderManifest?> ReadAsync(
+        CorpusId corpusId,
+        RenderManifestId renderManifestId,
+        CancellationToken cancellationToken = default);
+}
+
 public sealed record ContentMediaType
 {
     private const int MaximumLength = 127;
