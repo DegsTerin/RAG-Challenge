@@ -579,3 +579,56 @@ snapshots are unchanged, and the full migration integration tests passed.
   `S04-CORR-03` passed their authorised corrective gates, and the complete
   restarted audit resolved every recorded `AUD-S04-*` finding. `STATE-04`
   remains closed and no later state is authorised.
+
+## S04-CORR-04-A outcome
+
+`S04-CORR-04-A` ran locally, offline and sequentially under
+`AUTH-S04-CORR-04-A-001` on 2026-08-07. The mandatory baseline was
+`main@ea7fc582f991bb9290e26a7e2d4e074abc46bf3c`, corpus `4.9.7` and a clean
+working tree. The directed runtime preflight found no RAG-Challenge-owned
+product process or listener on the known project ports, so nothing was
+stopped before implementation.
+
+Commit `26f2e154b736687693b31ab02ca59cfb8ba86655` implements only verified
+content-object descriptors:
+
+- Application now owns `IDocumentContentStore`, `BoundedContentInput`,
+  `ExpectedHashAndLength`, `ContentObjectDescriptor`, `VerifiedContentObject`
+  and the validated media-type, implementation and verification value types;
+- the filesystem implementation hashes a bounded stream while writing to
+  same-volume quarantine, flushes it, publishes by atomic move, verifies an
+  idempotently pre-existing object and always reopens and fully rehashes the
+  object before reporting success;
+- verified reopen checks the requested identity, expected SHA-256 and byte
+  length, recomputes the complete SHA-256 and returns the stream at position
+  zero;
+- ingestion accepts only media types compatible with PDF or CSV, parses only
+  the independently reopened stream and propagates the verified descriptor to
+  local and fake official-source consumers;
+- `IntegrationRuntime` and activation validation use the new port and exact
+  expected length; and
+- storage maintenance uses the same verified reopen where content is restored,
+  while `IStorageMaintenance`, `cleanup-plan-v1` and the existing reservation
+  and finalisation protocol remain unchanged as deletion authority.
+
+Focused verification passed three unit tests for the provider-neutral value
+contracts and 57 directly affected integration tests for content storage,
+ingestion, control-plane activation, restart, official-source and cleanup
+paths. The accepted `pwsh -NoProfile -File eng/ci.ps1 -Offline` run passed 109
+unit, 118 integration, 10 architecture and 38 Dashboard tests, with 93.76% line
+coverage (23,147/24,688), 67.15% branch coverage (2,752/4,098), a zero-warning
+Release build and a successful audit of 213 non-ignored files.
+
+One preliminary CI invocation was rejected as evidence because its command
+executor expired after approximately five seconds. The only surviving
+processes were the task-owned CI shell and its `dotnet format` child; both
+were identified by command line and stopped, no known project listener was
+open, and the complete accepted invocation above then passed.
+
+No package, lockfile, schema, migration, persisted render manifest, activation
+digest, endpoint or public v1 contract changed. `docs/api/openapi-v1.json`
+remained byte-identical at SHA-256
+`d6a686b94c926914beb28b437f464430a01de6560c2e2d476cf5c36025813e34`.
+No renderer or PNG was produced, no rights record or real source was touched,
+and no network, provider, dataset, indexing, activation, external action,
+Automatic Quality Gate, Human Gate or lifecycle transition occurred.

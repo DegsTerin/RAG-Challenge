@@ -2,10 +2,10 @@
 
 ## Versão atual
 
-- Versão: `4.9.7`
+- Versão: `4.9.8`
 - Data: 2026-08-07
-- Status: `STATE-07` ativo; próxima ação de dependência corrigida, sem
-  autoridade para o segundo refinamento, gate ou mudança de lifecycle
+- Status: `STATE-07` ativo; `S04-CORR-04-A` concluído, sem autoridade para
+  incremento posterior, gate ou mudança de lifecycle
 - Escopo: 13 arquivos ativos em `prompts/`
 
 A versão do corpus é independente da versão futura do software.
@@ -19,6 +19,26 @@ A versão do corpus é independente da versão futura do software.
 
 Toda alteração atualiza este arquivo e, quando necessário,
 [`../Start-Here.md`](../Start-Here.md).
+
+## 4.9.8 — 2026-08-07
+
+- Registra a implementação local, offline e sequencial de `S04-CORR-04-A` sob
+  `AUTH-S04-CORR-04-A-001` no commit
+  `26f2e154b736687693b31ab02ca59cfb8ba86655`.
+- Registra o port `IDocumentContentStore`, descritores verificados,
+  `PutAndVerifyAsync`, `OpenVerifiedAsync`, media type validado e migração dos
+  consumidores internos sem schema, migration, package ou lockfile.
+- Registra a preservação de `IStorageMaintenance`, `cleanup-plan-v1` e do
+  protocolo existente de reserva/finalização como única autoridade física de
+  cleanup.
+- Registra os checks focais e o CI offline integral com 237 testes .NET, 38 do
+  Dashboard, 93,76% de linhas e 67,15% de branches, além da preservação byte a
+  byte da OpenAPI v1.
+- Mantém renderer, PNG, direitos, render manifest persistido, ativação, v2,
+  dados reais, gates, lifecycle e ações externas fora da autoridade executada.
+- Atualiza Current State, histórico append-only, Data Dictionary, relatório
+  de `STATE-04` e este changelog. A mudança é `PATCH`, factual, sem alterar a
+  autoridade ou a ordem de dependência dos refinamentos restantes.
 
 ## 4.9.7 — 2026-08-07
 

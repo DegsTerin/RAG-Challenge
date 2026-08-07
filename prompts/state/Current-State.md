@@ -583,6 +583,28 @@ proprietários.
   vazias; não houve renderer, PNG, import, alteração do candidato PostgreSQL,
   dataset, ativação, serving, v2, dependência, lockfile, rede, ação externa,
   Automatic Quality Gate, Human Gate ou mudança de lifecycle.
+- Implementação corretiva `S04-CORR-04-A`: autorizada por
+  `AUTH-S04-CORR-04-A-001` em 2026-08-07 sobre
+  `main@ea7fc582f991bb9290e26a7e2d4e074abc46bf3c`, corpus `4.9.7` e working
+  tree limpa, com owner técnico de `STATE-04`. O runtime preflight dirigido
+  encontrou zero processo de produto e zero listener do RAG-Challenge; nada
+  foi encerrado antes da implementação. O commit
+  `26f2e154b736687693b31ab02ca59cfb8ba86655` substitui o resultado mínimo do
+  store por descritores tipados, implementa escrita bounded, idempotente,
+  atômica e verificada por reabertura, exige hash/comprimento na reabertura e
+  migra ingestão, composição e validação do control plane para o novo port.
+  `IStorageMaintenance`, `cleanup-plan-v1` e o protocolo de reserva/finalização
+  permanecem como única autoridade existente de exclusão física.
+- Verificação de `S04-CORR-04-A`: 3 testes unitários e 57 casos de integração
+  focais passaram; `eng/ci.ps1 -Offline` aprovou 109 testes unitários, 118 de
+  integração, 10 de arquitetura, 38 do Dashboard, cobertura de 93,76% de
+  linhas e 67,15% de branches e auditoria de 213 arquivos. OpenAPI v1
+  permaneceu byte a byte no SHA-256
+  `d6a686b94c926914beb28b437f464430a01de6560c2e2d476cf5c36025813e34`.
+  Packages, lockfiles, schema, migrations, renderer, PNG, direitos, manifestos
+  persistidos, digests de ativação, v2, dados reais e ações externas não foram
+  alterados. O corpus `4.9.8` registra somente esse fato; `STATE-07` permanece
+  ativo, sem gate ou transição, e nenhum incremento posterior foi iniciado.
 - Fechamento de `S04-A0`: `PdfPig` `0.1.15` e `CsvHelper` `33.1.0` foram
   selecionados condicionalmente para desenvolvimento local;
   `Sylvan.Data.Csv` `1.4.4` permanece fallback não selecionado e não

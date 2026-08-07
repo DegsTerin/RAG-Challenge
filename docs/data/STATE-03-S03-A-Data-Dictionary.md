@@ -110,8 +110,8 @@ model contains no branch for any named database product.
 | `sourceDeclaredLanguage` | `SourceDeclaredLanguage` | Yes | Exact observed declaration; absent values remain null and no region is inferred. |
 | `status` | `CatalogueItemStatus` | No | Independent from the product lifecycle. |
 | `contentObjectId` | `ContentObjectId` | No | SHA-256 content-addressed identity for immutable, reopenable bytes. |
-| `byteLength` | Positive integer | No | Greater than zero and verified with reopened content by a future store. |
-| `mediaType` | String | No | Non-blank validated media type. |
+| `byteLength` | Positive integer | No | Greater than zero and verified against reopened content before store success. |
+| `mediaType` | `ContentMediaType` | No | Canonical bounded ASCII type/subtype without parameters; document ingestion additionally requires a value compatible with `format`. |
 | `sourceAdapterId` | `SourceAdapterId` | No | Stable adapter identity, never a dynamic plug-in reference. |
 | `sourceTrustClass` | `SourceTrustClass` | No | Preserved into generation and citation provenance. |
 | `officialSourceRegistrationId` | `OfficialSourceRegistrationId` | Yes | Forbidden for local content; required for official content. |
@@ -179,6 +179,34 @@ implemented. The Control model has empty durable tables for exact manifest,
 source-version and page-image bindings. The renderer, content publication,
 PNG signature/hash recalculation and verified reopen remain outside
 `S03-CORR-01`.
+
+### `S04-CORR-04-A` executable content-object boundary
+
+`S04-CORR-04-A` implements the provider-neutral `IDocumentContentStore`
+boundary without adding a database field or changing cleanup authority:
+
+- `PutAndVerifyAsync(BoundedContentInput)` requires a positive caller limit,
+  accepts an optional expected SHA-256 identity, writes to same-volume
+  quarantine, hashes while writing, flushes, publishes by atomic move, treats
+  an identical existing object idempotently and reopens the published object
+  before returning success;
+- `OpenVerifiedAsync(ContentObjectId, ExpectedHashAndLength)` requires the
+  expected SHA-256 and byte length, recomputes the entire object, rejects an
+  identity or length mismatch and returns a readable seekable stream at
+  position zero;
+- `ContentObjectDescriptor` returns the content identity, equal SHA-256,
+  verified byte length, validated media type, stable non-secret
+  `filesystem-sha256-v1` implementation identifier, write outcome and explicit
+  write/reopen verification outcomes; and
+- the descriptor and its operation evidence are not new catalogue or Control
+  persistence. Existing document and official-snapshot records continue to
+  persist their governed identity, length and media type only.
+
+The executable store accepts the typed `image/png` media value, but this
+increment creates no renderer, PNG bytes, signature validation or render
+manifest persistence. `IStorageMaintenance`, the versioned cleanup plan and
+reservation/finalisation protocol remain the sole existing physical-deletion
+authority and retain their prior semantics.
 
 ### `CatalogueSnapshot`
 

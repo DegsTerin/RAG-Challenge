@@ -5251,3 +5251,52 @@ contém somente fatos cronológicos.
 - Runtime preflight: `NÃO APLICÁVEL`; a correção é exclusivamente documental.
 - Estado resultante: `STATE-07 TESTING_HOMOLOGATION` permanece ativo;
   `S03-CORR-01` continua concluído e nenhum incremento posterior foi iniciado.
+
+## 2026-08-07 — S04-CORR-04-A verified content-object descriptors
+
+- Baseline: branch `main`, commit
+  `ea7fc582f991bb9290e26a7e2d4e074abc46bf3c`, corpus `4.9.7` e working tree
+  limpa, confirmados antes da primeira alteração. OpenAPI v1 correspondia ao
+  SHA-256
+  `d6a686b94c926914beb28b437f464430a01de6560c2e2d476cf5c36025813e34`.
+- Autoridade: `AUTH-S04-CORR-04-A-001`, exclusivamente para a implementação
+  local, offline e sequencial de verified content-object descriptors, com
+  owner técnico corretivo de `STATE-04` e sem gate ou avanço de lifecycle.
+- Runtime preflight: a inspeção dirigida encontrou zero processo de produto e
+  zero listener comprovadamente pertencente ao RAG-Challenge; nada foi
+  encerrado antes da implementação.
+- Implementação: commit
+  `26f2e154b736687693b31ab02ca59cfb8ba86655`; introduz o port executável
+  `IDocumentContentStore`, descritores tipados com identidade/hash/tamanho/media
+  type/implementação/verificações, escrita bounded e idempotente com publicação
+  atômica e reabertura, e leitura com recomputação integral, comprimento exato
+  e stream reposicionado.
+- Integração: ingestão local e oficial falsa, `IntegrationRuntime` e validação
+  do control plane usam o novo contrato. `IStorageMaintenance`, o plano
+  `cleanup-plan-v1` e o protocolo de reserva/finalização permanecem inalterados
+  como única autoridade existente de exclusão física.
+- Verificações focais: 3 testes unitários e 57 casos de integração passaram,
+  cobrindo media type, descritor, limites, hash, comprimento, identidade
+  esperada, deduplicação, tamper, reabertura, ingestão e cleanup.
+- Verificação integral: `pwsh -NoProfile -File eng/ci.ps1 -Offline` passou 109
+  testes unitários, 118 de integração, 10 de arquitetura e 38 do Dashboard;
+  cobertura de 93,76% de linhas e 67,15% de branches; build Release sem aviso;
+  auditoria de 213 arquivos aprovada. Uma invocação preliminar expirada pelo
+  executor foi rejeitada como evidência; somente seu shell e filho
+  `dotnet format`, comprovadamente da tarefa, foram encerrados antes da
+  repetição integral aceita.
+- Compatibilidade: nenhum package, lockfile, schema, migration, endpoint ou
+  contrato público v1 mudou. OpenAPI v1 permaneceu byte a byte no SHA-256
+  `d6a686b94c926914beb28b437f464430a01de6560c2e2d476cf5c36025813e34`.
+- Escopo negativo observado: sem renderer, PNG, registro de direitos, render
+  manifest persistido, digest de ativação, v2, fonte/dado real, rede, provider,
+  ação externa, Automatic Quality Gate, Human Gate ou mudança de lifecycle.
+- Corpus: `4.9.8` (`PATCH`), exclusivamente para reconciliar os registros
+  factuais com a implementação e a evidência observada.
+- Estado resultante: `STATE-07 TESTING_HOMOLOGATION` permanece ativo;
+  `S04-CORR-04-A` está concluído somente na fronteira local, offline, sintética
+  e estática descrita. Nenhum incremento posterior de `S04-CORR-04` foi
+  iniciado.
+- Próxima condição: autoridade humana explícita e separada para o primeiro
+  incremento ainda não executado do envelope `S04-CORR-04`, preservando o
+  escopo negativo e a ordem de dependência vigente.
