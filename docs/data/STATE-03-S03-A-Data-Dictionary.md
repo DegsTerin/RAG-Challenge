@@ -3,22 +3,25 @@
 ## Status and authority
 
 This document records the provider-neutral logical model implemented by the
-authorised `S03-A` increment of `STATE-03 DATA_AND_INDEX_MODELING`. It is
-normatively constrained by the accepted architecture and canonical contracts;
-it does not authorise or describe a physical database schema.
+authorised `S03-A` increment of `STATE-03 DATA_AND_INDEX_MODELING` and its
+separately authorised `S03-CORR-01` corrective delta. It is normatively
+constrained by the accepted architecture and canonical contracts. Physical
+implementation facts are limited to the explicit mapping boundary below; this
+document does not grant schema or migration authority.
 
-Accepted ADR-0008 and ADR-0009 now define a planned successor delta for
-durable page-image evidence and separate query/document-language domains. The
-existing tables continue to describe the implemented S03-A model exactly. The
-delta is recorded separately below and is not a type, schema, migration or data
-change.
+Accepted ADR-0008 and ADR-0009 define the successor delta for durable
+page-image evidence and separate query/document-language domains.
+`S03-CORR-01` implements the domain types, runtime-v1 eligibility boundary,
+Control schema and migration, persisted vector-language compatibility and
+render-manifest reachability slice recorded below. It does not implement the
+content/rendering pipeline, real PNG validation or evidence serving.
 
 `S03-B` was blocked when this S03-A artefact was created, so this document
 contains no ORM mapping, DDL, migration, persistent store, lockfile change,
 dependency selection or package installation. The later S03-B implementation
 and evidence are recorded in Current State and their owning report; they did
-not rewrite this logical S03-A baseline. The ADR-0008/0009 successor delta still
-has no physical mapping or migration.
+not rewrite this logical S03-A baseline. The later `S03-CORR-01` physical delta
+is recorded separately and leaves the Vector schema unchanged.
 
 ## Ownership boundaries
 
@@ -36,8 +39,9 @@ has no physical mapping or migration.
 | `CorpusId` | Lower-case slug | 1–128 lower-case ASCII letters, digits, `.`, `_` or `-`; begins with a letter or digit. |
 | Positive revision | Signed 64-bit integer in memory; invariant decimal in canonical text | Greater than zero. Each revision domain is a distinct type. |
 | SHA-256 value | String | Exactly 64 lower-case hexadecimal characters. |
-| `DocumentContentLanguage` (planned) | Canonical BCP 47 string | Validated, bounded and never made more specific by inference. |
-| `SourceDeclaredLanguage` (planned) | Exact observed BCP 47 string | Preserved with publisher/embedded evidence; optional when no declaration exists. |
+| `SupportedQueryLanguage` | Closed value | Exact `pt-BR` or `en-GB` for v1 question and answer contracts. |
+| `DocumentContentLanguage` | Canonical BCP 47 string | Locally validated ASCII, 1–128 characters, bounded and never made more specific by inference. |
+| `SourceDeclaredLanguage` | Exact observed BCP 47 string plus canonical comparison value | Preserved with publisher/embedded provenance; optional when no declaration exists. |
 | `IndexGenerationId` | String | `idxgen-` followed by the complete manifest's 64-character lower-case SHA-256 digest. |
 | UTC instant | `DateTimeOffset` | Offset must be zero. Technical exchange uses ISO 8601. |
 | Duration | `TimeSpan` | Positive where used for observation `maxAge`. |
@@ -53,7 +57,7 @@ connection strings and workstation identities are not model fields.
 |---|---|---|
 | `CatalogueItemStatus` | `Candidate`, `Active`, `Deactivated`, `Removed` | `Removed` is a logical tombstone. |
 | `DocumentFormat` | `Pdf`, `Csv` | No other document format belongs to the MVP. |
-| `SupportedLanguage` | `PtBr`, `EnGb` | Canonical external tags are `pt-BR` and `en-GB`. |
+| `SupportedQueryLanguage` | `PtBr`, `EnGb` | Canonical external tags are exactly `pt-BR` and `en-GB`. |
 | `SourceTrustClass` | `LocalAuthorised`, `OfficialExternal` | Trust remains explicit provenance; it does not form a separate corpus. |
 | `OfficialObservationState` | `Current`, `Stale`, `Withdrawn`, `Deactivated` | Only a `Current` observation inside `maxAge` is eligible. |
 | `IndexBuildStatus` | `Candidate`, `Validated`, `Failed` | Only `Validated` with a final manifest is queryable. |
@@ -102,7 +106,8 @@ model contains no branch for any named database product.
 | `databaseProductId` | `DatabaseProductId` | No | Names a product in the same catalogue snapshot. |
 | `databaseProductRevision` | `DatabaseProductRevision` | No | Exactly matches that snapshot's product revision. |
 | `format` | `DocumentFormat` | No | `Pdf` or `Csv`. |
-| `contentLanguage` | `SupportedLanguage` | No | `PtBr` or `EnGb`. |
+| `contentLanguage` | `DocumentContentLanguage` | No | Canonical BCP 47 tag; only exact `pt-BR` or `en-GB` is eligible for runtime v1. |
+| `sourceDeclaredLanguage` | `SourceDeclaredLanguage` | Yes | Exact observed declaration; absent values remain null and no region is inferred. |
 | `status` | `CatalogueItemStatus` | No | Independent from the product lifecycle. |
 | `contentObjectId` | `ContentObjectId` | No | SHA-256 content-addressed identity for immutable, reopenable bytes. |
 | `byteLength` | Positive integer | No | Greater than zero and verified with reopened content by a future store. |
@@ -117,24 +122,23 @@ Every active document belongs to an active product. Every active product has at
 least one active document; removing or deactivating its last active document
 therefore requires the product deactivation in the same future transaction.
 
-## Accepted successor delta — not implemented
+## Corrective successor model — partially implemented
 
-The current closed `SupportedLanguage` field remains unchanged for the v1
-runtime. A separately authorised implementation must split its responsibilities
-as follows without rewriting existing `pt-BR` or `en-GB` values:
+`S03-CORR-01` split the former language responsibility as follows without
+rewriting existing `pt-BR` or `en-GB` values:
 
-| Planned contract | Field | Invariant |
+| Implemented contract | Field | Invariant |
 |---|---|---|
 | `SupportedQueryLanguage` | `questionLanguage` / `answerLanguage` | Closed exact values `pt-BR` and `en-GB`; answer equals the accepted question language. |
 | `DocumentContentLanguage` | `DocumentVersion.contentLanguage` | Required canonical BCP 47 tag; distinct from query support. |
-| `SourceDeclaredLanguage` | `DocumentVersion.sourceDeclaredLanguage?` | Exact observed publisher/embedded tag and evidence; `en` is never inferred as `en-GB`. |
+| `SourceDeclaredLanguage` | `DocumentVersion.sourceDeclaredLanguage?` | Exact observed publisher/embedded tag tied to the existing document/source provenance; `en` is never inferred as `en-GB`. No separate language-evidence schema is introduced. |
 
 Broader document-language values are catalogue data, not code branches or
 provider selections. A candidate whose language is outside v1 remains
 ineligible for v1 activation until compatible model, dataset, runtime and
 planned v2 contracts are separately implemented and verified.
 
-### `DocumentPageImage` (planned)
+### `DocumentPageImage`
 
 | Field | Type | Null | Invariant |
 |---|---|---:|---|
@@ -150,7 +154,7 @@ planned v2 contracts are separately implemented and verified.
 | `mediaType` | String | No | Exactly `image/png`. |
 | `widthPixels` / `heightPixels` | Positive integer | No | Each at most 4,096 for the accepted profile. |
 
-### `DocumentRenderManifest` (planned)
+### `DocumentRenderManifest`
 
 | Field | Type | Null | Invariant |
 |---|---|---:|---|
@@ -169,6 +173,12 @@ the durable `IDocumentContentStore`; catalogue, Git, Git LFS, quarantine and
 vector storage are not binary systems of record. A PDF visual-evidence
 candidate is complete only after every object and the canonical manifest pass
 verified reopen. CSV has no implicit page-image model.
+
+The domain identities, model validation and versioned canonical digest are
+implemented. The Control model has empty durable tables for exact manifest,
+source-version and page-image bindings. The renderer, content publication,
+PNG signature/hash recalculation and verified reopen remain outside
+`S03-CORR-01`.
 
 ### `CatalogueSnapshot`
 
@@ -374,12 +384,10 @@ failure result and grants no authority to change the current record.
 `GenerationRetentionReference` names a protected generation and a non-empty,
 deduplicated set of reopenable `ContentObjectId` values. `RetentionReachability`
 protects the active generation and at most one distinct rollback generation.
-Under the accepted planned delta, reachability also traverses source objects,
-render manifests, page-image objects and answer-evidence records. Physical
-deletion is permitted only for content unreachable from every applicable root.
-It is therefore impossible for normal cleanup policy to delete source or image
-content required by the active generation or the single bounded rollback
-target.
+`S03-CORR-01` additionally traverses every durable render-manifest source and
+page-image binding. Physical deletion is permitted only for content unreachable
+from every applicable root. No new persistent `AnswerEvidenceRecord` contract
+is introduced by this increment.
 
 This logical rule is not evidence of durable storage, readback, backup or
 restore. Those require the S03-B physical model and later authorised
@@ -399,8 +407,19 @@ real product corpus.
 ## Physical mapping boundary
 
 The completed S03-B increment mapped the original implemented model under its
-own authority and evidence. Any future corrective data increment must map the
-accepted successor delta without weakening these invariants:
+own authority and evidence. `S03-CORR-01` then added one Control migration,
+`AddDocumentLanguageAndRenderManifestModel`, which:
+
+- broadens `document_versions.content_language` to the validated document BCP
+  47 domain and adds nullable `source_declared_language` without backfill;
+- preserves existing `pt-BR` and `en-GB` rows exactly;
+- creates empty `document_render_manifests` and `document_page_images` tables
+  with exact version/source/image foreign keys, profile, media, dimension,
+  identity and reproducibility constraints;
+- makes render-manifest source and page-image objects durable cleanup roots;
+- leaves the Vector schema and `IDocumentContentStore` contract unchanged.
+
+The combined mapping preserves these invariants:
 
 - immutable uniqueness for typed identities and version pairs;
 - the category many-to-many key;
@@ -410,8 +429,9 @@ accepted successor delta without weakening these invariants:
 - one current activation authority per corpus with compare-and-swap;
 - final-manifest uniqueness and immutable generation identity;
 - content reachability, orphan cleanup authority and reopen/readback evidence;
-- mappings for the planned language split, render manifests and page-image
-  relationships only after separate implementation authority;
+- mappings for the implemented language split, render manifests and page-image
+  relationships without renderer, content materialisation, activation binding
+  or serving;
 - migration, recovery, lock and transaction semantics.
 
 No dependency, physical index or store technology is selected by this

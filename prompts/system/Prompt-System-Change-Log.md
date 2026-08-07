@@ -2,10 +2,10 @@
 
 ## Versão atual
 
-- Versão: `4.9.5`
+- Versão: `4.9.6`
 - Data: 2026-08-07
-- Status: `STATE-07` ativo; baseline de planejamento de `S07-A` confirmada,
-  sem autoridade de execução
+- Status: `STATE-07` ativo; `S03-CORR-01` implementado e validado localmente,
+  sem Automatic Quality Gate, Human Gate ou mudança de lifecycle
 - Escopo: 13 arquivos ativos em `prompts/`
 
 A versão do corpus é independente da versão futura do software.
@@ -19,6 +19,28 @@ A versão do corpus é independente da versão futura do software.
 
 Toda alteração atualiza este arquivo e, quando necessário,
 [`../Start-Here.md`](../Start-Here.md).
+
+## 4.9.6 — 2026-08-07
+
+- Registra a implementação local e offline de `S03-CORR-01` sob
+  `AUTH-S03-CORR-001` no commit
+  `5fdbbc36d8eee29fdeec4b179564bd1eff322558`.
+- Registra a separação implementada entre `SupportedQueryLanguage=pt-BR|en-GB`,
+  `DocumentContentLanguage` BCP 47 e `SourceDeclaredLanguage` observado, sem
+  inferir `en` como `en-GB` e sem ampliar o runtime v1.
+- Registra `DocumentPageImage`, `DocumentRenderManifest`, digest canônico,
+  bindings físicos Control, migration única, compatibilidade vetorial e
+  reachability de fonte/imagem; renderer, bytes PNG, serving e v2 permanecem
+  não implementados.
+- Registra upgrade/rollback/reapply somente em SQLite descartável, ausência de
+  mudanças pendentes nos modelos Control e Vector e `eng/ci.ps1 -Offline`
+  aprovado com 232 testes .NET, 38 do Dashboard, 93,74% de linhas e 67,11% de
+  branches.
+- Preserva OpenAPI v1 byte a byte, dependências, lockfiles, Dashboard, ADRs,
+  dados do produto e candidato PostgreSQL; nenhuma ação externa foi executada.
+- A mudança é `PATCH`: reconcilia os registros factuais com uma implementação
+  já autorizada, sem alterar autoridade, gate, lifecycle ou o significado dos
+  ADRs aceitos.
 
 ## 4.9.5 — 2026-08-07
 

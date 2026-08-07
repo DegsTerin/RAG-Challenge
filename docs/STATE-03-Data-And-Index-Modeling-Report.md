@@ -5,6 +5,8 @@
 - Lifecycle state: `STATE-03 DATA_AND_INDEX_MODELING` closed after Human Gate
   approval without reservations.
 - Executed increment: `S03-A` and `S03-B0` through `S03-B5` complete.
+- Corrective increment: `S03-CORR-01` implemented and locally validated under
+  `AUTH-S03-CORR-001`; it does not reopen the closed `STATE-03` gate.
 - Entry baseline: `main@35b67c194f6ea2459833420b8bc2143fadfe75df`.
 - Instruction corpus: `4.9.1`.
 - Entry authority recorded locally: commit `5efaa37`.
@@ -12,7 +14,12 @@
 - S03-B resumption baseline: `main@381d1cd297580476e461a242ce5b66c4884e521b`.
 - S03-B5 diagnostic resumption baseline:
   `main@c72c8b967667f72e8971f4887174585d3640a36e`.
+- S03-CORR-01 baseline:
+  `main@ffc7bef913dda2699b072ef172188291f6ac0500`, corpus `4.9.5`.
+- S03-CORR-01 implementation: commit
+  `5fdbbc36d8eee29fdeec4b179564bd1eff322558`.
 - Report date: 2026-08-02.
+- Corrective reconciliation date: 2026-08-07.
 - Automatic Quality Gate: `APROVADO` on
   `main@3d0731fdf3f5004fb185dc760b5f74e4d73b4aa5`.
 - Human Gate: `APROVADO` without reservations on
@@ -313,14 +320,50 @@ provider or corpus use, official-source access, GitHub, OCI, publication,
 deployment or any other external action. Runtime preflight was not applicable
 to this documentation-only Human Gate recording.
 
+## S03-CORR-01 corrective reconciliation
+
+Under `AUTH-S03-CORR-001`, the runtime preflight identified no
+RAG-Challenge-owned process or listener and stopped nothing. The implementation
+separated `SupportedQueryLanguage` from canonical BCP 47
+`DocumentContentLanguage`, retained an optional exact
+`SourceDeclaredLanguage`, and kept runtime v1 closed to `pt-BR` and `en-GB`.
+Persisted vector metadata continues to read existing tags without regional
+inference.
+
+The domain now models `DocumentPageImage` and `DocumentRenderManifest` with
+`pdf-page-png-v1`, exact source/image identities, bounded PNG measurements,
+complete consecutive pages, a non-secret renderer descriptor, UTC generation
+time and a versioned canonical digest excluding only `generatedAt`. The new
+Control migration `20260807161323_AddDocumentLanguageAndRenderManifestModel`
+adds nullable source-declared language and empty manifest/page tables with
+exact foreign keys. It preserves legacy `pt-BR`/`en-GB` rows and leaves Vector
+unchanged. Cleanup now protects every manifest source and page image.
+
+Focused verification passed 19 unit tests and 6 integration cases covering
+language grammar, `en` distinct from `en-GB`, manifest identity and bindings,
+legacy upgrade, rollback/reapply, vector read compatibility, v1 eligibility
+and cleanup reachability. The complete `eng/ci.ps1 -Offline` run passed 106
+unit, 116 integration, 10 architecture and 38 Dashboard tests, with 93.74%
+line and 67.11% branch coverage and repository audit of 212 files. Control and
+Vector reported no pending model changes; Control upgrade, rollback and
+reapply used only disposable SQLite databases and `foreign_key_check` found no
+violation. OpenAPI v1 remained byte-for-byte unchanged at SHA-256
+`d6a686b94c926914beb28b437f464430a01de6560c2e2d476cf5c36025813e34` and Git
+blob `a5fb3602fbab33bda6aa56cc4caaa9fdc37c8160`.
+
+No renderer, PNG bytes, content import, PostgreSQL candidate change,
+activation binding, image serving, v2 contract, dependency, lockfile, external
+action, Automatic Quality Gate, Human Gate or lifecycle transition was
+performed.
+
 ## Deferred and blocked work
 
-S03-B has no remaining implementation item and the Automatic Quality Gate is
-approved. The Human Gate is approved without reservations and `STATE-03` is
-closed. Entry into `STATE-04` remains separate and unauthorised. Provider
-calls, accounts, real product corpus, official-source synchronisation,
-operational storage, GitHub or OCI mutation, publication, deployment and
-DB-Notifier integration also remain prohibited.
+`STATE-03` remains closed and `S03-CORR-01` has no remaining implementation
+item. The current lifecycle position remains `STATE-07`; this correction does
+not reopen an earlier gate. Rendering/content materialisation, real product
+corpus, official-source synchronisation, operational storage, evidence serving,
+v2, GitHub or OCI mutation, publication, deployment and DB-Notifier integration
+require their own later authority.
 
 ## Risks and limitations
 
@@ -331,6 +374,7 @@ DB-Notifier integration also remain prohibited.
 | Durable immutable content, readback and cleanup | Temporary tests passed for publication, reopen hash, reachability, cleanup and corruption; no operational store or real corpus was used. |
 | Migration and recovery verification | Fresh Control and Vector apply/rollback/reapply and pending-model checks passed; isolated recovery tests passed. The earlier stale-output inference remains unproven. |
 | Canonical manifest/spec/artifact serialisers | Implemented and tested from ordered logical SQLite readback; no adapter/provider output was used. |
+| Corrective language/render-manifest model | Implemented and validated locally; no real renderer, PNG, operational database or product data was used. |
 | Real catalogue documents and licence evidence | No real corpus was used; selection and ingestion remain future authorised work. |
 
 ## Rollback of this local increment
@@ -345,4 +389,6 @@ in reverse dependency order; append-only lifecycle evidence must remain.
 S03-A and S03-B0 through S03-B5 are implemented and verified within
 `STATE-03`; its Automatic Quality Gate is approved with no finding and its
 Human Gate is approved without reservations. `STATE-03` is closed.
-`STATE-04` remains unauthorised.
+`S03-CORR-01` is a later corrective implementation owned technically by
+`STATE-03`; its validation is not a new gate and does not reopen or advance the
+lifecycle.

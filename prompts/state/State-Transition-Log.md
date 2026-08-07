@@ -5177,3 +5177,46 @@ contém somente fatos cronológicos.
   implementável que nomeie tipos, schema/migration, content store, renderer,
   lifecycle, serving, v2 e testes aplicáveis, ou um subconjunto coerente deles.
 - Aprovador da reconciliação: proprietário do RAG-Challenge.
+
+## 2026-08-07 — S03-CORR-01 modelo ADR-0008/0009
+
+- Baseline: branch `main`, commit
+  `ffc7bef913dda2699b072ef172188291f6ac0500`, corpus `4.9.5` e working tree
+  limpa, confirmados antes da primeira alteração.
+- Autoridade: `AUTH-S03-CORR-001`, exclusivamente para o primeiro incremento
+  corretivo local, offline e sequencial do modelo reconciliado pelos ADRs 0008
+  e 0009, com owner técnico de `STATE-03` e sem autoridade de gate ou avanço.
+- Runtime preflight: inspeção dirigida encontrou zero processo e zero listener
+  comprovadamente pertencente ao RAG-Challenge; nada foi encerrado.
+- Implementação: commit
+  `5fdbbc36d8eee29fdeec4b179564bd1eff322558`; separa idiomas de query e
+  documento, preserva a declaração observada, valida BCP 47 localmente, mantém
+  runtime v1 fechado a `pt-BR|en-GB`, modela página/manifesto e digest,
+  propaga os tipos por ingestão, indexação, consulta, provider, vetor e Server,
+  e amplia a reachability fail-closed de fonte/imagem.
+- Modelo físico: migration Control única
+  `20260807161323_AddDocumentLanguageAndRenderManifestModel`, com coluna
+  declarada nullable sem backfill e tabelas vazias de manifesto/página ligadas
+  à versão, fonte e imagem exatas. Valores legados `pt-BR`/`en-GB` foram
+  preservados, e o modelo/migrations Vector não mudou.
+- Verificações focais: 19 testes unitários e 6 casos de integração passaram,
+  inclusive `en` distinto de `en-GB`, digest/bindings, upgrade legado,
+  rollback/reapply, leitura vetorial, elegibilidade v1 e limpeza.
+- Verificação integral: `eng/ci.ps1 -Offline` passou 106 testes unitários, 116
+  de integração, 10 de arquitetura e 38 do Dashboard; cobertura de 93,74% de
+  linhas e 67,11% de branches; auditoria de 212 arquivos aprovada. Control e
+  Vector não têm mudança pendente; `foreign_key_check` não encontrou violação.
+- Compatibilidade: OpenAPI v1 permaneceu byte a byte no SHA-256
+  `d6a686b94c926914beb28b437f464430a01de6560c2e2d476cf5c36025813e34` e blob
+  Git `a5fb3602fbab33bda6aa56cc4caaa9fdc37c8160`; dependências, lockfiles,
+  Dashboard, ADRs e `reference-materials/` permaneceram sem diff.
+- Escopo negativo observado: sem renderer, PNG, import, mudança do candidato
+  PostgreSQL, dataset, ativação, serving, v2, `AnswerEvidenceRecord`, nova
+  dependência, rede, ação externa, Automatic Quality Gate, Human Gate ou
+  mudança de lifecycle.
+- Corpus: `4.9.6` (`PATCH`), exclusivamente para reconciliar os seis registros
+  factuais autorizados com a implementação e os testes observados.
+- Estado resultante: `STATE-07 TESTING_HOMOLOGATION` permanece ativo;
+  `S03-CORR-01` está implementado e validado somente na fronteira local,
+  offline, sintética e estática descrita. Nenhum incremento posterior foi
+  iniciado.

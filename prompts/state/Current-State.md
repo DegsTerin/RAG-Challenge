@@ -558,6 +558,31 @@ proprietários.
   testes, schema, migrations, dados, dataset, registro de elegibilidade,
   dependências, lockfiles ou PDF; não gerou PNGs, indexou, ativou, executou
   provider/browser/rede nem realizou ação externa.
+- Implementação corretiva `S03-CORR-01`: autorizada por
+  `AUTH-S03-CORR-001` em 2026-08-07 sobre
+  `main@ffc7bef913dda2699b072ef172188291f6ac0500`, corpus `4.9.5` e working
+  tree limpa, com owner técnico de `STATE-03`. O runtime preflight dirigido
+  encontrou zero processo e zero listener comprovadamente pertencente ao
+  RAG-Challenge e nada encerrou. O commit
+  `5fdbbc36d8eee29fdeec4b179564bd1eff322558` separa
+  `SupportedQueryLanguage` de `DocumentContentLanguage`, preserva
+  `SourceDeclaredLanguage` observado, mantém `en` distinto de `en-GB`, modela
+  `DocumentPageImage`/`DocumentRenderManifest`, adiciona a única migration
+  Control `20260807161323_AddDocumentLanguageAndRenderManifestModel`, propaga
+  a separação por ingestão, indexação, consulta, provider, metadados vetoriais
+  e Server, e protege fontes/imagens alcançadas por manifestos na limpeza.
+- Verificação de `S03-CORR-01`: 19 testes unitários e 6 casos de integração
+  focais passaram; `eng/ci.ps1 -Offline` aprovou 106 testes unitários, 116 de
+  integração, 10 de arquitetura, 38 do Dashboard, cobertura de 93,74% de
+  linhas e 67,11% de branches e auditoria de 212 arquivos. Upgrade legado,
+  rollback/reapply, `foreign_key_check`, leitura vetorial e os dois pending
+  model checks passaram somente em SQLite descartável. OpenAPI v1 permanece
+  byte a byte no SHA-256
+  `d6a686b94c926914beb28b437f464430a01de6560c2e2d476cf5c36025813e34` e blob
+  Git `a5fb3602fbab33bda6aa56cc4caaa9fdc37c8160`. As novas tabelas ficaram
+  vazias; não houve renderer, PNG, import, alteração do candidato PostgreSQL,
+  dataset, ativação, serving, v2, dependência, lockfile, rede, ação externa,
+  Automatic Quality Gate, Human Gate ou mudança de lifecycle.
 - Fechamento de `S04-A0`: `PdfPig` `0.1.15` e `CsvHelper` `33.1.0` foram
   selecionados condicionalmente para desenvolvimento local;
   `Sylvan.Data.Csv` `1.4.4` permanece fallback não selecionado e não

@@ -4,11 +4,13 @@
 
 This document defines the canonical application, provider and public contract
 semantics accepted for `STATE-02 ARCHITECTURE`. It refines accepted ADR-0002,
-ADR-0006, corrective ADR-0007, ADR-0008 and ADR-0009 without implementing
-types, schemas or endpoints. Acceptance freezes the architecture semantics; it
-does not prove or authorise an implementation. The ADR-0008/0009 refinements
-below are planned successor contracts; the implemented v1 surface and its
-OpenAPI artefact remain unchanged.
+ADR-0006, corrective ADR-0007, ADR-0008 and ADR-0009. Acceptance freezes the
+architecture semantics; it does not itself prove or authorise an
+implementation. The separately authorised `S03-CORR-01` increment implements
+the ADR-0008/0009 language and render-manifest model described below while the
+v1 public surface and its OpenAPI artefact remain unchanged. Rendering,
+content materialisation, activation binding, image serving and v2 remain
+planned successor capabilities.
 
 The contracts preserve inward dependencies: Domain owns identities and
 invariants; Application owns ports, use cases and failure semantics;
@@ -60,10 +62,13 @@ Value types reject empty, overlong, malformed or normalisation-ambiguous
 input when constructed. Domain has no filesystem path, URI parser, SQL, PDF,
 HTTP or provider SDK type.
 
-The current implementation's closed `SupportedLanguage` type remains the v1
-runtime representation for `pt-BR` and `en-GB`. Splitting that responsibility
-into `SupportedQueryLanguage` and `DocumentContentLanguage` is planned and
-unimplemented; this reconciliation does not change code, schema or stored data.
+The implementation uses the closed `SupportedQueryLanguage` type for v1
+questions, answers and transport values, and the distinct
+`DocumentContentLanguage` type for canonical document BCP 47 tags.
+`SourceDeclaredLanguage` preserves the exact observed tag alongside its
+canonical comparison value. Existing persisted `pt-BR` and `en-GB` values are
+read without conversion; `en` remains distinct from `en-GB` and is ineligible
+for indexing, activation and query in runtime v1.
 
 ## Source and parsing ports
 
@@ -115,7 +120,7 @@ page/block locations; CSV units use record ranges, columns and headers. It
 cannot return an executable attachment/formula, raw link authority or
 filesystem path.
 
-### Planned PDF render contracts
+### PDF render model and planned pipeline contract
 
 PDF visual evidence is a separate deterministic derivative boundary. The
 accepted `pdf-page-png-v1` profile consumes one verified PDF content object and
@@ -155,8 +160,11 @@ DocumentRenderManifest
 consecutive order. The versioned canonical UTF-8 manifest digest excludes only
 `generatedAt`; finalisation recalculates every hash, validates PNG signatures,
 dimensions, counts and bindings, and verifies reopen of every source and image
-object. CSV has no implicit render contract. These types and the rendering
-capability are accepted plans, not current runtime types.
+object. CSV has no implicit render contract. `DocumentPageImage`,
+`DocumentRenderManifest`, their typed identities, canonical digest and exact
+Control-plane source/image bindings are implemented by `S03-CORR-01`.
+Rendering bytes, PNG signature validation, verified reopen, activation binding
+and evidence serving remain unimplemented pipeline capabilities.
 
 ### `IChunkingStrategy`
 
