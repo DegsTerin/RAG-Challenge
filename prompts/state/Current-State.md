@@ -453,6 +453,22 @@ proprietários.
   pertence à auditoria AST e não repetiu nem substituiu o Automatic Quality
   Gate aprovado na baseline anterior; `STATE-06` permanece ativo, sem Human
   Gate, `STATE-07` ou ação externa.
+- Novo reinício integral do Automatic Quality Gate de `STATE-06`: autorizado
+  pelo proprietário e iniciado localmente, offline e de forma sequencial em
+  2026-08-06 sobre
+  `main@f92e26c7008a2d124bd10edb2e3f03c0c9ad2bf6`, corpus `4.9.3` e working
+  tree limpa. A reconciliação inventariou os oito commits e 25 arquivos após
+  `bfc3aefc3a731b1b49b47458374cb903860faf6f`; o preflight encontrou zero
+  processo do produto e zero listener nas portas da tarefa. A inspeção
+  estática identificou `AQG-S06-005` (P2): os dois únicos testes PowerShell
+  dos controles fail-closed, `eng/test-assert-coverage.ps1` e
+  `eng/test-ci-policy.ps1`, não são invocados por nenhum entry point; o
+  workflow chama somente `eng/ci.ps1`, que também não os executa. Portanto, a
+  CI canônica pode aprovar sem testar o agregador de cobertura ou a política
+  que afirma impor. O gate parou sem correção silenciosa antes de restore,
+  build, suítes, coverage, migration, ARM64 ou comandos do README e está
+  `REPROVADO`. `AQG-S06-005` permanece `ABERTO`; Human Gate continua
+  prematuro, e `STATE-07` e ações externas permanecem não autorizados.
 - Fechamento de `S04-A0`: `PdfPig` `0.1.15` e `CsvHelper` `33.1.0` foram
   selecionados condicionalmente para desenvolvimento local;
   `Sylvan.Data.Csv` `1.4.4` permanece fallback não selecionado e não
@@ -951,10 +967,9 @@ autorizada.
    para cada banco antes de sua ativação.
 2. Validar e ativar individualmente novos registros de fonte oficial; a
    aceitação arquitetural não autoriza URL, rede, download ou crawling.
-3. Preparar qualquer eventual resumo do Human Gate de `STATE-06` somente sob
-   autoridade humana separada, sobre o relatório do Automatic Quality Gate
-   aprovado e uma baseline limpa; o reteste não executou nem autorizou o Human
-   Gate.
+3. Corrigir `AQG-S06-005` somente sob autoridade separada e depois reiniciar
+   integralmente o Automatic Quality Gate sobre baseline limpa antes de
+   qualquer resumo do Human Gate de `STATE-06`.
 4. Verificar tier, entitlement, spend limit e controles da conta OpenAI, além
    da recuperação/geração bilíngue, antes de usar ou anunciar os providers.
 5. Homologar desempenho e capacidade do `SqliteExactVectorStore`; a fixture
@@ -1196,3 +1211,16 @@ armazenamento operacional, cobertura percentual JavaScript, observação de
 rede em nível de pacotes, migration em banco real e reparo de dados. O gate
 não executou Human Gate, não alterou o lifecycle e não autorizou `STATE-07`,
 ação externa, publicação, push ou deploy. `STATE-06` continua ativo.
+
+Depois disso, os commits
+`8ab79d59f4dfe9d35e73a25f05612fd244e31393` e
+`f92e26c7008a2d124bd10edb2e3f03c0c9ad2bf6` alteraram o agregador de
+cobertura e a política fail-closed de CI. O novo reinício integral autorizado
+sobre `main@f92e26c7008a2d124bd10edb2e3f03c0c9ad2bf6`, corpus `4.9.3` e working
+tree limpa inventariou os oito commits posteriores a `bfc3aefc` e parou na
+auditoria estática com `AQG-S06-005` (P2):
+`eng/test-assert-coverage.ps1` e `eng/test-ci-policy.ps1` não são chamados por
+nenhum entry point automático, inclusive `eng/ci.ps1` e o workflow. O gate
+está `REPROVADO`, o achado permanece `ABERTO` e nenhuma etapa executável
+posterior foi iniciada. `STATE-06` continua ativo; Human Gate, `STATE-07` e
+ações externas permanecem não autorizados.

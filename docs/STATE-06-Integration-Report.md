@@ -1045,3 +1045,54 @@ store was used; JavaScript percentage coverage and packet-level network
 observation were not performed; and no migration was applied to a real
 database or used to repair data. No GitHub, publication, push, deployment,
 Human Gate or `STATE-07` action occurred. `STATE-06` remains active.
+
+## Automatic Quality Gate restart after CI-policy changes — 2026-08-06
+
+### Authority and baseline
+
+The owner authorised a new complete, local, offline and sequential restart of
+the `STATE-06` Automatic Quality Gate on
+`main@f92e26c7008a2d124bd10edb2e3f03c0c9ad2bf6`, prompt corpus `4.9.3`, with
+a clean working tree. The authorised comparison range comprised all eight
+commits after `bfc3aefc3a731b1b49b47458374cb903860faf6f`: four AST corrective
+commits, two factual documentation commits and two CI-control commits. The
+range contained 25 changed files, 4,030 insertions and 167 deletions.
+
+The run began at `2026-08-07T01:08:04.3542118Z`. Restricted preflight found
+no RAG-Challenge-owned product process and no listener on ports 4173, 5086,
+5096, 5173 or 9230. The recorded inspection toolchain was PowerShell `7.6.4`
+and Git `2.55.0.windows.3`. Git range hygiene passed, no dependency or public
+OpenAPI path changed in the range, and no `reference-materials/` file was
+tracked.
+
+### AQG-S06-005 — automatic policy tests are not part of the automatic gate
+
+| Attribute | Observation |
+| --- | --- |
+| Severity | P2 |
+| Status | `OPEN` |
+| Scope | `eng/test-assert-coverage.ps1`, `eng/test-ci-policy.ps1`, `eng/ci.ps1` and `.github/workflows/ci.yml` |
+| Reproduction | Repository-wide reference searches, excluding each test's own definition, returned no invocation of either test script. The workflow invokes only `./eng/ci.ps1`; that entry point invokes neither policy test. |
+| Impact | The canonical CI can report success without exercising the regression tests for the fail-closed coverage parser or the shared CI policy. A later regression in either control can therefore bypass the evidence intended to prove that the gate itself fails closed. |
+| Required disposition | Under separate corrective authority, integrate both policy-test scripts into the canonical automatic entry point with fail-closed exit handling, verify local and workflow consumers, and restart the complete gate from a clean baseline. |
+
+The applicable quality policy requires discovery and execution of real tests
+and requires the CI pipeline to execute applicable tests and coverage. Merely
+having manually runnable regression scripts does not make them part of the
+automatic gate. The inspection did not claim whether either standalone script
+would pass when invoked; the missing automatic invocation is the finding.
+
+### Gate result and stop boundary
+
+The Automatic Quality Gate is **REPROVADO**. `AQG-S06-005` is the first and
+only new finding identified in this restart and remains `OPEN`. The mandatory
+stop occurred during static inspection, before isolated dependency restore,
+build, .NET/npm suites, coverage execution, focused persistence or migration
+tests, Entity Framework verification, cancellation/resilience tests, ARM64
+reproductions, the static ARM64 verifier or the literal README commands.
+
+No source, test, workflow, dependency, lockfile, contract, OpenAPI, schema,
+migration or ADR was corrected or changed by the audit. No network, global
+cache, OCI, provider, account, secret, real corpus, real source, GitHub,
+publication, deployment, Human Gate or `STATE-07` action occurred.
+`STATE-06` remains active and its Human Gate is premature.

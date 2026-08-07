@@ -4681,3 +4681,44 @@ contém somente fatos cronológicos.
 - Relatório atualizado:
   [`STATE-06-Integration-Report.md`](../../docs/STATE-06-Integration-Report.md).
 - Aprovador: proprietário do RAG-Challenge.
+
+## 2026-08-06 — Automatic Quality Gate em f92e26c reprovado por AQG-S06-005
+
+- Estado anterior e resultante: `STATE-06 INTEGRATION` permanece ativo; não
+  houve Human Gate, transição ou entrada em `STATE-07`.
+- Autoridade e baseline: o proprietário autorizou reconciliar os oito commits
+  posteriores a `bfc3aefc3a731b1b49b47458374cb903860faf6f` e reiniciar
+  integralmente o gate localmente, offline e de forma sequencial sobre
+  `main@f92e26c7008a2d124bd10edb2e3f03c0c9ad2bf6`, corpus `4.9.3` e working
+  tree limpa, com parada no primeiro achado ou divergência.
+- Intervalo reconciliado: oito commits, 25 arquivos, 4.030 inserções e 167
+  remoções, abrangendo as correções AST, sua documentação factual e os dois
+  commits finais de controles de cobertura/CI.
+- Preflight restrito: zero processo pertencente ao RAG-Challenge e zero
+  listener nas portas 4173, 5086, 5096, 5173 e 9230.
+- Higiene estática inicial: `git diff --check` do intervalo aprovado; zero path
+  de dependência ou OpenAPI alterado; nenhum `reference-materials/` rastreado.
+- Achado `AQG-S06-005` (P2): os dois únicos testes PowerShell dos controles
+  fail-closed, `eng/test-assert-coverage.ps1` e `eng/test-ci-policy.ps1`, não
+  possuem invocação fora de suas próprias definições. O workflow chama somente
+  `./eng/ci.ps1`, e esse entry point também não executa os testes.
+- Impacto: a CI canônica pode aprovar sem exercitar a regressão do parser de
+  cobertura ou da política compartilhada que pretende garantir o
+  comportamento fail-closed do próprio gate.
+- Disposição: `AQG-S06-005` permanece `ABERTO`. A correção exige autoridade
+  separada para integrar os dois testes ao entry point automático com
+  propagação fail-closed, seguida por novo reinício integral sobre baseline
+  limpa.
+- Parada obrigatória: nenhuma verificação executável posterior foi iniciada;
+  restore, build, suítes .NET/npm, coverage, persistence/migration, EF,
+  cancelamento/resiliência, duas reproduções ARM64, verificador estático e
+  comandos do README permanecem não executados neste gate.
+- Resultado: Automatic Quality Gate `REPROVADO`, com um novo P2 e nenhum novo
+  P0, P1 ou P3 identificado antes da parada.
+- Escopo negativo preservado: nenhuma correção de source/test/workflow,
+  dependência, lockfile, contrato, OpenAPI, schema, migration ou ADR; sem rede,
+  cache global, OCI, provider, conta, secret, corpus ou fonte real, GitHub,
+  publicação, deploy, Human Gate ou `STATE-07`.
+- Relatório atualizado:
+  [`STATE-06-Integration-Report.md`](../../docs/STATE-06-Integration-Report.md).
+- Aprovador: proprietário do RAG-Challenge.
