@@ -1,33 +1,36 @@
 # ADR-0008 - Product Corpus Storage and Page-Image Evidence
 
-- Status: proposed
+- Status: accepted
 - Date: 2026-08-07
-- Decision authority: not granted; owner review and an explicit decision remain
-  required
+- Accepted: 2026-08-07
+- Decision authority: explicit product-owner acceptance on baseline
+  `main@5c151c64ae4d3049d68fee6788502d439aa25251`, corpus `4.9.4`
 - Proposal authority: owner-authorised documentary preparation on baseline
   `main@2696bb7162b0823cead7e391b6259b123142b517`, corpus `4.9.4`
 - Owners: RAG-Challenge product, RAG architecture, data governance and security
-- State: `STATE-07 TESTING_HOMOLOGATION` change proposal
-- Supersession effect: none unless accepted
+- State: `STATE-07 TESTING_HOMOLOGATION` accepted architecture decision
+- Supersession effect: refines the content-store and governed-document
+  decisions; semantic reconciliation remains separately authorised
 
 ## Purpose and authority
 
-This proposal defines durable product storage for authorised source documents
+This decision defines durable product storage for authorised source documents
 and deterministic PDF page images, together with the minimum identity,
 rights, lifecycle and response boundaries required to use a relevant page
 image as visual evidence.
 
-The proposal records an owner requirement. It does not accept itself, amend an
-accepted ADR, change the instruction corpus, move or track document bytes,
-generate images, materialise a dataset, activate content, change a public
-contract or authorise runtime, provider, network or external action.
+This ADR records an owner requirement and was explicitly accepted on
+2026-08-07. Acceptance does not amend other normative documents by itself,
+change the instruction corpus, move or track document bytes, generate images,
+materialise a dataset, activate content, change a public contract or authorise
+runtime, provider, network or external action.
 
-If accepted, this ADR would refine the content-store decision in
+This ADR refines the content-store decision in
 [ADR-0002](ADR-0002-RAG-Lifecycle-Providers-And-Source-Separation.md) and the
 governed-document decision in
 [ADR-0004](ADR-0004-MVP-Corpus-Official-Source-And-Evaluation.md).
 Reconciliation of normative architecture, security, data and API documents
-would remain a separately authorised implementation increment.
+remains a separately authorised increment.
 
 ## Context
 
@@ -93,7 +96,7 @@ The owner requires that:
 | Git LFS | Small Git pointers; binary transfer is separated from ordinary objects; versions remain associated with commits | Requires an LFS service, credentials, quotas and network hydration; a clone is not necessarily offline-complete; pointer availability is not runtime readback; retention and activation remain repository-coupled | Rejected as the product content store; a future distribution channel would require its own decision |
 | `IDocumentContentStore` | Existing architectural port; immutable content addressing; idempotent writes; verified reopen; deduplication; reachability-aware deletion; local and deployed implementations can differ | Requires an explicit seed/import, backup and deployment procedure; a Git clone alone does not contain the corpus | Selected |
 
-## Proposed decision
+## Decision
 
 Use `IDocumentContentStore` as the sole system of record for authorised source
 bytes and persistent page-image bytes. Ordinary Git and Git LFS are not product
@@ -133,7 +136,7 @@ activation state. Catalogue and official-source records own those concerns.
 
 ### Page render profile
 
-The initial proposed profile is `pdf-page-png-v1`:
+The initial accepted profile is `pdf-page-png-v1`:
 
 - input is one verified PDF content object;
 - output media type is exactly `image/png`;
@@ -234,7 +237,7 @@ recalculation and verified reopen of every referenced content object.
   content identities.
 
 CSV remains a governed source format but has no implicit page-image rendering
-under this proposal. A future tabular visualisation class requires its own
+under this decision. A future tabular visualisation class requires its own
 rights, identity, accessibility and contract decision.
 
 ## Query and visual-evidence contract
@@ -301,7 +304,7 @@ Every document eligibility record must independently decide and evidence:
 - attribution, notice, trademark and change-marking requirements.
 
 Failure or ambiguity in rendering, derivative retention or display rights
-blocks activation of a PDF document under this proposal. It does not silently
+blocks activation of a PDF document under this decision. It does not silently
 infer rights from permission to read, cite or index text. A future policy that
 permits text-only PDF activation would require a separately accepted decision
 and explicit capability disclosure.
@@ -357,7 +360,7 @@ The locally downloaded PostgreSQL PDF remains a quarantine candidate at:
 
 Its observed SHA-256 is
 `cea7b845568095eb56dee1b51bfa145c6c6637bc4377c986019971577efefae4`.
-This proposal neither imports that file into `IDocumentContentStore` nor
+This acceptance neither imports that file into `IDocumentContentStore` nor
 changes its Git status. No retained page PNG exists under this authority.
 
 Before any rendering authority, its eligibility record must explicitly cover
@@ -414,10 +417,12 @@ and the current retrieval/generation contracts are textual.
 
 ## Acceptance and follow-on authority
 
-An explicit owner decision must accept, reject or request revision of this ADR.
-Acceptance alone would not implement it or authorise corpus movement.
+The owner explicitly accepted this ADR on 2026-08-07 on baseline
+`main@5c151c64ae4d3049d68fee6788502d439aa25251`, corpus `4.9.4`. Acceptance
+establishes architectural authority only; it does not implement the decision,
+reconcile other normative documents or authorise corpus movement.
 
-If accepted, separate increments are required for:
+Separate follow-on increments are required for:
 
 1. semantic reconciliation of ADR-0002, ADR-0004,
    `Security-And-Access.md`, `RAG-Module.md`, canonical contracts, data
@@ -432,4 +437,4 @@ If accepted, separate increments are required for:
 8. deployment, backup/restore and any external provider or publication action.
 
 Each increment retains its own baseline, scope, checks, stop conditions and
-Human Gate where required. No item above is authorised by this proposal.
+Human Gate where required. No item above is authorised by this acceptance.

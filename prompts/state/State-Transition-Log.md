@@ -5015,3 +5015,41 @@ contém somente fatos cronológicos.
   PDF/CSV candidatos e autoriza somente a verificação local de elegibilidade,
   proveniência e direitos antes de qualquer `AUTH-S07-A-DATASET-001`.
 - Aprovador da correção permanente: proprietário do RAG-Challenge.
+
+## 2026-08-07 — ADR-0008 aceita como autoridade arquitetural
+
+- Baseline: branch `main`, commit
+  `5c151c64ae4d3049d68fee6788502d439aa25251`, corpus `4.9.4` e working tree
+  limpa, confirmados antes do registro.
+- Decisão explícita do proprietário:
+
+  ```text
+  Confirmo a decisão proposta em ADR-0008 — Product Corpus Storage and Page-Image Evidence e aceito a ADR exclusivamente como autoridade arquitetural.
+
+  Esta aceitação não autoriza reconciliação normativa, implementação, movimentação do PDF, geração de PNGs, dataset, indexação, ativação, testes, providers, rede, publicação ou ação externa. Cada incremento exigirá autorização separada.
+  ```
+
+- Decisão: aceitar
+  [`ADR-0008`](../../docs/architecture/ADR-0008-Product-Corpus-Storage-And-Page-Image-Evidence.md)
+  exclusivamente como autoridade arquitetural para armazenamento permanente
+  do corpus e evidências visuais de páginas.
+- Limite de autoridade: a aceitação não reconcilia ADR-0002, ADR-0004,
+  `Security-And-Access.md`, `RAG-Module.md`, contratos canônicos, data
+  dictionary, threat model, OpenAPI ou demais documentos normativos; não
+  autoriza implementação ou execução de qualquer incremento subsequente.
+- Escopo do registro: atualizar somente a ADR-0008, o índice arquitetural, o
+  estado factual e este histórico append-only; validar o incremento e criar um
+  commit local focal.
+- Escopo negativo: sem alteração do corpus normativo ou de sua versão; sem
+  código, contratos, OpenAPI, schema, migrations, testes, dependências,
+  lockfiles, `.gitignore`, PDF ou registro de elegibilidade; sem movimentação
+  de documento, geração de PNG, dataset, indexação, ativação, providers, rede,
+  browser, publicação, deploy ou ação externa.
+- Runtime preflight: `NÃO APLICÁVEL`; o incremento registra somente uma
+  decisão documental e não altera nem valida comportamento executável.
+- Estado resultante: ADR-0008 `accepted`; `STATE-07 TESTING_HOMOLOGATION`
+  permanece ativo somente dentro da autoridade vigente, sem lote adicional,
+  dataset, indexação, ativação ou gate autorizado por esta decisão.
+- Próxima condição: autoridade humana explícita e separada para reconciliar
+  semanticamente a ADR-0008 antes de qualquer implementação ou execução.
+- Aprovador da decisão: proprietário do RAG-Challenge.

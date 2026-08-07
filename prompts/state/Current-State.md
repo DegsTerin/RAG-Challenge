@@ -525,6 +525,15 @@ proprietários.
   planejamento. A confirmação não concedeu `AUTH-S07-A-DATASET-001`,
   `AUTH-S07-A-RUN-001`, materialização de dataset, avaliação, testes, carga,
   segurança dinâmica, browser, providers, fontes reais, rede ou ação externa.
+- Decisão arquitetural de armazenamento do corpus e evidência visual:
+  [ADR-0008](../../docs/architecture/ADR-0008-Product-Corpus-Storage-And-Page-Image-Evidence.md)
+  foi aceita explicitamente pelo proprietário em 2026-08-07 sobre
+  `main@5c151c64ae4d3049d68fee6788502d439aa25251`, corpus `4.9.4` e working
+  tree limpa. A aceitação estabelece autoridade arquitetural somente; não
+  reconcilia ADR-0002, ADR-0004, segurança, módulo RAG, contratos, data
+  dictionary, threat model, OpenAPI ou outro documento normativo, e não
+  autoriza implementação, movimentação do PDF, geração de PNGs, dataset,
+  indexação, ativação, testes, providers, rede, publicação ou ação externa.
 - Fechamento de `S04-A0`: `PdfPig` `0.1.15` e `CsvHelper` `33.1.0` foram
   selecionados condicionalmente para desenvolvimento local;
   `Sylvan.Data.Csv` `1.4.4` permanece fallback não selecionado e não
@@ -1047,6 +1056,9 @@ autorizada.
    tenancy OCI; as fontes públicas ainda divergem sobre a franquia gratuita.
 8. Materializar `rag-eval-catalogue-v1`, a rubrica e thresholds antes de cada
    execução pontuada, preservando a matriz `pt-BR`/`en-GB` aceita.
+9. Reconciliar semanticamente a ADR-0008 com ADR-0002, ADR-0004, segurança,
+   módulo RAG, contratos canônicos, data dictionary, threat model, OpenAPI e
+   demais documentos normativos somente sob autoridade posterior e separada.
 
 ## Próxima autoridade
 

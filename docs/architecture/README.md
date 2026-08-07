@@ -165,8 +165,8 @@ Dashboard -- versioned HTTP --> API
   (`accepted`; corrective semantic reconciliation applied and renewed audit
   approved)
 - [ADR-0008 — Product Corpus Storage and Page-Image Evidence](ADR-0008-Product-Corpus-Storage-And-Page-Image-Evidence.md)
-  (`proposed`; owner decision and separately authorised reconciliation remain
-  required)
+  (`accepted`; separately authorised semantic reconciliation and implementation
+  remain required)
 
 ## STATE-02 design artefacts
 
@@ -206,8 +206,9 @@ historical findings without altering the accepted architecture. The other
 inputs do not reopen that architecture merely by remaining conditional or
 unverified.
 
-On 2026-08-07, the owner authorised preparation of ADR-0008 as a change
-proposal during `STATE-07`. It records a requirement for durable product
-corpus storage and persistent PDF page-image evidence. Its `proposed` status
-does not alter accepted storage, citation, API or lifecycle authority and does
-not authorise moving source bytes, rendering images or activating content.
+On 2026-08-07, the owner first authorised preparation of ADR-0008 as a change
+proposal during `STATE-07` and later accepted it explicitly on baseline
+`main@5c151c64ae4d3049d68fee6788502d439aa25251`, corpus `4.9.4`. It establishes
+architectural authority for durable product-corpus storage and persistent PDF
+page-image evidence. Acceptance does not reconcile other normative documents,
+implement the decision, move source bytes, render images or activate content.
