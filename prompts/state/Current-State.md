@@ -628,6 +628,43 @@ proprietários.
   ações externas não mudaram. O corpus `4.9.9` registra somente esse fato;
   `STATE-07` permanece ativo, sem gate ou transição, e `S04-CORR-04-C` ou
   incremento posterior não foi iniciado.
+- Implementação corretiva `S04-CORR-04-C`: autorizada por
+  `AUTH-S04-CORR-04-C-001` em 2026-08-07 sobre
+  `main@75475c391c7fc1fb5ff298492a5d1da4c4f99fbb`, corpus `4.9.9` e working
+  tree limpa, com owner técnico corretivo de `STATE-04`. O runtime preflight
+  dirigido encontrou zero processo de produto e zero listener comprovadamente
+  pertencente ao RAG-Challenge; nada foi encerrado. O gate de supply chain
+  usou caches, CLI home e artefactos isolados, verificou as oito identidades e
+  versões selecionadas, assinaturas, hashes, licenças, commits upstream,
+  grafo, ausência de advisory/depreciação material e assets nativos Windows e
+  Linux AArch64 antes da implementação. A evidência temporária permanece fora
+  do Git, sem cleanup material.
+- O commit `981e61c3308ee3407769d10ab1fa554007f12799` implementa o port de renderer,
+  política explícita de limites, worker interno de um documento antes do host
+  HTTP, framing binário privado, contenção por Job Object no Windows e
+  `rlimit`/`prctl` no Linux, o perfil determinístico `pdf-page-png-v1`,
+  validação estrutural fail-closed dos PNGs e finalização verificada,
+  idempotente e atômica de `DocumentRenderManifest` nas tabelas existentes.
+  O gate visual de direitos, a reabertura verificada da fonte e de cada PNG e
+  a validação completa de todas as páginas precedem a persistência do manifest.
+  `IStorageMaintenance`, `cleanup-plan-v1` e o protocolo de
+  reserva/finalização permanecem a única autoridade de exclusão física.
+- Verificação de `S04-CORR-04-C`: 7 casos unitários focais e 10 casos de
+  integração focais passaram com bytes PDF/PNG sintéticos. O publish
+  framework-dependent `linux-arm64` em modo locked/offline selecionou
+  `libpdfium.so` e `libSkiaSharp.so` ELF64 AArch64 (`e_machine=183`). O
+  `eng/ci.ps1 -Offline` aprovou 130 testes unitários, 128 de integração, 10 de
+  arquitetura e 38 do Dashboard, com 93,53% de linhas e 66,80% de branches,
+  build Release sem aviso e auditoria de 223 arquivos. Somente quatro
+  lockfiles previstos mudaram; não houve projeto, schema, migration, model
+  snapshot, endpoint ou contrato v2. OpenAPI v1 permaneceu byte a byte no
+  SHA-256
+  `d6a686b94c926914beb28b437f464430a01de6560c2e2d476cf5c36025813e34`.
+  Nenhum dado, fonte, licença ou direito real foi usado; não houve import,
+  indexação, ativação, serving, cleanup, provider, ação externa, Automatic
+  Quality Gate, Human Gate ou mudança de lifecycle. O corpus `4.9.10` registra
+  somente esses fatos; `STATE-07` permanece ativo e `S04-CORR-04-D` ou
+  incremento posterior não foi iniciado.
 - Fechamento de `S04-A0`: `PdfPig` `0.1.15` e `CsvHelper` `33.1.0` foram
   selecionados condicionalmente para desenvolvimento local;
   `Sylvan.Data.Csv` `1.4.4` permanece fallback não selecionado e não
@@ -1173,16 +1210,18 @@ autorizada.
    estratos por tag documental exata sem contar `en` como `en-GB`.
 9. `S03-CORR-01` concluiu o primeiro item da ordem de dependência.
    `S04-CORR-04-A` concluiu descritores verificados do content store e
-   `S04-CORR-04-B` concluiu contratos/gates de direitos. Obter autoridade
-   separada para `S04-CORR-04-C`, primeiro incremento ainda não executado do
-   segundo item, preservando a OpenAPI v1 e os limites já registrados.
+   `S04-CORR-04-B` concluiu contratos/gates de direitos;
+   `S04-CORR-04-C` concluiu renderização determinística e finalização
+   verificada da candidata. Obter autoridade separada para `S04-CORR-04-D`,
+   primeiro incremento ainda não executado do segundo item, preservando a
+   OpenAPI v1 e os limites já registrados.
 
 ## Próxima autoridade
 
 O segundo refinamento arquitetural da ordem registrada em Lifecycle permanece
-parcial: `S04-CORR-04-A` e `S04-CORR-04-B` estão concluídos, sem executar os
+parcial: `S04-CORR-04-A` a `S04-CORR-04-C` estão concluídos, sem executar os
 incrementos posteriores. Não existe autoridade vigente para
-`S04-CORR-04-C`. A próxima ação concreta é o proprietário autorizar esse
+`S04-CORR-04-D`. A próxima ação concreta é o proprietário autorizar esse
 primeiro incremento ainda não executado dentro do envelope preparado,
 preservando v1 e as condições de parada registradas. Revisar genericamente os
 commits já concluídos não substitui essa ação.

@@ -492,9 +492,45 @@ The combined mapping preserves these invariants:
 - final-manifest uniqueness and immutable generation identity;
 - content reachability, orphan cleanup authority and reopen/readback evidence;
 - mappings for the implemented language split, render manifests and page-image
-  relationships without renderer, content materialisation, activation binding
-  or serving;
+  relationships; `S04-CORR-04-C` now materialises verified page objects and
+  finalises those existing records without activation binding or serving;
 - migration, recovery, lock and transaction semantics.
 
 No dependency, physical index or store technology is selected by this
 dictionary.
+
+## S04-CORR-04-C physical finalisation evidence
+
+`S04-CORR-04-C` did not change this dictionary's logical identities or the
+physical schema. It implemented the previously mapped render-manifest write
+boundary against the existing `document_render_manifests`,
+`document_page_images`, `content_objects` and document-version relationships.
+
+The Application-owned finaliser now enforces this order:
+
+1. `PdfVisualEvidence` rights eligibility is explicitly permitted;
+2. the source content object is fully reopened against its expected SHA-256 and
+   byte length;
+3. one isolated renderer worker returns a complete, consecutive page set for
+   one exact deterministic descriptor;
+4. every PNG is structurally validated before any page object is published;
+5. each page object is written and reopened through `IDocumentContentStore`;
+6. the canonical manifest and all page bindings are committed in one existing
+   SQLite transaction and then read back against their canonical identity.
+
+Exact replay returns `AlreadyApplied`; a different manifest for the same
+document version, source object, profile and renderer descriptor returns a
+revision conflict. A failed transaction leaves neither a partial manifest nor
+partial page rows. Immutable PNG objects created before a later failure may be
+orphans, but they grant no deletion authority: `IStorageMaintenance`,
+`cleanup-plan-v1` and the reservation/finalisation protocol remain unchanged
+and exclusive.
+
+The implemented renderer descriptor binds `pdfium-pdftoimage-v1`,
+`PDFtoImage` 5.3.0, PDFium 153.0.7988, SkiaSharp 4.151.1, the effective RID,
+`pdf-page-png-v1`, every pixel-affecting option and every enforced limit. It
+contains no host name, path, command, credential or workstation version.
+
+This evidence uses only synthetic PDF and PNG bytes. It does not establish a
+real document's rights, activate a document or generation, change an activation
+digest, serve image evidence or introduce a v2 contract.

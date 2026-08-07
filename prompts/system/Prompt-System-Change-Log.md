@@ -2,10 +2,10 @@
 
 ## Versão atual
 
-- Versão: `4.9.9`
+- Versão: `4.9.10`
 - Data: 2026-08-07
-- Status: `STATE-07` ativo; `S04-CORR-04-A` e `S04-CORR-04-B` concluídos, sem
-  autoridade para `S04-CORR-04-C`, gate ou mudança de lifecycle
+- Status: `STATE-07` ativo; `S04-CORR-04-A` a `S04-CORR-04-C` concluídos, sem
+  autoridade para `S04-CORR-04-D`, gate ou mudança de lifecycle
 - Escopo: 13 arquivos ativos em `prompts/`
 
 A versão do corpus é independente da versão futura do software.
@@ -19,6 +19,26 @@ A versão do corpus é independente da versão futura do software.
 
 Toda alteração atualiza este arquivo e, quando necessário,
 [`../Start-Here.md`](../Start-Here.md).
+
+## 4.9.10 — 2026-08-07
+
+- Registra a implementação local e sequencial de `S04-CORR-04-C` sob
+  `AUTH-S04-CORR-04-C-001` no commit
+  `981e61c3308ee3407769d10ab1fa554007f12799`.
+- Registra o renderer `pdfium-pdftoimage-v1`, `PDFtoImage` `5.3.0`, PDFium
+  `153.0.7988` e SkiaSharp `4.151.1`, com pins transitivos exatos, quatro
+  lockfiles afetados e gate de supply chain isolado.
+- Registra o worker interno de um documento, contenção antes do envio dos bytes,
+  framing privado limitado, perfil determinístico `pdf-page-png-v1`, validação
+  estrutural de PNG e publicação verificada de todas as páginas.
+- Registra a finalização fail-closed e idempotente de
+  `DocumentRenderManifest` nas tabelas existentes, sem schema, migration,
+  ativação, serving, cleanup ou alteração do contrato público v1.
+- Registra 7 testes unitários focais, 10 testes de integração focais, publish
+  framework-dependent `linux-arm64` com assets ELF64 AArch64 e CI offline
+  integral com 268 testes .NET e 38 do Dashboard.
+- Mantém direitos/dados reais, ativação, v2, gates, lifecycle e ações externas
+  fora da autoridade executada. A mudança é `PATCH`, exclusivamente factual.
 
 ## 4.9.9 — 2026-08-07
 

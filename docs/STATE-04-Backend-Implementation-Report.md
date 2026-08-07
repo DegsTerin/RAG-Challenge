@@ -677,3 +677,133 @@ changed. `docs/api/openapi-v1.json` remained byte-identical at SHA-256
 No real source, document, licence, right or data was registered or changed;
 there was no import, indexing, activation, serving, network, provider, external
 action, Automatic Quality Gate, Human Gate or lifecycle transition.
+
+## S04-CORR-04-C outcome
+
+`S04-CORR-04-C` ran locally and sequentially under
+`AUTH-S04-CORR-04-C-001` on 2026-08-07. The mandatory baseline was
+`main@75475c391c7fc1fb5ff298492a5d1da4c4f99fbb`, corpus `4.9.9` and a clean
+working tree. The directed runtime preflight found no RAG-Challenge-owned
+product process or listener, so nothing was stopped.
+
+### Selected supply chain
+
+The mandatory supply-chain gate completed before the first repository edit.
+It used isolated NuGet packages, HTTP cache, CLI home and artefact roots. The
+temporary evidence remains outside Git and was not cleaned up. Only the eight
+authorised nupkgs were downloaded from the official NuGet v3 endpoint.
+
+| Package | Exact version | Raw nupkg SHA-256 | Published repository commit |
+|---|---:|---|---|
+| PDFtoImage | 5.3.0 | `0264d39c019cff547071f212f433165a3d48cdc43dbf4fbfd86f5e64b7cead8e` | `cf26039d5808ecc276d32217f473b014f78068fe` |
+| bblanchon.PDFium.Linux | 153.0.7988 | `1a0e738a22ca3d732af758d7f33707a02975ed010f45a21a55985412152a7751` | `c6529b58791d142002f819beb46e370e668797d7` |
+| bblanchon.PDFium.Win32 | 153.0.7988 | `0232ff7c55caa16fd4d5f6423687eb005374cb8cb5d016123a56c48ae1bd5d29` | `c6529b58791d142002f819beb46e370e668797d7` |
+| bblanchon.PDFium.macOS | 153.0.7988 | `ed3731eb546141d62ac22384b8a87f99642ddc0dc0fa59568e1a4fe3f2ec2739` | `c6529b58791d142002f819beb46e370e668797d7` |
+| SkiaSharp | 4.151.1 | `2d1feef23f28e55864cad8449f7b60abf5d6db1aa61ec07aef837e9e0eaee73e` | `279f93f4ffa7f9fe4e9c0bc298bedc3c9e439764` |
+| SkiaSharp.NativeAssets.Linux.NoDependencies | 4.151.1 | `f33aa111ff4241cf8cb03797101defc0e5aadeb1d6bb008077788543fb8b029a` | `279f93f4ffa7f9fe4e9c0bc298bedc3c9e439764` |
+| SkiaSharp.NativeAssets.Win32 | 4.151.1 | `a6e9479555440ed8fd30ee7378470144521847aea479e1efd885f3c8013fe458` | `279f93f4ffa7f9fe4e9c0bc298bedc3c9e439764` |
+| SkiaSharp.NativeAssets.macOS | 4.151.1 | `9ede7cfbfb783b29d8a98f7db233b1b10c032c917cf270fc67e5b08f90dabdd5` | `279f93f4ffa7f9fe4e9c0bc298bedc3c9e439764` |
+
+Raw nupkg and isolated-cache hashes matched. `dotnet nuget verify --all`
+returned exit code zero for every package. PDFtoImage and SkiaSharp carry
+author and NuGet repository signatures; the PDFium packages carry NuGet
+repository signatures. The current verification emitted no revocation
+limitation warning, but it is point-in-time local evidence and does not assert
+future revocation status.
+
+PDFtoImage and SkiaSharp declare MIT. The PDFium nupkgs declare Apache-2.0;
+their official packaging repository is separately MIT. This distinction is
+consistent with the authorised licence set. The PDFium archives contain no
+embedded licence or notice file; the SkiaSharp native archives include licence
+and third-party notices. Package metadata, upstream repositories and commits
+were mutually consistent.
+
+The resolved `net10.0` graph contains only the selected direct package and its
+seven centrally pinned transitive packages. Every resolved version and
+`contentHash` in the four affected repository lockfiles matches the isolated
+gate lock. Structural archive inspection found no executable download target.
+The applicable Windows PDFium and SkiaSharp assets were present. The Linux
+arm64 PDFium and SkiaSharp libraries are ELF64 AArch64 (`e_machine=183`). The
+resolved graph reported no current vulnerability or deprecation.
+
+### Implementation
+
+Commit `981e61c3308ee3407769d10ab1fa554007f12799` implements the bounded
+render-candidate path:
+
+- Application owns typed render limits, renderer/page ports, deterministic
+  descriptor identity, sanitised failure outcomes and the finalisation use
+  case;
+- the use case fails closed at `PdfVisualEvidence`, reopens the expected source
+  object, validates the complete page set before publication, writes and
+  reopens every PNG, then commits and reads back one canonical manifest;
+- the selected adapter fixes 144 DPI, no requested bounds or dimensions,
+  `Rotate0`, annotations and form fill disabled, all anti-aliasing, white
+  background, no tiling, absolute DPI and non-grayscale rendering;
+- the existing Server.Api executable returns into internal
+  `--pdf-render-worker-v1` mode before HTTP host construction and processes at
+  most one document, one page at a time;
+- the parent applies an elapsed timeout and complete-tree termination. A
+  Windows Job Object applies process CPU, process-memory, one-process and
+  kill-on-close limits before source bytes are sent. The Linux worker applies
+  CPU, address-space, output-file, core-dump and file-descriptor limits plus
+  non-dumpable process state after its bounded fixed header and before the PDF
+  body is read;
+- the worker environment is cleared before launch and receives only disabled
+  .NET diagnostics settings. The private binary protocol accepts bytes and
+  bounded numeric policy fields, never a PDF-supplied path, URL or ambient
+  authority;
+- PNG validation recomputes CRCs, enforces chunk ordering, 8-bit opaque RGB,
+  no transparency chunk, positive dimensions no greater than 4096, expected
+  rendered dimensions/aspect ratio, complete scanlines, a technical ancillary
+  allowlist and rejection of metadata-bearing or unknown chunks; and
+- the existing SQLite schema atomically writes the manifest, page bindings and
+  required content-object rows. Exact replay is idempotent; a conflicting
+  identity fails closed; readback recomputes the canonical identity.
+
+The renderer descriptor binds the exact renderer/package versions, effective
+RID, profile, pixel-affecting options, worker concurrency and every limit by a
+canonical digest. It contains no host, path, command, credential or workstation
+version. The worker contains no runtime network operation or network
+configuration; this increment did not claim an operating-system network
+sandbox.
+
+`IDocumentContentStore`, `ContentObjectDescriptor`, `IStorageMaintenance`,
+`cleanup-plan-v1` and the existing reservation/finalisation protocol were
+preserved. The render path does not call cleanup. An immutable PNG left orphaned
+by a later failure grants no deletion authority.
+
+### Verification and boundary
+
+Seven focused Application tests passed for policy/descriptor identity, both
+blocking rights states, source mismatch, all-pages-before-publication,
+incomplete ordering and verified idempotent finalisation. Ten focused
+integration tests passed for synthetic one- and multi-page PDFs, 144 DPI,
+declared rotation, aspect ratio, white background, disabled annotations/form
+fill, 4096/4097 dimensions, PNG policy, repeat byte equality, worker mode,
+cancellation/crash/truncated framing, memory limit, content reopen, replay and
+atomic manifest rollback. Architecture tests passed 10/10.
+
+A locked/offline framework-dependent `linux-arm64` restore and publish passed.
+The publish output selected only `libpdfium.so` and `libSkiaSharp.so` as the
+renderer native assets; both are ELF64 AArch64 and no Windows or macOS native
+renderer asset was published.
+
+The accepted `pwsh -NoProfile -File eng/ci.ps1 -Offline` run passed 130 unit,
+128 integration, 10 architecture and 38 Dashboard tests, with 93.53% line
+coverage (24,240/25,918), 66.80% branch coverage (3,006/4,500), a zero-warning
+Release build and a successful audit of 223 non-ignored files.
+
+Exactly four lockfiles changed: Infrastructure, Server.Api, Architecture.Tests
+and IntegrationTests. No project, solution, schema, migration, model snapshot,
+activation binding/digest, endpoint, v2 contract or public v1 behaviour
+changed. `docs/api/openapi-v1.json` remained byte-identical at SHA-256
+`d6a686b94c926914beb28b437f464430a01de6560c2e2d476cf5c36025813e34`.
+
+All PDFs and PNGs used by tests were synthetic and disposable. No real source,
+document, licence, right or data was registered or altered. No import,
+indexing, activation, serving, distribution, cleanup, provider, account,
+secret, OCI, authenticated GitHub operation, publication, deployment, push,
+Automatic Quality Gate, Human Gate or lifecycle transition occurred. Linux
+arm64 evidence is static publish/asset evidence, not execution of the worker on
+Linux or production suitability.

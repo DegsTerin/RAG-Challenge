@@ -5352,3 +5352,63 @@ contém somente fatos cronológicos.
   `S04-CORR-04-C`, primeiro incremento ainda não executado do envelope
   `S04-CORR-04-PREP`, preservando v1, o escopo negativo e as condições de
   parada vigentes.
+
+## 2026-08-07 — S04-CORR-04-C deterministic PDF rendering and verified render-candidate finalisation
+
+- Baseline: branch `main`, commit
+  `75475c391c7fc1fb5ff298492a5d1da4c4f99fbb`, corpus `4.9.9` e working tree
+  limpa, confirmados antes da primeira alteração. OpenAPI v1 correspondia ao
+  SHA-256
+  `d6a686b94c926914beb28b437f464430a01de6560c2e2d476cf5c36025813e34`.
+- Autoridade: `AUTH-S04-CORR-04-C-001`, exclusivamente para implementação
+  local e sequencial do renderer selecionado, isolamento, validação de PNG e
+  finalização verificada do render candidate, com owner técnico corretivo de
+  `STATE-04` e sem gate ou avanço de lifecycle.
+- Runtime preflight: a inspeção dirigida encontrou zero processo de produto e
+  zero listener comprovadamente pertencente ao RAG-Challenge; nada foi
+  encerrado antes da implementação.
+- Supply chain: caches, CLI home e artefactos isolados foram usados para as oito
+  identidades e versões exatas. Assinaturas, hashes raw/cache, `contentHash`,
+  licenças, repositórios/commits upstream, grafo, build targets e assets nativos
+  foram conferidos antes da edição. Não houve advisory ou depreciação material;
+  os assets Linux arm64 de PDFium e SkiaSharp são ELF64 AArch64. A distinção
+  oficial entre licença Apache-2.0 dos nupkgs PDFium e licença MIT do repositório
+  de empacotamento foi registrada sem divergência da seleção autorizada.
+- Implementação: commit
+  `981e61c3308ee3407769d10ab1fa554007f12799`; adiciona o adapter
+  `pdfium-pdftoimage-v1`, opções fixas do perfil `pdf-page-png-v1`, worker
+  interno de um documento no executável existente, framing privado limitado,
+  contenção antes do envio dos bytes, ambiente sanitizado, validação estrutural
+  de PNG, publicação/reabertura verificadas e commit/readback idempotente e
+  atômico do manifest nas tabelas existentes.
+- Verificações focais: 7 casos unitários e 10 de integração passaram com bytes
+  exclusivamente sintéticos, cobrindo gates de direitos, identidade da fonte,
+  limites, determinismo, rotação, dimensões, fundo branco, annotations/form
+  fill desativados, PNG, falhas do worker, reabertura de objetos e atomicidade
+  do manifest. A suíte de arquitetura passou 10/10.
+- Verificação de publicação: restore locked/offline e publish
+  framework-dependent `linux-arm64` passaram; o diretório publicado contém
+  `libpdfium.so` e `libSkiaSharp.so` ELF64 AArch64 (`e_machine=183`) e nenhum
+  asset nativo de RID estrangeiro.
+- Verificação integral: `pwsh -NoProfile -File eng/ci.ps1 -Offline` passou 130
+  testes unitários, 128 de integração, 10 de arquitetura e 38 do Dashboard;
+  cobertura de 93,53% de linhas e 66,80% de branches; build Release sem aviso;
+  auditoria de 223 arquivos aprovada.
+- Compatibilidade: somente os quatro lockfiles previstos mudaram. Não houve
+  projeto novo, schema, migration, model snapshot, ativação, endpoint, v2 ou
+  alteração pública v1. OpenAPI v1 permaneceu byte a byte no SHA-256 exigido.
+- Escopo negativo observado: nenhuma fonte, PDF, PNG, licença, direito ou dado
+  real foi usado; sem importação, indexação, ativação, serving, cleanup,
+  provider, conta, secret, OCI, GitHub autenticado, publicação, deploy, push,
+  Automatic Quality Gate, Human Gate ou mudança de lifecycle. A evidência
+  temporária de supply chain permanece fora do Git e não foi apagada.
+- Corpus: `4.9.10` (`PATCH`), exclusivamente para reconciliar os registros
+  factuais com a implementação e a evidência observada.
+- Estado resultante: `STATE-07 TESTING_HOMOLOGATION` permanece ativo;
+  `S04-CORR-04-C` está concluído somente na fronteira local, sintética e
+  estática descrita. `S04-CORR-04-D` e incrementos posteriores não foram
+  iniciados.
+- Próxima condição: autoridade humana explícita e separada para
+  `S04-CORR-04-D`, primeiro incremento ainda não executado do envelope
+  `S04-CORR-04-PREP`, preservando v1, o escopo negativo e as condições de
+  parada vigentes.
