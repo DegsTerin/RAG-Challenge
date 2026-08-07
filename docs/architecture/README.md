@@ -164,6 +164,9 @@ Dashboard -- versioned HTTP --> API
 - [ADR-0007 — Generation Identity and Freshness Observation Rebinding](ADR-0007-Generation-Identity-And-Freshness-Observation-Rebinding.md)
   (`accepted`; corrective semantic reconciliation applied and renewed audit
   approved)
+- [ADR-0008 — Product Corpus Storage and Page-Image Evidence](ADR-0008-Product-Corpus-Storage-And-Page-Image-Evidence.md)
+  (`proposed`; owner decision and separately authorised reconciliation remain
+  required)
 
 ## STATE-02 design artefacts
 
@@ -202,3 +205,9 @@ change required by `AQG-S02-001`; the renewed audit disposed all three
 historical findings without altering the accepted architecture. The other
 inputs do not reopen that architecture merely by remaining conditional or
 unverified.
+
+On 2026-08-07, the owner authorised preparation of ADR-0008 as a change
+proposal during `STATE-07`. It records a requirement for durable product
+corpus storage and persistent PDF page-image evidence. Its `proposed` status
+does not alter accepted storage, citation, API or lifecycle authority and does
+not authorise moving source bytes, rendering images or activating content.
