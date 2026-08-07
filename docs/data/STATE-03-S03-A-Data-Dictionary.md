@@ -208,6 +208,40 @@ manifest persistence. `IStorageMaintenance`, the versioned cleanup plan and
 reservation/finalisation protocol remain the sole existing physical-deletion
 authority and retain their prior semantics.
 
+### `S04-CORR-04-B` document-rights eligibility boundary
+
+`S04-CORR-04-B` implements a provider-neutral, non-persisted rights contract
+for one exact document version:
+
+| Contract field | Type | Invariant |
+|---|---|---|
+| `schemaVersion` | Positive integer | Exactly `1` for `DocumentRightsEligibilityRecordV1`. |
+| `documentId` | `DocumentId` | Exact governed document identity. |
+| `documentVersion` | `DocumentVersionNumber` | Exact immutable document version. |
+| `decisions[]` | Ordered `DocumentRightDecision` | Contains every schema-v1 right exactly once. |
+
+The closed schema-v1 right set independently covers source possession or
+download, parsing and textual transformation, indexing, source-byte retention,
+quotation and citation, page rendering, derivative-image creation and
+retention, runtime derivative display, source/derivative distribution or
+publication, and attribution/notice/trademark/change-marking requirements.
+Each decision contains one closed state — `Permitted`, `Denied` or `Unproven`
+— and one stable `DocumentRightsEvidenceReference`. The reference carries no
+licence text, URL, path, policy authority or persistence semantics.
+
+Application exposes fixed `TextualEvidence` and `PdfVisualEvidence` gates.
+The textual gate requires possession/download, parsing/textual transformation,
+indexing, source-byte retention, quotation/citation and the attribution/notice
+requirement. The PDF visual gate additionally requires page rendering,
+derivative creation/retention and runtime display. Only `Permitted` satisfies a
+required decision; `Denied` and `Unproven` both block. Distribution/publication
+remains an independent decision and is never inferred from textual or visual
+eligibility.
+
+This increment adds no catalogue field, Control row, schema, migration or real
+rights evidence. It performs no registration, rendering, indexing, activation,
+serving, distribution or cleanup operation.
+
 ### `CatalogueSnapshot`
 
 | Field | Type | Null | Invariant |

@@ -605,6 +605,29 @@ proprietários.
   persistidos, digests de ativação, v2, dados reais e ações externas não foram
   alterados. O corpus `4.9.8` registra somente esse fato; `STATE-07` permanece
   ativo, sem gate ou transição, e nenhum incremento posterior foi iniciado.
+- Implementação corretiva `S04-CORR-04-B`: autorizada por
+  `AUTH-S04-CORR-04-B-001` em 2026-08-07 sobre
+  `main@196bbcafcb493ce4e45a2c9e784965ff933f124d`, corpus `4.9.8` e working
+  tree limpa, com owner técnico corretivo de `STATE-04`. O runtime preflight
+  dirigido encontrou zero processo de produto e zero listener do
+  RAG-Challenge; nada foi encerrado. O commit
+  `a886a944ecd1ce485eee9c072385e96210e90520` introduz o registro tipado
+  `DocumentRightsEligibilityRecordV1`, as dez decisões independentes de
+  ADR-0008, os estados fechados `Permitted`, `Denied` e `Unproven`, referências
+  estáveis de evidência e gates fixos textual/visual que aceitam somente
+  permissões explícitas. Distribuição/publicação permanece decisão separada e
+  não é inferida dos demais direitos.
+- Verificação de `S04-CORR-04-B`: 14 casos unitários sintéticos focais passaram;
+  `eng/ci.ps1 -Offline` aprovou 123 testes unitários, 118 de integração, 10 de
+  arquitetura, 38 do Dashboard, cobertura de 93,72% de linhas e 67,20% de
+  branches e auditoria de 216 arquivos. OpenAPI v1 permaneceu byte a byte no
+  SHA-256
+  `d6a686b94c926914beb28b437f464430a01de6560c2e2d476cf5c36025813e34`.
+  Packages, lockfiles, schema, migrations, renderer, PNG, persistência de
+  direitos/manifests, ativação, v2, fonte/licença/direito/dado real, rede e
+  ações externas não mudaram. O corpus `4.9.9` registra somente esse fato;
+  `STATE-07` permanece ativo, sem gate ou transição, e `S04-CORR-04-C` ou
+  incremento posterior não foi iniciado.
 - Fechamento de `S04-A0`: `PdfPig` `0.1.15` e `CsvHelper` `33.1.0` foram
   selecionados condicionalmente para desenvolvimento local;
   `Sylvan.Data.Csv` `1.4.4` permanece fallback não selecionado e não
@@ -1100,8 +1123,10 @@ proprietários.
   ativação/rollback por nova revisão do registro completo versionado.
 - Arquitetura aceita torna `IDocumentContentStore` a autoridade permanente para
   fonte e PNGs content-addressed, exige render manifest PDF completo, direitos
-  específicos e serving visual vinculado à citação. Essa capacidade não está
-  implementada; nenhum PNG existe sob esta reconciliação.
+  específicos e serving visual vinculado à citação. A fronteira executável do
+  content store e os contratos/gates de direitos estão implementados em
+  incrementos corretivos separados; renderer, PNG, ativação visual, serving e
+  contrato v2 permanecem não implementados.
 - Contrato HTTP/OpenAPI v1 versionado pertencente ao RAG-Challenge; adapters
   consumidores permanecem fora deste repositório.
 - Contrato v2 com BCP 47 documental e evidência visual permanece somente
@@ -1146,21 +1171,21 @@ autorizada.
 8. Materializar `rag-eval-catalogue-v1`, a rubrica e thresholds antes de cada
    execução pontuada, preservando a matriz `pt-BR`/`en-GB` e acrescentando
    estratos por tag documental exata sem contar `en` como `en-GB`.
-9. `S03-CORR-01` concluiu os tipos, schema/migration e reachability do primeiro
-   item da ordem de dependência. Obter autoridade separada para o segundo item,
-   com owner técnico de `STATE-04`: content store permanente de fonte/PNG,
-   renderização determinística, direitos, ativação atômica e contrato v2,
-   preservando a OpenAPI v1.
+9. `S03-CORR-01` concluiu o primeiro item da ordem de dependência.
+   `S04-CORR-04-A` concluiu descritores verificados do content store e
+   `S04-CORR-04-B` concluiu contratos/gates de direitos. Obter autoridade
+   separada para `S04-CORR-04-C`, primeiro incremento ainda não executado do
+   segundo item, preservando a OpenAPI v1 e os limites já registrados.
 
 ## Próxima autoridade
 
-O primeiro refinamento arquitetural ainda não concluído é o item 2 da ordem
-registrada em Lifecycle. Não existe autoridade de execução para ele. A próxima
-ação concreta é o proprietário autorizar um incremento delimitado, com owner
-técnico de `STATE-04`, para preparar seu envelope executável de content store,
-renderer, direitos, ativação e v2, preservando v1 e parando diante de qualquer
-dependência, ADR ou semântica ainda não decidida. Revisar os commits já
-concluídos de `S03-CORR-01` não substitui essa ação.
+O segundo refinamento arquitetural da ordem registrada em Lifecycle permanece
+parcial: `S04-CORR-04-A` e `S04-CORR-04-B` estão concluídos, sem executar os
+incrementos posteriores. Não existe autoridade vigente para
+`S04-CORR-04-C`. A próxima ação concreta é o proprietário autorizar esse
+primeiro incremento ainda não executado dentro do envelope preparado,
+preservando v1 e as condições de parada registradas. Revisar genericamente os
+commits já concluídos não substitui essa ação.
 
 `STATE-04 BACKEND_IMPLEMENTATION` está encerrado após Automatic Quality Gate
 aprovado e Human Gate aprovado com as ressalvas documentadas em 2026-08-04. O

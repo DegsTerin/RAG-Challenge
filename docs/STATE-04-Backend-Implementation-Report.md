@@ -632,3 +632,48 @@ remained byte-identical at SHA-256
 No renderer or PNG was produced, no rights record or real source was touched,
 and no network, provider, dataset, indexing, activation, external action,
 Automatic Quality Gate, Human Gate or lifecycle transition occurred.
+
+## S04-CORR-04-B outcome
+
+`S04-CORR-04-B` ran locally, offline and sequentially under
+`AUTH-S04-CORR-04-B-001` on 2026-08-07. The mandatory baseline was
+`main@196bbcafcb493ce4e45a2c9e784965ff933f124d`, corpus `4.9.8` and a clean
+working tree. The directed runtime preflight found no RAG-Challenge-owned
+product process or listener on the known project ports, so nothing was
+stopped before implementation.
+
+Commit `a886a944ecd1ce485eee9c072385e96210e90520` implements only typed
+document-rights eligibility contracts and fixed fail-closed gates:
+
+- `DocumentRightsEligibilityRecordV1` binds schema version `1` to one exact
+  `DocumentId` and `DocumentVersionNumber` and requires every independent
+  ADR-0008 rights decision exactly once;
+- `DocumentRightDecisionState` is closed to `Permitted`, `Denied` and
+  `Unproven`; each decision has a stable evidence reference while licence text,
+  paths, URLs, policy authority and persistence remain outside the contract;
+- the rights set covers possession/download, parsing/text transformation,
+  indexing, source retention, quotation/citation, page rendering, derivative
+  creation/retention, runtime display, distribution/publication and
+  attribution/notice/trademark/change-marking requirements;
+- the fixed `TextualEvidence` and `PdfVisualEvidence` policies accept only
+  `Permitted` required decisions and return every blocking `Denied` or
+  `Unproven` decision; and
+- distribution/publication remains independently gated and is not inferred
+  from textual or visual eligibility.
+
+Focused verification passed all 14 synthetic rights-contract and gate cases,
+including complete/duplicate/missing records, closed states, evidence-reference
+bounds, every individual right, textual requirements, visual requirements and
+both blocking states. The accepted
+`pwsh -NoProfile -File eng/ci.ps1 -Offline` run passed 123 unit, 118
+integration, 10 architecture and 38 Dashboard tests, with 93.72% line coverage
+(23,263/24,821), 67.20% branch coverage (2,766/4,116), a zero-warning Release
+build and a successful audit of 216 non-ignored files.
+
+No package, lockfile, schema, migration, renderer, PNG, persisted rights or
+render-manifest record, activation binding/digest, endpoint or public contract
+changed. `docs/api/openapi-v1.json` remained byte-identical at SHA-256
+`d6a686b94c926914beb28b437f464430a01de6560c2e2d476cf5c36025813e34`.
+No real source, document, licence, right or data was registered or changed;
+there was no import, indexing, activation, serving, network, provider, external
+action, Automatic Quality Gate, Human Gate or lifecycle transition.

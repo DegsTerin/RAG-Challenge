@@ -2,10 +2,10 @@
 
 ## Versão atual
 
-- Versão: `4.9.8`
+- Versão: `4.9.9`
 - Data: 2026-08-07
-- Status: `STATE-07` ativo; `S04-CORR-04-A` concluído, sem autoridade para
-  incremento posterior, gate ou mudança de lifecycle
+- Status: `STATE-07` ativo; `S04-CORR-04-A` e `S04-CORR-04-B` concluídos, sem
+  autoridade para `S04-CORR-04-C`, gate ou mudança de lifecycle
 - Escopo: 13 arquivos ativos em `prompts/`
 
 A versão do corpus é independente da versão futura do software.
@@ -19,6 +19,27 @@ A versão do corpus é independente da versão futura do software.
 
 Toda alteração atualiza este arquivo e, quando necessário,
 [`../Start-Here.md`](../Start-Here.md).
+
+## 4.9.9 — 2026-08-07
+
+- Registra a implementação local, offline e sequencial de `S04-CORR-04-B` sob
+  `AUTH-S04-CORR-04-B-001` no commit
+  `a886a944ecd1ce485eee9c072385e96210e90520`.
+- Registra `DocumentRightsEligibilityRecordV1`, as dez decisões independentes
+  de ADR-0008, os estados `Permitted`, `Denied` e `Unproven` e a referência
+  estável de evidência exigida por decisão.
+- Registra os gates fixos `TextualEvidence` e `PdfVisualEvidence`: somente
+  `Permitted` satisfaz um requisito; distribuição/publicação permanece
+  independente e não é inferida de elegibilidade textual ou visual.
+- Registra 14 testes sintéticos focais e o CI offline integral com 251 testes
+  .NET, 38 do Dashboard, 93,72% de linhas e 67,20% de branches, além da
+  preservação byte a byte da OpenAPI v1.
+- Mantém persistência de direitos, schema/migration, renderer, PNG, render
+  manifest persistido, ativação, v2, fonte/dado/direito real, gates, lifecycle
+  e ações externas fora da autoridade executada.
+- Atualiza Current State, histórico append-only, Data Dictionary, relatório de
+  `STATE-04` e este changelog. A mudança é `PATCH`, factual, sem alterar
+  autoridade, lifecycle ou a ordem dos incrementos restantes.
 
 ## 4.9.8 — 2026-08-07
 

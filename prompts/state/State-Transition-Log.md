@@ -5300,3 +5300,55 @@ contém somente fatos cronológicos.
 - Próxima condição: autoridade humana explícita e separada para o primeiro
   incremento ainda não executado do envelope `S04-CORR-04`, preservando o
   escopo negativo e a ordem de dependência vigente.
+
+## 2026-08-07 — S04-CORR-04-B document rights eligibility contracts
+
+- Baseline: branch `main`, commit
+  `196bbcafcb493ce4e45a2c9e784965ff933f124d`, corpus `4.9.8` e working tree
+  limpa, confirmados antes da primeira alteração. OpenAPI v1 correspondia ao
+  SHA-256
+  `d6a686b94c926914beb28b437f464430a01de6560c2e2d476cf5c36025813e34`.
+- Autoridade: `AUTH-S04-CORR-04-B-001`, exclusivamente para a implementação
+  local, offline e sequencial dos contratos/gates de elegibilidade de direitos,
+  com owner técnico corretivo de `STATE-04` e sem gate ou avanço de lifecycle.
+- Runtime preflight: a inspeção dirigida encontrou zero processo de produto e
+  zero listener comprovadamente pertencente ao RAG-Challenge; nada foi
+  encerrado antes da implementação.
+- Implementação: commit
+  `a886a944ecd1ce485eee9c072385e96210e90520`; introduz
+  `DocumentRightsEligibilityRecordV1` vinculado a uma versão documental exata,
+  exige uma decisão para cada um dos dez domínios de ADR-0008, fecha os estados
+  em `Permitted`, `Denied` e `Unproven` e exige uma referência estável de
+  evidência por decisão.
+- Gates: `TextualEvidence` e `PdfVisualEvidence` aceitam somente direitos
+  requeridos explicitamente `Permitted` e retornam todas as decisões
+  bloqueantes. Posse/download, parsing/transformação, indexação, retenção,
+  citação, rendering, criação/retenção de derivado, display,
+  distribuição/publicação e requisitos de atribuição/notice permanecem
+  independentes; distribuição não é inferida de elegibilidade textual/visual.
+- Verificações focais: 14 casos unitários sintéticos passaram, cobrindo registro
+  completo, ausência/duplicidade, estados fechados, referência de evidência,
+  os dez direitos individuais, gates textual/visual e bloqueio por `Denied` ou
+  `Unproven`.
+- Verificação integral: `pwsh -NoProfile -File eng/ci.ps1 -Offline` passou 123
+  testes unitários, 118 de integração, 10 de arquitetura e 38 do Dashboard;
+  cobertura de 93,72% de linhas e 67,20% de branches; build Release sem aviso;
+  auditoria de 216 arquivos aprovada.
+- Compatibilidade: nenhum package, lockfile, schema, migration, renderer, PNG,
+  persistência de direitos/render manifest, ativação, endpoint ou contrato
+  público mudou. OpenAPI v1 permaneceu byte a byte no SHA-256
+  `d6a686b94c926914beb28b437f464430a01de6560c2e2d476cf5c36025813e34`.
+- Escopo negativo observado: nenhuma fonte, documento, licença, direito ou dado
+  real foi cadastrado ou alterado; sem import, indexação, ativação, serving,
+  v2, rede, provider, ação externa, Automatic Quality Gate, Human Gate ou
+  mudança de lifecycle.
+- Corpus: `4.9.9` (`PATCH`), exclusivamente para reconciliar os registros
+  factuais com a implementação e a evidência observada.
+- Estado resultante: `STATE-07 TESTING_HOMOLOGATION` permanece ativo;
+  `S04-CORR-04-B` está concluído somente na fronteira local, offline, sintética
+  e estática descrita. `S04-CORR-04-C` e incrementos posteriores não foram
+  iniciados.
+- Próxima condição: autoridade humana explícita e separada para
+  `S04-CORR-04-C`, primeiro incremento ainda não executado do envelope
+  `S04-CORR-04-PREP`, preservando v1, o escopo negativo e as condições de
+  parada vigentes.
