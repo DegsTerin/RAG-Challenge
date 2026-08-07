@@ -5053,3 +5053,43 @@ contém somente fatos cronológicos.
 - Próxima condição: autoridade humana explícita e separada para reconciliar
   semanticamente a ADR-0008 antes de qualquer implementação ou execução.
 - Aprovador da decisão: proprietário do RAG-Challenge.
+
+## 2026-08-07 — ADR-0009 proposta para taxonomia de idiomas documentais
+
+- Baseline: branch `main`, commit
+  `8b4e98dc336b13183b936c5ac974968714e43765`, corpus `4.9.4` e working tree
+  limpa, confirmados antes da preparação.
+- Autoridade: solicitação explícita do proprietário para preparar somente a
+  proposta documental de ADR-0009, sem aceitar a decisão, reconciliar ADR-0008
+  ou alterar contratos, OpenAPI, modelo, dataset ou runtime.
+- Bloqueio observado: o PDF PostgreSQL 18.4 declara a tag BCP 47 `en`, enquanto
+  os contratos e o data dictionary vigentes restringem `contentLanguage` a
+  `pt-BR` e `en-GB` e proíbem valor neutro, inferido ou de fallback.
+- Alternativas comparadas: manter documentos restritos a `pt-BR`/`en-GB`;
+  separar idiomas de pergunta/resposta de tags documentais BCP 47 mais amplas;
+  ou mapear tags menos específicas para uma variante suportada.
+- Decisão proposta: selecionar a taxonomia separada, preservar o `en`
+  declarado sem mapeamento para `en-GB`, manter `questionLanguage` e
+  `answerLanguage` fechados em `pt-BR`/`en-GB`, conservar a matriz obrigatória
+  de quatro pares e criar estratos adicionais por tag documental exata.
+- Compatibilidade proposta: OpenAPI v1 permanece inalterado; qualquer tag
+  documental mais ampla e a evidência visual de ADR-0008 podem integrar
+  somente um futuro contrato v2 separadamente reconciliado, implementado e
+  testado.
+- Escopo do registro: criar ADR-0009 com status `proposed`, atualizar o índice
+  arquitetural, registrar a proposta e o bloqueio no estado factual e
+  acrescentar esta entrada exclusivamente no EOF.
+- Escopo negativo: sem aceitação de ADR, reconciliação semântica, alteração do
+  corpus normativo ou de sua versão, contratos canônicos, OpenAPI, data
+  dictionary, código, testes, schema, migrations, dependências, lockfiles,
+  PDF ou registro de elegibilidade; sem dataset, indexação, ativação,
+  providers, browser, rede, renderização, PNGs ou ação externa.
+- Runtime preflight: `NÃO APLICÁVEL`; a mudança é exclusivamente documental e
+  não altera nem valida comportamento executável.
+- Estado resultante: ADR-0009 `proposed`; ADR-0008 permanece `accepted`, mas
+  sua reconciliação semântica continua bloqueada até decisão humana explícita
+  sobre a taxonomia. `STATE-07 TESTING_HOMOLOGATION` permanece ativo sem novo
+  lote ou execução autorizada.
+- Próxima condição: o proprietário aceita, rejeita ou solicita revisão da
+  ADR-0009 por decisão explícita e independente.
+- Aprovador da preparação: proprietário do RAG-Challenge.

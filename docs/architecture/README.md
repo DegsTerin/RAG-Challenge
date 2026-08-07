@@ -167,6 +167,9 @@ Dashboard -- versioned HTTP --> API
 - [ADR-0008 — Product Corpus Storage and Page-Image Evidence](ADR-0008-Product-Corpus-Storage-And-Page-Image-Evidence.md)
   (`accepted`; separately authorised semantic reconciliation and implementation
   remain required)
+- [ADR-0009 — Document, Evidence and Query Language Taxonomy](ADR-0009-Document-Evidence-And-Query-Language-Taxonomy.md)
+  (`proposed`; preserves source-declared BCP 47 tags without changing the
+  current query-language or OpenAPI v1 contracts)
 
 ## STATE-02 design artefacts
 
@@ -212,3 +215,11 @@ proposal during `STATE-07` and later accepted it explicitly on baseline
 architectural authority for durable product-corpus storage and persistent PDF
 page-image evidence. Acceptance does not reconcile other normative documents,
 implement the decision, move source bytes, render images or activate content.
+
+Preparation of ADR-0009 was authorised on 2026-08-07 after the PostgreSQL PDF
+language tag `en` exposed a conflict with the current closed `pt-BR`/`en-GB`
+document-language contract. The proposal recommends separating document and
+evidence language tags from query and answer languages, rejects implicit
+`en` to `en-GB` mapping and keeps OpenAPI v1 unchanged. ADR-0009 remains
+`proposed`; no semantic reconciliation or implementation follows by
+implication.
