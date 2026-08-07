@@ -509,6 +509,15 @@ proprietários.
   observação de rede em nível de pacotes e migration em banco real.
   `STATE-06 INTEGRATION` está encerrado. A decisão não autorizou nem iniciou
   `STATE-07`, rede, OCI, publicação ou deploy.
+- Entrada documental em `STATE-07 TESTING_HOMOLOGATION`: autorizada e
+  registrada em 2026-08-06 sobre
+  `main@3240a4b13acd82a1cf5815ac64f6997b2a7f89bf`, corpus `4.9.3` e working
+  tree limpa. A autoridade abrange somente o snapshot factual, o histórico
+  append-only, os blocos de status público estritamente necessários e um
+  commit local focal. `STATE-07` está ativo sem lote autorizado ou executado.
+  Dataset, avaliação RAG, testes, carga, segurança dinâmica, browser,
+  providers, fontes reais, rede, OCI, GitHub, publicação, deploy, `STATE-08`
+  e qualquer ação externa permanecem não autorizados e não executados.
 - Fechamento de `S04-A0`: `PdfPig` `0.1.15` e `CsvHelper` `33.1.0` foram
   selecionados condicionalmente para desenvolvimento local;
   `Sylvan.Data.Csv` `1.4.4` permanece fallback não selecionado e não
@@ -1007,9 +1016,10 @@ autorizada.
    para cada banco antes de sua ativação.
 2. Validar e ativar individualmente novos registros de fonte oficial; a
    aceitação arquitetural não autoriza URL, rede, download ou crawling.
-3. Manter `STATE-07` sem entrada ou execução até autoridade explícita e
-   separada do proprietário; o Human Gate de `STATE-06` está `APROVADO COM
-   RESSALVAS`, mas não concede essa autoridade.
+3. Obter autoridade explícita e separada antes de qualquer lote de
+   `STATE-07`; o estado está ativo somente por entrada documental, sem
+   dataset, avaliação, teste, carga, segurança dinâmica ou homologação
+   autorizados ou executados.
 4. Verificar tier, entitlement, spend limit e controles da conta OpenAI, além
    da recuperação/geração bilíngue, antes de usar ou anunciar os providers.
 5. Homologar desempenho e capacidade do `SqliteExactVectorStore`; a fixture
@@ -1296,3 +1306,12 @@ fontes e armazenamento reais, cobertura percentual JavaScript, observação de
 pacotes e migration real permanecem explícitas. `STATE-06 INTEGRATION` está
 encerrado; `STATE-07` não foi autorizado nem iniciado, e nenhuma ação externa
 foi executada.
+
+Em 2026-08-06, sobre
+`main@3240a4b13acd82a1cf5815ac64f6997b2a7f89bf`, corpus `4.9.3` e working
+tree limpa, o proprietário autorizou exclusivamente a entrada documental em
+`STATE-07 TESTING_HOMOLOGATION` e a reconciliação dos blocos de status
+público necessários. `STATE-07` está ativo sem lote autorizado ou executado.
+Qualquer dataset, avaliação RAG, teste, carga, segurança dinâmica, browser,
+provider, fonte real, rede, OCI, GitHub, publicação, deploy, `STATE-08` ou
+ação externa exige autoridade humana explícita e separada.

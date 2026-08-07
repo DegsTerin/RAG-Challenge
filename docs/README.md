@@ -2,19 +2,17 @@
 
 ## Status
 
-Este índice descreve o corpus documental vigente `4.9.1`. `STATE-00`,
-`GATE-B01`, `STATE-01` e `STATE-02` estão encerrados com os respectivos gates
-aprovados, e ADR-0002 a ADR-0007 têm o status factual indicado no índice de
-arquitetura. O proprietário autorizou a entrada em `STATE-03
-DATA_AND_INDEX_MODELING` em 2026-08-02 somente para a execução local e
-sequencial de `S03-A`.
+Este índice descreve o corpus documental vigente `4.9.3`. `STATE-00`,
+`GATE-B01` e `STATE-01` a `STATE-06` estão encerrados com seus gates
+registrados. `STATE-07 TESTING_HOMOLOGATION` está ativo exclusivamente por
+entrada documental sobre
+`main@3240a4b13acd82a1cf5815ac64f6997b2a7f89bf`, sem lote autorizado ou
+executado.
 
-O modelo lógico, as invariantes, os vetores canônicos e as fixtures de `S03-A`
-estão registrados no relatório e no dicionário abaixo. `S03-B` permanece
-bloqueado: não existem novas dependências, migrations ou stores persistentes.
-O Automatic Quality Gate, o Human Gate, o encerramento de `STATE-03` e a
-entrada em `STATE-04` também permanecem pendentes. Relatórios são evidência
-histórica; o presente factual pertence a
+Dataset, avaliação RAG, testes, carga, segurança dinâmica, browser,
+providers, fontes reais, rede, OCI, GitHub, publicação e deploy permanecem
+não autorizados e não executados. Relatórios são evidência histórica; o
+presente factual pertence a
 [`Current-State.md`](../prompts/state/Current-State.md).
 
 ## Comece aqui

@@ -4876,3 +4876,61 @@ contém somente fatos cronológicos.
 - Relatório atualizado:
   [`STATE-06-Integration-Report.md`](../../docs/STATE-06-Integration-Report.md).
 - Aprovador: proprietário do RAG-Challenge.
+
+## 2026-08-06 — Entrada documental em STATE-07 TESTING_HOMOLOGATION autorizada
+
+- Estado anterior: `STATE-06 INTEGRATION` encerrado após Automatic Quality
+  Gate `APROVADO` e Human Gate `APROVADO COM RESSALVAS`; `STATE-07` ainda não
+  iniciado nem autorizado.
+- Estado solicitado: `STATE-07 TESTING_HOMOLOGATION`.
+- Baseline confirmada antes da escrita: localização
+  `C:\Projects\RAG-Challenge`, Git top-level `C:/Projects/RAG-Challenge`, Git
+  directory `.git`, branch `main`, commit
+  `3240a4b13acd82a1cf5815ac64f6997b2a7f89bf`, corpus `4.9.3` e working tree
+  limpa.
+- Autoridade: solicitação explícita do proprietário para retomar e registrar
+  exclusivamente a entrada documental em `STATE-07`, reconciliar os blocos
+  de status estritamente necessários em `README.md` e `docs/README.md`,
+  validar o incremento e criar um commit local focal.
+- Achado reconciliado: o bloco `Status` de `docs/README.md` ainda declarava
+  corpus `4.9.1`, `STATE-03` ativo e `STATE-04` pendente. A execução anterior
+  parou antes de editar; o proprietário autorizou explicitamente corrigir
+  somente esse bloco no mesmo incremento.
+- Decisão: registrar `STATE-07 TESTING_HOMOLOGATION` como ativo exclusivamente
+  no lifecycle documental, sem autorizar ou executar qualquer lote.
+- Escopo: atualizar o snapshot factual e este histórico append-only;
+  reconciliar somente os blocos públicos de status necessários; validar
+  escopo, links, UTF-8/LF, whitespace, coerência factual e diff; criar um
+  único commit local focal.
+- Escopo negativo: sem dataset, avaliação RAG, testes, carga, segurança
+  dinâmica, browser, providers, fontes reais, rede, OCI, GitHub, publicação,
+  deploy, `STATE-08` ou ação externa; sem código, testes, dependências,
+  lockfiles, contratos, OpenAPI, schema, migrations ou ADRs.
+- Pré-condições: fechamento de `STATE-06` e suas ressalvas preservados;
+  baseline exata e limpa reconfirmada; divergência do índice público disposta
+  por autoridade adicional na mesma conversa.
+- Runtime preflight: `NÃO APLICÁVEL`; o incremento altera somente documentação
+  e memória de lifecycle, sem alterar ou validar comportamento executável.
+- Mudanças: `prompts/state/Current-State.md` registra `STATE-07` ativo sem
+  lote; esta entrada preserva autoridade, baseline e limites; `README.md` e
+  `docs/README.md` refletem somente o status factual vigente.
+- Verificações/evidências: branch, HEAD, corpus, localização, Git top-level,
+  Git directory e working tree foram reconfirmados antes da escrita; o diff
+  inicial permaneceu restrito aos documentos autorizados e passou em
+  `git diff --check`.
+- Validação final: `eng/check-repository.ps1` aprovou 203 arquivos não
+  ignorados; o diff permaneceu restrito aos quatro documentos autorizados; o
+  histórico possui um único hunk terminal e zero remoção; UTF-8 sem BOM, LF,
+  newline final, whitespace, NUL, links, assertions factuais e
+  `git diff --check` foram aprovados.
+- Limitações/riscos: todas as ressalvas do Human Gate de `STATE-06`
+  permanecem. A entrada documental não materializa dataset, threshold,
+  ambiente, provider, corpus, fonte, teste ou evidência de homologação.
+- Automatic Quality Gate de `STATE-07`: `PENDENTE` e não executado.
+- Human Gate de `STATE-07`: `PENDENTE`, não preparado e não executado.
+- Estado resultante: `STATE-07 TESTING_HOMOLOGATION` ativo exclusivamente por
+  entrada documental; nenhum lote está autorizado ou executado.
+- Próxima condição: autoridade humana explícita e separada para qualquer lote
+  delimitado de `STATE-07`, com dataset, checks, ambiente, escopo negativo e
+  condições de parada próprios.
+- Aprovador da entrada: proprietário do RAG-Challenge.

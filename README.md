@@ -12,8 +12,10 @@ em linguagem natural, com respostas fundamentadas e referências às fontes.
 > pelo entry point automático, e `AQG-S06-005` está `RESOLVIDO`, assim como
 > `AQG-S06-001` a `AQG-S06-004`. O Human Gate de `STATE-06` foi `APROVADO
 > COM RESSALVAS` sobre
-> `main@2f70705dcbe293b22ccd039d0764b2b9ca4b2e8a`; `STATE-07` não foi
-> iniciado nem autorizado. Não existe
+> `main@2f70705dcbe293b22ccd039d0764b2b9ca4b2e8a`. A entrada documental de
+> `STATE-07` foi registrada sobre
+> `main@3240a4b13acd82a1cf5815ac64f6997b2a7f89bf`, corpus `4.9.3`; o estado
+> está ativo sem lote autorizado ou executado. Não existe
 > corpus, provider, fonte oficial, execução Linux, OCI ou produção reais, nem
 > publicação ou deploy.
 
