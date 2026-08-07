@@ -168,8 +168,8 @@ Dashboard -- versioned HTTP --> API
   (`accepted`; separately authorised semantic reconciliation and implementation
   remain required)
 - [ADR-0009 — Document, Evidence and Query Language Taxonomy](ADR-0009-Document-Evidence-And-Query-Language-Taxonomy.md)
-  (`proposed`; preserves source-declared BCP 47 tags without changing the
-  current query-language or OpenAPI v1 contracts)
+  (`accepted`; semantic reconciliation and implementation remain separately
+  authorised)
 
 ## STATE-02 design artefacts
 
@@ -218,8 +218,10 @@ implement the decision, move source bytes, render images or activate content.
 
 Preparation of ADR-0009 was authorised on 2026-08-07 after the PostgreSQL PDF
 language tag `en` exposed a conflict with the current closed `pt-BR`/`en-GB`
-document-language contract. The proposal recommends separating document and
-evidence language tags from query and answer languages, rejects implicit
-`en` to `en-GB` mapping and keeps OpenAPI v1 unchanged. ADR-0009 remains
-`proposed`; no semantic reconciliation or implementation follows by
-implication.
+document-language contract. The owner explicitly accepted ADR-0009 on
+2026-08-07 over baseline
+`main@89994e82d246b1cc0a240e99a2d09942e316f7cc`, corpus `4.9.4`, exclusively
+as architectural authority. The decision separates document and evidence
+language tags from query and answer languages, rejects implicit `en` to
+`en-GB` mapping and keeps OpenAPI v1 unchanged. Acceptance does not reconcile
+other normative documents or authorise implementation.

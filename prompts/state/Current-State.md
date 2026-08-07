@@ -534,15 +534,18 @@ proprietários.
   dictionary, threat model, OpenAPI ou outro documento normativo, e não
   autoriza implementação, movimentação do PDF, geração de PNGs, dataset,
   indexação, ativação, testes, providers, rede, publicação ou ação externa.
-- Proposta de taxonomia de idiomas documentais: [ADR-0009](../../docs/architecture/ADR-0009-Document-Evidence-And-Query-Language-Taxonomy.md)
-  foi preparada em 2026-08-07 sobre
-  `main@8b4e98dc336b13183b936c5ac974968714e43765`, corpus `4.9.4` e working
-  tree limpa. A ADR permanece `proposed` e recomenda separar os idiomas de
-  pergunta/resposta, fechados em `pt-BR` e `en-GB`, dos idiomas documentais
-  BCP 47, preservando `en` sem mapeá-lo para `en-GB`. Até decisão humana
-  explícita, a taxonomia continua bloqueando a reconciliação semântica da
-  ADR-0008; OpenAPI v1, contratos, corpus normativo, dataset e runtime
-  permanecem inalterados.
+- Decisão arquitetural de taxonomia de idiomas documentais:
+  [ADR-0009](../../docs/architecture/ADR-0009-Document-Evidence-And-Query-Language-Taxonomy.md)
+  foi aceita explicitamente pelo proprietário em 2026-08-07 sobre
+  `main@89994e82d246b1cc0a240e99a2d09942e316f7cc`, corpus `4.9.4` e working
+  tree limpa. `SupportedQueryLanguage` permanece restrito a `pt-BR` e
+  `en-GB`; `DocumentContentLanguage` é um domínio BCP 47 distinto; o `en`
+  declarado pelo PDF PostgreSQL não é inferido como `en-GB`; citações
+  preservam o idioma original; e OpenAPI v1 permanece inalterada. A aceitação
+  remove somente o bloqueio decisório. A reconciliação semântica da ADR-0008
+  permanece não executada e depende de autoridade posterior e separada;
+  contratos, corpus normativo, dataset e runtime permanecem inalterados, e a
+  implementação continua não autorizada.
 - Fechamento de `S04-A0`: `PdfPig` `0.1.15` e `CsvHelper` `33.1.0` foram
   selecionados condicionalmente para desenvolvimento local;
   `Sylvan.Data.Csv` `1.4.4` permanece fallback não selecionado e não
@@ -1068,10 +1071,6 @@ autorizada.
 9. Reconciliar semanticamente a ADR-0008 com ADR-0002, ADR-0004, segurança,
    módulo RAG, contratos canônicos, data dictionary, threat model, OpenAPI e
    demais documentos normativos somente sob autoridade posterior e separada.
-10. Decidir explicitamente a ADR-0009 antes da reconciliação da ADR-0008; o
-    PDF PostgreSQL declara `en`, que não pode ser inferido como `en-GB` sob o
-    contrato documental vigente.
-
 ## Próxima autoridade
 
 `STATE-04 BACKEND_IMPLEMENTATION` está encerrado após Automatic Quality Gate

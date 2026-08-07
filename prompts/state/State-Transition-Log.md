@@ -5093,3 +5093,39 @@ contém somente fatos cronológicos.
 - Próxima condição: o proprietário aceita, rejeita ou solicita revisão da
   ADR-0009 por decisão explícita e independente.
 - Aprovador da preparação: proprietário do RAG-Challenge.
+
+## 2026-08-07 — ADR-0009 aceita como autoridade arquitetural
+
+- Baseline: branch `main`, commit
+  `89994e82d246b1cc0a240e99a2d09942e316f7cc`, corpus `4.9.4` e working tree
+  limpa, confirmados antes do registro.
+- Autoridade da decisão: o proprietário declarou exatamente
+  `Confirmo a decisão proposta em ADR-0009 — Document, Evidence and Query Language Taxonomy e aceito a ADR exclusivamente como autoridade arquitetural.`
+- Decisão: aceitar
+  [ADR-0009](../../docs/architecture/ADR-0009-Document-Evidence-And-Query-Language-Taxonomy.md)
+  exclusivamente como autoridade arquitetural para a taxonomia separada de
+  idiomas documentais, evidência, pergunta e resposta.
+- Semântica aceita: `SupportedQueryLanguage` permanece restrito a `pt-BR` e
+  `en-GB`; `DocumentContentLanguage` é um domínio BCP 47 distinto; o idioma
+  `en` declarado pelo PDF PostgreSQL não é inferido como `en-GB`; citações
+  preservam o idioma original; e OpenAPI v1 permanece inalterada.
+- Limite de autoridade: a aceitação não reconcilia ADR-0008, contratos
+  canônicos, OpenAPI, data dictionary, `RAG-Module.md` ou outros documentos
+  normativos; não autoriza implementação, API v2, dataset, indexação,
+  ativação, provider, rede ou ação externa.
+- Escopo do registro: atualizar somente ADR-0009, o índice arquitetural, o
+  estado factual e este histórico append-only; validar o incremento e criar um
+  commit local focal.
+- Escopo negativo: sem alteração do corpus normativo ou de sua versão; sem
+  código, contratos, OpenAPI, data dictionary, schema, migrations, testes,
+  dependências, lockfiles, PDF, registro de elegibilidade ou dados; sem API
+  v2, dataset, indexação, ativação, providers, browser, rede ou ação externa.
+- Runtime preflight: `NÃO APLICÁVEL`; o incremento registra somente uma
+  decisão documental e não altera nem valida comportamento executável.
+- Estado resultante: ADR-0009 `accepted`; o bloqueio decisório da taxonomia
+  está resolvido, mas a reconciliação semântica permanece não executada e
+  exige autoridade posterior e separada. `STATE-07 TESTING_HOMOLOGATION`
+  permanece ativo sem novo lote, execução ou gate autorizado.
+- Próxima condição: autoridade humana explícita e separada para reconciliar
+  semanticamente ADR-0008 e ADR-0009 com os documentos normativos aplicáveis.
+- Aprovador da decisão: proprietário do RAG-Challenge.

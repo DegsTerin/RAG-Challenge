@@ -1,28 +1,35 @@
 # ADR-0009 - Document, Evidence and Query Language Taxonomy
 
-- Status: proposed
+- Status: accepted
 - Date: 2026-08-07
+- Accepted: 2026-08-07
+- Decision authority: explicit product-owner acceptance on baseline
+  `main@89994e82d246b1cc0a240e99a2d09942e316f7cc`, corpus `4.9.4`, with
+  the exact decision:
+  `Confirmo a decisão proposta em ADR-0009 — Document, Evidence and Query Language Taxonomy e aceito a ADR exclusivamente como autoridade arquitetural.`
 - Proposal authority: owner-authorised documentary preparation on baseline
   `main@8b4e98dc336b13183b936c5ac974968714e43765`, corpus `4.9.4`
 - Owners: RAG-Challenge product, RAG architecture, evaluation and API
-- State: `STATE-07 TESTING_HOMOLOGATION` proposal only
-- Decision dependency: must be decided before semantic reconciliation of
+- State: `STATE-07 TESTING_HOMOLOGATION` accepted architecture decision
+- Reconciliation dependency: semantic reconciliation remains separately
+  authorised for this ADR and
   [ADR-0008](ADR-0008-Product-Corpus-Storage-And-Page-Image-Evidence.md)
 
 ## Purpose and authority
 
-This proposal separates the language of a question and answer from the
+This decision separates the language of a question and answer from the
 language declared by a source document and the language of cited evidence. It
 resolves the architectural ambiguity exposed by the PostgreSQL 18 candidate,
 whose PDF declares BCP 47 language tag `en`, while the current canonical
 contracts restrict `contentLanguage` to `pt-BR` or `en-GB` and prohibit a
 neutral, inferred or fallback value.
 
-The owner authorised preparation of this proposal only. Its `proposed` status
-does not change the current language contract, make `en` an active runtime
-value, accept ADR-0009, reconcile ADR-0008, change OpenAPI v1, activate the
-PostgreSQL document or authorise implementation, dataset materialisation,
-evaluation, indexing, providers, browser, network or any external action.
+The owner explicitly accepted this ADR on 2026-08-07 exclusively as
+architectural authority. Acceptance does not change the current language
+contract, make `en` an active runtime value, reconcile ADR-0008, change
+OpenAPI v1, activate the PostgreSQL document or authorise implementation,
+dataset materialisation, evaluation, indexing, providers, browser, network or
+any external action.
 
 ## Context
 
@@ -63,16 +70,16 @@ can converge without changing the implemented and strict OpenAPI v1 contract.
 
 ## Options considered
 
-| Option | Benefits | Material limitations | Proposed outcome |
+| Option | Benefits | Material limitations | Decision outcome |
 |---|---|---|---|
 | Keep document languages closed to `pt-BR` and `en-GB` | No change to current types, fixtures or OpenAPI v1 | Truthful documents declared as `en` or another valid tag remain ineligible; accepting them would require unsupported reclassification or exclusion | Rejected |
 | Separate query/answer languages from broader BCP 47 document languages | Preserves exact source evidence, keeps the user-facing language contract closed and permits language-specific evaluation strata | Requires a future model, dataset and v2 contract migration before broader-language documents can become active | Selected |
 | Map a less-specific or different tag to the nearest supported product language | Appears to preserve the current two-value model | Invents regional or script specificity, hides coverage gaps and makes citation/evaluation metadata misleading | Rejected |
 
-## Proposed decision
+## Decision
 
-Adopt separate language domains when this ADR is explicitly accepted and its
-semantics are implemented under later authorities.
+Adopt separate language domains. Their reconciliation and implementation
+remain subject to later, explicit authorities.
 
 ### Query, answer and interface languages
 
@@ -157,8 +164,9 @@ language values. A document whose governed `contentLanguage` is outside that
 contract cannot become active through the v1 query surface by inference or
 silent coercion.
 
-If ADR-0009 and ADR-0008 are both accepted and later reconciled, the planned
-v2 contract should use:
+ADR-0009 and ADR-0008 are both accepted as architectural authority. If their
+semantics are later reconciled under separate authority, the planned v2
+contract should use:
 
 ```text
 QueryRequestV2
@@ -174,7 +182,8 @@ CitationV2
   pageImages: PageImageEvidenceV1[]
 ```
 
-This is proposed architecture, not an OpenAPI artefact or implemented schema.
+This is accepted architecture direction, not an OpenAPI artefact or
+implemented schema.
 The eventual v2 contract must be created, implemented and compatibility-tested
 under a separate authority. V1 and V2 coexistence, deprecation and consumer
 migration require explicit implementation and release evidence; neither ADR
@@ -213,7 +222,7 @@ current v1 contract remains unchanged.
 
 ## Compatibility and migration
 
-Acceptance would require separately authorised reconciliation of ADR-0004,
+Acceptance requires separately authorised reconciliation of ADR-0004,
 ADR-0008, canonical contracts, the data dictionary, RAG module, security,
 threat model, lifecycle, quality gates, S07-A planning and factual state.
 
@@ -230,7 +239,7 @@ A later implementation would:
 6. prove that v1 behaviour and its OpenAPI snapshot remain unchanged.
 
 No data migration, contract edit or OpenAPI v2 file is authorised by this
-proposal.
+decision.
 
 ## Consequences
 
@@ -272,14 +281,14 @@ value.
 
 ## Decision and follow-on authority
 
-The proposed decision is to select the separated taxonomy and reject implicit
-language mapping. ADR-0009 remains `proposed` until the owner explicitly
-accepts, rejects or requests revision of this ADR by name.
+The decision selects the separated taxonomy and rejects implicit language
+mapping. The owner explicitly accepted ADR-0009 on 2026-08-07 exclusively as
+architectural authority.
 
-Acceptance alone would establish architecture authority only. It would not
-reconcile ADR-0008 or other documents, change corpus version, modify v1,
-implement v2, materialise a dataset, index or activate the PostgreSQL
-candidate, call a provider, render page images or authorise an external action.
+Acceptance establishes architecture authority only. It does not reconcile
+ADR-0008 or other documents, change corpus version, modify v1, implement v2,
+materialise a dataset, index or activate the PostgreSQL candidate, call a
+provider, render page images or authorise an external action.
 
 ## Acceptance checks
 
@@ -296,5 +305,5 @@ candidate, call a provider, render page images or authorise an external action.
   implementation changes another versioned contract.
 - No broader-language document becomes active before compatible contracts,
   evaluation and lifecycle preconditions are implemented and verified.
-- An explicit owner decision is recorded before any semantic reconciliation
-  applies this proposal.
+- Any semantic reconciliation must cite this recorded owner decision and
+  remains subject to separate authority.
