@@ -7,13 +7,43 @@
   "authorityId": "AUTH-S07-A-DATASET-001",
   "createdDate": "2026-08-08",
   "digestRule": "SHA-256 over the exact UTF-8 LF file bytes after replacing only manifestSha256 with 64 lower-case zero characters.",
-  "manifestSha256": "96173b4418be9ed460f7d433a49874439eaed5e95f229d4e6e7388e6a22d9c47",
-  "freezeStatus": "not-frozen-a2-not-executed",
+  "manifestSha256": "ea51362782d171005d8ffc47bf9bc5c9885b4bccb294b101941f2da8d2183a7b",
+  "freezeStatus": "frozen-a2-unscored",
+  "freezeAuthorityId": "AUTH-S07-A-FREEZE-001",
+  "freezeDate": "2026-08-08",
   "immutableScoredRevision": null,
   "scoredResultObserved": false,
   "scoredRunCount": 0,
-  "campaignEnvironment": null,
-  "providerConfiguration": null,
+  "campaignEnvironment": {
+    "environmentId": "ENV-S07-A-LOCAL-01",
+    "campaignId": "s07-a-local-candidate-001",
+    "executionBoundary": "local-offline-deterministic-synthetic",
+    "configuration": "Release",
+    "networkPolicyId": "deny-all-v1",
+    "networkPolicy": "deny-all",
+    "storePolicyId": "task-owned-artifacts-local-v1",
+    "stores": {
+      "campaignRoot": "artifacts-local/state-07/s07-a/s07-a-local-candidate-001",
+      "control": "artifacts-local/state-07/s07-a/s07-a-local-candidate-001/stores/control",
+      "vectors": "artifacts-local/state-07/s07-a/s07-a-local-candidate-001/stores/vectors",
+      "content": "artifacts-local/state-07/s07-a/s07-a-local-candidate-001/stores/content",
+      "evidence": "artifacts-local/state-07/s07-a/s07-a-local-candidate-001/evidence"
+    },
+    "command": "pwsh -NoProfile -File tests/RagChallenge.IntegrationTests/S07ALocalHarness/Invoke-S07ALocalHarness.ps1 -Mode Run -AuthorityId AUTH-S07-A-RUN-001"
+  },
+  "providerConfiguration": {
+    "embedding": {
+      "providerId": "deterministic-local",
+      "modelId": "token-hash-embedding-v1",
+      "modelRevision": "auth-s07-a-harness-001",
+      "dimensions": 64
+    },
+    "languageModel": {
+      "providerId": "deterministic-local",
+      "modelId": "evidence-template-v1",
+      "modelRevision": "auth-s07-a-harness-001"
+    }
+  },
   "activeCatalogueRevision": null,
   "activeIndexGenerationId": null,
   "activeDocumentBindingSetDigest": null,
@@ -110,7 +140,7 @@
     "proposalReference": "../../STATE-07-S07-A-Evaluation-And-Security-Proposal.md#pre-registered-acceptance-thresholds",
     "valuesChangedByThisRevision": false,
     "valuesObservedAgainstResults": false,
-    "valuesFrozenForCampaign": false
+    "valuesFrozenForCampaign": true
   },
   "scope": {
     "authorisedArtifacts": [
@@ -120,7 +150,7 @@
     ],
     "a0Completed": true,
     "a1Completed": true,
-    "a2OrLaterExecuted": false,
+    "a2OrLaterExecuted": true,
     "evaluationExecuted": false,
     "testsExecuted": false,
     "loadExecuted": false,
@@ -136,11 +166,11 @@
   "review": {
     "reviewerRole": "S07-A dataset curator",
     "reviewDate": "2026-08-08",
-    "disposition": "reviewed-candidate-dataset-no-scored-run",
+    "disposition": "frozen-a2-local-campaign-no-scored-run",
     "limitations": [
       "There are no scored product-corpus documents or cases in this revision.",
       "Synthetic PDF fixtures contain logical page locations only; no PDF or PNG binary is materialised.",
-      "This candidate revision is deterministic but is not the A2 campaign freeze."
+      "This candidate revision is frozen for the unscored local campaign; A3 has not been executed."
     ]
   }
 }
