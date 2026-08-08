@@ -1145,3 +1145,49 @@ finding nor restarts or substitutes the complete gate. No source,
 behaviour, schema, migration, ADR-0010, OpenAPI, v2 or serving change occurred,
 and no Human Gate, lifecycle transition, network access or external action was
 performed.
+
+## S04-CORR-04-E Automatic Quality Gate restart after AQG-S04-004 — 2026-08-08
+
+The complete corrective Automatic Quality Gate restarted locally, offline and
+sequentially on `main@5a2dcbafdc0a3925338043b079f9eacc9e70ca1b`, corpus
+`4.10.1` and a completely clean working tree. The protected OpenAPI v1
+artefact was confirmed before and after the gate at SHA-256
+`d6a686b94c926914beb28b437f464430a01de6560c2e2d476cf5c36025813e34`.
+
+The bounded static review inventoried the seven commits and 34 changed files
+after `fc83e1ea6922a519baf527efc3f0a219e2674453`. It confirmed that the focused
+SQLite matrix independently changes citation, source, activation, render
+manifest and physical page authority, rejects every divergent record with
+`InvalidDataException` and proves zero mutation of the answer-evidence header,
+citations, pages, administrative operation and creation audit. The review
+therefore disposed `AQG-S04-004` as `RESOLVED`. The protected API, ADR-0010,
+packages, lockfiles and project graph were absent from the unexpected delta,
+and the historical-range `git diff --check` passed.
+
+The directed runtime preflight excluded the inspection shell ancestry and
+found zero process and zero TCP listener proved to belong to RAG-Challenge;
+nothing was stopped. The canonical
+`pwsh -NoProfile -File eng/ci.ps1 -Offline` command then completed with exit
+code `0`. Its locked offline restore, format verification and Release build
+passed with zero warnings and zero errors. The accepted run passed 146 unit,
+157 integration, 10 architecture and 38 Dashboard tests with zero failure or
+skip. Merged .NET coverage was 94.91% of lines (32,116/33,837) and 67.42% of
+branches (3,536/5,245), above the 70% and 45% floors. Dashboard lint,
+typecheck, tests and production build passed, and the repository audit passed
+all 235 non-ignored files.
+
+The executed integration assembly includes the canonical digest, `Answered`-
+only timing, restart, concurrency, exact replay and divergent conflict, five
+injected transaction/readback boundaries, the complete persisted-authority
+mismatch matrix, migration upgrade/rollback/reapply and pending-model checks,
+fixed retention, privacy, cleanup races and source/page-image reachability.
+All stores and fixtures remained local, synthetic and disposable. The gate
+used PowerShell 7.6.4, .NET SDK 10.0.302, Node.js 24.19.0 and npm 11.17.0.
+
+The restarted corrective Automatic Quality Gate result is `APPROVED`, with
+`AQG-S04-002`, `AQG-S04-003` and `AQG-S04-004` `RESOLVED` and no new P0, P1,
+P2 or P3 finding. The post-gate baseline remained on the same branch, HEAD and
+corpus with a clean tracked working tree, and no RAG-Challenge-owned runtime or
+listener remained. No source, test, behaviour, schema, migration, ADR-0010,
+OpenAPI, v2 or serving change occurred. No Human Gate, lifecycle transition,
+network access, Git-remote action, publication or deployment was performed.

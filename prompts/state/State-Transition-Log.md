@@ -5642,6 +5642,7 @@ contém somente fatos cronológicos.
 - Próxima condição: nova autoridade explícita e separada sobre baseline limpa
   para reiniciar integralmente o Automatic Quality Gate corretivo de
   `S04-CORR-04-E`.
+
 - Aprovador: proprietário do RAG-Challenge.
 
 ## 2026-08-08 — Reinício integral do AQG de S04-CORR-04-E reprovado
@@ -5813,3 +5814,44 @@ contém somente fatos cronológicos.
 - Próxima condição: nova autoridade explícita e separada sobre baseline limpa
   para reiniciar integralmente o Automatic Quality Gate corretivo de
   `S04-CORR-04-E`.
+
+## 2026-08-08 — Reinício integral do AQG após AQG-S04-004 aprovado
+
+- Estado anterior e resultante: `STATE-07 TESTING_HOMOLOGATION` permanece
+  ativo; não houve Human Gate nem mudança de lifecycle.
+- Autoridade e baseline: o proprietário autorizou exclusivamente o reinício
+  integral do Automatic Quality Gate corretivo de `S04-CORR-04-E`, local,
+  offline e sequencial, sobre branch `main`, commit
+  `5a2dcbafdc0a3925338043b079f9eacc9e70ca1b`, corpus `4.10.1`, working tree
+  completamente limpa e OpenAPI v1 no SHA-256
+  `d6a686b94c926914beb28b437f464430a01de6560c2e2d476cf5c36025813e34`.
+- Baseline confirmada: branch, HEAD, corpus, ausência de entradas no porcelain
+  e hash protegido corresponderam integralmente ao envelope esperado antes dos
+  checks e permaneceram intactos depois deles.
+- Disposição anterior: a inspeção estática confirmou que os cinco casos
+  confrontam isoladamente citação, fonte, ativação, manifest e página com a
+  autoridade Control persistida, rejeitam com `InvalidDataException` e provam
+  ausência de qualquer mutação. `AQG-S04-004` está `RESOLVIDO`.
+- Runtime preflight: a inspeção dirigida excluiu a ancestralidade do shell,
+  encontrou zero processo e zero listener TCP comprovadamente pertencentes ao
+  RAG-Challenge e não encerrou nada.
+- Gate técnico: `pwsh -NoProfile -File eng/ci.ps1 -Offline` terminou com exit
+  code `0`. Restore locked, formato, build Release sem aviso/erro, 146 testes
+  unitários, 157 de integração, 10 de arquitetura e 38 do Dashboard passaram
+  sem falha ou skip. A cobertura .NET foi 94,91% de linhas
+  (32.116/33.837) e 67,42% de branches (3.536/5.245); lint, typecheck, build web
+  e auditoria dos 235 arquivos também passaram.
+- Verificações específicas: a suíte aprovada abrange digest canônico,
+  `Answered`-only, restart, concorrência, replay/conflito, cinco boundaries de
+  falha, matriz completa de autoridade persistida, migration e pending model,
+  retenção fixa, privacidade, cleanup races e reachability de fonte/PNGs.
+- Resultado: Automatic Quality Gate `APROVADO`, com `AQG-S04-002` a
+  `AQG-S04-004` `RESOLVIDOS` e nenhum novo P0, P1, P2 ou P3.
+- Escopo negativo preservado: nenhuma alteração de source, teste, comportamento,
+  schema, migration, ADR-0010, OpenAPI v1, v2 ou serving; sem rede, ação externa,
+  push, PR, merge, release, deploy, Human Gate ou mudança de lifecycle.
+- Relatório atualizado:
+  [`STATE-04-Backend-Implementation-Report.md`](../../docs/STATE-04-Backend-Implementation-Report.md).
+- Próxima condição: autoridade explícita e separada para preparar e apresentar
+  o resumo completo do Human Gate corretivo de `S04-CORR-04-E`, sem inferir a
+  decisão humana, mudança de lifecycle ou ação externa.
