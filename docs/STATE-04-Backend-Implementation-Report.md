@@ -1117,3 +1117,31 @@ The restarted corrective Automatic Quality Gate result is `REJECTED`, with
 identified before the mandatory stop. OpenAPI v1 remained byte-identical. No
 source, test, behaviour, schema, migration, ADR-0010, OpenAPI, v2, serving,
 Human Gate, lifecycle transition, network access or external action changed.
+
+## AQG-S04-004 focused regression correction — 2026-08-08
+
+The owner authorised only the minimum regression matrix required to correct
+`AQG-S04-004` on `main@fd2e164ef1d8b1a90d867f4e77beea0e43fba9c3`, corpus
+`4.10.1` and a completely clean working tree. The protected OpenAPI v1
+artefact was confirmed before the correction at SHA-256
+`d6a686b94c926914beb28b437f464430a01de6560c2e2d476cf5c36025813e34`.
+
+The runtime preflight identified no RAG-Challenge-owned process or TCP
+listener and stopped nothing. The focused SQLite integration suite now mutates
+one authority-bound value at a time for citation, source content, activation,
+render manifest and physical page image. Each structurally valid divergent
+record is rejected with `InvalidDataException` against persisted Control
+authority, before any answer-evidence header, citation, page, administrative
+operation or creation-audit row is persisted.
+
+The focused file passed all 14 cases in Release without restore. The complete
+affected integration-test project then passed all 157 cases from the same
+build, also without restore. No implementation defect was exposed and no
+product, schema or migration change was required.
+
+`AQG-S04-004` is `CORRECTED_PENDING_GATE_RETEST`. The historical Automatic
+Quality Gate remains `REJECTED`; this focused correction neither resolves the
+finding nor restarts or substitutes the complete gate. No source,
+behaviour, schema, migration, ADR-0010, OpenAPI, v2 or serving change occurred,
+and no Human Gate, lifecycle transition, network access or external action was
+performed.

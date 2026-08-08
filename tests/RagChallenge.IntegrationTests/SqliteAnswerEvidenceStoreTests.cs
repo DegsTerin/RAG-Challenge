@@ -108,31 +108,26 @@ public sealed class SqliteAnswerEvidenceStoreTests
         await Assert.ThrowsAsync<InjectedAnswerEvidenceFailure>(() =>
             store.PersistAsync(record));
 
-        Assert.Equal(0, await fixture.ScalarAsync(
-            "SELECT COUNT(*) FROM answer_evidence_records;"));
-        Assert.Equal(0, await fixture.ScalarAsync(
-            "SELECT COUNT(*) FROM answer_evidence_citations;"));
-        Assert.Equal(0, await fixture.ScalarAsync(
-            "SELECT COUNT(*) FROM answer_evidence_pages;"));
-        Assert.Equal(0, await fixture.ScalarAsync(
-            "SELECT COUNT(*) FROM audit_events WHERE event_type = 'AnswerEvidenceCreated';"));
-        Assert.Equal(0, await fixture.ScalarAsync(
-            "SELECT COUNT(*) FROM admin_operations WHERE operation_kind = 'AnswerEvidence';"));
+        await AssertNoAnswerEvidenceMutationAsync(fixture);
     }
 
-    [Fact]
-    public async Task ActivationHeaderMismatchFailsBeforeAnyMutation()
+    [Theory]
+    [InlineData(AuthorityMismatch.Citation)]
+    [InlineData(AuthorityMismatch.Source)]
+    [InlineData(AuthorityMismatch.Activation)]
+    [InlineData(AuthorityMismatch.Manifest)]
+    [InlineData(AuthorityMismatch.Page)]
+    public async Task PersistedAuthorityMismatchFailsClosedBeforeAnyMutation(
+        AuthorityMismatch mismatch)
     {
         await using var fixture = await SqlitePersistenceFixture.CreateAsync();
-        var record = await CreateRecordAsync(
-            fixture,
-            activationDigest: new ActivationBindingSetDigest(Hash("divergent-activation")));
+        var validRecord = await CreateRecordAsync(fixture);
+        var record = CreateAuthorityMismatch(validRecord, mismatch);
         var store = new SqliteAnswerEvidenceStore(fixture.Options);
 
         await Assert.ThrowsAsync<InvalidDataException>(() => store.PersistAsync(record));
 
-        Assert.Equal(0, await fixture.ScalarAsync(
-            "SELECT COUNT(*) FROM answer_evidence_records;"));
+        await AssertNoAnswerEvidenceMutationAsync(fixture);
     }
 
     [Fact]
@@ -247,6 +242,103 @@ public sealed class SqliteAnswerEvidenceStoreTests
             [pageBinding]);
     }
 
+    private static AnswerEvidenceRecordV1 CreateAuthorityMismatch(
+        AnswerEvidenceRecordV1 record,
+        AuthorityMismatch mismatch)
+    {
+        var originalCitation = Assert.Single(record.Citations);
+        var originalPage = Assert.Single(record.PageImages);
+        var divergentSource = new ContentObjectId(Hash("divergent-source"));
+        var divergentManifest = new RenderManifestId(
+            $"rendermanifest-{Hash("divergent-manifest")}");
+        var divergentImage = Hash("divergent-page-image");
+        var sourceContentObjectId = mismatch == AuthorityMismatch.Source
+            ? divergentSource
+            : originalCitation.SourceContentObjectId;
+        var renderManifestId = mismatch == AuthorityMismatch.Manifest
+            ? divergentManifest
+            : originalCitation.RenderManifestId;
+        var citation = new AnswerEvidenceCitationBindingV1(
+            originalCitation.Ordinal,
+            mismatch == AuthorityMismatch.Citation
+                ? new DatabaseProductId("divergent-product")
+                : originalCitation.DatabaseProductId,
+            originalCitation.DatabaseProductRevision,
+            originalCitation.DocumentId,
+            originalCitation.DocumentVersion,
+            originalCitation.DocumentFormat,
+            originalCitation.ContentLanguage,
+            originalCitation.ChunkId,
+            originalCitation.SourceAdapterId,
+            originalCitation.SourceTrustClass,
+            originalCitation.OfficialSourceRegistrationId,
+            originalCitation.SourceSnapshotId,
+            originalCitation.SourceObservationId,
+            sourceContentObjectId,
+            originalCitation.PageStart,
+            originalCitation.PageEnd,
+            originalCitation.RecordStart,
+            originalCitation.RecordEnd,
+            originalCitation.Columns,
+            originalCitation.SectionLocator,
+            renderManifestId);
+        var page = new AnswerEvidencePageBindingV1(
+            originalPage.DocumentId,
+            originalPage.DocumentVersion,
+            sourceContentObjectId,
+            originalPage.PageNumber,
+            renderManifestId!,
+            originalPage.RenderProfileId,
+            originalPage.RendererDescriptor,
+            mismatch == AuthorityMismatch.Page
+                ? new ContentObjectId(divergentImage)
+                : originalPage.ImageContentObjectId,
+            mismatch == AuthorityMismatch.Page
+                ? new ImageSha256(divergentImage)
+                : originalPage.ImageSha256,
+            originalPage.ByteLength,
+            originalPage.MediaType,
+            originalPage.WidthPixels,
+            originalPage.HeightPixels);
+
+        return AnswerEvidenceRecordV1.Create(
+            record.AnswerEvidenceRecordId,
+            record.CorpusId,
+            record.ActivationRecordRevision,
+            record.CatalogueRevision,
+            record.SourceBindingSetDigest,
+            mismatch == AuthorityMismatch.Activation
+                ? new ActivationBindingSetDigest(Hash("divergent-activation"))
+                : record.ActivationBindingSetDigest,
+            record.IndexGenerationId,
+            record.QuestionLanguage,
+            record.AnswerSha256,
+            record.AnswerUtf8ByteLength,
+            record.EvidenceCoverageDigest,
+            record.RetrievalPolicyVersion,
+            record.PromptVersion,
+            record.LanguageModelDescriptor,
+            record.CorrelationId,
+            record.CreatedAt,
+            [citation],
+            [page]);
+    }
+
+    private static async Task AssertNoAnswerEvidenceMutationAsync(
+        SqlitePersistenceFixture fixture)
+    {
+        Assert.Equal(0, await fixture.ScalarAsync(
+            "SELECT COUNT(*) FROM answer_evidence_records;"));
+        Assert.Equal(0, await fixture.ScalarAsync(
+            "SELECT COUNT(*) FROM answer_evidence_citations;"));
+        Assert.Equal(0, await fixture.ScalarAsync(
+            "SELECT COUNT(*) FROM answer_evidence_pages;"));
+        Assert.Equal(0, await fixture.ScalarAsync(
+            "SELECT COUNT(*) FROM admin_operations WHERE operation_kind = 'AnswerEvidence';"));
+        Assert.Equal(0, await fixture.ScalarAsync(
+            "SELECT COUNT(*) FROM audit_events WHERE event_type = 'AnswerEvidenceCreated';"));
+    }
+
     private static AdministrativeAuditContext Audit(
         string operationId,
         DateTimeOffset requestedAt) =>
@@ -285,6 +377,15 @@ public sealed class SqliteAnswerEvidenceStoreTests
 
     private static string Hash(ReadOnlySpan<byte> value) =>
         Convert.ToHexString(SHA256.HashData(value)).ToLowerInvariant();
+
+    public enum AuthorityMismatch
+    {
+        Citation,
+        Source,
+        Activation,
+        Manifest,
+        Page,
+    }
 
     private sealed class ThrowingFaultInjector(AnswerEvidenceStoreFaultPoint faultPoint)
         : IAnswerEvidenceStoreFaultInjector
