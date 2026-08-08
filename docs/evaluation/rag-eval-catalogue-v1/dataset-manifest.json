@@ -1,0 +1,146 @@
+{
+  "schemaVersion": 1,
+  "manifestType": "rag-evaluation-dataset-manifest",
+  "datasetId": "rag-eval-catalogue-v1",
+  "datasetRevision": "rag-eval-catalogue-v1-candidate-001",
+  "status": "candidate-reviewed-unscored",
+  "authorityId": "AUTH-S07-A-DATASET-001",
+  "createdDate": "2026-08-08",
+  "digestRule": "SHA-256 over the exact UTF-8 LF file bytes after replacing only manifestSha256 with 64 lower-case zero characters.",
+  "manifestSha256": "96173b4418be9ed460f7d433a49874439eaed5e95f229d4e6e7388e6a22d9c47",
+  "freezeStatus": "not-frozen-a2-not-executed",
+  "immutableScoredRevision": null,
+  "scoredResultObserved": false,
+  "scoredRunCount": 0,
+  "campaignEnvironment": null,
+  "providerConfiguration": null,
+  "activeCatalogueRevision": null,
+  "activeIndexGenerationId": null,
+  "activeDocumentBindingSetDigest": null,
+  "files": [
+    {
+      "path": "case-inventory.json",
+      "fileSha256": "549474bbdc75100e37fe17af7d691f805c7362e523c9ec9abd2e354d0570a0be",
+      "embeddedManifestSha256": "1430c0f9ce3fed6f223b6f3b2e299cb41ba774e8dc2c3830f22aa71b4b50c912"
+    },
+    {
+      "path": "document-manifest.json",
+      "fileSha256": "4dc91aa62d84d0c4acb4cc03b7fb11c25b3621c9b063f67c37c5ca062bad4dfd",
+      "embeddedManifestSha256": "9a26cd0b1cc6341eb0a18c3bdb5c071c6d0e1ec72336d336bfcd404d470257b4"
+    }
+  ],
+  "counts": {
+    "scoredProductCorpusDocuments": 0,
+    "realSourceCandidatesExcludedFromScoring": 1,
+    "syntheticFixtureDocuments": 3,
+    "scoredProductCorpusCases": 0,
+    "syntheticFixtureCases": 11,
+    "answerableExpectedOutcomes": 8,
+    "insufficientEvidenceExpectedOutcomes": 3
+  },
+  "caseClassifications": {
+    "adversarial-filter": 1,
+    "answerable": 4,
+    "citation-boundary-exact-location": 2,
+    "insufficient-evidence": 2,
+    "prohibited-extrapolation": 1,
+    "prompt-injection-provenance-confusion": 1
+  },
+  "languageCoverage": {
+    "scoredProductCorpus": {},
+    "syntheticFixtureAnswerableCoverage": [
+      "en-GB->en",
+      "en-GB->en-GB",
+      "en-GB->pt-BR",
+      "pt-BR->en",
+      "pt-BR->en-GB",
+      "pt-BR->pt-BR"
+    ],
+    "mandatoryCompatibilityMatrixCoveredByFixtures": [
+      "en-GB->en-GB",
+      "en-GB->pt-BR",
+      "pt-BR->en-GB",
+      "pt-BR->pt-BR"
+    ],
+    "additionalExactDocumentLanguageStrataCoveredByFixtures": [
+      "en-GB->en",
+      "pt-BR->en"
+    ],
+    "languageRules": [
+      "questionLanguage is restricted to pt-BR or en-GB.",
+      "Each case has exactly one questionLanguage.",
+      "Document contentLanguage uses its exact BCP 47 value.",
+      "The en stratum is never merged with or counted as en-GB.",
+      "Source-derived citation content remains in its original language."
+    ]
+  },
+  "realSourceDisposition": {
+    "candidateSourceId": "postgresql-18-reference-a4",
+    "documentVersion": "18.4",
+    "contentSha256": "cea7b845568095eb56dee1b51bfa145c6c6637bc4377c986019971577efefae4",
+    "contentLanguage": "en",
+    "sourceDeclaredLanguage": "en",
+    "sourceTrustClass": "OfficialExternal",
+    "eligibilityDecision": "ELIGIBLE_CANDIDATE",
+    "scoredProductCorpusEligibility": "excluded",
+    "caseCount": 0,
+    "binaryBytesTrackedInGit": false,
+    "reasons": [
+      "The candidate is not indexed or active.",
+      "No catalogue revision, document ID, index generation or activation binding is available.",
+      "The unchanged v1 contract cannot activate contentLanguage en by inference or coercion.",
+      "Visual-evidence rights and a finalised render manifest are absent."
+    ]
+  },
+  "syntheticFixtureBoundary": {
+    "productCorpus": false,
+    "permittedClaim": "Deterministic dataset and contract coverage only.",
+    "prohibitedClaims": [
+      "PostgreSQL or other real-source coverage",
+      "product-corpus retrieval or groundedness quality",
+      "provider quality, latency or cost",
+      "real PDF rendering or visual-evidence integrity",
+      "homologation of runtime, security, accessibility or production behaviour"
+    ],
+    "runtimeCorpusInclusion": false,
+    "productionArtefactInclusion": false
+  },
+  "thresholds": {
+    "reference": "../../architecture/ADR-0004-MVP-Corpus-Official-Source-And-Evaluation.md#pre-registered-thresholds",
+    "proposalReference": "../../STATE-07-S07-A-Evaluation-And-Security-Proposal.md#pre-registered-acceptance-thresholds",
+    "valuesChangedByThisRevision": false,
+    "valuesObservedAgainstResults": false,
+    "valuesFrozenForCampaign": false
+  },
+  "scope": {
+    "authorisedArtifacts": [
+      "case-inventory.json",
+      "dataset-manifest.json",
+      "document-manifest.json"
+    ],
+    "a0Completed": true,
+    "a1Completed": true,
+    "a2OrLaterExecuted": false,
+    "evaluationExecuted": false,
+    "testsExecuted": false,
+    "loadExecuted": false,
+    "dynamicSecurityExecuted": false,
+    "browserUsed": false,
+    "providerUsed": false,
+    "realSourceAccessed": false,
+    "networkAccessed": false,
+    "automaticQualityGateExecuted": false,
+    "humanGateExecuted": false,
+    "lifecycleChanged": false
+  },
+  "review": {
+    "reviewerRole": "S07-A dataset curator",
+    "reviewDate": "2026-08-08",
+    "disposition": "reviewed-candidate-dataset-no-scored-run",
+    "limitations": [
+      "There are no scored product-corpus documents or cases in this revision.",
+      "Synthetic PDF fixtures contain logical page locations only; no PDF or PNG binary is materialised.",
+      "This candidate revision is deterministic but is not the A2 campaign freeze."
+    ]
+  }
+}
