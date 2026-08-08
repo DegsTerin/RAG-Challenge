@@ -729,6 +729,18 @@ proprietários.
   `4.10.1` registra somente esses fatos; OpenAPI v1 permanece byte a byte no
   SHA-256 protegido e v2, serving, dados reais, gates, lifecycle, rede e ações
   externas permanecem fora do escopo.
+- Automatic Quality Gate corretivo de `S04-CORR-04-E`: executado localmente,
+  offline e de forma sequencial em 2026-08-08 sobre
+  `main@990d14172954567456d9ad90b6a767f6b6e0da78`, corpus `4.10.1`, working
+  tree limpa e OpenAPI v1 no SHA-256 protegido. A auditoria estática identificou
+  `AQG-S04-002` (P2): o contrato canônico afirma nas linhas 12–13 que a
+  persistência de evidência permanece não implementada, mas o mesmo documento
+  registra nas linhas 537 e 597–600 que `S04-CORR-04-E` a implementou
+  localmente. O achado permanece `ABERTO` e o gate é `REPROVADO`. Pela parada
+  obrigatória, runtime preflight, `eng/ci.ps1 -Offline` e os checks executáveis
+  de build, testes, coverage, migration, restart, concorrência, falhas,
+  retenção, cleanup, privacidade e reachability não foram iniciados. Nenhuma
+  correção, Human Gate, mudança de lifecycle, rede ou ação externa ocorreu.
 - Fechamento de `S04-A0`: `PdfPig` `0.1.15` e `CsvHelper` `33.1.0` foram
   selecionados condicionalmente para desenvolvimento local;
   `Sylvan.Data.Csv` `1.4.4` permanece fallback não selecionado e não

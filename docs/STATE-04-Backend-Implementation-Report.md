@@ -946,3 +946,45 @@ byte-identical at SHA-256
 No endpoint, payload, outcome or public `CH_*` code changed. No v2 contract,
 serving, real data, network access, external action, Automatic Quality Gate,
 Human Gate or lifecycle transition occurred.
+
+## S04-CORR-04-E Automatic Quality Gate
+
+The corrective Automatic Quality Gate was executed locally, offline and
+sequentially on 2026-08-08 over `main@990d14172954567456d9ad90b6a767f6b6e0da78`,
+corpus `4.10.1` and a clean working tree. The protected OpenAPI v1 artefact was
+confirmed before the audit at SHA-256
+`d6a686b94c926914beb28b437f464430a01de6560c2e2d476cf5c36025813e34`.
+
+The mandatory static inspection identified `AQG-S04-002` (`P2 Medium`) in
+[`STATE-02-Canonical-Contracts.md`](architecture/STATE-02-Canonical-Contracts.md).
+Lines 12–13 state that persistent answer evidence remains an unimplemented
+successor capability, while the same authority at lines 537 and 597–600 states
+that the internal contract is implemented locally by `S04-CORR-04-E`. The data
+dictionary, RAG module, Current State and this report also record that local
+implementation. The canonical contract is therefore internally contradictory
+about the implementation status of the gate subject.
+
+The finding has limited runtime impact but creates a material maintenance and
+audit risk because one current architecture authority supplies mutually
+exclusive factual status. It remains `OPEN`. No wording or other implementation
+was corrected under the gate authority.
+
+The owner-mandated stop condition was applied immediately after confirming the
+finding. Runtime preflight was not reached because no executable check was
+started; accordingly, no process or listener was inspected or stopped.
+`eng/ci.ps1 -Offline`, build, tests, coverage, migration, restart, concurrency,
+failure-injection, retention, cleanup, privacy and reachability checks were not
+executed by this gate. Their prior direct implementation evidence was not
+reclassified as Automatic Quality Gate evidence.
+
+The reproducible static evidence was obtained with `Select-String` and bounded
+line reads of the tracked canonical contract, Current State, data dictionary,
+RAG module and this report. Git branch, HEAD and porcelain status plus
+`Get-FileHash -Algorithm SHA256 docs/api/openapi-v1.json` confirmed the five
+baseline elements before and after the inspection.
+
+The overall corrective Automatic Quality Gate result is `REJECTED`, with one
+new P2 finding and no P0, P1 or P3 finding identified before the mandatory
+stop. OpenAPI v1 remained byte-identical. No v2 contract, image serving, real
+data, correction, Human Gate, lifecycle transition, network access or external
+action occurred.

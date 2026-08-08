@@ -5562,3 +5562,47 @@ contém somente fatos cronológicos.
 - Próxima condição: autoridade humana explícita e separada para o Automatic
   Quality Gate de `S04-CORR-04-E` sobre o commit local focado, sem inferir v2,
   serving, Human Gate ou transição de lifecycle.
+
+## 2026-08-08 — Automatic Quality Gate corretivo de S04-CORR-04-E reprovado
+
+- Estado anterior e resultante: `STATE-07 TESTING_HOMOLOGATION` permanece
+  ativo; não houve Human Gate nem mudança de lifecycle.
+- Autoridade e baseline: o proprietário autorizou exclusivamente o Automatic
+  Quality Gate corretivo de `S04-CORR-04-E`, local, offline e sequencial, sobre
+  `main@990d14172954567456d9ad90b6a767f6b6e0da78`, corpus `4.10.1`, working
+  tree limpa e OpenAPI v1 no SHA-256
+  `d6a686b94c926914beb28b437f464430a01de6560c2e2d476cf5c36025813e34`.
+- Baseline confirmada: branch `main`; HEAD exato; corpus `4.10.1`; working tree
+  completamente limpa; OpenAPI v1 byte a byte no hash protegido.
+- Achado `AQG-S04-002` (P2):
+  [`STATE-02-Canonical-Contracts.md`](../../docs/architecture/STATE-02-Canonical-Contracts.md)
+  afirma nas linhas 12–13 que a persistência de evidência permanece uma
+  capacidade sucessora não implementada, enquanto o mesmo contrato nas linhas
+  537 e 597–600 declara que `S04-CORR-04-E` implementa localmente esse contrato.
+  O modelo de dados, o módulo RAG, o Current State e o relatório de STATE-04
+  também registram a implementação local.
+- Impacto: uma autoridade arquitetural canônica vigente fornece estados
+  factuais mutuamente exclusivos para o próprio objeto do gate, criando risco
+  relevante de manutenção e auditoria. O achado permanece `ABERTO`.
+- Parada obrigatória: a auditoria parou após confirmar o primeiro achado.
+  Runtime preflight não foi alcançado porque nenhum check executável foi
+  iniciado; nenhum processo ou listener foi inspecionado ou parado.
+  `eng/ci.ps1 -Offline`, build, testes, coverage, migration, restart,
+  concorrência, injeção de falhas, retenção, cleanup, privacidade e reachability
+  permanecem não executados neste gate.
+- Evidência reproduzível: `Select-String` e leituras delimitadas confirmaram as
+  afirmações contraditórias no arquivo rastreado; `git branch --show-current`,
+  `git rev-parse HEAD`, `git status --porcelain=v1 --untracked-files=all` e
+  `Get-FileHash -Algorithm SHA256 docs/api/openapi-v1.json` confirmaram a
+  baseline e a proteção da OpenAPI v1.
+- Resultado: Automatic Quality Gate `REPROVADO`, com um novo P2 e nenhum P0,
+  P1 ou P3 identificado antes da parada.
+- Escopo negativo preservado: nenhuma correção de source, teste, contrato,
+  OpenAPI, schema, migration ou ADR; sem v2, serving, dados reais, rede, ação
+  externa, push, PR, merge, release, deploy, Human Gate ou mudança de
+  lifecycle.
+- Relatório atualizado:
+  [`STATE-04-Backend-Implementation-Report.md`](../../docs/STATE-04-Backend-Implementation-Report.md).
+- Próxima condição: autoridade corretiva separada para resolver
+  `AQG-S04-002`, seguida de nova autoridade sobre baseline limpa para reiniciar
+  integralmente o Automatic Quality Gate corretivo de `S04-CORR-04-E`.
