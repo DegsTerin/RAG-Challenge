@@ -16,7 +16,8 @@ public sealed class CorpusActivationRecord
         ActivationBindingSetDigest activationBindingSetDigest,
         IEnumerable<DocumentBinding> documentBindings,
         DateTimeOffset generationActivatedAt,
-        DateTimeOffset recordUpdatedAt)
+        DateTimeOffset recordUpdatedAt,
+        IEnumerable<DocumentActivationEvidenceBinding>? evidenceBindings = null)
     {
         ArgumentNullException.ThrowIfNull(corpusId);
         ArgumentNullException.ThrowIfNull(recordRevision);
@@ -38,6 +39,9 @@ public sealed class CorpusActivationRecord
         var orderedBindings = BindingDigestCanonicalizer
             .OrderAndValidate(documentBindings)
             .ToArray();
+        var orderedEvidenceBindings = OrderAndValidateEvidenceBindings(
+            orderedBindings,
+            evidenceBindings);
 
         CorpusId = corpusId;
         RecordRevision = recordRevision;
@@ -46,6 +50,7 @@ public sealed class CorpusActivationRecord
         CatalogueRevision = catalogueRevision;
         ActivationBindingSetDigest = activationBindingSetDigest;
         DocumentBindings = Array.AsReadOnly(orderedBindings);
+        EvidenceBindings = Array.AsReadOnly(orderedEvidenceBindings);
         GenerationActivatedAt = generationActivatedAt;
         RecordUpdatedAt = recordUpdatedAt;
     }
@@ -63,6 +68,11 @@ public sealed class CorpusActivationRecord
     public ActivationBindingSetDigest ActivationBindingSetDigest { get; }
 
     public ReadOnlyCollection<DocumentBinding> DocumentBindings { get; }
+
+    public ReadOnlyCollection<DocumentActivationEvidenceBinding> EvidenceBindings { get; }
+
+    public bool HasCompleteEvidenceBindings =>
+        EvidenceBindings.Count == DocumentBindings.Count && DocumentBindings.Count != 0;
 
     public DateTimeOffset GenerationActivatedAt { get; }
 
@@ -96,6 +106,66 @@ public sealed class CorpusActivationRecord
                 "Activation instants must be expressed in UTC.",
                 parameterName);
         }
+    }
+
+    private static DocumentActivationEvidenceBinding[] OrderAndValidateEvidenceBindings(
+        DocumentBinding[] orderedBindings,
+        IEnumerable<DocumentActivationEvidenceBinding>? evidenceBindings)
+    {
+        var evidence = evidenceBindings?.ToArray() ?? [];
+
+        if (evidence.Any(binding => binding is null))
+        {
+            throw new ArgumentException(
+                "Activation evidence cannot contain a null binding.",
+                nameof(evidenceBindings));
+        }
+
+        if (evidence.Length == 0)
+        {
+            return [];
+        }
+
+        var byDocument = new Dictionary<(DocumentId, DocumentVersionNumber),
+            DocumentActivationEvidenceBinding>();
+
+        foreach (var item in evidence)
+        {
+            if (!byDocument.TryAdd(
+                    (item.DocumentBinding.DocumentId, item.DocumentBinding.DocumentVersion),
+                    item))
+            {
+                throw new ArgumentException(
+                    "Activation evidence must bind every document revision exactly once.",
+                    nameof(evidenceBindings));
+            }
+        }
+
+        if (byDocument.Count != orderedBindings.Length)
+        {
+            throw new ArgumentException(
+                "Activation evidence must cover the complete document-binding set.",
+                nameof(evidenceBindings));
+        }
+
+        var orderedEvidence = new List<DocumentActivationEvidenceBinding>(orderedBindings.Length);
+
+        foreach (var binding in orderedBindings)
+        {
+            if (!byDocument.TryGetValue(
+                    (binding.DocumentId, binding.DocumentVersion),
+                    out var item) ||
+                item.DocumentBinding != binding)
+            {
+                throw new ArgumentException(
+                    "Activation evidence must contain the exact document binding.",
+                    nameof(evidenceBindings));
+            }
+
+            orderedEvidence.Add(item);
+        }
+
+        return orderedEvidence.ToArray();
     }
 }
 

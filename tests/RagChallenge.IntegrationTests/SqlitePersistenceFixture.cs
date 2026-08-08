@@ -170,6 +170,77 @@ internal sealed class SqlitePersistenceFixture : IAsyncDisposable
         return manifest;
     }
 
+    internal async Task<DocumentActivationEvidenceBinding> CreateActivationEvidenceAsync(
+        DocumentBinding binding,
+        DocumentRightDecisionState defaultState = DocumentRightDecisionState.Permitted,
+        DocumentRight? overriddenRight = null,
+        DocumentRightDecisionState? overriddenState = null)
+    {
+        var catalogue = await ControlStore.ReadCurrentCatalogueAsync(CorpusId) ??
+            throw new InvalidOperationException("The fixture catalogue is unavailable.");
+        var document = catalogue.DocumentVersions.Single(item =>
+            item.Id == binding.DocumentId && item.Version == binding.DocumentVersion);
+        var rights = new DocumentRightsEligibilityRecordV1(
+            binding.DocumentId,
+            binding.DocumentVersion,
+            Enum.GetValues<DocumentRight>().Select(right => new DocumentRightDecision(
+                right,
+                right == overriddenRight ? overriddenState!.Value : defaultState,
+                new DocumentRightsEvidenceReference($"fixture-rights-{right}"))));
+
+        if (binding.DocumentFormat == DocumentFormat.Csv)
+        {
+            return new DocumentActivationEvidenceBinding(
+                binding,
+                document.ContentObjectId,
+                rights,
+                renderManifestId: null);
+        }
+
+        var imageBytes = Encoding.UTF8.GetBytes(
+            $"synthetic PNG fixture for {binding.DocumentId.Value}:{binding.DocumentVersion.Value}");
+        await using var imageStream = new MemoryStream(imageBytes, writable: false);
+        var imageContent = await ContentStore.PutAndVerifyAsync(new BoundedContentInput(
+            imageStream,
+            imageBytes.Length,
+            ContentMediaType.ImagePng));
+        var profile = new RenderProfileId(RenderProfileId.PdfPagePngV1);
+        var renderer = new RendererDescriptor("synthetic-renderer-v1");
+        var page = new DocumentPageImage(
+            binding.DocumentId,
+            binding.DocumentVersion,
+            document.ContentObjectId,
+            pageNumber: 1,
+            profile,
+            renderer,
+            imageContent.ContentObjectId,
+            new ImageSha256(imageContent.Sha256.Value),
+            imageContent.ByteLength,
+            DocumentPageImage.PngMediaType,
+            widthPixels: 1,
+            heightPixels: 1);
+        var manifest = DocumentRenderManifest.Create(
+            binding.DocumentId,
+            binding.DocumentVersion,
+            document.ContentObjectId,
+            sourcePageCount: 1,
+            profile,
+            renderer,
+            [page],
+            At(2));
+        var commit = await ControlStore.CommitAsync(new RenderManifestCommitRequest(
+            CorpusId,
+            manifest));
+
+        Assert.True(commit.Outcome is StoreMutationOutcome.Applied or
+            StoreMutationOutcome.AlreadyApplied);
+        return new DocumentActivationEvidenceBinding(
+            binding,
+            document.ContentObjectId,
+            rights,
+            manifest.RenderManifestId);
+    }
+
     internal async Task<long> ScalarAsync(string sql)
     {
         await using var connection = new SqliteConnection(

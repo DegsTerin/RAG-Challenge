@@ -86,6 +86,37 @@ internal static class ControlPlaneMapping
             SourceObservationId = binding.SourceObservationId?.Value,
         };
 
+    internal static ActivationEvidenceBindingRow ToActivationEvidenceBindingRow(
+        CorpusId corpusId,
+        ActivationRecordRevision recordRevision,
+        DocumentActivationEvidenceBinding evidence) =>
+        new()
+        {
+            CorpusId = corpusId.Value,
+            RecordRevision = recordRevision.Value,
+            DocumentId = evidence.DocumentBinding.DocumentId.Value,
+            DocumentVersion = evidence.DocumentBinding.DocumentVersion.Value,
+            DocumentFormat = evidence.DocumentBinding.DocumentFormat.ToString(),
+            SourceContentSha256 = evidence.SourceContentObjectId.Value,
+            RightsSchemaVersion = evidence.RightsSchemaVersion,
+            RenderManifestId = evidence.RenderManifestId?.Value,
+        };
+
+    internal static IEnumerable<ActivationRightsDecisionRow> ToActivationRightsDecisionRows(
+        CorpusId corpusId,
+        ActivationRecordRevision recordRevision,
+        DocumentActivationEvidenceBinding evidence) =>
+        evidence.Rights.Decisions.Select(decision => new ActivationRightsDecisionRow
+        {
+            CorpusId = corpusId.Value,
+            RecordRevision = recordRevision.Value,
+            DocumentId = evidence.DocumentBinding.DocumentId.Value,
+            DocumentVersion = evidence.DocumentBinding.DocumentVersion.Value,
+            DocumentRight = decision.Right.ToString(),
+            DecisionState = decision.State.ToString(),
+            EvidenceReference = decision.EvidenceReference.Value,
+        });
+
     internal static FinalisedIndexGenerationManifest ToDomain(
         GenerationManifestRow row) =>
         new(
@@ -105,8 +136,58 @@ internal static class ControlPlaneMapping
 
     internal static CorpusActivationRecord ToDomain(
         ActivationRecordRow row,
-        IEnumerable<ActivationBindingRow> bindings) =>
-        new(
+        IEnumerable<ActivationBindingRow> bindings,
+        IEnumerable<ActivationEvidenceBindingRow>? evidenceBindings = null,
+        IEnumerable<ActivationRightsDecisionRow>? rightsDecisions = null)
+    {
+        var materialisedBindings = bindings.ToArray();
+        var domainBindings = materialisedBindings.Select(ToDomain).ToArray();
+        var evidenceRows = evidenceBindings?.ToArray() ?? [];
+        var decisionRows = rightsDecisions?.ToArray() ?? [];
+        var domainEvidence = evidenceRows.Select(evidenceRow =>
+        {
+            var binding = domainBindings.Single(item =>
+                item.DocumentId.Value == evidenceRow.DocumentId &&
+                item.DocumentVersion.Value == evidenceRow.DocumentVersion);
+            var decisions = decisionRows
+                .Where(decision => decision.DocumentId == evidenceRow.DocumentId &&
+                    decision.DocumentVersion == evidenceRow.DocumentVersion)
+                .Select(decision => new DocumentRightDecision(
+                    Enum.Parse<DocumentRight>(decision.DocumentRight, ignoreCase: false),
+                    Enum.Parse<DocumentRightDecisionState>(decision.DecisionState, ignoreCase: false),
+                    new DocumentRightsEvidenceReference(decision.EvidenceReference)))
+                .ToArray();
+
+            if (evidenceRow.RightsSchemaVersion !=
+                    DocumentRightsEligibilityRecordV1.CurrentSchemaVersion ||
+                !string.Equals(
+                    evidenceRow.DocumentFormat,
+                    binding.DocumentFormat.ToString(),
+                    StringComparison.Ordinal))
+            {
+                throw new InvalidDataException(
+                    "A persisted activation evidence binding has an unsupported schema or divergent format.");
+            }
+
+            return new DocumentActivationEvidenceBinding(
+                binding,
+                new ContentObjectId(evidenceRow.SourceContentSha256),
+                new DocumentRightsEligibilityRecordV1(
+                    binding.DocumentId,
+                    binding.DocumentVersion,
+                    decisions),
+                evidenceRow.RenderManifestId is null
+                    ? null
+                    : new RenderManifestId(evidenceRow.RenderManifestId));
+        }).ToArray();
+
+        if (decisionRows.Length != domainEvidence.Sum(evidence => evidence.Rights.Decisions.Count))
+        {
+            throw new InvalidDataException(
+                "Persisted activation rights decisions are not covered by exact evidence bindings.");
+        }
+
+        return new(
             new CorpusId(row.CorpusId),
             new ActivationRecordRevision(row.RecordRevision),
             row.PreviousRecordRevision is null
@@ -115,9 +196,11 @@ internal static class ControlPlaneMapping
             new IndexGenerationId(row.IndexGenerationId),
             new CatalogueRevision(row.CatalogueRevision),
             new ActivationBindingSetDigest(row.ActivationBindingSetDigest),
-            bindings.Select(ToDomain),
+            domainBindings,
             ParseUtc(row.GenerationActivatedAtUtc),
-            ParseUtc(row.RecordUpdatedAtUtc));
+            ParseUtc(row.RecordUpdatedAtUtc),
+            domainEvidence);
+    }
 
     internal static DocumentBinding ToDomain(ActivationBindingRow row) =>
         new(

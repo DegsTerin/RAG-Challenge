@@ -913,6 +913,110 @@ public sealed class SqlitePersistenceBoundaryTests
             "SELECT COUNT(*) FROM generation_manifests;"));
     }
 
+    [Fact]
+    public async Task ActivationEvidenceMigrationPreservesHistoryWithoutBackfillAndFailsClosed()
+    {
+        const string previousMigration =
+            "20260807161323_AddDocumentLanguageAndRenderManifestModel";
+        const string migration =
+            "20260808004846_AddDocumentRightsAndActivationEvidenceBindings";
+        await using var fixture = await SqlitePersistenceFixture.CreateAsync();
+        var (_, binding) = await fixture.CommitLocalCatalogueAsync();
+        var manifest = await fixture.CommitGenerationAsync(binding, "historical-activation");
+        var activationDigest = BindingDigestCanonicalizer
+            .CanonicaliseActivationBindingSet([binding])
+            .Digest;
+
+        await MigrateControlAsync(fixture.Options, previousMigration);
+        await ExecuteAsync(
+            fixture.Options.ControlDatabasePath,
+            $"""
+            INSERT INTO admin_operations
+                (operation_id, corpus_id, operation_kind, status,
+                 expected_revision, result_revision, requested_at_utc,
+                 completed_at_utc)
+            VALUES
+                ('historical-activation', '{SqlitePersistenceFixture.CorpusId.Value}',
+                 'ActivationCAS', 'Applied', 0, 1,
+                 '2026-01-02T12:00:00.0000000+00:00',
+                 '2026-01-02T12:00:00.0000000+00:00');
+
+            INSERT INTO activation_records
+                (corpus_id, record_revision, previous_record_revision,
+                 index_generation_id, catalogue_revision,
+                 activation_binding_set_digest, mutation_kind,
+                 generation_activated_at_utc, record_updated_at_utc, operation_id)
+            VALUES
+                ('{SqlitePersistenceFixture.CorpusId.Value}', 1, NULL,
+                 '{manifest.IndexGenerationId.Value}', 1,
+                 '{activationDigest.Value}', 'Initial',
+                 '2026-01-02T12:00:00.0000000+00:00',
+                 '2026-01-02T12:00:00.0000000+00:00',
+                 'historical-activation');
+
+            INSERT INTO activation_bindings
+                (corpus_id, record_revision, product_id, product_revision,
+                 document_id, document_version, document_format,
+                 source_adapter_id, source_trust_class,
+                 official_registration_id, official_snapshot_id,
+                 source_observation_id)
+            VALUES
+                ('{SqlitePersistenceFixture.CorpusId.Value}', 1,
+                 '{binding.DatabaseProductId.Value}', {binding.DatabaseProductRevision.Value},
+                 '{binding.DocumentId.Value}', {binding.DocumentVersion.Value},
+                 '{binding.DocumentFormat}', '{binding.SourceAdapterId.Value}',
+                 '{binding.SourceTrustClass}', NULL, NULL, NULL);
+
+            INSERT INTO activation_heads(corpus_id, record_revision, row_revision)
+            VALUES ('{SqlitePersistenceFixture.CorpusId.Value}', 1, 1);
+            """);
+        var existingBytes = await ReadPragmaAsync(
+            fixture.Options.ControlDatabasePath,
+            ActivationRecordBytesSql);
+
+        await MigrateControlAsync(fixture.Options, migration);
+        var migratedBytes = await ReadPragmaAsync(
+            fixture.Options.ControlDatabasePath,
+            ActivationRecordBytesSql);
+        var historical = Assert.IsType<CorpusActivationRecord>(
+            await fixture.ControlStore.ReadActiveActivationAsync(
+                SqlitePersistenceFixture.CorpusId));
+
+        Assert.Equal(existingBytes, migratedBytes);
+        Assert.False(historical.HasCompleteEvidenceBindings);
+        Assert.Equal(0, await fixture.ScalarAsync(
+            "SELECT COUNT(*) FROM activation_evidence_bindings;"));
+        Assert.Equal(0, await fixture.ScalarAsync(
+            "SELECT COUNT(*) FROM activation_rights_decisions;"));
+        Assert.Null(await new SqliteQueryActivationReader(fixture.Options).ReadAsync(
+            SqlitePersistenceFixture.CorpusId,
+            SqlitePersistenceFixture.At(3)));
+        Assert.Equal(0, await CountRowsAsync(
+            fixture.Options.ControlDatabasePath,
+            "PRAGMA foreign_key_check;"));
+
+        await MigrateControlAsync(fixture.Options, previousMigration);
+        Assert.Equal(1, await fixture.ScalarAsync("SELECT COUNT(*) FROM activation_records;"));
+        await MigrateControlAsync(fixture.Options, migration);
+        Assert.Equal(0, await fixture.ScalarAsync(
+            "SELECT COUNT(*) FROM activation_evidence_bindings;"));
+        Assert.Equal(existingBytes, await ReadPragmaAsync(
+            fixture.Options.ControlDatabasePath,
+            ActivationRecordBytesSql));
+    }
+
+    private const string ActivationRecordBytesSql =
+        """
+        SELECT hex(CAST(
+            corpus_id || char(0) || record_revision || char(0) ||
+            ifnull(previous_record_revision, 'NULL') || char(0) ||
+            index_generation_id || char(0) || catalogue_revision || char(0) ||
+            activation_binding_set_digest || char(0) || mutation_kind || char(0) ||
+            generation_activated_at_utc || char(0) || record_updated_at_utc ||
+            char(0) || operation_id AS BLOB))
+        FROM activation_records;
+        """;
+
     private static async Task MigrateControlAsync(
         SqliteStoreOptions options,
         string targetMigration)

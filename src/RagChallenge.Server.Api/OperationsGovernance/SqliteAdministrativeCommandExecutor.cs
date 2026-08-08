@@ -142,11 +142,13 @@ internal sealed class SqliteAdministrativeCommandExecutor(IControlPlaneStore sto
     {
         var payload = Deserialize<GenerationActivationPayload>(command);
         var manifest = payload.Manifest.ToDomain(command.CorpusId);
-        var bindings = payload.Bindings.Select(binding => binding.ToDomain()).ToArray();
+        var evidenceBindings = payload.EvidenceBindings
+            .Select(binding => binding.ToDomain())
+            .ToArray();
         var result = await new GenerationActivationService(store).ActivateAsync(
             new GenerationActivationRequest(
                 manifest,
-                bindings,
+                evidenceBindings,
                 payload.ExpectedCurrentRevision,
                 TimeSpan.FromDays(payload.PreviousGenerationRetentionDays),
                 command.AuditContext,
@@ -161,7 +163,9 @@ internal sealed class SqliteAdministrativeCommandExecutor(IControlPlaneStore sto
     {
         var payload = Deserialize<GenerationActivationPayload>(command);
         var manifest = payload.Manifest.ToDomain(command.CorpusId);
-        var bindings = payload.Bindings.Select(binding => binding.ToDomain()).ToArray();
+        var evidenceBindings = payload.EvidenceBindings
+            .Select(binding => binding.ToDomain())
+            .ToArray();
         var current = await store.ReadActiveActivationAsync(
             command.CorpusId,
             cancellationToken).ConfigureAwait(false);
@@ -177,7 +181,7 @@ internal sealed class SqliteAdministrativeCommandExecutor(IControlPlaneStore sto
         var proposed = ActivationRecordFactory.CreateRollback(
             current,
             manifest,
-            bindings,
+            evidenceBindings,
             command.AuditContext.RequestedAt);
         var result = await store.CompareExchangeActivationAsync(
             new ActivationCompareExchangeRequest(
@@ -473,7 +477,7 @@ internal sealed class SqliteAdministrativeCommandExecutor(IControlPlaneStore sto
 
         public required GenerationManifestPayload Manifest { get; init; }
 
-        public required DocumentBindingPayload[] Bindings { get; init; }
+        public required DocumentActivationEvidenceBindingPayload[] EvidenceBindings { get; init; }
     }
 
     private sealed class GenerationManifestPayload
@@ -517,6 +521,54 @@ internal sealed class SqliteAdministrativeCommandExecutor(IControlPlaneStore sto
                 new LogicalArtifactDigest(LogicalArtifactDigest),
                 new GenerationContentDigest(GenerationContentDigest),
                 new IndexGenerationId(IndexGenerationId));
+    }
+
+    private sealed class DocumentActivationEvidenceBindingPayload
+    {
+        public required DocumentBindingPayload Binding { get; init; }
+
+        public required string SourceContentObjectId { get; init; }
+
+        public int RightsSchemaVersion { get; init; }
+
+        public required DocumentRightDecisionPayload[] RightsDecisions { get; init; }
+
+        public string? RenderManifestId { get; init; }
+
+        internal DocumentActivationEvidenceBinding ToDomain()
+        {
+            if (RightsSchemaVersion != DocumentRightsEligibilityRecordV1.CurrentSchemaVersion)
+            {
+                throw new InvalidDataException(
+                    "An activation rights snapshot must use schema version 1.");
+            }
+
+            var binding = Binding.ToDomain();
+            var rights = new DocumentRightsEligibilityRecordV1(
+                binding.DocumentId,
+                binding.DocumentVersion,
+                RightsDecisions.Select(decision => decision.ToDomain()));
+            return new DocumentActivationEvidenceBinding(
+                binding,
+                new ContentObjectId(SourceContentObjectId),
+                rights,
+                RenderManifestId is null ? null : new RenderManifestId(RenderManifestId));
+        }
+    }
+
+    private sealed class DocumentRightDecisionPayload
+    {
+        public required string Right { get; init; }
+
+        public required string State { get; init; }
+
+        public required string EvidenceReference { get; init; }
+
+        internal DocumentRightDecision ToDomain() =>
+            new(
+                Enum.Parse<DocumentRight>(Right, ignoreCase: false),
+                Enum.Parse<DocumentRightDecisionState>(State, ignoreCase: false),
+                new DocumentRightsEvidenceReference(EvidenceReference));
     }
 
     private sealed class DocumentBindingPayload

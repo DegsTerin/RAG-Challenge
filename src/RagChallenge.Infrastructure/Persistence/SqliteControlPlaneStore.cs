@@ -949,6 +949,7 @@ public sealed class SqliteControlPlaneStore(SqliteStoreOptions options)
                         proposedRecord.CorpusId,
                         proposedRecord.RecordRevision,
                         binding)));
+            AddActivationEvidenceRows(context, proposedRecord);
         }
 
         await context.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
@@ -1243,17 +1244,6 @@ public sealed class SqliteControlPlaneStore(SqliteStoreOptions options)
                 currentRecord);
         }
 
-        if (!await AreBindingContentsReopenableAsync(
-                context,
-                request.ProposedRecord.CorpusId,
-                request.ProposedRecord.DocumentBindings,
-                cancellationToken).ConfigureAwait(false))
-        {
-            return new ActivationMutationResult(
-                StoreMutationOutcome.ValidationFailed,
-                currentRecord);
-        }
-
         var observationIds = request.ProposedRecord.DocumentBindings
             .Where(binding => binding.SourceObservationId is not null)
             .Select(binding => binding.SourceObservationId!.Value)
@@ -1281,6 +1271,17 @@ public sealed class SqliteControlPlaneStore(SqliteStoreOptions options)
                 StoreMutationOutcome.ValidationFailed,
                 currentRecord,
                 validation.Failures);
+        }
+
+        if (!await IsActivationEvidenceValidAndReopenableAsync(
+                context,
+                request.ProposedRecord,
+                cancellationToken).ConfigureAwait(false))
+        {
+            return new ActivationMutationResult(
+                StoreMutationOutcome.ValidationFailed,
+                currentRecord,
+                [ActivationValidationFailure.ActivationEvidenceBindingMismatch]);
         }
 
         var retentionRows = await context.GenerationRetentions
@@ -1318,6 +1319,7 @@ public sealed class SqliteControlPlaneStore(SqliteStoreOptions options)
                     request.ProposedRecord.CorpusId,
                     request.ProposedRecord.RecordRevision,
                     binding)));
+        AddActivationEvidenceRows(context, request.ProposedRecord);
         await ApplyRetentionAsync(
             context,
             request,
@@ -1416,10 +1418,9 @@ public sealed class SqliteControlPlaneStore(SqliteStoreOptions options)
                 new CandidateBuildId(manifestRow.CandidateBuildId),
                 manifest,
                 cancellationToken).ConfigureAwait(false) ||
-            !await AreBindingContentsReopenableAsync(
+            !await IsActivationEvidenceValidAndReopenableAsync(
                 context,
-                proposedRecord.CorpusId,
-                proposedRecord.DocumentBindings,
+                proposedRecord,
                 cancellationToken).ConfigureAwait(false))
         {
             return (false, new[] { ActivationValidationFailure.GenerationMismatch });
@@ -1960,6 +1961,151 @@ public sealed class SqliteControlPlaneStore(SqliteStoreOptions options)
         return true;
     }
 
+    private async Task<bool> IsActivationEvidenceValidAndReopenableAsync(
+        ControlPlaneDbContext context,
+        CorpusActivationRecord record,
+        CancellationToken cancellationToken)
+    {
+        if (!record.HasCompleteEvidenceBindings)
+        {
+            return false;
+        }
+
+        var documentRows = await context.DocumentVersions.AsNoTracking()
+            .Where(row => row.CorpusId == record.CorpusId.Value)
+            .ToArrayAsync(cancellationToken)
+            .ConfigureAwait(false);
+        var generationRows = await context.GenerationManifestBindings.AsNoTracking()
+            .Where(row => row.CorpusId == record.CorpusId.Value &&
+                row.IndexGenerationId == record.IndexGenerationId.Value)
+            .ToArrayAsync(cancellationToken)
+            .ConfigureAwait(false);
+
+        if (generationRows.Length != record.EvidenceBindings.Count)
+        {
+            return false;
+        }
+
+        var contentStore = new ImmutableContentStore(options);
+
+        try
+        {
+            foreach (var evidence in record.EvidenceBindings)
+            {
+                var binding = evidence.DocumentBinding;
+                var document = documentRows.SingleOrDefault(row =>
+                    row.DocumentId == binding.DocumentId.Value &&
+                    row.DocumentVersion == binding.DocumentVersion.Value);
+                var generation = generationRows.SingleOrDefault(row =>
+                    row.DocumentId == binding.DocumentId.Value &&
+                    row.DocumentVersion == binding.DocumentVersion.Value);
+
+                if (document is null || generation is null ||
+                    !ActivationEvidenceMatchesDocument(evidence, document) ||
+                    !GenerationBindingMatches(generation, binding) ||
+                    !ParseLanguage(document.ContentLanguage).IsSupportedByV1)
+                {
+                    return false;
+                }
+
+                await using (var source = await contentStore.OpenVerifiedAsync(
+                    evidence.SourceContentObjectId,
+                    new ExpectedHashAndLength(
+                        evidence.SourceContentObjectId,
+                        document.ByteLength),
+                    cancellationToken).ConfigureAwait(false))
+                {
+                }
+
+                if (binding.DocumentFormat == DocumentFormat.Csv)
+                {
+                    continue;
+                }
+
+                var manifestRow = await context.DocumentRenderManifests.AsNoTracking()
+                    .SingleOrDefaultAsync(
+                        row => row.RenderManifestId == evidence.RenderManifestId!.Value,
+                        cancellationToken).ConfigureAwait(false);
+
+                if (manifestRow is null ||
+                    manifestRow.CorpusId != record.CorpusId.Value ||
+                    manifestRow.DocumentId != binding.DocumentId.Value ||
+                    manifestRow.DocumentVersion != binding.DocumentVersion.Value ||
+                    manifestRow.SourceContentSha256 != evidence.SourceContentObjectId.Value)
+                {
+                    return false;
+                }
+
+                var manifest = await ReadRenderManifestAsync(
+                    context,
+                    manifestRow,
+                    cancellationToken).ConfigureAwait(false);
+
+                foreach (var page in manifest.OrderedPageImages)
+                {
+                    await using var image = await contentStore.OpenVerifiedAsync(
+                        page.ImageContentObjectId,
+                        new ExpectedHashAndLength(
+                            page.ImageContentObjectId,
+                            page.ByteLength),
+                        cancellationToken).ConfigureAwait(false);
+                }
+            }
+        }
+        catch (Exception exception) when (
+            exception is IOException or InvalidDataException or UnauthorizedAccessException or
+                ArgumentException or InvalidOperationException)
+        {
+            return false;
+        }
+
+        return true;
+    }
+
+    private static bool ActivationEvidenceMatchesDocument(
+        DocumentActivationEvidenceBinding evidence,
+        DocumentVersionRow document)
+    {
+        var binding = evidence.DocumentBinding;
+        return document.ProductId == binding.DatabaseProductId.Value &&
+            document.ProductRevision == binding.DatabaseProductRevision.Value &&
+            document.DocumentFormat == binding.DocumentFormat.ToString() &&
+            document.ContentSha256 == evidence.SourceContentObjectId.Value &&
+            document.SourceAdapterId == binding.SourceAdapterId.Value &&
+            document.SourceTrustClass == binding.SourceTrustClass.ToString() &&
+            document.OfficialRegistrationId == binding.OfficialSourceRegistrationId?.Value &&
+            document.OfficialSnapshotId == binding.OfficialSnapshotId?.Value;
+    }
+
+    private static bool GenerationBindingMatches(
+        GenerationManifestBindingRow row,
+        DocumentBinding binding) =>
+        row.ProductId == binding.DatabaseProductId.Value &&
+        row.ProductRevision == binding.DatabaseProductRevision.Value &&
+        row.DocumentId == binding.DocumentId.Value &&
+        row.DocumentVersion == binding.DocumentVersion.Value &&
+        row.DocumentFormat == binding.DocumentFormat.ToString() &&
+        row.SourceAdapterId == binding.SourceAdapterId.Value &&
+        row.SourceTrustClass == binding.SourceTrustClass.ToString() &&
+        row.OfficialRegistrationId == binding.OfficialSourceRegistrationId?.Value &&
+        row.OfficialSnapshotId == binding.OfficialSnapshotId?.Value;
+
+    private static void AddActivationEvidenceRows(
+        ControlPlaneDbContext context,
+        CorpusActivationRecord record)
+    {
+        context.ActivationEvidenceBindings.AddRange(record.EvidenceBindings.Select(evidence =>
+            ControlPlaneMapping.ToActivationEvidenceBindingRow(
+                record.CorpusId,
+                record.RecordRevision,
+                evidence)));
+        context.ActivationRightsDecisions.AddRange(record.EvidenceBindings.SelectMany(evidence =>
+            ControlPlaneMapping.ToActivationRightsDecisionRows(
+                record.CorpusId,
+                record.RecordRevision,
+                evidence)));
+    }
+
     private static async Task<IReadOnlyList<DocumentBinding>?>
         ResolveExpectedGenerationBindingsAsync(
             ControlPlaneDbContext context,
@@ -2154,7 +2300,17 @@ public sealed class SqliteControlPlaneStore(SqliteStoreOptions options)
                 row.RecordRevision == head.RecordRevision)
             .ToArrayAsync(cancellationToken)
             .ConfigureAwait(false);
-        return ControlPlaneMapping.ToDomain(record, bindings);
+        var evidence = await context.ActivationEvidenceBindings.AsNoTracking()
+            .Where(row => row.CorpusId == corpusId.Value &&
+                row.RecordRevision == head.RecordRevision)
+            .ToArrayAsync(cancellationToken)
+            .ConfigureAwait(false);
+        var rights = await context.ActivationRightsDecisions.AsNoTracking()
+            .Where(row => row.CorpusId == corpusId.Value &&
+                row.RecordRevision == head.RecordRevision)
+            .ToArrayAsync(cancellationToken)
+            .ConfigureAwait(false);
+        return ControlPlaneMapping.ToDomain(record, bindings, evidence, rights);
     }
 
     private static bool MutationKindMatches(
@@ -2762,7 +2918,15 @@ public sealed class SqliteControlPlaneStore(SqliteStoreOptions options)
             .Where(row => row.CorpusId == record.CorpusId &&
                 row.RecordRevision == record.RecordRevision)
             .ToArrayAsync(cancellationToken).ConfigureAwait(false);
-        var persisted = ControlPlaneMapping.ToDomain(record, bindings);
+        var evidence = await context.ActivationEvidenceBindings.AsNoTracking()
+            .Where(row => row.CorpusId == record.CorpusId &&
+                row.RecordRevision == record.RecordRevision)
+            .ToArrayAsync(cancellationToken).ConfigureAwait(false);
+        var rights = await context.ActivationRightsDecisions.AsNoTracking()
+            .Where(row => row.CorpusId == record.CorpusId &&
+                row.RecordRevision == record.RecordRevision)
+            .ToArrayAsync(cancellationToken).ConfigureAwait(false);
+        var persisted = ControlPlaneMapping.ToDomain(record, bindings, evidence, rights);
         var manifest = await context.GenerationManifests.AsNoTracking()
             .SingleOrDefaultAsync(
                 row => row.CorpusId == record.CorpusId &&
@@ -2873,7 +3037,18 @@ public sealed class SqliteControlPlaneStore(SqliteStoreOptions options)
         left.ActivationBindingSetDigest == right.ActivationBindingSetDigest &&
         left.GenerationActivatedAt == right.GenerationActivatedAt &&
         left.RecordUpdatedAt == right.RecordUpdatedAt &&
-        left.DocumentBindings.SequenceEqual(right.DocumentBindings);
+        left.DocumentBindings.SequenceEqual(right.DocumentBindings) &&
+        ActivationEvidenceMatches(left.EvidenceBindings, right.EvidenceBindings);
+
+    private static bool ActivationEvidenceMatches(
+        System.Collections.ObjectModel.ReadOnlyCollection<DocumentActivationEvidenceBinding> left,
+        System.Collections.ObjectModel.ReadOnlyCollection<DocumentActivationEvidenceBinding> right) =>
+        left.Count == right.Count && left.Zip(right).All(pair =>
+            pair.First.DocumentBinding == pair.Second.DocumentBinding &&
+            pair.First.SourceContentObjectId == pair.Second.SourceContentObjectId &&
+            pair.First.RightsSchemaVersion == pair.Second.RightsSchemaVersion &&
+            pair.First.RenderManifestId == pair.Second.RenderManifestId &&
+            pair.First.Rights.Decisions.SequenceEqual(pair.Second.Rights.Decisions));
 
     private static void EnsureJournalCompletionMatchesMutation(
         AdministrationJournalCompletion? completion,

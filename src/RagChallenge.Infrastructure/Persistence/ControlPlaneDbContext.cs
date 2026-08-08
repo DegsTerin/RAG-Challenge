@@ -57,6 +57,12 @@ public sealed class ControlPlaneDbContext(DbContextOptions<ControlPlaneDbContext
 
     internal DbSet<ActivationBindingRow> ActivationBindings => Set<ActivationBindingRow>();
 
+    internal DbSet<ActivationEvidenceBindingRow> ActivationEvidenceBindings =>
+        Set<ActivationEvidenceBindingRow>();
+
+    internal DbSet<ActivationRightsDecisionRow> ActivationRightsDecisions =>
+        Set<ActivationRightsDecisionRow>();
+
     internal DbSet<ActivationHeadRow> ActivationHeads => Set<ActivationHeadRow>();
 
     internal DbSet<GenerationRetentionRow> GenerationRetentions =>
@@ -239,6 +245,9 @@ public sealed class ControlPlaneDbContext(DbContextOptions<ControlPlaneDbContext
                 row.RendererDescriptor,
             });
             entity.HasIndex(row => row.ManifestSha256).IsUnique();
+            entity.HasOne<ContentObjectRow>().WithMany()
+                .HasForeignKey(row => row.SourceContentSha256)
+                .OnDelete(DeleteBehavior.Restrict);
             entity.HasOne<DocumentVersionRow>().WithMany().HasForeignKey(row => new
             {
                 row.CorpusId,
@@ -252,9 +261,6 @@ public sealed class ControlPlaneDbContext(DbContextOptions<ControlPlaneDbContext
                 row.DocumentVersion,
                 row.ContentSha256,
             }).OnDelete(DeleteBehavior.Restrict);
-            entity.HasOne<ContentObjectRow>().WithMany()
-                .HasForeignKey(row => row.SourceContentSha256)
-                .OnDelete(DeleteBehavior.Restrict);
         });
 
         modelBuilder.Entity<DocumentPageImageRow>(entity =>
@@ -649,6 +655,96 @@ public sealed class ControlPlaneDbContext(DbContextOptions<ControlPlaneDbContext
                 snapshot.SnapshotId,
                 snapshot.RegistrationId,
             }).IsRequired(false).OnDelete(DeleteBehavior.Restrict);
+        });
+
+        modelBuilder.Entity<ActivationEvidenceBindingRow>(entity =>
+        {
+            entity.ToTable("activation_evidence_bindings", table =>
+            {
+                table.HasCheckConstraint(
+                    "ck_activation_evidence_format",
+                    "document_format IN ('Pdf', 'Csv')");
+                table.HasCheckConstraint(
+                    "ck_activation_evidence_source",
+                    Sha256("source_content_sha256"));
+                table.HasCheckConstraint(
+                    "ck_activation_evidence_rights_schema",
+                    "rights_schema_version = 1");
+                table.HasCheckConstraint(
+                    "ck_activation_evidence_manifest",
+                    "(document_format = 'Pdf' AND render_manifest_id IS NOT NULL) OR " +
+                    "(document_format = 'Csv' AND render_manifest_id IS NULL)");
+            });
+            entity.HasKey(row => new
+            {
+                row.CorpusId,
+                row.RecordRevision,
+                row.DocumentId,
+                row.DocumentVersion,
+            });
+            entity.Property(row => row.SourceContentSha256).HasMaxLength(64);
+            entity.Property(row => row.RenderManifestId).HasMaxLength(79);
+            entity.HasOne<ActivationBindingRow>().WithMany().HasForeignKey(row => new
+            {
+                row.CorpusId,
+                row.RecordRevision,
+                row.DocumentId,
+                row.DocumentVersion,
+            }).OnDelete(DeleteBehavior.Restrict);
+            entity.HasOne<DocumentVersionRow>().WithMany().HasForeignKey(row => new
+            {
+                row.CorpusId,
+                row.DocumentId,
+                row.DocumentVersion,
+                ContentSha256 = row.SourceContentSha256,
+            }).HasPrincipalKey(row => new
+            {
+                row.CorpusId,
+                row.DocumentId,
+                row.DocumentVersion,
+                row.ContentSha256,
+            }).OnDelete(DeleteBehavior.Restrict);
+            entity.HasOne<DocumentRenderManifestRow>().WithMany()
+                .HasForeignKey(row => row.RenderManifestId)
+                .IsRequired(false)
+                .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        modelBuilder.Entity<ActivationRightsDecisionRow>(entity =>
+        {
+            entity.ToTable("activation_rights_decisions", table =>
+            {
+                table.HasCheckConstraint(
+                    "ck_activation_rights_right",
+                    "document_right IN ('SourcePossessionOrDownload', " +
+                    "'ParsingAndTextualTransformation', 'Indexing', 'SourceByteRetention', " +
+                    "'QuotationAndCitation', 'PageRendering', " +
+                    "'DerivativeImageCreationAndRetention', " +
+                    "'RuntimeDerivativeImageDisplay', " +
+                    "'SourceAndDerivativeByteDistributionOrPublication', " +
+                    "'AttributionNoticeTrademarkAndChangeMarkingRequirements')");
+                table.HasCheckConstraint(
+                    "ck_activation_rights_state",
+                    "decision_state IN ('Permitted', 'Denied', 'Unproven')");
+                table.HasCheckConstraint(
+                    "ck_activation_rights_evidence",
+                    StableId("evidence_reference"));
+            });
+            entity.HasKey(row => new
+            {
+                row.CorpusId,
+                row.RecordRevision,
+                row.DocumentId,
+                row.DocumentVersion,
+                row.DocumentRight,
+            });
+            entity.HasOne<ActivationEvidenceBindingRow>().WithMany().HasForeignKey(row => new
+            {
+                row.CorpusId,
+                row.RecordRevision,
+                row.DocumentId,
+                row.DocumentVersion,
+            }).OnDelete(DeleteBehavior.Restrict);
         });
 
         modelBuilder.Entity<ActivationHeadRow>(entity =>

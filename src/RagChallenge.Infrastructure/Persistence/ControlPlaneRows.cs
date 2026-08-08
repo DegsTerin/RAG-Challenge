@@ -369,6 +369,42 @@ internal sealed class ActivationBindingRow
     public string? SourceObservationId { get; set; }
 }
 
+internal sealed class ActivationEvidenceBindingRow
+{
+    public required string CorpusId { get; set; }
+
+    public long RecordRevision { get; set; }
+
+    public required string DocumentId { get; set; }
+
+    public long DocumentVersion { get; set; }
+
+    public required string DocumentFormat { get; set; }
+
+    public required string SourceContentSha256 { get; set; }
+
+    public int RightsSchemaVersion { get; set; }
+
+    public string? RenderManifestId { get; set; }
+}
+
+internal sealed class ActivationRightsDecisionRow
+{
+    public required string CorpusId { get; set; }
+
+    public long RecordRevision { get; set; }
+
+    public required string DocumentId { get; set; }
+
+    public long DocumentVersion { get; set; }
+
+    public required string DocumentRight { get; set; }
+
+    public required string DecisionState { get; set; }
+
+    public required string EvidenceReference { get; set; }
+}
+
 internal sealed class ActivationHeadRow
 {
     public required string CorpusId { get; set; }

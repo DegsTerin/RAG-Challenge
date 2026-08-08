@@ -3,6 +3,7 @@ using System.Globalization;
 using System.Text;
 
 using Microsoft.Data.Sqlite;
+using Microsoft.EntityFrameworkCore;
 
 using RagChallenge.Application.IndexingRetrieval;
 using RagChallenge.Application.Persistence;
@@ -22,7 +23,7 @@ public sealed class SqliteActivationLifecycleTests
         var manifest = await fixture.CommitGenerationAsync(binding, "language-gate");
         var proposed = ActivationRecordFactory.CreateInitial(
             manifest,
-            [binding],
+            [await fixture.CreateActivationEvidenceAsync(binding)],
             SqlitePersistenceFixture.At(2));
         await ExecuteAsync(
             fixture.Options.ControlDatabasePath,
@@ -122,7 +123,7 @@ public sealed class SqliteActivationLifecycleTests
         await File.WriteAllTextAsync(objectPath, "corrupted after generation finalisation");
         var initial = ActivationRecordFactory.CreateInitial(
             manifest,
-            [binding],
+            [await fixture.CreateActivationEvidenceAsync(binding)],
             SqlitePersistenceFixture.At(2));
 
         var result = await ActivateAsync(
@@ -149,7 +150,7 @@ public sealed class SqliteActivationLifecycleTests
             "UPDATE vector_chunks SET vector = zeroblob(length(vector));");
         var initial = ActivationRecordFactory.CreateInitial(
             manifest,
-            [binding],
+            [await fixture.CreateActivationEvidenceAsync(binding)],
             SqlitePersistenceFixture.At(2));
 
         var result = await ActivateAsync(
@@ -245,7 +246,7 @@ public sealed class SqliteActivationLifecycleTests
         var generationA = await fixture.CommitGenerationAsync(binding, "a");
         var initial = ActivationRecordFactory.CreateInitial(
             generationA,
-            [binding],
+            [await fixture.CreateActivationEvidenceAsync(binding)],
             SqlitePersistenceFixture.At(2));
         var initialResult = await ActivateAsync(
             fixture,
@@ -260,7 +261,7 @@ public sealed class SqliteActivationLifecycleTests
         var replacement = ActivationRecordFactory.CreateGenerationReplacement(
             initial,
             generationB,
-            [binding],
+            [await fixture.CreateActivationEvidenceAsync(binding)],
             SqlitePersistenceFixture.At(3));
         var concurrentResults = await Task.WhenAll(
             ActivateAsync(
@@ -295,7 +296,7 @@ public sealed class SqliteActivationLifecycleTests
         var rollback = ActivationRecordFactory.CreateRollback(
             currentB,
             generationA,
-            [binding],
+            [await fixture.CreateActivationEvidenceAsync(binding)],
             SqlitePersistenceFixture.At(4));
         var rollbackResult = await ActivateAsync(
             fixture,
@@ -312,7 +313,7 @@ public sealed class SqliteActivationLifecycleTests
         var replacementC = ActivationRecordFactory.CreateGenerationReplacement(
             rollbackResult.CurrentRecord,
             generationC,
-            [binding],
+            [await fixture.CreateActivationEvidenceAsync(binding)],
             SqlitePersistenceFixture.At(5));
         var replacementCResult = await ActivateAsync(
             fixture,
@@ -380,7 +381,7 @@ public sealed class SqliteActivationLifecycleTests
         var verified = await SqliteRecoverySnapshotService.VerifyIsolatedAsync(
             recoveryResult.SnapshotPath);
         Assert.True(verified.IsValid, string.Join(Environment.NewLine, verified.Failures));
-        Assert.Equal(3, recoveryResult.ContentObjectCount);
+        Assert.Equal(4, recoveryResult.ContentObjectCount);
         Assert.Equal(0, await fixture.ScalarAsync("SELECT COUNT(*) FROM recovery_leases;"));
         Assert.Equal(2, await fixture.ScalarAsync(
             "SELECT COUNT(*) FROM audit_events WHERE operation_id = 'recovery-verified';"));
@@ -389,7 +390,7 @@ public sealed class SqliteActivationLifecycleTests
             Path.Combine(recoveryResult.SnapshotPath, "content"),
             "*.bin",
             SearchOption.AllDirectories).ToArray();
-        Assert.Equal(3, copiedContent.Length);
+        Assert.Equal(4, copiedContent.Length);
         await File.AppendAllTextAsync(copiedContent[0], "corruption");
         var corrupted = await SqliteRecoverySnapshotService.VerifyIsolatedAsync(
             recoveryResult.SnapshotPath);
@@ -489,7 +490,7 @@ public sealed class SqliteActivationLifecycleTests
         var manifest = await fixture.CommitGenerationAsync(missingBinding, "official");
         var missingObservationRecord = ActivationRecordFactory.CreateInitial(
             manifest,
-            [missingBinding],
+            [await fixture.CreateActivationEvidenceAsync(missingBinding)],
             SqlitePersistenceFixture.At(2));
         var rejected = await ActivateAsync(
             fixture,
@@ -522,7 +523,7 @@ public sealed class SqliteActivationLifecycleTests
         var observedBinding = missingBinding.WithObservation(observation.Id);
         var acceptedRecord = ActivationRecordFactory.CreateInitial(
             manifest,
-            [observedBinding],
+            [await fixture.CreateActivationEvidenceAsync(observedBinding)],
             SqlitePersistenceFixture.At(2));
         var accepted = await ActivateAsync(
             fixture,
@@ -532,6 +533,193 @@ public sealed class SqliteActivationLifecycleTests
             acceptedRecord,
             SqlitePersistenceFixture.At(2));
         Assert.Equal(StoreMutationOutcome.Applied, accepted.Outcome);
+    }
+
+    [Fact]
+    public async Task ActivationPersistsExactEvidenceAndReplayRejectsAnyRightsDivergence()
+    {
+        await using var fixture = await SqlitePersistenceFixture.CreateAsync();
+        var (_, binding) = await fixture.CommitLocalCatalogueAsync();
+        var manifest = await fixture.CommitGenerationAsync(binding, "evidence-replay");
+        var evidence = await fixture.CreateActivationEvidenceAsync(binding);
+        var proposed = ActivationRecordFactory.CreateInitial(
+            manifest,
+            [evidence],
+            SqlitePersistenceFixture.At(2));
+        var request = new ActivationCompareExchangeRequest(
+            new OperationId("activation-evidence-replay"),
+            ActivationMutationKind.Initial,
+            ExpectedCurrentRevision: 0,
+            proposed,
+            SqlitePersistenceFixture.CompatibilityKey,
+            SqlitePersistenceFixture.At(2),
+            SqliteControlPlaneStore.MinimumPreviousGenerationRetention);
+
+        var applied = await fixture.ControlStore.CompareExchangeActivationAsync(request);
+        var replayed = await fixture.ControlStore.CompareExchangeActivationAsync(request);
+        var persisted = Assert.IsType<CorpusActivationRecord>(
+            await fixture.ControlStore.ReadActiveActivationAsync(
+                SqlitePersistenceFixture.CorpusId));
+
+        Assert.Equal(StoreMutationOutcome.Applied, applied.Outcome);
+        Assert.Equal(StoreMutationOutcome.AlreadyApplied, replayed.Outcome);
+        Assert.True(persisted.HasCompleteEvidenceBindings);
+        Assert.Equal(evidence.SourceContentObjectId, persisted.EvidenceBindings[0].SourceContentObjectId);
+        Assert.Equal(evidence.RenderManifestId, persisted.EvidenceBindings[0].RenderManifestId);
+        Assert.Equal(10, persisted.EvidenceBindings[0].Rights.Decisions.Count);
+        Assert.Equal(1, await fixture.ScalarAsync("SELECT COUNT(*) FROM activation_evidence_bindings;"));
+        Assert.Equal(10, await fixture.ScalarAsync("SELECT COUNT(*) FROM activation_rights_decisions;"));
+
+        var divergentRights = new DocumentRightsEligibilityRecordV1(
+            binding.DocumentId,
+            binding.DocumentVersion,
+            evidence.Rights.Decisions.Select((decision, index) => new DocumentRightDecision(
+                decision.Right,
+                decision.State,
+                index == 0
+                    ? new DocumentRightsEvidenceReference("different-evidence-reference")
+                    : decision.EvidenceReference)));
+        var divergent = ActivationRecordFactory.CreateInitial(
+            manifest,
+            [new DocumentActivationEvidenceBinding(
+                binding,
+                evidence.SourceContentObjectId,
+                divergentRights,
+                evidence.RenderManifestId)],
+            SqlitePersistenceFixture.At(2));
+
+        await Assert.ThrowsAsync<InvalidOperationException>(() =>
+            fixture.ControlStore.CompareExchangeActivationAsync(
+                request with { ProposedRecord = divergent }));
+        Assert.Equal(1, await fixture.ScalarAsync("SELECT COUNT(*) FROM activation_records;"));
+        Assert.Equal(1, await fixture.ScalarAsync("SELECT record_revision FROM activation_heads;"));
+    }
+
+    [Theory]
+    [InlineData("missing-manifest")]
+    [InlineData("missing-page")]
+    [InlineData("corrupt-page")]
+    public async Task PdfEvidenceReadbackFailureLeavesNoPartialActivationAuthority(
+        string failure)
+    {
+        await using var fixture = await SqlitePersistenceFixture.CreateAsync();
+        var (_, binding) = await fixture.CommitLocalCatalogueAsync();
+        var manifest = await fixture.CommitGenerationAsync(binding, $"pdf-{failure}");
+        var evidence = await fixture.CreateActivationEvidenceAsync(binding);
+        var renderManifest = Assert.IsType<DocumentRenderManifest>(
+            await fixture.ControlStore.ReadAsync(
+                SqlitePersistenceFixture.CorpusId,
+                evidence.RenderManifestId!));
+
+        if (failure == "missing-manifest")
+        {
+            await ExecuteAsync(
+                fixture.Options.ControlDatabasePath,
+                "DELETE FROM document_page_images; DELETE FROM document_render_manifests;");
+        }
+        else if (failure == "missing-page")
+        {
+            await ExecuteAsync(
+                fixture.Options.ControlDatabasePath,
+                "DELETE FROM document_page_images;");
+        }
+        else
+        {
+            var imageId = Assert.Single(renderManifest.OrderedPageImages).ImageContentObjectId;
+            var imagePath = Path.Combine(
+                fixture.Options.ContentStoreRoot,
+                "objects",
+                imageId.Value[..2],
+                $"{imageId.Value}.bin");
+            await File.WriteAllTextAsync(imagePath, "corrupted page image");
+        }
+
+        var proposed = ActivationRecordFactory.CreateInitial(
+            manifest,
+            [evidence],
+            SqlitePersistenceFixture.At(2));
+        var result = await ActivateAsync(
+            fixture,
+            $"activation-{failure}",
+            ActivationMutationKind.Initial,
+            expectedRevision: 0,
+            proposed,
+            SqlitePersistenceFixture.At(2));
+
+        Assert.Equal(StoreMutationOutcome.ValidationFailed, result.Outcome);
+        Assert.Contains(
+            ActivationValidationFailure.ActivationEvidenceBindingMismatch,
+            result.ValidationFailures);
+        Assert.Equal(0, await fixture.ScalarAsync("SELECT COUNT(*) FROM activation_records;"));
+        Assert.Equal(0, await fixture.ScalarAsync("SELECT COUNT(*) FROM activation_bindings;"));
+        Assert.Equal(0, await fixture.ScalarAsync("SELECT COUNT(*) FROM activation_evidence_bindings;"));
+        Assert.Equal(0, await fixture.ScalarAsync("SELECT COUNT(*) FROM activation_rights_decisions;"));
+        Assert.Equal(0, await fixture.ScalarAsync("SELECT COUNT(*) FROM activation_heads;"));
+    }
+
+    [Theory]
+    [InlineData("activation_evidence_bindings", "INSERT")]
+    [InlineData("activation_rights_decisions", "INSERT")]
+    [InlineData("activation_heads", "UPDATE")]
+    public async Task PersistenceFailurePreservesTheCompletePreviousActivationAuthority(
+        string failingTable,
+        string mutation)
+    {
+        await using var fixture = await SqlitePersistenceFixture.CreateAsync();
+        var (_, binding) = await fixture.CommitLocalCatalogueAsync();
+        var evidence = await fixture.CreateActivationEvidenceAsync(binding);
+        var generationA = await fixture.CommitGenerationAsync(binding, "failure-a");
+        var initial = ActivationRecordFactory.CreateInitial(
+            generationA,
+            [evidence],
+            SqlitePersistenceFixture.At(2));
+        var initialResult = await ActivateAsync(
+            fixture,
+            "activation-failure-a",
+            ActivationMutationKind.Initial,
+            expectedRevision: 0,
+            initial,
+            SqlitePersistenceFixture.At(2));
+        Assert.Equal(StoreMutationOutcome.Applied, initialResult.Outcome);
+
+        var generationB = await fixture.CommitGenerationAsync(binding, "failure-b");
+        var replacement = ActivationRecordFactory.CreateGenerationReplacement(
+            initial,
+            generationB,
+            [await fixture.CreateActivationEvidenceAsync(binding)],
+            SqlitePersistenceFixture.At(3));
+        await ExecuteAsync(
+            fixture.Options.ControlDatabasePath,
+            $"""
+            CREATE TRIGGER fail_activation_persistence
+            BEFORE {mutation} ON {failingTable}
+            BEGIN
+                SELECT RAISE(ABORT, 'injected activation persistence failure');
+            END;
+            """);
+
+        var exception = await Record.ExceptionAsync(() => ActivateAsync(
+            fixture,
+            $"activation-failure-{failingTable}",
+            ActivationMutationKind.Replacement,
+            expectedRevision: 1,
+            replacement,
+            SqlitePersistenceFixture.At(3)));
+        Assert.True(exception is DbUpdateException or SqliteException);
+        var active = Assert.IsType<CorpusActivationRecord>(
+            await fixture.ControlStore.ReadActiveActivationAsync(
+                SqlitePersistenceFixture.CorpusId));
+
+        Assert.Equal(1, active.RecordRevision.Value);
+        Assert.Equal(generationA.IndexGenerationId, active.IndexGenerationId);
+        Assert.Equal(1, await fixture.ScalarAsync("SELECT COUNT(*) FROM activation_records;"));
+        Assert.Equal(1, await fixture.ScalarAsync("SELECT COUNT(*) FROM activation_bindings;"));
+        Assert.Equal(1, await fixture.ScalarAsync("SELECT COUNT(*) FROM activation_evidence_bindings;"));
+        Assert.Equal(10, await fixture.ScalarAsync("SELECT COUNT(*) FROM activation_rights_decisions;"));
+        Assert.Equal(1, await fixture.ScalarAsync("SELECT record_revision FROM activation_heads;"));
+        Assert.Equal(1, await fixture.ScalarAsync("SELECT COUNT(*) FROM generation_retention;"));
+        Assert.Equal(1, await fixture.ScalarAsync(
+            "SELECT COUNT(*) FROM admin_operations WHERE operation_kind = 'ActivationCAS';"));
     }
 
     private static Task<ActivationMutationResult> ActivateAsync(

@@ -1,6 +1,7 @@
 // Purpose: Performs the complete fail-closed pre-CAS validation in Application; it neither persists records nor assumes an Infrastructure store.
 using System.Collections.ObjectModel;
 
+using RagChallenge.Application.Documents;
 using RagChallenge.Domain.CorpusCatalog;
 using RagChallenge.Domain.IndexingRetrieval;
 
@@ -17,6 +18,8 @@ public enum ActivationValidationFailure
     ActiveDocumentSetDigestMismatch,
     SourceBindingSetDigestMismatch,
     ActivationBindingSetDigestMismatch,
+    ActivationEvidenceBindingMismatch,
+    DocumentRightsNotPermitted,
     DuplicateActiveDocumentProjection,
     ObservationBindingMismatch,
     ObservationMissing,
@@ -70,6 +73,7 @@ public static class ActivationRecordValidator
             requiredCompatibilityKey,
             failures);
         ValidateThreeDigestDomains(manifest, proposedRecord, failures);
+        ValidateEvidenceBindings(proposedRecord, failures);
         ValidateObservationsAndCoverage(
             proposedRecord,
             observations,
@@ -77,6 +81,29 @@ public static class ActivationRecordValidator
             failures);
 
         return new ActivationValidationResult(failures);
+    }
+
+    private static void ValidateEvidenceBindings(
+        CorpusActivationRecord proposedRecord,
+        List<ActivationValidationFailure> failures)
+    {
+        if (!proposedRecord.HasCompleteEvidenceBindings)
+        {
+            failures.Add(ActivationValidationFailure.ActivationEvidenceBindingMismatch);
+            return;
+        }
+
+        foreach (var evidence in proposedRecord.EvidenceBindings)
+        {
+            var gate = evidence.DocumentBinding.DocumentFormat == DocumentFormat.Pdf
+                ? DocumentRightsEligibilityGate.PdfVisualEvidence
+                : DocumentRightsEligibilityGate.TextualEvidence;
+
+            if (!DocumentRightsEligibilityPolicy.Evaluate(evidence.Rights, gate).IsEligible)
+            {
+                failures.Add(ActivationValidationFailure.DocumentRightsNotPermitted);
+            }
+        }
     }
 
     private static void ValidateLineage(

@@ -6,8 +6,10 @@ using Microsoft.Data.Sqlite;
 using Microsoft.Extensions.Configuration;
 
 using RagChallenge.Application.Administration;
+using RagChallenge.Application.IndexingRetrieval;
 using RagChallenge.Application.Persistence;
 using RagChallenge.Domain.CorpusCatalog;
+using RagChallenge.Domain.IndexingRetrieval;
 using RagChallenge.Infrastructure.Persistence;
 using RagChallenge.Server.Api.OperationsGovernance;
 
@@ -21,6 +23,177 @@ public sealed class OneShotAdministrationTests
     {
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
     };
+
+    [Fact]
+    public async Task RealActivationCommandRequiresAndPersistsCompleteEvidenceBindings()
+    {
+        using var root = TemporaryAdministrationRoot.Create();
+        var options = root.CreateStoreOptions();
+        await SqliteStoreProvisioner.ApplyMigrationsAsync(options);
+        var store = new SqliteControlPlaneStore(options);
+        var vectorStore = new SqliteVectorIndexStore(options);
+        var contentStore = new ImmutableContentStore(options);
+        var corpusId = new CorpusId("admin-corpus");
+        var productId = new DatabaseProductId("admin-database");
+        var productRevision = new DatabaseProductRevision(1);
+        var documentId = new DocumentId("admin-document-csv");
+        var documentVersion = new DocumentVersionNumber(1);
+        var sourceAdapterId = new SourceAdapterId("admin-local-csv");
+        var sourceBytes = System.Text.Encoding.UTF8.GetBytes("name,value\nfixture,1\n");
+        await using var source = new MemoryStream(sourceBytes, writable: false);
+        var content = await contentStore.PutAndVerifyAsync(new BoundedContentInput(
+            source,
+            sourceBytes.Length,
+            ContentMediaType.TextCsv));
+        var category = new DatabaseCategory(
+            new DatabaseCategoryId("admin-category"),
+            "Administration category");
+        var product = new DatabaseProduct(
+            productId,
+            productRevision,
+            "Administration database",
+            CatalogueItemStatus.Active,
+            [category.Id]);
+        var document = new DocumentVersion(
+            documentId,
+            documentVersion,
+            productId,
+            productRevision,
+            DocumentFormat.Csv,
+            DocumentContentLanguage.EnGb,
+            CatalogueItemStatus.Active,
+            content.ContentObjectId,
+            content.ByteLength,
+            ContentMediaType.TextCsv.Value,
+            sourceAdapterId,
+            SourceTrustClass.LocalAuthorised);
+        var catalogue = new CatalogueSnapshot(
+            corpusId,
+            new CatalogueRevision(1),
+            [category],
+            [product],
+            [document]);
+        Assert.Equal(StoreMutationOutcome.Applied, (
+            await store.CommitCatalogueAsync(new CatalogueCommitRequest(
+                new OperationId("admin-activation-catalogue"),
+                catalogue,
+                ExpectedCurrentRevision: 0,
+                Now))).Outcome);
+        var binding = new DocumentBinding(
+            productId,
+            productRevision,
+            documentId,
+            documentVersion,
+            DocumentFormat.Csv,
+            sourceAdapterId,
+            SourceTrustClass.LocalAuthorised);
+        var compatibilityKey = new IndexCompatibilityKey(new string('a', 64));
+        var candidate = new CandidateBuildId("admin-activation-candidate");
+        await vectorStore.CreateCandidateAsync(
+            candidate,
+            corpusId,
+            compatibilityKey,
+            vectorDimensions: 2,
+            expectedChunkCount: 1,
+            Now);
+        await vectorStore.AddChunksAsync(candidate, [new VectorChunkWrite(
+            0,
+            documentId,
+            documentVersion,
+            new LogicalArtifactDigest(new string('b', 64)),
+            "synthetic activation evidence",
+            new float[] { 1, 2 },
+            DocumentContentLanguage.EnGb)]);
+        var specification = new IndexGenerationSpecification(
+            manifestSchemaVersion: 1,
+            corpusId,
+            new CorpusRevision(1),
+            new CatalogueRevision(1),
+            BindingDigestCanonicalizer.CanonicaliseActiveDocumentSet([binding]).Digest,
+            BindingDigestCanonicalizer.CanonicaliseSourceBindingSet([binding]).Digest,
+            compatibilityKey);
+        var manifest = await vectorStore.FinaliseCandidateAsync(
+            candidate,
+            specification,
+            Now);
+        Assert.Equal(StoreMutationOutcome.Applied, (
+            await store.CommitGenerationAsync(new GenerationCommitRequest(
+                new OperationId("admin-activation-generation"),
+                candidate,
+                manifest,
+                [binding],
+                Now))).Outcome);
+        var input = new
+        {
+            expectedCurrentRevision = 0,
+            previousGenerationRetentionDays = 14,
+            manifest = new
+            {
+                manifest.ManifestSchemaVersion,
+                corpusRevision = manifest.CorpusRevision.Value,
+                catalogueRevision = manifest.CatalogueRevision.Value,
+                activeDocumentSetDigest = manifest.ActiveDocumentSetDigest.Value,
+                sourceBindingSetDigest = manifest.SourceBindingSetDigest.Value,
+                indexCompatibilityKey = manifest.IndexCompatibilityKey.Value,
+                generationSpecDigest = manifest.GenerationSpecDigest.Value,
+                manifest.ChunkCount,
+                manifest.VectorCount,
+                logicalArtifactDigest = manifest.LogicalArtifactDigest.Value,
+                generationContentDigest = manifest.GenerationContentDigest.Value,
+                indexGenerationId = manifest.IndexGenerationId.Value,
+            },
+            evidenceBindings = new[]
+            {
+                new
+                {
+                    binding = new
+                    {
+                        databaseProductId = productId.Value,
+                        databaseProductRevision = productRevision.Value,
+                        documentId = documentId.Value,
+                        documentVersion = documentVersion.Value,
+                        documentFormat = DocumentFormat.Csv.ToString(),
+                        sourceAdapterId = sourceAdapterId.Value,
+                        sourceTrustClass = SourceTrustClass.LocalAuthorised.ToString(),
+                        officialSourceRegistrationId = (string?)null,
+                        officialSnapshotId = (string?)null,
+                        sourceObservationId = (string?)null,
+                    },
+                    sourceContentObjectId = content.ContentObjectId.Value,
+                    rightsSchemaVersion = 1,
+                    rightsDecisions = Enum.GetValues<DocumentRight>().Select(right => new
+                    {
+                        right = right.ToString(),
+                        state = DocumentRightDecisionState.Permitted.ToString(),
+                        evidenceReference = $"admin-rights-{right}",
+                    }).ToArray(),
+                    renderManifestId = (string?)null,
+                },
+            },
+        };
+        await File.WriteAllTextAsync(
+            Path.Combine(root.InputRoot, "activate.json"),
+            JsonSerializer.Serialize(input, PlanJsonOptions));
+        var result = await RunAsync(
+            MutationArguments(
+                "activate-generation",
+                "admin-activation-operation",
+                "activate.json"),
+            Configuration(true, root.InputRoot, root.StoreRoot),
+            new StubIdentity("os-sha256:" + new string('a', 64)),
+            new SqliteAdministrationLeaseManager(options),
+            new SqliteAdministrativeCommandExecutor(store),
+            new SqliteAdministrationCommandJournal(options));
+        var active = Assert.IsType<CorpusActivationRecord>(
+            await store.ReadActiveActivationAsync(corpusId));
+
+        Assert.Equal((int)AdministrationExitCode.Success, result.ExitCode);
+        Assert.True(active.HasCompleteEvidenceBindings);
+        Assert.Equal(10, active.EvidenceBindings[0].Rights.Decisions.Count);
+        Assert.Equal(1, await ScalarAsync(
+            options,
+            "SELECT COUNT(*) FROM administration_command_journal WHERE status = 'Completed';"));
+    }
 
     [Fact]
     public async Task ExactCommandSetIsOneShotOnlyAndNeverMappedToHttp()

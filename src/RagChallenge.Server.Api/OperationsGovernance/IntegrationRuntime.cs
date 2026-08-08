@@ -318,6 +318,14 @@ internal sealed class SyntheticIntegrationRuntime :
             adapterId,
             SourceTrustClass.LocalAuthorised);
         var bindings = new[] { binding };
+        var evidenceBindings = new[]
+        {
+            new DocumentActivationEvidenceBinding(
+                binding,
+                ingested.Content.ContentObjectId,
+                CreatePermittedRights(documentId, documentVersion),
+                renderManifestId: null),
+        };
         var profile = CreateCompatibilityProfile();
         var specification = new IndexGenerationSpecification(
             manifestSchemaVersion: 1,
@@ -347,7 +355,7 @@ internal sealed class SyntheticIntegrationRuntime :
         var activation = await new GenerationActivationService(controlStore).ActivateAsync(
             new GenerationActivationRequest(
                 manifest.Manifest,
-                bindings,
+                evidenceBindings,
                 ExpectedCurrentRevision: 0,
                 SqliteControlPlaneStore.MinimumPreviousGenerationRetention,
                 Audit(
@@ -363,6 +371,17 @@ internal sealed class SyntheticIntegrationRuntime :
                 "The synthetic integration generation could not be activated.");
         }
     }
+
+    private static DocumentRightsEligibilityRecordV1 CreatePermittedRights(
+        DocumentId documentId,
+        DocumentVersionNumber documentVersion) =>
+        new(
+            documentId,
+            documentVersion,
+            Enum.GetValues<DocumentRight>().Select(right => new DocumentRightDecision(
+                right,
+                DocumentRightDecisionState.Permitted,
+                new DocumentRightsEvidenceReference($"synthetic-rights-{right}"))));
 
     private static async Task VerifyPersistedStateAsync(
         SqliteControlPlaneStore controlStore,

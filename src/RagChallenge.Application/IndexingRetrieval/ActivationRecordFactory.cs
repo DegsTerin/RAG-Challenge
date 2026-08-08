@@ -8,11 +8,14 @@ public static class ActivationRecordFactory
 {
     public static CorpusActivationRecord CreateInitial(
         FinalisedIndexGenerationManifest manifest,
-        IEnumerable<DocumentBinding> bindings,
+        IEnumerable<DocumentActivationEvidenceBinding> evidenceBindings,
         DateTimeOffset activatedAt)
     {
         ArgumentNullException.ThrowIfNull(manifest);
-        var materialisedBindings = Materialise(bindings);
+        var materialisedEvidence = Materialise(evidenceBindings);
+        var materialisedBindings = materialisedEvidence
+            .Select(binding => binding.DocumentBinding)
+            .ToArray();
         var digest = BindingDigestCanonicalizer
             .CanonicaliseActivationBindingSet(materialisedBindings)
             .Digest;
@@ -26,24 +29,25 @@ public static class ActivationRecordFactory
             digest,
             materialisedBindings,
             activatedAt,
-            activatedAt);
+            activatedAt,
+            materialisedEvidence);
     }
 
     public static CorpusActivationRecord CreateGenerationReplacement(
         CorpusActivationRecord currentRecord,
         FinalisedIndexGenerationManifest targetManifest,
-        IEnumerable<DocumentBinding> targetBindings,
+        IEnumerable<DocumentActivationEvidenceBinding> targetEvidenceBindings,
         DateTimeOffset activatedAt) =>
         CreateReplacement(
             currentRecord,
             targetManifest,
-            targetBindings,
+            targetEvidenceBindings,
             activatedAt);
 
     public static CorpusActivationRecord CreateRollback(
         CorpusActivationRecord currentRecord,
         FinalisedIndexGenerationManifest retainedTargetManifest,
-        IEnumerable<DocumentBinding> explicitlySelectedBindings,
+        IEnumerable<DocumentActivationEvidenceBinding> explicitlySelectedEvidenceBindings,
         DateTimeOffset activatedAt)
     {
         ArgumentNullException.ThrowIfNull(currentRecord);
@@ -59,7 +63,7 @@ public static class ActivationRecordFactory
         return CreateReplacement(
             currentRecord,
             retainedTargetManifest,
-            explicitlySelectedBindings,
+            explicitlySelectedEvidenceBindings,
             activatedAt);
     }
 
@@ -98,11 +102,21 @@ public static class ActivationRecordFactory
                 nameof(observation));
         }
 
-        var reboundBindings = currentRecord.DocumentBindings
-            .Select(binding =>
-                ReferenceEquals(binding, target)
-                    ? binding.WithObservation(observation.Id)
-                    : binding)
+        if (!currentRecord.HasCompleteEvidenceBindings)
+        {
+            throw new InvalidOperationException(
+                "Observation rebinding cannot infer evidence for a historical activation revision.");
+        }
+
+        var reboundEvidence = currentRecord.EvidenceBindings
+            .Select(evidence =>
+                evidence.DocumentBinding == target
+                    ? evidence.WithDocumentBinding(
+                        evidence.DocumentBinding.WithObservation(observation.Id))
+                    : evidence)
+            .ToArray();
+        var reboundBindings = reboundEvidence
+            .Select(evidence => evidence.DocumentBinding)
             .ToArray();
         var digest = BindingDigestCanonicalizer
             .CanonicaliseActivationBindingSet(reboundBindings)
@@ -117,13 +131,14 @@ public static class ActivationRecordFactory
             digest,
             reboundBindings,
             currentRecord.GenerationActivatedAt,
-            updatedAt);
+            updatedAt,
+            reboundEvidence);
     }
 
     private static CorpusActivationRecord CreateReplacement(
         CorpusActivationRecord currentRecord,
         FinalisedIndexGenerationManifest targetManifest,
-        IEnumerable<DocumentBinding> targetBindings,
+        IEnumerable<DocumentActivationEvidenceBinding> targetEvidenceBindings,
         DateTimeOffset activatedAt)
     {
         ArgumentNullException.ThrowIfNull(currentRecord);
@@ -136,7 +151,10 @@ public static class ActivationRecordFactory
                 nameof(targetManifest));
         }
 
-        var materialisedBindings = Materialise(targetBindings);
+        var materialisedEvidence = Materialise(targetEvidenceBindings);
+        var materialisedBindings = materialisedEvidence
+            .Select(binding => binding.DocumentBinding)
+            .ToArray();
         var digest = BindingDigestCanonicalizer
             .CanonicaliseActivationBindingSet(materialisedBindings)
             .Digest;
@@ -150,13 +168,24 @@ public static class ActivationRecordFactory
             digest,
             materialisedBindings,
             activatedAt,
-            activatedAt);
+            activatedAt,
+            materialisedEvidence);
     }
 
-    private static DocumentBinding[] Materialise(IEnumerable<DocumentBinding> bindings)
+    private static DocumentActivationEvidenceBinding[] Materialise(
+        IEnumerable<DocumentActivationEvidenceBinding> evidenceBindings)
     {
-        ArgumentNullException.ThrowIfNull(bindings);
-        return bindings.ToArray();
+        ArgumentNullException.ThrowIfNull(evidenceBindings);
+        var materialised = evidenceBindings.ToArray();
+
+        if (materialised.Length == 0)
+        {
+            throw new ArgumentException(
+                "An activation revision requires at least one explicit evidence binding.",
+                nameof(evidenceBindings));
+        }
+
+        return materialised;
     }
 
     private static ActivationRecordRevision NextRevision(

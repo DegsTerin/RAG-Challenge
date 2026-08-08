@@ -218,7 +218,7 @@ public sealed class OfficialSourceLoopbackTests
         var manifest = await fixture.CommitGenerationAsync(binding, generationSeed);
         var activationRecord = ActivationRecordFactory.CreateInitial(
             manifest,
-            [binding],
+            [await fixture.CreateActivationEvidenceAsync(binding)],
             SqlitePersistenceFixture.At(2));
         var activationResult = await fixture.ControlStore.CompareExchangeActivationAsync(
             new ActivationCompareExchangeRequest(

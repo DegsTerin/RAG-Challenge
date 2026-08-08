@@ -91,7 +91,33 @@ internal static class TestModelFactory
     internal static CorpusActivationRecord InitialRecord(
         FinalisedIndexGenerationManifest manifest,
         IEnumerable<DocumentBinding> bindings) =>
-        ActivationRecordFactory.CreateInitial(manifest, bindings, Now);
+        ActivationRecordFactory.CreateInitial(
+            manifest,
+            bindings.Select(binding => Evidence(binding)),
+            Now);
+
+    internal static DocumentActivationEvidenceBinding Evidence(
+        DocumentBinding binding,
+        DocumentRightDecisionState defaultState = DocumentRightDecisionState.Permitted,
+        DocumentRight? overriddenRight = null,
+        DocumentRightDecisionState? overriddenState = null,
+        char sourceDigestCharacter = 'e')
+    {
+        var rights = new DocumentRightsEligibilityRecordV1(
+            binding.DocumentId,
+            binding.DocumentVersion,
+            Enum.GetValues<DocumentRight>().Select(right => new DocumentRightDecision(
+                right,
+                right == overriddenRight ? overriddenState!.Value : defaultState,
+                new DocumentRightsEvidenceReference($"test-rights-{right}"))));
+        return new DocumentActivationEvidenceBinding(
+            binding,
+            new ContentObjectId(new string(sourceDigestCharacter, 64)),
+            rights,
+            binding.DocumentFormat == DocumentFormat.Pdf
+                ? new RenderManifestId($"rendermanifest-{new string('f', 64)}")
+                : null);
+    }
 
     internal static string FindTestData(string filename)
     {

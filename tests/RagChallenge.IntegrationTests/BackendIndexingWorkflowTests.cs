@@ -92,7 +92,7 @@ public sealed class BackendIndexingWorkflowTests
         var activationService = new GenerationActivationService(fixture.ControlStore);
         var activationRequest = new GenerationActivationRequest(
             built.Manifest,
-            bindings,
+            [await fixture.CreateActivationEvidenceAsync(binding)],
             ExpectedCurrentRevision: 0,
             SqliteControlPlaneStore.MinimumPreviousGenerationRetention,
             Audit("activation-backend-indexing", "activate-generation", 4));

@@ -1,6 +1,7 @@
 // Purpose: Resolves one complete query-time activation snapshot and its exact catalogue/freshness metadata without consulting external sources or selecting a later observation.
 using Microsoft.EntityFrameworkCore;
 
+using RagChallenge.Application.Documents;
 using RagChallenge.Application.IndexingRetrieval;
 using RagChallenge.Domain.CorpusCatalog;
 using RagChallenge.Domain.IndexingRetrieval;
@@ -25,7 +26,14 @@ public sealed class SqliteQueryActivationReader(SqliteStoreOptions options)
             corpusId,
             cancellationToken).ConfigureAwait(false);
 
-        if (activation is null)
+        if (activation is null ||
+            !activation.HasCompleteEvidenceBindings ||
+            activation.EvidenceBindings.Any(evidence =>
+                !DocumentRightsEligibilityPolicy.Evaluate(
+                    evidence.Rights,
+                    evidence.DocumentBinding.DocumentFormat == DocumentFormat.Pdf
+                        ? DocumentRightsEligibilityGate.PdfVisualEvidence
+                        : DocumentRightsEligibilityGate.TextualEvidence).IsEligible))
         {
             return null;
         }
@@ -46,10 +54,15 @@ public sealed class SqliteQueryActivationReader(SqliteStoreOptions options)
         var observationRows = await context.SourceObservations.AsNoTracking()
             .Where(row => row.CorpusId == corpusId.Value)
             .ToArrayAsync(cancellationToken).ConfigureAwait(false);
+        var renderManifestRows = await context.DocumentRenderManifests.AsNoTracking()
+            .Where(row => row.CorpusId == corpusId.Value)
+            .ToArrayAsync(cancellationToken).ConfigureAwait(false);
         var resolved = new List<QueryEvidenceBinding>(activation.DocumentBindings.Count);
 
         foreach (var binding in activation.DocumentBindings)
         {
+            var evidence = activation.EvidenceBindings.Single(item =>
+                item.DocumentBinding == binding);
             var document = documentRows.SingleOrDefault(row =>
                 row.DocumentId == binding.DocumentId.Value &&
                 row.DocumentVersion == binding.DocumentVersion.Value) ??
@@ -60,6 +73,35 @@ public sealed class SqliteQueryActivationReader(SqliteStoreOptions options)
                 row.ProductRevision == binding.DatabaseProductRevision.Value) ??
                 throw new InvalidDataException(
                     "An active binding has no exact database revision metadata.");
+
+            if (document.ProductId != binding.DatabaseProductId.Value ||
+                document.ProductRevision != binding.DatabaseProductRevision.Value ||
+                document.DocumentFormat != binding.DocumentFormat.ToString() ||
+                document.ContentSha256 != evidence.SourceContentObjectId.Value ||
+                document.SourceAdapterId != binding.SourceAdapterId.Value ||
+                document.SourceTrustClass != binding.SourceTrustClass.ToString() ||
+                document.OfficialRegistrationId != binding.OfficialSourceRegistrationId?.Value ||
+                document.OfficialSnapshotId != binding.OfficialSnapshotId?.Value)
+            {
+                throw new InvalidDataException(
+                    "An active evidence binding differs from its exact document source metadata.");
+            }
+
+            if (binding.DocumentFormat == DocumentFormat.Pdf)
+            {
+                var renderManifest = renderManifestRows.SingleOrDefault(row =>
+                    row.RenderManifestId == evidence.RenderManifestId!.Value);
+
+                if (renderManifest is null ||
+                    renderManifest.DocumentId != binding.DocumentId.Value ||
+                    renderManifest.DocumentVersion != binding.DocumentVersion.Value ||
+                    renderManifest.SourceContentSha256 != evidence.SourceContentObjectId.Value)
+                {
+                    throw new InvalidDataException(
+                        "An active PDF evidence binding has no exact render manifest.");
+                }
+            }
+
             DocumentContentLanguage language;
 
             try

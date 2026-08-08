@@ -396,7 +396,7 @@ public sealed class CorpusIndexingService(
 
 public sealed record GenerationActivationRequest(
     FinalisedIndexGenerationManifest Manifest,
-    IReadOnlyCollection<DocumentBinding> Bindings,
+    IReadOnlyCollection<DocumentActivationEvidenceBinding> EvidenceBindings,
     long ExpectedCurrentRevision,
     TimeSpan PreviousGenerationRetention,
     AdministrativeAuditContext AuditContext,
@@ -413,10 +413,10 @@ public sealed class GenerationActivationService(IControlPlaneStore controlPlaneS
     {
         ArgumentNullException.ThrowIfNull(request);
         ArgumentNullException.ThrowIfNull(request.Manifest);
-        ArgumentNullException.ThrowIfNull(request.Bindings);
+        ArgumentNullException.ThrowIfNull(request.EvidenceBindings);
         ArgumentNullException.ThrowIfNull(request.AuditContext);
 
-        if (request.Bindings.Count == 0 || request.ExpectedCurrentRevision < 0)
+        if (request.EvidenceBindings.Count == 0 || request.ExpectedCurrentRevision < 0)
         {
             throw new ArgumentException(
                 "Generation activation requires bindings and a non-negative expected revision.",
@@ -435,7 +435,7 @@ public sealed class GenerationActivationService(IControlPlaneStore controlPlaneS
         {
             proposed = ActivationRecordFactory.CreateInitial(
                 request.Manifest,
-                request.Bindings,
+                request.EvidenceBindings,
                 request.AuditContext.RequestedAt);
         }
         else
@@ -450,7 +450,7 @@ public sealed class GenerationActivationService(IControlPlaneStore controlPlaneS
             proposed = ActivationRecordFactory.CreateGenerationReplacement(
                 current,
                 request.Manifest,
-                request.Bindings,
+                request.EvidenceBindings,
                 request.AuditContext.RequestedAt);
         }
 

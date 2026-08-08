@@ -505,9 +505,11 @@ public sealed class OfficialObservationRebindingTests
             SourceTrustClass.LocalAuthorised);
         var bindings = new[] { officialBinding, localBinding };
         var manifest = await CommitGenerationAsync(fixture, bindings);
+        var evidenceBindings = await Task.WhenAll(bindings.Select(binding =>
+            fixture.CreateActivationEvidenceAsync(binding)));
         var initialActivation = ActivationRecordFactory.CreateInitial(
             manifest,
-            bindings,
+            evidenceBindings,
             SqlitePersistenceFixture.At(2));
         var activation = await fixture.ControlStore.CompareExchangeActivationAsync(
             new ActivationCompareExchangeRequest(

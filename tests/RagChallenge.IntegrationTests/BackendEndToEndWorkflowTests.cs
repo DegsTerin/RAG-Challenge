@@ -131,7 +131,7 @@ public sealed class BackendEndToEndWorkflowTests
         var activation = await new GenerationActivationService(fixture.ControlStore)
             .ActivateAsync(new GenerationActivationRequest(
                 built.Manifest,
-                bindings,
+                [await fixture.CreateActivationEvidenceAsync(binding)],
                 ExpectedCurrentRevision: 0,
                 SqliteControlPlaneStore.MinimumPreviousGenerationRetention,
                 Audit("activation-end-to-end", "activate-generation", 3)));

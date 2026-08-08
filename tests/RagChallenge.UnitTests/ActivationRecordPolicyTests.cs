@@ -7,6 +7,84 @@ namespace RagChallenge.UnitTests;
 
 public sealed class ActivationRecordPolicyTests
 {
+    [Theory]
+    [InlineData(DocumentFormat.Pdf, DocumentRight.PageRendering, DocumentRightDecisionState.Denied)]
+    [InlineData(DocumentFormat.Pdf, DocumentRight.PageRendering, DocumentRightDecisionState.Unproven)]
+    [InlineData(DocumentFormat.Csv, DocumentRight.Indexing, DocumentRightDecisionState.Denied)]
+    [InlineData(DocumentFormat.Csv, DocumentRight.Indexing, DocumentRightDecisionState.Unproven)]
+    public void ActivationRightsSnapshotsFailClosedForPdfAndCsv(
+        DocumentFormat format,
+        DocumentRight right,
+        DocumentRightDecisionState state)
+    {
+        var binding = new DocumentBinding(
+            new DatabaseProductId("rights-product"),
+            new DatabaseProductRevision(1),
+            new DocumentId("rights-document"),
+            new DocumentVersionNumber(1),
+            format,
+            new SourceAdapterId("rights-source"),
+            SourceTrustClass.LocalAuthorised);
+        var manifest = TestModelFactory.Manifest([binding]);
+        var record = ActivationRecordFactory.CreateInitial(
+            manifest,
+            [TestModelFactory.Evidence(
+                binding,
+                overriddenRight: right,
+                overriddenState: state)],
+            TestModelFactory.Now);
+
+        var validation = ActivationRecordValidator.ValidateForCompareAndSwap(
+            currentRecord: null,
+            manifest,
+            record,
+            manifest.IndexCompatibilityKey,
+            new Dictionary<OfficialObservationId, OfficialSourceObservation>(),
+            TestModelFactory.Now);
+
+        Assert.Contains(
+            ActivationValidationFailure.DocumentRightsNotPermitted,
+            validation.Failures);
+    }
+
+    [Fact]
+    public void EvidenceBindingRequiresExactRightsRevisionAndFormatSpecificManifest()
+    {
+        var pdf = TestModelFactory.LocalBinding();
+        var csv = new DocumentBinding(
+            pdf.DatabaseProductId,
+            pdf.DatabaseProductRevision,
+            pdf.DocumentId,
+            pdf.DocumentVersion,
+            DocumentFormat.Csv,
+            pdf.SourceAdapterId,
+            pdf.SourceTrustClass);
+        var rightsForAnotherDocument = new DocumentRightsEligibilityRecordV1(
+            new DocumentId("another-document"),
+            pdf.DocumentVersion,
+            Enum.GetValues<DocumentRight>().Select(right => new DocumentRightDecision(
+                right,
+                DocumentRightDecisionState.Permitted,
+                new DocumentRightsEvidenceReference($"rights-{right}"))));
+        var source = new ContentObjectId(new string('1', 64));
+
+        Assert.Throws<ArgumentException>(() => new DocumentActivationEvidenceBinding(
+            pdf,
+            source,
+            rightsForAnotherDocument,
+            new RenderManifestId($"rendermanifest-{new string('2', 64)}")));
+        Assert.Throws<ArgumentException>(() => new DocumentActivationEvidenceBinding(
+            pdf,
+            source,
+            TestModelFactory.Evidence(pdf).Rights,
+            renderManifestId: null));
+        Assert.Throws<ArgumentException>(() => new DocumentActivationEvidenceBinding(
+            csv,
+            source,
+            TestModelFactory.Evidence(csv).Rights,
+            new RenderManifestId($"rendermanifest-{new string('2', 64)}")));
+    }
+
     [Fact]
     public void InitialActivationPassesAllThreeDigestsAndObservationRelation()
     {
@@ -14,7 +92,7 @@ public sealed class ActivationRecordPolicyTests
         var manifest = TestModelFactory.Manifest(bindings);
         var proposed = ActivationRecordFactory.CreateInitial(
             manifest,
-            bindings.Reverse(),
+            bindings.Reverse().Select(binding => TestModelFactory.Evidence(binding)),
             TestModelFactory.Now);
         var observations = ObservationDictionary(TestModelFactory.Observation());
 
@@ -264,6 +342,14 @@ public sealed class ActivationRecordPolicyTests
             BindingDigestCanonicalizer
                 .CanonicaliseSourceBindingSet(rebound.DocumentBindings)
                 .Digest);
+        Assert.Equal(
+            current.EvidenceBindings[0].SourceContentObjectId,
+            rebound.EvidenceBindings[0].SourceContentObjectId);
+        Assert.Equal(
+            current.EvidenceBindings[0].RenderManifestId,
+            rebound.EvidenceBindings[0].RenderManifestId);
+        Assert.True(current.EvidenceBindings[0].Rights.Decisions.SequenceEqual(
+            rebound.EvidenceBindings[0].Rights.Decisions));
 
         var validation = ActivationRecordValidator.ValidateForCompareAndSwap(
             current,
@@ -313,7 +399,7 @@ public sealed class ActivationRecordPolicyTests
         var rollback = ActivationRecordFactory.CreateRollback(
             currentRecord,
             targetManifest,
-            [targetBinding],
+            [TestModelFactory.Evidence(targetBinding)],
             TestModelFactory.Now.AddMinutes(15));
         var observation = TestModelFactory.Observation();
 
@@ -361,13 +447,13 @@ public sealed class ActivationRecordPolicyTests
             () => ActivationRecordFactory.CreateGenerationReplacement(
                 current,
                 otherCorpus,
-                [binding],
+                [TestModelFactory.Evidence(binding)],
                 TestModelFactory.Now));
         Assert.Throws<ArgumentException>(
             () => ActivationRecordFactory.CreateRollback(
                 current,
                 currentManifest,
-                [binding],
+                [TestModelFactory.Evidence(binding)],
                 TestModelFactory.Now));
 
         var incompatible = ActivationRecordValidator.ValidateForCompareAndSwap(
