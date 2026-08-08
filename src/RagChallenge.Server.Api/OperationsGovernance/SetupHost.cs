@@ -70,7 +70,9 @@ internal static class SetupHost
         {
             builder.Services.AddSingleton(integrationOptions);
             builder.Services.AddSingleton(services => new SyntheticIntegrationRuntime(
-                services.GetRequiredService<IntegrationRuntimeOptions>()));
+                services.GetRequiredService<IntegrationRuntimeOptions>(),
+                new SanitisedAnswerEvidenceActivitySink(
+                    services.GetRequiredService<ILogger<SanitisedAnswerEvidenceActivitySink>>())));
             builder.Services.AddSingleton<IQuestionAnsweringService>(services =>
                 services.GetRequiredService<SyntheticIntegrationRuntime>());
             builder.Services.AddSingleton<IQueryReadinessProbe>(services =>

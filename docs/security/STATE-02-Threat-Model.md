@@ -21,8 +21,9 @@ support is implemented by this document, and OpenAPI v1 remains unchanged.
 
 Accepted ADR-0010 additionally defines a privacy-minimised internal
 `AnswerEvidenceRecordV1`, fixed `P30D` retention and answer-evidence
-reachability. `S04-CORR-04-E` remains unimplemented; the threat and test entries
-below are requirements, not control evidence.
+reachability. The separately authorised `S04-CORR-04-E` increment now has local,
+offline and synthetic implementation/test evidence; that evidence is not an
+Automatic Quality Gate, Human Gate or operational control claim.
 
 ## Scope
 
@@ -148,8 +149,8 @@ change rather than weakening a control.
 | `THR-S02-037` | A malformed or hostile PDF exploits or exhausts the renderer, or produces a partial/oversized page set. | Code execution, denial of service or incomplete visual evidence. | Isolated bounded renderer; fixed profile; page/time/memory/dimension/concurrency limits; complete consecutive manifest; PNG/hash/readback validation; no partial activation. | Corrective S04 implementation; S07 evidence. | Local synthetic/static implementation evidence exists; S07 remains open. |
 | `THR-S02-038` | A page image is served for the wrong document version, page, generation or lifecycle state, or a model-controlled value selects an image/path. | False citation, cross-document disclosure, path exposure or XSS/content confusion. | Server-built citation binding; active generation/document/render-manifest revalidation; same-origin opaque content ID; bounded PNG-only response; no path/URL from model; `nosniff`; immutable ETag; deactivated/removed denial. | Future implementation; S07 evidence. | Open; architecture mitigated. |
 | `THR-S02-039` | Language metadata is coerced (`en` to `en-GB`), used as resource/provider authority or silently merged in evaluation. | Misleading provenance/support claim, unsafe resource selection or false homologation. | Strict bounded BCP 47 parser; exact source-declared tag retention; separate closed query enum; no tag-driven path/provider; exact evaluation strata and v1 regression. | Corrective S03 implementation; S07 evidence. | Local synthetic implementation evidence exists; S07 remains open. |
-| `THR-S02-040` | Answer-evidence persistence captures question/answer/source text, user identity, provider payload or other unnecessary data, or its retention is refreshed indefinitely. | Privacy breach, unbounded retention and enlarged disclosure/backup scope. | Closed persistence allowlist; hashes and stable bindings only; fixed non-refreshing `P30D`; sanitised audit/logging; row and backup inspection tests. | Corrective S04; S07 evidence. | Open; architecture mitigated. |
-| `THR-S02-041` | An `Answered` response escapes before its evidence record is durably complete, or cleanup races record creation/expiry and deletes a newly reachable source/page object. | Unreproducible answer or irreversible evidence loss. | Persist and read back before response; one Control transaction; canonical replay/conflict; cleanup reserve plus full pre-delete reachability revalidation; injected crash/concurrency tests. | Corrective S04; S07 evidence. | Open; architecture mitigated. |
+| `THR-S02-040` | Answer-evidence persistence captures question/answer/source text, user identity, provider payload or other unnecessary data, or its retention is refreshed indefinitely. | Privacy breach, unbounded retention and enlarged disclosure/backup scope. | Closed persistence allowlist; hashes and stable bindings only; fixed non-refreshing `P30D`; sanitised audit/logging; row and backup inspection tests. | Corrective S04; S07 evidence. | Local synthetic implementation evidence exists; formal gate and operational evidence remain open. |
+| `THR-S02-041` | An `Answered` response escapes before its evidence record is durably complete, or cleanup races record creation/expiry and deletes a newly reachable source/page object. | Unreproducible answer or irreversible evidence loss. | Persist and read back before response; one Control transaction; canonical replay/conflict; cleanup reserve plus full pre-delete reachability revalidation; injected crash/concurrency tests. | Corrective S04; S07 evidence. | Local synthetic restart/concurrency/failure/cleanup-race evidence exists; formal gate and operational evidence remain open. |
 
 ## Abuse cases
 

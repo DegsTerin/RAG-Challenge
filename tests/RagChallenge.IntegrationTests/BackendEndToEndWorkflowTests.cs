@@ -146,6 +146,9 @@ public sealed class BackendEndToEndWorkflowTests
             embedding,
             fixture.VectorStore,
             languageModel,
+            new SqliteAnswerEvidenceStore(fixture.Options),
+            new SystemAnswerEvidenceRecordIdSource(),
+            NullAnswerEvidenceActivitySink.Instance,
             minimumScore: 0.25);
         var result = await answering.AskAsync(
             new QueryRequest(
@@ -169,6 +172,13 @@ public sealed class BackendEndToEndWorkflowTests
         Assert.NotEmpty(citation.Columns);
         Assert.Equal(1, completion.EvidenceCoverage.EligibleDatabaseCount);
         Assert.Equal(1, completion.EvidenceCoverage.EligibleDocumentCount);
+        Assert.Equal(1, await fixture.ScalarAsync(
+            "SELECT COUNT(*) FROM answer_evidence_records " +
+            "WHERE correlation_id = 'correlation-end-to-end';"));
+        Assert.Equal(1, await fixture.ScalarAsync(
+            "SELECT COUNT(*) FROM answer_evidence_citations;"));
+        Assert.Equal(0, await fixture.ScalarAsync(
+            "SELECT COUNT(*) FROM answer_evidence_pages;"));
     }
 
     private static AdministrativeAuditContext Audit(

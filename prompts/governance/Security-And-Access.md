@@ -166,8 +166,8 @@ Upload público permanece fora do MVP.
 
 ## Evidência persistente de resposta
 
-- O futuro `AnswerEvidenceRecordV1` é um contrato interno de persistência, não
-  histórico de conversa, analytics, endpoint ou campo público v1.
+- O `AnswerEvidenceRecordV1` implementado é um contrato interno de persistência,
+  não histórico de conversa, analytics, endpoint ou campo público v1.
 - Somente `Answered`, após validação integral e antes da resposta, cria o
   registro; falha de commit/readback impede sucesso público.
 - Persistir apenas identidades/digests, hash/comprimento da resposta,
@@ -182,8 +182,9 @@ Upload público permanece fora do MVP.
   qualquer remoção física, inclusive sob concorrência.
 - Header, citações, páginas e auditoria sanitizada são atômicos. Mesmo ID/digest
   é replay; mesmo ID/conteúdo divergente é conflito sem mutação.
-- Essa autoridade arquitetural não implementa `S04-CORR-04-E`, não cria
-  migration e não altera OpenAPI v1, v2 ou serving.
+- A autoridade arquitetural de ADR-0010 não implementou o incremento por si; a
+  autoridade posterior de `S04-CORR-04-E` implementou o contrato e a migration
+  localmente sem alterar OpenAPI v1, v2 ou serving e sem executar gate.
 
 ## Políticas de egress
 
@@ -410,9 +411,9 @@ trilha nominal.
 - Rollback de geração verificado.
 - Conteúdo fonte/PNG, render manifest, reachability, backup/restore e serving
   visual fail-closed verificados quando a capacidade for implementada.
-- `AnswerEvidenceRecordV1`, quando implementado, é `Answered`-only, atômico,
-  minimizado, expira em `P30D` sem refresh e protege reachability contra races
-  de cleanup.
+- `AnswerEvidenceRecordV1` permanece `Answered`-only, atômico, minimizado,
+  expira em `P30D` sem refresh e protege reachability contra races de cleanup;
+  a evidência local não substitui gate nem validação operacional.
 - `AI_PROVIDER_EGRESS` é local ou possui provider, classificação e endpoints
   explicitamente autorizados e testados.
 - `VECTOR_STORE_EGRESS` permanece vazio para adapter local ou possui endpoint,

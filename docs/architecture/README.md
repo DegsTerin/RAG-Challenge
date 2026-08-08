@@ -26,6 +26,10 @@ registration as corpus `4.10.0`. It assigns `S04-CORR-04-E` to the internal
 persistent `AnswerEvidenceRecordV1`, fixed `P30D` retention and answer-evidence
 reachability. Registration does not start that increment or authorise a
 migration, executable test, public API, serving, gate or lifecycle change.
+The owner separately authorised the local, offline and sequential increment on
+2026-08-08; corpus `4.10.1` records its implementation and direct synthetic
+verification without claiming an Automatic Quality Gate, Human Gate or
+lifecycle transition.
 
 The later combined audit failed on `AQG-S02-001`, an internal contradiction
 between observation-inclusive generation identity and observation-only
@@ -194,7 +198,8 @@ Dashboard -- versioned HTTP --> API
   authorised)
 - [ADR-0010 — Persistent Answer-Evidence Records and Bounded Retention](ADR-0010-Persistent-Answer-Evidence-Records-And-Bounded-Retention.md)
   (`accepted`; documentary reconciliation applied in corpus `4.10.0`;
-  `S04-CORR-04-E` implementation remains separately authorised)
+  `S04-CORR-04-E` implemented locally under separate authority and reconciled
+  in corpus `4.10.1`; formal gate remains separate)
 
 ## STATE-02 design artefacts
 

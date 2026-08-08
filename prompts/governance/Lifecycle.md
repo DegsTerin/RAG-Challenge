@@ -311,8 +311,9 @@ factual vigente são:
      fonte/PNGs/manifest;
    - `S04-CORR-04-D`, concluído: persistência e ativação atômica de fonte,
      direitos, geração e manifest; e
-   - `S04-CORR-04-E`, não iniciado: `AnswerEvidenceRecordV1` persistente,
-     retenção fixa `P30D` e participação em reachability;
+   - `S04-CORR-04-E`, concluído na fronteira local/offline: contrato persistente
+     `AnswerEvidenceRecordV1`, retenção fixa `P30D` e participação em
+     reachability, ainda sem Automatic Quality Gate ou homologação;
 3. contrato v2 separadamente versionado e apresentação same-origin segura e
    acessível de evidência visual;
 4. integração, restart, backup/restore e limites; e

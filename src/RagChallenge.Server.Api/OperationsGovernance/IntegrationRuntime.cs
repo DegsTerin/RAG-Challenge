@@ -78,21 +78,26 @@ internal sealed class SyntheticIntegrationRuntime :
     private readonly SqliteStoreOptions stores;
     private readonly IEmbeddingProvider queryEmbeddingProvider;
     private readonly ILanguageModel queryLanguageModel;
+    private readonly IAnswerEvidenceActivitySink answerEvidenceActivitySink;
     private readonly SemaphoreSlim initialisationGate = new(1, 1);
     private QuestionAnsweringService? answeringService;
 
-    internal SyntheticIntegrationRuntime(IntegrationRuntimeOptions options)
+    internal SyntheticIntegrationRuntime(
+        IntegrationRuntimeOptions options,
+        IAnswerEvidenceActivitySink? answerEvidenceActivitySink = null)
         : this(
             options,
             new DeterministicEmbeddingProvider(),
-            new DeterministicLanguageModel())
+            new DeterministicLanguageModel(),
+            answerEvidenceActivitySink ?? NullAnswerEvidenceActivitySink.Instance)
     {
     }
 
     internal SyntheticIntegrationRuntime(
         IntegrationRuntimeOptions options,
         IEmbeddingProvider queryEmbeddingProvider,
-        ILanguageModel queryLanguageModel)
+        ILanguageModel queryLanguageModel,
+        IAnswerEvidenceActivitySink? answerEvidenceActivitySink = null)
     {
         ArgumentNullException.ThrowIfNull(options);
         stores = options.Stores;
@@ -100,6 +105,8 @@ internal sealed class SyntheticIntegrationRuntime :
             throw new ArgumentNullException(nameof(queryEmbeddingProvider));
         this.queryLanguageModel = queryLanguageModel ??
             throw new ArgumentNullException(nameof(queryLanguageModel));
+        this.answerEvidenceActivitySink = answerEvidenceActivitySink ??
+            NullAnswerEvidenceActivitySink.Instance;
     }
 
     public async Task<QueryExecutionResult> AskAsync(
@@ -230,6 +237,9 @@ internal sealed class SyntheticIntegrationRuntime :
                  queryEmbeddingProvider,
                  vectorStore,
                  queryLanguageModel,
+                 new SqliteAnswerEvidenceStore(stores),
+                 new SystemAnswerEvidenceRecordIdSource(),
+                 answerEvidenceActivitySink,
                  minimumScore: 0.25);
         }
         finally

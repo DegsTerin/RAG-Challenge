@@ -60,6 +60,14 @@ public sealed class DocumentLanguageAndRenderingTests
     {
         var language = new DocumentContentLanguage("en");
         var candidate = Document(language, CatalogueItemStatus.Candidate);
+        var binding = new DocumentBinding(
+            new DatabaseProductId("database-1"),
+            new DatabaseProductRevision(1),
+            new DocumentId("document-1"),
+            new DocumentVersionNumber(1),
+            DocumentFormat.Csv,
+            new SourceAdapterId("local-csv"),
+            SourceTrustClass.LocalAuthorised);
 
         Assert.Equal("en", candidate.ContentLanguage.CanonicalTag);
         Assert.Throws<ArgumentException>(
@@ -73,7 +81,9 @@ public sealed class DocumentLanguageAndRenderingTests
                 new ChunkingPolicy()));
         Assert.Throws<ArgumentException>(
             () => new QueryEvidenceBinding(
-                Binding(),
+                binding,
+                TestModelFactory.Evidence(binding),
+                renderManifest: null,
                 language,
                 SourceFreshness.Local));
     }

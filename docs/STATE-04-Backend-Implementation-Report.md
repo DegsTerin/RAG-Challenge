@@ -877,3 +877,72 @@ licence, right, PDF, PNG or product data was imported or changed; no v2
 contract, image serving, `AnswerEvidenceRecord`, provider, network, account,
 external action, Automatic Quality Gate, Human Gate or lifecycle transition
 occurred. `S04-CORR-04-E` was not started.
+
+## S04-CORR-04-E outcome
+
+`S04-CORR-04-E` ran locally, offline and sequentially on 2026-08-08 under the
+owner's explicit ADR-0010 implementation authority. The mandatory baseline was
+`main@fc83e1ea6922a519baf527efc3f0a219e2674453`, corpus `4.10.0`, a clean
+working tree and the protected OpenAPI v1 SHA-256. The directed runtime
+preflight found no product process or listener proved to belong to
+RAG-Challenge, so nothing was stopped.
+
+The implementation adds the immutable `AnswerEvidenceRecordV1` model and its
+canonical length-delimited UTF-8 serialisation. The canonical digest excludes
+only its self-referential field; the record ID is a server-generated
+`ans-evidence-<uuid-n>` value. Creation validates the fixed schema, exact
+activation/catalogue/generation and binding identities, answer hash and byte
+length, canonical coverage, ordered citations, and every cited PDF page against
+the complete render manifest. `expiresAt` is exactly `createdAt + P30D` and is
+never refreshed.
+
+Application composition creates a record only after a complete `Answered`
+result and all language, coverage, citation and activation-evidence checks have
+passed. It persists and reads the complete record back before returning the
+existing public v1 response. `InsufficientEvidence`, validation failures,
+provider failures and cancellation do not create a record. Persistence or
+readback failure prevents `Answered` and uses the existing public failure
+taxonomy.
+
+The SQLite Control store uses one immediate transaction for the administration
+operation, header, citation rows, page rows and sanitised audit event. Exact
+same-ID canonical replay returns `AlreadyApplied`; a divergent record under the
+same ID returns a no-change conflict. Authoritative activation, source,
+generation, manifest and page bindings are revalidated before insertion, and
+the canonical record plus its allowlisted operation/audit evidence are read
+back before commit.
+
+The single Control migration is
+`20260808033247_AddAnswerEvidenceRecords`. It creates only the empty
+`answer_evidence_records`, `answer_evidence_citations` and
+`answer_evidence_pages` tables with their constraints, indexes and foreign
+keys. It performs no data operation, backfill or historical inference and does
+not change the Vector schema.
+
+Non-expired answer-evidence records are independent reachability roots for
+their bound source and page-image objects. Expired records are captured in the
+existing `cleanup-plan-v1` and removed only inside the reservation transaction
+after exact plan adoption and complete reachability revalidation. A record
+created after a stale plan blocks deletion. Expiry removes only that temporary
+root and never grants physical deletion authority by itself.
+
+The persisted record, default log and audit surfaces retain only the ADR-0010
+allowlist. They omit the question and its hash, answer text, citation title,
+excerpt and URL, prompts and provider payloads, raw scores and vectors,
+user/client identity or IP, secrets, paths and document/image bytes.
+
+A zero-warning Release build passed. The complete direct test run passed 146
+unit, 153 integration and 10 architecture tests. Focused coverage includes the
+canonical golden digest, restart, concurrency, exact and divergent replay,
+five injected persistence boundaries, migration rollback/reapply, privacy at
+the SQLite byte level, fixed-retention boundaries, independent reachability
+and the stale-cleanup-plan race. Both Control and Vector reported no pending
+model change from fresh Debug output. These direct checks were not an Automatic
+Quality Gate.
+
+All fixtures and stores were synthetic and disposable. OpenAPI v1 remained
+byte-identical at SHA-256
+`d6a686b94c926914beb28b437f464430a01de6560c2e2d476cf5c36025813e34`.
+No endpoint, payload, outcome or public `CH_*` code changed. No v2 contract,
+serving, real data, network access, external action, Automatic Quality Gate,
+Human Gate or lifecycle transition occurred.

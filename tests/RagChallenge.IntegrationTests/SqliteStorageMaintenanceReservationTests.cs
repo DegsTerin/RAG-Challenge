@@ -136,7 +136,7 @@ public sealed class SqliteStorageMaintenanceReservationTests
     }
 
     [Fact]
-    public async Task InProgressReplayReconcilesPersistedPlanBeforeContinuingCleanup()
+    public async Task InProgressReplayReconcilesLegacyPersistedPlanBeforeContinuingCleanup()
     {
         await using var fixture = await CreateInitialisedFixtureAsync();
         var operationId = new OperationId("cleanup-in-progress-crash-reference");
@@ -399,6 +399,122 @@ public sealed class SqliteStorageMaintenanceReservationTests
         await AssertContentReopensAsync(fixture, reserved);
     }
 
+    [Fact]
+    public async Task UnexpiredAnswerEvidenceIsAnIndependentContentRoot()
+    {
+        await using var fixture = await CreateInitialisedFixtureAsync();
+        var content = await PutAndRegisterAsync(
+            fixture,
+            "source retained only by non-expired answer evidence");
+        var recordId = await AddAnswerEvidenceReferenceAsync(
+            fixture,
+            content,
+            SqlitePersistenceFixture.At(5),
+            '1');
+
+        var result = await new SqliteStorageMaintenance(fixture.Options)
+            .RunManualCleanupAsync(
+                new OperationId("cleanup-unexpired-answer-evidence"),
+                SqlitePersistenceFixture.CorpusId,
+                SqlitePersistenceFixture.At(6));
+
+        Assert.Equal(0, result.RemovedContentObjects);
+        Assert.Equal(1, await CountContentRowsAsync(fixture, content.ContentObjectId));
+        Assert.Equal(1, await fixture.ScalarAsync(
+            $"SELECT COUNT(*) FROM answer_evidence_records " +
+            $"WHERE answer_evidence_record_id = '{recordId}';"));
+        await using var reopened = await fixture.ContentStore.OpenVerifiedAsync(
+            content.ContentObjectId,
+            new ExpectedHashAndLength(content.Sha256, content.ByteLength));
+        Assert.Equal(content.ByteLength, reopened.Content.Length);
+    }
+
+    [Fact]
+    public async Task BoundaryExpiredAnswerEvidenceIsCapturedThenSafelyDeleted()
+    {
+        await using var fixture = await CreateInitialisedFixtureAsync();
+        var content = await PutAndRegisterAsync(
+            fixture,
+            "source released at the fixed P30D boundary");
+        var recordId = await AddAnswerEvidenceReferenceAsync(
+            fixture,
+            content,
+            SqlitePersistenceFixture.At(1),
+            '2');
+
+        var result = await new SqliteStorageMaintenance(fixture.Options)
+            .RunManualCleanupAsync(
+                new OperationId("cleanup-expired-answer-evidence"),
+                SqlitePersistenceFixture.CorpusId,
+                SqlitePersistenceFixture.At(31));
+
+        Assert.Equal(1, result.RemovedContentObjects);
+        Assert.Equal(0, await CountContentRowsAsync(fixture, content.ContentObjectId));
+        Assert.Equal(0, await fixture.ScalarAsync(
+            $"SELECT COUNT(*) FROM answer_evidence_records " +
+            $"WHERE answer_evidence_record_id = '{recordId}';"));
+        Assert.Equal(0, await fixture.ScalarAsync(
+            $"SELECT COUNT(*) FROM answer_evidence_citations " +
+            $"WHERE answer_evidence_record_id = '{recordId}';"));
+        Assert.Equal(1, await fixture.ScalarAsync(
+            $"SELECT COUNT(*) FROM audit_events " +
+            $"WHERE operation_id = '{recordId}';"));
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task AnswerEvidenceCommittedAfterPlanningWinsCleanupRace(
+        bool expiredAtPlan)
+    {
+        await using var fixture = await CreateInitialisedFixtureAsync();
+        var content = await PutAndRegisterAsync(
+            fixture,
+            "answer evidence reaches content after cleanup planning");
+        var operationId = new OperationId("cleanup-answer-evidence-race");
+        var requestedAt = SqlitePersistenceFixture.At(6);
+        var planBytes = JsonSerializer.SerializeToUtf8Bytes(new
+        {
+            schemaVersion = 1,
+            operationId = operationId.Value,
+            corpusId = SqlitePersistenceFixture.CorpusId.Value,
+            requestedAtUtc = requestedAt.ToString("O", CultureInfo.InvariantCulture),
+            answerEvidenceRecords = Array.Empty<object>(),
+            vectorGenerations = Array.Empty<object>(),
+            contentObjects = new[]
+            {
+                new
+                {
+                    contentObjectId = content.ContentObjectId.Value,
+                    byteLength = content.ByteLength,
+                },
+            },
+        });
+        await fixture.ContentStore.PublishCleanupPlanAsync(
+            operationId,
+            planBytes,
+            CancellationToken.None);
+        _ = await AddAnswerEvidenceReferenceAsync(
+            fixture,
+            content,
+            expiredAtPlan ? requestedAt.AddDays(-30) : SqlitePersistenceFixture.At(5),
+            '3');
+
+        var result = await new SqliteStorageMaintenance(fixture.Options)
+            .RunManualCleanupAsync(
+                operationId,
+                SqlitePersistenceFixture.CorpusId,
+                requestedAt);
+
+        Assert.Equal(0, result.RemovedContentObjects);
+        Assert.Empty(fixture.ContentStore.EnumerateDeletionReservations(operationId));
+        Assert.Equal(1, await CountContentRowsAsync(fixture, content.ContentObjectId));
+        await using var reopened = await fixture.ContentStore.OpenVerifiedAsync(
+            content.ContentObjectId,
+            new ExpectedHashAndLength(content.Sha256, content.ByteLength));
+        Assert.Equal(content.ByteLength, reopened.Content.Length);
+    }
+
     private static async Task<SqlitePersistenceFixture> CreateInitialisedFixtureAsync()
     {
         var fixture = await SqlitePersistenceFixture.CreateAsync();
@@ -498,6 +614,93 @@ public sealed class SqliteStorageMaintenanceReservationTests
             DetailsDigest = planDigest,
         });
         await context.SaveChangesAsync();
+    }
+
+    private static async Task<string> AddAnswerEvidenceReferenceAsync(
+        SqlitePersistenceFixture fixture,
+        ContentObjectDescriptor content,
+        DateTimeOffset createdAt,
+        char identityCharacter)
+    {
+        var recordId = $"ans-evidence-{new string(identityCharacter, 32)}";
+        var recordDigest = Hash(Encoding.UTF8.GetBytes($"record:{recordId}"));
+        var created = createdAt.ToString("O", CultureInfo.InvariantCulture);
+        var expires = createdAt.AddDays(30).ToString("O", CultureInfo.InvariantCulture);
+        await using var context = fixture.Options.CreateControlContext();
+        context.AdminOperations.Add(new AdminOperationRow
+        {
+            OperationId = recordId,
+            CorpusId = SqlitePersistenceFixture.CorpusId.Value,
+            OperationKind = "AnswerEvidence",
+            Status = "Applied",
+            ExpectedRevision = null,
+            ResultRevision = null,
+            RequestedAtUtc = created,
+            CompletedAtUtc = created,
+        });
+        context.AnswerEvidenceRecords.Add(new AnswerEvidenceRecordRow
+        {
+            AnswerEvidenceRecordId = recordId,
+            SchemaVersion = 1,
+            RecordSha256 = recordDigest,
+            CorpusId = SqlitePersistenceFixture.CorpusId.Value,
+            ActivationRecordRevision = 1,
+            CatalogueRevision = 1,
+            SourceBindingSetDigest = Hash(Encoding.UTF8.GetBytes("source-bindings")),
+            ActivationBindingSetDigest = Hash(Encoding.UTF8.GetBytes("activation-bindings")),
+            IndexGenerationId = $"idxgen-{Hash(Encoding.UTF8.GetBytes("generation"))}",
+            Outcome = "Answered",
+            QuestionLanguage = "en-GB",
+            AnswerLanguage = "en-GB",
+            AnswerSha256 = Hash(Encoding.UTF8.GetBytes("answer")),
+            AnswerUtf8ByteLength = 6,
+            EvidenceCoverageDigest = Hash(Encoding.UTF8.GetBytes("coverage")),
+            RetrievalPolicyVersion = "retrieval-v1",
+            PromptVersion = "grounded-answer-v1",
+            LanguageModelProviderId = "synthetic",
+            LanguageModelId = "model-v1",
+            LanguageModelRevision = "fixture-1",
+            CorrelationId = $"correlation-answer-{identityCharacter}",
+            RetentionPolicyId = "answer-evidence-p30d-v1",
+            CreatedAtUtc = created,
+            ExpiresAtUtc = expires,
+        });
+        context.AnswerEvidenceCitations.Add(new AnswerEvidenceCitationRow
+        {
+            AnswerEvidenceRecordId = recordId,
+            Ordinal = 1,
+            ProductId = "db-fixture",
+            ProductRevision = 1,
+            DocumentId = $"answer-snapshot-{identityCharacter}",
+            DocumentVersion = 1,
+            DocumentFormat = "Csv",
+            ContentLanguage = "en-GB",
+            ChunkId = $"chunk-{Hash(Encoding.UTF8.GetBytes($"chunk-{identityCharacter}"))}",
+            SourceAdapterId = "local-fixture",
+            SourceTrustClass = "LocalAuthorised",
+            OfficialRegistrationId = null,
+            SourceSnapshotId = null,
+            SourceObservationId = null,
+            SourceContentSha256 = content.ContentObjectId.Value,
+            PageStart = null,
+            PageEnd = null,
+            RecordStart = 1,
+            RecordEnd = 1,
+            ColumnsJson = "[]",
+            SectionLocator = null,
+            RenderManifestId = null,
+        });
+        context.AuditEvents.Add(new AuditEventRow
+        {
+            AuditEventId = $"audit-{Hash(Encoding.UTF8.GetBytes($"{recordId}\nAnswerEvidenceCreated"))}",
+            OperationId = recordId,
+            CorpusId = SqlitePersistenceFixture.CorpusId.Value,
+            EventType = "AnswerEvidenceCreated",
+            OccurredAtUtc = created,
+            DetailsDigest = Hash(Encoding.UTF8.GetBytes($"audit:{recordId}")),
+        });
+        await context.SaveChangesAsync();
+        return recordId;
     }
 
     private static async Task<ContentObjectDescriptor> PutAndRegisterAsync(

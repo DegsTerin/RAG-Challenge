@@ -22,6 +22,8 @@ public sealed record QueryEvidenceBinding
 {
     public QueryEvidenceBinding(
         DocumentBinding binding,
+        DocumentActivationEvidenceBinding evidenceBinding,
+        DocumentRenderManifest? renderManifest,
         DocumentContentLanguage contentLanguage,
         SourceFreshness freshness,
         string? title = null,
@@ -29,7 +31,35 @@ public sealed record QueryEvidenceBinding
         DateTimeOffset? revalidatedAt = null)
     {
         Binding = binding ?? throw new ArgumentNullException(nameof(binding));
+        EvidenceBinding = evidenceBinding ??
+            throw new ArgumentNullException(nameof(evidenceBinding));
         ArgumentNullException.ThrowIfNull(contentLanguage);
+
+        if (evidenceBinding.DocumentBinding != binding)
+        {
+            throw new ArgumentException(
+                "Query evidence must preserve the exact activation evidence binding.",
+                nameof(evidenceBinding));
+        }
+
+        if (binding.DocumentFormat == DocumentFormat.Pdf &&
+            (renderManifest is null ||
+             renderManifest.RenderManifestId != evidenceBinding.RenderManifestId ||
+             renderManifest.DocumentId != binding.DocumentId ||
+             renderManifest.DocumentVersion != binding.DocumentVersion ||
+             renderManifest.SourceContentObjectId != evidenceBinding.SourceContentObjectId))
+        {
+            throw new ArgumentException(
+                "Query-time PDF evidence requires its exact final render manifest.",
+                nameof(renderManifest));
+        }
+
+        if (binding.DocumentFormat == DocumentFormat.Csv && renderManifest is not null)
+        {
+            throw new ArgumentException(
+                "Query-time CSV evidence cannot carry a render manifest.",
+                nameof(renderManifest));
+        }
 
         if (!contentLanguage.IsSupportedByV1)
         {
@@ -70,6 +100,7 @@ public sealed record QueryEvidenceBinding
         }
 
         ContentLanguage = contentLanguage;
+        RenderManifest = renderManifest;
         Freshness = freshness;
         Title = title;
         CanonicalUrl = canonicalUrl;
@@ -79,6 +110,10 @@ public sealed record QueryEvidenceBinding
     public DocumentBinding Binding { get; }
 
     public DocumentContentLanguage ContentLanguage { get; }
+
+    public DocumentActivationEvidenceBinding EvidenceBinding { get; }
+
+    public DocumentRenderManifest? RenderManifest { get; }
 
     public SourceFreshness Freshness { get; }
 
@@ -353,6 +388,9 @@ public sealed class QuestionAnsweringService : IQuestionAnsweringService
     private readonly IEmbeddingProvider embeddingProvider;
     private readonly IVectorIndexStore vectorStore;
     private readonly ILanguageModel languageModel;
+    private readonly IAnswerEvidenceStore answerEvidenceStore;
+    private readonly IAnswerEvidenceRecordIdSource answerEvidenceRecordIdSource;
+    private readonly IAnswerEvidenceActivitySink answerEvidenceActivitySink;
     private readonly double minimumScore;
 
     public QuestionAnsweringService(
@@ -363,6 +401,9 @@ public sealed class QuestionAnsweringService : IQuestionAnsweringService
         IEmbeddingProvider embeddingProvider,
         IVectorIndexStore vectorStore,
         ILanguageModel languageModel,
+        IAnswerEvidenceStore answerEvidenceStore,
+        IAnswerEvidenceRecordIdSource answerEvidenceRecordIdSource,
+        IAnswerEvidenceActivitySink answerEvidenceActivitySink,
         double minimumScore)
     {
         this.configuredCorpusId = configuredCorpusId ??
@@ -377,6 +418,12 @@ public sealed class QuestionAnsweringService : IQuestionAnsweringService
             throw new ArgumentNullException(nameof(embeddingProvider));
         this.vectorStore = vectorStore ?? throw new ArgumentNullException(nameof(vectorStore));
         this.languageModel = languageModel ?? throw new ArgumentNullException(nameof(languageModel));
+        this.answerEvidenceStore = answerEvidenceStore ??
+            throw new ArgumentNullException(nameof(answerEvidenceStore));
+        this.answerEvidenceRecordIdSource = answerEvidenceRecordIdSource ??
+            throw new ArgumentNullException(nameof(answerEvidenceRecordIdSource));
+        this.answerEvidenceActivitySink = answerEvidenceActivitySink ??
+            throw new ArgumentNullException(nameof(answerEvidenceActivitySink));
 
         if (!double.IsFinite(minimumScore) || minimumScore is < -1 or > 1)
         {
@@ -489,7 +536,7 @@ public sealed class QuestionAnsweringService : IQuestionAnsweringService
                 .Where(item => cited.Contains(item.ChunkId))
                 .Select(item => CreateCitation(snapshot, item))
                 .ToArray();
-            return QueryExecutionResult.Completed(new QueryCompletion(
+            var completion = new QueryCompletion(
                 QueryOutcome.Answered,
                 request.QuestionLanguage,
                 generated.Answer,
@@ -499,7 +546,65 @@ public sealed class QuestionAnsweringService : IQuestionAnsweringService
                 RetrievalPolicyVersion,
                 PromptVersion,
                 languageModelDescriptor,
-                request.CorrelationId));
+                request.CorrelationId);
+            AnswerEvidenceRecordV1? answerEvidenceRecord = null;
+            var persistenceStarted = System.Diagnostics.Stopwatch.GetTimestamp();
+
+            try
+            {
+                answerEvidenceRecord = AnswerEvidenceRecordComposer.Create(
+                    answerEvidenceRecordIdSource.Create(),
+                    snapshot,
+                    completion,
+                    observedAt);
+                var persisted = await answerEvidenceStore.PersistAsync(
+                    answerEvidenceRecord,
+                    cancellationToken).ConfigureAwait(false);
+
+                if (persisted.Outcome is not AnswerEvidencePersistenceOutcome.Applied and
+                        not AnswerEvidencePersistenceOutcome.AlreadyApplied ||
+                    persisted.PersistedRecord is null ||
+                    persisted.PersistedRecord.RecordSha256 != answerEvidenceRecord.RecordSha256 ||
+                    !persisted.PersistedRecord.SerialiseCanonicalUtf8().AsSpan()
+                        .SequenceEqual(answerEvidenceRecord.SerialiseCanonicalUtf8()))
+                {
+                    throw new InvalidDataException(
+                        "Answer-evidence persistence did not return the exact canonical record.");
+                }
+
+                RecordActivitySafely(AnswerEvidenceRecordComposer.CreateActivity(
+                    answerEvidenceRecord,
+                    persistenceStarted,
+                    persisted.Outcome.ToString()));
+            }
+            catch (OperationCanceledException)
+            {
+                if (answerEvidenceRecord is not null)
+                {
+                    RecordActivitySafely(AnswerEvidenceRecordComposer.CreateActivity(
+                        answerEvidenceRecord,
+                        persistenceStarted,
+                        "Failed",
+                        "CH_OPERATION_CANCELLED"));
+                }
+
+                throw;
+            }
+            catch (Exception)
+            {
+                if (answerEvidenceRecord is not null)
+                {
+                    RecordActivitySafely(AnswerEvidenceRecordComposer.CreateActivity(
+                        answerEvidenceRecord,
+                        persistenceStarted,
+                        "Failed",
+                        "CH_UNEXPECTED_FAILURE"));
+                }
+
+                return Failure(QueryFailureKind.UnexpectedFailure, request.CorrelationId);
+            }
+
+            return QueryExecutionResult.Completed(completion);
         }
         catch (OperationCanceledException)
         {
@@ -714,6 +819,18 @@ public sealed class QuestionAnsweringService : IQuestionAnsweringService
         }
 
         return false;
+    }
+
+    private void RecordActivitySafely(AnswerEvidenceActivity activity)
+    {
+        try
+        {
+            answerEvidenceActivitySink.Record(activity);
+        }
+        catch (Exception)
+        {
+            // Operational telemetry must never alter the public query outcome.
+        }
     }
 
     private sealed record SelectedEvidence(

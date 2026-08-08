@@ -37,6 +37,76 @@ internal sealed class DisabledQuestionAnsweringService : IQuestionAnsweringServi
             request.CorrelationId)));
 }
 
+internal sealed partial class SanitisedAnswerEvidenceActivitySink(
+    ILogger<SanitisedAnswerEvidenceActivitySink> logger) : IAnswerEvidenceActivitySink
+{
+    private readonly ILogger<SanitisedAnswerEvidenceActivitySink> logger = logger ??
+        throw new ArgumentNullException(nameof(logger));
+
+    public void Record(AnswerEvidenceActivity activity)
+    {
+        ArgumentNullException.ThrowIfNull(activity);
+
+        if (activity.FailureCode is null)
+        {
+            LogPersisted(
+                logger,
+                activity.AnswerEvidenceRecordId.Value,
+                activity.CorrelationId,
+                activity.CorpusId.Value,
+                activity.IndexGenerationId.Value,
+                activity.CitationCount,
+                activity.PageImageCount,
+                activity.ElapsedMilliseconds,
+                activity.RetentionOutcome);
+            return;
+        }
+
+        LogFailed(
+            logger,
+            activity.AnswerEvidenceRecordId.Value,
+            activity.CorrelationId,
+            activity.CorpusId.Value,
+            activity.IndexGenerationId.Value,
+            activity.CitationCount,
+            activity.PageImageCount,
+            activity.ElapsedMilliseconds,
+            activity.RetentionOutcome,
+            activity.FailureCode);
+    }
+
+    [LoggerMessage(
+        EventId = 7041,
+        Level = LogLevel.Information,
+        Message = "Answer evidence {AnswerEvidenceRecordId} for correlation {CorrelationId}, corpus {CorpusId}, generation {IndexGenerationId}: {CitationCount} citations, {PageImageCount} pages, {ElapsedMilliseconds} ms, retention {RetentionOutcome}")]
+    private static partial void LogPersisted(
+        ILogger logger,
+        string answerEvidenceRecordId,
+        string correlationId,
+        string corpusId,
+        string indexGenerationId,
+        int citationCount,
+        int pageImageCount,
+        long elapsedMilliseconds,
+        string retentionOutcome);
+
+    [LoggerMessage(
+        EventId = 7042,
+        Level = LogLevel.Warning,
+        Message = "Answer evidence {AnswerEvidenceRecordId} for correlation {CorrelationId}, corpus {CorpusId}, generation {IndexGenerationId}: {CitationCount} citations, {PageImageCount} pages, {ElapsedMilliseconds} ms, retention {RetentionOutcome}, failure {FailureCode}")]
+    private static partial void LogFailed(
+        ILogger logger,
+        string answerEvidenceRecordId,
+        string correlationId,
+        string corpusId,
+        string indexGenerationId,
+        int citationCount,
+        int pageImageCount,
+        long elapsedMilliseconds,
+        string retentionOutcome,
+        string failureCode);
+}
+
 internal interface IQueryReadinessProbe
 {
     ValueTask<ReadinessV1> CheckAsync(

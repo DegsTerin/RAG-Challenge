@@ -16,13 +16,12 @@ Control schema and migration, persisted vector-language compatibility and
 render-manifest reachability slice recorded below. It does not implement the
 content/rendering pipeline, real PNG validation or evidence serving.
 
-Later separately authorised `S04-CORR-04-A` to `S04-CORR-04-D` increments
+Later separately authorised `S04-CORR-04-A` to `S04-CORR-04-E` increments
 implement verified content storage, rights gates, deterministic render
 finalisation and immutable activation-evidence persistence without rewriting
-the historical S03-A or S03-CORR-01 evidence. Accepted ADR-0010 now defines the
-logical `AnswerEvidenceRecordV1`, fixed retention and reachability successor;
-`S04-CORR-04-E` remains unimplemented and no physical mapping is authorised by
-this dictionary.
+the historical S03-A or S03-CORR-01 evidence. The latest increment implements
+the ADR-0010 `AnswerEvidenceRecordV1`, fixed retention and reachability successor
+in the existing Control store without changing the public v1 contract.
 
 `S03-B` was blocked when this S03-A artefact was created, so this document
 contains no ORM mapping, DDL, migration, persistent store, lockfile change,
@@ -530,6 +529,13 @@ foreign keys plus the closed schema-v1 constraints. It performs no data
 operation and does not infer or backfill rights, manifests or bindings for
 historical activation rows. The Vector schema remains unchanged.
 
+`S04-CORR-04-E` adds the single Control migration
+`20260808033247_AddAnswerEvidenceRecords`. It creates empty
+`answer_evidence_records`, `answer_evidence_citations` and
+`answer_evidence_pages` tables with exact Control-plane constraints and foreign
+keys. It performs no data operation and does not infer or backfill historical
+answers or activations. The Vector schema remains unchanged.
+
 The combined mapping preserves these invariants:
 
 - immutable uniqueness for typed identities and version pairs;
@@ -544,10 +550,12 @@ The combined mapping preserves these invariants:
   relationships; `S04-CORR-04-C` now materialises verified page objects and
   finalises those existing records, and `S04-CORR-04-D` now binds them to new
   activation revisions without image serving;
+- immutable answer-evidence identity, exact citation/page bindings, fixed
+  expiry and independent non-expired reachability roots; and
 - migration, recovery, lock and transaction semantics.
 
-No dependency, physical index or store technology is selected by this
-dictionary.
+No new dependency or store technology was introduced for answer evidence; it
+uses the existing SQLite Control boundary.
 
 ## S04-CORR-04-C physical finalisation evidence
 
@@ -601,7 +609,7 @@ ineligible to authorise current query or visual readiness. No new rights digest,
 rights administration identity, vector metadata field, `AnswerEvidenceRecord`,
 v2 contract or image-serving boundary is introduced.
 
-## ADR-0010 answer-evidence successor model — not implemented
+## ADR-0010 answer-evidence successor model — implemented locally
 
 `AnswerEvidenceRecordV1` is an immutable, internal Control-plane aggregate for
 one fully validated `Answered` outcome. Its logical header contains the
@@ -633,8 +641,12 @@ The existing `cleanup-plan-v1` reservation/finalisation boundary must revalidate
 all roots before physical deletion. Activation history and rollback roots remain
 independent.
 
-This successor model selects no table name, key/index layout, migration,
-backfill or store technology. Those physical choices, executable tests and
-implementation files require a separate `S04-CORR-04-E` authority. The public
-v1 schema and OpenAPI artefact remain unchanged; v2 and image serving are not
-part of this aggregate.
+The separately authorised `S04-CORR-04-E` implementation maps the aggregate to
+the three Control tables named above. Header identity is also the corresponding
+administration-operation identity; citations and pages cascade only with their
+header, while source and image content-object references remain restrictive.
+The store revalidates current activation/generation/source/manifest authority
+before insertion and reads back the canonical aggregate plus its allowlisted
+audit evidence before commit. The migration contains no backfill or historical
+inference. The public v1 schema and OpenAPI artefact remain unchanged; v2 and
+image serving are not part of this aggregate.

@@ -9,6 +9,7 @@ using Microsoft.EntityFrameworkCore;
 
 using RagChallenge.Application.Persistence;
 using RagChallenge.Domain.CorpusCatalog;
+using RagChallenge.Domain.IndexingRetrieval;
 
 namespace RagChallenge.Infrastructure.Persistence;
 
@@ -82,6 +83,7 @@ public sealed class SqliteStorageMaintenance(SqliteStoreOptions options)
             await RemoveContentIfGloballyUnreferencedAsync(
                 contentStore,
                 operationId,
+                plan,
                 contentObject,
                 cancellationToken).ConfigureAwait(false);
         }
@@ -97,6 +99,7 @@ public sealed class SqliteStorageMaintenance(SqliteStoreOptions options)
             requestedAt,
             removedGenerations,
             removedContent,
+            plan.AnswerEvidenceRecords.Count,
             cancellationToken).ConfigureAwait(false);
         await ReconcileAndFinaliseAppliedReservationsAsync(
             contentStore,
@@ -218,6 +221,12 @@ public sealed class SqliteStorageMaintenance(SqliteStoreOptions options)
                 corpusId,
                 requestedAt,
                 cancellationToken).ConfigureAwait(false);
+            await RemovePlannedExpiredAnswerEvidenceAsync(
+                context,
+                plan,
+                corpusId,
+                requestedAt,
+                cancellationToken).ConfigureAwait(false);
             await AddOrValidateAuditAsync(
                 context,
                 operationId,
@@ -258,8 +267,28 @@ public sealed class SqliteStorageMaintenance(SqliteStoreOptions options)
             .OrderBy(value => value, StringComparer.Ordinal)
             .Select(value => new CleanupGenerationPlanItem(value))
             .ToArray();
+        var answerEvidenceRecords = (await context.AnswerEvidenceRecords.AsNoTracking()
+            .Where(row => row.CorpusId == corpusId.Value)
+            .Select(row => new
+            {
+                row.AnswerEvidenceRecordId,
+                row.RecordSha256,
+                row.ExpiresAtUtc,
+            })
+            .ToArrayAsync(cancellationToken)
+            .ConfigureAwait(false))
+            .Where(row => ControlPlaneMapping.ParseUtc(row.ExpiresAtUtc) <= requestedAt)
+            .OrderBy(row => row.AnswerEvidenceRecordId, StringComparer.Ordinal)
+            .Select(row => new CleanupAnswerEvidencePlanItem(
+                row.AnswerEvidenceRecordId,
+                row.RecordSha256,
+                row.ExpiresAtUtc))
+            .ToArray();
         var globallyReferencedContent = await FindGloballyReferencedContentAsync(
             context,
+            answerEvidenceRecords
+                .Select(item => item.AnswerEvidenceRecordId)
+                .ToHashSet(StringComparer.Ordinal),
             cancellationToken).ConfigureAwait(false);
         var contentObjects = (await context.ContentObjects.AsNoTracking()
             .Select(row => new { row.ContentSha256, row.ByteLength })
@@ -274,6 +303,7 @@ public sealed class SqliteStorageMaintenance(SqliteStoreOptions options)
             operationId.Value,
             corpusId.Value,
             ControlPlaneMapping.FormatUtc(requestedAt),
+            answerEvidenceRecords,
             vectorGenerations,
             contentObjects);
         return CreatePersistedPlan(document);
@@ -319,7 +349,14 @@ public sealed class SqliteStorageMaintenance(SqliteStoreOptions options)
                 new ContentObjectId(item.ContentObjectId),
                 item.ByteLength))
             .ToArray();
+        var answerEvidenceRecords = (document.AnswerEvidenceRecords ?? [])
+            .Select(item => new CleanupAnswerEvidenceCandidate(
+                new AnswerEvidenceRecordId(item.AnswerEvidenceRecordId),
+                new AnswerEvidenceRecordSha256(item.RecordSha256),
+                ControlPlaneMapping.ParseUtc(item.ExpiresAtUtc)))
+            .ToArray();
         return new PersistedCleanupPlan(
+            answerEvidenceRecords,
             vectorGenerations,
             contentObjects,
             canonicalBytes,
@@ -349,6 +386,21 @@ public sealed class SqliteStorageMaintenance(SqliteStoreOptions options)
         var generationIds = document.VectorGenerations
             .Select(item => new IndexGenerationId(item.IndexGenerationId).Value)
             .ToArray();
+        var answerEvidenceIds = (document.AnswerEvidenceRecords ?? [])
+            .Select(item =>
+            {
+                _ = new AnswerEvidenceRecordSha256(item.RecordSha256);
+                var expiresAt = ControlPlaneMapping.ParseUtc(item.ExpiresAtUtc);
+
+                if (expiresAt > requestedAt)
+                {
+                    throw new InvalidDataException(
+                        "A cleanup plan contains non-expired answer evidence.");
+                }
+
+                return new AnswerEvidenceRecordId(item.AnswerEvidenceRecordId).Value;
+            })
+            .ToArray();
         var contentIds = document.ContentObjects
             .Select(item =>
             {
@@ -356,6 +408,7 @@ public sealed class SqliteStorageMaintenance(SqliteStoreOptions options)
                 return new ContentObjectId(item.ContentObjectId).Value;
             })
             .ToArray();
+        EnsureStrictOrdinalOrder(answerEvidenceIds, "answer-evidence record");
         EnsureStrictOrdinalOrder(generationIds, "generation");
         EnsureStrictOrdinalOrder(contentIds, "content object");
     }
@@ -379,6 +432,26 @@ public sealed class SqliteStorageMaintenance(SqliteStoreOptions options)
         DateTimeOffset requestedAt,
         CancellationToken cancellationToken)
     {
+        foreach (var answerEvidence in plan.AnswerEvidenceRecords)
+        {
+            var row = await context.AnswerEvidenceRecords.AsNoTracking()
+                .SingleOrDefaultAsync(item =>
+                    item.AnswerEvidenceRecordId ==
+                        answerEvidence.AnswerEvidenceRecordId.Value &&
+                    item.CorpusId == corpusId.Value,
+                    cancellationToken).ConfigureAwait(false);
+
+            if (row is null ||
+                row.RecordSha256 != answerEvidence.RecordSha256.Value ||
+                ControlPlaneMapping.ParseUtc(row.ExpiresAtUtc) !=
+                    answerEvidence.ExpiresAt ||
+                answerEvidence.ExpiresAt > requestedAt)
+            {
+                throw new InvalidDataException(
+                    "A persisted cleanup plan no longer identifies its exact expired answer evidence.");
+            }
+        }
+
         foreach (var generationId in plan.VectorGenerations)
         {
             var hold = await context.GenerationRetentions.AsNoTracking().SingleOrDefaultAsync(
@@ -435,6 +508,34 @@ public sealed class SqliteStorageMaintenance(SqliteStoreOptions options)
         }
 
         context.GenerationRetentions.RemoveRange(rows);
+    }
+
+    private static async Task RemovePlannedExpiredAnswerEvidenceAsync(
+        ControlPlaneDbContext context,
+        PersistedCleanupPlan plan,
+        CorpusId corpusId,
+        DateTimeOffset requestedAt,
+        CancellationToken cancellationToken)
+    {
+        var planned = plan.AnswerEvidenceRecords.ToDictionary(
+            item => item.AnswerEvidenceRecordId.Value,
+            StringComparer.Ordinal);
+        var rows = await context.AnswerEvidenceRecords
+            .Where(row => row.CorpusId == corpusId.Value &&
+                planned.Keys.Contains(row.AnswerEvidenceRecordId))
+            .ToArrayAsync(cancellationToken).ConfigureAwait(false);
+
+        if (rows.Length != planned.Count || rows.Any(row =>
+                !planned.TryGetValue(row.AnswerEvidenceRecordId, out var expected) ||
+                row.RecordSha256 != expected.RecordSha256.Value ||
+                ControlPlaneMapping.ParseUtc(row.ExpiresAtUtc) != expected.ExpiresAt ||
+                expected.ExpiresAt > requestedAt))
+        {
+            throw new InvalidDataException(
+                "A persisted cleanup plan cannot remove its exact expired answer evidence.");
+        }
+
+        context.AnswerEvidenceRecords.RemoveRange(rows);
     }
 
     private async Task ReconcileInProgressReservationsAsync(
@@ -498,6 +599,7 @@ public sealed class SqliteStorageMaintenance(SqliteStoreOptions options)
     private async Task RemoveContentIfGloballyUnreferencedAsync(
         ImmutableContentStore contentStore,
         OperationId operationId,
+        PersistedCleanupPlan plan,
         CleanupContentCandidate candidate,
         CancellationToken cancellationToken)
     {
@@ -700,6 +802,7 @@ public sealed class SqliteStorageMaintenance(SqliteStoreOptions options)
         DateTimeOffset completedAt,
         int removedGenerations,
         int removedContent,
+        int removedAnswerEvidenceRecords,
         CancellationToken cancellationToken)
     {
         await using var context = options.CreateControlContext();
@@ -742,7 +845,8 @@ public sealed class SqliteStorageMaintenance(SqliteStoreOptions options)
             corpusId,
             "CleanupApplied",
             completedAt,
-            Sha256($"generations={removedGenerations};content={removedContent}"),
+            Sha256(
+                $"generations={removedGenerations};content={removedContent};answerEvidence={removedAnswerEvidenceRecords}"),
             cancellationToken).ConfigureAwait(false);
         await context.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
         await transaction.CommitAsync(cancellationToken).ConfigureAwait(false);
@@ -785,16 +889,22 @@ public sealed class SqliteStorageMaintenance(SqliteStoreOptions options)
         var referencedByPageImage = await context.DocumentPageImages.AsNoTracking().AnyAsync(
             item => item.ImageContentSha256 == contentObjectId.Value,
             cancellationToken).ConfigureAwait(false);
+        var referencedByAnswerEvidence = await IsReferencedByAnswerEvidenceAsync(
+            context,
+            contentObjectId,
+            cancellationToken).ConfigureAwait(false);
         return new ContentReferenceState(
             row,
             referencedByDocument,
             referencedBySnapshot,
             referencedByRenderSource,
-            referencedByPageImage);
+            referencedByPageImage,
+            referencedByAnswerEvidence);
     }
 
     private static async Task<HashSet<string>> FindGloballyReferencedContentAsync(
         ControlPlaneDbContext context,
+        HashSet<string> plannedAnswerEvidenceRecordIds,
         CancellationToken cancellationToken)
     {
         var referenced = (await context.DocumentVersions.AsNoTracking()
@@ -817,7 +927,53 @@ public sealed class SqliteStorageMaintenance(SqliteStoreOptions options)
             .ToArrayAsync(cancellationToken)
             .ConfigureAwait(false);
         referenced.UnionWith(pageImages);
+        var rootRecordIds = (await context.AnswerEvidenceRecords.AsNoTracking()
+            .Select(row => row.AnswerEvidenceRecordId)
+            .ToArrayAsync(cancellationToken)
+            .ConfigureAwait(false))
+            .Where(recordId => !plannedAnswerEvidenceRecordIds.Contains(recordId))
+            .ToHashSet(StringComparer.Ordinal);
+
+        if (rootRecordIds.Count != 0)
+        {
+            var answerSources = await context.AnswerEvidenceCitations.AsNoTracking()
+                .Where(row => rootRecordIds.Contains(row.AnswerEvidenceRecordId))
+                .Select(row => row.SourceContentSha256)
+                .ToArrayAsync(cancellationToken).ConfigureAwait(false);
+            referenced.UnionWith(answerSources);
+            var answerPageSources = await context.AnswerEvidencePages.AsNoTracking()
+                .Where(row => rootRecordIds.Contains(row.AnswerEvidenceRecordId))
+                .Select(row => row.SourceContentSha256)
+                .ToArrayAsync(cancellationToken).ConfigureAwait(false);
+            referenced.UnionWith(answerPageSources);
+            var answerPageImages = await context.AnswerEvidencePages.AsNoTracking()
+                .Where(row => rootRecordIds.Contains(row.AnswerEvidenceRecordId))
+                .Select(row => row.ImageContentSha256)
+                .ToArrayAsync(cancellationToken).ConfigureAwait(false);
+            referenced.UnionWith(answerPageImages);
+        }
+
         return referenced;
+    }
+
+    private static async Task<bool> IsReferencedByAnswerEvidenceAsync(
+        ControlPlaneDbContext context,
+        ContentObjectId contentObjectId,
+        CancellationToken cancellationToken)
+    {
+        var recordIds = (await context.AnswerEvidenceCitations.AsNoTracking()
+            .Where(row => row.SourceContentSha256 == contentObjectId.Value)
+            .Select(row => row.AnswerEvidenceRecordId)
+            .ToArrayAsync(cancellationToken).ConfigureAwait(false))
+            .Concat(await context.AnswerEvidencePages.AsNoTracking()
+                .Where(row => row.SourceContentSha256 == contentObjectId.Value ||
+                    row.ImageContentSha256 == contentObjectId.Value)
+                .Select(row => row.AnswerEvidenceRecordId)
+                .ToArrayAsync(cancellationToken).ConfigureAwait(false))
+            .Distinct(StringComparer.Ordinal)
+            .ToArray();
+
+        return recordIds.Length != 0;
     }
 
     private static async Task EnsureLeaseAvailableAsync(
@@ -980,6 +1136,7 @@ public sealed class SqliteStorageMaintenance(SqliteStoreOptions options)
         bool AlreadyApplied);
 
     private sealed record PersistedCleanupPlan(
+        IReadOnlyCollection<CleanupAnswerEvidenceCandidate> AnswerEvidenceRecords,
         IReadOnlyCollection<IndexGenerationId> VectorGenerations,
         IReadOnlyCollection<CleanupContentCandidate> ContentObjects,
         byte[] CanonicalBytes,
@@ -990,8 +1147,15 @@ public sealed class SqliteStorageMaintenance(SqliteStoreOptions options)
         string OperationId,
         string CorpusId,
         string RequestedAtUtc,
+        [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+        CleanupAnswerEvidencePlanItem[]? AnswerEvidenceRecords,
         CleanupGenerationPlanItem[] VectorGenerations,
         CleanupContentPlanItem[] ContentObjects);
+
+    private sealed record CleanupAnswerEvidencePlanItem(
+        string AnswerEvidenceRecordId,
+        string RecordSha256,
+        string ExpiresAtUtc);
 
     private sealed record CleanupGenerationPlanItem(string IndexGenerationId);
 
@@ -1001,17 +1165,24 @@ public sealed class SqliteStorageMaintenance(SqliteStoreOptions options)
         ContentObjectId ContentObjectId,
         long ByteLength);
 
+    private sealed record CleanupAnswerEvidenceCandidate(
+        AnswerEvidenceRecordId AnswerEvidenceRecordId,
+        AnswerEvidenceRecordSha256 RecordSha256,
+        DateTimeOffset ExpiresAt);
+
     private sealed record ContentReferenceState(
         ContentObjectRow? ContentObject,
         bool ReferencedByDocument,
         bool ReferencedBySnapshot,
         bool ReferencedByRenderSource,
-        bool ReferencedByPageImage)
+        bool ReferencedByPageImage,
+        bool ReferencedByAnswerEvidence)
     {
         public bool HasDurableReference =>
             ReferencedByDocument ||
             ReferencedBySnapshot ||
             ReferencedByRenderSource ||
-            ReferencedByPageImage;
+            ReferencedByPageImage ||
+            ReferencedByAnswerEvidence;
     }
 }

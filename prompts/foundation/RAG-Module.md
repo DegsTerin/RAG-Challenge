@@ -7,9 +7,10 @@ ADRs aceitos. O estado implementado e testado pertence ao Current State e aos
 relatórios dos estados. Os incrementos corretivos implementaram a separação de
 idiomas, o content store, os gates de direitos, o renderer/PNG e os vínculos de
 ativação previstos pelos ADRs 0008/0009; serving e v2 permanecem não
-implementados. O ADR-0010 define `AnswerEvidenceRecordV1`, retenção e
-reachability, mas `S04-CORR-04-E` não foi iniciado. Nenhum corpus real, provider
-real ou conteúdo real está ativo.
+implementados. O `AnswerEvidenceRecordV1`, sua retenção `P30D` e participação em
+reachability previstas pelo ADR-0010 foram implementados localmente por
+`S04-CORR-04-E`, sem gate ou homologação. Nenhum corpus real, provider real ou
+conteúdo real está ativo.
 
 ## Objetivo e limites
 
@@ -153,9 +154,10 @@ Documento `Deactivated` ou `Removed` não serve imagem, e cleanup precisa provar
 ausência de reachability por documento ativo/retido, manifesto, evidência de
 resposta e rollback.
 
-O ADR-0010 torna a evidência de resposta uma raiz somente por meio do futuro
-`AnswerEvidenceRecordV1`, com expiração fixa e sem refresh. Essa arquitetura não
-é evidência de que `S04-CORR-04-E`, sua persistência ou cleanup já existam.
+O `AnswerEvidenceRecordV1` implementado torna a evidência de resposta uma raiz
+com expiração fixa e sem refresh. A evidência local sintética de
+`S04-CORR-04-E` não substitui Automatic Quality Gate, homologação ou prova
+operacional de cleanup.
 
 ### Chunk
 
@@ -700,7 +702,7 @@ conteúdo integral.
 ### Persistência interna de evidência de resposta
 
 Somente um resultado `Answered`, depois de validar idioma, limites, cobertura,
-citações e vínculos, cria o futuro `AnswerEvidenceRecordV1`. O registro completo
+citações e vínculos, cria o `AnswerEvidenceRecordV1`. O registro completo
 é persistido e reaberto antes de devolver a resposta v1. `InsufficientEvidence`
 e falhas não criam registro.
 
@@ -721,8 +723,9 @@ reserva e revalidação integral antes de excluir.
 Header, citações, páginas e auditoria sanitizada formam uma única transação
 Control. Replay de mesmo ID/digest é `AlreadyApplied`; conteúdo divergente sob
 o mesmo ID é conflito sem mutação. Falha de persistência/readback impede
-`Answered` e usa a taxonomia v1 existente. OpenAPI v1 não muda. Tudo neste bloco
-é autoridade arquitetural aceita para `S04-CORR-04-E`, ainda não implementação.
+`Answered` e usa a taxonomia v1 existente. OpenAPI v1 não muda. A arquitetura
+deste bloco está implementada localmente por `S04-CORR-04-E`; gate, homologação,
+v2 e serving permanecem separados.
 
 Scores brutos de diferentes providers não são apresentados como confiança
 universal sem calibração.

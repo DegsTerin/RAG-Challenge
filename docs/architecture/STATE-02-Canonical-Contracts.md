@@ -534,7 +534,7 @@ particular, `CitationV1.contentLanguage` retains its closed `pt-BR | en-GB`
 values. A document governed with another BCP 47 tag cannot become active
 through v1 by coercion or inference.
 
-## Internal answer-evidence persistence contract — not implemented
+## Internal answer-evidence persistence contract — implemented locally
 
 Accepted ADR-0010 assigns `S04-CORR-04-E` to an internal persistent
 `AnswerEvidenceRecordV1`. This is not an HTTP version, endpoint or public v1
@@ -594,8 +594,10 @@ same-ID/different-digest is a no-change conflict.
 Failure to commit or read back after generation prevents `Answered` and maps to
 the existing sanitised `UnexpectedFailure`/`CH_UNEXPECTED_FAILURE`; cancellation
 keeps `OperationCancelled`/`CH_OPERATION_CANCELLED`. No public outcome or code
-is added. OpenAPI v1 remains byte for byte unchanged. This architecture does
-not authorise `S04-CORR-04-E` implementation, migration or tests.
+is added. OpenAPI v1 remains byte for byte unchanged. The ADR itself granted no
+implementation authority; the separately authorised `S04-CORR-04-E` increment
+now implements this internal contract, migration and local synthetic tests
+without creating a gate or homologation result.
 
 ## Planned query contract v2 — not implemented
 

@@ -5510,3 +5510,55 @@ contém somente fatos cronológicos.
 - Próxima condição: autoridade humana explícita, separada e com envelope
   completo para a implementação local/offline de `S04-CORR-04-E`, preservando
   OpenAPI v1 e todas as condições de parada registradas.
+
+## 2026-08-08 — S04-CORR-04-E persistent answer-evidence implementation
+
+- Baseline: branch `main`, commit
+  `fc83e1ea6922a519baf527efc3f0a219e2674453`, corpus `4.10.0` e working tree
+  limpa, confirmados antes da primeira alteração. OpenAPI v1 correspondia ao
+  SHA-256
+  `d6a686b94c926914beb28b437f464430a01de6560c2e2d476cf5c36025813e34`.
+- Autoridade: exclusivamente implementação local, offline, sequencial e
+  sintética de `S04-CORR-04-E` conforme ADR-0010, sem Automatic Quality Gate,
+  Human Gate, lifecycle ou ação externa.
+- Runtime preflight: a inspeção dirigida encontrou zero processo ou listener
+  comprovadamente pertencente ao RAG-Challenge; nada foi encerrado.
+- Contrato/composição: modelo e serialização canônica schema-v1, identidade
+  `ans-evidence-<uuid-n>`, digest e retenção fixa `P30D`; somente `Answered`
+  validado integralmente cria o registro, que é persistido e reaberto antes da
+  resposta pública v1 inalterada. Outros outcomes e falhas não criam registro.
+- Persistência: uma transação Control grava operação, header, citações, páginas
+  e auditoria sanitizada. Mesmo ID/conteúdo canônico retorna `AlreadyApplied`;
+  conteúdo divergente sob o mesmo ID retorna conflito sem mutação. Falha de
+  commit/readback impede `Answered` pela taxonomia v1 existente.
+- Migration: `20260808033247_AddAnswerEvidenceRecords` cria somente as tabelas
+  vazias `answer_evidence_records`, `answer_evidence_citations` e
+  `answer_evidence_pages`, sem backfill, inferência histórica ou alteração da
+  base Vector.
+- Retenção/cleanup: registro não expirado é raiz independente para fontes e
+  PNGs vinculados. Expiração não refresca nem autoriza exclusão; o plano
+  `cleanup-plan-v1`, a reserva, a revalidação integral e a finalização continuam
+  exclusivos, inclusive sob race entre plano antigo e novo registro.
+- Privacidade: registro, auditoria e logging obedecem à allowlist de ADR-0010;
+  não persistem pergunta/hash da pergunta, resposta/texto/URL de citação,
+  prompt/payload de provider, score/vetor, identidade/IP do usuário, secret,
+  path ou bytes.
+- Verificação direta: build Release passou sem aviso; 146 testes unitários, 153
+  de integração e 10 de arquitetura passaram com fixtures sintéticas e stores
+  descartáveis. Os testes cobrem serialização, restart, concorrência, replay,
+  conflito, falhas injetadas, migration/rollback/reapply, privacidade, retenção,
+  reachability e cleanup race. Control e Vector não possuem mudança de modelo
+  pendente. Isso não constitui Automatic Quality Gate.
+- Compatibilidade: OpenAPI v1 permaneceu byte a byte no SHA-256 protegido; não
+  houve endpoint, payload, outcome ou código `CH_*` público novo.
+- Corpus: `4.10.1` (`PATCH`), exclusivamente para reconciliar os fatos correntes
+  com a implementação e a evidência observada.
+- Escopo negativo observado: nenhum dado, fonte, PDF ou PNG real foi usado; sem
+  v2, serving, rede, provider pago, ação externa, push, PR, merge, release,
+  deploy, Automatic Quality Gate, Human Gate ou mudança de lifecycle.
+- Estado resultante: `STATE-07 TESTING_HOMOLOGATION` permanece ativo;
+  `S04-CORR-04-E` está concluído somente na fronteira local, offline, sintética
+  e estática descrita.
+- Próxima condição: autoridade humana explícita e separada para o Automatic
+  Quality Gate de `S04-CORR-04-E` sobre o commit local focado, sem inferir v2,
+  serving, Human Gate ou transição de lifecycle.

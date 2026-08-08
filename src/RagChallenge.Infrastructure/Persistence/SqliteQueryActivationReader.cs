@@ -102,6 +102,15 @@ public sealed class SqliteQueryActivationReader(SqliteStoreOptions options)
                 }
             }
 
+            var hydratedRenderManifest = evidence.RenderManifestId is null
+                ? null
+                : await controlStore.ReadAsync(
+                    corpusId,
+                    evidence.RenderManifestId,
+                    cancellationToken).ConfigureAwait(false) ??
+                    throw new InvalidDataException(
+                        "An active PDF evidence binding has no readable final render manifest.");
+
             DocumentContentLanguage language;
 
             try
@@ -125,6 +134,8 @@ public sealed class SqliteQueryActivationReader(SqliteStoreOptions options)
             {
                 resolved.Add(new QueryEvidenceBinding(
                     binding,
+                    evidence,
+                    hydratedRenderManifest,
                     language,
                     SourceFreshness.Local,
                     product.DisplayName));
@@ -156,6 +167,8 @@ public sealed class SqliteQueryActivationReader(SqliteStoreOptions options)
             var observation = ControlPlaneMapping.ToDomain(observationRow);
             resolved.Add(new QueryEvidenceBinding(
                 binding,
+                evidence,
+                hydratedRenderManifest,
                 language,
                 ResolveFreshness(observation, observedAt),
                 product.DisplayName,

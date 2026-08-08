@@ -162,7 +162,11 @@ public sealed class ApiV1ContractTests
             jsonOptions.SerializerOptions.UnmappedMemberHandling);
         var repositoryRoot = FindRepositoryRoot();
         var path = Path.Combine(repositoryRoot, "docs", "api", "openapi-v1.json");
-        using var document = JsonDocument.Parse(await File.ReadAllTextAsync(path));
+        var openApiBytes = await File.ReadAllBytesAsync(path);
+        Assert.Equal(
+            "d6a686b94c926914beb28b437f464430a01de6560c2e2d476cf5c36025813e34",
+            Convert.ToHexString(SHA256.HashData(openApiBytes)).ToLowerInvariant());
+        using var document = JsonDocument.Parse(openApiBytes);
         var root = document.RootElement;
         Assert.Equal("3.1.0", root.GetProperty("openapi").GetString());
         Assert.Equal(

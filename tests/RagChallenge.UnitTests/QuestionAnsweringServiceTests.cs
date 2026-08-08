@@ -64,6 +64,48 @@ public sealed class QuestionAnsweringServiceTests
         Assert.Null(completion.Answer);
         Assert.Empty(completion.Citations);
         Assert.Equal(0, context.LanguageModel.CallCount);
+        Assert.Empty(context.AnswerEvidenceStore.Records);
+    }
+
+    [Fact]
+    public async Task AnsweredPersistsCompleteEvidenceBeforeReturning()
+    {
+        var context = CreateContext(SupportedQueryLanguage.EnGb);
+
+        var result = await context.Service.AskAsync(
+            new QueryRequest(
+                CorpusId,
+                SupportedQueryLanguage.EnGb,
+                "Question",
+                "correlation-persisted"),
+            At(5));
+
+        Assert.Equal(QueryOutcome.Answered, result.Completion!.Outcome);
+        var record = Assert.Single(context.AnswerEvidenceStore.Records);
+        Assert.Equal("correlation-persisted", record.CorrelationId);
+        Assert.Single(record.Citations);
+        Assert.Single(record.PageImages);
+        Assert.Equal(At(5).AddDays(30), record.ExpiresAt);
+    }
+
+    [Fact]
+    public async Task PostGenerationPersistenceFailureMapsToUnexpectedFailure()
+    {
+        var context = CreateContext(
+            SupportedQueryLanguage.EnGb,
+            answerEvidenceFailure: true);
+
+        var result = await context.Service.AskAsync(
+            new QueryRequest(
+                CorpusId,
+                SupportedQueryLanguage.EnGb,
+                "Question",
+                "correlation-persistence-failure"),
+            At(5));
+
+        Assert.Null(result.Completion);
+        Assert.Equal(QueryFailureKind.UnexpectedFailure, result.Failure!.Kind);
+        Assert.Empty(context.AnswerEvidenceStore.Records);
     }
 
     [Fact]
@@ -82,6 +124,7 @@ public sealed class QuestionAnsweringServiceTests
         Assert.Equal(QueryFailureKind.InvalidInput, result.Failure!.Kind);
         Assert.Equal(0, context.EmbeddingProvider.CallCount);
         Assert.Equal(0, context.LanguageModel.CallCount);
+        Assert.Empty(context.AnswerEvidenceStore.Records);
     }
 
     [Fact]
@@ -100,6 +143,7 @@ public sealed class QuestionAnsweringServiceTests
         Assert.Equal(QueryOutcome.InsufficientEvidence, completion.Outcome);
         Assert.Null(completion.Answer);
         Assert.Empty(completion.Citations);
+        Assert.Empty(context.AnswerEvidenceStore.Records);
     }
 
     [Fact]
@@ -113,6 +157,7 @@ public sealed class QuestionAnsweringServiceTests
 
         Assert.Equal(QueryFailureKind.EmbeddingUnavailable, result.Failure!.Kind);
         Assert.Equal(0, context.LanguageModel.CallCount);
+        Assert.Empty(context.AnswerEvidenceStore.Records);
     }
 
     [Fact]
@@ -149,6 +194,7 @@ public sealed class QuestionAnsweringServiceTests
         Assert.Equal(QueryFailureKind.SourceStale, result.Failure!.Kind);
         Assert.Equal(0, context.EmbeddingProvider.CallCount);
         Assert.Equal(0, context.LanguageModel.CallCount);
+        Assert.Empty(context.AnswerEvidenceStore.Records);
     }
 
     [Fact]
@@ -162,6 +208,7 @@ public sealed class QuestionAnsweringServiceTests
 
         Assert.Equal(QueryFailureKind.LanguageModelUnavailable, result.Failure!.Kind);
         Assert.Equal(1, context.LanguageModel.CallCount);
+        Assert.Empty(context.AnswerEvidenceStore.Records);
     }
 
     [Theory]
@@ -189,6 +236,7 @@ public sealed class QuestionAnsweringServiceTests
 
         Assert.Equal(QueryFailureKind.IndexUnavailable, result.Failure!.Kind);
         Assert.Equal(0, context.LanguageModel.CallCount);
+        Assert.Empty(context.AnswerEvidenceStore.Records);
     }
 
     [Fact]
@@ -208,6 +256,7 @@ public sealed class QuestionAnsweringServiceTests
 
         Assert.Equal(QueryFailureKind.IndexUnavailable, result.Failure!.Kind);
         Assert.Equal(0, context.LanguageModel.CallCount);
+        Assert.Empty(context.AnswerEvidenceStore.Records);
     }
 
     [Fact]
@@ -226,7 +275,8 @@ public sealed class QuestionAnsweringServiceTests
         bool returnHit = true,
         string? citedChunkId = null,
         bool embeddingUnavailable = false,
-        bool languageModelUnavailable = false)
+        bool languageModelUnavailable = false,
+        bool answerEvidenceFailure = false)
     {
         var contentLanguage = new DocumentContentLanguage(
             evidenceLanguage.ToCanonicalTag());
@@ -238,6 +288,7 @@ public sealed class QuestionAnsweringServiceTests
             DocumentFormat.Pdf,
             new SourceAdapterId("local-pdf"),
             SourceTrustClass.LocalAuthorised);
+        var (evidence, renderManifest) = CreatePdfEvidence(binding);
         var activation = new CorpusActivationRecord(
             CorpusId,
             new ActivationRecordRevision(1),
@@ -247,11 +298,14 @@ public sealed class QuestionAnsweringServiceTests
             BindingDigestCanonicalizer.CanonicaliseActivationBindingSet([binding]).Digest,
             [binding],
             At(1),
-            At(1));
+            At(1),
+            [evidence]);
         var snapshot = new QueryActivationSnapshot(
             activation,
             [new QueryEvidenceBinding(
                 binding,
+                evidence,
+                renderManifest,
                 contentLanguage,
                 SourceFreshness.Local,
                 "Synthetic database")]);
@@ -279,6 +333,7 @@ public sealed class QuestionAnsweringServiceTests
                 new CandidateBuildId("candidate-query"),
                 pageNumber: 1)]
             : []);
+        var answerEvidenceStore = new FakeAnswerEvidenceStore(answerEvidenceFailure);
         var service = new QuestionAnsweringService(
             CorpusId,
             embeddingDescriptor,
@@ -287,8 +342,11 @@ public sealed class QuestionAnsweringServiceTests
             embedding,
             vectorStore,
             model,
+            answerEvidenceStore,
+            new FixedAnswerEvidenceRecordIdSource(),
+            NullAnswerEvidenceActivitySink.Instance,
             minimumScore: 0.25);
-        return new TestContext(service, embedding, model);
+        return new TestContext(service, embedding, model, answerEvidenceStore);
     }
 
     private static TestContext CreateOfficialContext(
@@ -296,6 +354,10 @@ public sealed class QuestionAnsweringServiceTests
         Func<VectorSearchHit, VectorSearchHit>? hitTransform = null)
     {
         var binding = CreateOfficialBinding();
+        var evidence = CreateEvidence(
+            binding,
+            new ContentObjectId(Hash("official-csv-source")),
+            renderManifestId: null);
         var activation = new CorpusActivationRecord(
             CorpusId,
             new ActivationRecordRevision(1),
@@ -305,11 +367,14 @@ public sealed class QuestionAnsweringServiceTests
             BindingDigestCanonicalizer.CanonicaliseActivationBindingSet([binding]).Digest,
             [binding],
             At(1),
-            At(1));
+            At(1),
+            [evidence]);
         var snapshot = new QueryActivationSnapshot(
             activation,
             [new QueryEvidenceBinding(
                 binding,
+                evidence,
+                renderManifest: null,
                 DocumentContentLanguage.PtBr,
                 freshness,
                 "Banco sintético",
@@ -337,6 +402,7 @@ public sealed class QuestionAnsweringServiceTests
                 ["value"] = "preserved",
             });
         var vectorStore = new FakeVectorStore([hitTransform?.Invoke(hit) ?? hit]);
+        var answerEvidenceStore = new FakeAnswerEvidenceStore(fail: false);
         var service = new QuestionAnsweringService(
             CorpusId,
             embeddingDescriptor,
@@ -345,8 +411,11 @@ public sealed class QuestionAnsweringServiceTests
             embedding,
             vectorStore,
             model,
+            answerEvidenceStore,
+            new FixedAnswerEvidenceRecordIdSource(),
+            NullAnswerEvidenceActivitySink.Instance,
             minimumScore: 0.25);
-        return new TestContext(service, embedding, model);
+        return new TestContext(service, embedding, model, answerEvidenceStore);
     }
 
     private static DocumentBinding CreateOfficialBinding() =>
@@ -382,6 +451,57 @@ public sealed class QuestionAnsweringServiceTests
             pageNumber,
             recordNumber,
             columns ?? new Dictionary<string, string>());
+
+    private static (DocumentActivationEvidenceBinding Evidence,
+        DocumentRenderManifest RenderManifest) CreatePdfEvidence(DocumentBinding binding)
+    {
+        var source = new ContentObjectId(Hash("local-pdf-source"));
+        var imageDigest = Hash("local-pdf-page-1");
+        var profile = new RenderProfileId(RenderProfileId.PdfPagePngV1);
+        var renderer = new RendererDescriptor("renderer.synthetic:v1");
+        var page = new DocumentPageImage(
+            binding.DocumentId,
+            binding.DocumentVersion,
+            source,
+            pageNumber: 1,
+            profile,
+            renderer,
+            new ContentObjectId(imageDigest),
+            new ImageSha256(imageDigest),
+            byteLength: 4096,
+            DocumentPageImage.PngMediaType,
+            widthPixels: 1024,
+            heightPixels: 768);
+        var manifest = DocumentRenderManifest.Create(
+            binding.DocumentId,
+            binding.DocumentVersion,
+            source,
+            sourcePageCount: 1,
+            profile,
+            renderer,
+            [page],
+            At(1));
+        return (CreateEvidence(binding, source, manifest.RenderManifestId), manifest);
+    }
+
+    private static DocumentActivationEvidenceBinding CreateEvidence(
+        DocumentBinding binding,
+        ContentObjectId source,
+        RenderManifestId? renderManifestId)
+    {
+        var rights = new DocumentRightsEligibilityRecordV1(
+            binding.DocumentId,
+            binding.DocumentVersion,
+            Enum.GetValues<DocumentRight>().Select(right => new DocumentRightDecision(
+                right,
+                DocumentRightDecisionState.Permitted,
+                new DocumentRightsEvidenceReference($"query-test-{right}"))));
+        return new DocumentActivationEvidenceBinding(
+            binding,
+            source,
+            rights,
+            renderManifestId);
+    }
 
     private static VectorSearchHit CreateMismatchedHit(
         VectorSearchHit hit,
@@ -478,7 +598,44 @@ public sealed class QuestionAnsweringServiceTests
     private sealed record TestContext(
         QuestionAnsweringService Service,
         FakeEmbeddingProvider EmbeddingProvider,
-        FakeLanguageModel LanguageModel);
+        FakeLanguageModel LanguageModel,
+        FakeAnswerEvidenceStore AnswerEvidenceStore);
+
+    private sealed class FixedAnswerEvidenceRecordIdSource : IAnswerEvidenceRecordIdSource
+    {
+        private int value;
+
+        public AnswerEvidenceRecordId Create() => AnswerEvidenceRecordId.FromGuid(
+            new Guid(Interlocked.Increment(ref value), 0, 0, new byte[8]));
+    }
+
+    private sealed class FakeAnswerEvidenceStore(bool fail) : IAnswerEvidenceStore
+    {
+        public List<AnswerEvidenceRecordV1> Records { get; } = [];
+
+        public Task<AnswerEvidencePersistenceResult> PersistAsync(
+            AnswerEvidenceRecordV1 record,
+            CancellationToken cancellationToken = default)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            if (fail)
+            {
+                throw new InvalidOperationException("Injected answer-evidence failure.");
+            }
+
+            Records.Add(record);
+            return Task.FromResult(new AnswerEvidencePersistenceResult(
+                AnswerEvidencePersistenceOutcome.Applied,
+                record));
+        }
+
+        public Task<AnswerEvidenceRecordV1?> ReadAsync(
+            AnswerEvidenceRecordId recordId,
+            CancellationToken cancellationToken = default) =>
+            Task.FromResult(Records.SingleOrDefault(record =>
+                record.AnswerEvidenceRecordId == recordId));
+    }
 
     private sealed class FakeActivationReader(QueryActivationSnapshot snapshot)
         : IQueryActivationReader

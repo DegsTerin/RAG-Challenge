@@ -6,6 +6,7 @@ using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Migrations;
 
+using RagChallenge.Application.IndexingRetrieval;
 using RagChallenge.Application.Persistence;
 using RagChallenge.Domain.CorpusCatalog;
 using RagChallenge.Domain.IndexingRetrieval;
@@ -1003,6 +1004,69 @@ public sealed class SqlitePersistenceBoundaryTests
         Assert.Equal(existingBytes, await ReadPragmaAsync(
             fixture.Options.ControlDatabasePath,
             ActivationRecordBytesSql));
+    }
+
+    [Fact]
+    public async Task AnswerEvidenceMigrationAddsEmptyControlTablesWithoutHistoricalInference()
+    {
+        const string previousMigration =
+            "20260808004846_AddDocumentRightsAndActivationEvidenceBindings";
+        const string migration = "20260808033247_AddAnswerEvidenceRecords";
+        await using var fixture = await SqlitePersistenceFixture.CreateAsync();
+        var (_, binding) = await fixture.CommitLocalCatalogueAsync();
+        var manifest = await fixture.CommitGenerationAsync(binding, "answer-migration");
+        var evidence = await fixture.CreateActivationEvidenceAsync(binding);
+        _ = await new GenerationActivationService(fixture.ControlStore).ActivateAsync(
+            new GenerationActivationRequest(
+                manifest,
+                [evidence],
+                ExpectedCurrentRevision: 0,
+                SqliteControlPlaneStore.MinimumPreviousGenerationRetention,
+                new RagChallenge.Application.Administration.AdministrativeAuditContext(
+                    new OperationId("activate-answer-migration"),
+                    "integration-test",
+                    "activate-generation",
+                    "synthetic migration fixture",
+                    SqlitePersistenceFixture.At(3))));
+
+        await MigrateControlAsync(fixture.Options, previousMigration);
+        var activationBytes = await ReadPragmaAsync(
+            fixture.Options.ControlDatabasePath,
+            ActivationRecordBytesSql);
+        var operationsBefore = await fixture.ScalarAsync(
+            "SELECT COUNT(*) FROM admin_operations;");
+
+        await MigrateControlAsync(fixture.Options, migration);
+
+        Assert.Equal(3, await fixture.ScalarAsync(
+            "SELECT COUNT(*) FROM sqlite_master WHERE type = 'table' " +
+            "AND name IN ('answer_evidence_records', 'answer_evidence_citations', " +
+            "'answer_evidence_pages');"));
+        Assert.Equal(0, await fixture.ScalarAsync(
+            "SELECT COUNT(*) FROM answer_evidence_records;"));
+        Assert.Equal(0, await fixture.ScalarAsync(
+            "SELECT COUNT(*) FROM answer_evidence_citations;"));
+        Assert.Equal(0, await fixture.ScalarAsync(
+            "SELECT COUNT(*) FROM answer_evidence_pages;"));
+        Assert.Equal(operationsBefore, await fixture.ScalarAsync(
+            "SELECT COUNT(*) FROM admin_operations;"));
+        Assert.Equal(activationBytes, await ReadPragmaAsync(
+            fixture.Options.ControlDatabasePath,
+            ActivationRecordBytesSql));
+        Assert.Equal(0, await CountRowsAsync(
+            fixture.Options.ControlDatabasePath,
+            "PRAGMA foreign_key_check;"));
+
+        await MigrateControlAsync(fixture.Options, previousMigration);
+        Assert.Equal(0, await fixture.ScalarAsync(
+            "SELECT COUNT(*) FROM sqlite_master WHERE type = 'table' " +
+            "AND name LIKE 'answer_evidence_%';"));
+        Assert.Equal(activationBytes, await ReadPragmaAsync(
+            fixture.Options.ControlDatabasePath,
+            ActivationRecordBytesSql));
+        await MigrateControlAsync(fixture.Options, migration);
+        Assert.Equal(0, await fixture.ScalarAsync(
+            "SELECT COUNT(*) FROM answer_evidence_records;"));
     }
 
     private const string ActivationRecordBytesSql =

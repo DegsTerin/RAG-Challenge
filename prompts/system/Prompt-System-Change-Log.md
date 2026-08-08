@@ -2,11 +2,11 @@
 
 ## Versão atual
 
-- Versão: `4.10.0`
-- Data: 2026-08-07
-- Status: `STATE-07` ativo; ADR-0010 aceita e registrada;
-  `S04-CORR-04-E` definido arquiteturalmente, não iniciado e sem autoridade de
-  implementação, gate ou mudança de lifecycle
+- Versão: `4.10.1`
+- Data: 2026-08-08
+- Status: `STATE-07` ativo; `S04-CORR-04-E` implementado na fronteira local,
+  offline e sintética; Automatic Quality Gate, Human Gate e mudança de
+  lifecycle não executados
 - Escopo: 13 arquivos ativos em `prompts/`
 
 A versão do corpus é independente da versão futura do software.
@@ -20,6 +20,32 @@ A versão do corpus é independente da versão futura do software.
 
 Toda alteração atualiza este arquivo e, quando necessário,
 [`../Start-Here.md`](../Start-Here.md).
+
+## 4.10.1 — 2026-08-08
+
+- Registra a implementação local, offline e sequencial de `S04-CORR-04-E`
+  conforme ADR-0010: modelo e serialização canônica de
+  `AnswerEvidenceRecordV1`, criação somente para `Answered` depois da validação
+  integral e persistência/readback antes da resposta v1 inalterada.
+- Registra a transação Control atômica de header, citações, páginas, operação e
+  auditoria sanitizada, com replay `AlreadyApplied`, conflito divergente sem
+  mutação e falha fechada pela taxonomia v1 existente.
+- Registra a migration Control
+  `20260808033247_AddAnswerEvidenceRecords`, que cria somente três tabelas
+  vazias, sem backfill, inferência histórica ou alteração da base Vector.
+- Integra a retenção fixa `P30D` sem refresh ao `cleanup-plan-v1`, reserva,
+  revalidação, finalização e reachability de fonte/PNGs, inclusive contra a race
+  entre plano antigo e novo registro de resposta.
+- Registra build Release sem aviso, 146 testes unitários, 153 de integração e
+  10 de arquitetura aprovados e os dois contextos EF sem mudança de modelo
+  pendente. Essas verificações diretas não constituem Automatic Quality Gate.
+- Preserva `docs/api/openapi-v1.json` byte a byte no SHA-256
+  `d6a686b94c926914beb28b437f464430a01de6560c2e2d476cf5c36025813e34` e
+  mantém v2, serving, dados reais, rede, ações externas, gates e lifecycle fora
+  do escopo executado.
+- Reconcilia somente os registros factuais correntes necessários. A mudança é
+  `PATCH`; a autoridade arquitetural histórica de ADR-0010 permanece
+  distinguida da implementação posterior.
 
 ## 4.10.0 — 2026-08-07
 

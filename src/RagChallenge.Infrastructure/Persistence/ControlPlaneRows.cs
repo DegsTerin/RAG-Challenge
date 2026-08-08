@@ -429,6 +429,135 @@ internal sealed class GenerationRetentionRow
     public required string OperationId { get; set; }
 }
 
+internal sealed class AnswerEvidenceRecordRow
+{
+    public required string AnswerEvidenceRecordId { get; set; }
+
+    public int SchemaVersion { get; set; }
+
+    public required string RecordSha256 { get; set; }
+
+    public required string CorpusId { get; set; }
+
+    public long ActivationRecordRevision { get; set; }
+
+    public long CatalogueRevision { get; set; }
+
+    public required string SourceBindingSetDigest { get; set; }
+
+    public required string ActivationBindingSetDigest { get; set; }
+
+    public required string IndexGenerationId { get; set; }
+
+    public required string Outcome { get; set; }
+
+    public required string QuestionLanguage { get; set; }
+
+    public required string AnswerLanguage { get; set; }
+
+    public required string AnswerSha256 { get; set; }
+
+    public int AnswerUtf8ByteLength { get; set; }
+
+    public required string EvidenceCoverageDigest { get; set; }
+
+    public required string RetrievalPolicyVersion { get; set; }
+
+    public required string PromptVersion { get; set; }
+
+    public required string LanguageModelProviderId { get; set; }
+
+    public required string LanguageModelId { get; set; }
+
+    public required string LanguageModelRevision { get; set; }
+
+    public required string CorrelationId { get; set; }
+
+    public required string RetentionPolicyId { get; set; }
+
+    public required string CreatedAtUtc { get; set; }
+
+    public required string ExpiresAtUtc { get; set; }
+}
+
+internal sealed class AnswerEvidenceCitationRow
+{
+    public required string AnswerEvidenceRecordId { get; set; }
+
+    public int Ordinal { get; set; }
+
+    public required string ProductId { get; set; }
+
+    public long ProductRevision { get; set; }
+
+    public required string DocumentId { get; set; }
+
+    public long DocumentVersion { get; set; }
+
+    public required string DocumentFormat { get; set; }
+
+    public required string ContentLanguage { get; set; }
+
+    public required string ChunkId { get; set; }
+
+    public required string SourceAdapterId { get; set; }
+
+    public required string SourceTrustClass { get; set; }
+
+    public string? OfficialRegistrationId { get; set; }
+
+    public string? SourceSnapshotId { get; set; }
+
+    public string? SourceObservationId { get; set; }
+
+    public required string SourceContentSha256 { get; set; }
+
+    public int? PageStart { get; set; }
+
+    public int? PageEnd { get; set; }
+
+    public long? RecordStart { get; set; }
+
+    public long? RecordEnd { get; set; }
+
+    public required string ColumnsJson { get; set; }
+
+    public string? SectionLocator { get; set; }
+
+    public string? RenderManifestId { get; set; }
+}
+
+internal sealed class AnswerEvidencePageRow
+{
+    public required string AnswerEvidenceRecordId { get; set; }
+
+    public required string DocumentId { get; set; }
+
+    public long DocumentVersion { get; set; }
+
+    public required string SourceContentSha256 { get; set; }
+
+    public int PageNumber { get; set; }
+
+    public required string RenderManifestId { get; set; }
+
+    public required string RenderProfileId { get; set; }
+
+    public required string RendererDescriptor { get; set; }
+
+    public required string ImageContentSha256 { get; set; }
+
+    public required string ImageSha256 { get; set; }
+
+    public long ByteLength { get; set; }
+
+    public required string MediaType { get; set; }
+
+    public int WidthPixels { get; set; }
+
+    public int HeightPixels { get; set; }
+}
+
 internal sealed class AdminOperationRow
 {
     public required string OperationId { get; set; }

@@ -68,6 +68,15 @@ public sealed class ControlPlaneDbContext(DbContextOptions<ControlPlaneDbContext
     internal DbSet<GenerationRetentionRow> GenerationRetentions =>
         Set<GenerationRetentionRow>();
 
+    internal DbSet<AnswerEvidenceRecordRow> AnswerEvidenceRecords =>
+        Set<AnswerEvidenceRecordRow>();
+
+    internal DbSet<AnswerEvidenceCitationRow> AnswerEvidenceCitations =>
+        Set<AnswerEvidenceCitationRow>();
+
+    internal DbSet<AnswerEvidencePageRow> AnswerEvidencePages =>
+        Set<AnswerEvidencePageRow>();
+
     internal DbSet<AdminOperationRow> AdminOperations => Set<AdminOperationRow>();
 
     internal DbSet<AuditEventRow> AuditEvents => Set<AuditEventRow>();
@@ -87,6 +96,7 @@ public sealed class ControlPlaneDbContext(DbContextOptions<ControlPlaneDbContext
         ConfigureOfficialSources(modelBuilder);
         ConfigureGenerations(modelBuilder);
         ConfigureActivations(modelBuilder);
+        ConfigureAnswerEvidence(modelBuilder);
         ConfigureOperations(modelBuilder);
         ApplyPhysicalConventions(modelBuilder);
     }
@@ -786,6 +796,148 @@ public sealed class ControlPlaneDbContext(DbContextOptions<ControlPlaneDbContext
                 row.IndexGenerationId,
             }).OnDelete(DeleteBehavior.Restrict);
             entity.HasOne<AdminOperationRow>().WithMany().HasForeignKey(row => row.OperationId).OnDelete(DeleteBehavior.Restrict);
+        });
+    }
+
+    private static void ConfigureAnswerEvidence(ModelBuilder modelBuilder)
+    {
+        modelBuilder.Entity<AnswerEvidenceRecordRow>(entity =>
+        {
+            entity.ToTable("answer_evidence_records", table =>
+            {
+                table.HasCheckConstraint(
+                    "ck_answer_evidence_id",
+                    "length(answer_evidence_record_id) = 45 AND " +
+                    "answer_evidence_record_id GLOB 'ans-evidence-[0-9a-f]*' AND " +
+                    "substr(answer_evidence_record_id, 14) NOT GLOB '*[^0-9a-f]*'");
+                table.HasCheckConstraint("ck_answer_evidence_schema", "schema_version = 1");
+                table.HasCheckConstraint("ck_answer_evidence_record_digest", Sha256("record_sha256"));
+                table.HasCheckConstraint("ck_answer_evidence_source_digest", Sha256("source_binding_set_digest"));
+                table.HasCheckConstraint("ck_answer_evidence_activation_digest", Sha256("activation_binding_set_digest"));
+                table.HasCheckConstraint("ck_answer_evidence_answer_digest", Sha256("answer_sha256"));
+                table.HasCheckConstraint("ck_answer_evidence_coverage_digest", Sha256("evidence_coverage_digest"));
+                table.HasCheckConstraint("ck_answer_evidence_activation_revision", "activation_record_revision > 0");
+                table.HasCheckConstraint("ck_answer_evidence_catalogue_revision", "catalogue_revision > 0");
+                table.HasCheckConstraint("ck_answer_evidence_outcome", "outcome = 'Answered'");
+                table.HasCheckConstraint("ck_answer_evidence_question_language", "question_language IN ('pt-BR', 'en-GB')");
+                table.HasCheckConstraint("ck_answer_evidence_answer_language", "answer_language = question_language");
+                table.HasCheckConstraint("ck_answer_evidence_answer_length", "answer_utf8_byte_length > 0");
+                table.HasCheckConstraint(
+                    "ck_answer_evidence_retention",
+                    "retention_policy_id = 'answer-evidence-p30d-v1'");
+                table.HasCheckConstraint("ck_answer_evidence_created_utc", UtcInstant("created_at_utc"));
+                table.HasCheckConstraint("ck_answer_evidence_expires_utc", UtcInstant("expires_at_utc"));
+                table.HasCheckConstraint(
+                    "ck_answer_evidence_p30d",
+                    "julianday(expires_at_utc) = julianday(created_at_utc) + 30");
+            });
+            entity.HasKey(row => row.AnswerEvidenceRecordId);
+            entity.HasIndex(row => row.RecordSha256);
+            entity.HasIndex(row => new { row.CorpusId, row.ExpiresAtUtc });
+            entity.Property(row => row.AnswerEvidenceRecordId).HasMaxLength(45);
+            entity.Property(row => row.RecordSha256).HasMaxLength(64);
+            entity.Property(row => row.SourceBindingSetDigest).HasMaxLength(64);
+            entity.Property(row => row.ActivationBindingSetDigest).HasMaxLength(64);
+            entity.Property(row => row.AnswerSha256).HasMaxLength(64);
+            entity.Property(row => row.EvidenceCoverageDigest).HasMaxLength(64);
+            entity.Property(row => row.IndexGenerationId).HasMaxLength(71);
+            entity.Property(row => row.RetrievalPolicyVersion).HasMaxLength(128);
+            entity.Property(row => row.PromptVersion).HasMaxLength(128);
+            entity.Property(row => row.LanguageModelProviderId).HasMaxLength(128);
+            entity.Property(row => row.LanguageModelId).HasMaxLength(128);
+            entity.Property(row => row.LanguageModelRevision).HasMaxLength(128);
+            entity.Property(row => row.CorrelationId).HasMaxLength(128);
+            entity.HasOne<CorpusRow>().WithMany().HasForeignKey(row => row.CorpusId)
+                .OnDelete(DeleteBehavior.Restrict);
+            entity.HasOne<AdminOperationRow>().WithMany()
+                .HasForeignKey(row => row.AnswerEvidenceRecordId)
+                .HasPrincipalKey(row => row.OperationId)
+                .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        modelBuilder.Entity<AnswerEvidenceCitationRow>(entity =>
+        {
+            entity.ToTable("answer_evidence_citations", table =>
+            {
+                table.HasCheckConstraint("ck_answer_evidence_citation_ordinal", "ordinal > 0");
+                table.HasCheckConstraint("ck_answer_evidence_citation_product_revision", "product_revision > 0");
+                table.HasCheckConstraint("ck_answer_evidence_citation_document_version", "document_version > 0");
+                table.HasCheckConstraint("ck_answer_evidence_citation_format", "document_format IN ('Pdf', 'Csv')");
+                table.HasCheckConstraint("ck_answer_evidence_citation_language", "content_language IN ('pt-BR', 'en-GB')");
+                table.HasCheckConstraint("ck_answer_evidence_citation_trust", TrustClass("source_trust_class"));
+                table.HasCheckConstraint("ck_answer_evidence_citation_source", Sha256("source_content_sha256"));
+                table.HasCheckConstraint(
+                    "ck_answer_evidence_citation_source_identity",
+                    "(source_trust_class = 'LocalAuthorised' AND official_registration_id IS NULL " +
+                    "AND source_snapshot_id IS NULL AND source_observation_id IS NULL) OR " +
+                    "(source_trust_class = 'OfficialExternal' AND official_registration_id IS NOT NULL " +
+                    "AND source_snapshot_id IS NOT NULL AND source_observation_id IS NOT NULL)");
+                table.HasCheckConstraint(
+                    "ck_answer_evidence_citation_location",
+                    "(document_format = 'Pdf' AND page_start > 0 AND page_end >= page_start " +
+                    "AND record_start IS NULL AND record_end IS NULL AND columns_json = '[]' " +
+                    "AND render_manifest_id IS NOT NULL) OR " +
+                    "(document_format = 'Csv' AND page_start IS NULL AND page_end IS NULL " +
+                    "AND ((record_start IS NULL AND record_end IS NULL) OR " +
+                    "(record_start > 0 AND record_end >= record_start)) AND render_manifest_id IS NULL)");
+                table.HasCheckConstraint(
+                    "ck_answer_evidence_citation_columns",
+                    "json_valid(columns_json) AND json_type(columns_json) = 'array' " +
+                    "AND length(columns_json) BETWEEN 2 AND 8192");
+                table.HasCheckConstraint(
+                    "ck_answer_evidence_citation_section",
+                    "section_locator IS NULL OR length(section_locator) BETWEEN 1 AND 512");
+            });
+            entity.HasKey(row => new { row.AnswerEvidenceRecordId, row.Ordinal });
+            entity.Property(row => row.AnswerEvidenceRecordId).HasMaxLength(45);
+            entity.Property(row => row.SourceContentSha256).HasMaxLength(64);
+            entity.Property(row => row.ColumnsJson).HasMaxLength(8192);
+            entity.Property(row => row.SectionLocator).HasMaxLength(512);
+            entity.Property(row => row.RenderManifestId).HasMaxLength(79);
+            entity.HasOne<AnswerEvidenceRecordRow>().WithMany()
+                .HasForeignKey(row => row.AnswerEvidenceRecordId)
+                .OnDelete(DeleteBehavior.Cascade);
+            entity.HasOne<ContentObjectRow>().WithMany()
+                .HasForeignKey(row => row.SourceContentSha256)
+                .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        modelBuilder.Entity<AnswerEvidencePageRow>(entity =>
+        {
+            entity.ToTable("answer_evidence_pages", table =>
+            {
+                table.HasCheckConstraint("ck_answer_evidence_page_document_version", "document_version > 0");
+                table.HasCheckConstraint("ck_answer_evidence_page_number", "page_number > 0");
+                table.HasCheckConstraint("ck_answer_evidence_page_source", Sha256("source_content_sha256"));
+                table.HasCheckConstraint("ck_answer_evidence_page_image", Sha256("image_content_sha256"));
+                table.HasCheckConstraint("ck_answer_evidence_page_image_digest", Sha256("image_sha256"));
+                table.HasCheckConstraint("ck_answer_evidence_page_identity", "image_content_sha256 = image_sha256");
+                table.HasCheckConstraint("ck_answer_evidence_page_length", "byte_length > 0");
+                table.HasCheckConstraint("ck_answer_evidence_page_media", "media_type = 'image/png'");
+                table.HasCheckConstraint("ck_answer_evidence_page_width", "width_pixels BETWEEN 1 AND 4096");
+                table.HasCheckConstraint("ck_answer_evidence_page_height", "height_pixels BETWEEN 1 AND 4096");
+            });
+            entity.HasKey(row => new
+            {
+                row.AnswerEvidenceRecordId,
+                row.DocumentId,
+                row.DocumentVersion,
+                row.PageNumber,
+            });
+            entity.Property(row => row.AnswerEvidenceRecordId).HasMaxLength(45);
+            entity.Property(row => row.SourceContentSha256).HasMaxLength(64);
+            entity.Property(row => row.ImageContentSha256).HasMaxLength(64);
+            entity.Property(row => row.ImageSha256).HasMaxLength(64);
+            entity.Property(row => row.RenderManifestId).HasMaxLength(79);
+            entity.HasOne<AnswerEvidenceRecordRow>().WithMany()
+                .HasForeignKey(row => row.AnswerEvidenceRecordId)
+                .OnDelete(DeleteBehavior.Cascade);
+            entity.HasOne<ContentObjectRow>().WithMany()
+                .HasForeignKey(row => row.SourceContentSha256)
+                .OnDelete(DeleteBehavior.Restrict);
+            entity.HasOne<ContentObjectRow>().WithMany()
+                .HasForeignKey(row => row.ImageContentSha256)
+                .OnDelete(DeleteBehavior.Restrict);
         });
     }
 
