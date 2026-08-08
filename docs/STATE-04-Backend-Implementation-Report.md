@@ -1016,3 +1016,42 @@ migration, ADR, OpenAPI, v2 or serving change occurred.
 Quality Gate remains `REJECTED`; this focused correction neither resolves the
 finding nor restarts or substitutes the complete gate. No Human Gate,
 lifecycle transition, network access or external action occurred.
+
+## S04-CORR-04-E Automatic Quality Gate restart after AQG-S04-002 — 2026-08-08
+
+The complete corrective Automatic Quality Gate restarted locally, offline and
+sequentially on `main@da569d8dae6990db72e43df69f1ff0bb8861ac54`, corpus
+`4.10.1` and a completely clean working tree. The protected OpenAPI v1
+artefact was confirmed before the audit at SHA-256
+`d6a686b94c926914beb28b437f464430a01de6560c2e2d476cf5c36025813e34`.
+
+The directed executable preflight excluded the inspection shell and its
+process ancestry, then found no process or listener proved to belong to
+RAG-Challenge. Nothing was stopped. The bounded static review confirmed the
+focused wording correction and disposed `AQG-S04-002` as `RESOLVED`.
+
+The same static review then identified `AQG-S04-003` (`P2 Medium`) in the
+required-verification section of
+[`STATE-02-Canonical-Contracts.md`](architecture/STATE-02-Canonical-Contracts.md).
+Lines 788–791 still describe the answer-evidence tests as future work, while
+the tracked baseline contains the unit and integration suites for canonical
+identity/digest, `Answered`-only creation, exact bindings, atomic replay and
+conflict, injected failures, fixed retention, privacy, reachability and cleanup
+races. This report and Current State also record those tests as implemented and
+directly executed. A current canonical authority therefore supplies stale test
+status for the gate subject.
+
+The inconsistency has limited runtime impact but creates material maintenance
+and audit risk. `AQG-S04-003` remains `OPEN`; no wording or implementation was
+corrected under gate authority. The owner-mandated stop condition was applied
+immediately. `eng/ci.ps1 -Offline`, build, tests, coverage, migration, restart,
+concurrency, failure-injection, retention, cleanup, privacy and reachability
+checks were not executed by this restart. The static range check
+`git diff --check fc83e1ea6922a519baf527efc3f0a219e2674453..HEAD` passed before
+the finding.
+
+The restarted corrective Automatic Quality Gate result is `REJECTED`, with
+`AQG-S04-002` resolved, one new P2 finding and no P0, P1 or P3 finding
+identified before the mandatory stop. OpenAPI v1 remained byte-identical. No
+source, test, behaviour, schema, migration, ADR-0010, OpenAPI, v2, serving,
+Human Gate, lifecycle transition, network access or external action changed.
