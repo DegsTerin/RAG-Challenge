@@ -665,6 +665,42 @@ proprietários.
   Quality Gate, Human Gate ou mudança de lifecycle. O corpus `4.9.10` registra
   somente esses fatos; `STATE-07` permanece ativo e `S04-CORR-04-D` ou
   incremento posterior não foi iniciado.
+- Implementação corretiva `S04-CORR-04-D`: autorizada por
+  `AUTH-S04-CORR-04-D-001` em 2026-08-07 sobre
+  `main@548a817e2db4d9bad2d1a63e7dc9e9bb9ace418c`, corpus `4.9.10` e working
+  tree limpa, com owner técnico corretivo de `STATE-04`. O runtime preflight
+  dirigido encontrou zero processo de produto e zero listener comprovadamente
+  pertencente ao RAG-Challenge; nada foi encerrado. O commit
+  `d18224e46f559229a58e82b097abbf16ea9f359a` persiste por revisão o binding
+  documental/fonte exato, snapshot imutável schema-v1 das dez decisões de
+  direitos e render manifest obrigatório para PDF/ausente para CSV; exige os
+  vínculos em Initial, Replacement e Rollback; revalida rollback e restringe
+  ObservationRebind à mudança exclusiva de observação com evidência idêntica.
+- O pre-CAS agora confere identidade completa, idioma documental suportado,
+  gate textual/visual, geração finalizada, fonte reaberta e, para PDF, manifest
+  finalizado, páginas físicas consecutivas e todos os PNGs reabertos. Replay
+  compara os novos vínculos e direitos. Uma transação Control persiste revisão,
+  bindings, evidência/direitos, retenção, head, auditoria e completion do
+  journal aplicável; o readback de consulta falha fechado diante de revisão
+  corrente incompleta ou divergente.
+- A única migration Control
+  `20260808004846_AddDocumentRightsAndActivationEvidenceBindings` cria somente
+  `activation_evidence_bindings` e `activation_rights_decisions`, sem operação
+  de dados ou backfill. O histórico conserva os campos existentes e não recebe
+  direitos/manifests inferidos; a base Vector e os domínios de
+  `sourceBindingSetDigest`/`activationBindingSetDigest` permanecem inalterados.
+- Verificação de `S04-CORR-04-D`: seleções unitárias focais e 15 casos de
+  integração focais passaram. Upgrade, rollback/reapply,
+  `foreign_key_check`, compatibilidade histórica e os dois pending model checks
+  passaram em SQLite descartável. `eng/ci.ps1 -Offline` aprovou 135 testes
+  unitários, 137 de integração, 10 de arquitetura e 38 do Dashboard, com
+  94,34% de linhas e 67,25% de branches, build Release e auditoria de 226
+  arquivos aprovados. OpenAPI v1 permaneceu byte a byte no SHA-256
+  `d6a686b94c926914beb28b437f464430a01de6560c2e2d476cf5c36025813e34` e
+  blob Git `a5fb3602fbab33bda6aa56cc4caaa9fdc37c8160`. Nenhum dado/direito real,
+  v2, serving, `AnswerEvidenceRecord`, rede, ação externa, gate ou mudança de
+  lifecycle ocorreu. O corpus `4.9.11` registra somente esses fatos;
+  `S04-CORR-04-E` não foi iniciado.
 - Fechamento de `S04-A0`: `PdfPig` `0.1.15` e `CsvHelper` `33.1.0` foram
   selecionados condicionalmente para desenvolvimento local;
   `Sylvan.Data.Csv` `1.4.4` permanece fallback não selecionado e não
@@ -1212,18 +1248,21 @@ autorizada.
    `S04-CORR-04-A` concluiu descritores verificados do content store e
    `S04-CORR-04-B` concluiu contratos/gates de direitos;
    `S04-CORR-04-C` concluiu renderização determinística e finalização
-   verificada da candidata. Obter autoridade separada para `S04-CORR-04-D`,
-   primeiro incremento ainda não executado do segundo item, preservando a
-   OpenAPI v1 e os limites já registrados.
+   verificada da candidata; `S04-CORR-04-D` concluiu persistência e ativação
+   atômica dos vínculos de fonte, direitos, geração e manifest. Obter uma
+   autoridade separada e com envelope completo para `S04-CORR-04-E`, primeiro
+   incremento subsequente ainda não executado, preservando a OpenAPI v1 até que
+   eventual alteração pública seja expressamente autorizada.
 
 ## Próxima autoridade
 
 O segundo refinamento arquitetural da ordem registrada em Lifecycle permanece
-parcial: `S04-CORR-04-A` a `S04-CORR-04-C` estão concluídos, sem executar os
-incrementos posteriores. Não existe autoridade vigente para
-`S04-CORR-04-D`. A próxima ação concreta é o proprietário autorizar esse
-primeiro incremento ainda não executado dentro do envelope preparado,
-preservando v1 e as condições de parada registradas. Revisar genericamente os
+parcial: `S04-CORR-04-A` a `S04-CORR-04-D` estão concluídos, sem executar os
+incrementos posteriores. Não existe autoridade nem envelope vigente para
+`S04-CORR-04-E`. A próxima ação concreta é o proprietário fornecer autoridade
+explícita, separada e completamente delimitada para esse primeiro incremento
+subsequente, preservando v1 e as condições de parada registradas até que o novo
+envelope disponha expressamente qualquer alteração. Revisar genericamente os
 commits já concluídos não substitui essa ação.
 
 `STATE-04 BACKEND_IMPLEMENTATION` está encerrado após Automatic Quality Gate

@@ -340,7 +340,7 @@ then each binding's fields. This length-prefix scheme supplies unambiguous null,
 empty-string and record boundaries. `STATE-03` must publish executable golden
 vectors for both domains before persistence is accepted.
 
-Before compare-and-swap, Application must:
+Before compare-and-swap, Application and the Control store must:
 
 1. recompute `activeDocumentSetDigest` from the proposed bindings and match the
    referenced finalised manifest;
@@ -349,7 +349,15 @@ Before compare-and-swap, Application must:
 3. recompute `activationBindingSetDigest`, including observations, and match
    the proposed record; and
 4. verify that every referenced append-only observation exists and names the
-   same immutable registration and snapshot as its official binding.
+   same immutable registration and snapshot as its official binding;
+5. match each activation evidence binding to the exact corpus, document,
+   version, format, source object and finalised textual/vector generation;
+6. require the runtime-supported document content language and the complete
+   schema-v1 rights snapshot, with `TextualEvidence` permitted for CSV and
+   `PdfVisualEvidence` permitted for PDF; and
+7. for PDF, match and reopen the finalised render manifest, its consecutive
+   physical-page rows and every referenced PNG object. CSV forbids a render
+   manifest binding.
 
 The operation fails without changing the current record when any projection,
 observation relation, manifest state, audit write or expected revision fails.
@@ -378,9 +386,27 @@ CorpusActivationRecord
     officialSourceRegistrationId?
     sourceSnapshotId?
     sourceObservationId?
+  evidenceBindings[]       # one exact entry per document binding
+    documentBinding
+    sourceContentObjectId
+    rightsSchemaVersion: 1
+    rightsDecisions[10]     # state and evidence reference for every right
+    renderManifestId?       # required for PDF; absent for CSV
   generationActivatedAt
   recordUpdatedAt
 ```
+
+The evidence binding and rights snapshot are immutable parts of one activation
+revision. They introduce no global rights identity, administrative rights
+revision or canonical rights digest. Neither `sourceBindingSetDigest` nor
+`activationBindingSetDigest` includes these fields or changes its existing
+domain. Exact `OperationId` replay compares the complete evidence binding and
+all ten rights decisions in addition to the existing activation fields.
+
+The Control migration preserves historical activation rows without inference
+or backfill. A historical revision without a complete evidence binding can be
+rehydrated for compatibility, but it fails closed as active query or visual
+readiness authority.
 
 The active record is read once at query start. Retrieval, per-binding freshness
 checks, response coverage and citations use only identities from that snapshot.
@@ -394,7 +420,10 @@ observation and creates a new complete record revision. It changes
 `recordRevision`, `previousRecordRevision`, `recordUpdatedAt`, the affected
 `sourceObservationId` and `activationBindingSetDigest`. It preserves manifest
 bytes, `indexGenerationId`, `sourceBindingSetDigest`,
-`generationSpecDigest`, `catalogueRevision` and `generationActivatedAt`.
+`generationSpecDigest`, `catalogueRevision`, `generationActivatedAt` and the
+immutable evidence bindings when document, version, generation and render
+manifest remain identical. Any change beyond the freshness observation
+requires the applicable full activation path.
 Content/snapshot, adapter, trust, immutable registration,
 document membership/version/format or `IndexCompatibilityKey` changes require
 a new finalised candidate generation.
@@ -413,11 +442,14 @@ a new finalised candidate generation.
 | `AskQuestion` | Returns `Answered`, `InsufficientEvidence` or canonical failure over all active/current bindings. |
 | `GetSystemReadiness` | Returns sanitised global and per-document/source coverage without external probing. |
 
-For the planned visual-evidence lifecycle, PDF activation additionally requires
+For the implemented internal activation boundary, PDF activation additionally requires
 the verified source content object, applicable rendering/derivative rights, a
 complete finalised render manifest, every referenced page-image object and the
 finalised text/index generation. Import or rendering alone grants no active
-status. Deactivated and removed documents cannot serve page images.
+status. Initial activation, replacement and rollback require all evidence
+bindings explicitly; rollback builds and validates a new revision against
+current source, rights, generation and manifest state. Deactivated and removed
+documents cannot serve page images.
 
 ## Query contract v1
 

@@ -2,10 +2,10 @@
 
 ## Versão atual
 
-- Versão: `4.9.10`
+- Versão: `4.9.11`
 - Data: 2026-08-07
-- Status: `STATE-07` ativo; `S04-CORR-04-A` a `S04-CORR-04-C` concluídos, sem
-  autoridade para `S04-CORR-04-D`, gate ou mudança de lifecycle
+- Status: `STATE-07` ativo; `S04-CORR-04-A` a `S04-CORR-04-D` concluídos, sem
+  autoridade/envelope para `S04-CORR-04-E`, gate ou mudança de lifecycle
 - Escopo: 13 arquivos ativos em `prompts/`
 
 A versão do corpus é independente da versão futura do software.
@@ -19,6 +19,30 @@ A versão do corpus é independente da versão futura do software.
 
 Toda alteração atualiza este arquivo e, quando necessário,
 [`../Start-Here.md`](../Start-Here.md).
+
+## 4.9.11 — 2026-08-07
+
+- Registra a implementação local, offline e sequencial de `S04-CORR-04-D` sob
+  `AUTH-S04-CORR-04-D-001` no commit
+  `d18224e46f559229a58e82b097abbf16ea9f359a`.
+- Registra o binding imutável por revisão entre documento/fonte, snapshot
+  schema-v1 das dez decisões de direitos, geração e render manifest PDF, com
+  gates CSV/PDF, reabertura verificada e readback fail-closed.
+- Registra CAS/replay/rollback/ObservationRebind, retenção, head, auditoria e
+  journal completion atômicos, preservando os campos e a semântica de
+  `sourceBindingSetDigest` e `activationBindingSetDigest`.
+- Registra a migration Control
+  `20260808004846_AddDocumentRightsAndActivationEvidenceBindings`, sem backfill
+  ou inferência sobre activation history e sem alteração da base Vector.
+- Registra testes focais, upgrade/rollback/reapply, `foreign_key_check`, dois
+  pending model checks e CI offline integral com 282 testes .NET, 38 do
+  Dashboard, 94,34% de linhas e 67,25% de branches.
+- Preserva OpenAPI v1 byte a byte e mantém dados/direitos reais, v2, serving,
+  `AnswerEvidenceRecord`, gates, lifecycle e ações externas fora da autoridade
+  executada. `S04-CORR-04-E` não foi iniciado.
+- Atualiza Current State, histórico append-only, contratos, Data Dictionary,
+  módulo RAG, segurança e relatório de `STATE-04`. A mudança é `PATCH`,
+  exclusivamente factual.
 
 ## 4.9.10 — 2026-08-07
 

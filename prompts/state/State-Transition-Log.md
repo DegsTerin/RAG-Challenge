@@ -5412,3 +5412,60 @@ contém somente fatos cronológicos.
   `S04-CORR-04-D`, primeiro incremento ainda não executado do envelope
   `S04-CORR-04-PREP`, preservando v1, o escopo negativo e as condições de
   parada vigentes.
+
+## 2026-08-07 — S04-CORR-04-D immutable rights and activation-evidence binding
+
+- Baseline: branch `main`, commit
+  `548a817e2db4d9bad2d1a63e7dc9e9bb9ace418c`, corpus `4.9.10` e working tree
+  limpa, confirmados antes da primeira alteração. OpenAPI v1 correspondia ao
+  SHA-256
+  `d6a686b94c926914beb28b437f464430a01de6560c2e2d476cf5c36025813e34` e
+  blob Git `a5fb3602fbab33bda6aa56cc4caaa9fdc37c8160`.
+- Autoridade: `AUTH-S04-CORR-04-D-001`, exclusivamente para implementação
+  local, offline e sequencial da persistência de direitos e binding atômico de
+  fonte, geração textual e render manifest, com owner técnico corretivo de
+  `STATE-04` e sem gate ou avanço de lifecycle.
+- Runtime preflight: a inspeção dirigida encontrou zero processo de produto e
+  zero listener comprovadamente pertencente ao RAG-Challenge; nada foi
+  encerrado antes da implementação.
+- Implementação: commit
+  `d18224e46f559229a58e82b097abbf16ea9f359a`; cada nova revisão vincula o
+  `DocumentBinding`, objeto fonte, snapshot completo schema-v1 das dez decisões
+  de direitos e render manifest exigido para PDF/ausente para CSV. Initial,
+  Replacement e Rollback exigem todos os vínculos; Rollback revalida o estado
+  atual e ObservationRebind só preserva evidência quando exclusivamente a
+  observação muda.
+- Validação/atomicidade: pre-CAS confere identidade, idioma documental,
+  direitos, fonte reaberta, geração finalizada e, para PDF, manifest/páginas e
+  todos os PNGs reabertos. Replay compara os novos campos. A transação Control
+  persiste revisão/bindings, evidência/direitos, retenção, head, auditoria e
+  journal completion aplicável ou conserva integralmente a autoridade anterior.
+- Migration: a única migration Control
+  `20260808004846_AddDocumentRightsAndActivationEvidenceBindings` cria somente
+  as duas tabelas novas e suas chaves/constraints. Não executa operação de
+  dados, não preenche histórico e não altera a base Vector. Revisão histórica
+  sem vínculos completos é preservada sem inferência e falha fechada como
+  autoridade corrente de consulta/prontidão visual.
+- Verificações focais: seleções unitárias e 15 casos de integração passaram,
+  cobrindo direitos/idioma/fonte, manifest/página/objeto, Initial, Replacement,
+  Rollback, ObservationRebind, replay, CAS, falhas injetadas, one-shot, restart
+  e upgrade histórico. Rollback/reapply, `foreign_key_check` e pending model
+  checks Control/Vector passaram em bancos descartáveis.
+- Verificação integral: `pwsh -NoProfile -File eng/ci.ps1 -Offline` passou 135
+  testes unitários, 137 de integração, 10 de arquitetura e 38 do Dashboard;
+  cobertura de 94,34% de linhas e 67,25% de branches; build Release e auditoria
+  de 226 arquivos aprovados.
+- Compatibilidade: nenhum package, lockfile, Dashboard, ADR, Governance,
+  Lifecycle, Quality Gate, metadado vetorial ou digest canônico mudou. OpenAPI
+  v1 permaneceu byte a byte no SHA-256 e blob Git exigidos.
+- Escopo negativo observado: nenhum dado, direito, fonte, PDF ou PNG real foi
+  usado; sem v2, serving, `AnswerEvidenceRecord`, provider, rede, ação externa,
+  Automatic Quality Gate, Human Gate ou mudança de lifecycle.
+- Corpus: `4.9.11` (`PATCH`), exclusivamente para reconciliar os registros
+  factuais com a implementação e a evidência observada.
+- Estado resultante: `STATE-07 TESTING_HOMOLOGATION` permanece ativo;
+  `S04-CORR-04-D` está concluído somente na fronteira local, offline, sintética
+  e estática descrita. `S04-CORR-04-E` não foi iniciado.
+- Próxima condição: autoridade humana explícita, separada e com envelope
+  completo para `S04-CORR-04-E`, preservando v1, o escopo negativo e as
+  condições de parada vigentes até nova disposição expressa.

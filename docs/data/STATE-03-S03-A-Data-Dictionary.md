@@ -386,10 +386,26 @@ local null fields and a complete official binding.
 | `recordUpdatedAt` | UTC instant | No | Not earlier than `generationActivatedAt`. |
 
 The current activation record is the one control-plane authority. The vector
-store has no activation API or independent active alias authority. A future
-Infrastructure transaction must compare the expected revision, persist the
-whole new record and sanitised audit event atomically, and preserve the full
+store has no activation API or independent active alias authority. The
+Infrastructure transaction compares the expected revision, persists the whole
+new record and sanitised audit event atomically, and preserves the full
 previous/new history.
+
+### `DocumentActivationEvidenceBinding`
+
+| Field | Type | Null | Invariant |
+|---|---|---:|---|
+| `documentBinding` | `DocumentBinding` | No | Exact member of the same activation revision. |
+| `sourceContentObjectId` | `ContentObjectId` | No | Matches the exact `DocumentVersion` source object. |
+| `rightsSchemaVersion` | Positive integer | No | Exactly `1`; no global rights identity or administrative rights revision is introduced. |
+| `rightsDecisions[]` | Ten `DocumentRightDecision` values | No | Complete immutable snapshot with one state and evidence reference for every schema-v1 right. |
+| `renderManifestId` | `RenderManifestId` | Conditional | Required for PDF and forbidden for CSV. |
+
+Every new activation revision has exactly one evidence binding for every
+document binding. The evidence binding does not participate in
+`sourceBindingSetDigest` or `activationBindingSetDigest`; both canonical digest
+domains retain their existing projections and semantics. Exact operation replay
+compares the complete evidence binding and all rights decisions.
 
 ### Revision-domain separation
 
@@ -403,7 +419,7 @@ previous/new history.
 ## Fail-closed pre-CAS validation
 
 Application performs the following independent recomputations before any
-future compare-and-swap:
+compare-and-swap:
 
 1. recompute `activeDocumentSetDigest` from proposed bindings and match the
    final manifest;
@@ -413,12 +429,21 @@ future compare-and-swap:
    proposed activation record.
 
 It also verifies corpus, generation, catalogue, the required runtime
-`IndexCompatibilityKey` and expected revision lineage.
+`IndexCompatibilityKey`, expected revision lineage, exact document/version/
+format/source identity, runtime-supported `DocumentContentLanguage`, complete
+schema-v1 rights, exact content rows and verified source-object reopen.
 For every official binding, the referenced append-only observation must exist
 and name the same immutable registration and snapshot. At the evaluation
 instant, every active database represented by the record must retain at least
 one eligible local or official document binding. A mismatch produces a typed
 failure result and grants no authority to change the current record.
+
+CSV requires the complete `TextualEvidence` gate to be `Permitted` and has no
+render-manifest binding. PDF requires the complete `PdfVisualEvidence` gate to
+be `Permitted`, one finalised render manifest for the same document, version
+and source, one consecutive row per physical page, verified reopen of every PNG
+and a finalised textual/vector generation whose bindings are identical to its
+manifest.
 
 ## Rebinding, replacement and rollback invariants
 
@@ -432,6 +457,12 @@ failure result and grants no authority to change the current record.
 - A generation replacement or rollback creates a new complete record revision
   and a new `generationActivatedAt`; it never replays historical activation
   record bytes.
+- Initial activation, replacement and rollback explicitly supply every current
+  evidence binding. Rollback revalidates current rights, source objects,
+  generation and render manifests instead of copying a historical snapshot.
+- An observation-only rebind may preserve immutable evidence bindings only when
+  document, version, generation and render manifest are identical and only the
+  freshness observation changes.
 - A rollback generation must differ from the current generation and its
   compatibility key must equal the explicitly required runtime key.
 - Rollback inputs explicitly provide every selected official observation.
@@ -439,7 +470,9 @@ failure result and grants no authority to change the current record.
   rollback cannot make an expired, withdrawn or deactivated observation
   current.
 - A conflict or validation failure leaves the current record unchanged. The
-  atomic store behaviour remains a blocked S03-B implementation concern.
+  Control transaction persists activation record/bindings, evidence bindings,
+  rights snapshots, render-manifest links, retention, head, sanitised audit and
+  applicable administration-journal completion atomically.
 
 ## Retention and recoverability invariants
 
@@ -481,6 +514,14 @@ own authority and evidence. `S03-CORR-01` then added one Control migration,
 - makes render-manifest source and page-image objects durable cleanup roots;
 - leaves the Vector schema and `IDocumentContentStore` contract unchanged.
 
+`S04-CORR-04-D` adds the single Control migration
+`AddDocumentRightsAndActivationEvidenceBindings`. It creates only
+`activation_evidence_bindings` and `activation_rights_decisions`, with exact
+activation-binding, document-version/source-object and optional render-manifest
+foreign keys plus the closed schema-v1 constraints. It performs no data
+operation and does not infer or backfill rights, manifests or bindings for
+historical activation rows. The Vector schema remains unchanged.
+
 The combined mapping preserves these invariants:
 
 - immutable uniqueness for typed identities and version pairs;
@@ -493,7 +534,8 @@ The combined mapping preserves these invariants:
 - content reachability, orphan cleanup authority and reopen/readback evidence;
 - mappings for the implemented language split, render manifests and page-image
   relationships; `S04-CORR-04-C` now materialises verified page objects and
-  finalises those existing records without activation binding or serving;
+  finalises those existing records, and `S04-CORR-04-D` now binds them to new
+  activation revisions without image serving;
 - migration, recovery, lock and transaction semantics.
 
 No dependency, physical index or store technology is selected by this
@@ -534,3 +576,19 @@ contains no host name, path, command, credential or workstation version.
 This evidence uses only synthetic PDF and PNG bytes. It does not establish a
 real document's rights, activate a document or generation, change an activation
 digest, serve image evidence or introduce a v2 contract.
+
+## S04-CORR-04-D activation evidence persistence
+
+`S04-CORR-04-D` makes the per-revision source, rights and render-manifest
+binding executable without changing the accepted digest domains or the public
+v1 contract. The pre-CAS readback validates the exact document source and
+generation, applies the fixed CSV/PDF rights gate, reopens the source and, for
+PDF, rehydrates the complete finalised render manifest and reopens every page
+image. Query activation readback rejects a current revision that lacks any new
+binding or whose persisted source, rights or manifest no longer matches.
+
+Historical activation rows are retained exactly in their existing columns and
+receive no evidence rows. They remain readable as historical records but are
+ineligible to authorise current query or visual readiness. No new rights digest,
+rights administration identity, vector metadata field, `AnswerEvidenceRecord`,
+v2 contract or image-serving boundary is introduced.

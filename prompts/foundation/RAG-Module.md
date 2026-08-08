@@ -293,6 +293,12 @@ documentBindings[]
   documentId/documentVersion/documentFormat
   sourceTrustClass/sourceAdapterId
   officialSourceRegistrationId?/sourceSnapshotId?/sourceObservationId?
+evidenceBindings[]
+  documentBinding completo
+  sourceContentObjectId
+  rightsSchemaVersion: 1
+  rightsDecisions[10]
+  renderManifestId? # obrigatório para PDF, ausente para CSV
 generationActivatedAt
 recordUpdatedAt
 ```
@@ -309,6 +315,25 @@ histórico anteriores intactos; conteúdo, observações e vetores candidatos
 permanecem órfãos auditáveis até cleanup explícito. A consulta lê o registro
 corrente uma vez e não combina a geração com estado de catálogo ou “última
 observação” obtidos separadamente.
+
+Cada nova revisão persiste um binding de evidência imutável por documento: o
+`DocumentBinding` e objeto fonte exatos, snapshot completo das dez decisões de
+direitos em schema `1` e, para PDF, o render manifest exato. Esses campos não
+criam identidade/revisão administrativa ou digest global de direitos e não
+alteram os domínios de `sourceBindingSetDigest` ou
+`activationBindingSetDigest`. Replay pelo mesmo `OperationId` compara também
+todos os vínculos e decisões. Revisão histórica sem o conjunto completo é
+preservada sem inferência, mas falha fechada como autoridade corrente de
+consulta ou prontidão visual.
+
+Antes do CAS, a implementação confere corpus, documento, versão, formato,
+objeto fonte, idioma documental suportado, geração textual/vector finalizada e
+bindings idênticos ao manifesto. CSV exige `TextualEvidence` integralmente
+`Permitted`. PDF exige `PdfVisualEvidence` integralmente `Permitted`, manifesto
+finalizado da mesma fonte, uma linha consecutiva por página física e reabertura
+verificada da fonte e de todos os PNGs. A transação Control grava revisão,
+bindings, evidência/direitos, retenção, head, auditoria e completion do journal
+administrativo aplicável como uma única mudança atômica.
 
 `catalogueRevision` identifica o snapshot imutável do catálogo que integra a
 especificação da geração. O journal append-only de observações possui revisão
@@ -433,7 +458,8 @@ O MVP mantém o fluxo simples:
 6. validar manifesto, referências reabríveis, compatibilidade, elegibilidade,
    cobertura, os dois domínios de binding e smoke queries;
 7. trocar por compare-and-swap o `CorpusActivationRecord` completo no
-   `IIndexGenerationStore`, incluindo todos os bindings documentais;
+   `IIndexGenerationStore`, incluindo todos os bindings documentais, fontes,
+   snapshots de direitos e render manifests aplicáveis;
 8. manter a geração ativa e ao menos uma geração anterior validada até cleanup
    explícito após a janela de rollback definida.
 
@@ -499,6 +525,12 @@ o conjunto não mantiver cada banco ativo com evidência elegível, o rollback �
 rejeitado sem alterar o registro corrente. Observações históricas nunca têm
 timestamp, `maxAge` ou estado reescritos; corrigir uma observação exige novo
 append e nova revisão de ativação.
+
+O rollback também recebe todos os bindings de evidência atuais e revalida
+direitos, objetos fonte, geração textual/vector e render manifests; não copia
+cegamente o snapshot histórico. Um rebind exclusivamente de freshness só
+preserva os bindings imutáveis quando documento, versão, geração e manifesto
+permanecem idênticos.
 
 Rollback de documento seleciona uma versão anterior e cria nova candidata para
 o manifesto completo. Uma geração anterior só pode ser reativada quando o

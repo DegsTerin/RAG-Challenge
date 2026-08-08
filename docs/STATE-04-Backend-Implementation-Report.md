@@ -807,3 +807,73 @@ secret, OCI, authenticated GitHub operation, publication, deployment, push,
 Automatic Quality Gate, Human Gate or lifecycle transition occurred. Linux
 arm64 evidence is static publish/asset evidence, not execution of the worker on
 Linux or production suitability.
+
+## S04-CORR-04-D outcome
+
+`S04-CORR-04-D` ran locally, offline and sequentially under
+`AUTH-S04-CORR-04-D-001` on 2026-08-07. The mandatory baseline was
+`main@548a817e2db4d9bad2d1a63e7dc9e9bb9ace418c`, corpus `4.9.10` and a
+clean working tree. The directed runtime preflight found no product process or
+listener proved to belong to RAG-Challenge, so nothing was stopped.
+
+Commit `d18224e46f559229a58e82b097abbf16ea9f359a` implements the complete
+internal activation-evidence binding:
+
+- every new activation revision contains the exact `DocumentBinding`, source
+  `ContentObjectId`, immutable schema-v1 snapshot of all ten rights decisions
+  and a render-manifest ID required for PDF and forbidden for CSV;
+- Initial, Replacement and Rollback require every evidence binding explicitly.
+  Rollback constructs a new revision and revalidates current rights, source,
+  generation and render manifest; observation-only rebinding preserves the
+  immutable evidence only when document, version, generation and manifest are
+  identical;
+- pre-CAS readback matches the document/version/format/source identity and
+  runtime-supported content language, applies `TextualEvidence` for CSV or
+  `PdfVisualEvidence` for PDF, matches the finalised textual/vector generation
+  and, for PDF, rehydrates the consecutive finalised page set and reopens every
+  PNG through `IDocumentContentStore`;
+- exact `OperationId` replay compares all new evidence and rights fields;
+- one Control transaction writes the activation record and document bindings,
+  evidence and rights rows, retention, activation head, sanitised audit and
+  applicable administration-journal completion; and
+- the query activation reader fails closed when the current revision lacks a
+  complete new binding or its source, rights or render manifest diverges.
+
+The single Control migration is
+`20260808004846_AddDocumentRightsAndActivationEvidenceBindings`. It creates
+only `activation_evidence_bindings` and `activation_rights_decisions` with the
+required keys, foreign keys and closed constraints. It performs no data
+operation, does not backfill historical activation rows and leaves all existing
+activation columns and the Vector schema unchanged. Historical revisions can
+still be rehydrated without inference but cannot authorise current query or
+visual readiness unless their complete new bindings exist.
+
+Focused unit selections and 15 focused integration cases passed for PDF/CSV
+rights and source eligibility, render-manifest/page/object failures, all four
+activation mutation kinds, exact/divergent replay, CAS and injected persistence
+failures, one-shot administration, restart/readback and legacy migration
+compatibility. Disposable SQLite verification passed previous-migration
+upgrade, rollback, reapplication, `foreign_key_check` and no-pending-model
+checks for both Control and Vector.
+
+The accepted `pwsh -NoProfile -File eng/ci.ps1 -Offline` run passed 135 unit,
+137 integration, 10 architecture and 38 Dashboard tests. Merged coverage was
+94.34% of lines (27,189/28,819) and 67.25% of branches (3,174/4,720); the
+Release build and audit of 226 non-ignored files passed. Earlier invocations
+that ended at the command timeout, generated-migration formatting check or
+encoding audit were not accepted as final evidence; the generated artefacts
+were normalised and the complete check was rerun after the final source-binding
+foreign-key/readback hardening.
+
+No dependency, package, lockfile, Dashboard, accepted ADR, Governance,
+Lifecycle, Quality Gate, vector metadata or canonical digest semantics changed.
+`sourceBindingSetDigest` and `activationBindingSetDigest` retain their existing
+fields. OpenAPI v1 remained byte-identical at SHA-256
+`d6a686b94c926914beb28b437f464430a01de6560c2e2d476cf5c36025813e34`
+and Git blob `a5fb3602fbab33bda6aa56cc4caaa9fdc37c8160`.
+
+All evidence was local, offline and synthetic. No real source, document,
+licence, right, PDF, PNG or product data was imported or changed; no v2
+contract, image serving, `AnswerEvidenceRecord`, provider, network, account,
+external action, Automatic Quality Gate, Human Gate or lifecycle transition
+occurred. `S04-CORR-04-E` was not started.

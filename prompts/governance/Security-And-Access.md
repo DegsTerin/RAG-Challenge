@@ -145,6 +145,10 @@ Upload público permanece fora do MVP.
 - `IDocumentContentStore` é a única autoridade binária de produto para fontes e
   PNGs persistentes. Git, Git LFS, quarentena, catálogo e vector store não
   provam durabilidade ou readback.
+- Cada nova revisão de ativação persiste o vínculo exato entre documento,
+  objeto fonte, snapshot completo de direitos, geração e render manifest PDF.
+  Revisões históricas sem esse conjunto permanecem sem backfill e falham
+  fechadas para prontidão/consulta visual.
 - Uma imagem só pode ser servida quando uma citação validada referencia a mesma
   versão documental, página, geração ativa e render manifest finalizado.
   Documento `Deactivated` ou `Removed` nunca serve imagem.
