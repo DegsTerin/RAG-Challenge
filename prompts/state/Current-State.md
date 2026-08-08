@@ -780,6 +780,22 @@ proprietários.
   `REPROVADO` e não foi reiniciado. Nenhum source, teste, comportamento, schema,
   migration, ADR-0010, OpenAPI, v2, serving, Human Gate, lifecycle, rede ou ação
   externa mudou.
+- Reinício integral do Automatic Quality Gate corretivo após a correção de
+  `AQG-S04-003`: autorizado e iniciado em 2026-08-08 sobre
+  `main@baa85553f9d48c7c833b1e875699817849360bab`, corpus `4.10.1`, working
+  tree completamente limpa e OpenAPI v1 no SHA-256 protegido. A inspeção
+  estática confirmou a correção e dispôs `AQG-S04-003` como `RESOLVIDO`, mas
+  identificou `AQG-S04-004` (P2): ADR-0010 exige testes diretos de rejeição para
+  mismatches de citação, fonte, ativação, manifest e página, enquanto a suíte
+  focal de persistência testa somente um mismatch do digest no header de
+  ativação. O teste de domínio das páginas verifica ausência/excesso contra o
+  próprio registro, sem confrontar valores divergentes com a autoridade Control
+  persistida. Os ramos fail-closed existem na implementação, mas a matriz de
+  regressão exigida está incompleta. A condição de parada foi acionada antes do
+  runtime preflight, `eng/ci.ps1 -Offline`, build, testes, coverage, migration,
+  restart, concorrência, falhas, retenção, cleanup, privacidade e reachability.
+  O gate é `REPROVADO`, `AQG-S04-004` permanece `ABERTO` e nenhuma correção,
+  Human Gate, mudança de lifecycle, rede ou ação externa ocorreu.
 - Fechamento de `S04-A0`: `PdfPig` `0.1.15` e `CsvHelper` `33.1.0` foram
   selecionados condicionalmente para desenvolvimento local;
   `Sylvan.Data.Csv` `1.4.4` permanece fallback não selecionado e não
@@ -1345,15 +1361,15 @@ autorizada.
 
 O segundo refinamento arquitetural da ordem registrada em Lifecycle está
 implementado até `S04-CORR-04-E` somente na fronteira local, offline, sintética
-e sequencial descrita. `AQG-S04-002` está `RESOLVIDO` e `AQG-S04-003` está
-`CORRECTED_PENDING_GATE_RETEST`; o Automatic Quality Gate histórico permanece
-`REPROVADO`. Não existe autoridade vigente para reiniciar novamente o Automatic
-Quality Gate, executar Human Gate, v2, serving ou próximo incremento. A próxima
-ação concreta é o proprietário fornecer autoridade explícita, separada e
-completamente delimitada para reiniciar integralmente o Automatic Quality Gate
-corretivo de `S04-CORR-04-E` sobre o commit local focado, preservando OpenAPI v1
-e todas as condições de parada. A correção documental focal não substitui esse
-gate.
+e sequencial descrita. `AQG-S04-002` e `AQG-S04-003` estão `RESOLVIDOS`, mas o
+reinício integral do Automatic Quality Gate está `REPROVADO` e `AQG-S04-004`
+permanece `ABERTO`. Não existe autoridade vigente para corrigir o achado,
+reiniciar novamente o Automatic Quality Gate, executar Human Gate, v2, serving
+ou próximo incremento. A próxima ação concreta é o proprietário fornecer
+autoridade explícita, separada e completamente delimitada para adicionar os
+testes de regressão requeridos por `AQG-S04-004`, preservando OpenAPI v1 e todas
+as condições de parada. Essa correção futura não substituirá um novo reinício
+integral do gate.
 
 `STATE-04 BACKEND_IMPLEMENTATION` está encerrado após Automatic Quality Gate
 aprovado e Human Gate aprovado com as ressalvas documentadas em 2026-08-04. O

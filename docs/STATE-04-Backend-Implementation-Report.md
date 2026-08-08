@@ -1082,3 +1082,38 @@ occurred. `AQG-S04-003` is
 `REJECTED`, and this correction neither resolves the finding nor restarts or
 substitutes the complete gate. No Human Gate, lifecycle transition, network
 access or external action occurred.
+
+## S04-CORR-04-E Automatic Quality Gate restart after AQG-S04-003 — 2026-08-08
+
+The complete corrective Automatic Quality Gate restarted locally, offline and
+sequentially on `main@baa85553f9d48c7c833b1e875699817849360bab`, corpus
+`4.10.1` and a completely clean working tree. The protected OpenAPI v1
+artefact was confirmed before the audit at SHA-256
+`d6a686b94c926914beb28b437f464430a01de6560c2e2d476cf5c36025813e34`.
+
+The bounded static review confirmed the focused test-status correction and
+disposed `AQG-S04-003` as `RESOLVED`. It then identified `AQG-S04-004`
+(`P2 Medium`): ADR-0010 requires direct rejection tests for citation, source,
+activation, manifest and page mismatches, but the focused persistence suite
+tests only an activation-header digest mismatch. The domain test for PDF pages
+checks missing and extra page tuples against the record itself; it does not
+mutate citation/source/manifest/page values against persisted Control
+authority. The fail-closed authority branches in `SqliteAnswerEvidenceStore`
+therefore lack direct regression coverage for the required mismatch matrix.
+
+The implementation contains explicit validation for those branches, so no
+runtime defect was established. The missing required evidence nevertheless
+creates material integrity-regression and audit risk. `AQG-S04-004` remains
+`OPEN`; no test or implementation was corrected under gate authority.
+
+The owner-mandated stop condition was applied immediately. Runtime preflight
+was not reached because no executable check was started; no process or listener
+was inspected or stopped. `eng/ci.ps1 -Offline`, build, tests, coverage,
+migration, restart, concurrency, failure-injection, retention, cleanup,
+privacy and reachability checks were not executed by this restart.
+
+The restarted corrective Automatic Quality Gate result is `REJECTED`, with
+`AQG-S04-003` resolved, one new P2 finding and no P0, P1 or P3 finding
+identified before the mandatory stop. OpenAPI v1 remained byte-identical. No
+source, test, behaviour, schema, migration, ADR-0010, OpenAPI, v2, serving,
+Human Gate, lifecycle transition, network access or external action changed.
