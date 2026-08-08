@@ -785,7 +785,8 @@ structured stderr/audit without secret content.
   canonical manifest/hash validation, verified reopen, rights gating,
   lifecycle/reachability, citation-to-image binding, bounded same-origin
   serving, cache headers and text-equivalent accessibility.
-- Future answer-evidence tests cover canonical identity/digest vectors,
+- Answer-evidence verification requires tests covering canonical
+  identity/digest vectors,
   `Answered`-only creation before response, complete citation/source/manifest/
   page binding, atomic replay/conflict/failure, fixed `P30D` expiry, privacy
   allowlists and cleanup races with reserve/revalidate semantics.

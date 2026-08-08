@@ -5690,3 +5690,40 @@ contém somente fatos cronológicos.
 - Próxima condição: autoridade corretiva separada para resolver
   `AQG-S04-003`, seguida de nova autoridade sobre baseline limpa para reiniciar
   integralmente o Automatic Quality Gate corretivo de `S04-CORR-04-E`.
+
+## 2026-08-08 — Correção documental focal de AQG-S04-003 concluída
+
+- Estado anterior e resultante: `STATE-07 TESTING_HOMOLOGATION` permanece
+  ativo; o Automatic Quality Gate corretivo de `S04-CORR-04-E` continua
+  historicamente `REPROVADO`, sem Human Gate ou mudança de lifecycle.
+- Autoridade e baseline: o proprietário autorizou exclusivamente a correção
+  documental mínima de `AQG-S04-003` sobre branch `main`, commit
+  `cb67c7f752521f416f46d9cb4f2bb6a189ca1a48`, corpus `4.10.1`, working tree
+  completamente limpa e OpenAPI v1 no SHA-256
+  `d6a686b94c926914beb28b437f464430a01de6560c2e2d476cf5c36025813e34`.
+- Correção: a seção `Required verification` de
+  [`STATE-02-Canonical-Contracts.md`](../../docs/architecture/STATE-02-Canonical-Contracts.md)
+  agora classifica os testes de answer-evidence como requisitos, em vez de
+  trabalho futuro. Identidade/digest canônicos, criação somente para
+  `Answered`, bindings completos, atomicidade, replay/conflito/falhas, retenção
+  fixa, privacidade e cleanup races permanecem no mesmo escopo.
+- Semântica preservada: a seção continua definindo verificações exigidas e não
+  se torna evidência de implementação ou execução; esses fatos permanecem nos
+  registros proprietários. ADR-0010, implementação e testes não mudaram.
+- Verificação focal: leituras estáticas delimitadas e uma busca dirigida pela
+  classificação stale confirmaram a convergência semântica; a auditoria do
+  repositório aprovou 235 arquivos não ignorados. OpenAPI v1 permaneceu byte a
+  byte no SHA-256 protegido.
+- Disposição: `AQG-S04-003` está `CORRECTED_PENDING_GATE_RETEST`. A correção não
+  resolve o achado, não aprova o gate e não substitui seu reinício integral sob
+  autoridade separada.
+- Escopo negativo preservado: nenhuma alteração de source, teste,
+  comportamento, schema, migration, ADR-0010, OpenAPI v1, v2 ou serving; sem
+  Automatic Quality Gate, Human Gate, lifecycle, rede, ação externa, push, PR,
+  merge, release ou deploy.
+- Relatório atualizado:
+  [`STATE-04-Backend-Implementation-Report.md`](../../docs/STATE-04-Backend-Implementation-Report.md).
+- Próxima condição: nova autoridade explícita e separada sobre baseline limpa
+  para reiniciar integralmente o Automatic Quality Gate corretivo de
+  `S04-CORR-04-E`.
+- Aprovador: proprietário do RAG-Challenge.

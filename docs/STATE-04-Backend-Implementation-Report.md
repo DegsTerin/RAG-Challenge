@@ -1055,3 +1055,30 @@ The restarted corrective Automatic Quality Gate result is `REJECTED`, with
 identified before the mandatory stop. OpenAPI v1 remained byte-identical. No
 source, test, behaviour, schema, migration, ADR-0010, OpenAPI, v2, serving,
 Human Gate, lifecycle transition, network access or external action changed.
+
+## AQG-S04-003 focused documentary correction — 2026-08-08
+
+The owner authorised only the focused documentary correction of
+`AQG-S04-003` on `main@cb67c7f752521f416f46d9cb4f2bb6a189ca1a48`, corpus
+`4.10.1` and a completely clean working tree. The protected OpenAPI v1
+SHA-256 was confirmed before the correction as
+`d6a686b94c926914beb28b437f464430a01de6560c2e2d476cf5c36025813e34`.
+
+The required-verification section of
+[`STATE-02-Canonical-Contracts.md`](architecture/STATE-02-Canonical-Contracts.md)
+now classifies the answer-evidence tests as required rather than future. Their
+canonical identity/digest, `Answered`-only timing, complete bindings,
+atomicity, replay/conflict/failure, fixed retention, privacy and cleanup-race
+coverage remains unchanged. The section continues to define requirements and
+does not become implementation or execution evidence; those facts remain in
+their owning state and implementation records.
+
+Bounded static reads and a targeted stale-classification scan confirmed the
+semantic convergence. The repository audit passed all 235 non-ignored files,
+and OpenAPI v1 remained byte-identical at the protected SHA-256. No source,
+test, behaviour, schema, migration, ADR-0010, OpenAPI, v2 or serving change
+occurred. `AQG-S04-003` is
+`CORRECTED_PENDING_GATE_RETEST`; the historical Automatic Quality Gate remains
+`REJECTED`, and this correction neither resolves the finding nor restarts or
+substitutes the complete gate. No Human Gate, lifecycle transition, network
+access or external action occurred.
