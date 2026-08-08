@@ -1392,11 +1392,12 @@ O segundo refinamento arquitetural da ordem registrada em Lifecycle está
 implementado até `S04-CORR-04-E` somente na fronteira local, offline, sintética
 e sequencial descrita. `AQG-S04-002` a `AQG-S04-004` estão `RESOLVIDOS` e o
 Automatic Quality Gate corretivo de `S04-CORR-04-E` está `APROVADO`. Não existe
-autoridade vigente para executar Human Gate, v2, serving ou próximo incremento.
-A próxima ação concreta é o proprietário fornecer autoridade explícita,
-separada e completamente delimitada para preparar e apresentar o resumo
-completo do Human Gate corretivo de `S04-CORR-04-E`, sem inferir sua decisão,
-mudança de lifecycle ou qualquer ação externa.
+novo Human Gate canonicamente aplicável ao incremento: Human Gate pertence a
+um único `STATE-ID`; o Human Gate histórico de `STATE-04` permanece inalterado
+e `STATE-07` não recebe decisão por implicação. Não existe autoridade vigente
+para v2, serving ou próximo incremento. A continuidade diretamente relacionada
+a `S04-CORR-04-E` está encerrada após o AQG aprovado; qualquer objetivo
+posterior exige autoridade própria no estado ou lote que o possua.
 
 `STATE-04 BACKEND_IMPLEMENTATION` está encerrado após Automatic Quality Gate
 aprovado e Human Gate aprovado com as ressalvas documentadas em 2026-08-04. O

@@ -5855,3 +5855,31 @@ contém somente fatos cronológicos.
 - Próxima condição: autoridade explícita e separada para preparar e apresentar
   o resumo completo do Human Gate corretivo de `S04-CORR-04-E`, sem inferir a
   decisão humana, mudança de lifecycle ou ação externa.
+
+## 2026-08-08 — Encaminhamento não canônico de Human Gate corrigido
+
+- Estado anterior e resultante: `STATE-07 TESTING_HOMOLOGATION` permanece
+  ativo; nenhum Human Gate ou lifecycle foi executado ou alterado.
+- Autoridade e baseline: o proprietário autorizou exclusivamente a correção
+  documental focal sobre branch `main`, commit
+  `b1ea89c73dedec9cfe01e3aaa32d8aec0bcc4646`, corpus `4.10.1`, working tree
+  completamente limpa e OpenAPI v1 no SHA-256
+  `d6a686b94c926914beb28b437f464430a01de6560c2e2d476cf5c36025813e34`.
+- Conflito reconciliado: `AGENTS.md`, Governance, Quality Gates e Templates
+  exigem que Human Gate pertença a um único `STATE-ID` e use a frase canônica
+  vinculada a esse estado. `S04-CORR-04-E` é um incremento, não um estado.
+- Correção factual: `Current-State.md` deixa de encaminhar um “Human Gate
+  corretivo de S04-CORR-04-E”. O AQG corretivo permanece `APROVADO`, os achados
+  `AQG-S04-002` a `AQG-S04-004` permanecem `RESOLVIDOS`, o Human Gate histórico
+  de `STATE-04` permanece inalterado e `STATE-07` não recebe decisão por
+  implicação.
+- Preservação append-only: a condição registrada na entrada anterior permanece
+  como fato histórico do encaminhamento emitido; esta nova entrada a corrige
+  prospectivamente sem reescrever o histórico.
+- Escopo negativo preservado: nenhuma alteração de source, teste, comportamento,
+  schema, migration, ADR-0010, OpenAPI v1, v2, serving ou outra autoridade; sem
+  teste executável, runtime preflight, Human Gate, lifecycle, rede, ação
+  externa, push, PR, merge, release ou deploy.
+- Próxima condição: nenhuma continuação diretamente relacionada a
+  `S04-CORR-04-E`; qualquer objetivo posterior exige autoridade própria no
+  estado ou lote que o possua.
