@@ -42,7 +42,7 @@ internal static partial class S07ALocalHarnessDefinition
         "evidence-template-v1",
         "auth-s07-a-harness-001");
 
-    internal static S07ALocalHarnessPlan LoadCandidatePlan(string repositoryRoot) =>
+    internal static S07ALocalHarnessPlan LoadPreparationPlan(string repositoryRoot) =>
         LoadPlan(repositoryRoot, requireFrozenCampaign: false);
 
     internal static S07ALocalHarnessPlan LoadFrozenPlan(string repositoryRoot) =>
@@ -83,7 +83,6 @@ internal static partial class S07ALocalHarnessDefinition
 
         var scope = manifest.GetProperty("scope");
         RequireBoolean(scope, "a1Completed", expected: true);
-        RequireBoolean(scope, "a2OrLaterExecuted", expected: requireFrozenCampaign);
         RequireBoolean(scope, "evaluationExecuted", expected: false);
         RequireBoolean(scope, "testsExecuted", expected: false);
         RequireBoolean(scope, "networkAccessed", expected: false);
@@ -96,20 +95,37 @@ internal static partial class S07ALocalHarnessDefinition
             caseInventoryPath);
         ValidateDocumentEnvelope(documentManifestPath);
 
-        if (requireFrozenCampaign)
+        var freezeStatus = manifest.GetProperty("freezeStatus").GetString();
+        var isFrozen = string.Equals(freezeStatus, FrozenStatus, StringComparison.Ordinal);
+
+        if (requireFrozenCampaign && !isFrozen)
         {
-            RequireString(manifest, "freezeStatus", FrozenStatus);
+            throw new InvalidDataException(
+                "The freezeStatus value does not authorise the future A3 entry point.");
+        }
+
+        if (isFrozen)
+        {
+            RequireBoolean(scope, "a2OrLaterExecuted", expected: true);
             ValidateFrozenConfiguration(manifest);
         }
-        else
+        else if (string.Equals(
+                     freezeStatus,
+                     CandidateFreezeStatus,
+                     StringComparison.Ordinal))
         {
-            RequireString(manifest, "freezeStatus", CandidateFreezeStatus);
+            RequireBoolean(scope, "a2OrLaterExecuted", expected: false);
             RequireNull(manifest, "campaignEnvironment");
             RequireNull(manifest, "providerConfiguration");
             RequireBoolean(
                 manifest.GetProperty("thresholds"),
                 "valuesFrozenForCampaign",
                 expected: false);
+        }
+        else
+        {
+            throw new InvalidDataException(
+                "The freezeStatus value is outside the closed harness lifecycle.");
         }
 
         var workspace = ResolveWorkspace(root);
@@ -126,7 +142,8 @@ internal static partial class S07ALocalHarnessDefinition
             NetworkPolicyId,
             StorePolicyId,
             ExactValidationCommand,
-            ExactFutureA3Command);
+            ExactFutureA3Command,
+            isFrozen);
     }
 
     private static void ValidateFrozenConfiguration(JsonElement manifest)
@@ -370,7 +387,8 @@ internal sealed record S07ALocalHarnessPlan(
     string NetworkPolicyId,
     string StorePolicyId,
     string ValidationCommand,
-    string FutureA3Command);
+    string FutureA3Command,
+    bool IsFrozen);
 
 internal sealed record S07ALocalHarnessWorkspace(
     string CampaignRoot,

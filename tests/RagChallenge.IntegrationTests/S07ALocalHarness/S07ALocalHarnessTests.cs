@@ -7,9 +7,9 @@ namespace RagChallenge.IntegrationTests.S07ALocalHarness;
 public sealed class S07ALocalHarnessTests
 {
     [Fact]
-    public void CandidateEnvelopePinsInputsProvidersPoliciesAndCommands()
+    public void PreparationEnvelopePinsInputsProvidersPoliciesAndCommands()
     {
-        var plan = S07ALocalHarnessDefinition.LoadCandidatePlan(FindRepositoryRoot());
+        var plan = S07ALocalHarnessDefinition.LoadPreparationPlan(FindRepositoryRoot());
 
         Assert.Equal(
             S07ALocalHarnessDefinition.DatasetRevision,
@@ -33,7 +33,7 @@ public sealed class S07ALocalHarnessTests
     [Fact]
     public void WorkspaceIsTaskOwnedAndDoesNotExistDuringPreparation()
     {
-        var plan = S07ALocalHarnessDefinition.LoadCandidatePlan(FindRepositoryRoot());
+        var plan = S07ALocalHarnessDefinition.LoadPreparationPlan(FindRepositoryRoot());
         var allowedRoot = Path.GetFullPath(Path.Combine(
             plan.RepositoryRoot,
             "artifacts-local",
@@ -74,12 +74,20 @@ public sealed class S07ALocalHarnessTests
     }
 
     [Fact]
-    public void FrozenEntryPointRejectsTheCandidateBeforeCaseEnumeration()
+    public void FrozenEntryPointMatchesThePreparationPhaseWithoutCaseEnumeration()
     {
-        var exception = Assert.Throws<InvalidDataException>(() =>
-            S07ALocalHarnessDefinition.LoadFrozenPlan(FindRepositoryRoot()));
+        var repositoryRoot = FindRepositoryRoot();
+        var preparation = S07ALocalHarnessDefinition.LoadPreparationPlan(repositoryRoot);
 
-        Assert.Contains("a2OrLaterExecuted", exception.Message, StringComparison.Ordinal);
+        if (preparation.IsFrozen)
+        {
+            Assert.True(S07ALocalHarnessDefinition.LoadFrozenPlan(repositoryRoot).IsFrozen);
+            return;
+        }
+
+        var exception = Assert.Throws<InvalidDataException>(() =>
+            S07ALocalHarnessDefinition.LoadFrozenPlan(repositoryRoot));
+        Assert.Contains("freezeStatus", exception.Message, StringComparison.Ordinal);
     }
 
     [Fact]
