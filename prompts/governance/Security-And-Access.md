@@ -37,7 +37,7 @@ base, autorização e controles específicos.
 - Application ↔ embedding provider.
 - Application ↔ vector store.
 - Application ↔ document content store.
-- Application ↔ renderer PDF isolado e limitado (planejado; não implementado).
+- Application ↔ renderer PDF isolado e limitado.
 - Application ↔ language model.
 - Aplicação ↔ catálogo/persistência.
 - Cada fonte oficial externa registrada ↔ sincronizador governado.
@@ -163,6 +163,27 @@ Upload público permanece fora do MVP.
 - Direito de ler, indexar ou citar não implica renderizar, criar/reter derivado,
   exibir ou distribuir. Ambiguidade em qualquer direito aplicável bloqueia a
   ativação visual.
+
+## Evidência persistente de resposta
+
+- O futuro `AnswerEvidenceRecordV1` é um contrato interno de persistência, não
+  histórico de conversa, analytics, endpoint ou campo público v1.
+- Somente `Answered`, após validação integral e antes da resposta, cria o
+  registro; falha de commit/readback impede sucesso público.
+- Persistir apenas identidades/digests, hash/comprimento da resposta,
+  descritores não secretos e vínculos exatos de citação, fonte, manifest e
+  página. Não persistir pergunta nem seu hash, resposta, excerto/URL, prompt,
+  payload de provider, score/vetor, identidade/IP do usuário, secret, path ou
+  bytes.
+- Aplicar `answer-evidence-p30d-v1`: `expiresAt = createdAt + P30D`, sem refresh
+  por leitura, replay ou inspeção.
+- Durante a retenção, fonte e PNGs vinculados permanecem alcançáveis. Expiração
+  não exclui nada; `cleanup-plan-v1` reserva e revalida todas as raízes antes de
+  qualquer remoção física, inclusive sob concorrência.
+- Header, citações, páginas e auditoria sanitizada são atômicos. Mesmo ID/digest
+  é replay; mesmo ID/conteúdo divergente é conflito sem mutação.
+- Essa autoridade arquitetural não implementa `S04-CORR-04-E`, não cria
+  migration e não altera OpenAPI v1, v2 ou serving.
 
 ## Políticas de egress
 
@@ -316,11 +337,14 @@ Pode registrar:
 - hash ou tamanho, nunca secret ou conteúdo integral.
 - tag BCP 47 canônica, render profile, contagem/dimensões e hashes de imagem,
   sem bytes ou texto integral.
+- ID de answer-evidence, IDs/digests de corpus/ativação/geração, contagens,
+  duração, expiração e resultado sanitizado de retenção/cleanup.
 
 Não registrar:
 
 - API keys, tokens ou headers de autorização;
 - prompts e respostas integrais por padrão;
+- pergunta, hash da pergunta ou hash da resposta por padrão;
 - texto completo do documento;
 - bytes de fonte ou imagem e metadados brutos do renderer;
 - caminhos absolutos com nome de usuário/host;
@@ -336,6 +360,8 @@ Eventos mínimos:
 - import/reopen de conteúdo, finalização/rejeição de render manifest e serving
   visual recusado por binding ou lifecycle;
 - troca atômica do `CorpusActivationRecord`, incluindo o conjunto de bindings;
+- criação/replay/conflito de answer-evidence e cleanup após expiração, apenas
+  com IDs, contagens e resultados sanitizados;
 - rollback;
 - mudança de banco, categoria, documento, versão ou fonte;
 - mudança de provider/model;
@@ -384,6 +410,9 @@ trilha nominal.
 - Rollback de geração verificado.
 - Conteúdo fonte/PNG, render manifest, reachability, backup/restore e serving
   visual fail-closed verificados quando a capacidade for implementada.
+- `AnswerEvidenceRecordV1`, quando implementado, é `Answered`-only, atômico,
+  minimizado, expira em `P30D` sem refresh e protege reachability contra races
+  de cleanup.
 - `AI_PROVIDER_EGRESS` é local ou possui provider, classificação e endpoints
   explicitamente autorizados e testados.
 - `VECTOR_STORE_EGRESS` permanece vazio para adapter local ou possui endpoint,

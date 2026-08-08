@@ -4,13 +4,13 @@
 
 This document defines the canonical application, provider and public contract
 semantics accepted for `STATE-02 ARCHITECTURE`. It refines accepted ADR-0002,
-ADR-0006, corrective ADR-0007, ADR-0008 and ADR-0009. Acceptance freezes the
-architecture semantics; it does not itself prove or authorise an
-implementation. The separately authorised `S03-CORR-01` increment implements
-the ADR-0008/0009 language and render-manifest model described below while the
-v1 public surface and its OpenAPI artefact remain unchanged. Rendering,
-content materialisation, activation binding, image serving and v2 remain
-planned successor capabilities.
+ADR-0006, corrective ADR-0007, ADR-0008, ADR-0009 and ADR-0010. Acceptance
+freezes the architecture semantics; it does not itself prove or authorise an
+implementation. Separately authorised corrective increments implement the
+language/content model, durable content store, rights gates, deterministic PDF
+rendering and immutable activation-evidence bindings described below while the
+v1 public surface and its OpenAPI artefact remain unchanged. Persistent answer
+evidence, image serving and v2 remain unimplemented successor capabilities.
 
 The contracts preserve inward dependencies: Domain owns identities and
 invariants; Application owns ports, use cases and failure semantics;
@@ -120,7 +120,7 @@ page/block locations; CSV units use record ranges, columns and headers. It
 cannot return an executable attachment/formula, raw link authority or
 filesystem path.
 
-### PDF render model and planned pipeline contract
+### PDF render model and pipeline contract
 
 PDF visual evidence is a separate deterministic derivative boundary. The
 accepted `pdf-page-png-v1` profile consumes one verified PDF content object and
@@ -163,8 +163,9 @@ dimensions, counts and bindings, and verifies reopen of every source and image
 object. CSV has no implicit render contract. `DocumentPageImage`,
 `DocumentRenderManifest`, their typed identities, canonical digest and exact
 Control-plane source/image bindings are implemented by `S03-CORR-01`.
-Rendering bytes, PNG signature validation, verified reopen, activation binding
-and evidence serving remain unimplemented pipeline capabilities.
+`S04-CORR-04-C` implements bounded rendering, PNG signature validation and
+verified manifest finalisation. `S04-CORR-04-D` implements immutable activation
+binding and fail-closed readback. Evidence serving remains unimplemented.
 
 ### `IChunkingStrategy`
 
@@ -275,10 +276,9 @@ target reaches the object.
 
 Owns database identities/revisions/statuses, category assignments, document
 identities/versions/statuses, source registrations/descriptors, snapshots,
-append-only observations, exact language evidence, rights/provenance and,
-after separately authorised implementation, render-manifest bindings. It does
-not own the active generation pointer. Data-driven compatible additions do not
-add code branches.
+append-only observations, exact language evidence, rights/provenance and
+render-manifest bindings. It does not own the active generation pointer.
+Data-driven compatible additions do not add code branches.
 
 ### `IIndexGenerationStore`
 
@@ -534,6 +534,69 @@ particular, `CitationV1.contentLanguage` retains its closed `pt-BR | en-GB`
 values. A document governed with another BCP 47 tag cannot become active
 through v1 by coercion or inference.
 
+## Internal answer-evidence persistence contract — not implemented
+
+Accepted ADR-0010 assigns `S04-CORR-04-E` to an internal persistent
+`AnswerEvidenceRecordV1`. This is not an HTTP version, endpoint or public v1
+field. Only a fully validated `Answered` result creates a record, and the
+complete record must be committed and read back before that existing v1 result
+is returned. `InsufficientEvidence` and every query failure create no record.
+
+```text
+AnswerEvidenceRecordV1
+  schemaVersion: 1
+  answerEvidenceRecordId        # ans-evidence- + UUID N lower-case hex
+  recordSha256                  # SHA-256 under rag-challenge/answer-evidence-record/v1
+  corpusId
+  activationRecordRevision
+  catalogueRevision
+  sourceBindingSetDigest
+  activationBindingSetDigest
+  indexGenerationId
+  outcome: Answered
+  questionLanguage: pt-BR | en-GB
+  answerLanguage: pt-BR | en-GB
+  answerSha256
+  answerUtf8ByteLength
+  evidenceCoverageDigest
+  retrievalPolicyVersion
+  promptVersion
+  languageModelDescriptor
+  correlationId
+  retentionPolicyId: answer-evidence-p30d-v1
+  createdAt
+  expiresAt
+  citations[]
+  pageImages[]
+```
+
+Citation bindings preserve exact database/document revision, format, governed
+language, chunk, source adapter/trust, official registration/snapshot/
+observation when applicable, source content object, bounded PDF/CSV location
+and PDF render-manifest identity. Each cited physical PDF page additionally
+binds the exact source object, manifest, render profile/renderer descriptor and
+immutable PNG identity/hash/length/media type/dimensions. CSV has no manifest
+or page binding.
+
+The record stores no question or question hash, answer text, source-derived
+title/excerpt/URL, prompt, provider payload, score, vector, user/client
+identity, secret, path or binary content. `answerSha256` and a canonical
+coverage digest bind validated response values without retaining those values.
+
+The fixed `P30D` duration is never refreshed. Until `expiresAt`, the record is
+an immutable reachability root for its source and page-image objects. Expiry
+only removes that root; physical deletion still requires the existing
+`cleanup-plan-v1` reservation, complete revalidation and finalisation boundary.
+The header, citations, pages and sanitised audit event are written atomically in
+one Control transaction. Same-ID/same-digest replay is `AlreadyApplied`;
+same-ID/different-digest is a no-change conflict.
+
+Failure to commit or read back after generation prevents `Answered` and maps to
+the existing sanitised `UnexpectedFailure`/`CH_UNEXPECTED_FAILURE`; cancellation
+keeps `OperationCancelled`/`CH_OPERATION_CANCELLED`. No public outcome or code
+is added. OpenAPI v1 remains byte for byte unchanged. This architecture does
+not authorise `S04-CORR-04-E` implementation, migration or tests.
+
 ## Planned query contract v2 — not implemented
 
 ADR-0008 and ADR-0009 establish a single planned successor boundary. No v2
@@ -718,6 +781,10 @@ structured stderr/audit without secret content.
   canonical manifest/hash validation, verified reopen, rights gating,
   lifecycle/reachability, citation-to-image binding, bounded same-origin
   serving, cache headers and text-equivalent accessibility.
+- Future answer-evidence tests cover canonical identity/digest vectors,
+  `Answered`-only creation before response, complete citation/source/manifest/
+  page binding, atomic replay/conflict/failure, fixed `P30D` expiry, privacy
+  allowlists and cleanup races with reserve/revalidate semantics.
 - OpenAPI regression proves the v1 artefact is byte-for-byte unchanged; future
   v2 implementation and compatibility evidence require separate authority.
 - Readiness tests proving per-source degradation is explicit, never silently

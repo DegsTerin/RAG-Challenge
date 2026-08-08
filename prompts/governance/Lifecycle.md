@@ -295,27 +295,35 @@ Aceite:
 
 ## Refinamentos arquiteturais aceitos durante STATE-07
 
-Os ADRs 0008 e 0009 foram aceitos depois do encerramento dos estados donos das
-implementações originais. A reconciliação documental não reabre nem reescreve
-evidência histórica e não declara essas capacidades implementadas. Antes de
-qualquer claim dependente, uma autoridade corretiva separada deve entregar e
-verificar, na ordem de dependência:
+Os ADRs 0008, 0009 e 0010 foram aceitos depois do encerramento dos estados donos
+das implementações originais. A reconciliação documental não reabre nem
+reescreve evidência histórica e não declara uma capacidade implementada. Cada
+item exige autoridade corretiva própria. A ordem de dependência e o estado
+factual vigente são:
 
-1. modelo lógico e físico compatível para `DocumentContentLanguage`,
-   `sourceDeclaredLanguage`, `DocumentPageImage`, `DocumentRenderManifest` e
-   reachability, sem alterar dados ou schema por inferência;
-2. content store permanente para fonte/PNG, renderização determinística,
-   direitos, ativação atômica e o contrato v2 planejado, preservando v1;
-3. apresentação same-origin segura e acessível de evidência visual;
+1. `S03-CORR-01`, concluído: modelo lógico/físico compatível para idiomas,
+   `DocumentPageImage`, `DocumentRenderManifest` e reachability, sem inferência
+   de dados;
+2. owner corretivo de `STATE-04`, preservando v1:
+   - `S04-CORR-04-A`, concluído: content store permanente e readback verificado;
+   - `S04-CORR-04-B`, concluído: contratos e gates de direitos;
+   - `S04-CORR-04-C`, concluído: renderização determinística e finalização de
+     fonte/PNGs/manifest;
+   - `S04-CORR-04-D`, concluído: persistência e ativação atômica de fonte,
+     direitos, geração e manifest; e
+   - `S04-CORR-04-E`, não iniciado: `AnswerEvidenceRecordV1` persistente,
+     retenção fixa `P30D` e participação em reachability;
+3. contrato v2 separadamente versionado e apresentação same-origin segura e
+   acessível de evidência visual;
 4. integração, restart, backup/restore e limites; e
-5. dataset/homologação estratificados por idioma documental exato e pela
-   capacidade visual realmente implementada.
+5. dataset/homologação estratificados por idioma documental exato e pelas
+   capacidades realmente implementadas.
 
-Essas responsabilidades correspondem respectivamente aos owners técnicos de
-`STATE-03` a `STATE-07`, mas não promovem, retrocedem ou encerram estado por si
-sós. `STATE-07` permanece ativo; enquanto implementação/evidência faltarem, o
-OpenAPI v1 e o runtime atual conservam a superfície fechada `pt-BR|en-GB`, e o
-v2 permanece planejado e não implementado.
+Essas responsabilidades pertencem aos owners técnicos nomeados de `STATE-03` a
+`STATE-07`, mas não promovem, retrocedem ou encerram estado por si sós.
+`STATE-07` permanece ativo; enquanto a implementação/evidência correspondente
+faltar, a claim permanece ausente. OpenAPI v1 conserva byte a byte a superfície
+fechada `pt-BR|en-GB`; v2 e serving permanecem planejados e não implementados.
 
 ## STATE-08 PRODUCTION_RELEASE
 

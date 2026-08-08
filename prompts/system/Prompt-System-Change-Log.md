@@ -2,10 +2,11 @@
 
 ## Versão atual
 
-- Versão: `4.9.11`
+- Versão: `4.10.0`
 - Data: 2026-08-07
-- Status: `STATE-07` ativo; `S04-CORR-04-A` a `S04-CORR-04-D` concluídos, sem
-  autoridade/envelope para `S04-CORR-04-E`, gate ou mudança de lifecycle
+- Status: `STATE-07` ativo; ADR-0010 aceita e registrada;
+  `S04-CORR-04-E` definido arquiteturalmente, não iniciado e sem autoridade de
+  implementação, gate ou mudança de lifecycle
 - Escopo: 13 arquivos ativos em `prompts/`
 
 A versão do corpus é independente da versão futura do software.
@@ -19,6 +20,29 @@ A versão do corpus é independente da versão futura do software.
 
 Toda alteração atualiza este arquivo e, quando necessário,
 [`../Start-Here.md`](../Start-Here.md).
+
+## 4.10.0 — 2026-08-07
+
+- Registra a decisão arquitetural aceita em ADR-0010: `S04-CORR-04-E`
+  corresponde ao contrato interno persistente `AnswerEvidenceRecordV1`, à
+  retenção fixa `P30D` sem refresh e à sua participação em reachability.
+- Define identidade e digest canônicos, criação somente para `Answered` antes
+  da resposta, vínculos exatos de citação/fonte/manifest/página, transação
+  Control atômica, replay/conflito e failure semantics existentes.
+- Estabelece minimização: nenhuma pergunta/hash da pergunta, resposta, texto ou
+  URL de citação, prompt/payload de provider, score/vetor, identidade/IP do
+  usuário, secret, path ou bytes no registro ou logging padrão.
+- Mantém `cleanup-plan-v1` e reserva/revalidação/finalização como única
+  autoridade de exclusão física; expiração remove apenas a raiz temporária e
+  não autoriza exclusão por si.
+- Corrige somente declarações factuais correntes sobre a implementação já
+  concluída de idiomas, content store, direitos, renderer/PNG, manifests e
+  vínculos de ativação, sem reescrever ADR-0008/0009 nem evidência histórica.
+- Preserva `docs/api/openapi-v1.json` byte a byte e mantém implementação E,
+  migration, testes executáveis, v2, serving, dados reais, gates, lifecycle,
+  rede e ações externas fora do escopo executado.
+- Atualiza os doze artefatos documentais autorizados. A mudança é `MINOR` por
+  registrar nova autoridade normativa sem quebrar o fluxo vigente.
 
 ## 4.9.11 — 2026-08-07
 

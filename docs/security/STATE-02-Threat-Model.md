@@ -19,6 +19,11 @@ evidence and distinct query/document-language domains. The refinements are
 architectural only: no renderer, PNG, v2 contract or broader-language runtime
 support is implemented by this document, and OpenAPI v1 remains unchanged.
 
+Accepted ADR-0010 additionally defines a privacy-minimised internal
+`AnswerEvidenceRecordV1`, fixed `P30D` retention and answer-evidence
+reachability. `S04-CORR-04-E` remains unimplemented; the threat and test entries
+below are requirements, not control evidence.
+
 ## Scope
 
 Included:
@@ -53,7 +58,7 @@ Excluded until a later decision:
 | Vectors and chunks | Catalogue/generation isolation and source-equivalent protection. |
 | Provider credentials | Confidentiality, least privilege and revocability. |
 | User question | Minimisation, bounded use and no default full-content logging. |
-| Answer and citations | Grounded integrity, provenance and safe rendering. |
+| Answer, citations and retained answer-evidence bindings | Grounded integrity, provenance, bounded retention, minimisation and safe rendering. |
 | Egress policy | Exact destination separation and fail-closed enforcement. |
 | Administration authority | Authenticated local actor, purpose limitation and auditability. |
 | OCI runtime | Minimal exposure, durable state and recoverability. |
@@ -68,7 +73,7 @@ Untrusted browser
      -> SQLite control plane
      -> local exact vector adapter
      -> immutable source/page-image content store
-     -> bounded PDF renderer (planned)
+     -> bounded PDF renderer
      -> external AI adapter (separate egress)
 
 Local authorised operator
@@ -140,9 +145,11 @@ change rather than weakening a control.
 | `THR-S02-034` | Deactivation/removal or a withdrawal observation leaves stale vectors queryable, or cleanup removes historical bytes prematurely. | False answers or irrecoverable audit/rollback. | New generation for catalogue membership/lifecycle changes; new activation record for observation-only withdrawal; eligible-binding hard filter; last-document invariant, tombstone, reachability/retention and adversarial query. | S03/S04/S07. | Open. |
 | `THR-S02-035` | Unbounded catalogue additions exhaust storage, queue, parser or provider budget. | Denial of service or unexpected cost. | Per-operation limits, quotas/budget circuit, capacity gate and activation refusal without truncation. | S03/S04/S07/S08. | Open. |
 | `THR-S02-036` | Database/document activation races produce an active database without active evidence. | Broken invariant and misleading availability. | One lease/transaction, expected revision, complete binding validation and crash matrix. | S03/S04/S07. | Open. |
-| `THR-S02-037` | A malformed or hostile PDF exploits or exhausts the renderer, or produces a partial/oversized page set. | Code execution, denial of service or incomplete visual evidence. | Isolated bounded renderer; fixed profile; page/time/memory/dimension/concurrency limits; complete consecutive manifest; PNG/hash/readback validation; no partial activation. | Future implementation; S07 evidence. | Open; architecture mitigated. |
+| `THR-S02-037` | A malformed or hostile PDF exploits or exhausts the renderer, or produces a partial/oversized page set. | Code execution, denial of service or incomplete visual evidence. | Isolated bounded renderer; fixed profile; page/time/memory/dimension/concurrency limits; complete consecutive manifest; PNG/hash/readback validation; no partial activation. | Corrective S04 implementation; S07 evidence. | Local synthetic/static implementation evidence exists; S07 remains open. |
 | `THR-S02-038` | A page image is served for the wrong document version, page, generation or lifecycle state, or a model-controlled value selects an image/path. | False citation, cross-document disclosure, path exposure or XSS/content confusion. | Server-built citation binding; active generation/document/render-manifest revalidation; same-origin opaque content ID; bounded PNG-only response; no path/URL from model; `nosniff`; immutable ETag; deactivated/removed denial. | Future implementation; S07 evidence. | Open; architecture mitigated. |
-| `THR-S02-039` | Language metadata is coerced (`en` to `en-GB`), used as resource/provider authority or silently merged in evaluation. | Misleading provenance/support claim, unsafe resource selection or false homologation. | Strict bounded BCP 47 parser; exact source-declared tag retention; separate closed query enum; no tag-driven path/provider; exact evaluation strata and v1 regression. | Future implementation; S07 evidence. | Open; architecture mitigated. |
+| `THR-S02-039` | Language metadata is coerced (`en` to `en-GB`), used as resource/provider authority or silently merged in evaluation. | Misleading provenance/support claim, unsafe resource selection or false homologation. | Strict bounded BCP 47 parser; exact source-declared tag retention; separate closed query enum; no tag-driven path/provider; exact evaluation strata and v1 regression. | Corrective S03 implementation; S07 evidence. | Local synthetic implementation evidence exists; S07 remains open. |
+| `THR-S02-040` | Answer-evidence persistence captures question/answer/source text, user identity, provider payload or other unnecessary data, or its retention is refreshed indefinitely. | Privacy breach, unbounded retention and enlarged disclosure/backup scope. | Closed persistence allowlist; hashes and stable bindings only; fixed non-refreshing `P30D`; sanitised audit/logging; row and backup inspection tests. | Corrective S04; S07 evidence. | Open; architecture mitigated. |
+| `THR-S02-041` | An `Answered` response escapes before its evidence record is durably complete, or cleanup races record creation/expiry and deletes a newly reachable source/page object. | Unreproducible answer or irreversible evidence loss. | Persist and read back before response; one Control transaction; canonical replay/conflict; cleanup reserve plus full pre-delete reachability revalidation; injected crash/concurrency tests. | Corrective S04; S07 evidence. | Open; architecture mitigated. |
 
 ## Abuse cases
 
@@ -153,6 +160,8 @@ change rather than weakening a control.
 - Invalid enum/unknown fields containing URLs or provider names.
 - Questions requesting system prompts, secrets, files or administration.
 - Questions designed to select a malicious high-scoring chunk.
+- Replays or failures designed to create partial/divergent answer-evidence rows
+  or extend retention through reads.
 
 Expected result: bounded rejection, rate limit, grounded response or explicit
 insufficient evidence; no source fetch or authority change.
@@ -221,6 +230,8 @@ succeeds; a deterministic status allows safe operator recovery.
 | `SEC-IMG-01` | Renderer isolation and limits; complete `pdf-page-png-v1` page set; canonical manifest, PNG signature/hash/dimensions and verified reopen; no partial activation. |
 | `SEC-IMG-02` | Citation-to-image binding, active generation/lifecycle revalidation, guessed/cross-generation IDs, same-origin PNG-only serving, ETag, `nosniff`, cache and accessible text equivalent. |
 | `SEC-LANG-01` | Bounded canonical BCP 47 validation, exact `sourceDeclaredLanguage`, no `en` to `en-GB` coercion, no tag-driven resource/provider selection and separate evaluation strata. |
+| `SEC-AER-01` | `Answered`-only creation before response; canonical record/citation/page digest vectors; same-ID replay/divergent conflict; injected commit/readback failures; no partial rows. |
+| `SEC-AER-02` | Persistence/log allowlist; no question/answer/source text, user identity or provider payload; fixed non-refreshing `P30D`; reachability before expiry and reserve/revalidate cleanup races after expiry. |
 | `SEC-COV-01` | Unified retrieval, observation-only withdrawal/`304` eligibility, per-source degradation, explicit coverage and no silent provenance substitution. |
 | `SEC-API-01` | Payload bounds, exact `questionLanguage` enum, unknown fields, CORS, rate, cancellation and sanitised errors. |
 | `SEC-UI-01` | XSS through question, evidence, answer, citation and Problem Details; localisation completeness in `pt-BR` and `en-GB`; independence between interface and query languages; and contrast, focus and state visibility in `Light` and `Dark`. |

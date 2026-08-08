@@ -701,6 +701,17 @@ proprietários.
   v2, serving, `AnswerEvidenceRecord`, rede, ação externa, gate ou mudança de
   lifecycle ocorreu. O corpus `4.9.11` registra somente esses fatos;
   `S04-CORR-04-E` não foi iniciado.
+- Decisão arquitetural de evidência persistente de resposta:
+  [ADR-0010](../../docs/architecture/ADR-0010-Persistent-Answer-Evidence-Records-And-Bounded-Retention.md)
+  foi aceita explicitamente pelo proprietário em 2026-08-07 e registrada sob
+  autoridade documental local, offline e sequencial sobre
+  `main@745304051c113c86f5ebbaaaf625fbde74c50c6a`, corpus `4.9.11` e working
+  tree limpa. A decisão fixa `S04-CORR-04-E` como o contrato interno persistente
+  `AnswerEvidenceRecordV1`, somente para `Answered`, com retenção `P30D` sem
+  refresh e participação em reachability. O corpus `4.10.0` registra somente a
+  autoridade arquitetural e reconcilia fatos atuais; não implementa E, não cria
+  migration/teste, não altera OpenAPI v1 e não inicia v2, serving, dado real,
+  gate, lifecycle, rede ou ação externa.
 - Fechamento de `S04-A0`: `PdfPig` `0.1.15` e `CsvHelper` `33.1.0` foram
   selecionados condicionalmente para desenvolvimento local;
   `Sylvan.Data.Csv` `1.4.4` permanece fallback não selecionado e não
@@ -931,7 +942,11 @@ proprietários.
   explícitas e independentes em 2026-08-01; ADR-0007: `accepted` por decisão
   humana explícita em 2026-08-02; ADR-0008 e ADR-0009: `accepted` por decisões
   humanas explícitas e independentes em 2026-08-07, com reconciliação semântica
-  conjunta aplicada no corpus `4.9.5` e implementação ainda não autorizada.
+  conjunta aplicada no corpus `4.9.5`; ADR-0010: `accepted` por decisão humana
+  explícita em 2026-08-07, com registro e reconciliação documental no corpus
+  `4.10.0`. A aceitação de ADR não substitui as autoridades de implementação:
+  `S04-CORR-04-A` a `S04-CORR-04-D` estão concluídos e
+  `S04-CORR-04-E` permanece não iniciado.
 
 ## Baseline documental
 
@@ -939,7 +954,7 @@ proprietários.
   a política de idioma acrescentou o 21º documento público por incremento
   versionado, e o ADR-0003 acrescentou o 22º.
 - A baseline aprovada no Human Gate de `STATE-00` permanece `3.4.0`.
-- O corpus de instruções vigente possui versão `4.9.5` e 13 arquivos em
+- O corpus de instruções vigente possui versão `4.10.0` e 13 arquivos em
   `prompts/`.
 - Visão, requisitos, arquitetura, RAG, segurança, qualidade, lifecycle,
   roadmap, backlog, estado, histórico e templates estão documentados.
@@ -1197,8 +1212,9 @@ proprietários.
 - Arquitetura aceita torna `IDocumentContentStore` a autoridade permanente para
   fonte e PNGs content-addressed, exige render manifest PDF completo, direitos
   específicos e serving visual vinculado à citação. A fronteira executável do
-  content store e os contratos/gates de direitos estão implementados em
-  incrementos corretivos separados; renderer, PNG, ativação visual, serving e
+  content store, os contratos/gates de direitos, o renderer/PNG, a finalização
+  de manifest e os vínculos atômicos de ativação estão implementados em
+  incrementos corretivos separados. `AnswerEvidenceRecordV1`, serving e
   contrato v2 permanecem não implementados.
 - Contrato HTTP/OpenAPI v1 versionado pertencente ao RAG-Challenge; adapters
   consumidores permanecem fora deste repositório.
@@ -1249,21 +1265,24 @@ autorizada.
    `S04-CORR-04-B` concluiu contratos/gates de direitos;
    `S04-CORR-04-C` concluiu renderização determinística e finalização
    verificada da candidata; `S04-CORR-04-D` concluiu persistência e ativação
-   atômica dos vínculos de fonte, direitos, geração e manifest. Obter uma
-   autoridade separada e com envelope completo para `S04-CORR-04-E`, primeiro
-   incremento subsequente ainda não executado, preservando a OpenAPI v1 até que
-   eventual alteração pública seja expressamente autorizada.
+   atômica dos vínculos de fonte, direitos, geração e manifest. ADR-0010 define
+   `S04-CORR-04-E` como `AnswerEvidenceRecordV1`, retenção limitada e
+   reachability, mas não o implementa. Obter autoridade separada e com envelope
+   completo para esse primeiro incremento subsequente, preservando a OpenAPI v1
+   até que eventual alteração pública seja expressamente autorizada.
 
 ## Próxima autoridade
 
 O segundo refinamento arquitetural da ordem registrada em Lifecycle permanece
 parcial: `S04-CORR-04-A` a `S04-CORR-04-D` estão concluídos, sem executar os
-incrementos posteriores. Não existe autoridade nem envelope vigente para
-`S04-CORR-04-E`. A próxima ação concreta é o proprietário fornecer autoridade
-explícita, separada e completamente delimitada para esse primeiro incremento
-subsequente, preservando v1 e as condições de parada registradas até que o novo
-envelope disponha expressamente qualquer alteração. Revisar genericamente os
-commits já concluídos não substitui essa ação.
+incrementos posteriores. ADR-0010 fixa a responsabilidade arquitetural de
+`S04-CORR-04-E`, mas não existe autoridade nem envelope vigente para sua
+implementação, migration ou testes executáveis. A próxima ação concreta é o
+proprietário fornecer autoridade explícita, separada e completamente delimitada
+para esse primeiro incremento subsequente, preservando v1 e as condições de
+parada registradas até que o novo envelope disponha expressamente qualquer
+alteração. Revisar genericamente os commits já concluídos não substitui essa
+ação.
 
 `STATE-04 BACKEND_IMPLEMENTATION` está encerrado após Automatic Quality Gate
 aprovado e Human Gate aprovado com as ressalvas documentadas em 2026-08-04. O

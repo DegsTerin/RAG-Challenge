@@ -16,6 +16,14 @@ Control schema and migration, persisted vector-language compatibility and
 render-manifest reachability slice recorded below. It does not implement the
 content/rendering pipeline, real PNG validation or evidence serving.
 
+Later separately authorised `S04-CORR-04-A` to `S04-CORR-04-D` increments
+implement verified content storage, rights gates, deterministic render
+finalisation and immutable activation-evidence persistence without rewriting
+the historical S03-A or S03-CORR-01 evidence. Accepted ADR-0010 now defines the
+logical `AnswerEvidenceRecordV1`, fixed retention and reachability successor;
+`S04-CORR-04-E` remains unimplemented and no physical mapping is authorised by
+this dictionary.
+
 `S03-B` was blocked when this S03-A artefact was created, so this document
 contains no ORM mapping, DDL, migration, persistent store, lockfile change,
 dependency selection or package installation. The later S03-B implementation
@@ -592,3 +600,41 @@ receive no evidence rows. They remain readable as historical records but are
 ineligible to authorise current query or visual readiness. No new rights digest,
 rights administration identity, vector metadata field, `AnswerEvidenceRecord`,
 v2 contract or image-serving boundary is introduced.
+
+## ADR-0010 answer-evidence successor model — not implemented
+
+`AnswerEvidenceRecordV1` is an immutable, internal Control-plane aggregate for
+one fully validated `Answered` outcome. Its logical header contains the
+server-generated `ans-evidence-<uuid-n>` identity, schema version, canonical
+record digest, corpus/activation/catalogue/generation identities and both
+binding digests, answer hash/UTF-8 length, canonical coverage digest,
+query/answer languages, retrieval/prompt/model descriptors, correlation ID and
+the fixed `answer-evidence-p30d-v1` creation/expiry instants.
+
+The aggregate owns ordered citation rows and deduplicated page rows. Citation
+rows preserve the exact database/document/version/format/language/chunk,
+source/provenance/content-object, bounded location and render-manifest binding
+used by the response. Page rows preserve the exact cited PDF page's
+source/manifest/profile/renderer/image/hash/media/length/dimension tuple. CSV
+rows have no render manifest or page rows.
+
+Only `Answered` creates this aggregate, after all response and binding
+validation and before the public v1 response. Header, citations, pages and
+sanitised audit are one atomic Control transaction. Same identity and digest is
+`AlreadyApplied`; reuse of the identity with different canonical content is a
+no-change conflict. No question, question hash, answer text, citation text/URL,
+prompt/provider payload, score/vector, user/client identity, secret, path or
+binary content belongs to the model.
+
+A non-expired aggregate is a reachability root for every referenced source and
+page-image content object. `expiresAt` is exactly `createdAt + P30D` and never
+refreshes. Expiry removes only this root and does not itself delete anything.
+The existing `cleanup-plan-v1` reservation/finalisation boundary must revalidate
+all roots before physical deletion. Activation history and rollback roots remain
+independent.
+
+This successor model selects no table name, key/index layout, migration,
+backfill or store technology. Those physical choices, executable tests and
+implementation files require a separate `S04-CORR-04-E` authority. The public
+v1 schema and OpenAPI artefact remain unchanged; v2 and image serving are not
+part of this aggregate.

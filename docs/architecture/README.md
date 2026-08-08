@@ -21,6 +21,12 @@ document-language domains, original-language citations and stratified
 evaluation. This is architecture documentation only; OpenAPI v1 remains
 byte-for-byte unchanged and v2 remains planned and unimplemented.
 
+The owner accepted ADR-0010 on 2026-08-07 and authorised its documentary
+registration as corpus `4.10.0`. It assigns `S04-CORR-04-E` to the internal
+persistent `AnswerEvidenceRecordV1`, fixed `P30D` retention and answer-evidence
+reachability. Registration does not start that increment or authorise a
+migration, executable test, public API, serving, gate or lifecycle change.
+
 The later combined audit failed on `AQG-S02-001`, an internal contradiction
 between observation-inclusive generation identity and observation-only
 freshness rebinding. The owner accepted ADR-0007 explicitly on 2026-08-02. It
@@ -180,10 +186,15 @@ Dashboard -- versioned HTTP --> API
   approved)
 - [ADR-0008 — Product Corpus Storage and Page-Image Evidence](ADR-0008-Product-Corpus-Storage-And-Page-Image-Evidence.md)
   (`accepted`; semantic reconciliation applied in corpus `4.9.5`;
-  implementation remains separately authorised)
+  corrective content/render/activation increments implemented; serving and v2
+  remain separately authorised)
 - [ADR-0009 — Document, Evidence and Query Language Taxonomy](ADR-0009-Document-Evidence-And-Query-Language-Taxonomy.md)
   (`accepted`; semantic reconciliation applied in corpus `4.9.5`;
-  implementation remains separately authorised)
+  internal language split implemented; broader public v2 remains separately
+  authorised)
+- [ADR-0010 — Persistent Answer-Evidence Records and Bounded Retention](ADR-0010-Persistent-Answer-Evidence-Records-And-Bounded-Retention.md)
+  (`accepted`; documentary reconciliation applied in corpus `4.10.0`;
+  `S04-CORR-04-E` implementation remains separately authorised)
 
 ## STATE-02 design artefacts
 

@@ -4,9 +4,12 @@
 
 Contrato arquitetural vigente para o MVP e sua evolução, reconciliado com os
 ADRs aceitos. O estado implementado e testado pertence ao Current State e aos
-relatórios dos estados; a semântica de armazenamento visual e idiomas dos
-ADRs 0008/0009 permanece planejada e não implementada. Nenhum corpus real,
-provider real ou conteúdo real está ativo.
+relatórios dos estados. Os incrementos corretivos implementaram a separação de
+idiomas, o content store, os gates de direitos, o renderer/PNG e os vínculos de
+ativação previstos pelos ADRs 0008/0009; serving e v2 permanecem não
+implementados. O ADR-0010 define `AnswerEvidenceRecordV1`, retenção e
+reachability, mas `S04-CORR-04-E` não foi iniciado. Nenhum corpus real, provider
+real ou conteúdo real está ativo.
 
 ## Objetivo e limites
 
@@ -45,6 +48,7 @@ Question
   -> Evidence policy
   -> Grounded generation
   -> Citation validation
+  -> Persistent answer-evidence binding for Answered
   -> Answer outcome
 ```
 
@@ -119,11 +123,11 @@ derivado é identificado separadamente por `DocumentVersion` mais descriptor
 do parser/normalização e sua configuração não secreta; essa compatibilidade
 integra a geração do índice.
 
-O runtime v1 atualmente implementado conserva o tipo fechado
-`SupportedLanguage` para `pt-BR` e `en-GB`. A separação em
-`SupportedQueryLanguage` e `DocumentContentLanguage`, inclusive o valor `en`
-do candidato PostgreSQL, requer implementação própria e o contrato v2
-planejado; esta reconciliação não altera tipo, schema ou dados.
+O runtime implementa `SupportedQueryLanguage` fechado em `pt-BR` e `en-GB` e
+`DocumentContentLanguage` BCP 47 separado, preservando
+`sourceDeclaredLanguage` exato. O contrato público v1 continua fechado em
+`pt-BR|en-GB`; o candidato PostgreSQL `en` não é coagido para `en-GB` nem se
+torna ativo por essa superfície. O contrato v2 permanece planejado.
 
 ### Conteúdo e evidência visual de página
 
@@ -148,6 +152,10 @@ PNGs e geração textual/indexada finalizada forem vinculados atomicamente.
 Documento `Deactivated` ou `Removed` não serve imagem, e cleanup precisa provar
 ausência de reachability por documento ativo/retido, manifesto, evidência de
 resposta e rollback.
+
+O ADR-0010 torna a evidência de resposta uma raiz somente por meio do futuro
+`AnswerEvidenceRecordV1`, com expiração fixa e sem refresh. Essa arquitetura não
+é evidência de que `S04-CORR-04-E`, sua persistência ou cleanup já existam.
 
 ### Chunk
 
@@ -689,6 +697,33 @@ credenciais, `snapshotId`, `revalidatedAt`, estado e frescor. Esses metadados
 permitem reproduzir uma resposta sem expor prompts, configuração secreta ou
 conteúdo integral.
 
+### Persistência interna de evidência de resposta
+
+Somente um resultado `Answered`, depois de validar idioma, limites, cobertura,
+citações e vínculos, cria o futuro `AnswerEvidenceRecordV1`. O registro completo
+é persistido e reaberto antes de devolver a resposta v1. `InsufficientEvidence`
+e falhas não criam registro.
+
+O agregado imutável liga a resposta por hash/comprimento ao corpus, revisão de
+ativação, catálogo, geração, ambos os binding digests, política de recuperação,
+prompt, modelo e cobertura. Cada citação preserva identidades exatas de banco,
+documento, versão, formato, idioma, chunk, fonte/proveniência, objeto fonte,
+localização e render manifest; páginas PDF citadas preservam também
+manifest/profile/renderer e a identidade integral do PNG.
+
+O registro não contém pergunta nem seu hash, resposta, título/excerto/URL de
+citação, prompt ou payload de provider, scores/vetores, identidade/IP do usuário,
+secret, path ou bytes. A política fixa `answer-evidence-p30d-v1` expira em
+`createdAt + P30D` sem refresh. Até então, fonte e PNGs vinculados permanecem
+alcançáveis; depois, cleanup ainda exige o protocolo `cleanup-plan-v1` com
+reserva e revalidação integral antes de excluir.
+
+Header, citações, páginas e auditoria sanitizada formam uma única transação
+Control. Replay de mesmo ID/digest é `AlreadyApplied`; conteúdo divergente sob
+o mesmo ID é conflito sem mutação. Falha de persistência/readback impede
+`Answered` e usa a taxonomia v1 existente. OpenAPI v1 não muda. Tudo neste bloco
+é autoridade arquitetural aceita para `S04-CORR-04-E`, ainda não implementação.
+
 Scores brutos de diferentes providers não são apresentados como confiança
 universal sem calibração.
 
@@ -782,6 +817,7 @@ escolhido ou alterado depois de observar o resultado para fazê-lo passar.
 | Atualização | Administração e sincronização oficiais manuais | Diff incremental e scheduler |
 | Providers | Um por porta | Catálogo e múltiplas implementações |
 | Índice | Geração imutável, uma anterior retida e rollback limitado | Migração, compactação e distribuição |
+| Evidência de resposta | Registro interno mínimo, retenção `P30D` e reachability após implementação autorizada | Outra retenção, histórico de usuário ou analytics exigem decisão própria |
 | Fontes online | Registros oficiais allowlisted e snapshots | Novas classes de autenticação/protocolo por decisão própria |
 | Acesso | Consulta anônima limitada | RBAC e escopo por corpus |
 | Integração DB-Notifier | Nenhuma | Adapter ou módulo versionado |

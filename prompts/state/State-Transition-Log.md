@@ -5469,3 +5469,44 @@ contém somente fatos cronológicos.
 - Próxima condição: autoridade humana explícita, separada e com envelope
   completo para `S04-CORR-04-E`, preservando v1, o escopo negativo e as
   condições de parada vigentes até nova disposição expressa.
+
+## 2026-08-07 — ADR-0010 persistent answer-evidence architecture registered
+
+- Baseline: branch `main`, commit
+  `745304051c113c86f5ebbaaaf625fbde74c50c6a`, corpus `4.9.11` e working tree
+  limpa, confirmados antes da primeira alteração. OpenAPI v1 correspondia ao
+  SHA-256
+  `d6a686b94c926914beb28b437f464430a01de6560c2e2d476cf5c36025813e34`.
+- Decisão: o proprietário confirmou integralmente a proposta arquitetural e
+  aceitou, exclusivamente como autoridade arquitetural, que `S04-CORR-04-E`
+  corresponda ao contrato persistente `AnswerEvidenceRecordV1`, à sua retenção
+  limitada e à sua participação em reachability.
+- Autoridade deste registro: exclusivamente documentação local, offline e
+  sequencial da decisão já aceita, incluindo ADR-0010 e reconciliação somente
+  dos proprietários normativos/factuais previamente identificados.
+- Contrato: registro interno schema-v1 criado somente para `Answered`, depois da
+  validação completa e antes da resposta; identidade/digest canônicos, vínculos
+  exatos de citação/fonte/manifest/página, `P30D` sem refresh, uma transação
+  Control, replay idempotente, conflito divergente e falha pública pela taxonomia
+  v1 existente.
+- Privacidade e cleanup: nenhum texto de pergunta/resposta/citação, payload de
+  provider, score/vetor, identidade de usuário, secret, path ou bytes é
+  persistido. Durante retenção, os objetos vinculados permanecem alcançáveis;
+  expiração não exclui e `cleanup-plan-v1` continua a exigir
+  reserva/revalidação/finalização.
+- Reconciliação factual: os fatos correntes reconhecem que os incrementos
+  `S04-CORR-04-A` a `S04-CORR-04-D` implementaram content store, direitos,
+  renderer/PNG/manifests e vínculos de ativação. ADR-0008, ADR-0009, relatórios
+  de execução e todas as entradas históricas foram preservados integralmente.
+- Compatibilidade: OpenAPI v1 permanece byte a byte no SHA-256 protegido; não
+  foi criado v2, serving, endpoint, resultado ou código `CH_*` público.
+- Corpus: `4.10.0` (`MINOR`), por introduzir nova autoridade normativa sem
+  alterar a precedência, o fluxo ou o lifecycle.
+- Escopo negativo observado: nenhuma implementação, migration, teste de
+  produto, dado real, gate, lifecycle, processo, rede, ação externa, push, PR,
+  merge, release ou deploy foi executado.
+- Estado resultante: `STATE-07 TESTING_HOMOLOGATION` permanece ativo;
+  `S04-CORR-04-E` está definido arquiteturalmente e não iniciado.
+- Próxima condição: autoridade humana explícita, separada e com envelope
+  completo para a implementação local/offline de `S04-CORR-04-E`, preservando
+  OpenAPI v1 e todas as condições de parada registradas.
