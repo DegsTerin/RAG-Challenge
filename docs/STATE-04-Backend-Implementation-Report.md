@@ -988,3 +988,31 @@ new P2 finding and no P0, P1 or P3 finding identified before the mandatory
 stop. OpenAPI v1 remained byte-identical. No v2 contract, image serving, real
 data, correction, Human Gate, lifecycle transition, network access or external
 action occurred.
+
+## AQG-S04-002 focused documentary correction — 2026-08-08
+
+The owner authorised only the focused documentary correction of
+`AQG-S04-002` on `main@3f42214c5c3554b6b341ab4c75a0a8e3cdb93f2a`,
+corpus `4.10.1` and a clean working tree. The protected OpenAPI v1 SHA-256 was
+confirmed before the correction as
+`d6a686b94c926914beb28b437f464430a01de6560c2e2d476cf5c36025813e34`.
+
+The purpose paragraph of
+[`STATE-02-Canonical-Contracts.md`](architecture/STATE-02-Canonical-Contracts.md)
+now records that persistent answer evidence is implemented locally by the
+separately authorised `S04-CORR-04-E` increment. Image serving and v2 remain
+unimplemented successor capabilities. This removes the mutually exclusive
+implementation-status statements without changing the accepted ADR-0010
+semantics or the implemented internal contract.
+
+Bounded static reads and a targeted contradiction scan confirmed that the
+corrected purpose paragraph now agrees with the implemented-local section and
+its explicit separation between ADR acceptance and later implementation. The
+repository audit passed all 235 non-ignored files. OpenAPI v1 remained
+byte-identical at the protected SHA-256. No source, test, behaviour, schema,
+migration, ADR, OpenAPI, v2 or serving change occurred.
+
+`AQG-S04-002` is `CORRECTED_PENDING_GATE_RETEST`. The historical Automatic
+Quality Gate remains `REJECTED`; this focused correction neither resolves the
+finding nor restarts or substitutes the complete gate. No Human Gate,
+lifecycle transition, network access or external action occurred.

@@ -10,7 +10,9 @@ implementation. Separately authorised corrective increments implement the
 language/content model, durable content store, rights gates, deterministic PDF
 rendering and immutable activation-evidence bindings described below while the
 v1 public surface and its OpenAPI artefact remain unchanged. Persistent answer
-evidence, image serving and v2 remain unimplemented successor capabilities.
+evidence is implemented locally by the separately authorised
+`S04-CORR-04-E`; image serving and v2 remain unimplemented successor
+capabilities.
 
 The contracts preserve inward dependencies: Domain owns identities and
 invariants; Application owns ports, use cases and failure semantics;
