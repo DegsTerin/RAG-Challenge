@@ -2,7 +2,7 @@
 
 ## Versão atual
 
-- Versão: `4.10.4`
+- Versão: `4.10.5`
 - Data: 2026-08-09
 - Status: `STATE-07` ativo; Automatic Quality Gate da integração e recuperação
   v2 aprovado na fronteira sintética, com `AQG-S07-V2-IR-001` resolvido;
@@ -20,6 +20,24 @@ A versão do corpus é independente da versão futura do software.
 
 Toda alteração atualiza este arquivo e, quando necessário,
 [`../Start-Here.md`](../Start-Here.md).
+
+## 4.10.5 — 2026-08-09
+
+- Corrige sob
+  `AUTH-STATE07-V2-INTEGRATION-RECOVERY-LIFECYCLE-CORR-002`, sobre
+  `main@7ad6bae369eb1efbf6429902a2fd1f4441b60a32`, corpus `4.10.4` e working
+  tree limpa, as duas claims correntes desatualizadas da ordem de dependência
+  em Lifecycle.
+- Registra somente que o Automatic Quality Gate da integração e recuperação v2
+  foi `APROVADO` sob
+  `AUTH-STATE07-V2-INTEGRATION-RECOVERY-AQG-RETEST-001`, sem novo achado, e que
+  `AQG-S07-V2-IR-001` está `RESOLVIDO`.
+- Preserva a ordem normativa, os estados, os critérios e OpenAPI v1/v2 byte a
+  byte. Dataset e homologação de produto permanecem posteriores, `NOT_RUN` e
+  não autorizados.
+- A mudança é `PATCH` factual e não executa runtime, testes, Automatic Quality
+  Gate, Human Gate ou lifecycle; não altera código, teste, harness, contrato,
+  schema, migration, ADR, dependência, lockfile ou dataset.
 
 ## 4.10.4 — 2026-08-09
 

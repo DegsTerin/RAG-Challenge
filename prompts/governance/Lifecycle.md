@@ -320,8 +320,9 @@ factual vigente são:
    aprovado;
 4. integração, restart, cold backup/restore confinado e limites, implementados
    e verificados focalmente no commit
-   `e5dae7ee5a786417fba2c6ef0555686816b0b330`, com Automatic Quality Gate deste
-   incremento ainda `NOT_RUN`; e
+   `e5dae7ee5a786417fba2c6ef0555686816b0b330`, com Automatic Quality Gate
+   aprovado sob `AUTH-STATE07-V2-INTEGRATION-RECOVERY-AQG-RETEST-001`, sem
+   novo achado, e `AQG-S07-V2-IR-001` `RESOLVIDO`; e
 5. dataset/homologação estratificados por idioma documental exato e pelas
    capacidades realmente implementadas, posteriores e não autorizados.
 
@@ -331,9 +332,11 @@ Essas responsabilidades pertencem aos owners técnicos nomeados de `STATE-03` a
 faltar, a claim permanece ausente. OpenAPI v1 conserva byte a byte a superfície
 fechada `pt-BR|en-GB`; contrato/serving v2 estão implementados e possuem
 Automatic Quality Gate aprovado; integração, restart, cold backup/restore
-confinado e limites estão implementados e verificados focalmente, mas seu
-Automatic Quality Gate permanece `NOT_RUN`; dataset e homologação continuam
-posteriores e não autorizados.
+confinado e limites estão implementados e verificados focalmente; seu
+Automatic Quality Gate foi aprovado sob
+`AUTH-STATE07-V2-INTEGRATION-RECOVERY-AQG-RETEST-001`, sem novo achado, e
+`AQG-S07-V2-IR-001` está `RESOLVIDO`; dataset e homologação de produto
+continuam posteriores, `NOT_RUN` e não autorizados.
 
 ## STATE-08 PRODUCTION_RELEASE
 

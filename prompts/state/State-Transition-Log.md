@@ -6174,3 +6174,37 @@ contém somente fatos cronológicos.
 - Próxima condição: dataset e homologação de produto permanecem posteriores,
   `NOT_RUN` e não autorizados; qualquer entrada exige autoridade humana
   separada e delimitada.
+
+## 2026-08-09 — Lifecycle reconciliado após aprovação do AQG de integração v2
+
+- Estado anterior e resultante: `STATE-07 TESTING_HOMOLOGATION` permanece
+  ativo; nenhum gate, Human Gate ou lifecycle foi executado ou alterado nesta
+  correção documental.
+- Autoridade e baseline:
+  `AUTH-STATE07-V2-INTEGRATION-RECOVERY-LIFECYCLE-CORR-002`, branch `main`,
+  commit `7ad6bae369eb1efbf6429902a2fd1f4441b60a32`, corpus `4.10.4` e working
+  tree inicialmente limpa.
+- OpenAPI protegido: v1 permaneceu byte a byte no SHA-256
+  `d6a686b94c926914beb28b437f464430a01de6560c2e2d476cf5c36025813e34` e blob
+  Git `a5fb3602fbab33bda6aa56cc4caaa9fdc37c8160`; v2 permaneceu byte a byte no
+  SHA-256 `01ab26ae8066971af2e5ae83ec828fae556951d5ce6c335b42f6e7cf7b062640` e
+  blob Git `8d31b200375ea834f148ea625664091cd5cdc84f`.
+- Correção factual: as duas claims correntes desatualizadas de Lifecycle agora
+  registram que o Automatic Quality Gate da integração e recuperação v2 foi
+  `APROVADO` sob
+  `AUTH-STATE07-V2-INTEGRATION-RECOVERY-AQG-RETEST-001`, sem novo achado, e que
+  `AQG-S07-V2-IR-001` está `RESOLVIDO`.
+- Limites preservados: a ordem normativa, os estados e os critérios não
+  mudaram; dataset e homologação de produto permanecem posteriores, `NOT_RUN`
+  e não autorizados. Código, testes, harness, OpenAPI, contrato, schema,
+  migration, ADR, dependência, lockfile e dataset não foram alterados.
+- Versionamento: corpus elevado por `PATCH` factual de `4.10.4` para `4.10.5`,
+  sem mudança de autoridade, precedência, estado ou critério.
+- Autoridade deste registro limitada a Lifecycle, Current State, changelog do
+  corpus e acréscimo append-only deste histórico; nenhum runtime, teste,
+  Automatic Quality Gate, Human Gate ou lifecycle foi executado.
+- Verificação documental estática: `git diff --check` e
+  `pwsh -NoProfile -File eng/check-repository.ps1` terminaram com exit code
+  `0`; a auditoria cobriu 255 arquivos não ignorados. O histórico preservou o
+  prefixo anterior com somente adição EOF; UTF-8 sem BOM, LF, newline final,
+  escopo dos quatro paths e OpenAPI v1/v2 protegidas conferiram.

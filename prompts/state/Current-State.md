@@ -633,6 +633,16 @@ proprietários.
   remanescente. O gate foi aprovado sem novo achado e
   `AQG-S07-V2-IR-001` está `RESOLVIDO`. A aprovação permanece sintética e não
   constitui homologação de produto, Human Gate ou mudança de lifecycle.
+- Correção factual subsequente de Lifecycle: autorizada sob
+  `AUTH-STATE07-V2-INTEGRATION-RECOVERY-LIFECYCLE-CORR-002` sobre
+  `main@7ad6bae369eb1efbf6429902a2fd1f4441b60a32`, corpus `4.10.4` e working
+  tree limpa. As duas claims correntes desatualizadas foram reconciliadas para
+  registrar somente o Automatic Quality Gate da integração e recuperação v2
+  `APROVADO` sob `AUTH-STATE07-V2-INTEGRATION-RECOVERY-AQG-RETEST-001`, sem
+  novo achado, e `AQG-S07-V2-IR-001` `RESOLVIDO`. A ordem normativa, os
+  estados e os critérios não mudaram; dataset e homologação de produto
+  permanecem posteriores, `NOT_RUN` e não autorizados. Nenhum runtime, teste,
+  gate, Human Gate ou lifecycle foi executado nessa correção documental.
 - Decisão arquitetural de armazenamento do corpus e evidência visual:
   [ADR-0008](../../docs/architecture/ADR-0008-Product-Corpus-Storage-And-Page-Image-Evidence.md)
   foi aceita explicitamente pelo proprietário em 2026-08-07 sobre
@@ -1175,7 +1185,7 @@ proprietários.
   a política de idioma acrescentou o 21º documento público por incremento
   versionado, e o ADR-0003 acrescentou o 22º.
 - A baseline aprovada no Human Gate de `STATE-00` permanece `3.4.0`.
-- O corpus de instruções vigente possui versão `4.10.4` e 13 arquivos em
+- O corpus de instruções vigente possui versão `4.10.5` e 13 arquivos em
   `prompts/`.
 - Visão, requisitos, arquitetura, RAG, segurança, qualidade, lifecycle,
   roadmap, backlog, estado, histórico e templates estão documentados.
