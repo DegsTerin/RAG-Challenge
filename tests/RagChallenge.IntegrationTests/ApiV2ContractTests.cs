@@ -1,10 +1,13 @@
 // Purpose: Verifies the frozen v2 query and same-origin visual-evidence HTTP projections, bounded revalidation and byte-for-byte v1 coexistence without opening a listener.
+using System.Net;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
 
 using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Hosting.Server;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Http.Features;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.DependencyInjection;
@@ -81,7 +84,7 @@ public sealed class ApiV2ContractTests
         await V2.VisualEvidenceEndpoints.HandleAsync(
             $"idxgen-{GenerationDigest}",
             $"rendermanifest-{ManifestDigest}",
-            7,
+            "7",
             ImageDigest,
             first,
             reader,
@@ -102,7 +105,7 @@ public sealed class ApiV2ContractTests
         await V2.VisualEvidenceEndpoints.HandleAsync(
             $"idxgen-{GenerationDigest}",
             $"rendermanifest-{ManifestDigest}",
-            7,
+            "7",
             ImageDigest,
             conditional,
             reader,
@@ -124,10 +127,10 @@ public sealed class ApiV2ContractTests
 
         foreach (var selector in new[]
         {
-            (Generation: "bad", Manifest: $"rendermanifest-{ManifestDigest}", Page: 7,
+            (Generation: "bad", Manifest: $"rendermanifest-{ManifestDigest}", Page: "7",
                 Image: ImageDigest),
             (Generation: $"idxgen-{GenerationDigest}",
-                Manifest: $"rendermanifest-{ManifestDigest}", Page: 7, Image: ImageDigest),
+                Manifest: $"rendermanifest-{ManifestDigest}", Page: "7", Image: ImageDigest),
         })
         {
             var context = CreateContext(app.Services, HttpMethods.Get);
@@ -149,6 +152,65 @@ public sealed class ApiV2ContractTests
     }
 
     [Fact]
+    public async Task MalformedPageNumberIsHandledBeforeTheDashboardFallback()
+    {
+        var root = Path.Combine(
+            Path.GetTempPath(),
+            "rag-challenge-v2-routing",
+            Guid.NewGuid().ToString("N"));
+        var contentRoot = Path.Combine(root, "app");
+        var storeRoot = Path.Combine(root, "store");
+        Directory.CreateDirectory(Path.Combine(contentRoot, "wwwroot"));
+        await File.WriteAllTextAsync(
+            Path.Combine(contentRoot, "wwwroot", "index.html"),
+            "<!doctype html><html><body>dashboard fallback</body></html>");
+        var reader = new FakeVisualEvidenceReader();
+        using var server = new InMemoryHttpServer();
+
+        try
+        {
+            await using var app = SetupHost.Build(
+            [
+                "--environment", IntegrationRuntimeOptions.EnvironmentName,
+                "--contentRoot", contentRoot,
+                $"--{IntegrationRuntimeOptions.EnabledKey}", "true",
+                $"--{IntegrationRuntimeOptions.StoreRootKey}", storeRoot,
+                "--RagChallenge:Setup:AllowExternalServices", "false",
+            ],
+            services =>
+            {
+                services.AddSingleton<IServer>(server);
+                services.AddSingleton<IVisualEvidenceReader>(reader);
+            });
+            await app.StartAsync();
+
+            var response = await server.SendAsync(
+                $"/api/v2/evidence/page-images/idxgen-{GenerationDigest}/" +
+                $"rendermanifest-{ManifestDigest}/not-an-integer/{ImageDigest}");
+            response.Body.Position = 0;
+            using var problem = await JsonDocument.ParseAsync(response.Body);
+            var selectedRoute = Assert.IsType<RouteEndpoint>(response.Endpoint);
+
+            Assert.Equal(V2.VisualEvidenceEndpoints.Route, selectedRoute.RoutePattern.RawText);
+            Assert.Equal(StatusCodes.Status404NotFound, response.StatusCode);
+            Assert.Equal("CH_VISUAL_EVIDENCE_NOT_AVAILABLE",
+                problem.RootElement.GetProperty("code").GetString());
+            Assert.Equal(0, reader.CallCount);
+
+            await app.StopAsync();
+        }
+        finally
+        {
+            Microsoft.Data.Sqlite.SqliteConnection.ClearAllPools();
+
+            if (Directory.Exists(root))
+            {
+                Directory.Delete(root, recursive: true);
+            }
+        }
+    }
+
+    [Fact]
     public async Task VisualConcurrencyCeilingReturnsBoundedRateLimitWithoutReading()
     {
         var reader = new FakeVisualEvidenceReader();
@@ -164,7 +226,7 @@ public sealed class ApiV2ContractTests
         await V2.VisualEvidenceEndpoints.HandleAsync(
             $"idxgen-{GenerationDigest}",
             $"rendermanifest-{ManifestDigest}",
-            7,
+            "7",
             ImageDigest,
             context,
             reader,
@@ -344,6 +406,83 @@ public sealed class ApiV2ContractTests
                 ContentVerificationOutcome.Verified);
             return Task.FromResult(VisualEvidenceReadResult.Available(
                 new VisualEvidenceContent(content, "image/png", 16, 24)));
+        }
+    }
+
+    private sealed record InMemoryHttpResponse(
+        int StatusCode,
+        Stream Body,
+        Endpoint? Endpoint);
+
+    private sealed class InMemoryHttpServer : IServer
+    {
+        private Func<IFeatureCollection, Task>? processRequest;
+
+        public IFeatureCollection Features { get; } = new FeatureCollection();
+
+        public Task StartAsync<TContext>(
+            IHttpApplication<TContext> application,
+            CancellationToken cancellationToken)
+            where TContext : notnull
+        {
+            processRequest = async features =>
+            {
+                var context = application.CreateContext(features);
+                Exception? exception = null;
+
+                try
+                {
+                    await application.ProcessRequestAsync(context);
+                }
+                catch (Exception caught)
+                {
+                    exception = caught;
+                    throw;
+                }
+                finally
+                {
+                    application.DisposeContext(context, exception);
+                }
+            };
+            return Task.CompletedTask;
+        }
+
+        public Task StopAsync(CancellationToken cancellationToken) => Task.CompletedTask;
+
+        public async Task<InMemoryHttpResponse> SendAsync(string path)
+        {
+            var execute = processRequest ?? throw new InvalidOperationException(
+                "The in-memory HTTP server has not started.");
+            var body = new MemoryStream();
+            var features = new FeatureCollection();
+            features.Set<IHttpRequestFeature>(new HttpRequestFeature
+            {
+                Method = HttpMethods.Get,
+                Path = path,
+                RawTarget = path,
+                Protocol = "HTTP/1.1",
+                Scheme = "http",
+                Headers = new HeaderDictionary(),
+            });
+            features.Set<IHttpResponseFeature>(new HttpResponseFeature
+            {
+                Headers = new HeaderDictionary(),
+            });
+            features.Set<IHttpResponseBodyFeature>(new StreamResponseBodyFeature(body));
+            features.Set<IHttpConnectionFeature>(new HttpConnectionFeature
+            {
+                RemoteIpAddress = IPAddress.Loopback,
+            });
+
+            await execute(features);
+            return new InMemoryHttpResponse(
+                features.GetRequiredFeature<IHttpResponseFeature>().StatusCode,
+                body,
+                features.Get<IEndpointFeature>()?.Endpoint);
+        }
+
+        public void Dispose()
+        {
         }
     }
 }

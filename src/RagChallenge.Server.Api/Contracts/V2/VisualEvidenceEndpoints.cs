@@ -11,7 +11,7 @@ namespace RagChallenge.Server.Api.Contracts.V2;
 internal static class VisualEvidenceEndpoints
 {
     internal const string Route =
-        "/api/v2/evidence/page-images/{indexGenerationId}/{renderManifestId}/{pageNumber:int}/{imageContentObjectId}";
+        "/api/v2/evidence/page-images/{indexGenerationId}/{renderManifestId}/{pageNumber}/{imageContentObjectId}";
     internal const string RateLimitPolicy = "visual-evidence-v2";
     private static readonly TimeSpan Deadline = TimeSpan.FromSeconds(30);
 
@@ -29,7 +29,7 @@ internal static class VisualEvidenceEndpoints
     internal static async Task HandleAsync(
         string indexGenerationId,
         string renderManifestId,
-        int pageNumber,
+        string pageNumber,
         string imageContentObjectId,
         HttpContext context,
         IVisualEvidenceReader reader,
@@ -154,20 +154,30 @@ internal static class VisualEvidenceEndpoints
     private static bool TryCreateSelector(
         string indexGenerationId,
         string renderManifestId,
-        int pageNumber,
+        string pageNumber,
         string imageContentObjectId,
         out VisualEvidenceSelector selector)
     {
         selector = default!;
+
+        if (!int.TryParse(
+                pageNumber,
+                NumberStyles.None,
+                CultureInfo.InvariantCulture,
+                out var parsedPageNumber) ||
+            parsedPageNumber <= 0)
+        {
+            return false;
+        }
 
         try
         {
             selector = new VisualEvidenceSelector(
                 new IndexGenerationId(indexGenerationId),
                 new RenderManifestId(renderManifestId),
-                pageNumber,
+                parsedPageNumber,
                 new ContentObjectId(imageContentObjectId));
-            return pageNumber > 0;
+            return true;
         }
         catch (ArgumentException)
         {
