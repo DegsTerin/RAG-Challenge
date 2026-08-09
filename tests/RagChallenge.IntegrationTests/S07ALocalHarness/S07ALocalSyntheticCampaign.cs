@@ -65,12 +65,20 @@ internal static partial class S07ALocalSyntheticCampaign
         var outputPath = Path.Combine(
             plan.Workspace.EvidenceRoot,
             "synthetic-campaign-result.json");
-        await File.WriteAllTextAsync(
+        await File.WriteAllBytesAsync(
             outputPath,
-            JsonSerializer.Serialize(output, IndentedJson) +
-                "\n",
-            new UTF8Encoding(encoderShouldEmitUTF8Identifier: false),
+            SerializeEvidenceJson(output),
             cancellationToken);
+    }
+
+    internal static byte[] SerializeEvidenceJson<T>(T value)
+    {
+        var json = JsonSerializer.Serialize(value, IndentedJson)
+            .Replace("\r\n", "\n", StringComparison.Ordinal)
+            .Replace('\r', '\n');
+        return new UTF8Encoding(
+            encoderShouldEmitUTF8Identifier: false,
+            throwOnInvalidBytes: true).GetBytes(json + "\n");
     }
 
     private static Dictionary<string, FixtureDocument> MaterialiseDocuments(
@@ -100,30 +108,27 @@ internal static partial class S07ALocalSyntheticCampaign
                 fixture.GetProperty("documentFormat").GetString(),
                 content);
             var vectorsPath = Path.Combine(workspace.VectorStoreRoot, documentId + ".json");
-            File.WriteAllText(
+            File.WriteAllBytes(
                 vectorsPath,
-                JsonSerializer.Serialize(
+                SerializeEvidenceJson(
                     units.Select(unit => new
                     {
                         unit.LocationKind,
                         unit.LocationNumber,
                         vector = DeterministicEmbeddingProvider.Embed(unit.Text),
-                    }),
-                    IndentedJson) + "\n",
-                new UTF8Encoding(encoderShouldEmitUTF8Identifier: false));
+                    })));
             documents.Add(documentId, new FixtureDocument(documentId, units));
         }
 
-        File.WriteAllText(
+        File.WriteAllBytes(
             Path.Combine(workspace.ControlStoreRoot, "campaign-boundary.json"),
-            JsonSerializer.Serialize(new
+            SerializeEvidenceJson(new
             {
                 datasetRevision = S07ALocalHarnessDefinition.DatasetRevision,
                 environmentId = S07ALocalHarnessDefinition.EnvironmentId,
                 networkPolicyId = S07ALocalHarnessDefinition.NetworkPolicyId,
                 documentIds = documents.Keys.Order(StringComparer.Ordinal),
-            }, IndentedJson) + "\n",
-            new UTF8Encoding(encoderShouldEmitUTF8Identifier: false));
+            }));
         return documents;
     }
 

@@ -2,12 +2,15 @@
 using System.Diagnostics;
 using System.Net;
 using System.Security.Cryptography;
+using System.Text;
 using System.Text.Json;
 
 namespace RagChallenge.IntegrationTests.S07ALocalHarness;
 
 public sealed class S07ALocalHarnessTests
 {
+    private static readonly string[] EvidenceJsonTestValues = ["alpha", "beta"];
+
     [Fact]
     public void PreparationEnvelopePinsInputsProvidersPoliciesAndCommands()
     {
@@ -113,6 +116,26 @@ public sealed class S07ALocalHarnessTests
             S07ALocalHarnessDefinition.NetworkPolicyId,
             exception.Message,
             StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void EvidenceJsonSerializationUsesDeterministicUtf8LfBytes()
+    {
+        var bytes = S07ALocalSyntheticCampaign.SerializeEvidenceJson(new
+        {
+            schemaVersion = 1,
+            values = EvidenceJsonTestValues,
+        });
+        const string expected = "{\n" +
+            "  \"schemaVersion\": 1,\n" +
+            "  \"values\": [\n" +
+            "    \"alpha\",\n" +
+            "    \"beta\"\n" +
+            "  ]\n" +
+            "}\n";
+
+        Assert.Equal(Encoding.UTF8.GetBytes(expected), bytes);
+        Assert.DoesNotContain((byte)'\r', bytes);
     }
 
     [Fact]
