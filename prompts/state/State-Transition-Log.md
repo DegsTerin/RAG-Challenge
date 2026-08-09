@@ -5929,3 +5929,52 @@ contém somente fatos cronológicos.
 - Próxima condição: autoridade separada e delimitada para reiniciar o Automatic
   Quality Gate de `S07-A` sobre baseline limpa que inclua esta reconciliação;
   nenhum Human Gate ou avanço de lifecycle é inferido.
+
+## 2026-08-09 — Automatic Quality Gate de S07-A aprovado
+
+- Estado anterior e resultante: `STATE-07 TESTING_HOMOLOGATION` permanece
+  ativo; o Automatic Quality Gate de `S07-A` foi aprovado, sem Human Gate ou
+  mudança de lifecycle.
+- Autoridade e baseline: `AUTH-S07-A-AQG-RETEST-003` autorizou o reinício
+  integral local, offline, determinístico e sequencial sobre branch `main`,
+  commit `a6626a363713b4fbcf83387b7b2104eae1f3e918`, corpus `4.10.1`, working
+  tree inicialmente limpa e OpenAPI v1 preservada no SHA-256
+  `d6a686b94c926914beb28b437f464430a01de6560c2e2d476cf5c36025813e34`.
+- Preflight: zero processo e zero listener comprovadamente pertencente ao
+  RAG-Challenge; nada foi encerrado.
+- Auditoria estática: A1-A5, seus commits, correções focais, estado factual,
+  histórico append-only, manifests congelados e evidência ignorada conferiram.
+  Não houve mudança pós-A2 no dataset, nem alteração de dependência, lockfile
+  ou OpenAPI. Os três manifests permaneceram UTF-8/LF sem BOM, com hashes
+  diretos e embutidos correspondentes.
+- Evidência e agregados: os oito arquivos task-owned permaneceram ignorados e
+  não rastreados, sem reparse point; o resultado A3 permaneceu imutável no
+  SHA-256 `9efc2eef05388433af58e01242a1b1589556c43620eeec509f583fba0c2073bc`;
+  os sete agregados sintéticos recalculados permaneceram em `1.000000`.
+- Comandos reais: `pwsh -NoProfile -File eng/check-repository.ps1`,
+  `pwsh -NoProfile -File tests/RagChallenge.IntegrationTests/S07ALocalHarness/Invoke-S07ALocalHarness.ps1 -Mode Validate`
+  e `pwsh -NoProfile -File eng/ci.ps1 -Offline`; todos terminaram com exit code
+  `0`. A auditoria cobriu 244 arquivos, `Validate` aprovou 6 de 6 testes e a CI
+  aprovou build sem avisos ou erros, 146 testes unitários, 164 de integração,
+  10 de arquitetura e 38 do Dashboard, com 94,91% de linhas e 67,42% de
+  branches.
+- Correção focal confirmada: o build imediatamente posterior a `Validate`
+  passou sem bloqueio de assembly por `testhost`; `AQG-S07-004` está
+  `RESOLVIDO` pelo commit `a6626a363713b4fbcf83387b7b2104eae1f3e918`.
+- Disposição: Automatic Quality Gate `APROVADO`, sem novo achado;
+  `AQG-S07-001` a `AQG-S07-004` estão `RESOLVIDOS`;
+  `S07-A-FIND-001` e `S07-A-FIND-004` permanecem `OPEN`, enquanto
+  `S07-A-FIND-002`, `S07-A-FIND-003` e `S07-A-FIND-005` permanecem
+  `RESOLVIDOS`.
+- Limitações preservadas: todos os thresholds de produto continuam `NOT_RUN`;
+  não houve A3, `-Mode Run`, alteração de evidência, dataset, manifests,
+  thresholds, código, testes, dependências, lockfiles, contratos, OpenAPI,
+  schema, migrations ou ADRs; sem provider, fonte real, browser, rede,
+  segurança dinâmica, carga, recuperação, acessibilidade, Linux, OCI, Human
+  Gate, lifecycle, ação externa, push, publicação ou deploy.
+- Autoridade deste registro: `AUTH-S07-A-AQG-RECONCILE-001`, limitada ao
+  relatório de homologação, Current State e acréscimo append-only deste
+  histórico.
+- Próxima condição: qualquer continuação de `S07-A` ou `STATE-07` deve nomear
+  e autorizar separadamente a fronteira ainda `NOT_RUN`; a aprovação deste
+  gate sintético não prepara Human Gate nem promove lifecycle.

@@ -3,15 +3,18 @@
 ## Purpose and authority
 
 This report reconciles `S07-A` A1-A4, the single local, offline, deterministic
-and sequential A3 campaign executed under `AUTH-S07-A-RUN-001`, and the A5
-verification approved under `AUTH-S07-A-A5-RETEST-002` on 2026-08-08. This
-documentary update is authorised by `AUTH-S07-A-A5-RECONCILE-001`. The report is
-factual evidence for the synthetic `ENV-S07-A-LOCAL-01` boundary only.
+and sequential A3 campaign executed under `AUTH-S07-A-RUN-001`, the A5
+verification approved under `AUTH-S07-A-A5-RETEST-002` on 2026-08-08, and the
+Automatic Quality Gate approved under `AUTH-S07-A-AQG-RETEST-003` on
+2026-08-09. The A5 documentary update was authorised by
+`AUTH-S07-A-A5-RECONCILE-001`; the gate result is recorded under
+`AUTH-S07-A-AQG-RECONCILE-001`. The report is factual evidence for the
+synthetic `ENV-S07-A-LOCAL-01` boundary only.
 
 This report does not claim product-corpus quality, real-provider quality,
 performance, security, accessibility, Linux, OCI or production homologation.
-It is not an Automatic Quality Gate, a Human Gate, a lifecycle transition,
-publication or deployment authority.
+It is not a Human Gate, a lifecycle transition, publication or deployment
+authority.
 
 The governing inputs are the
 [S07-A proposal](STATE-07-S07-A-Evaluation-And-Security-Proposal.md),
@@ -27,19 +30,24 @@ The governing inputs are the
 | A3 authority | `AUTH-S07-A-RUN-001` |
 | A4 authority | `AUTH-S07-A-RECONCILE-001` |
 | A5 authority | `AUTH-S07-A-A5-RETEST-002` |
-| Documentary reconciliation authority | `AUTH-S07-A-A5-RECONCILE-001` |
+| A5 documentary reconciliation authority | `AUTH-S07-A-A5-RECONCILE-001` |
+| Automatic Quality Gate authority | `AUTH-S07-A-AQG-RETEST-003` |
+| Gate documentary reconciliation authority | `AUTH-S07-A-AQG-RECONCILE-001` |
 | Repository | `C:\Projects\RAG-Challenge` |
 | Branch | `main` |
 | A3 and A4 baseline `HEAD` | `43ddc0de4a6c10b32a657f3c1e471a743cb42b5f` |
 | A5 and documentary baseline `HEAD` | `6cd939849909a8abf2c5dd0534244da5f19be833` |
+| Automatic Quality Gate baseline `HEAD` | `a6626a363713b4fbcf83387b7b2104eae1f3e918` |
 | Prompt corpus | `4.10.1` |
 | Working tree before A3 | clean |
 | Working tree before A4 | clean |
 | Working tree before A5 | clean |
-| Working tree before documentary reconciliation | clean |
+| Working tree before each documentary reconciliation | clean |
+| Working tree before the Automatic Quality Gate | clean |
 | Lifecycle | `STATE-07 TESTING_HOMOLOGATION` active |
 | A4 runtime preflight | `NOT_APPLICABLE` — documentary reconciliation only; no process or listener was inspected or stopped |
 | A5 runtime preflight | applicable; no RAG-Challenge-owned process or listener was found or stopped |
+| Automatic Quality Gate runtime preflight | applicable; no RAG-Challenge-owned process or listener was found or stopped |
 | Current runtime preflight | `NOT_APPLICABLE` — documentary reconciliation only; no process or listener was inspected or stopped |
 
 A3 was limited to the frozen local synthetic campaign. A4 was limited to
@@ -47,6 +55,10 @@ reading its frozen inputs and ignored task-owned evidence and creating this
 report. A5 reconciled A1-A4, recalculated the frozen identities and aggregates,
 and executed only the three authorised local checks. Neither A4, A5 nor this
 documentary reconciliation altered the frozen inputs or retained A3 evidence.
+
+The Automatic Quality Gate audited A1-A5, their commits, the reconciled factual
+state, the frozen manifests and the ignored evidence before executing its three
+authorised commands. It did not rerun A3 or alter any tracked or ignored input.
 
 The preserved negative scope includes an A3 rerun, `-Mode Run`, threshold
 changes, dataset or manifest changes, source or test changes during A5,
@@ -68,6 +80,8 @@ change.
 | Retained-workspace validation correction | `275becfb04a4d0f7a1703c3be3f4c59d87550cc2` | phase-aware validation committed |
 | Future evidence line-ending correction | `6cd939849909a8abf2c5dd0534244da5f19be833` | deterministic UTF-8/LF serialisation and pure validation regression committed; retained A3 evidence unchanged |
 | A5 integral verification | `AUTH-S07-A-A5-RETEST-002` | `APPROVED`; no new finding |
+| Validation-owned testhost shutdown correction | `a6626a363713b4fbcf83387b7b2104eae1f3e918` | `Validate` tracks its process tree, reports output and waits up to 90 seconds for its owned testhost processes to exit |
+| Automatic Quality Gate | `AUTH-S07-A-AQG-RETEST-003` | `APPROVED`; no new finding |
 
 During A5, every frozen file identity and embedded digest listed below was
 recalculated and matched. The eight ignored task-owned files, Git exclusions,
@@ -81,6 +95,7 @@ revalidated without rewriting the campaign workspace.
 | Dataset | `rag-eval-catalogue-v1` | matched |
 | Revision | `rag-eval-catalogue-v1-candidate-001` | matched |
 | Freeze | `frozen-a2-unscored` under `AUTH-S07-A-FREEZE-001` | matched |
+| Dataset manifest file | `7275056bac4c3d545df0502494f36739704e21714f9499e9497250d3dd31261a` | matched exact retained bytes |
 | Dataset manifest embedded digest | `ea51362782d171005d8ffc47bf9bc5c9885b4bccb294b101941f2da8d2183a7b` | matched exact zeroed-field digest rule |
 | Case inventory file | `549474bbdc75100e37fe17af7d691f805c7362e523c9ec9abd2e354d0570a0be` | matched |
 | Case inventory embedded manifest | `1430c0f9ce3fed6f223b6f3b2e299cb41ba774e8dc2c3830f22aa71b4b50c912` | matched |
@@ -247,6 +262,54 @@ completed with zero warnings and zero errors. These results verify A5 only;
 they do not substitute for an Automatic Quality Gate or expand the product
 homologation claim.
 
+## Automatic Quality Gate results
+
+The complete Automatic Quality Gate restarted on 2026-08-09 under
+`AUTH-S07-A-AQG-RETEST-003` on clean
+`main@a6626a363713b4fbcf83387b7b2104eae1f3e918`, prompt corpus `4.10.1` and
+the protected OpenAPI v1 SHA-256
+`d6a686b94c926914beb28b437f464430a01de6560c2e2d476cf5c36025813e34`.
+The directed runtime preflight found zero independently running
+RAG-Challenge-owned process and zero owned listener; nothing was stopped.
+
+The static audit confirmed the A1-A5 commits and subsequent focal corrections,
+the factual records, append-only history, frozen dataset boundary and absence
+of OpenAPI, dependency or lockfile changes. The three frozen JSON manifests
+were strict UTF-8/LF without BOM, their exact and embedded digests matched, and
+the dataset directory remained unchanged after A2. It also revalidated:
+
+- zero scored product-corpus documents and cases, one excluded real-source
+  candidate, three deterministic fixtures and 11 synthetic cases;
+- all six exact question-to-evidence language strata, keeping `en` separate
+  from `en-GB`;
+- all eight ignored, untracked task-owned evidence/store files and their
+  hashes, with zero reparse point;
+- the immutable A3 result SHA-256
+  `9efc2eef05388433af58e01242a1b1589556c43620eeec509f583fba0c2073bc`;
+  and
+- all seven synthetic aggregates at `1.000000`, without including them in a
+  product-corpus denominator.
+
+The authorised commands and observed results were:
+
+| Command | Exit code | Observed result |
+| --- | ---: | --- |
+| `pwsh -NoProfile -File eng/check-repository.ps1` | `0` | repository audit passed for 244 non-ignored files; command wall time 1.6 seconds |
+| `pwsh -NoProfile -File tests/RagChallenge.IntegrationTests/S07ALocalHarness/Invoke-S07ALocalHarness.ps1 -Mode Validate` | `0` | 6 of 6 validation tests passed; runner test time 8.7199 seconds and command wall time 36.5 seconds |
+| `pwsh -NoProfile -File eng/ci.ps1 -Offline` | `0` | locked restore, policy checks, build, .NET and Dashboard tests, coverage, lint, typecheck, production build and the repository audit passed; command wall time 142.6 seconds |
+
+The offline CI run passed 146 unit tests, 164 integration tests, 10
+architecture tests and 38 Dashboard tests. The build completed with zero
+warnings and zero errors. Measured .NET coverage was 94.91% of lines
+(`32116/33837`) and 67.42% of branches (`3536/5245`). The build immediately
+after `Validate` completed without the assembly-lock failure previously caused
+by a retained validation-owned testhost, confirming the correction in
+`a6626a363713b4fbcf83387b7b2104eae1f3e918`.
+
+The Automatic Quality Gate result is `APPROVED` with no new finding. This
+approval applies only to the named local, offline, deterministic synthetic
+boundary and does not change any `NOT_RUN` product-campaign threshold.
+
 ## Security, recovery, load and accessibility disposition
 
 The single deterministic prompt-injection/provenance case and the single
@@ -273,6 +336,15 @@ No P0 or P1 finding was observed within the narrow synthetic boundary. This
 does not assert that the unexecuted product, provider, source, browser,
 security, load, recovery or accessibility boundaries contain no such finding.
 
+The earlier Automatic Quality Gate findings have these final dispositions:
+
+| ID | Disposition | Factual disposition |
+| --- | --- | --- |
+| `AQG-S07-001` | `RESOLVED` | A5 was subsequently completed, approved under `AUTH-S07-A-A5-RETEST-002` and reconciled in commit `da3fb024174db2a1e2b47a23bed69412bf3287df`. |
+| `AQG-S07-002` | `RESOLVED` | The historical planning paragraph now distinguishes its then-current unexecuted status from the later A1-A5 execution. |
+| `AQG-S07-003` | `RESOLVED` | The current pending-evidence item now records completed A1-A5 execution instead of the obsolete no-execution claim; both state corrections are in commit `d784da599949ca5cc0dcedb2a7d6faee3060ae97`. |
+| `AQG-S07-004` | `RESOLVED` | Commit `a6626a363713b4fbcf83387b7b2104eae1f3e918` waits for validation-owned testhost shutdown; the complete gate passed `Validate` followed immediately by the offline CI build without an assembly lock. |
+
 ## Limitations and residual risks
 
 - There are zero scored product-corpus documents and cases.
@@ -297,12 +369,13 @@ the named deterministic fixture boundary.
 
 ## Cleanup, rollback and lifecycle effect
 
-A3 left its eight task-owned ignored evidence/store files intact for A4 and A5.
-A4 and A5 performed no cleanup and changed no frozen input or retained evidence.
-This documentary reconciliation also leaves those files intact.
+A3 left its eight task-owned ignored evidence/store files intact for A4, A5
+and the Automatic Quality Gate. A4, A5 and the gate performed no cleanup and
+changed no frozen input or retained evidence. This documentary reconciliation
+also leaves those files intact.
 
-No Automatic Quality Gate or Human Gate ran. `STATE-07
-TESTING_HOMOLOGATION` remains active and `STATE-08` was not entered.
+The `S07-A` Automatic Quality Gate is approved. No Human Gate ran;
+`STATE-07 TESTING_HOMOLOGATION` remains active and `STATE-08` was not entered.
 
 ## Outcome
 
@@ -311,8 +384,10 @@ and all 11 frozen synthetic cases passed. A5 subsequently passed all three
 authorised commands on the reconciled baseline. The result is accepted only as
 deterministic fixture contract evidence for `ENV-S07-A-LOCAL-01`.
 
-`S07-A` remains incomplete for product homologation: every product-corpus
-threshold is `NOT_RUN`, the real provider/source/browser and broader local
-security/load/recovery/accessibility boundaries are unexecuted, and
-`S07-A-FIND-001` plus historical `S07-A-FIND-004` remain open. A5 is approved,
-but no Automatic Quality Gate, Human Gate or lifecycle transition is implied.
+The complete Automatic Quality Gate approved the committed `S07-A` increment
+with no new finding and resolved `AQG-S07-001` through `AQG-S07-004`.
+`S07-A` nevertheless remains incomplete for product homologation: every
+product-corpus threshold is `NOT_RUN`, the real provider/source/browser and
+broader local security/load/recovery/accessibility boundaries are unexecuted,
+and `S07-A-FIND-001` plus historical `S07-A-FIND-004` remain open. No Human
+Gate or lifecycle transition is implied.

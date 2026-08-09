@@ -547,6 +547,25 @@ proprietários.
   A evidência A3 histórica permanece imutável. A5 não foi Automatic Quality
   Gate, Human Gate ou mudança de lifecycle e não amplia a homologação além da
   fronteira sintética local, offline, determinística e sequencial.
+- Automatic Quality Gate de `S07-A`: reiniciado integralmente e `APROVADO` em
+  2026-08-09 sob `AUTH-S07-A-AQG-RETEST-003`, sobre
+  `main@a6626a363713b4fbcf83387b7b2104eae1f3e918`, corpus `4.10.1`, working
+  tree inicialmente limpa e OpenAPI v1 no SHA-256 protegido. A auditoria
+  estática confirmou A1-A5, commits, estado factual, histórico append-only,
+  manifests congelados, oito arquivos ignorados sem reparse point, todos os
+  digests e os sete agregados sintéticos em `1.000000`. O preflight encontrou
+  zero processo e zero listener pertencente ao RAG-Challenge. Os três comandos
+  autorizados terminaram com exit code `0`: auditoria de 244 arquivos,
+  `Validate` com 6 de 6 testes e CI offline com 146 testes unitários, 164 de
+  integração, 10 de arquitetura e 38 do Dashboard; cobertura de 94,91% de
+  linhas e 67,42% de branches, build sem avisos ou erros. `AQG-S07-001` a
+  `AQG-S07-004` estão `RESOLVIDOS`; nenhum novo achado surgiu.
+  `S07-A-FIND-001` e `S07-A-FIND-004` permanecem `OPEN`, enquanto
+  `S07-A-FIND-002`, `S07-A-FIND-003` e `S07-A-FIND-005` permanecem
+  `RESOLVIDOS`. A aprovação vale somente para a fronteira sintética local;
+  thresholds de produto, provider, fonte, browser, segurança dinâmica, carga,
+  recuperação, acessibilidade, Linux, OCI e produção permanecem `NOT_RUN`.
+  Nenhum Human Gate ou avanço de lifecycle é inferido.
 - Decisão arquitetural de armazenamento do corpus e evidência visual:
   [ADR-0008](../../docs/architecture/ADR-0008-Product-Corpus-Storage-And-Page-Image-Evidence.md)
   foi aceita explicitamente pelo proprietário em 2026-08-07 sobre
@@ -1378,11 +1397,12 @@ autorizada.
    para cada banco antes de sua ativação.
 2. Validar e ativar individualmente novos registros de fonte oficial; a
    aceitação arquitetural não autoriza URL, rede, download ou crawling.
-3. `S07-A` A1-A5 foi concluído na fronteira local, offline, determinística e
-   sintética autorizada. Seu Automatic Quality Gate permanece pendente de
-   reinício sob autoridade explícita e separada; homologação de produto e
-   qualquer outro lote de `STATE-07` permanecem não executados e não
-   autorizados.
+3. `S07-A` A1-A5 e seu Automatic Quality Gate foram concluídos e aprovados na
+   fronteira local, offline, determinística e sintética autorizada.
+   Homologação de produto e as fronteiras de provider, fonte, browser,
+   segurança dinâmica, carga, recuperação, acessibilidade, Linux, OCI e
+   produção permanecem `NOT_RUN`; qualquer outro lote de `STATE-07` continua
+   não executado e não autorizado.
 4. Verificar tier, entitlement, spend limit e controles da conta OpenAI, além
    da recuperação/geração bilíngue, antes de usar ou anunciar os providers.
 5. Homologar desempenho e capacidade do `SqliteExactVectorStore`; a fixture
@@ -1411,12 +1431,12 @@ autorizada.
 
 ## Próxima autoridade
 
-`S07-A` A1-A5 está concluído na fronteira autorizada, com A5 aprovado e os
-achados `S07-A-FIND-001` e `S07-A-FIND-004` ainda abertos nas disposições acima.
-O próximo ingresso diretamente relacionado exige autoridade separada e
-delimitada para reiniciar o Automatic Quality Gate de `S07-A` sobre uma
-baseline limpa que inclua esta reconciliação documental. Nenhum Human Gate ou
-avanço de lifecycle é inferido.
+`S07-A` A1-A5 e seu Automatic Quality Gate estão concluídos e aprovados na
+fronteira sintética local autorizada, com `S07-A-FIND-001` e o histórico
+`S07-A-FIND-004` ainda abertos nas disposições acima. Isso não satisfaz a
+homologação de produto nem prepara Human Gate: qualquer continuação deve nomear
+e autorizar separadamente a fronteira ainda `NOT_RUN`, sem inferir avanço de
+lifecycle.
 
 O segundo refinamento arquitetural da ordem registrada em Lifecycle está
 implementado até `S04-CORR-04-E` somente na fronteira local, offline, sintética
