@@ -2,11 +2,11 @@
 
 ## Versão atual
 
-- Versão: `4.10.3`
+- Versão: `4.10.4`
 - Data: 2026-08-09
-- Status: `STATE-07` ativo; ordem factual de dependência reconciliada até a
-  integração e recuperação v2, cujo Automatic Quality Gate permanece
-  `NOT_RUN`; Human Gate e mudança de lifecycle não executados
+- Status: `STATE-07` ativo; Automatic Quality Gate da integração e recuperação
+  v2 aprovado na fronteira sintética, com `AQG-S07-V2-IR-001` resolvido;
+  homologação de produto, Human Gate e mudança de lifecycle não executados
 - Escopo: 13 arquivos ativos em `prompts/`
 
 A versão do corpus é independente da versão futura do software.
@@ -20,6 +20,32 @@ A versão do corpus é independente da versão futura do software.
 
 Toda alteração atualiza este arquivo e, quando necessário,
 [`../Start-Here.md`](../Start-Here.md).
+
+## 4.10.4 — 2026-08-09
+
+- Reconcilia sob
+  `AUTH-STATE07-V2-INTEGRATION-RECOVERY-AQG-RECONCILE-001` o Automatic Quality
+  Gate reiniciado e aprovado sob
+  `AUTH-STATE07-V2-INTEGRATION-RECOVERY-AQG-RETEST-001`, sobre
+  `main@f6c648c40cf8d0280cfceca5509a381bddb9fc8f`, corpus `4.10.3` e working
+  tree inicialmente limpa.
+- Registra auditoria de 255 arquivos, preflight com zero processo e listener
+  pertencente ao RAG-Challenge e 53 de 53 testes focais aprovados.
+- Registra dois builds determinísticos no ZIP SHA-256
+  `ab5e450efe1b606f2b8e50e2f5885a3c1ae19bf4ad90dd96d096e00506daec28` e
+  harness publicado `Passed`, com três readiness `Ready`, restart, cold
+  restore, PNG, `304`, teto de 64 MiB e token bucket 10/11 aprovados.
+- Registra CI offline com 147 testes unitários, 174 de integração, 11 de
+  arquitetura e 42 do Dashboard, cobertura de 94,81% de linhas e 67,24% de
+  branches, e build sem avisos ou erros; cleanup completo e nenhum runtime ou
+  listener remanescente.
+- Dispõe o gate como `APROVADO`, sem novo achado, e
+  `AQG-S07-V2-IR-001` como `RESOLVIDO`. Preserva OpenAPI v1/v2 byte a byte e
+  não converte a aprovação sintética em homologação de produto, Human Gate ou
+  mudança de lifecycle.
+- A mudança é `PATCH` factual. Esta reconciliação não executa runtime, testes,
+  Automatic Quality Gate, Human Gate ou lifecycle e não altera código, teste,
+  harness, contrato, schema, migration, ADR, dependência, lockfile ou dataset.
 
 ## 4.10.3 — 2026-08-09
 

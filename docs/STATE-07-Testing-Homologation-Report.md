@@ -23,8 +23,9 @@ deterministic and synthetic verification boundary.
 
 It additionally records the separately authorised composed v2 integration,
 restart, cold backup/restore and contractual-limit implementation completed in
-commit `e5dae7ee5a786417fba2c6ef0555686816b0b330`. This is focused synthetic
-integration evidence only; its Automatic Quality Gate has not run.
+commit `e5dae7ee5a786417fba2c6ef0555686816b0b330`, its focal correction in commit
+`f6c648c40cf8d0280cfceca5509a381bddb9fc8f` and the subsequently approved
+Automatic Quality Gate. This remains synthetic integration evidence only.
 
 The governing inputs are the
 [S07-A proposal](STATE-07-S07-A-Evaluation-And-Security-Proposal.md),
@@ -516,11 +517,41 @@ OpenAPI v1 and v2 remained byte-for-byte unchanged:
 | Deterministic artefact | two offline builds produced the same ZIP SHA-256 `e27c64571b63538e4cba21f552df500c24a4bab3a6365e6229e2d9dd033f2f7d` |
 | Cleanup | task-owned runtime, store, backup, restore and temporary paths were removed; no RAG-Challenge host or listener remained |
 
-The focused result is `PASSED` only for this synthetic integration boundary.
-It is not an Automatic Quality Gate, product homologation, Human Gate or
-lifecycle transition. Browser and assistive-technology execution, real corpus,
-source, renderer, data and provider access, external network, benchmark, load,
-p95/p99, broad crash injection, operational backup/restore, Linux, OCI,
-production, publication and deployment remain `NOT_RUN`. No contract, OpenAPI,
-schema, migration, ADR, dependency, lockfile or retained product evidence was
-changed.
+The focused result was `PASSED` only for this synthetic integration boundary
+and did not itself constitute an Automatic Quality Gate, product homologation,
+Human Gate or lifecycle transition.
+
+### Automatic Quality Gate retest
+
+The complete Automatic Quality Gate restarted under
+`AUTH-STATE07-V2-INTEGRATION-RECOVERY-AQG-RETEST-001` on 2026-08-09 from clean
+`main@f6c648c40cf8d0280cfceca5509a381bddb9fc8f`, prompt corpus `4.10.3` and
+the protected OpenAPI v1 and v2 identities recorded above. The baseline
+included the focal correction for `AQG-S07-V2-IR-001`.
+
+The observed gate evidence was:
+
+| Boundary | Observed result |
+| --- | --- |
+| Repository audit | 255 non-ignored files passed |
+| Runtime preflight | zero RAG-Challenge-owned process and zero owned listener; nothing was stopped |
+| Focused Release verification | 53 of 53 tests passed |
+| Deterministic published artefact | two builds produced the same ZIP SHA-256 `ab5e450efe1b606f2b8e50e2f5885a3c1ae19bf4ad90dd96d096e00506daec28` |
+| Published artefact harness | `Passed` exclusively on loopback, with all three readiness observations `Ready` |
+| Restart and cold restore | the active generation was preserved after restart and after the confined cold restore |
+| Same-origin visual flow | PNG serving and conditional `304` passed |
+| Contractual limits | the 64 MiB ceiling passed; ten immediate visual requests were accepted and the eleventh was rejected by the token bucket |
+| Complete offline CI | 147 unit, 174 integration, 11 architecture and 42 Dashboard tests passed; line coverage was 94.81% and branch coverage was 67.24%; the build had zero warnings and zero errors |
+| Cleanup | task-owned cleanup completed; no RAG-Challenge runtime or listener remained |
+
+The Automatic Quality Gate result is `APPROVED`, with no new finding.
+`AQG-S07-V2-IR-001` is `RESOLVED`.
+
+This approval remains limited to the local, offline, deterministic, synthetic
+and sequential integration boundary. Browser and assistive-technology
+execution, real corpus, source, renderer, data and provider access, external
+network, benchmark, load, p95/p99, broad crash injection, operational
+backup/restore, Linux, OCI, production, publication and deployment remain
+`NOT_RUN`. No product homologation, Human Gate or lifecycle transition is
+implied. No contract, OpenAPI, schema, migration, ADR, dependency, lockfile or
+retained product evidence was changed by the gate.

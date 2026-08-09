@@ -6123,3 +6123,54 @@ contém somente fatos cronológicos.
 - Próxima condição: o Automatic Quality Gate da integração e recuperação v2
   exige autoridade humana separada sobre baseline documental limpa; dataset e
   homologação permanecem posteriores e não autorizados.
+
+## 2026-08-09 — Automatic Quality Gate da integração e recuperação v2 aprovado
+
+- Estado anterior e resultante: `STATE-07 TESTING_HOMOLOGATION` permanece
+  ativo; o Automatic Quality Gate da integração e recuperação v2 foi aprovado,
+  sem Human Gate ou mudança de lifecycle.
+- Autoridade e baseline:
+  `AUTH-STATE07-V2-INTEGRATION-RECOVERY-AQG-RETEST-001` autorizou o reinício
+  integral local, offline, determinístico, sintético e sequencial sobre branch
+  `main`, commit `f6c648c40cf8d0280cfceca5509a381bddb9fc8f`, corpus `4.10.3` e
+  working tree inicialmente limpa.
+- OpenAPI protegido: v1 permaneceu byte a byte no SHA-256
+  `d6a686b94c926914beb28b437f464430a01de6560c2e2d476cf5c36025813e34` e blob
+  Git `a5fb3602fbab33bda6aa56cc4caaa9fdc37c8160`; v2 permaneceu byte a byte no
+  SHA-256 `01ab26ae8066971af2e5ae83ec828fae556951d5ce6c335b42f6e7cf7b062640` e
+  blob Git `8d31b200375ea834f148ea625664091cd5cdc84f`.
+- Auditoria e preflight: a auditoria estática de 255 arquivos foi aprovada; o
+  preflight encontrou zero processo e zero listener comprovadamente pertencente
+  ao RAG-Challenge, e nada foi encerrado.
+- Verificação focal e determinismo: 53 de 53 testes focais passaram. Dois
+  builds produziram o mesmo ZIP SHA-256
+  `ab5e450efe1b606f2b8e50e2f5885a3c1ae19bf4ad90dd96d096e00506daec28`.
+- Harness publicado: o resultado foi `Passed`, exclusivamente em loopback, com
+  três readiness `Ready`, geração preservada após restart e cold restore,
+  serving PNG e `304`, teto de 64 MiB e token bucket com dez acessos aceitos e
+  o décimo primeiro rejeitado.
+- CI offline: build sem avisos ou erros, 147 testes unitários, 174 de
+  integração, 11 de arquitetura e 42 do Dashboard aprovados, com 94,81% de
+  linhas e 67,24% de branches.
+- Cleanup: concluído; nenhum runtime ou listener pertencente ao RAG-Challenge
+  permaneceu.
+- Disposição: Automatic Quality Gate `APROVADO`, sem novo achado;
+  `AQG-S07-V2-IR-001` está `RESOLVIDO`.
+- Limitações preservadas: corpus, fonte, renderer, provider e dado reais,
+  rede externa, browser, tecnologia assistiva, benchmark, carga, p95/p99,
+  crash injection abrangente, recuperação operacional, Linux, OCI e produção
+  permaneceram `NOT_RUN`. A aprovação sintética não constitui homologação de
+  produto, Human Gate ou promoção de lifecycle.
+- Autoridade deste registro:
+  `AUTH-STATE07-V2-INTEGRATION-RECOVERY-AQG-RECONCILE-001`, limitada ao
+  relatório de homologação, Current State, versão `4.10.4` do corpus e
+  acréscimo append-only deste histórico. Esta reconciliação não executou
+  runtime, testes, Automatic Quality Gate, Human Gate ou lifecycle.
+- Verificação documental estática: `git diff --check` e
+  `pwsh -NoProfile -File eng/check-repository.ps1` terminaram com exit code
+  `0`; a auditoria cobriu 255 arquivos não ignorados. O histórico preservou o
+  prefixo anterior com somente adição EOF; UTF-8 sem BOM, LF, newline final,
+  escopo dos quatro paths e OpenAPI v1/v2 protegidas conferiram.
+- Próxima condição: dataset e homologação de produto permanecem posteriores,
+  `NOT_RUN` e não autorizados; qualquer entrada exige autoridade humana
+  separada e delimitada.
