@@ -20,6 +20,139 @@ $expectedAuthority = "AUTH-S07-A-RUN-001"
 $previousAuthority = [System.Environment]::GetEnvironmentVariable(
     $authorityVariable,
     [System.EnvironmentVariableTarget]::Process)
+$testHostExitTimeout = [TimeSpan]::FromSeconds(90)
+
+function Update-OwnedProcessTree {
+    param(
+        [Parameter(Mandatory)]
+        [System.Collections.Generic.HashSet[int]]$OwnedProcessIds,
+
+        [Parameter(Mandatory)]
+        [AllowEmptyCollection()]
+        [System.Collections.Generic.HashSet[int]]$OwnedTestHostIds
+    )
+
+    $snapshot = @(Get-CimInstance Win32_Process -ErrorAction Stop)
+    $changed = $true
+
+    while ($changed) {
+        $changed = $false
+
+        foreach ($candidate in $snapshot) {
+            $processId = [int]$candidate.ProcessId
+            $parentProcessId = [int]$candidate.ParentProcessId
+
+            if (-not $OwnedProcessIds.Contains($parentProcessId) -or
+                $OwnedProcessIds.Contains($processId)) {
+                continue
+            }
+
+            [void]$OwnedProcessIds.Add($processId)
+            $changed = $true
+
+            if ([string]::Equals(
+                    $candidate.Name,
+                    "testhost.exe",
+                    [StringComparison]::OrdinalIgnoreCase)) {
+                [void]$OwnedTestHostIds.Add($processId)
+            }
+        }
+    }
+}
+
+function Invoke-ValidationTest {
+    param(
+        [Parameter(Mandatory)]
+        [string]$ProjectPath,
+
+        [Parameter(Mandatory)]
+        [string]$TestFilter,
+
+        [Parameter(Mandatory)]
+        [string]$WorkingDirectory,
+
+        [Parameter(Mandatory)]
+        [TimeSpan]$TestHostTimeout
+    )
+
+    $startInfo = [System.Diagnostics.ProcessStartInfo]::new()
+    $startInfo.FileName = "dotnet"
+    $startInfo.WorkingDirectory = $WorkingDirectory
+    $startInfo.UseShellExecute = $false
+    $startInfo.CreateNoWindow = $true
+    $startInfo.RedirectStandardOutput = $true
+    $startInfo.RedirectStandardError = $true
+
+    foreach ($argument in @(
+            "test",
+            $ProjectPath,
+            "--configuration",
+            "Release",
+            "--no-restore",
+            "--filter",
+            $TestFilter,
+            "--logger",
+            "console;verbosity=normal")) {
+        [void]$startInfo.ArgumentList.Add($argument)
+    }
+
+    $process = [System.Diagnostics.Process]::Start($startInfo)
+
+    if ($null -eq $process) {
+        throw "The S07-A validation process could not be started."
+    }
+
+    $standardOutputTask = $process.StandardOutput.ReadToEndAsync()
+    $standardErrorTask = $process.StandardError.ReadToEndAsync()
+    $ownedProcessIds = [System.Collections.Generic.HashSet[int]]::new()
+    $ownedTestHostIds = [System.Collections.Generic.HashSet[int]]::new()
+    $processTreeParameters = @{
+        OwnedProcessIds = $ownedProcessIds
+        OwnedTestHostIds = $ownedTestHostIds
+    }
+    [void]$ownedProcessIds.Add($process.Id)
+
+    try {
+        do {
+            Update-OwnedProcessTree @processTreeParameters
+        }
+        while (-not $process.WaitForExit(100))
+
+        Update-OwnedProcessTree @processTreeParameters
+        $exitCode = $process.ExitCode
+        $standardOutput = $standardOutputTask.GetAwaiter().GetResult()
+        $standardError = $standardErrorTask.GetAwaiter().GetResult()
+        [Console]::Out.Write($standardOutput)
+        [Console]::Error.Write($standardError)
+    }
+    finally {
+        $process.Dispose()
+    }
+
+    $deadline = [DateTime]::UtcNow.Add($TestHostTimeout)
+
+    while ($true) {
+        $runningTestHostIds = @(
+            Get-CimInstance Win32_Process -ErrorAction Stop |
+                Where-Object {
+                    $ownedTestHostIds.Contains([int]$_.ProcessId)
+                } |
+                ForEach-Object { [int]$_.ProcessId })
+
+        if ($runningTestHostIds.Count -eq 0) {
+            return $exitCode
+        }
+
+        if ([DateTime]::UtcNow -ge $deadline) {
+            throw (
+                "S07-A validation-owned testhost processes did not exit within " +
+                "$([int]$TestHostTimeout.TotalSeconds) seconds: " +
+                ($runningTestHostIds -join ", "))
+        }
+
+        Start-Sleep -Milliseconds 100
+    }
+}
 
 if (-not (Test-Path -LiteralPath (Join-Path $repositoryRoot "RAG-Challenge.sln") -PathType Leaf)) {
     throw "The RAG-Challenge repository root could not be resolved."
@@ -56,14 +189,24 @@ try {
             [System.EnvironmentVariableTarget]::Process)
     }
 
-    & dotnet test $projectPath `
-        --configuration Release `
-        --no-restore `
-        --filter $filter `
-        --logger "console;verbosity=normal"
+    $testExitCode = if ($Mode -eq "Validate") {
+        Invoke-ValidationTest `
+            -ProjectPath $projectPath `
+            -TestFilter $filter `
+            -WorkingDirectory $repositoryRoot `
+            -TestHostTimeout $testHostExitTimeout
+    }
+    else {
+        & dotnet test $projectPath `
+            --configuration Release `
+            --no-restore `
+            --filter $filter `
+            --logger "console;verbosity=normal"
+        $LASTEXITCODE
+    }
 
-    if ($LASTEXITCODE -ne 0) {
-        throw "The S07-A local harness command failed with exit code $LASTEXITCODE."
+    if ($testExitCode -ne 0) {
+        throw "The S07-A local harness command failed with exit code $testExitCode."
     }
 }
 finally {
