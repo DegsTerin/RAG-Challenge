@@ -6084,3 +6084,42 @@ contém somente fatos cronológicos.
 - Próxima condição: o Automatic Quality Gate desta integração e recuperação v2
   exige autoridade separada sobre baseline documental limpa; nenhuma decisão
   humana ou promoção de lifecycle é inferida.
+
+## 2026-08-09 — Ordem factual de Lifecycle reconciliada para v2
+
+- Estado anterior e resultante: `STATE-07 TESTING_HOMOLOGATION` permanece
+  ativo; nenhum Automatic Quality Gate deste incremento, Human Gate ou
+  lifecycle foi executado ou alterado.
+- Autoridade e baseline:
+  `AUTH-STATE07-V2-INTEGRATION-RECOVERY-LIFECYCLE-CORR-001`, branch `main`,
+  commit `de40a93e0023f854fec840a93934c199c294f9c6`, corpus `4.10.2` e working
+  tree inicialmente limpa.
+- OpenAPI protegido: v1 permaneceu byte a byte no SHA-256
+  `d6a686b94c926914beb28b437f464430a01de6560c2e2d476cf5c36025813e34` e blob
+  Git `a5fb3602fbab33bda6aa56cc4caaa9fdc37c8160`; v2 permaneceu byte a byte no
+  SHA-256 `01ab26ae8066971af2e5ae83ec828fae556951d5ce6c335b42f6e7cf7b062640` e
+  blob Git `8d31b200375ea834f148ea625664091cd5cdc84f`.
+- Correção factual: a ordem normativa foi preservada e somente suas anotações
+  de estado foram atualizadas para registrar que `S04-CORR-04-E` possui
+  Automatic Quality Gate corretivo aprovado; contrato/serving v2 estão
+  implementados e possuem Automatic Quality Gate aprovado; integração,
+  restart, cold backup/restore confinado e limites foram implementados e
+  verificados focalmente no commit
+  `e5dae7ee5a786417fba2c6ef0555686816b0b330`, mas seu Automatic Quality Gate
+  permanece `NOT_RUN`; dataset e homologação continuam posteriores e não
+  autorizados.
+- Limites preservados: nenhuma ordem normativa, estado, critério, código,
+  teste, harness, OpenAPI, contrato, schema, migration, ADR, dependência ou
+  lockfile foi alterado. Runtime, testes, Automatic Quality Gate, Human Gate e
+  lifecycle permaneceram `NOT_RUN`.
+- Versionamento: corpus elevado por `PATCH` factual de `4.10.2` para `4.10.3`,
+  sem mudança de autoridade, precedência, estado ou critério.
+- Verificação documental estática: `git diff --check` e
+  `pwsh -NoProfile -File eng/check-repository.ps1` terminaram com exit code
+  `0`; a auditoria cobriu 255 arquivos não ignorados. O histórico preservou
+  integralmente o prefixo anterior, com somente adição EOF; UTF-8, LF final,
+  escopo dos quatro paths e os hashes/blobs protegidos de OpenAPI v1/v2
+  conferiram.
+- Próxima condição: o Automatic Quality Gate da integração e recuperação v2
+  exige autoridade humana separada sobre baseline documental limpa; dataset e
+  homologação permanecem posteriores e não autorizados.

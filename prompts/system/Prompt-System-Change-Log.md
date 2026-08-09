@@ -2,12 +2,11 @@
 
 ## Versão atual
 
-- Versão: `4.10.2`
+- Versão: `4.10.3`
 - Data: 2026-08-09
-- Status: `STATE-07` ativo; integração, restart e cold backup/restore v2
-  implementados e verificados focalmente na fronteira local, offline e
-  sintética; Automatic Quality Gate deste incremento, Human Gate e mudança de
-  lifecycle não executados
+- Status: `STATE-07` ativo; ordem factual de dependência reconciliada até a
+  integração e recuperação v2, cujo Automatic Quality Gate permanece
+  `NOT_RUN`; Human Gate e mudança de lifecycle não executados
 - Escopo: 13 arquivos ativos em `prompts/`
 
 A versão do corpus é independente da versão futura do software.
@@ -21,6 +20,25 @@ A versão do corpus é independente da versão futura do software.
 
 Toda alteração atualiza este arquivo e, quando necessário,
 [`../Start-Here.md`](../Start-Here.md).
+
+## 4.10.3 — 2026-08-09
+
+- Corrige somente as anotações factuais desatualizadas da ordem de dependência
+  em Lifecycle sob
+  `AUTH-STATE07-V2-INTEGRATION-RECOVERY-LIFECYCLE-CORR-001`, sobre
+  `main@de40a93e0023f854fec840a93934c199c294f9c6`, corpus `4.10.2` e working
+  tree limpa.
+- Registra que `S04-CORR-04-E` possui Automatic Quality Gate corretivo
+  aprovado e que contrato/serving v2 estão implementados e possuem Automatic
+  Quality Gate aprovado.
+- Registra que integração, restart, cold backup/restore confinado e limites
+  foram implementados e verificados focalmente no commit
+  `e5dae7ee5a786417fba2c6ef0555686816b0b330`, mas seu Automatic Quality Gate
+  permanece `NOT_RUN`; dataset e homologação continuam posteriores e não
+  autorizados.
+- Preserva a ordem normativa, os estados, os critérios e OpenAPI v1/v2 byte a
+  byte. A mudança é `PATCH` factual e não executa runtime, testes, Automatic
+  Quality Gate, Human Gate ou lifecycle.
 
 ## 4.10.2 — 2026-08-09
 

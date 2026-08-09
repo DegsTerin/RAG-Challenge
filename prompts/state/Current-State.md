@@ -602,6 +602,18 @@ proprietários.
   não homologa produto, dado/renderer/provider/fonte real, browser, tecnologia
   assistiva, carga, crash injection abrangente, recuperação operacional,
   Linux, OCI ou produção.
+- Correção factual da ordem de dependência de `STATE-07` em Lifecycle:
+  autorizada sob `AUTH-STATE07-V2-INTEGRATION-RECOVERY-LIFECYCLE-CORR-001`
+  sobre `main@de40a93e0023f854fec840a93934c199c294f9c6`, corpus `4.10.2` e
+  working tree limpa. Somente as anotações de estado foram reconciliadas:
+  `S04-CORR-04-E` possui Automatic Quality Gate corretivo aprovado;
+  contrato/serving v2 estão implementados e possuem Automatic Quality Gate
+  aprovado; integração, restart, cold backup/restore confinado e limites foram
+  implementados e verificados focalmente no commit
+  `e5dae7ee5a786417fba2c6ef0555686816b0b330`, mas seu Automatic Quality Gate
+  permanece `NOT_RUN`; dataset e homologação continuam posteriores e não
+  autorizados. A ordem normativa, os estados e os critérios não mudaram;
+  nenhum runtime, teste, gate ou lifecycle foi executado.
 - Decisão arquitetural de armazenamento do corpus e evidência visual:
   [ADR-0008](../../docs/architecture/ADR-0008-Product-Corpus-Storage-And-Page-Image-Evidence.md)
   foi aceita explicitamente pelo proprietário em 2026-08-07 sobre
@@ -1144,7 +1156,7 @@ proprietários.
   a política de idioma acrescentou o 21º documento público por incremento
   versionado, e o ADR-0003 acrescentou o 22º.
 - A baseline aprovada no Human Gate de `STATE-00` permanece `3.4.0`.
-- O corpus de instruções vigente possui versão `4.10.2` e 13 arquivos em
+- O corpus de instruções vigente possui versão `4.10.3` e 13 arquivos em
   `prompts/`.
 - Visão, requisitos, arquitetura, RAG, segurança, qualidade, lifecycle,
   roadmap, backlog, estado, histórico e templates estão documentados.
