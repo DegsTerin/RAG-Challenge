@@ -104,7 +104,8 @@ function Start-TaskProcess {
     $startInfo.Environment["RagChallenge__Setup__AllowExternalServices"] = "false"
     $startInfo.Environment["Logging__LogLevel__Default"] = "Warning"
     $script:process = [System.Diagnostics.Process]::Start($startInfo)
-    $deadline = [System.DateTimeOffset]::UtcNow.AddSeconds(30)
+    $readinessTimeoutSeconds = 30
+    $deadline = [System.DateTimeOffset]::UtcNow.AddSeconds($readinessTimeoutSeconds)
     $lastReadinessError = "No readiness response was received."
 
     while ([System.DateTimeOffset]::UtcNow -lt $deadline) {
@@ -113,7 +114,13 @@ function Start-TaskProcess {
         }
 
         try {
-            $ready = Invoke-RestMethod -Uri "$baseUri/api/v1/health/ready" -TimeoutSec 2
+            $remainingReadinessSeconds = [Math]::Max(
+                1,
+                [int][Math]::Ceiling(
+                    ($deadline - [System.DateTimeOffset]::UtcNow).TotalSeconds))
+            $ready = Invoke-RestMethod `
+                -Uri "$baseUri/api/v1/health/ready" `
+                -TimeoutSec $remainingReadinessSeconds
 
             if ($ready.status -eq "Ready") {
                 return $ready

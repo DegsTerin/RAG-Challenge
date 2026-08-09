@@ -277,6 +277,27 @@ public sealed class SetupHostArtefactTests
         Assert.DoesNotContain("\"Failure", committedConfiguration, StringComparison.OrdinalIgnoreCase);
     }
 
+    [Fact]
+    public void PublishedHarnessDoesNotCancelInitialReadinessBeforeItsDeadline()
+    {
+        var harness = File.ReadAllText(Path.Combine(
+            FindRepositoryRoot(),
+            "src",
+            "RagChallenge.Server.Api",
+            "Test-IntegrationArtifact.ps1"));
+
+        Assert.Contains("$readinessTimeoutSeconds = 30", harness, StringComparison.Ordinal);
+        Assert.Contains(
+            "AddSeconds($readinessTimeoutSeconds)",
+            harness,
+            StringComparison.Ordinal);
+        Assert.Contains(
+            "-TimeoutSec $remainingReadinessSeconds",
+            harness,
+            StringComparison.Ordinal);
+        Assert.DoesNotContain("-TimeoutSec 2", harness, StringComparison.Ordinal);
+    }
+
     private static string FindRepositoryRoot()
     {
         var current = new DirectoryInfo(AppContext.BaseDirectory);
