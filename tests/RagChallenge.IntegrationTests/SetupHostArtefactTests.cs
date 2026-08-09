@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.DependencyInjection;
 
+using RagChallenge.Application.IndexingRetrieval;
 using RagChallenge.Server.Api.Contracts.V1;
 using RagChallenge.Server.Api.OperationsGovernance;
 
@@ -63,6 +64,44 @@ public sealed class SetupHostArtefactTests
             document.RootElement.ToString(),
             "password",
             StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
+    public async Task VisualEvidenceCompositionIsFailClosedOutsideIntegration()
+    {
+        await using var defaultApp = SetupHost.Build([]);
+        Assert.IsType<DisabledVisualEvidenceReader>(
+            defaultApp.Services.GetRequiredService<IVisualEvidenceReader>());
+
+        var taskRoot = Path.Combine(
+            Path.GetTempPath(),
+            "rag-challenge-state07-v2-composition",
+            Guid.NewGuid().ToString("N"));
+
+        try
+        {
+            await using var integrationApp = SetupHost.Build(
+            [
+                "--environment", IntegrationRuntimeOptions.EnvironmentName,
+                $"--{IntegrationRuntimeOptions.EnabledKey}", "true",
+                $"--{IntegrationRuntimeOptions.StoreRootKey}", taskRoot,
+                "--RagChallenge:Setup:AllowExternalServices", "false",
+            ]);
+            var query = Assert.IsType<SyntheticIntegrationRuntime>(
+                integrationApp.Services.GetRequiredService<IQuestionAnsweringService>());
+            Assert.Same(
+                query,
+                integrationApp.Services.GetRequiredService<IVisualEvidenceReader>());
+        }
+        finally
+        {
+            Microsoft.Data.Sqlite.SqliteConnection.ClearAllPools();
+
+            if (Directory.Exists(taskRoot))
+            {
+                Directory.Delete(taskRoot, recursive: true);
+            }
+        }
     }
 
     [Theory]

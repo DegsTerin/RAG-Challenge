@@ -85,9 +85,9 @@ internal static class SetupHost
         });
         builder.Services.AddSingleton<QueryConcurrencyGate>();
         builder.Services.AddSingleton<VisualEvidenceConcurrencyGate>();
-        builder.Services.AddSingleton<IVisualEvidenceReader, DisabledVisualEvidenceReader>();
         if (integrationOptions is null)
         {
+            builder.Services.AddSingleton<IVisualEvidenceReader, DisabledVisualEvidenceReader>();
             builder.Services.AddSingleton<IQuestionAnsweringService,
                 DisabledQuestionAnsweringService>();
             builder.Services.AddSingleton<IQueryReadinessProbe,
@@ -103,6 +103,8 @@ internal static class SetupHost
             builder.Services.AddSingleton<IQuestionAnsweringService>(services =>
                 services.GetRequiredService<SyntheticIntegrationRuntime>());
             builder.Services.AddSingleton<IQueryReadinessProbe>(services =>
+                services.GetRequiredService<SyntheticIntegrationRuntime>());
+            builder.Services.AddSingleton<IVisualEvidenceReader>(services =>
                 services.GetRequiredService<SyntheticIntegrationRuntime>());
         }
         configureServices?.Invoke(builder.Services);

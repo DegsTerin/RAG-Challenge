@@ -1,7 +1,7 @@
-# Purpose: Builds the reproducible local STATE-06 integration artefact from the existing offline installation; it never restores dependencies, contacts a network, or publishes externally.
+# Purpose: Builds the reproducible local STATE-07 v2 integration artefact from the existing offline installation; it never restores dependencies, contacts a network, or publishes externally.
 [CmdletBinding()]
 param(
-    [string]$OutputRoot = "artifacts-local/s06-a"
+    [string]$OutputRoot = "artifacts-local/state07-v2-integration"
 )
 
 $ErrorActionPreference = "Stop"
@@ -29,8 +29,8 @@ if (-not $resolvedOutput.StartsWith(
 }
 
 $contentRoot = Join-Path $resolvedOutput "content"
-$archivePath = Join-Path $resolvedOutput "rag-challenge-s06-a.zip"
-$archiveDigestPath = Join-Path $resolvedOutput "rag-challenge-s06-a.zip.sha256"
+$archivePath = Join-Path $resolvedOutput "rag-challenge-state07-v2-integration.zip"
+$archiveDigestPath = Join-Path $resolvedOutput "rag-challenge-state07-v2-integration.zip.sha256"
 
 if (Test-Path -LiteralPath $resolvedOutput) {
     $verifiedOutput = [System.IO.Path]::GetFullPath($resolvedOutput)
@@ -157,7 +157,7 @@ finally {
 $archiveDigest = (Get-FileHash -LiteralPath $archivePath -Algorithm SHA256).Hash.ToLowerInvariant()
 [System.IO.File]::WriteAllText(
     $archiveDigestPath,
-    "$archiveDigest  rag-challenge-s06-a.zip`n",
+    "$archiveDigest  rag-challenge-state07-v2-integration.zip`n",
     $utf8WithoutBom)
 
 [pscustomobject]@{

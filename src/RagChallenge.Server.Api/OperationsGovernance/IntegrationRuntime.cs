@@ -1,4 +1,7 @@
-// Purpose: Composes the local synthetic STATE-06 runtime over durable stores; it is available only in the explicit Integration environment and never enables external access.
+// Purpose: Composes the local synthetic query and visual-evidence runtime over durable stores; it remains confined to the explicit Integration environment and never enables external access.
+using System.Globalization;
+using System.Text;
+
 using RagChallenge.Application.Administration;
 using RagChallenge.Application.Documents;
 using RagChallenge.Application.IndexingRetrieval;
@@ -60,16 +63,15 @@ internal sealed record IntegrationRuntimeOptions(SqliteStoreOptions Stores)
 internal sealed class SyntheticIntegrationRuntime :
     IQuestionAnsweringService,
     IQueryReadinessProbe,
+    IVisualEvidenceReader,
     IDisposable
 {
-    internal const string ConfigurationRevision = "s06-integration-v1";
+    internal const string ConfigurationRevision = "state07-v2-integration-v1";
     internal static readonly CorpusId CorpusId = new("database-systems-catalogue-mvp");
 
     private static readonly DateTimeOffset BaselineInstant =
         new(2026, 8, 5, 12, 0, 0, TimeSpan.Zero);
-    private static readonly byte[] SyntheticCsv = System.Text.Encoding.UTF8.GetBytes(
-        "capability,description\n" +
-        "persistence,\"Raw content catalogue activation and index survive restart.\"\n");
+    private static readonly byte[] SyntheticPdf = CreateSyntheticPdf("PERSISTENCE");
     private static readonly EmbeddingProviderDescriptor EmbeddingDescriptor =
         new("synthetic", "deterministic-v1", "s06-a", dimensions: 3);
     private static readonly LanguageModelDescriptor LanguageModelDescriptor =
@@ -81,6 +83,7 @@ internal sealed class SyntheticIntegrationRuntime :
     private readonly IAnswerEvidenceActivitySink answerEvidenceActivitySink;
     private readonly SemaphoreSlim initialisationGate = new(1, 1);
     private QuestionAnsweringService? answeringService;
+    private VerifiedPageImageEvidenceReader? visualEvidenceReader;
 
     internal SyntheticIntegrationRuntime(
         IntegrationRuntimeOptions options,
@@ -189,6 +192,29 @@ internal sealed class SyntheticIntegrationRuntime :
         }
     }
 
+    public async Task<VisualEvidenceReadResult> ReadAsync(
+        VisualEvidenceSelector selector,
+        DateTimeOffset observedAt,
+        CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            await EnsureInitialisedAsync(cancellationToken).ConfigureAwait(false);
+            return await visualEvidenceReader!.ReadAsync(
+                selector,
+                observedAt,
+                cancellationToken).ConfigureAwait(false);
+        }
+        catch (OperationCanceledException)
+        {
+            throw;
+        }
+        catch (Exception exception) when (IsLocalRuntimeFailure(exception))
+        {
+            return VisualEvidenceReadResult.Unavailable();
+        }
+    }
+
     internal async Task EnsureInitialisedAsync(
         CancellationToken cancellationToken = default)
     {
@@ -225,10 +251,16 @@ internal sealed class SyntheticIntegrationRuntime :
             }
 
             await VerifyPersistedStateAsync(
+                stores,
                 controlStore,
                 vectorStore,
                 contentStore,
                 cancellationToken).ConfigureAwait(false);
+            visualEvidenceReader = new VerifiedPageImageEvidenceReader(
+                CorpusId,
+                new SqliteQueryActivationReader(stores),
+                controlStore,
+                contentStore);
             answeringService = new QuestionAnsweringService(
                 CorpusId,
                  EmbeddingDescriptor,
@@ -256,18 +288,18 @@ internal sealed class SyntheticIntegrationRuntime :
         IDocumentContentStore contentStore,
         CancellationToken cancellationToken)
     {
-        var productId = new DatabaseProductId("db-s06-synthetic");
+        var productId = new DatabaseProductId("db-state07-v2-synthetic");
         var productRevision = new DatabaseProductRevision(1);
-        var documentId = new DocumentId("doc-s06-synthetic-csv");
+        var documentId = new DocumentId("doc-state07-v2-synthetic-pdf");
         var documentVersion = new DocumentVersionNumber(1);
-        var adapterId = new SourceAdapterId("local-synthetic-csv");
+        var adapterId = new SourceAdapterId("local-synthetic-pdf");
         var context = new DocumentChunkingContext(
             CorpusId,
             productId,
             productRevision,
             documentId,
             documentVersion,
-            DocumentFormat.Csv,
+            DocumentFormat.Pdf,
             DocumentContentLanguage.EnGb,
             adapterId,
             SourceTrustClass.LocalAuthorised);
@@ -275,21 +307,21 @@ internal sealed class SyntheticIntegrationRuntime :
             contentStore,
             [new PdfPigDocumentParser(), new CsvHelperDocumentParser()],
             new DeterministicChunkingStrategy());
-        await using var source = new MemoryStream(SyntheticCsv, writable: false);
+        await using var source = new MemoryStream(SyntheticPdf, writable: false);
         var ingested = await ingestion.IngestAsync(new DocumentIngestionRequest(
             source,
             MaximumByteLength: 131_072,
-            ContentMediaType.TextCsv,
+            ContentMediaType.ApplicationPdf,
             new ParserPolicy(131_072, 32, 131_072, 32, 16_384),
             new ChunkingPolicy(128, 16, 160),
             context), cancellationToken).ConfigureAwait(false);
         var category = new DatabaseCategory(
-            new DatabaseCategoryId("category-s06-synthetic"),
+            new DatabaseCategoryId("category-state07-v2-synthetic"),
             "Synthetic integration fixture");
         var product = new DatabaseProduct(
             productId,
             productRevision,
-            "Synthetic restart database",
+            "Synthetic v2 integration database",
             CatalogueItemStatus.Active,
             [category.Id]);
         var document = new DocumentVersion(
@@ -297,7 +329,7 @@ internal sealed class SyntheticIntegrationRuntime :
             documentVersion,
             productId,
             productRevision,
-            DocumentFormat.Csv,
+            DocumentFormat.Pdf,
             DocumentContentLanguage.EnGb,
             CatalogueItemStatus.Active,
             ingested.Content.ContentObjectId,
@@ -313,7 +345,7 @@ internal sealed class SyntheticIntegrationRuntime :
             [document]);
         EnsureApplied(await controlStore.CommitCatalogueAsync(
             new CatalogueCommitRequest(
-                new OperationId("s06-catalogue-v1"),
+                new OperationId("state07-v2-catalogue-v1"),
                 catalogue,
                 ExpectedCurrentRevision: 0,
                 BaselineInstant),
@@ -324,17 +356,56 @@ internal sealed class SyntheticIntegrationRuntime :
             productRevision,
             documentId,
             documentVersion,
-            DocumentFormat.Csv,
+            DocumentFormat.Pdf,
             adapterId,
             SourceTrustClass.LocalAuthorised);
         var bindings = new[] { binding };
+        var imageBytes = CreateSyntheticPng();
+        await using var imageSource = new MemoryStream(imageBytes, writable: false);
+        var imageContent = await contentStore.PutAndVerifyAsync(new BoundedContentInput(
+            imageSource,
+            imageBytes.Length,
+            ContentMediaType.ImagePng), cancellationToken).ConfigureAwait(false);
+        var renderProfile = new RenderProfileId(RenderProfileId.PdfPagePngV1);
+        var renderer = new RendererDescriptor("synthetic-renderer-v1");
+        var page = new DocumentPageImage(
+            documentId,
+            documentVersion,
+            ingested.Content.ContentObjectId,
+            pageNumber: 1,
+            renderProfile,
+            renderer,
+            imageContent.ContentObjectId,
+            new ImageSha256(imageContent.Sha256.Value),
+            imageContent.ByteLength,
+            DocumentPageImage.PngMediaType,
+            widthPixels: 1,
+            heightPixels: 1);
+        var renderManifest = DocumentRenderManifest.Create(
+            documentId,
+            documentVersion,
+            ingested.Content.ContentObjectId,
+            sourcePageCount: 1,
+            renderProfile,
+            renderer,
+            [page],
+            BaselineInstant.AddSeconds(30));
+        var renderCommit = await controlStore.CommitAsync(
+            new RenderManifestCommitRequest(CorpusId, renderManifest),
+            cancellationToken).ConfigureAwait(false);
+        if (renderCommit.Outcome is not StoreMutationOutcome.Applied and
+            not StoreMutationOutcome.AlreadyApplied)
+        {
+            throw new InvalidDataException(
+                "The synthetic render manifest could not be persisted.");
+        }
         var evidenceBindings = new[]
         {
             new DocumentActivationEvidenceBinding(
                 binding,
                 ingested.Content.ContentObjectId,
                 CreatePermittedRights(documentId, documentVersion),
-                renderManifestId: null),
+                renderManifest.RenderManifestId),
         };
         var profile = CreateCompatibilityProfile();
         var specification = new IndexGenerationSpecification(
@@ -350,7 +421,7 @@ internal sealed class SyntheticIntegrationRuntime :
             vectorStore,
             controlStore);
         var manifest = await indexing.BuildAsync(new CorpusIndexingRequest(
-            new CandidateBuildId("candidate-s06-integration-v1"),
+            new CandidateBuildId("candidate-state07-v2-integration-v1"),
             specification,
             [new IndexDocumentInput(
                 binding,
@@ -360,7 +431,7 @@ internal sealed class SyntheticIntegrationRuntime :
                 profile.ChunkingPolicy)],
             EmbeddingDescriptor,
             profile,
-            Audit("s06-generation-v1", "build-index", BaselineInstant.AddMinutes(1)),
+            Audit("state07-v2-generation-v1", "build-index", BaselineInstant.AddMinutes(1)),
             BaselineInstant.AddMinutes(1)), cancellationToken).ConfigureAwait(false);
         var activation = await new GenerationActivationService(controlStore).ActivateAsync(
             new GenerationActivationRequest(
@@ -369,7 +440,7 @@ internal sealed class SyntheticIntegrationRuntime :
                 ExpectedCurrentRevision: 0,
                 SqliteControlPlaneStore.MinimumPreviousGenerationRetention,
                 Audit(
-                    "s06-activation-v1",
+                    "state07-v2-activation-v1",
                     "activate-generation",
                     BaselineInstant.AddMinutes(2))),
             cancellationToken).ConfigureAwait(false);
@@ -394,6 +465,7 @@ internal sealed class SyntheticIntegrationRuntime :
                 new DocumentRightsEvidenceReference($"synthetic-rights-{right}"))));
 
     private static async Task VerifyPersistedStateAsync(
+        SqliteStoreOptions stores,
         SqliteControlPlaneStore controlStore,
         SqliteVectorIndexStore vectorStore,
         IDocumentContentStore contentStore,
@@ -420,6 +492,21 @@ internal sealed class SyntheticIntegrationRuntime :
                 cancellationToken).ConfigureAwait(false);
         }
 
+        var querySnapshot = await new SqliteQueryActivationReader(stores)
+            .ReadAsync(CorpusId, BaselineInstant, cancellationToken).ConfigureAwait(false) ??
+            throw new InvalidDataException(
+                "The persisted integration query snapshot is unavailable.");
+        var visualBinding = querySnapshot.EvidenceBindings.SingleOrDefault();
+
+        if (visualBinding is null || !visualBinding.IsEligible ||
+            visualBinding.Binding.DocumentFormat != DocumentFormat.Pdf ||
+            visualBinding.RenderManifest is null ||
+            visualBinding.RenderManifest.OrderedPageImages.Count != 1)
+        {
+            throw new InvalidDataException(
+                "The persisted integration visual-evidence binding is unavailable.");
+        }
+
         var hits = await vectorStore.SearchExactAsync(new VectorSearchRequest(
             activation.CorpusId,
             activation.IndexGenerationId,
@@ -442,9 +529,9 @@ internal sealed class SyntheticIntegrationRuntime :
         DateTimeOffset requestedAt) =>
         new(
             new OperationId(operationId),
-            "state-06-integration",
+            "state-07-v2-integration",
             command,
-            "Bootstrap the authorised synthetic integration fixture.",
+            "Bootstrap the authorised synthetic v2 integration fixture.",
             requestedAt);
 
     private static IndexCompatibilityProfile CreateCompatibilityProfile() =>
@@ -470,6 +557,63 @@ internal sealed class SyntheticIntegrationRuntime :
         exception is ArgumentException or InvalidOperationException or
             InvalidDataException or IOException or UnauthorizedAccessException or
             Microsoft.Data.Sqlite.SqliteException;
+
+    private static byte[] CreateSyntheticPng() =>
+        Convert.FromBase64String(
+            "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=");
+
+    private static byte[] CreateSyntheticPdf(string pageMarker)
+    {
+        if (string.IsNullOrEmpty(pageMarker) ||
+            pageMarker.Any(character => character is < 'A' or > 'Z'))
+        {
+            throw new ArgumentException(
+                "A synthetic PDF marker must contain uppercase ASCII letters.",
+                nameof(pageMarker));
+        }
+
+        var content = $"BT /F1 12 Tf 72 720 Td ({pageMarker}) Tj ET";
+        string[] objects =
+        [
+            "<< /Type /Catalog /Pages 2 0 R >>",
+            "<< /Type /Pages /Kids [3 0 R] /Count 1 >>",
+            "<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Resources << /Font << /F1 5 0 R >> >> /Contents 4 0 R >>",
+            $"<< /Length {Encoding.ASCII.GetByteCount(content)} >>\nstream\n{content}\nendstream",
+            "<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>",
+        ];
+        using var stream = new MemoryStream();
+        WriteAscii(stream, "%PDF-1.4\n");
+        var offsets = new List<long> { 0 };
+
+        for (var index = 0; index < objects.Length; index++)
+        {
+            offsets.Add(stream.Position);
+            WriteAscii(
+                stream,
+                string.Create(
+                    CultureInfo.InvariantCulture,
+                    $"{index + 1} 0 obj\n{objects[index]}\nendobj\n"));
+        }
+
+        var xrefOffset = stream.Position;
+        WriteAscii(stream, $"xref\n0 {objects.Length + 1}\n");
+        WriteAscii(stream, "0000000000 65535 f \n");
+
+        foreach (var offset in offsets.Skip(1))
+        {
+            WriteAscii(
+                stream,
+                offset.ToString("D10", CultureInfo.InvariantCulture) + " 00000 n \n");
+        }
+
+        WriteAscii(
+            stream,
+            $"trailer\n<< /Size {objects.Length + 1} /Root 1 0 R >>\nstartxref\n{xrefOffset}\n%%EOF\n");
+        return stream.ToArray();
+    }
+
+    private static void WriteAscii(Stream stream, string value) =>
+        stream.Write(Encoding.ASCII.GetBytes(value));
 
     private sealed class DeterministicEmbeddingProvider : IEmbeddingProvider
     {
