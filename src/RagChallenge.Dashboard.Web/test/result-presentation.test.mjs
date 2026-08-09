@@ -1,4 +1,4 @@
-// Purpose: Component-tests safe, localised presentation of API v1 results, coverage, provenance, citations, and failures.
+// Purpose: Component-tests safe, localised presentation of API v2 results, visual evidence, coverage, provenance, citations, and failures.
 import assert from "node:assert/strict";
 import test from "node:test";
 import { createElement } from "react";
@@ -9,7 +9,7 @@ import {
   answeredResponse,
   insufficientEvidenceResponse,
   rateLimitedProblem,
-} from "./fixtures/query-v1.mjs";
+} from "./fixtures/query-v2.mjs";
 
 const vite = await createServer({
   logLevel: "silent",
@@ -50,6 +50,8 @@ test("presents coverage and both official PDF and authorised local CSV citations
     assert.match(html, /target="_blank"/);
     assert.match(html, /source-synthetic-stale/);
     assert.match(html, /correlation_synthetic_001/);
+    assert.match(html, /<img src="\/api\/v2\/evidence\/page-images\//);
+    assert.match(html, /page 142|página 142/);
   }
 });
 
@@ -150,7 +152,7 @@ test("presents a bounded client failure without fabricated server metadata", asy
     clientFailure: "ResponseIncompatible",
   });
 
-  assert.match(html, /incompatível com o contrato v1/);
+  assert.match(html, /incompatível com o contrato v2/);
   assert.equal(html.includes("Identificador da solicitação"), false);
 });
 

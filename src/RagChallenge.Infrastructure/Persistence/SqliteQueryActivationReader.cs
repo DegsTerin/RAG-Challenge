@@ -124,10 +124,19 @@ public sealed class SqliteQueryActivationReader(SqliteStoreOptions options)
                     exception);
             }
 
-            if (!language.IsSupportedByV1)
+            SourceDeclaredLanguage? sourceDeclaredLanguage = null;
+
+            try
+            {
+                sourceDeclaredLanguage = document.SourceDeclaredLanguage is null
+                    ? null
+                    : new SourceDeclaredLanguage(document.SourceDeclaredLanguage);
+            }
+            catch (ArgumentException exception)
             {
                 throw new InvalidDataException(
-                    "An active document has a content language unsupported by runtime v1.");
+                    "An active document has an invalid source-declared BCP 47 language.",
+                    exception);
             }
 
             if (binding.SourceTrustClass == SourceTrustClass.LocalAuthorised)
@@ -138,7 +147,8 @@ public sealed class SqliteQueryActivationReader(SqliteStoreOptions options)
                     hydratedRenderManifest,
                     language,
                     SourceFreshness.Local,
-                    product.DisplayName));
+                    product.DisplayName,
+                    sourceDeclaredLanguage: sourceDeclaredLanguage));
                 continue;
             }
 
@@ -173,7 +183,8 @@ public sealed class SqliteQueryActivationReader(SqliteStoreOptions options)
                 ResolveFreshness(observation, observedAt),
                 product.DisplayName,
                 registration.CanonicalHttpsUrl,
-                observation.RevalidatedAt));
+                observation.RevalidatedAt,
+                sourceDeclaredLanguage));
         }
 
         return new QueryActivationSnapshot(activation, resolved);

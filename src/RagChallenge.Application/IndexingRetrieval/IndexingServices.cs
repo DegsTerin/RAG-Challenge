@@ -135,13 +135,6 @@ public sealed class IndexDocumentInput
 
         ArgumentNullException.ThrowIfNull(contentLanguage);
 
-        if (!contentLanguage.IsSupportedByV1)
-        {
-            throw new ArgumentException(
-                "Runtime v1 cannot index a document outside its closed query-language set.",
-                nameof(contentLanguage));
-        }
-
         ContentLanguage = contentLanguage;
         ArgumentNullException.ThrowIfNull(chunks);
 

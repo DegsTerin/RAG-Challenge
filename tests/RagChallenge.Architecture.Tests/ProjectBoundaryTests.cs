@@ -192,6 +192,45 @@ public sealed class ProjectBoundaryTests
             prohibitedTerms,
             term => packageJson.Contains(term, StringComparison.OrdinalIgnoreCase));
     }
+
+    [Fact]
+    public void V2TransportDoesNotExposeInternalEvidenceAuthorityOrStorage()
+    {
+        var v2Types = typeof(global::Program).Assembly.GetTypes()
+            .Where(type => type.IsPublic && type.Namespace ==
+                "RagChallenge.Server.Api.Contracts.V2")
+            .ToArray();
+        string[] prohibitedProperties =
+        [
+            "AnswerEvidenceRecordId",
+            "Path",
+            "Bytes",
+            "Rights",
+            "Url",
+        ];
+
+        Assert.DoesNotContain(
+            v2Types.SelectMany(type => type.GetProperties()),
+            property => prohibitedProperties.Contains(
+                property.Name,
+                StringComparer.Ordinal));
+        var pageImageType = Assert.Single(
+            v2Types,
+            type => type.Name == "PageImageEvidenceV1");
+        Assert.Equal(
+            [
+                "ContentSha256",
+                "HeightPixels",
+                "ImageContentObjectId",
+                "MediaType",
+                "PageNumber",
+                "RenderManifestId",
+                "WidthPixels",
+            ],
+            pageImageType.GetProperties()
+                .Select(property => property.Name)
+                .Order(StringComparer.Ordinal));
+    }
 }
 
 internal static class RepositoryLayout

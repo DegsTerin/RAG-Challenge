@@ -1927,11 +1927,12 @@ public sealed class SqliteControlPlaneStore(SqliteStoreOptions options)
 
         foreach (var binding in requestedBindings)
         {
-            if (!contentByDocument.TryGetValue(binding, out var document) ||
-                !ParseLanguage(document.ContentLanguage).IsSupportedByV1)
+            if (!contentByDocument.TryGetValue(binding, out var document))
             {
                 return false;
             }
+
+            _ = ParseLanguage(document.ContentLanguage);
 
             contentObjects.Add((document.ContentSha256, document.ByteLength));
         }
@@ -2002,11 +2003,12 @@ public sealed class SqliteControlPlaneStore(SqliteStoreOptions options)
 
                 if (document is null || generation is null ||
                     !ActivationEvidenceMatchesDocument(evidence, document) ||
-                    !GenerationBindingMatches(generation, binding) ||
-                    !ParseLanguage(document.ContentLanguage).IsSupportedByV1)
+                    !GenerationBindingMatches(generation, binding))
                 {
                     return false;
                 }
+
+                _ = ParseLanguage(document.ContentLanguage);
 
                 await using (var source = await contentStore.OpenVerifiedAsync(
                     evidence.SourceContentObjectId,
@@ -2198,11 +2200,12 @@ public sealed class SqliteControlPlaneStore(SqliteStoreOptions options)
                     row.CatalogueProductId,
                     row.DocumentProductId,
                     StringComparison.Ordinal) ||
-                row.CatalogueProductRevision != row.DocumentProductRevision ||
-                !ParseLanguage(row.ContentLanguage).IsSupportedByV1)
+                    row.CatalogueProductRevision != row.DocumentProductRevision)
             {
                 return null;
             }
+
+            _ = ParseLanguage(row.ContentLanguage);
 
             var expectedKey = new GenerationBindingKey(
                 row.DocumentProductId,

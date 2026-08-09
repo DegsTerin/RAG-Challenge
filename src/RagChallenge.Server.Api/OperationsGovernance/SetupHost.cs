@@ -4,6 +4,7 @@ using System.Threading.RateLimiting;
 
 using RagChallenge.Application.IndexingRetrieval;
 using RagChallenge.Server.Api.Contracts.V1;
+using V2Endpoints = RagChallenge.Server.Api.Contracts.V2;
 
 namespace RagChallenge.Server.Api.OperationsGovernance;
 
@@ -50,15 +51,41 @@ internal static class SetupHost
                         QueueProcessingOrder = QueueProcessingOrder.OldestFirst,
                         AutoReplenishment = true,
                     }));
+            options.AddPolicy(V2Endpoints.VisualEvidenceEndpoints.RateLimitPolicy, context =>
+                RateLimitPartition.GetTokenBucketLimiter(
+                    context.Connection.RemoteIpAddress?.ToString() ?? "anonymous",
+                    _ => new TokenBucketRateLimiterOptions
+                    {
+                        TokenLimit = 10,
+                        TokensPerPeriod = 5,
+                        ReplenishmentPeriod = TimeSpan.FromSeconds(10),
+                        QueueLimit = 0,
+                        QueueProcessingOrder = QueueProcessingOrder.OldestFirst,
+                        AutoReplenishment = true,
+                    }));
             options.OnRejected = async (context, _) =>
             {
-                await QueryEndpoints.Problem(
-                    QueryFailureKind.RateLimited,
-                    context.HttpContext.TraceIdentifier,
-                    retryAfterSeconds: 10).ExecuteAsync(context.HttpContext);
+                if (context.HttpContext.Request.Path.StartsWithSegments(
+                    "/api/v2/evidence/page-images"))
+                {
+                    context.HttpContext.Response.Headers.RetryAfter = "10";
+                    await V2Endpoints.VisualEvidenceEndpoints.Problem(
+                        VisualEvidenceReadOutcome.Available,
+                        context.HttpContext.TraceIdentifier,
+                        rateLimited: true).ExecuteAsync(context.HttpContext);
+                }
+                else
+                {
+                    await QueryEndpoints.Problem(
+                        QueryFailureKind.RateLimited,
+                        context.HttpContext.TraceIdentifier,
+                        retryAfterSeconds: 10).ExecuteAsync(context.HttpContext);
+                }
             };
         });
         builder.Services.AddSingleton<QueryConcurrencyGate>();
+        builder.Services.AddSingleton<VisualEvidenceConcurrencyGate>();
+        builder.Services.AddSingleton<IVisualEvidenceReader, DisabledVisualEvidenceReader>();
         if (integrationOptions is null)
         {
             builder.Services.AddSingleton<IQuestionAnsweringService,
@@ -92,6 +119,8 @@ internal static class SetupHost
         app.UseRateLimiter();
         app.MapHealthV1();
         app.MapQueryV1();
+        V2Endpoints.QueryEndpoints.MapQueryV2(app);
+        V2Endpoints.VisualEvidenceEndpoints.MapVisualEvidenceV2(app);
 
         if (integrationOptions is not null)
         {

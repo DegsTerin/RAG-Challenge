@@ -9,18 +9,20 @@ import {
 
 import {
   ContractValidationError,
+  createPageImageUrl,
   isSafeHttpsUrl,
   isSourceFreshness,
   maximumQuestionBytes,
   utf8ByteCount,
   validateQuestion,
-  type CitationV1,
-  type EvidenceCoverageV1,
+  type CitationV2,
+  type EvidenceCoverageV2,
+  type PageImageEvidenceV1,
   type ProblemDetailsV1,
   type QuestionValidationFailure,
-  type QueryResponseV1,
+  type QueryResponseV2,
   type SupportedLanguage,
-} from "./contracts/api-v1";
+} from "./contracts/api-v2";
 import { dashboardCopy, knownSourceStates, type DashboardCopy } from "./i18n";
 import {
   persistPreference,
@@ -451,7 +453,7 @@ function CompletedResult({
 }: {
   copy: DashboardCopy;
   interfaceLanguage: InterfaceLanguage;
-  response: QueryResponseV1;
+  response: QueryResponseV2;
 }): JSX.Element {
   return (
     <div className="completed-result">
@@ -501,7 +503,7 @@ function CoveragePanel({
 }: {
   copy: DashboardCopy;
   interfaceLanguage: InterfaceLanguage;
-  coverage: EvidenceCoverageV1;
+  coverage: EvidenceCoverageV2;
 }): JSX.Element {
   const degradedSources = Object.entries(coverage.degradedSources);
   const metrics = [
@@ -551,7 +553,7 @@ function CitationCard({
   index,
   generationId,
 }: {
-  citation: CitationV1;
+  citation: CitationV2;
   copy: DashboardCopy;
   interfaceLanguage: InterfaceLanguage;
   index: number;
@@ -575,8 +577,23 @@ function CitationCard({
         {citation.title ?? citation.documentId}
       </h4>
       <blockquote lang={citation.contentLanguage}>{citation.excerpt}</blockquote>
+      {citation.pageImages.map((pageImage) => (
+        <VisualEvidenceImage
+          key={`${citation.documentId}-${citation.documentVersion}-${pageImage.pageNumber}`}
+          citation={citation}
+          pageImage={pageImage}
+          generationId={generationId}
+          copy={copy}
+        />
+      ))}
       <dl className="citation-summary">
         <div><dt>{copy.contentLanguageLabel}</dt><dd>{citation.contentLanguage}</dd></div>
+        {citation.sourceDeclaredLanguage !== null && (
+          <div>
+            <dt>{copy.sourceDeclaredLanguageLabel}</dt>
+            <dd>{citation.sourceDeclaredLanguage}</dd>
+          </div>
+        )}
         <div><dt>{copy.sourceFreshnessLabel}</dt><dd>{freshness}</dd></div>
         <div><dt>{copy.documentLabel}</dt><dd>{citation.documentId} v{citation.documentVersion}</dd></div>
         <div><dt>{location}</dt><dd>{citation.documentFormat}</dd></div>
@@ -602,6 +619,47 @@ function CitationCard({
         </dl>
       </details>
     </article>
+  );
+}
+
+function VisualEvidenceImage({
+  citation,
+  pageImage,
+  generationId,
+  copy,
+}: {
+  key?: string;
+  citation: CitationV2;
+  pageImage: PageImageEvidenceV1;
+  generationId: string;
+  copy: DashboardCopy;
+}): JSX.Element {
+  const [loadFailed, setLoadFailed] = useState(false);
+  const sourceTitle = citation.title ?? citation.documentId;
+  const description = copy.pageImageDescription(
+    sourceTitle,
+    citation.documentVersion,
+    pageImage.pageNumber,
+  );
+
+  return (
+    <figure className="visual-evidence">
+      {!loadFailed && (
+        <img
+          src={createPageImageUrl(generationId, pageImage)}
+          width={pageImage.widthPixels}
+          height={pageImage.heightPixels}
+          alt={description}
+          loading="lazy"
+          decoding="async"
+          onError={() => setLoadFailed(true)}
+        />
+      )}
+      <figcaption>
+        <span>{description}</span>
+        {loadFailed && <span role="status">{copy.pageImageUnavailable}</span>}
+      </figcaption>
+    </figure>
   );
 }
 

@@ -16,10 +16,131 @@ namespace RagChallenge.IntegrationTests;
 public sealed class SqliteActivationLifecycleTests
 {
     [Fact]
-    public async Task ActivationAndQueryRejectDocumentLanguageOutsideRuntimeV1()
+    public async Task VisualReaderRevalidatesActiveSqliteAuthorityAndImmutableContent()
     {
         await using var fixture = await SqlitePersistenceFixture.CreateAsync();
         var (_, binding) = await fixture.CommitLocalCatalogueAsync();
+        var generation = await fixture.CommitGenerationAsync(binding, "visual-serving");
+        var evidence = await fixture.CreateActivationEvidenceAsync(binding);
+        var proposed = ActivationRecordFactory.CreateInitial(
+            generation,
+            [evidence],
+            SqlitePersistenceFixture.At(2));
+        var activation = await ActivateAsync(
+            fixture,
+            "activation-visual-serving",
+            ActivationMutationKind.Initial,
+            expectedRevision: 0,
+            proposed,
+            SqlitePersistenceFixture.At(2));
+        Assert.Equal(StoreMutationOutcome.Applied, activation.Outcome);
+        var manifest = Assert.IsType<DocumentRenderManifest>(
+            await fixture.ControlStore.ReadAsync(
+                SqlitePersistenceFixture.CorpusId,
+                evidence.RenderManifestId!));
+        var page = Assert.Single(manifest.OrderedPageImages);
+        var reader = new VerifiedPageImageEvidenceReader(
+            SqlitePersistenceFixture.CorpusId,
+            new SqliteQueryActivationReader(fixture.Options),
+            fixture.ControlStore,
+            fixture.ContentStore);
+        var selector = new VisualEvidenceSelector(
+            generation.IndexGenerationId,
+            manifest.RenderManifestId,
+            page.PageNumber,
+            page.ImageContentObjectId);
+
+        var available = await reader.ReadAsync(
+            selector,
+            SqlitePersistenceFixture.At(3));
+        byte[] servedBytes;
+        await using (var served = Assert.IsType<VisualEvidenceContent>(available.Evidence))
+        {
+            Assert.Equal(VisualEvidenceReadOutcome.Available, available.Outcome);
+            Assert.Equal(page.ByteLength, served.Content.ByteLength);
+            Assert.Equal(page.ImageContentObjectId, served.Content.ContentObjectId);
+            using var copy = new MemoryStream();
+            await served.Content.Content.CopyToAsync(copy);
+            servedBytes = copy.ToArray();
+        }
+
+        var staleGeneration = await reader.ReadAsync(
+            selector with
+            {
+                IndexGenerationId = new IndexGenerationId(
+                    $"idxgen-{SqlitePersistenceFixture.Hash("stale-generation")}"),
+            },
+            SqlitePersistenceFixture.At(3));
+        Assert.Equal(VisualEvidenceReadOutcome.NotAvailable, staleGeneration.Outcome);
+
+        Assert.True(fixture.ContentStore.DeleteIfPresent(page.ImageContentObjectId));
+        var missingContent = await reader.ReadAsync(
+            selector,
+            SqlitePersistenceFixture.At(3));
+        Assert.Equal(VisualEvidenceReadOutcome.Unavailable, missingContent.Outcome);
+
+        await using (var restoredStream = new MemoryStream(servedBytes, writable: false))
+        {
+            var restored = await fixture.ContentStore.PutAndVerifyAsync(
+                new BoundedContentInput(
+                    restoredStream,
+                    servedBytes.Length,
+                    ContentMediaType.ImagePng,
+                    page.ImageContentObjectId));
+            Assert.Equal(page.ImageContentObjectId, restored.ContentObjectId);
+        }
+
+        var currentCatalogue = Assert.IsType<CatalogueSnapshot>(
+            await fixture.ControlStore.ReadCurrentCatalogueAsync(
+                SqlitePersistenceFixture.CorpusId));
+        var currentProduct = Assert.Single(currentCatalogue.DatabaseProducts);
+        var currentDocument = Assert.Single(currentCatalogue.DocumentVersions);
+        var deactivatedCatalogue = new CatalogueSnapshot(
+            currentCatalogue.CorpusId,
+            new CatalogueRevision(2),
+            currentCatalogue.DatabaseCategories,
+            [new DatabaseProduct(
+                currentProduct.Id,
+                currentProduct.Revision,
+                currentProduct.DisplayName,
+                CatalogueItemStatus.Deactivated,
+                currentProduct.CategoryIds)],
+            [new DocumentVersion(
+                currentDocument.Id,
+                currentDocument.Version,
+                currentDocument.DatabaseProductId,
+                currentDocument.DatabaseProductRevision,
+                currentDocument.Format,
+                currentDocument.ContentLanguage,
+                CatalogueItemStatus.Deactivated,
+                currentDocument.ContentObjectId,
+                currentDocument.ByteLength,
+                currentDocument.MediaType,
+                currentDocument.SourceAdapterId,
+                currentDocument.SourceTrustClass,
+                currentDocument.OfficialSourceRegistrationId,
+                currentDocument.OfficialSnapshotId,
+                currentDocument.SourceDeclaredLanguage)]);
+        var deactivated = await fixture.ControlStore.CommitCatalogueAsync(
+            new CatalogueCommitRequest(
+                new OperationId("catalogue-visual-deactivated"),
+                deactivatedCatalogue,
+                ExpectedCurrentRevision: 1,
+                SqlitePersistenceFixture.At(4)));
+        Assert.Equal(StoreMutationOutcome.Applied, deactivated.Outcome);
+
+        var noLongerActive = await reader.ReadAsync(
+            selector,
+            SqlitePersistenceFixture.At(5));
+        Assert.Equal(VisualEvidenceReadOutcome.NotAvailable, noLongerActive.Outcome);
+    }
+
+    [Fact]
+    public async Task ActivationAndQueryReaderPreserveStoredBcp47ForV2Projection()
+    {
+        await using var fixture = await SqlitePersistenceFixture.CreateAsync();
+        var (_, binding) = await fixture.CommitLocalCatalogueAsync(
+            sourceDeclaredLanguage: new SourceDeclaredLanguage("EN-gb"));
         var manifest = await fixture.CommitGenerationAsync(binding, "language-gate");
         var proposed = ActivationRecordFactory.CreateInitial(
             manifest,
@@ -29,34 +150,24 @@ public sealed class SqliteActivationLifecycleTests
             fixture.Options.ControlDatabasePath,
             "UPDATE document_versions SET content_language = 'en';");
 
-        var rejected = await ActivateAsync(
-            fixture,
-            "activation-language-rejected",
-            ActivationMutationKind.Initial,
-            expectedRevision: 0,
-            proposed,
-            SqlitePersistenceFixture.At(2));
-
-        Assert.Equal(StoreMutationOutcome.ValidationFailed, rejected.Outcome);
-        await ExecuteAsync(
-            fixture.Options.ControlDatabasePath,
-            "UPDATE document_versions SET content_language = 'en-GB';");
         var activated = await ActivateAsync(
             fixture,
-            "activation-language-accepted",
+            "activation-language-v2",
             ActivationMutationKind.Initial,
             expectedRevision: 0,
             proposed,
             SqlitePersistenceFixture.At(2));
-        Assert.Equal(StoreMutationOutcome.Applied, activated.Outcome);
-        await ExecuteAsync(
-            fixture.Options.ControlDatabasePath,
-            "UPDATE document_versions SET content_language = 'en';");
 
-        await Assert.ThrowsAsync<InvalidDataException>(() =>
-            new SqliteQueryActivationReader(fixture.Options).ReadAsync(
+        Assert.Equal(StoreMutationOutcome.Applied, activated.Outcome);
+
+        var snapshot = Assert.IsType<QueryActivationSnapshot>(
+            await new SqliteQueryActivationReader(fixture.Options).ReadAsync(
                 SqlitePersistenceFixture.CorpusId,
                 SqlitePersistenceFixture.At(3)));
+
+        var queryBinding = Assert.Single(snapshot.EvidenceBindings);
+        Assert.Equal("en", queryBinding.ContentLanguage.ToCanonicalTag());
+        Assert.Equal("EN-gb", queryBinding.SourceDeclaredLanguage!.ObservedTag);
     }
 
     [Fact]

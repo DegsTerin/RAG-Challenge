@@ -6,7 +6,7 @@ import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { createServer } from "vite";
 
-import { answeredResponse } from "./fixtures/query-v1.mjs";
+import { answeredResponse } from "./fixtures/query-v2.mjs";
 
 const vite = await createServer({
   logLevel: "silent",
@@ -26,7 +26,7 @@ test("keeps all eight interface, question-language, and theme combinations shrin
   const compactLayoutEnd = css.indexOf("@media (prefers-reduced-motion: reduce)", narrowLayoutEnd);
   const compactLayout = css.slice(narrowLayoutEnd, compactLayoutEnd);
   const { DashboardShell, QueryWorkspace } = await vite.ssrLoadModule("/src/App.tsx");
-  const { decodeQueryResponse } = await vite.ssrLoadModule("/src/contracts/api-v1.ts");
+  const { decodeQueryResponse } = await vite.ssrLoadModule("/src/contracts/api-v2.ts");
   const longTokens = {
     answer: `Answer${"a".repeat(512)}`,
     citationTitle: `Title${"t".repeat(512)}`,
@@ -138,7 +138,7 @@ test("localises the initial and switched document title only from interface lang
   assert.equal(combinations, 8);
 });
 
-test("owns localised messages for every API v1 failure code", async () => {
+test("owns localised messages for every query failure code", async () => {
   const { dashboardCopy } = await vite.ssrLoadModule("/src/i18n.ts");
   const codes = [
     "CH_QUERY_INVALID_INPUT",

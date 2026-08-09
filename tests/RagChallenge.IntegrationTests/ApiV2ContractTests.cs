@@ -1,0 +1,349 @@
+// Purpose: Verifies the frozen v2 query and same-origin visual-evidence HTTP projections, bounded revalidation and byte-for-byte v1 coexistence without opening a listener.
+using System.Security.Cryptography;
+using System.Text;
+using System.Text.Json;
+
+using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.RateLimiting;
+using Microsoft.AspNetCore.Routing;
+using Microsoft.Extensions.DependencyInjection;
+
+using RagChallenge.Application.IndexingRetrieval;
+using RagChallenge.Application.Persistence;
+using RagChallenge.Domain.CorpusCatalog;
+using RagChallenge.Domain.IndexingRetrieval;
+using RagChallenge.Server.Api.OperationsGovernance;
+using V2 = RagChallenge.Server.Api.Contracts.V2;
+
+namespace RagChallenge.IntegrationTests;
+
+public sealed class ApiV2ContractTests
+{
+    private static readonly string GenerationDigest = new('a', 64);
+    private static readonly string ManifestDigest = new('b', 64);
+    private static readonly byte[] ImageBytes = CreatePngHeader(width: 16, height: 24);
+    private static readonly string ImageDigest = Convert.ToHexString(
+        SHA256.HashData(ImageBytes)).ToLowerInvariant();
+
+    [Fact]
+    public async Task QueryEndpointProjectsExactLanguagesAndPageSelectors()
+    {
+        var service = new FakeQuestionService();
+        await using var app = SetupHost.Build(
+            [],
+            services => services.AddSingleton<IQuestionAnsweringService>(service));
+        var endpoint = FindEndpoint(app, V2.QueryEndpoints.Route);
+        Assert.Contains(
+            endpoint.Metadata,
+            metadata => metadata is EnableRateLimitingAttribute attribute &&
+                attribute.PolicyName ==
+                    RagChallenge.Server.Api.Contracts.V1.QueryEndpoints.RateLimitPolicy);
+
+        var context = CreateContext(app.Services, HttpMethods.Post);
+        var result = await V2.QueryEndpoints.HandleAsync(
+            new V2.QueryRequestV2("main-corpus", "en-GB", "What is the evidence?"),
+            context,
+            service,
+            app.Services.GetRequiredService<QueryConcurrencyGate>());
+        await result.ExecuteAsync(context);
+        context.Response.Body.Position = 0;
+        using var response = await JsonDocument.ParseAsync(context.Response.Body);
+        var citation = response.RootElement.GetProperty("citations")[0];
+        var image = citation.GetProperty("pageImages")[0];
+
+        Assert.Equal(StatusCodes.Status200OK, context.Response.StatusCode);
+        Assert.Equal(QueryContractVersion.V2, service.ContractVersion);
+        Assert.Equal("en-GB", citation.GetProperty("contentLanguage").GetString());
+        Assert.Equal("EN-gb", citation.GetProperty("sourceDeclaredLanguage").GetString());
+        Assert.Equal($"rendermanifest-{ManifestDigest}",
+            image.GetProperty("renderManifestId").GetString());
+        Assert.Equal(ImageDigest, image.GetProperty("imageContentObjectId").GetString());
+        Assert.False(response.RootElement.TryGetProperty("answerEvidenceRecordId", out _));
+        Assert.False(citation.TryGetProperty("path", out _));
+        Assert.False(citation.TryGetProperty("rights", out _));
+    }
+
+    [Fact]
+    public async Task VisualEndpointRevalidatesBeforeBothContentAndNotModified()
+    {
+        var reader = new FakeVisualEvidenceReader();
+        await using var app = SetupHost.Build(
+            [],
+            services => services.AddSingleton<IVisualEvidenceReader>(reader));
+        var endpoint = FindEndpoint(app, V2.VisualEvidenceEndpoints.Route);
+        Assert.Contains(
+            endpoint.Metadata,
+            metadata => metadata is EnableRateLimitingAttribute attribute &&
+                attribute.PolicyName == V2.VisualEvidenceEndpoints.RateLimitPolicy);
+
+        var first = CreateContext(app.Services, HttpMethods.Get);
+        await V2.VisualEvidenceEndpoints.HandleAsync(
+            $"idxgen-{GenerationDigest}",
+            $"rendermanifest-{ManifestDigest}",
+            7,
+            ImageDigest,
+            first,
+            reader,
+            app.Services.GetRequiredService<VisualEvidenceConcurrencyGate>());
+        var etag = first.Response.Headers.ETag.ToString();
+
+        Assert.Equal(StatusCodes.Status200OK, first.Response.StatusCode);
+        Assert.Equal(ImageBytes.Length, first.Response.ContentLength);
+        Assert.Equal("image/png", first.Response.ContentType);
+        Assert.Equal($"\"sha256-{ImageDigest}\"", etag);
+        Assert.Equal("private, no-cache", first.Response.Headers.CacheControl);
+        Assert.Equal("nosniff", first.Response.Headers.XContentTypeOptions);
+        Assert.Equal("same-origin", first.Response.Headers["Cross-Origin-Resource-Policy"]);
+        Assert.Equal(ImageBytes, ((MemoryStream)first.Response.Body).ToArray());
+
+        var conditional = CreateContext(app.Services, HttpMethods.Get);
+        conditional.Request.Headers.IfNoneMatch = etag;
+        await V2.VisualEvidenceEndpoints.HandleAsync(
+            $"idxgen-{GenerationDigest}",
+            $"rendermanifest-{ManifestDigest}",
+            7,
+            ImageDigest,
+            conditional,
+            reader,
+            app.Services.GetRequiredService<VisualEvidenceConcurrencyGate>());
+
+        Assert.Equal(StatusCodes.Status304NotModified, conditional.Response.StatusCode);
+        Assert.Equal(0, conditional.Response.Body.Length);
+        Assert.Equal(2, reader.CallCount);
+    }
+
+    [Fact]
+    public async Task MalformedAndInactiveVisualSelectorsShareTheUniformNotAvailableFailure()
+    {
+        var reader = new FakeVisualEvidenceReader
+        {
+            Outcome = VisualEvidenceReadOutcome.NotAvailable,
+        };
+        await using var app = SetupHost.Build([]);
+
+        foreach (var selector in new[]
+        {
+            (Generation: "bad", Manifest: $"rendermanifest-{ManifestDigest}", Page: 7,
+                Image: ImageDigest),
+            (Generation: $"idxgen-{GenerationDigest}",
+                Manifest: $"rendermanifest-{ManifestDigest}", Page: 7, Image: ImageDigest),
+        })
+        {
+            var context = CreateContext(app.Services, HttpMethods.Get);
+            await V2.VisualEvidenceEndpoints.HandleAsync(
+                selector.Generation,
+                selector.Manifest,
+                selector.Page,
+                selector.Image,
+                context,
+                reader,
+                app.Services.GetRequiredService<VisualEvidenceConcurrencyGate>());
+            context.Response.Body.Position = 0;
+            using var problem = await JsonDocument.ParseAsync(context.Response.Body);
+
+            Assert.Equal(StatusCodes.Status404NotFound, context.Response.StatusCode);
+            Assert.Equal("CH_VISUAL_EVIDENCE_NOT_AVAILABLE",
+                problem.RootElement.GetProperty("code").GetString());
+        }
+    }
+
+    [Fact]
+    public async Task VisualConcurrencyCeilingReturnsBoundedRateLimitWithoutReading()
+    {
+        var reader = new FakeVisualEvidenceReader();
+        using var gate = new VisualEvidenceConcurrencyGate();
+
+        for (var index = 0; index < 4; index++)
+        {
+            Assert.True(await gate.TryEnterAsync(CancellationToken.None));
+        }
+
+        await using var app = SetupHost.Build([]);
+        var context = CreateContext(app.Services, HttpMethods.Get);
+        await V2.VisualEvidenceEndpoints.HandleAsync(
+            $"idxgen-{GenerationDigest}",
+            $"rendermanifest-{ManifestDigest}",
+            7,
+            ImageDigest,
+            context,
+            reader,
+            gate);
+        context.Response.Body.Position = 0;
+        using var problem = await JsonDocument.ParseAsync(context.Response.Body);
+
+        Assert.Equal(StatusCodes.Status429TooManyRequests, context.Response.StatusCode);
+        Assert.Equal("10", context.Response.Headers.RetryAfter);
+        Assert.Equal("CH_VISUAL_EVIDENCE_RATE_LIMITED",
+            problem.RootElement.GetProperty("code").GetString());
+        Assert.Equal(0, reader.CallCount);
+
+        for (var index = 0; index < 4; index++)
+        {
+            gate.Exit();
+        }
+    }
+
+    [Fact]
+    public async Task OpenApiVersionsRemainSeparateAndV1RemainsByteProtected()
+    {
+        var root = FindRepositoryRoot();
+        var v1 = await File.ReadAllBytesAsync(Path.Combine(root, "docs", "api", "openapi-v1.json"));
+        var v2 = await File.ReadAllBytesAsync(Path.Combine(root, "docs", "api", "openapi-v2.json"));
+
+        Assert.Equal(
+            "d6a686b94c926914beb28b437f464430a01de6560c2e2d476cf5c36025813e34",
+            Convert.ToHexString(SHA256.HashData(v1)).ToLowerInvariant());
+        Assert.Equal(
+            "01ab26ae8066971af2e5ae83ec828fae556951d5ce6c335b42f6e7cf7b062640",
+            Convert.ToHexString(SHA256.HashData(v2)).ToLowerInvariant());
+        using var v2Document = JsonDocument.Parse(v2);
+        Assert.True(v2Document.RootElement.GetProperty("paths")
+            .TryGetProperty(V2.QueryEndpoints.Route, out _));
+        Assert.True(v2Document.RootElement.GetProperty("paths")
+            .TryGetProperty(
+                "/api/v2/evidence/page-images/{indexGenerationId}/{renderManifestId}/{pageNumber}/{imageContentObjectId}",
+                out _));
+    }
+
+    private static RouteEndpoint FindEndpoint(WebApplication app, string route) =>
+        ((IEndpointRouteBuilder)app).DataSources
+            .SelectMany(source => source.Endpoints)
+            .OfType<RouteEndpoint>()
+            .Single(endpoint => endpoint.RoutePattern.RawText == route);
+
+    private static DefaultHttpContext CreateContext(IServiceProvider services, string method)
+    {
+        var context = new DefaultHttpContext
+        {
+            RequestServices = services,
+            TraceIdentifier = "correlation-api-v2",
+        };
+        context.Request.Method = method;
+        context.Response.Body = new MemoryStream();
+        return context;
+    }
+
+    private static string FindRepositoryRoot()
+    {
+        var current = new DirectoryInfo(AppContext.BaseDirectory);
+
+        while (current is not null)
+        {
+            if (File.Exists(Path.Combine(current.FullName, "RAG-Challenge.sln")))
+            {
+                return current.FullName;
+            }
+
+            current = current.Parent;
+        }
+
+        throw new DirectoryNotFoundException("The repository root was not found.");
+    }
+
+    private static byte[] CreatePngHeader(int width, int height)
+    {
+        var bytes = new byte[24];
+        byte[] signature = [137, 80, 78, 71, 13, 10, 26, 10];
+        signature.CopyTo(bytes, 0);
+        bytes[11] = 13;
+        Encoding.ASCII.GetBytes("IHDR").CopyTo(bytes, 12);
+        System.Buffers.Binary.BinaryPrimitives.WriteInt32BigEndian(bytes.AsSpan(16, 4), width);
+        System.Buffers.Binary.BinaryPrimitives.WriteInt32BigEndian(bytes.AsSpan(20, 4), height);
+        return bytes;
+    }
+
+    private sealed class FakeQuestionService : IQuestionAnsweringService
+    {
+        public QueryContractVersion ContractVersion { get; private set; }
+
+        public Task<QueryExecutionResult> AskAsync(
+            QueryRequest request,
+            DateTimeOffset observedAt,
+            CancellationToken cancellationToken = default)
+        {
+            ContractVersion = request.ContractVersion;
+            var imageId = new ContentObjectId(ImageDigest);
+            var citation = new QueryCitation(
+                new CorpusId("main-corpus"),
+                new IndexGenerationId($"idxgen-{GenerationDigest}"),
+                new DatabaseProductId("database-1"),
+                new DatabaseProductRevision(1),
+                new DocumentId("document-1"),
+                new DocumentVersionNumber(1),
+                DocumentFormat.Pdf,
+                DocumentContentLanguage.EnGb,
+                "chunk-1",
+                new SourceAdapterId("local-pdf"),
+                SourceTrustClass.LocalAuthorised,
+                "Bounded evidence.",
+                "Document title",
+                7,
+                7,
+                null,
+                null,
+                [],
+                null,
+                null,
+                null,
+                SourceFreshness.Local)
+            {
+                SourceDeclaredLanguage = new SourceDeclaredLanguage("EN-gb"),
+                PageImages =
+                [
+                    new QueryPageImage(
+                        7,
+                        new RenderManifestId($"rendermanifest-{ManifestDigest}"),
+                        imageId,
+                        "image/png",
+                        16,
+                        24,
+                        new ImageSha256(ImageDigest)),
+                ],
+            };
+            return Task.FromResult(QueryExecutionResult.Completed(new QueryCompletion(
+                QueryOutcome.Answered,
+                request.QuestionLanguage,
+                "Grounded answer.",
+                [citation],
+                new EvidenceCoverage(1, 1, 1, 1,
+                    new Dictionary<string, SourceFreshness>()),
+                new IndexGenerationId($"idxgen-{GenerationDigest}"),
+                "retrieval-v1",
+                "grounded-answer-v1",
+                new LanguageModelDescriptor("fake", "model-v1", "fixture-1"),
+                request.CorrelationId)));
+        }
+    }
+
+    private sealed class FakeVisualEvidenceReader : IVisualEvidenceReader
+    {
+        public VisualEvidenceReadOutcome Outcome { get; init; } =
+            VisualEvidenceReadOutcome.Available;
+
+        public int CallCount { get; private set; }
+
+        public Task<VisualEvidenceReadResult> ReadAsync(
+            VisualEvidenceSelector selector,
+            DateTimeOffset observedAt,
+            CancellationToken cancellationToken = default)
+        {
+            CallCount++;
+
+            if (Outcome != VisualEvidenceReadOutcome.Available)
+            {
+                return Task.FromResult(VisualEvidenceReadResult.NotAvailable());
+            }
+
+            var contentId = new ContentObjectId(ImageDigest);
+            var content = new VerifiedContentObject(
+                contentId,
+                contentId,
+                ImageBytes.Length,
+                new MemoryStream(ImageBytes, writable: false),
+                ContentVerificationOutcome.Verified);
+            return Task.FromResult(VisualEvidenceReadResult.Available(
+                new VisualEvidenceContent(content, "image/png", 16, 24)));
+        }
+    }
+}

@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 
 import { initialQueryState, queryReducer } from "../src/state/query-state.ts";
-import { answeredResponse, rateLimitedProblem } from "./fixtures/query-v1.mjs";
+import { answeredResponse, rateLimitedProblem } from "./fixtures/query-v2.mjs";
 
 test("moves from idle through submission to completion", () => {
   const submitting = queryReducer(initialQueryState, { type: "begin", requestId: 1 });

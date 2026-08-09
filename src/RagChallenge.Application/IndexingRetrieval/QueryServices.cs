@@ -28,7 +28,8 @@ public sealed record QueryEvidenceBinding
         SourceFreshness freshness,
         string? title = null,
         string? canonicalUrl = null,
-        DateTimeOffset? revalidatedAt = null)
+        DateTimeOffset? revalidatedAt = null,
+        SourceDeclaredLanguage? sourceDeclaredLanguage = null)
     {
         Binding = binding ?? throw new ArgumentNullException(nameof(binding));
         EvidenceBinding = evidenceBinding ??
@@ -59,13 +60,6 @@ public sealed record QueryEvidenceBinding
             throw new ArgumentException(
                 "Query-time CSV evidence cannot carry a render manifest.",
                 nameof(renderManifest));
-        }
-
-        if (!contentLanguage.IsSupportedByV1)
-        {
-            throw new ArgumentException(
-                "Runtime v1 cannot query evidence outside its closed language set.",
-                nameof(contentLanguage));
         }
 
         if (!Enum.IsDefined(freshness))
@@ -105,6 +99,7 @@ public sealed record QueryEvidenceBinding
         Title = title;
         CanonicalUrl = canonicalUrl;
         RevalidatedAt = revalidatedAt;
+        SourceDeclaredLanguage = sourceDeclaredLanguage;
     }
 
     public DocumentBinding Binding { get; }
@@ -122,6 +117,8 @@ public sealed record QueryEvidenceBinding
     public string? CanonicalUrl { get; }
 
     public DateTimeOffset? RevalidatedAt { get; }
+
+    public SourceDeclaredLanguage? SourceDeclaredLanguage { get; }
 
     public bool IsEligible =>
         Freshness is SourceFreshness.Local or SourceFreshness.Current;
@@ -280,13 +277,20 @@ public enum QueryFailureKind
     UnexpectedFailure,
 }
 
+public enum QueryContractVersion
+{
+    V1,
+    V2,
+}
+
 public sealed record QueryRequest(
     CorpusId CorpusId,
     SupportedQueryLanguage QuestionLanguage,
     string Question,
     string CorrelationId,
     IReadOnlyCollection<DatabaseProductId>? DatabaseProductFilters = null,
-    IReadOnlyCollection<DocumentId>? DocumentFilters = null);
+    IReadOnlyCollection<DocumentId>? DocumentFilters = null,
+    QueryContractVersion ContractVersion = QueryContractVersion.V1);
 
 public sealed record EvidenceCoverage(
     int ActiveDatabaseCount,
@@ -294,6 +298,15 @@ public sealed record EvidenceCoverage(
     int EligibleDatabaseCount,
     int EligibleDocumentCount,
     IReadOnlyDictionary<string, SourceFreshness> DegradedSources);
+
+public sealed record QueryPageImage(
+    int PageNumber,
+    RenderManifestId RenderManifestId,
+    ContentObjectId ImageContentObjectId,
+    string MediaType,
+    int WidthPixels,
+    int HeightPixels,
+    ImageSha256 ContentSha256);
 
 public sealed record QueryCitation(
     CorpusId CorpusId,
@@ -317,7 +330,12 @@ public sealed record QueryCitation(
     string? CanonicalUrl,
     OfficialSnapshotId? SourceSnapshotId,
     DateTimeOffset? RevalidatedAt,
-    SourceFreshness SourceFreshness);
+    SourceFreshness SourceFreshness)
+{
+    public SourceDeclaredLanguage? SourceDeclaredLanguage { get; init; }
+
+    public IReadOnlyCollection<QueryPageImage> PageImages { get; init; } = [];
+}
 
 public sealed record QueryCompletion(
     QueryOutcome Outcome,
@@ -455,7 +473,7 @@ public sealed class QuestionAnsweringService : IQuestionAnsweringService
                 return Failure(QueryFailureKind.CorpusUnavailable, request.CorrelationId);
             }
 
-            var coverage = CreateCoverage(snapshot);
+            var coverage = CreateCoverage(snapshot, request.ContractVersion);
             var eligible = ApplyFilters(snapshot.EvidenceBindings, request).ToArray();
 
             if (eligible.Length == 0)
@@ -572,6 +590,11 @@ public sealed class QuestionAnsweringService : IQuestionAnsweringService
                         "Answer-evidence persistence did not return the exact canonical record.");
                 }
 
+                if (request.ContractVersion == QueryContractVersion.V2)
+                {
+                    completion = AttachPageImages(completion, persisted.PersistedRecord);
+                }
+
                 RecordActivitySafely(AnswerEvidenceRecordComposer.CreateActivity(
                     answerEvidenceRecord,
                     persistenceStarted,
@@ -664,7 +687,8 @@ public sealed class QuestionAnsweringService : IQuestionAnsweringService
             string.IsNullOrWhiteSpace(request.CorrelationId) ||
             request.CorrelationId.Length > 128 ||
             request.CorrelationId.Any(character =>
-                !char.IsAsciiLetterOrDigit(character) && character is not '-' and not '_'))
+                !char.IsAsciiLetterOrDigit(character) && character is not '-' and not '_') ||
+            !Enum.IsDefined(request.ContractVersion))
         {
             return false;
         }
@@ -684,6 +708,8 @@ public sealed class QuestionAnsweringService : IQuestionAnsweringService
         var documents = request.DocumentFilters?
             .Select(identifier => identifier.Value).ToHashSet(StringComparer.Ordinal) ?? [];
         return bindings.Where(binding => binding.IsEligible &&
+            (request.ContractVersion == QueryContractVersion.V2 ||
+                binding.ContentLanguage.IsSupportedByV1) &&
             (databases.Count == 0 || databases.Contains(binding.Binding.DatabaseProductId.Value)) &&
             (documents.Count == 0 || documents.Contains(binding.Binding.DocumentId.Value)));
     }
@@ -764,11 +790,18 @@ public sealed class QuestionAnsweringService : IQuestionAnsweringService
             cited.All(allowed.Contains);
     }
 
-    private static EvidenceCoverage CreateCoverage(QueryActivationSnapshot snapshot)
+    private static EvidenceCoverage CreateCoverage(
+        QueryActivationSnapshot snapshot,
+        QueryContractVersion contractVersion)
     {
         var all = snapshot.EvidenceBindings;
-        var eligible = all.Where(binding => binding.IsEligible).ToArray();
-        var degraded = all.Where(binding => !binding.IsEligible).ToDictionary(
+        var eligible = all.Where(binding => binding.IsEligible &&
+            (contractVersion == QueryContractVersion.V2 ||
+                binding.ContentLanguage.IsSupportedByV1)).ToArray();
+        var degraded = all.Where(binding => !binding.IsEligible ||
+                contractVersion == QueryContractVersion.V1 &&
+                !binding.ContentLanguage.IsSupportedByV1)
+            .ToDictionary(
             binding => binding.Binding.SourceObservationId?.Value ??
                 binding.Binding.DocumentId.Value,
             binding => binding.Freshness,
@@ -806,7 +839,58 @@ public sealed class QuestionAnsweringService : IQuestionAnsweringService
             item.Binding.CanonicalUrl,
             item.Binding.Binding.OfficialSnapshotId,
             item.Binding.RevalidatedAt,
-            item.Binding.Freshness);
+            item.Binding.Freshness)
+        {
+            SourceDeclaredLanguage = item.Binding.SourceDeclaredLanguage,
+        };
+
+    private static QueryCompletion AttachPageImages(
+        QueryCompletion completion,
+        AnswerEvidenceRecordV1 persistedRecord)
+    {
+        const int maximumReturnedPageImages = 5;
+        var remaining = maximumReturnedPageImages;
+        var emittedPages = new HashSet<(DocumentId, DocumentVersionNumber, int)>();
+        var citations = completion.Citations.Select(citation =>
+        {
+            if (citation.DocumentFormat != DocumentFormat.Pdf || remaining == 0)
+            {
+                return citation;
+            }
+
+            var pages = persistedRecord.PageImages
+                .Where(page =>
+                    page.DocumentId == citation.DocumentId &&
+                    page.DocumentVersion == citation.DocumentVersion &&
+                    page.PageNumber >= citation.PageStart &&
+                    page.PageNumber <= citation.PageEnd &&
+                    !emittedPages.Contains((
+                        page.DocumentId,
+                        page.DocumentVersion,
+                        page.PageNumber)))
+                .OrderBy(page => page.PageNumber)
+                .Take(remaining)
+                .Select(page =>
+                {
+                    emittedPages.Add((
+                        page.DocumentId,
+                        page.DocumentVersion,
+                        page.PageNumber));
+                    return new QueryPageImage(
+                        page.PageNumber,
+                        page.RenderManifestId,
+                        page.ImageContentObjectId,
+                        page.MediaType,
+                        page.WidthPixels,
+                        page.HeightPixels,
+                        page.ImageSha256);
+                })
+                .ToArray();
+            remaining -= pages.Length;
+            return citation with { PageImages = pages };
+        }).ToArray();
+        return completion with { Citations = citations };
+    }
 
     private static bool ContainsNonFinite(ReadOnlySpan<float> vector)
     {

@@ -56,7 +56,7 @@ public sealed class DocumentLanguageAndRenderingTests
     }
 
     [Fact]
-    public void RuntimeV1RejectsAnOtherwiseValidEnglishDocumentWithoutRegion()
+    public void BroaderDocumentLanguageRemainsExactAcrossCatalogueIndexAndQueryMetadata()
     {
         var language = new DocumentContentLanguage("en");
         var candidate = Document(language, CatalogueItemStatus.Candidate);
@@ -70,22 +70,24 @@ public sealed class DocumentLanguageAndRenderingTests
             SourceTrustClass.LocalAuthorised);
 
         Assert.Equal("en", candidate.ContentLanguage.CanonicalTag);
-        Assert.Throws<ArgumentException>(
-            () => Document(language, CatalogueItemStatus.Active));
-        Assert.Throws<ArgumentException>(
-            () => new IndexDocumentInput(
-                Binding(),
-                language,
-                [Chunk()],
-                "parser-v1",
-                new ChunkingPolicy()));
-        Assert.Throws<ArgumentException>(
-            () => new QueryEvidenceBinding(
-                binding,
-                TestModelFactory.Evidence(binding),
-                renderManifest: null,
-                language,
-                SourceFreshness.Local));
+        Assert.Equal("en", Document(language, CatalogueItemStatus.Active)
+            .ContentLanguage.ToCanonicalTag());
+        Assert.Equal("en", new IndexDocumentInput(
+            Binding(),
+            language,
+            [Chunk()],
+            "parser-v1",
+            new ChunkingPolicy()).ContentLanguage.ToCanonicalTag());
+        var queryBinding = new QueryEvidenceBinding(
+            binding,
+            TestModelFactory.Evidence(binding),
+            renderManifest: null,
+            language,
+            SourceFreshness.Local,
+            sourceDeclaredLanguage: new SourceDeclaredLanguage("EN"));
+
+        Assert.Equal("en", queryBinding.ContentLanguage.ToCanonicalTag());
+        Assert.Equal("EN", queryBinding.SourceDeclaredLanguage!.ObservedTag);
     }
 
     [Fact]

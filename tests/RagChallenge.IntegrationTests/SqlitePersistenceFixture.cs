@@ -197,8 +197,7 @@ internal sealed class SqlitePersistenceFixture : IAsyncDisposable
                 renderManifestId: null);
         }
 
-        var imageBytes = Encoding.UTF8.GetBytes(
-            $"synthetic PNG fixture for {binding.DocumentId.Value}:{binding.DocumentVersion.Value}");
+        var imageBytes = CreatePngHeader(width: 1, height: 1);
         await using var imageStream = new MemoryStream(imageBytes, writable: false);
         var imageContent = await ContentStore.PutAndVerifyAsync(new BoundedContentInput(
             imageStream,
@@ -256,6 +255,22 @@ internal sealed class SqlitePersistenceFixture : IAsyncDisposable
     internal static string Hash(string value) =>
         Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(value)))
             .ToLowerInvariant();
+
+    private static byte[] CreatePngHeader(int width, int height)
+    {
+        var bytes = new byte[24];
+        byte[] signature = [137, 80, 78, 71, 13, 10, 26, 10];
+        signature.CopyTo(bytes, 0);
+        bytes[11] = 13;
+        Encoding.ASCII.GetBytes("IHDR").CopyTo(bytes, 12);
+        System.Buffers.Binary.BinaryPrimitives.WriteInt32BigEndian(
+            bytes.AsSpan(16, 4),
+            width);
+        System.Buffers.Binary.BinaryPrimitives.WriteInt32BigEndian(
+            bytes.AsSpan(20, 4),
+            height);
+        return bytes;
+    }
 
     public ValueTask DisposeAsync()
     {

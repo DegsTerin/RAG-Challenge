@@ -129,11 +129,10 @@ public sealed class AnswerEvidenceCitationBindingV1
 
         ArgumentOutOfRangeException.ThrowIfNegativeOrZero(ordinal);
 
-        if (!Enum.IsDefined(documentFormat) || !Enum.IsDefined(sourceTrustClass) ||
-            !contentLanguage.IsSupportedByV1)
+        if (!Enum.IsDefined(documentFormat) || !Enum.IsDefined(sourceTrustClass))
         {
             throw new ArgumentException(
-                "An answer-evidence citation must use the closed v1 format, trust, and language sets.");
+                "An answer-evidence citation must use the closed format and trust sets.");
         }
 
         chunkId = RequireSafeIdentifier(chunkId, nameof(chunkId));

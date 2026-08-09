@@ -2,13 +2,13 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { ContractValidationError } from "../src/contracts/api-v1.ts";
+import { ContractValidationError } from "../src/contracts/api-v2.ts";
 import { askQuestion } from "../src/query-client.ts";
 import {
   answeredResponse,
   answeredResponseEnGb,
   rateLimitedProblem,
-} from "./fixtures/query-v1.mjs";
+} from "./fixtures/query-v2.mjs";
 
 const maximumResponseBytes = 262_144;
 
@@ -31,7 +31,7 @@ test("posts the frozen request contract without credentials or redirects", async
     fakeFetch,
   );
 
-  assert.equal(observedInput, "/api/v1/questions");
+  assert.equal(observedInput, "/api/v2/questions");
   assert.equal(observedInit.method, "POST");
   assert.equal(observedInit.credentials, "omit");
   assert.equal(observedInit.redirect, "error");
@@ -237,8 +237,19 @@ test("preserves cancellation while streaming the response body", async () => {
 });
 
 function createPaddedResponse(byteLength, response = answeredResponse) {
-  const emptyResponse = JSON.stringify({ ...response, padding: "" });
+  const responseWithEmptyExcerpt = {
+    ...response,
+    citations: response.citations.map((citation, index) => index === 0
+      ? { ...citation, excerpt: "" }
+      : citation),
+  };
+  const emptyResponse = JSON.stringify(responseWithEmptyExcerpt);
   const paddingLength = byteLength - new TextEncoder().encode(emptyResponse).byteLength;
   assert.ok(paddingLength >= 0);
-  return JSON.stringify({ ...response, padding: "x".repeat(paddingLength) });
+  return JSON.stringify({
+    ...responseWithEmptyExcerpt,
+    citations: responseWithEmptyExcerpt.citations.map((citation, index) => index === 0
+      ? { ...citation, excerpt: "x".repeat(paddingLength) }
+      : citation),
+  });
 }

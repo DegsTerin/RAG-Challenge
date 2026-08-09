@@ -330,7 +330,7 @@ function decodeCitation(value: unknown, index: number): CitationV1 {
   };
 }
 
-function decodeEvidenceCoverage(value: unknown): EvidenceCoverageV1 {
+export function decodeEvidenceCoverage(value: unknown): EvidenceCoverageV1 {
   const object = requireObject(value, "evidenceCoverage");
   const degradedObject = requireObject(object.degradedSources, "degradedSources");
   const degradedSources: Record<string, string> = {};
@@ -356,7 +356,7 @@ function decodeEvidenceCoverage(value: unknown): EvidenceCoverageV1 {
   };
 }
 
-function decodeLanguageModelDescriptor(value: unknown): LanguageModelDescriptorV1 {
+export function decodeLanguageModelDescriptor(value: unknown): LanguageModelDescriptorV1 {
   const object = requireObject(value, "languageModelDescriptor");
   return {
     providerId: requireNonEmptyString(object.providerId, "providerId"),
@@ -365,7 +365,7 @@ function decodeLanguageModelDescriptor(value: unknown): LanguageModelDescriptorV
   };
 }
 
-function requireObject(value: unknown, field: string): Record<string, unknown> {
+export function requireObject(value: unknown, field: string): Record<string, unknown> {
   if (typeof value !== "object" || value === null || Array.isArray(value)) {
     throw new ContractValidationError(`${field} must be an object.`);
   }
@@ -373,7 +373,7 @@ function requireObject(value: unknown, field: string): Record<string, unknown> {
   return value as Record<string, unknown>;
 }
 
-function requireArray(value: unknown, field: string): readonly unknown[] {
+export function requireArray(value: unknown, field: string): readonly unknown[] {
   if (!Array.isArray(value)) {
     throw new ContractValidationError(`${field} must be an array.`);
   }
@@ -381,7 +381,7 @@ function requireArray(value: unknown, field: string): readonly unknown[] {
   return value;
 }
 
-function requireString(value: unknown, field: string): string {
+export function requireString(value: unknown, field: string): string {
   if (typeof value !== "string") {
     throw new ContractValidationError(`${field} must be a string.`);
   }
@@ -389,7 +389,7 @@ function requireString(value: unknown, field: string): string {
   return value;
 }
 
-function requireNonEmptyString(value: unknown, field: string): string {
+export function requireNonEmptyString(value: unknown, field: string): string {
   const stringValue = requireString(value, field);
   if (stringValue.length === 0) {
     throw new ContractValidationError(`${field} must not be empty.`);
@@ -398,7 +398,7 @@ function requireNonEmptyString(value: unknown, field: string): string {
   return stringValue;
 }
 
-function requireNullableString(value: unknown, field: string): string | null {
+export function requireNullableString(value: unknown, field: string): string | null {
   if (value === null || value === undefined) {
     return null;
   }
@@ -406,7 +406,7 @@ function requireNullableString(value: unknown, field: string): string | null {
   return requireString(value, field);
 }
 
-function requireInteger(value: unknown, field: string, minimum: number): number {
+export function requireInteger(value: unknown, field: string, minimum: number): number {
   if (!Number.isInteger(value) || (value as number) < minimum) {
     throw new ContractValidationError(`${field} must be an integer of at least ${minimum}.`);
   }
@@ -414,7 +414,7 @@ function requireInteger(value: unknown, field: string, minimum: number): number 
   return value as number;
 }
 
-function requireNullableInteger(
+export function requireNullableInteger(
   value: unknown,
   field: string,
   minimum: number,
@@ -426,7 +426,7 @@ function requireNullableInteger(
   return requireInteger(value, field, minimum);
 }
 
-function requireNullableDateTime(value: unknown, field: string): string | null {
+export function requireNullableDateTime(value: unknown, field: string): string | null {
   const stringValue = requireNullableString(value, field);
   if (stringValue !== null && Number.isNaN(Date.parse(stringValue))) {
     throw new ContractValidationError(`${field} must be an ISO 8601 date-time.`);
@@ -435,7 +435,7 @@ function requireNullableDateTime(value: unknown, field: string): string | null {
   return stringValue;
 }
 
-function requireCorrelationId(value: unknown): string {
+export function requireCorrelationId(value: unknown): string {
   const correlationId = requireNonEmptyString(value, "correlationId");
   if (correlationId.length > 128 || !/^[A-Za-z0-9_-]+$/.test(correlationId)) {
     throw new ContractValidationError("correlationId is not sanitised.");
@@ -444,7 +444,7 @@ function requireCorrelationId(value: unknown): string {
   return correlationId;
 }
 
-function requireEnum<const T extends readonly string[]>(
+export function requireEnum<const T extends readonly string[]>(
   value: unknown,
   acceptedValues: T,
   field: string,

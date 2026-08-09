@@ -1,0 +1,589 @@
+// Purpose: Validates the frozen Dashboard-facing API v2 contract and constructs only fixed same-origin visual-evidence routes from server-returned selectors.
+import {
+  ContractValidationError,
+  createQueryRequest as createQueryRequestV1,
+  decodeEvidenceCoverage,
+  decodeLanguageModelDescriptor,
+  decodeProblemDetails as decodeProblemDetailsV1,
+  documentFormats,
+  isSafeHttpsUrl,
+  isSourceFreshness,
+  maximumQuestionBytes,
+  mvpCorpusId,
+  queryOutcomes,
+  requireArray,
+  requireCorrelationId,
+  requireEnum,
+  requireInteger,
+  requireNonEmptyString,
+  requireNullableDateTime,
+  requireNullableInteger,
+  requireNullableString,
+  requireObject,
+  requireString,
+  sourceFreshnessStates,
+  sourceTrustClasses,
+  supportedLanguages,
+  utf8ByteCount,
+  validateQuestion,
+  type DocumentFormat,
+  type EvidenceCoverageV1,
+  type LanguageModelDescriptorV1,
+  type ProblemDetailsV1,
+  type QueryOutcome,
+  type QuestionValidationFailure,
+  type QueryRequestV1,
+  type SourceFreshness,
+  type SourceTrustClass,
+  type SupportedLanguage,
+} from "./api-v1.ts";
+
+export const queryEndpointV2 = "/api/v2/questions";
+export const visualEvidenceRoutePrefix = "/api/v2/evidence/page-images";
+
+export {
+  ContractValidationError,
+  isSafeHttpsUrl,
+  isSourceFreshness,
+  maximumQuestionBytes,
+  mvpCorpusId,
+  supportedLanguages,
+  utf8ByteCount,
+  validateQuestion,
+};
+export type {
+  DocumentFormat,
+  ProblemDetailsV1,
+  QuestionValidationFailure,
+  QueryOutcome,
+  SourceFreshness,
+  SourceTrustClass,
+  SupportedLanguage,
+};
+
+export type QueryRequestV2 = QueryRequestV1;
+export type EvidenceCoverageV2 = EvidenceCoverageV1;
+export type LanguageModelDescriptorV2 = LanguageModelDescriptorV1;
+
+export function decodeProblemDetails(value: unknown): ProblemDetailsV1 {
+  const object = requireObject(value, "problem details");
+  requireOnlyProperties(
+    object,
+    ["type", "title", "status", "detail", "instance", "code", "correlationId",
+      "retryAfterSeconds"],
+    "problem details",
+  );
+  return decodeProblemDetailsV1(value);
+}
+
+export interface PageImageEvidenceV1 {
+  pageNumber: number;
+  renderManifestId: string;
+  imageContentObjectId: string;
+  mediaType: "image/png";
+  widthPixels: number;
+  heightPixels: number;
+  contentSha256: string;
+}
+
+export interface CitationV2 {
+  corpusId: string;
+  indexGenerationId: string;
+  databaseProductId: string;
+  databaseProductRevision: number;
+  documentId: string;
+  documentVersion: number;
+  documentFormat: DocumentFormat;
+  contentLanguage: string;
+  sourceDeclaredLanguage: string | null;
+  chunkId: string;
+  sourceAdapterId: string;
+  sourceTrustClass: SourceTrustClass;
+  excerpt: string;
+  title: string | null;
+  pageStart: number | null;
+  pageEnd: number | null;
+  recordStart: number | null;
+  recordEnd: number | null;
+  columns: readonly string[];
+  canonicalUrl: string | null;
+  sourceSnapshotId: string | null;
+  revalidatedAt: string | null;
+  sourceFreshness: SourceFreshness;
+  pageImages: readonly PageImageEvidenceV1[];
+}
+
+export interface QueryResponseV2 {
+  outcome: QueryOutcome;
+  answerLanguage: SupportedLanguage;
+  answer: string | null;
+  citations: readonly CitationV2[];
+  evidenceCoverage: EvidenceCoverageV2;
+  indexGenerationId: string;
+  retrievalPolicyVersion: string;
+  promptVersion: string;
+  languageModelDescriptor: LanguageModelDescriptorV2;
+  correlationId: string;
+}
+
+export function createQueryRequest(
+  question: string,
+  questionLanguage: SupportedLanguage,
+): { request: QueryRequestV2; body: string } {
+  return createQueryRequestV1(question, questionLanguage);
+}
+
+export function createPageImageUrl(
+  indexGenerationId: string,
+  evidence: PageImageEvidenceV1,
+): string {
+  requirePattern(indexGenerationId, /^idxgen-[a-f0-9]{64}$/, "indexGenerationId");
+  validatePageImage(evidence, "pageImage");
+  return [
+    visualEvidenceRoutePrefix,
+    indexGenerationId,
+    evidence.renderManifestId,
+    String(evidence.pageNumber),
+    evidence.imageContentObjectId,
+  ].map((segment, index) => index === 0 ? segment : encodeURIComponent(segment)).join("/");
+}
+
+export function decodeQueryResponse(
+  value: unknown,
+  expectedAnswerLanguage: SupportedLanguage,
+): QueryResponseV2 {
+  const object = requireObject(value, "response");
+  requireOnlyProperties(
+    object,
+    ["outcome", "answerLanguage", "answer", "citations", "evidenceCoverage",
+      "indexGenerationId", "retrievalPolicyVersion", "promptVersion",
+      "languageModelDescriptor", "correlationId"],
+    "response",
+  );
+  const outcome = requireEnum(object.outcome, queryOutcomes, "outcome");
+  const answerLanguage = requireEnum(object.answerLanguage, supportedLanguages, "answerLanguage");
+
+  if (answerLanguage !== expectedAnswerLanguage) {
+    throw new ContractValidationError(
+      "Response answerLanguage does not match the requested questionLanguage.",
+    );
+  }
+
+  const answer = requireNullableString(object.answer, "answer");
+  const citations = requireArray(object.citations, "citations").map(decodeCitation);
+  const indexGenerationId = requirePattern(
+    object.indexGenerationId,
+    /^idxgen-[a-f0-9]{64}$/,
+    "indexGenerationId",
+  );
+  const coverageObject = requireObject(object.evidenceCoverage, "evidenceCoverage");
+  requireOnlyProperties(
+    coverageObject,
+    ["activeDatabaseCount", "activeDocumentCount", "eligibleDatabaseCount",
+      "eligibleDocumentCount", "degradedSources"],
+    "evidenceCoverage",
+  );
+  const modelObject = requireObject(object.languageModelDescriptor, "languageModelDescriptor");
+  requireOnlyProperties(
+    modelObject,
+    ["providerId", "modelId", "modelRevision"],
+    "languageModelDescriptor",
+  );
+  const response: QueryResponseV2 = {
+    outcome,
+    answerLanguage,
+    answer,
+    citations,
+    evidenceCoverage: decodeEvidenceCoverage(object.evidenceCoverage),
+    indexGenerationId,
+    retrievalPolicyVersion: requireNonEmptyString(
+      object.retrievalPolicyVersion,
+      "retrievalPolicyVersion",
+    ),
+    promptVersion: requireNonEmptyString(object.promptVersion, "promptVersion"),
+    languageModelDescriptor: decodeLanguageModelDescriptor(object.languageModelDescriptor),
+    correlationId: requireCorrelationId(object.correlationId),
+  };
+
+  if (outcome === "Answered" && (answer === null || answer.trim().length === 0)) {
+    throw new ContractValidationError("Answered response must contain an answer.");
+  }
+
+  if (outcome === "InsufficientEvidence" && (answer !== null || citations.length !== 0)) {
+    throw new ContractValidationError(
+      "InsufficientEvidence response must not contain an answer or citations.",
+    );
+  }
+
+  const pageKeys = new Set<string>();
+  let pageCount = 0;
+
+  for (const citation of citations) {
+    if (citation.corpusId !== mvpCorpusId || citation.indexGenerationId !== indexGenerationId) {
+      throw new ContractValidationError("Citation identity does not match the response.");
+    }
+
+    if (citation.canonicalUrl !== null && !isSafeHttpsUrl(citation.canonicalUrl)) {
+      throw new ContractValidationError("Citation URL does not use the approved HTTPS scheme.");
+    }
+
+    if (citation.sourceTrustClass === "LocalAuthorised" &&
+      (citation.sourceFreshness !== "Local" || citation.canonicalUrl !== null)) {
+      throw new ContractValidationError(
+        "Local citation must use Local freshness and no canonical URL.",
+      );
+    }
+
+    if (citation.sourceTrustClass === "OfficialExternal" &&
+      (citation.sourceFreshness === "Local" || citation.canonicalUrl === null ||
+        citation.sourceSnapshotId === null || citation.revalidatedAt === null)) {
+      throw new ContractValidationError(
+        "Official citation is missing required provenance metadata.",
+      );
+    }
+
+    if (citation.documentFormat === "Csv" && citation.pageImages.length !== 0) {
+      throw new ContractValidationError("CSV citations cannot contain page images.");
+    }
+
+    for (const page of citation.pageImages) {
+      if (citation.pageStart === null || citation.pageEnd === null ||
+        page.pageNumber < citation.pageStart || page.pageNumber > citation.pageEnd) {
+        throw new ContractValidationError("Page image is outside its citation range.");
+      }
+
+      const key = `${citation.documentId}\u0000${citation.documentVersion}\u0000${page.pageNumber}`;
+      if (pageKeys.has(key)) {
+        throw new ContractValidationError("Response contains a duplicate document page image.");
+      }
+
+      pageKeys.add(key);
+      pageCount += 1;
+    }
+  }
+
+  if (pageCount > 5) {
+    throw new ContractValidationError("Response contains too many page images.");
+  }
+
+  return response;
+}
+
+function decodeCitation(value: unknown, index: number): CitationV2 {
+  const object = requireObject(value, `citations[${index}]`);
+  requireOnlyProperties(
+    object,
+    ["corpusId", "indexGenerationId", "databaseProductId", "databaseProductRevision",
+      "documentId", "documentVersion", "documentFormat", "contentLanguage",
+      "sourceDeclaredLanguage", "chunkId", "sourceAdapterId", "sourceTrustClass",
+      "excerpt", "title", "pageStart", "pageEnd", "recordStart", "recordEnd",
+      "columns", "canonicalUrl", "sourceSnapshotId", "revalidatedAt",
+      "sourceFreshness", "pageImages"],
+    `citations[${index}]`,
+  );
+  const contentLanguage = requireCanonicalLanguage(object.contentLanguage, "contentLanguage");
+  const sourceDeclaredLanguage = requireNullableLanguage(
+    object.sourceDeclaredLanguage,
+    "sourceDeclaredLanguage",
+  );
+  const columns = requireArray(object.columns, "columns").map((column, columnIndex) =>
+    requireString(column, `columns[${columnIndex}]`),
+  );
+
+  if (columns.length > 64) {
+    throw new ContractValidationError("Citation contains too many CSV columns.");
+  }
+
+  const pageImages = requireArray(object.pageImages, "pageImages")
+    .map((page, pageIndex) => decodePageImage(page, `pageImages[${pageIndex}]`));
+
+  if (pageImages.length > 5) {
+    throw new ContractValidationError("Citation contains too many page images.");
+  }
+
+  return {
+    corpusId: requireNonEmptyString(object.corpusId, "corpusId"),
+    indexGenerationId: requirePattern(
+      object.indexGenerationId,
+      /^idxgen-[a-f0-9]{64}$/,
+      "indexGenerationId",
+    ),
+    databaseProductId: requireNonEmptyString(object.databaseProductId, "databaseProductId"),
+    databaseProductRevision: requireInteger(
+      object.databaseProductRevision,
+      "databaseProductRevision",
+      1,
+    ),
+    documentId: requireNonEmptyString(object.documentId, "documentId"),
+    documentVersion: requireInteger(object.documentVersion, "documentVersion", 1),
+    documentFormat: requireEnum(object.documentFormat, documentFormats, "documentFormat"),
+    contentLanguage,
+    sourceDeclaredLanguage,
+    chunkId: requireNonEmptyString(object.chunkId, "chunkId"),
+    sourceAdapterId: requireNonEmptyString(object.sourceAdapterId, "sourceAdapterId"),
+    sourceTrustClass: requireEnum(
+      object.sourceTrustClass,
+      sourceTrustClasses,
+      "sourceTrustClass",
+    ),
+    excerpt: requireString(object.excerpt, "excerpt"),
+    title: requireNullableString(object.title, "title"),
+    pageStart: requireNullableInteger(object.pageStart, "pageStart", 1),
+    pageEnd: requireNullableInteger(object.pageEnd, "pageEnd", 1),
+    recordStart: requireNullableInteger(object.recordStart, "recordStart", 1),
+    recordEnd: requireNullableInteger(object.recordEnd, "recordEnd", 1),
+    columns,
+    canonicalUrl: requireNullableString(object.canonicalUrl, "canonicalUrl"),
+    sourceSnapshotId: requireNullableString(object.sourceSnapshotId, "sourceSnapshotId"),
+    revalidatedAt: requireNullableDateTime(object.revalidatedAt, "revalidatedAt"),
+    sourceFreshness: requireEnum(
+      object.sourceFreshness,
+      sourceFreshnessStates,
+      "sourceFreshness",
+    ),
+    pageImages,
+  };
+}
+
+function decodePageImage(value: unknown, field: string): PageImageEvidenceV1 {
+  const object = requireObject(value, field);
+  requireOnlyProperties(
+    object,
+    ["pageNumber", "renderManifestId", "imageContentObjectId", "mediaType",
+      "widthPixels", "heightPixels", "contentSha256"],
+    field,
+  );
+  const page: PageImageEvidenceV1 = {
+    pageNumber: requireInteger(object.pageNumber, `${field}.pageNumber`, 1),
+    renderManifestId: requirePattern(
+      object.renderManifestId,
+      /^rendermanifest-[a-f0-9]{64}$/,
+      `${field}.renderManifestId`,
+    ),
+    imageContentObjectId: requirePattern(
+      object.imageContentObjectId,
+      /^[a-f0-9]{64}$/,
+      `${field}.imageContentObjectId`,
+    ),
+    mediaType: requireString(object.mediaType, `${field}.mediaType`) as "image/png",
+    widthPixels: requireInteger(object.widthPixels, `${field}.widthPixels`, 1),
+    heightPixels: requireInteger(object.heightPixels, `${field}.heightPixels`, 1),
+    contentSha256: requirePattern(
+      object.contentSha256,
+      /^[a-f0-9]{64}$/,
+      `${field}.contentSha256`,
+    ),
+  };
+  validatePageImage(page, field);
+  return page;
+}
+
+function validatePageImage(page: PageImageEvidenceV1, field: string): void {
+  if (page.mediaType !== "image/png" || page.widthPixels > 4096 ||
+    page.heightPixels > 4096 || page.imageContentObjectId !== page.contentSha256) {
+    throw new ContractValidationError(`${field} is outside the frozen PNG contract.`);
+  }
+}
+
+function requireCanonicalLanguage(value: unknown, field: string): string {
+  const observed = requireNonEmptyString(value, field);
+  const canonical = canonicaliseLanguage(observed);
+
+  if (canonical !== observed) {
+    throw new ContractValidationError(`${field} must contain a canonical BCP 47 tag.`);
+  }
+
+  return observed;
+}
+
+function requireNullableLanguage(value: unknown, field: string): string | null {
+  const observed = requireNullableString(value, field);
+  if (observed !== null) {
+    canonicaliseLanguage(observed);
+  }
+
+  return observed;
+}
+
+function canonicaliseLanguage(value: string): string {
+  if (value.length > 128 || !/^[A-Za-z0-9]+(?:-[A-Za-z0-9]+)*$/.test(value)) {
+    throw new ContractValidationError("Language tag is outside the bounded BCP 47 grammar.");
+  }
+
+  const lowerValue = value.toLowerCase();
+  const grandfathered = grandfatheredTags[lowerValue];
+  if (grandfathered !== undefined) {
+    return grandfathered;
+  }
+
+  const subtags = value.split("-");
+  if (subtags[0]?.toLowerCase() === "x") {
+    if (subtags.length === 1 || subtags.slice(1).some((tag) =>
+      tag.length < 1 || tag.length > 8 || !isAlphaNumeric(tag))) {
+      throw invalidLanguage();
+    }
+
+    return subtags.map((tag) => tag.toLowerCase()).join("-");
+  }
+
+  const primaryLanguage = subtags[0];
+  if (primaryLanguage === undefined || primaryLanguage.length < 2 ||
+    primaryLanguage.length > 8 || !isAlpha(primaryLanguage)) {
+    throw invalidLanguage();
+  }
+
+  const canonical = [primaryLanguage.toLowerCase()];
+  let index = 1;
+  let extlangCount = 0;
+  if (primaryLanguage.length === 2 || primaryLanguage.length === 3) {
+    while (index < subtags.length && extlangCount < 3 &&
+      subtags[index]?.length === 3 && isAlpha(subtags[index] ?? "")) {
+      canonical.push((subtags[index] ?? "").toLowerCase());
+      index += 1;
+      extlangCount += 1;
+    }
+  }
+
+  const script = subtags[index];
+  if (script !== undefined && script.length === 4 && isAlpha(script)) {
+    const lowerScript = script.toLowerCase();
+    canonical.push(`${lowerScript[0]?.toUpperCase()}${lowerScript.slice(1)}`);
+    index += 1;
+  }
+
+  const region = subtags[index];
+  if (region !== undefined &&
+    (region.length === 2 && isAlpha(region) || region.length === 3 && isNumeric(region))) {
+    canonical.push(region.toUpperCase());
+    index += 1;
+  }
+
+  const variants = new Set<string>();
+  while (index < subtags.length && isVariant(subtags[index] ?? "")) {
+    const variant = subtags[index] ?? "";
+    const key = variant.toLowerCase();
+    if (variants.has(key)) {
+      throw invalidLanguage();
+    }
+
+    variants.add(key);
+    canonical.push(key);
+    index += 1;
+  }
+
+  const extensionSingletons = new Set<string>();
+  while (index < subtags.length && subtags[index]?.length === 1 &&
+    isAlphaNumeric(subtags[index] ?? "") && subtags[index]?.toLowerCase() !== "x") {
+    const singleton = (subtags[index] ?? "").toLowerCase();
+    if (extensionSingletons.has(singleton)) {
+      throw invalidLanguage();
+    }
+
+    extensionSingletons.add(singleton);
+    canonical.push(singleton);
+    index += 1;
+    const extensionStart = index;
+
+    while (index < subtags.length && (subtags[index]?.length ?? 0) >= 2 &&
+      (subtags[index]?.length ?? 0) <= 8 && isAlphaNumeric(subtags[index] ?? "")) {
+      canonical.push((subtags[index] ?? "").toLowerCase());
+      index += 1;
+    }
+
+    if (index === extensionStart) {
+      throw invalidLanguage();
+    }
+  }
+
+  if (index < subtags.length && subtags[index]?.toLowerCase() === "x") {
+    canonical.push("x");
+    index += 1;
+    const privateUseStart = index;
+
+    while (index < subtags.length && (subtags[index]?.length ?? 0) >= 1 &&
+      (subtags[index]?.length ?? 0) <= 8 && isAlphaNumeric(subtags[index] ?? "")) {
+      canonical.push((subtags[index] ?? "").toLowerCase());
+      index += 1;
+    }
+
+    if (index === privateUseStart) {
+      throw invalidLanguage();
+    }
+  }
+
+  if (index !== subtags.length) {
+    throw invalidLanguage();
+  }
+
+  return canonical.join("-");
+}
+
+function requirePattern(value: unknown, pattern: RegExp, field: string): string {
+  const text = requireNonEmptyString(value, field);
+  if (!pattern.test(text)) {
+    throw new ContractValidationError(`${field} is not canonical.`);
+  }
+
+  return text;
+}
+
+function requireOnlyProperties(
+  value: Record<string, unknown>,
+  allowed: readonly string[],
+  field: string,
+): void {
+  const allowedSet = new Set(allowed);
+  if (Object.keys(value).some((property) => !allowedSet.has(property))) {
+    throw new ContractValidationError(`${field} contains an unknown property.`);
+  }
+}
+
+function isVariant(value: string): boolean {
+  return value.length >= 5 && value.length <= 8 && isAlphaNumeric(value) ||
+    value.length === 4 && /^[0-9]/.test(value) && isAlphaNumeric(value);
+}
+
+function isAlpha(value: string): boolean {
+  return /^[A-Za-z]+$/.test(value);
+}
+
+function isNumeric(value: string): boolean {
+  return /^[0-9]+$/.test(value);
+}
+
+function isAlphaNumeric(value: string): boolean {
+  return /^[A-Za-z0-9]+$/.test(value);
+}
+
+function invalidLanguage(): ContractValidationError {
+  return new ContractValidationError("Language tag is not a valid BCP 47 value.");
+}
+
+const grandfatheredTags: Readonly<Record<string, string>> = {
+  "art-lojban": "art-lojban",
+  "cel-gaulish": "cel-gaulish",
+  "en-gb-oed": "en-GB-oed",
+  "i-ami": "i-ami",
+  "i-bnn": "i-bnn",
+  "i-default": "i-default",
+  "i-enochian": "i-enochian",
+  "i-hak": "i-hak",
+  "i-klingon": "i-klingon",
+  "i-lux": "i-lux",
+  "i-mingo": "i-mingo",
+  "i-navajo": "i-navajo",
+  "i-pwn": "i-pwn",
+  "i-tao": "i-tao",
+  "i-tay": "i-tay",
+  "i-tsu": "i-tsu",
+  "no-bok": "no-bok",
+  "no-nyn": "no-nyn",
+  "sgn-be-fr": "sgn-BE-FR",
+  "sgn-be-nl": "sgn-BE-NL",
+  "sgn-ch-de": "sgn-CH-DE",
+  "zh-guoyu": "zh-guoyu",
+  "zh-hakka": "zh-hakka",
+  "zh-min": "zh-min",
+  "zh-min-nan": "zh-min-nan",
+  "zh-xiang": "zh-xiang",
+};

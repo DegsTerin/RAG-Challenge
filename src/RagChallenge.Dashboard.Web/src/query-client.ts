@@ -1,19 +1,19 @@
-// Purpose: Executes the bounded same-origin API v1 query with injected fetch support and no retry, credentials, redirects, or external authority.
+// Purpose: Executes the bounded same-origin API v2 query with injected fetch support and no retry, credentials, redirects, or external authority.
 import {
   ContractValidationError,
   createQueryRequest,
   decodeProblemDetails,
   decodeQueryResponse,
-  queryEndpointV1,
+  queryEndpointV2,
   type ProblemDetailsV1,
-  type QueryResponseV1,
+  type QueryResponseV2,
   type SupportedLanguage,
-} from "./contracts/api-v1.ts";
+} from "./contracts/api-v2.ts";
 
 const maximumResponseBytes = 262_144;
 
 export type QueryClientResult =
-  | { kind: "completed"; response: QueryResponseV1 }
+  | { kind: "completed"; response: QueryResponseV2 }
   | { kind: "problem"; problem: ProblemDetailsV1 };
 
 export type FetchFunction = (input: string, init: RequestInit) => Promise<Response>;
@@ -25,7 +25,7 @@ export async function askQuestion(
   fetchFunction: FetchFunction = fetch,
 ): Promise<QueryClientResult> {
   const { body } = createQueryRequest(question, questionLanguage);
-  const response = await fetchFunction(queryEndpointV1, {
+  const response = await fetchFunction(queryEndpointV2, {
     method: "POST",
     headers: {
       Accept: "application/json, application/problem+json",

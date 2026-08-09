@@ -1,5 +1,5 @@
 // Purpose: Provides exhaustive product-owned interface copy for the two approved visual languages without translating source-derived evidence.
-import type { SourceFreshness } from "./contracts/api-v1";
+import type { SourceFreshness } from "./contracts/api-v2";
 import type { InterfaceLanguage, Theme } from "./preferences";
 
 export interface DashboardCopy {
@@ -50,6 +50,9 @@ export interface DashboardCopy {
   documentLabel: string;
   generationLabel: string;
   contentLanguageLabel: string;
+  sourceDeclaredLanguageLabel: string;
+  pageImageDescription: (title: string, version: number, page: number) => string;
+  pageImageUnavailable: string;
   pdfLocation: (start: number | null, end: number | null) => string;
   csvLocation: (start: number | null, end: number | null) => string;
   columnsLabel: string;
@@ -121,6 +124,10 @@ export const dashboardCopy: Readonly<Record<InterfaceLanguage, DashboardCopy>> =
     documentLabel: "Documento",
     generationLabel: "Geração",
     contentLanguageLabel: "Idioma da evidência",
+    sourceDeclaredLanguageLabel: "Idioma declarado pela fonte",
+    pageImageDescription: (title, version, page) =>
+      `Evidência visual de ${title}, versão ${version}, página ${page}`,
+    pageImageUnavailable: "A imagem não pôde ser apresentada; a citação textual permanece disponível.",
     pdfLocation: (start, end) => formatRange("Página", "Páginas", start, end, "não informada"),
     csvLocation: (start, end) => formatRange("Registro", "Registros", start, end, "não informado"),
     columnsLabel: "Colunas",
@@ -134,7 +141,7 @@ export const dashboardCopy: Readonly<Record<InterfaceLanguage, DashboardCopy>> =
       InvalidQuestion: "Revise a pergunta e tente novamente.",
       NetworkUnavailable: "A API não pôde ser alcançada neste ambiente.",
       RequestCancelled: "A consulta foi cancelada antes da conclusão.",
-      ResponseIncompatible: "A API retornou uma resposta incompatível com o contrato v1.",
+      ResponseIncompatible: "A API retornou uma resposta incompatível com o contrato v2.",
     },
     problemMessages: {
       CH_QUERY_INVALID_INPUT: "A API recusou a pergunta por formato ou limite inválido.",
@@ -208,6 +215,10 @@ export const dashboardCopy: Readonly<Record<InterfaceLanguage, DashboardCopy>> =
     documentLabel: "Document",
     generationLabel: "Generation",
     contentLanguageLabel: "Evidence language",
+    sourceDeclaredLanguageLabel: "Source-declared language",
+    pageImageDescription: (title, version, page) =>
+      `Visual evidence from ${title}, version ${version}, page ${page}`,
+    pageImageUnavailable: "The image could not be presented; the textual citation remains available.",
     pdfLocation: (start, end) => formatRange("Page", "Pages", start, end, "not provided"),
     csvLocation: (start, end) => formatRange("Record", "Records", start, end, "not provided"),
     columnsLabel: "Columns",
@@ -221,7 +232,7 @@ export const dashboardCopy: Readonly<Record<InterfaceLanguage, DashboardCopy>> =
       InvalidQuestion: "Review the question and try again.",
       NetworkUnavailable: "The API could not be reached in this environment.",
       RequestCancelled: "The query was cancelled before completion.",
-      ResponseIncompatible: "The API returned a response incompatible with contract v1.",
+      ResponseIncompatible: "The API returned a response incompatible with contract v2.",
     },
     problemMessages: {
       CH_QUERY_INVALID_INPUT: "The API rejected the question because its format or bounds are invalid.",

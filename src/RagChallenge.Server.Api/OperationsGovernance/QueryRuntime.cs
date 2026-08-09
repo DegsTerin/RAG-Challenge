@@ -26,6 +26,37 @@ internal sealed class QueryConcurrencyGate : IDisposable
     public void Dispose() => semaphore.Dispose();
 }
 
+internal sealed class VisualEvidenceConcurrencyGate : IDisposable
+{
+    private readonly SemaphoreSlim semaphore = new(initialCount: 4, maxCount: 4);
+
+    internal async Task<bool> TryEnterAsync(CancellationToken cancellationToken)
+    {
+        try
+        {
+            return await semaphore.WaitAsync(TimeSpan.Zero, cancellationToken)
+                .ConfigureAwait(false);
+        }
+        catch (OperationCanceledException)
+        {
+            return false;
+        }
+    }
+
+    internal void Exit() => semaphore.Release();
+
+    public void Dispose() => semaphore.Dispose();
+}
+
+internal sealed class DisabledVisualEvidenceReader : IVisualEvidenceReader
+{
+    public Task<VisualEvidenceReadResult> ReadAsync(
+        VisualEvidenceSelector selector,
+        DateTimeOffset observedAt,
+        CancellationToken cancellationToken = default) =>
+        Task.FromResult(VisualEvidenceReadResult.Unavailable());
+}
+
 internal sealed class DisabledQuestionAnsweringService : IQuestionAnsweringService
 {
     public Task<QueryExecutionResult> AskAsync(

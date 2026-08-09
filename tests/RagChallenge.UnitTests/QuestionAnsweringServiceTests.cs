@@ -50,6 +50,39 @@ public sealed class QuestionAnsweringServiceTests
     }
 
     [Fact]
+    public async Task V1ExcludesBroaderEvidenceWhileV2ReturnsItsExactLanguageMetadata()
+    {
+        var contentLanguage = new DocumentContentLanguage("en");
+        var sourceDeclaredLanguage = new SourceDeclaredLanguage("EN");
+        var context = CreateContext(
+            SupportedQueryLanguage.EnGb,
+            contentLanguage: contentLanguage,
+            sourceDeclaredLanguage: sourceDeclaredLanguage);
+
+        var v1 = await context.Service.AskAsync(
+            new QueryRequest(
+                CorpusId,
+                SupportedQueryLanguage.EnGb,
+                "Question",
+                "correlation-v1-closed"),
+            At(5));
+        var v2 = await context.Service.AskAsync(
+            new QueryRequest(
+                CorpusId,
+                SupportedQueryLanguage.EnGb,
+                "Question",
+                "correlation-v2-bcp47",
+                ContractVersion: QueryContractVersion.V2),
+            At(5));
+
+        Assert.Equal(QueryFailureKind.SourceUnavailable, v1.Failure!.Kind);
+        var citation = Assert.Single(v2.Completion!.Citations);
+        Assert.Equal("en", citation.ContentLanguage.ToCanonicalTag());
+        Assert.Equal("EN", citation.SourceDeclaredLanguage!.ObservedTag);
+        Assert.Single(citation.PageImages);
+    }
+
+    [Fact]
     public async Task NoRetrievedEvidenceReturnsExplicitInsufficientEvidenceWithoutModelCall()
     {
         var context = CreateContext(SupportedQueryLanguage.EnGb, returnHit: false);
@@ -276,9 +309,11 @@ public sealed class QuestionAnsweringServiceTests
         string? citedChunkId = null,
         bool embeddingUnavailable = false,
         bool languageModelUnavailable = false,
-        bool answerEvidenceFailure = false)
+        bool answerEvidenceFailure = false,
+        DocumentContentLanguage? contentLanguage = null,
+        SourceDeclaredLanguage? sourceDeclaredLanguage = null)
     {
-        var contentLanguage = new DocumentContentLanguage(
+        contentLanguage ??= new DocumentContentLanguage(
             evidenceLanguage.ToCanonicalTag());
         var binding = new DocumentBinding(
             new DatabaseProductId("database-1"),
@@ -308,7 +343,8 @@ public sealed class QuestionAnsweringServiceTests
                 renderManifest,
                 contentLanguage,
                 SourceFreshness.Local,
-                "Synthetic database")]);
+                "Synthetic database",
+                sourceDeclaredLanguage: sourceDeclaredLanguage)]);
         var embeddingDescriptor = new EmbeddingProviderDescriptor(
             "fake",
             "embedding-v1",

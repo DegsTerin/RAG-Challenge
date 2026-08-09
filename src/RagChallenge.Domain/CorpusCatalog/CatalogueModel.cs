@@ -111,13 +111,6 @@ public sealed class DocumentVersion
                 "A document format must belong to the closed MVP set.");
         }
 
-        if (status == CatalogueItemStatus.Active && !contentLanguage.IsSupportedByV1)
-        {
-            throw new ArgumentException(
-                "An active document must use a content language supported by runtime v1.",
-                nameof(contentLanguage));
-        }
-
         if (!Enum.IsDefined(status))
         {
             throw new ArgumentOutOfRangeException(
