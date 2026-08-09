@@ -582,6 +582,26 @@ proprietários.
   achado. Browser/tecnologia assistiva, dado, renderer, provider, fonte e rede
   reais, carga, crash/recovery, Linux, OCI e produção permanecem `NOT_RUN`.
   Nenhum Human Gate ou avanço de lifecycle é inferido.
+- Integração, restart e recuperação fria do runtime composto v2: autorizados
+  sob `AUTH-STATE07-V2-INTEGRATION-RECOVERY-IMPL-001` sobre a baseline limpa
+  `main@a47bd40b1873920c7660abb14acd68de45a7dde4`, corpus `4.10.1`, e
+  concluídos no commit `e5dae7ee5a786417fba2c6ef0555686816b0b330`. A
+  composição permanece fail-closed fora do perfil `Integration`; dentro dele,
+  a mesma instância sintética atende query, readiness e o reader visual
+  verificado sobre PDF/PNG project-owned em memória. Passaram 52 de 52 testes
+  focais. O harness publicado em `127.0.0.1:5086` resultou `Passed`: serving
+  PNG `200`, revalidação `304`, mesma geração após restart e cold restore,
+  fingerprints idênticos das cópias confinadas, teto visual de 64 MiB e token
+  bucket com dez acessos aceitos e o décimo primeiro rejeitado por `429`. Dois
+  builds offline produziram o mesmo ZIP SHA-256
+  `e27c64571b63538e4cba21f552df500c24a4bab3a6365e6229e2d9dd033f2f7d`.
+  O cleanup removeu runtime, stores, backup, restore e temporários task-owned;
+  nenhum host ou listener permaneceu. OpenAPI v1/v2, contrato, schema,
+  migration, ADR, dependência e lockfile não mudaram. O Automatic Quality Gate
+  deste incremento, Human Gate e lifecycle não foram executados; a evidência
+  não homologa produto, dado/renderer/provider/fonte real, browser, tecnologia
+  assistiva, carga, crash injection abrangente, recuperação operacional,
+  Linux, OCI ou produção.
 - Decisão arquitetural de armazenamento do corpus e evidência visual:
   [ADR-0008](../../docs/architecture/ADR-0008-Product-Corpus-Storage-And-Page-Image-Evidence.md)
   foi aceita explicitamente pelo proprietário em 2026-08-07 sobre
@@ -1124,7 +1144,7 @@ proprietários.
   a política de idioma acrescentou o 21º documento público por incremento
   versionado, e o ADR-0003 acrescentou o 22º.
 - A baseline aprovada no Human Gate de `STATE-00` permanece `3.4.0`.
-- O corpus de instruções vigente possui versão `4.10.1` e 13 arquivos em
+- O corpus de instruções vigente possui versão `4.10.2` e 13 arquivos em
   `prompts/`.
 - Visão, requisitos, arquitetura, RAG, segurança, qualidade, lifecycle,
   roadmap, backlog, estado, histórico e templates estão documentados.
@@ -1417,20 +1437,22 @@ autorizada.
 2. Validar e ativar individualmente novos registros de fonte oficial; a
    aceitação arquitetural não autoriza URL, rede, download ou crawling.
 3. `S07-A` A1-A5 e seu Automatic Quality Gate foram concluídos e aprovados na
-   fronteira local, offline, determinística e sintética autorizada.
-   Homologação de produto e as fronteiras de provider, fonte, browser,
-   segurança dinâmica, carga, recuperação, acessibilidade, Linux, OCI e
-   produção permanecem `NOT_RUN`; qualquer outro lote de `STATE-07` continua
-   não executado e não autorizado.
+   fronteira local, offline, determinística e sintética autorizada. A
+   integração v2, restart, cold backup/restore confinado e limites também foram
+   implementados e verificados focalmente com fixtures sintéticas; seu
+   Automatic Quality Gate permanece `NOT_RUN`. Homologação de produto e as
+   fronteiras de provider, fonte, browser, segurança dinâmica, carga,
+   recuperação operacional, acessibilidade, Linux, OCI e produção permanecem
+   `NOT_RUN`; qualquer outro lote de `STATE-07` continua não executado e não
+   autorizado.
 4. Verificar tier, entitlement, spend limit e controles da conta OpenAI, além
    da recuperação/geração bilíngue, antes de usar ou anunciar os providers.
 5. Homologar desempenho e capacidade do `SqliteExactVectorStore`; a fixture
    funcional de 10.000 × 1.536 passou, mas não é benchmark, SLA ou teto de
    produto.
-6. Testar process-crash boundaries no `STATE-07`;
-   migrations, concorrência, corrupção, backup e recuperação isolada já
-   possuem evidência local sintética, sem representar armazenamento
-   operacional.
+6. Testar process-crash boundaries abrangentes no `STATE-07`; restart e cold
+   backup/restore do store v2 task-owned já possuem evidência local sintética e
+   confinada, sem representar armazenamento ou recuperação operacional.
 7. Verificar capacidade, entitlement, IAM, restore, custo e cobrança reais da
    tenancy OCI; as fontes públicas ainda divergem sobre a franquia gratuita.
 8. Materializar `rag-eval-catalogue-v1`, a rubrica e thresholds antes de cada
@@ -1447,9 +1469,12 @@ autorizada.
    implementação e o serving visual same-origin foram concluídos e o Automatic
    Quality Gate correspondente foi `APROVADO` na fronteira local, offline,
    determinística e sintética. OpenAPI v1 e v2 permanecem protegidas. As
-   fronteiras de browser/tecnologia assistiva, dados, renderer, provider, fonte
-   e rede reais, carga, crash/recovery, Linux, OCI e produção continuam
-   `NOT_RUN`.
+   integração v2, restart, cold backup/restore confinado e limites foram
+   concluídos no commit `e5dae7ee5a786417fba2c6ef0555686816b0b330`, ainda
+   sem Automatic Quality Gate próprio. As fronteiras de browser/tecnologia
+   assistiva, dados, renderer, provider, fonte e rede reais, carga, crash
+   injection abrangente, recuperação operacional, Linux, OCI e produção
+   continuam `NOT_RUN`.
 
 ## Próxima autoridade
 
@@ -1461,16 +1486,17 @@ e autorizar separadamente a fronteira ainda `NOT_RUN`, sem inferir avanço de
 lifecycle.
 
 O segundo refinamento arquitetural da ordem registrada em Lifecycle está
-implementado até o contrato HTTP/OpenAPI v2 e serving visual same-origin na
-fronteira local, offline, sintética e sequencial descrita. `AQG-S04-002` a
+implementado até integração v2, restart, cold backup/restore confinado e
+limites na fronteira local, offline, sintética e sequencial. `AQG-S04-002` a
 `AQG-S04-004`, `AQG-S07-V2-001` e `AQG-S07-V2-002` estão `RESOLVIDOS`; os
-Automatic Quality Gates corretivo de `S04-CORR-04-E` e do incremento v2 estão
-`APROVADOS`. Não existe novo Human Gate canonicamente aplicável a esses
-incrementos: Human Gate pertence a um único `STATE-ID`; o Human Gate histórico
-de `STATE-04` permanece inalterado e `STATE-07` não recebe decisão por
-implicação. Não existe autoridade vigente para a próxima fronteira `NOT_RUN` ou
-o próximo incremento. Qualquer objetivo posterior exige autoridade própria no
-estado ou lote que o possua.
+Automatic Quality Gates corretivo de `S04-CORR-04-E` e do incremento de
+contrato/serving v2 estão `APROVADOS`. A integração e recuperação v2 concluída
+em `e5dae7ee5a786417fba2c6ef0555686816b0b330` possui somente verificação focal;
+seu Automatic Quality Gate permanece `NOT_RUN` e exige autoridade separada
+sobre baseline documental limpa. Não existe novo Human Gate canonicamente
+aplicável a esses incrementos: Human Gate pertence a um único `STATE-ID`; o
+Human Gate histórico de `STATE-04` permanece inalterado e `STATE-07` não
+recebe decisão por implicação. Nenhum avanço posterior está autorizado.
 
 `STATE-04 BACKEND_IMPLEMENTATION` está encerrado após Automatic Quality Gate
 aprovado e Human Gate aprovado com as ressalvas documentadas em 2026-08-04. O

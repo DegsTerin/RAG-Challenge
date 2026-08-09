@@ -2,10 +2,11 @@
 
 ## Versão atual
 
-- Versão: `4.10.1`
-- Data: 2026-08-08
-- Status: `STATE-07` ativo; `S04-CORR-04-E` implementado na fronteira local,
-  offline e sintética; Automatic Quality Gate, Human Gate e mudança de
+- Versão: `4.10.2`
+- Data: 2026-08-09
+- Status: `STATE-07` ativo; integração, restart e cold backup/restore v2
+  implementados e verificados focalmente na fronteira local, offline e
+  sintética; Automatic Quality Gate deste incremento, Human Gate e mudança de
   lifecycle não executados
 - Escopo: 13 arquivos ativos em `prompts/`
 
@@ -20,6 +21,31 @@ A versão do corpus é independente da versão futura do software.
 
 Toda alteração atualiza este arquivo e, quando necessário,
 [`../Start-Here.md`](../Start-Here.md).
+
+## 4.10.2 — 2026-08-09
+
+- Registra a implementação local, offline, determinística, sintética e
+  sequencial da integração e recuperação v2 sob
+  `AUTH-STATE07-V2-INTEGRATION-RECOVERY-IMPL-001`, concluída no commit
+  `e5dae7ee5a786417fba2c6ef0555686816b0b330`.
+- Registra composição fail-closed fora do perfil `Integration` e, dentro dele,
+  query, readiness e reader visual verificado sobre PDF/PNG project-owned em
+  memória, sem corpus ou dado de produto e sem fonte, renderer ou provider
+  real.
+- Registra 52 de 52 testes focais aprovados e harness publicado `Passed`, com
+  serving PNG `200`, revalidação `304`, geração preservada após restart e cold
+  restore, cópias confinadas com fingerprints idênticos, teto de 64 MiB e token
+  bucket que aceita dez acessos e rejeita o décimo primeiro por `429`.
+- Registra duas construções offline byte a byte determinísticas no ZIP SHA-256
+  `e27c64571b63538e4cba21f552df500c24a4bab3a6365e6229e2d9dd033f2f7d`,
+  cleanup completo e ausência final de host ou listener da tarefa.
+- Preserva OpenAPI v1 e v2 byte a byte, sem mudança de contrato, schema,
+  migration, ADR, dependência ou lockfile. Browser/tecnologia assistiva, dado,
+  renderer, provider, fonte e rede reais, carga, crash injection abrangente,
+  recuperação operacional, Linux, OCI e produção permanecem `NOT_RUN`.
+- A mudança é `PATCH`, exclusivamente factual. Não executa Automatic Quality
+  Gate deste incremento, Human Gate ou lifecycle e não converte evidência
+  sintética em homologação de produto.
 
 ## 4.10.1 — 2026-08-08
 

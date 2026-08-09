@@ -6035,3 +6035,52 @@ contém somente fatos cronológicos.
 - Próxima condição: qualquer fronteira ainda `NOT_RUN` ou novo incremento de
   `STATE-07` exige autoridade humana separada e delimitada; esta aprovação não
   prepara Human Gate nem promove lifecycle.
+
+## 2026-08-09 — Integração e recuperação v2 reconciliadas após verificação focal
+
+- Estado anterior e resultante: `STATE-07 TESTING_HOMOLOGATION` permanece
+  ativo; nenhum Automatic Quality Gate deste incremento, Human Gate ou
+  lifecycle foi executado ou alterado.
+- Autoridade e baseline de implementação:
+  `AUTH-STATE07-V2-INTEGRATION-RECOVERY-IMPL-001` autorizou somente a fronteira
+  local, offline, determinística, sintética e sequencial sobre branch `main`,
+  commit `a47bd40b1873920c7660abb14acd68de45a7dde4`, corpus `4.10.1`, working
+  tree inicialmente limpa e OpenAPI v1/v2 protegidas. A implementação foi
+  concluída no commit `e5dae7ee5a786417fba2c6ef0555686816b0b330`.
+- Composição reconciliada: fora do perfil `Integration`, o reader visual
+  permanece desabilitado e fail-closed; dentro dele, a mesma instância
+  sintética atende query, readiness e leitura visual verificada sobre PDF/PNG
+  project-owned em memória, manifest final, direitos sintéticos e conteúdo
+  imutável. Nenhum corpus ou dado de produto, fonte, renderer ou provider real
+  foi usado.
+- Evidência focal: 52 de 52 testes passaram. O harness publicado em
+  `http://127.0.0.1:5086` resultou `Passed`; serving PNG retornou `200`, a
+  revalidação integral retornou `304`, e a geração e o seletor visual foram
+  preservados após restart e cold restore.
+- Recuperação e limites: o host estava encerrado antes das cópias confinadas;
+  os fingerprints dos stores original, backup e restaurado conferiram. O teto
+  visual de 64 MiB permaneceu aplicado; dez acessos imediatos foram aceitos e o
+  décimo primeiro retornou `429`/`CH_VISUAL_EVIDENCE_RATE_LIMITED` com
+  `Retry-After: 10`.
+- Determinismo e cleanup: duas construções offline produziram o mesmo ZIP
+  SHA-256 `e27c64571b63538e4cba21f552df500c24a4bab3a6365e6229e2d9dd033f2f7d`.
+  Runtime, stores, backup, restore e temporários task-owned foram removidos;
+  nenhum host ou listener permaneceu.
+- Contratos protegidos: OpenAPI v1 permaneceu no SHA-256
+  `d6a686b94c926914beb28b437f464430a01de6560c2e2d476cf5c36025813e34` e blob
+  `a5fb3602fbab33bda6aa56cc4caaa9fdc37c8160`; OpenAPI v2 permaneceu no
+  SHA-256 `01ab26ae8066971af2e5ae83ec828fae556951d5ce6c335b42f6e7cf7b062640` e
+  blob `8d31b200375ea834f148ea625664091cd5cdc84f`. Não houve mudança de contrato,
+  schema, migration, ADR, dependência ou lockfile.
+- Limites preservados: browser e tecnologia assistiva, corpus, fonte,
+  renderer, provider e dado reais, rede externa, benchmark, carga, p95/p99,
+  crash injection abrangente, recuperação operacional, Linux, OCI, produção,
+  ação externa, push, publicação e deploy permaneceram `NOT_RUN`. A evidência
+  sintética não constitui homologação de produto.
+- Autoridade deste registro:
+  `AUTH-STATE07-V2-INTEGRATION-RECOVERY-RECONCILE-001`, limitada ao relatório
+  de homologação, Current State, versão `4.10.2` do corpus e acréscimo
+  append-only deste histórico.
+- Próxima condição: o Automatic Quality Gate desta integração e recuperação v2
+  exige autoridade separada sobre baseline documental limpa; nenhuma decisão
+  humana ou promoção de lifecycle é inferida.

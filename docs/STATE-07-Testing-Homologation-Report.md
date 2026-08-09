@@ -21,6 +21,11 @@ visual-evidence serving contract, implementation, focal correction and
 Automatic Quality Gate. That evidence remains limited to its local, offline,
 deterministic and synthetic verification boundary.
 
+It additionally records the separately authorised composed v2 integration,
+restart, cold backup/restore and contractual-limit implementation completed in
+commit `e5dae7ee5a786417fba2c6ef0555686816b0b330`. This is focused synthetic
+integration evidence only; its Automatic Quality Gate has not run.
+
 The governing inputs are the
 [S07-A proposal](STATE-07-S07-A-Evaluation-And-Security-Proposal.md),
 [dataset manifest](evaluation/rag-eval-catalogue-v1/dataset-manifest.json),
@@ -472,3 +477,50 @@ real source/provider/network access, load, crash/recovery, Linux, OCI,
 production, Human Gate, lifecycle transition, push, publication and deployment
 were `NOT_RUN`. No contract, OpenAPI, schema, migration, dependency, lockfile,
 ADR, dataset or retained evidence was changed by the gate.
+
+## V2 integration, restart and cold-recovery increment
+
+### Authority, implementation and protected baseline
+
+`AUTH-STATE07-V2-INTEGRATION-RECOVERY-IMPL-001` authorised only the local,
+offline, deterministic, synthetic and sequential composed v2 runtime boundary
+on clean
+`main@a47bd40b1873920c7660abb14acd68de45a7dde4`, prompt corpus `4.10.1`.
+The focused implementation was committed as
+`e5dae7ee5a786417fba2c6ef0555686816b0b330`.
+
+The implementation composes the query, readiness and verified page-image
+reader through the explicit `Integration` profile. Outside that profile the
+visual reader remains disabled and fail-closed. The project-owned fixture is a
+deterministic in-memory PDF with a complete 1 × 1 PNG, final render manifest,
+permitted synthetic rights and immutable content identities; no real corpus,
+source, renderer, provider or product data was used.
+
+OpenAPI v1 and v2 remained byte-for-byte unchanged:
+
+| Artefact | SHA-256 | Git blob | Result |
+| --- | --- | --- | --- |
+| OpenAPI v1 | `d6a686b94c926914beb28b437f464430a01de6560c2e2d476cf5c36025813e34` | `a5fb3602fbab33bda6aa56cc4caaa9fdc37c8160` | preserved byte for byte |
+| OpenAPI v2 | `01ab26ae8066971af2e5ae83ec828fae556951d5ce6c335b42f6e7cf7b062640` | `8d31b200375ea834f148ea625664091cd5cdc84f` | preserved byte for byte |
+
+### Focused observed evidence
+
+| Boundary | Observed result |
+| --- | --- |
+| Focused contract, activation, composition and end-to-end tests | 52 of 52 passed |
+| Published artefact harness | `Passed` on the exclusive `http://127.0.0.1:5086` origin |
+| Same-origin v2 flow | query returned the exact PDF page selector; verified PNG serving returned `200`; full conditional revalidation returned `304` |
+| Restart | the active index generation and visual selector remained unchanged after reopening the original store |
+| Cold backup/restore | the host was stopped before each confined copy; exact store fingerprints matched; the restored store reopened the same active generation and visual evidence |
+| Contractual visual limits | the 64 MiB response ceiling remained enforced; ten immediate visual requests were accepted and the eleventh returned `429`/`CH_VISUAL_EVIDENCE_RATE_LIMITED` with `Retry-After: 10` |
+| Deterministic artefact | two offline builds produced the same ZIP SHA-256 `e27c64571b63538e4cba21f552df500c24a4bab3a6365e6229e2d9dd033f2f7d` |
+| Cleanup | task-owned runtime, store, backup, restore and temporary paths were removed; no RAG-Challenge host or listener remained |
+
+The focused result is `PASSED` only for this synthetic integration boundary.
+It is not an Automatic Quality Gate, product homologation, Human Gate or
+lifecycle transition. Browser and assistive-technology execution, real corpus,
+source, renderer, data and provider access, external network, benchmark, load,
+p95/p99, broad crash injection, operational backup/restore, Linux, OCI,
+production, publication and deployment remain `NOT_RUN`. No contract, OpenAPI,
+schema, migration, ADR, dependency, lockfile or retained product evidence was
+changed.
