@@ -1378,10 +1378,11 @@ autorizada.
    para cada banco antes de sua ativação.
 2. Validar e ativar individualmente novos registros de fonte oficial; a
    aceitação arquitetural não autoriza URL, rede, download ou crawling.
-3. Obter autoridade explícita e separada antes de qualquer lote de
-   `STATE-07`; o estado está ativo somente por entrada documental, sem
-   dataset, avaliação, teste, carga, segurança dinâmica ou homologação
-   autorizados ou executados.
+3. `S07-A` A1-A5 foi concluído na fronteira local, offline, determinística e
+   sintética autorizada. Seu Automatic Quality Gate permanece pendente de
+   reinício sob autoridade explícita e separada; homologação de produto e
+   qualquer outro lote de `STATE-07` permanecem não executados e não
+   autorizados.
 4. Verificar tier, entitlement, spend limit e controles da conta OpenAI, além
    da recuperação/geração bilíngue, antes de usar ou anunciar os providers.
 5. Homologar desempenho e capacidade do `SqliteExactVectorStore`; a fixture
@@ -1714,7 +1715,9 @@ tree limpa, o proprietário confirmou a proposta documental de `S07-A`
 exclusivamente como baseline de planejamento. A confirmação não autorizou
 `AUTH-S07-A-DATASET-001`, `AUTH-S07-A-RUN-001`, materialização de dataset,
 avaliação, testes, carga, segurança dinâmica, browser, providers, fontes
-reais, rede ou ação externa. `S07-A` permanece não executado.
+reais, rede ou ação externa. Naquele registro histórico, `S07-A` ainda não
+havia sido executado; a execução posterior de A1-A5 e a aprovação de A5 estão
+registradas no estado factual vigente acima.
 
 Em 2026-08-07, sobre
 `main@66c47d94d423abf4f0c1509ba04b8064d3efd8ca`, corpus `4.9.3` e working
