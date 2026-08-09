@@ -5978,3 +5978,60 @@ contém somente fatos cronológicos.
 - Próxima condição: qualquer continuação de `S07-A` ou `STATE-07` deve nomear
   e autorizar separadamente a fronteira ainda `NOT_RUN`; a aprovação deste
   gate sintético não prepara Human Gate nem promove lifecycle.
+
+## 2026-08-09 — Automatic Quality Gate de v2 e serving visual aprovado
+
+- Estado anterior e resultante: `STATE-07 TESTING_HOMOLOGATION` permanece
+  ativo; o contrato HTTP/OpenAPI v2 e o serving visual same-origin foram
+  implementados e tiveram Automatic Quality Gate aprovado, sem Human Gate ou
+  mudança de lifecycle.
+- Autoridade e baseline: `AUTH-STATE07-V2-SERVING-AQG-RETEST-001` autorizou o
+  reinício integral local, offline, determinístico e sequencial sobre branch
+  `main`, commit `5505a85253aa4a8a7a3690caf3dd7a762175cab9`, corpus `4.10.1` e
+  working tree inicialmente limpa.
+- Sequência reconciliada: contrato congelado no commit
+  `54bab1aa5f25b778093bea62ffecf7c479557f9a`, implementação no commit
+  `c01abf525f4cc113baa389982da3b419d07556b6` e correção focal no commit
+  `5505a85253aa4a8a7a3690caf3dd7a762175cab9`.
+- OpenAPI protegido: v1 permaneceu byte a byte no SHA-256
+  `d6a686b94c926914beb28b437f464430a01de6560c2e2d476cf5c36025813e34` e blob
+  Git `a5fb3602fbab33bda6aa56cc4caaa9fdc37c8160`; v2 permaneceu byte a byte no
+  SHA-256 `01ab26ae8066971af2e5ae83ec828fae556951d5ce6c335b42f6e7cf7b062640` e
+  blob Git `8d31b200375ea834f148ea625664091cd5cdc84f`.
+- Preflight: zero processo e zero listener comprovadamente pertencente ao
+  RAG-Challenge; nada foi encerrado e nenhum processo da tarefa permaneceu ao
+  fim do gate.
+- Auditoria estática: os 33 paths de implementação, os dois paths da correção,
+  os contratos v1/v2, projeção BCP 47 sem coerção, cadeia de autoridade de
+  serving, revalidação de ETag, limites, falhas uniformes, headers same-origin,
+  CSP, apresentação acessível e fronteiras públicas conferiram. Não houve
+  schema, migration, dependência ou lockfile novo.
+- Correção focal confirmada: todos os quatro componentes do seletor, inclusive
+  `pageNumber` malformado, são tratados na fronteira do endpoint com o
+  `404`/`CH_VISUAL_EVIDENCE_NOT_AVAILABLE` uniforme sem alcançar o fallback do
+  Dashboard. A restrição genérica exigida pelo servidor HTTP em memória também
+  foi confirmada.
+- Comandos focais reais: os testes unitários de
+  `QuestionAnsweringServiceTests`/`DocumentLanguageAndRenderingTests`, os testes
+  de integração de `ApiV2ContractTests`/`SqliteActivationLifecycleTests`, os
+  três testes focais de arquitetura e os testes Dashboard
+  `api-v2-contract.test.mjs`/`result-presentation.test.mjs` terminaram com exit
+  code `0`, aprovando respectivamente 46, 20, 3 e 9 casos.
+- Comandos integrais reais: `pwsh -NoProfile -File eng/check-repository.ps1` e
+  `pwsh -NoProfile -File eng/ci.ps1 -Offline` terminaram com exit code `0`. A
+  auditoria cobriu 255 arquivos; a CI aprovou build sem avisos ou erros, 147
+  testes unitários, 171 de integração, 11 de arquitetura e 42 do Dashboard,
+  com 94,80% de linhas e 67,14% de branches.
+- Disposição: Automatic Quality Gate `APROVADO`, sem novo P0, P1, P2 ou P3;
+  `AQG-S07-V2-001` e `AQG-S07-V2-002` estão `RESOLVIDOS`.
+- Limitações e escopo negativo: browser e tecnologia assistiva, dados e
+  renderer reais, provider, fonte, rede, carga, crash/recovery, Linux, OCI,
+  produção, Human Gate, lifecycle, push, publicação e deploy permaneceram
+  `NOT_RUN`; o gate não alterou contrato, OpenAPI, schema, migration,
+  dependência, lockfile, ADR, dataset ou evidência retida.
+- Autoridade deste registro: `AUTH-STATE07-V2-SERVING-AQG-RECONCILE-001`,
+  limitada ao relatório de homologação, Current State e acréscimo append-only
+  deste histórico.
+- Próxima condição: qualquer fronteira ainda `NOT_RUN` ou novo incremento de
+  `STATE-07` exige autoridade humana separada e delimitada; esta aprovação não
+  prepara Human Gate nem promove lifecycle.

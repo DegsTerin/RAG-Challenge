@@ -16,6 +16,11 @@ performance, security, accessibility, Linux, OCI or production homologation.
 It is not a Human Gate, a lifecycle transition, publication or deployment
 authority.
 
+It also records the separately authorised HTTP/OpenAPI v2 and same-origin
+visual-evidence serving contract, implementation, focal correction and
+Automatic Quality Gate. That evidence remains limited to its local, offline,
+deterministic and synthetic verification boundary.
+
 The governing inputs are the
 [S07-A proposal](STATE-07-S07-A-Evaluation-And-Security-Proposal.md),
 [dataset manifest](evaluation/rag-eval-catalogue-v1/dataset-manifest.json),
@@ -391,3 +396,79 @@ product-corpus threshold is `NOT_RUN`, the real provider/source/browser and
 broader local security/load/recovery/accessibility boundaries are unexecuted,
 and `S07-A-FIND-001` plus historical `S07-A-FIND-004` remain open. No Human
 Gate or lifecycle transition is implied.
+
+## HTTP v2 and visual-evidence serving increment
+
+### Authority, commits and baseline
+
+The separately versioned HTTP/OpenAPI v2 and same-origin visual-evidence
+serving contract was frozen in commit
+`54bab1aa5f25b778093bea62ffecf7c479557f9a`. The implementation was completed
+in commit `c01abf525f4cc113baa389982da3b419d07556b6`. The focal correction for a
+malformed `pageNumber` selector and its in-memory HTTP routing regression was
+completed in commit `5505a85253aa4a8a7a3690caf3dd7a762175cab9`.
+
+The complete Automatic Quality Gate restarted under
+`AUTH-STATE07-V2-SERVING-AQG-RETEST-001` on 2026-08-09 from clean
+`main@5505a85253aa4a8a7a3690caf3dd7a762175cab9`, prompt corpus `4.10.1`. The
+runtime preflight found zero RAG-Challenge-owned process and zero owned
+listener; nothing was stopped. No task-owned process remained after the gate.
+
+The protected OpenAPI artefacts remained unchanged throughout the gate:
+
+| Artefact | SHA-256 | Git blob | Result |
+| --- | --- | --- | --- |
+| OpenAPI v1 | `d6a686b94c926914beb28b437f464430a01de6560c2e2d476cf5c36025813e34` | `a5fb3602fbab33bda6aa56cc4caaa9fdc37c8160` | preserved byte for byte |
+| OpenAPI v2 | `01ab26ae8066971af2e5ae83ec828fae556951d5ce6c335b42f6e7cf7b062640` | `8d31b200375ea834f148ea625664091cd5cdc84f` | preserved byte for byte |
+
+### Static audit and verification results
+
+The static audit reviewed all 33 implementation paths and the two-path focal
+correction. It confirmed the frozen v2 transport shape, coexistence with v1,
+exact BCP 47 document-language projection without coercing `en` to `en-GB`,
+the active-generation/rights/manifest/page/content authority chain, uniform
+visual failures, full revalidation before `200` or `304`, bounded response and
+concurrency controls, strong ETag and private revalidation policy, same-origin
+headers and CSP, accessible Dashboard presentation, and the absence of a
+public internal evidence ID, storage path, rights record, arbitrary URL or JSON
+byte payload. No schema, migration, dependency or lockfile change was present.
+
+The audit specifically confirmed that all four composite-selector components,
+including a malformed `pageNumber`, are handled inside the visual endpoint and
+return the uniform `404`/`CH_VISUAL_EVIDENCE_NOT_AVAILABLE` outcome without
+reaching the Dashboard fallback. It also confirmed the corrected generic
+constraint required by the in-memory `IServer` regression.
+
+The authorised local and offline commands and their observed results were:
+
+| Command | Exit code | Observed result |
+| --- | ---: | --- |
+| `pwsh -NoProfile -File eng/check-repository.ps1` | `0` | repository audit passed for 255 non-ignored files |
+| `dotnet test tests/RagChallenge.UnitTests/RagChallenge.UnitTests.csproj --configuration Release --no-restore --filter "FullyQualifiedName~QuestionAnsweringServiceTests\|FullyQualifiedName~DocumentLanguageAndRenderingTests" --verbosity minimal` | `0` | 46 of 46 focused unit tests passed |
+| `dotnet test tests/RagChallenge.IntegrationTests/RagChallenge.IntegrationTests.csproj --configuration Release --no-restore --filter "FullyQualifiedName~ApiV2ContractTests\|FullyQualifiedName~SqliteActivationLifecycleTests" --verbosity minimal` | `0` | 20 of 20 focused integration tests passed |
+| `dotnet test tests/RagChallenge.Architecture.Tests/RagChallenge.Architecture.Tests.csproj --configuration Release --no-restore --filter "FullyQualifiedName~V2TransportDoesNotExposeInternalEvidenceAuthorityOrStorage\|FullyQualifiedName~DashboardDoesNotDeclareProviderOrServerDependencies\|FullyQualifiedName~CoreAssembliesDoNotReferenceOuterFrameworksOrAdapters" --verbosity minimal` | `0` | 3 of 3 focused architecture tests passed |
+| `node --test test/api-v2-contract.test.mjs test/result-presentation.test.mjs` from `src/RagChallenge.Dashboard.Web` | `0` | 9 of 9 focused Dashboard tests passed |
+| `pwsh -NoProfile -File eng/ci.ps1 -Offline` | `0` | locked restore, policy checks, Release build, all .NET and Dashboard tests, coverage, lint, typecheck, production build and final repository audit passed |
+
+The complete offline CI passed 147 unit tests, 171 integration tests, 11
+architecture tests and 42 Dashboard tests. The Release build completed with
+zero warnings and zero errors. Measured .NET coverage was 94.80% of lines
+(`32620/34408`) and 67.14% of branches (`3664/5457`).
+
+### Findings, limits and outcome
+
+| ID | Disposition | Factual disposition |
+| --- | --- | --- |
+| `AQG-S07-V2-001` | `RESOLVED` | Commit `5505a85253aa4a8a7a3690caf3dd7a762175cab9` moved malformed `pageNumber` handling inside the endpoint and added the real in-memory HTTP routing regression for the uniform visual `404`. |
+| `AQG-S07-V2-002` | `RESOLVED` | The `CS8633` and `CS8714` compilation blockage in that regression was corrected by the required `notnull` generic constraint before the same focal commit and complete gate retest. |
+
+The Automatic Quality Gate result is `APPROVED`, with no new P0, P1, P2 or P3
+finding. This approval verifies only the implemented local, offline,
+deterministic and synthetic v2/serving boundary. It does not constitute product
+homologation or a Human Gate and does not advance `STATE-07`.
+
+Browser and assistive-technology execution, real product data, real rendering,
+real source/provider/network access, load, crash/recovery, Linux, OCI,
+production, Human Gate, lifecycle transition, push, publication and deployment
+were `NOT_RUN`. No contract, OpenAPI, schema, migration, dependency, lockfile,
+ADR, dataset or retained evidence was changed by the gate.

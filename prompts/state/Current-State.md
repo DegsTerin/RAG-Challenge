@@ -1,6 +1,6 @@
 # Estado Atual
 
-Este documento é o snapshot factual vigente do workspace em 2026-08-07. Ele
+Este documento é o snapshot factual vigente do workspace em 2026-08-09. Ele
 não concede autoridade. Evolução e decisões no contexto original pertencem ao
 [`State-Transition-Log.md`](State-Transition-Log.md) e aos relatórios
 proprietários.
@@ -565,6 +565,22 @@ proprietários.
   `RESOLVIDOS`. A aprovação vale somente para a fronteira sintética local;
   thresholds de produto, provider, fonte, browser, segurança dinâmica, carga,
   recuperação, acessibilidade, Linux, OCI e produção permanecem `NOT_RUN`.
+  Nenhum Human Gate ou avanço de lifecycle é inferido.
+- Contrato HTTP/OpenAPI v2 e serving visual same-origin: o contrato foi
+  congelado no commit `54bab1aa5f25b778093bea62ffecf7c479557f9a`, implementado
+  localmente no commit `c01abf525f4cc113baa389982da3b419d07556b6` e corrigido
+  focalmente no commit `5505a85253aa4a8a7a3690caf3dd7a762175cab9`. O Automatic
+  Quality Gate reiniciado sob `AUTH-STATE07-V2-SERVING-AQG-RETEST-001` foi
+  `APROVADO` sobre essa última baseline limpa, corpus `4.10.1`. A auditoria
+  estática confirmou os 33 paths da implementação, a correção do roteamento de
+  `pageNumber` malformado, as fronteiras públicas e a preservação byte a byte
+  de OpenAPI v1 e v2. O preflight encontrou zero processo ou listener
+  pertencente ao produto. Todos os comandos focais e a CI offline terminaram
+  com exit code `0`; passaram 147 testes unitários, 171 de integração, 11 de
+  arquitetura e 42 do Dashboard, com cobertura de 94,80% de linhas e 67,14% de
+  branches. `AQG-S07-V2-001` e `AQG-S07-V2-002` estão `RESOLVIDOS`, sem novo
+  achado. Browser/tecnologia assistiva, dado, renderer, provider, fonte e rede
+  reais, carga, crash/recovery, Linux, OCI e produção permanecem `NOT_RUN`.
   Nenhum Human Gate ou avanço de lifecycle é inferido.
 - Decisão arquitetural de armazenamento do corpus e evidência visual:
   [ADR-0008](../../docs/architecture/ADR-0008-Product-Corpus-Storage-And-Page-Image-Evidence.md)
@@ -1369,12 +1385,15 @@ proprietários.
   content store, os contratos/gates de direitos, o renderer/PNG, a finalização
   de manifest e os vínculos atômicos de ativação estão implementados em
   incrementos corretivos separados. `AnswerEvidenceRecordV1`, sua retenção e
-  reachability também estão implementados localmente; serving e contrato v2
-  permanecem não implementados.
+  reachability também estão implementados localmente. O contrato HTTP/OpenAPI
+  v2 e o serving visual same-origin foram implementados e aprovados pelo
+  Automatic Quality Gate na fronteira local, offline, determinística e
+  sintética registrada acima.
 - Contrato HTTP/OpenAPI v1 versionado pertencente ao RAG-Challenge; adapters
   consumidores permanecem fora deste repositório.
-- Contrato v2 com BCP 47 documental e evidência visual permanece somente
-  planejado e não implementado; OpenAPI v1 permanece inalterada.
+- Contratos HTTP/OpenAPI v1 e v2 coexistem. V2 projeta o idioma documental BCP
+  47 e a evidência visual same-origin; ambos os artefatos OpenAPI permanecem
+  preservados byte a byte.
 - Execução local e futuro deploy OCI.
 - GitHub Pages somente como frontend estático opcional.
 
@@ -1424,10 +1443,13 @@ autorizada.
    verificada da candidata; `S04-CORR-04-D` concluiu persistência e ativação
    atômica dos vínculos de fonte, direitos, geração e manifest; e
    `S04-CORR-04-E` concluiu `AnswerEvidenceRecordV1`, retenção fixa `P30D` e
-   reachability na fronteira local/offline. Antes de tratar o incremento como
-   evidência homologada, obter autoridade separada e delimitada para seu
-   Automatic Quality Gate. OpenAPI v1 permanece protegida; v2 e serving não
-   foram iniciados.
+   reachability na fronteira local/offline. O contrato v2 foi congelado, sua
+   implementação e o serving visual same-origin foram concluídos e o Automatic
+   Quality Gate correspondente foi `APROVADO` na fronteira local, offline,
+   determinística e sintética. OpenAPI v1 e v2 permanecem protegidas. As
+   fronteiras de browser/tecnologia assistiva, dados, renderer, provider, fonte
+   e rede reais, carga, crash/recovery, Linux, OCI e produção continuam
+   `NOT_RUN`.
 
 ## Próxima autoridade
 
@@ -1439,15 +1461,16 @@ e autorizar separadamente a fronteira ainda `NOT_RUN`, sem inferir avanço de
 lifecycle.
 
 O segundo refinamento arquitetural da ordem registrada em Lifecycle está
-implementado até `S04-CORR-04-E` somente na fronteira local, offline, sintética
-e sequencial descrita. `AQG-S04-002` a `AQG-S04-004` estão `RESOLVIDOS` e o
-Automatic Quality Gate corretivo de `S04-CORR-04-E` está `APROVADO`. Não existe
-novo Human Gate canonicamente aplicável ao incremento: Human Gate pertence a
-um único `STATE-ID`; o Human Gate histórico de `STATE-04` permanece inalterado
-e `STATE-07` não recebe decisão por implicação. Não existe autoridade vigente
-para v2, serving ou próximo incremento. A continuidade diretamente relacionada
-a `S04-CORR-04-E` está encerrada após o AQG aprovado; qualquer objetivo
-posterior exige autoridade própria no estado ou lote que o possua.
+implementado até o contrato HTTP/OpenAPI v2 e serving visual same-origin na
+fronteira local, offline, sintética e sequencial descrita. `AQG-S04-002` a
+`AQG-S04-004`, `AQG-S07-V2-001` e `AQG-S07-V2-002` estão `RESOLVIDOS`; os
+Automatic Quality Gates corretivo de `S04-CORR-04-E` e do incremento v2 estão
+`APROVADOS`. Não existe novo Human Gate canonicamente aplicável a esses
+incrementos: Human Gate pertence a um único `STATE-ID`; o Human Gate histórico
+de `STATE-04` permanece inalterado e `STATE-07` não recebe decisão por
+implicação. Não existe autoridade vigente para a próxima fronteira `NOT_RUN` ou
+o próximo incremento. Qualquer objetivo posterior exige autoridade própria no
+estado ou lote que o possua.
 
 `STATE-04 BACKEND_IMPLEMENTATION` está encerrado após Automatic Quality Gate
 aprovado e Human Gate aprovado com as ressalvas documentadas em 2026-08-04. O
