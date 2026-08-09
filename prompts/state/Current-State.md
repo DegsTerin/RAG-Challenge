@@ -525,6 +525,28 @@ proprietários.
   planejamento. A confirmação não concedeu `AUTH-S07-A-DATASET-001`,
   `AUTH-S07-A-RUN-001`, materialização de dataset, avaliação, testes, carga,
   segurança dinâmica, browser, providers, fontes reais, rede ou ação externa.
+- Execução factual de `S07-A` A1-A5: A1 foi materializado no commit
+  `968f69c2d9c37959d617742af5ac48aee5ca09d5`; a preparação do harness e sua
+  correção freeze-safe estão em `ae8d96487fe719d89741aa33e5607e532301d60e` e
+  `18994db15d963b321ace93b0069436ffc4813b53`; A2 foi congelado em
+  `43ddc0de4a6c10b32a657f3c1e471a743cb42b5f`; A3 executou 11 casos sintéticos
+  com sucesso sob `AUTH-S07-A-RUN-001`, preservando oito arquivos ignorados e o
+  resultado no SHA-256
+  `9efc2eef05388433af58e01242a1b1589556c43620eeec509f583fba0c2073bc`; e A4
+  foi reconciliado em `760bbcf4626b7890ffdfb0eeb0a8c5419b5feec7`. As correções
+  focais da validação do workspace retido e das terminações de linha de futuras
+  evidências estão em `275becfb04a4d0f7a1703c3be3f4c59d87550cc2` e
+  `6cd939849909a8abf2c5dd0534244da5f19be833`. A5 foi `APROVADO` sob
+  `AUTH-S07-A-A5-RETEST-002`: os três comandos autorizados terminaram com exit
+  code `0`; passaram 146 testes unitários, 164 de integração, 10 de arquitetura
+  e 38 do Dashboard; a cobertura foi 94,91% de linhas e 67,42% de branches.
+  Todos os digests e agregados congelados foram recalculados e conferiram.
+  `S07-A-FIND-001` permanece `OPEN`; `S07-A-FIND-004` permanece `OPEN`
+  histórico, com causa corrigida somente para futuras evidências; e
+  `S07-A-FIND-002`, `S07-A-FIND-003` e `S07-A-FIND-005` estão `RESOLVIDOS`.
+  A evidência A3 histórica permanece imutável. A5 não foi Automatic Quality
+  Gate, Human Gate ou mudança de lifecycle e não amplia a homologação além da
+  fronteira sintética local, offline, determinística e sequencial.
 - Decisão arquitetural de armazenamento do corpus e evidência visual:
   [ADR-0008](../../docs/architecture/ADR-0008-Product-Corpus-Storage-And-Page-Image-Evidence.md)
   foi aceita explicitamente pelo proprietário em 2026-08-07 sobre
@@ -1387,6 +1409,13 @@ autorizada.
    foram iniciados.
 
 ## Próxima autoridade
+
+`S07-A` A1-A5 está concluído na fronteira autorizada, com A5 aprovado e os
+achados `S07-A-FIND-001` e `S07-A-FIND-004` ainda abertos nas disposições acima.
+O próximo ingresso diretamente relacionado exige autoridade separada e
+delimitada para reiniciar o Automatic Quality Gate de `S07-A` sobre uma
+baseline limpa que inclua esta reconciliação documental. Nenhum Human Gate ou
+avanço de lifecycle é inferido.
 
 O segundo refinamento arquitetural da ordem registrada em Lifecycle está
 implementado até `S04-CORR-04-E` somente na fronteira local, offline, sintética

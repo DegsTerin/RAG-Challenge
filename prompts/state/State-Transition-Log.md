@@ -5883,3 +5883,49 @@ contém somente fatos cronológicos.
 - Próxima condição: nenhuma continuação diretamente relacionada a
   `S04-CORR-04-E`; qualquer objetivo posterior exige autoridade própria no
   estado ou lote que o possua.
+
+## 2026-08-08 — S07-A A1-A5 reconciliado após verificação integral
+
+- Estado anterior e resultante: `STATE-07 TESTING_HOMOLOGATION` permanece
+  ativo; nenhum Automatic Quality Gate, Human Gate ou lifecycle foi executado
+  ou alterado por esta reconciliação.
+- Autoridade e baseline: `AUTH-S07-A-A5-RECONCILE-001` autorizou somente o
+  registro documental sobre branch `main`, commit
+  `6cd939849909a8abf2c5dd0534244da5f19be833`, corpus `4.10.1`, working tree
+  limpa e OpenAPI v1 preservada no SHA-256
+  `d6a686b94c926914beb28b437f464430a01de6560c2e2d476cf5c36025813e34`.
+- Sequência reconciliada: A1 em
+  `968f69c2d9c37959d617742af5ac48aee5ca09d5`; preparação do harness em
+  `ae8d96487fe719d89741aa33e5607e532301d60e`; correção freeze-safe em
+  `18994db15d963b321ace93b0069436ffc4813b53`; A2 em
+  `43ddc0de4a6c10b32a657f3c1e471a743cb42b5f`; A3 sob
+  `AUTH-S07-A-RUN-001`; e A4 em
+  `760bbcf4626b7890ffdfb0eeb0a8c5419b5feec7`.
+- Evidência A3 preservada: os 11 casos sintéticos passaram; os oito arquivos
+  task-owned continuam ignorados; o resultado histórico permanece imutável no
+  SHA-256 `9efc2eef05388433af58e01242a1b1589556c43620eeec509f583fba0c2073bc`.
+- Correções focais reconciliadas: validação consciente da fase no commit
+  `275becfb04a4d0f7a1703c3be3f4c59d87550cc2` e serialização determinística
+  UTF-8/LF de futuras evidências no commit
+  `6cd939849909a8abf2c5dd0534244da5f19be833`, sem reescrever a evidência A3.
+- A5 foi `APROVADO` sob `AUTH-S07-A-A5-RETEST-002`. Todos os digests, oito
+  paths e sete agregados congelados foram recalculados e conferiram. O preflight
+  aplicável não encontrou nem interrompeu processo ou listener pertencente ao
+  RAG-Challenge.
+- Comandos reais de A5: `pwsh -NoProfile -File eng/check-repository.ps1`,
+  `pwsh -NoProfile -File tests/RagChallenge.IntegrationTests/S07ALocalHarness/Invoke-S07ALocalHarness.ps1 -Mode Validate`
+  e `pwsh -NoProfile -File eng/ci.ps1 -Offline`; todos terminaram com exit code
+  `0`. Passaram 146 testes unitários, 164 de integração, 10 de arquitetura e 38
+  do Dashboard; a cobertura foi 94,91% de linhas e 67,42% de branches.
+- Disposição dos achados: `S07-A-FIND-001` permanece `OPEN`;
+  `S07-A-FIND-004` permanece `OPEN` histórico, embora sua causa esteja corrigida
+  para futuras evidências; `S07-A-FIND-002`, `S07-A-FIND-003` e
+  `S07-A-FIND-005` estão `RESOLVIDOS`. Nenhum novo achado surgiu no reteste.
+- Escopo negativo preservado: sem repetição de A3, `-Mode Run`, alteração de
+  evidência, dataset, manifests, thresholds, código, testes, dependências,
+  lockfiles, contratos, OpenAPI, schema, migrations ou ADRs; sem provider ou
+  fonte real, browser, rede, Automatic Quality Gate, Human Gate, lifecycle,
+  ação externa, push, publicação ou deploy.
+- Próxima condição: autoridade separada e delimitada para reiniciar o Automatic
+  Quality Gate de `S07-A` sobre baseline limpa que inclua esta reconciliação;
+  nenhum Human Gate ou avanço de lifecycle é inferido.

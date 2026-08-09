@@ -2,15 +2,16 @@
 
 ## Purpose and authority
 
-This report reconciles the single local, offline, deterministic and sequential
-`S07-A` A3 campaign executed under `AUTH-S07-A-RUN-001`, and the documentary A4
-reconciliation authorised by `AUTH-S07-A-RECONCILE-001` on 2026-08-08. It is
+This report reconciles `S07-A` A1-A4, the single local, offline, deterministic
+and sequential A3 campaign executed under `AUTH-S07-A-RUN-001`, and the A5
+verification approved under `AUTH-S07-A-A5-RETEST-002` on 2026-08-08. This
+documentary update is authorised by `AUTH-S07-A-A5-RECONCILE-001`. The report is
 factual evidence for the synthetic `ENV-S07-A-LOCAL-01` boundary only.
 
 This report does not claim product-corpus quality, real-provider quality,
 performance, security, accessibility, Linux, OCI or production homologation.
-It is not A5 verification, an Automatic Quality Gate, a Human Gate, a lifecycle
-transition, publication or deployment authority.
+It is not an Automatic Quality Gate, a Human Gate, a lifecycle transition,
+publication or deployment authority.
 
 The governing inputs are the
 [S07-A proposal](STATE-07-S07-A-Evaluation-And-Security-Proposal.md),
@@ -25,25 +26,53 @@ The governing inputs are the
 | --- | --- |
 | A3 authority | `AUTH-S07-A-RUN-001` |
 | A4 authority | `AUTH-S07-A-RECONCILE-001` |
+| A5 authority | `AUTH-S07-A-A5-RETEST-002` |
+| Documentary reconciliation authority | `AUTH-S07-A-A5-RECONCILE-001` |
 | Repository | `C:\Projects\RAG-Challenge` |
 | Branch | `main` |
-| Authorised and reconciled `HEAD` | `43ddc0de4a6c10b32a657f3c1e471a743cb42b5f` |
+| A3 and A4 baseline `HEAD` | `43ddc0de4a6c10b32a657f3c1e471a743cb42b5f` |
+| A5 and documentary baseline `HEAD` | `6cd939849909a8abf2c5dd0534244da5f19be833` |
 | Prompt corpus | `4.10.1` |
 | Working tree before A3 | clean |
 | Working tree before A4 | clean |
+| Working tree before A5 | clean |
+| Working tree before documentary reconciliation | clean |
 | Lifecycle | `STATE-07 TESTING_HOMOLOGATION` active |
 | A4 runtime preflight | `NOT_APPLICABLE` — documentary reconciliation only; no process or listener was inspected or stopped |
+| A5 runtime preflight | applicable; no RAG-Challenge-owned process or listener was found or stopped |
+| Current runtime preflight | `NOT_APPLICABLE` — documentary reconciliation only; no process or listener was inspected or stopped |
 
 A3 was limited to the frozen local synthetic campaign. A4 was limited to
 reading its frozen inputs and ignored task-owned evidence and creating this
-report. A4 did not execute a test, provider, browser, source, network path or
-runtime and did not alter the frozen inputs.
+report. A5 reconciled A1-A4, recalculated the frozen identities and aggregates,
+and executed only the three authorised local checks. Neither A4, A5 nor this
+documentary reconciliation altered the frozen inputs or retained A3 evidence.
 
-The preserved negative scope includes A5, corrections, threshold changes,
-source or test changes, dependencies, lockfiles, public contracts, OpenAPI,
-schema, migrations, ADRs, real providers, real sources, network access,
-browser use, OCI, GitHub, publication, deployment, Automatic Quality Gate,
-Human Gate and lifecycle change.
+The preserved negative scope includes an A3 rerun, `-Mode Run`, threshold
+changes, dataset or manifest changes, source or test changes during A5,
+dependencies, lockfiles, public contracts, OpenAPI, schema, migrations, ADRs,
+real providers, real sources, network access, browser use, OCI, GitHub,
+publication, deployment, Automatic Quality Gate, Human Gate and lifecycle
+change.
+
+## A1-A5 sequence and commits
+
+| Activity | Authority or commit | Reconciled result |
+| --- | --- | --- |
+| A1 dataset candidate | `968f69c2d9c37959d617742af5ac48aee5ca09d5` | candidate materialised within the authorised local boundary |
+| Deterministic local harness preparation | `ae8d96487fe719d89741aa33e5607e532301d60e` | harness materialised |
+| Freeze-safe harness validation correction | `18994db15d963b321ace93b0069436ffc4813b53` | validation aligned with the frozen boundary |
+| A2 freeze | `43ddc0de4a6c10b32a657f3c1e471a743cb42b5f` | dataset and manifests frozen |
+| A3 execution | `AUTH-S07-A-RUN-001`; no tracked commit | 11 of 11 synthetic cases passed; eight ignored evidence files retained; result SHA-256 `9efc2eef05388433af58e01242a1b1589556c43620eeec509f583fba0c2073bc` |
+| A4 reconciliation | `760bbcf4626b7890ffdfb0eeb0a8c5419b5feec7` | campaign evidence reconciled in this report |
+| Retained-workspace validation correction | `275becfb04a4d0f7a1703c3be3f4c59d87550cc2` | phase-aware validation committed |
+| Future evidence line-ending correction | `6cd939849909a8abf2c5dd0534244da5f19be833` | deterministic UTF-8/LF serialisation and pure validation regression committed; retained A3 evidence unchanged |
+| A5 integral verification | `AUTH-S07-A-A5-RETEST-002` | `APPROVED`; no new finding |
+
+During A5, every frozen file identity and embedded digest listed below was
+recalculated and matched. The eight ignored task-owned files, Git exclusions,
+absence of reparse points and the seven frozen aggregate values were also
+revalidated without rewriting the campaign workspace.
 
 ## Frozen dataset and evidence identities
 
@@ -200,6 +229,24 @@ cannot be used to pass product thresholds.
 
 No threshold is reported as passed for the product campaign.
 
+## A5 verification results
+
+A5 ran locally, offline, deterministically and sequentially on the clean
+authorised baseline. The commands and observed results were:
+
+| Command | Exit code | Observed result |
+| --- | ---: | --- |
+| `pwsh -NoProfile -File eng/check-repository.ps1` | `0` | `Repository audit passed for 244 non-ignored files.` |
+| `pwsh -NoProfile -File tests/RagChallenge.IntegrationTests/S07ALocalHarness/Invoke-S07ALocalHarness.ps1 -Mode Validate` | `0` | 6 of 6 validation tests passed; reported test time `5.1489` seconds |
+| `pwsh -NoProfile -File eng/ci.ps1 -Offline` | `0` | locked restore, build, policy and coverage checks, .NET and Dashboard tests, lint, typecheck and production build passed |
+
+The offline CI run passed 146 unit tests, 164 integration tests, 10
+architecture tests and 38 Dashboard tests. The measured .NET coverage was
+94.91% of lines (`32116/33837`) and 67.42% of branches (`3536/5245`). The build
+completed with zero warnings and zero errors. These results verify A5 only;
+they do not substitute for an Automatic Quality Gate or expand the product
+homologation claim.
+
 ## Security, recovery, load and accessibility disposition
 
 The single deterministic prompt-injection/provenance case and the single
@@ -217,6 +264,10 @@ network lane, cost centre or external action was selected or authorised.
 | ID | Severity | Disposition | Finding and impact |
 | --- | --- | --- | --- |
 | `S07-A-FIND-001` | `P2 Medium` | `OPEN` | The retained A3 JSON omits the authority, commit/corpus baseline, exact command start/end UTC instants, exit code, OS/runtime/architecture and CPU/memory capacity required by the reporting contract. The command output and this A4 reconciliation recover some fields, but the raw evidence does not independently reproduce the complete execution envelope. No correction or rerun was attempted. |
+| `S07-A-FIND-002` | not separately graded | `RESOLVED` | Validation originally required the campaign root to be absent in every phase. Commit `275becfb04a4d0f7a1703c3be3f4c59d87550cc2` preserved that invariant before freeze and validates the retained post-A3/A5 workspace when present. |
+| `S07-A-FIND-003` | not separately graded | `RESOLVED` | Compiler error `CS1061` and analyser finding `CA1859` in the correction candidate were corrected before the focal retained-workspace commit. |
+| `S07-A-FIND-004` | `P3 Low` | `OPEN` historical | The immutable A3 result uses CRLF and remains at SHA-256 `9efc2eef05388433af58e01242a1b1589556c43620eeec509f583fba0c2073bc`. Commit `6cd939849909a8abf2c5dd0534244da5f19be833` corrects the cause for future JSON evidence by enforcing deterministic UTF-8/LF serialisation; it deliberately does not normalise or rewrite the historical result. |
+| `S07-A-FIND-005` | not separately graded | `RESOLVED` | Analyser finding `CA1861` in the line-ending regression candidate was corrected before commit `6cd939849909a8abf2c5dd0534244da5f19be833`. |
 
 No P0 or P1 finding was observed within the narrow synthetic boundary. This
 does not assert that the unexecuted product, provider, source, browser,
@@ -236,17 +287,19 @@ security, load, recovery or accessibility boundaries contain no such finding.
 - No dynamic-security, load, crash, recovery, rollback, accessibility, browser,
   Linux, OCI or production evidence exists.
 - Packet-level network observation was not performed.
-- `S07-A-FIND-001` remains open; findings were not corrected during A4.
+- `S07-A-FIND-001` remains open because the immutable retained result does not
+  contain the complete execution envelope.
+- `S07-A-FIND-004` remains open as a historical property of the immutable A3
+  result; its cause is corrected only for future evidence.
 
 These limitations block product-level homologation and any public claim beyond
 the named deterministic fixture boundary.
 
 ## Cleanup, rollback and lifecycle effect
 
-A3 left its eight task-owned ignored evidence/store files intact for A4 and a
-future authorised A5. A4 performed no cleanup and changed no frozen input.
-The documentary rollback for this uncommitted A4 increment is removal of this
-report only; it must not remove or rewrite the retained A3 evidence.
+A3 left its eight task-owned ignored evidence/store files intact for A4 and A5.
+A4 and A5 performed no cleanup and changed no frozen input or retained evidence.
+This documentary reconciliation also leaves those files intact.
 
 No Automatic Quality Gate or Human Gate ran. `STATE-07
 TESTING_HOMOLOGATION` remains active and `STATE-08` was not entered.
@@ -254,11 +307,12 @@ TESTING_HOMOLOGATION` remains active and `STATE-08` was not entered.
 ## Outcome
 
 The exact authorised A3 local synthetic command completed with exit code `0`,
-and all 11 frozen synthetic cases passed. The result is accepted only as
+and all 11 frozen synthetic cases passed. A5 subsequently passed all three
+authorised commands on the reconciled baseline. The result is accepted only as
 deterministic fixture contract evidence for `ENV-S07-A-LOCAL-01`.
 
 `S07-A` remains incomplete for product homologation: every product-corpus
 threshold is `NOT_RUN`, the real provider/source/browser and broader local
 security/load/recovery/accessibility boundaries are unexecuted, and
-`S07-A-FIND-001` remains open. A5 verification and any local commit require a
-separate explicit authority.
+`S07-A-FIND-001` plus historical `S07-A-FIND-004` remain open. A5 is approved,
+but no Automatic Quality Gate, Human Gate or lifecycle transition is implied.
