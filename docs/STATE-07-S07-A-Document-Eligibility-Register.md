@@ -16,12 +16,64 @@ for retrieval.
 | Instruction corpus | `4.9.4` |
 | Lifecycle position | `STATE-07 TESTING_HOMOLOGATION` active by documentary entry only |
 | Decision | `ELIGIBLE_CANDIDATE` |
+| Product activation readiness | `BLOCKED/EXCLUDED` under `AUTH-S07-A-PRODUCT-A0-001` |
 | Dataset status | not materialised or frozen |
 | Retrieval status | not indexed, activated or published |
 
 `ELIGIBLE_CANDIDATE` means that the document has sufficient identity,
 provenance and rights evidence to be considered under a later, separately
 authorised dataset decision. It is not an execution authority.
+
+`BLOCKED/EXCLUDED` means that this A0 review did not establish every explicit
+right required for product activation. It does not revoke the earlier
+candidate decision or convert the document into a scored product-corpus input.
+
+## Product A0 readiness disposition
+
+`AUTH-S07-A-PRODUCT-A0-001` authorised a local, offline, sequential and
+non-product A0 review on clean
+`main@78d49e135d7b517c7ff89a9e5edcbcc7839e4043`, prompt corpus `4.10.5`.
+Runtime preflight was `NOT_APPLICABLE`; no process or listener was inspected or
+stopped.
+
+The exact ignored candidate path resolved inside the authorised intake root.
+Every path component from `artifacts-local/` through the PDF was present and
+had no reparse-point attribute. The candidate was a regular, untracked file
+excluded by `/artifacts-local/`. Its observed length was `15,771,040` bytes,
+its header was `%PDF-1.4`, its terminal EOF marker was present, and its SHA-256
+was
+`cea7b845568095eb56dee1b51bfa145c6c6637bc4377c986019971577efefae4`.
+Those immutable-byte facts match the registered PostgreSQL `18.4` identity.
+
+The registered provenance, exact `contentLanguage=en`, exact
+`sourceDeclaredLanguage=en`, publisher and attribution requirements remain
+consistent with the existing intake evidence. No parser, renderer, derived
+image, network source, product store or runtime was used to obtain this A0
+disposition.
+
+The existing record explicitly establishes the textual operations below, but
+it does not explicitly dispose every operation required by ADR-0008 for a
+visually active PDF:
+
+| Activation-relevant operation | A0 disposition |
+|---|---|
+| Parsing | `PERMITTED` by the existing source-specific record |
+| Indexing | `PERMITTED` by the existing source-specific record |
+| Source-byte retention | `PERMITTED` by the existing source-specific record |
+| Quotation and citation | `PERMITTED` by the existing source-specific record |
+| Page rendering | `UNPROVEN` |
+| Derivative-image creation | `UNPROVEN` |
+| Derivative-image retention | `UNPROVEN` |
+| Runtime display of derivative images | `UNPROVEN` |
+| Intended source or derivative distribution boundary | `UNPROVEN` |
+
+The general use, copy, modification and distribution wording is not inferred
+to decide these five distinct visual and product-distribution operations.
+Because ADR-0008 requires each of them to be explicit and treats ambiguity as
+activation-blocking, the factual A0 disposition is `BLOCKED/EXCLUDED`, not
+`READY_FOR_PRODUCT_ACTIVATION`. No dataset, document manifest, case inventory,
+index, render manifest, derivative, activation or product behaviour was
+materialised or changed.
 
 ## Document identity
 

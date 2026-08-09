@@ -2,10 +2,10 @@
 
 ## Versão atual
 
-- Versão: `4.10.5`
+- Versão: `4.10.6`
 - Data: 2026-08-09
-- Status: `STATE-07` ativo; Automatic Quality Gate da integração e recuperação
-  v2 aprovado na fronteira sintética, com `AQG-S07-V2-IR-001` resolvido;
+- Status: `STATE-07` ativo; A0 do primeiro documento de produto disposto como
+  `BLOCKED/EXCLUDED` por direitos visuais e de distribuição ainda `UNPROVEN`;
   homologação de produto, Human Gate e mudança de lifecycle não executados
 - Escopo: 13 arquivos ativos em `prompts/`
 
@@ -20,6 +20,27 @@ A versão do corpus é independente da versão futura do software.
 
 Toda alteração atualiza este arquivo e, quando necessário,
 [`../Start-Here.md`](../Start-Here.md).
+
+## 4.10.6 — 2026-08-09
+
+- Registra sob `AUTH-S07-A-PRODUCT-A0-001`, sobre
+  `main@78d49e135d7b517c7ff89a9e5edcbcc7839e4043`, corpus `4.10.5` e working
+  tree inicialmente limpa, o A0 local, offline, sequencial e sem comportamento
+  de produto do candidato `postgresql-18-reference-a4`.
+- Registra confinamento, ausência de reparse point, exclusão do Git, tamanho,
+  assinatura PDF, EOF e SHA-256 exato, além da consistência da proveniência,
+  dos idiomas `en`/`en`, do publisher e da atribuição já documentados.
+- Preserva as permissões textuais explicitamente registradas e não infere page
+  rendering, derivative-image creation/retention, runtime display ou a
+  intended source/derivative distribution boundary a partir da permissão geral
+  de uso, cópia, modificação e distribuição.
+- Dispõe o candidato como `BLOCKED/EXCLUDED`, não
+  `READY_FOR_PRODUCT_ACTIVATION`, porque as cinco operações permanecem
+  `UNPROVEN`. Dataset, manifests congelados, derivados, indexação, ativação e
+  comportamento de produto permanecem inalterados e `NOT_RUN`.
+- A mudança é `PATCH` factual. Preserva OpenAPI v1/v2 byte a byte e não executa
+  parser, renderer, runtime, teste, Automatic Quality Gate, Human Gate,
+  lifecycle, provider, fonte online, rede ou ação externa.
 
 ## 4.10.5 — 2026-08-09
 

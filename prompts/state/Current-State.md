@@ -643,6 +643,25 @@ proprietários.
   estados e os critérios não mudaram; dataset e homologação de produto
   permanecem posteriores, `NOT_RUN` e não autorizados. Nenhum runtime, teste,
   gate, Human Gate ou lifecycle foi executado nessa correção documental.
+- A0 de prontidão do primeiro documento de produto: executado localmente,
+  offline, sequencialmente e sem comportamento de produto sob
+  `AUTH-S07-A-PRODUCT-A0-001`, sobre
+  `main@78d49e135d7b517c7ff89a9e5edcbcc7839e4043`, corpus `4.10.5`, working
+  tree inicialmente limpa e OpenAPI v1/v2 protegidas. O candidato ignorado
+  `postgresql-18-reference-a4`, PostgreSQL `18.4`, permaneceu confinado ao
+  intake autorizado, como arquivo regular não rastreado e sem reparse point.
+  Os `15.771.040` bytes, `%PDF-1.4`, EOF e SHA-256
+  `cea7b845568095eb56dee1b51bfa145c6c6637bc4377c986019971577efefae4`
+  conferiram com o registro. Proveniência, `contentLanguage=en`,
+  `sourceDeclaredLanguage=en`, publisher e atribuição permaneceram
+  consistentes. Parsing, indexing, source-byte retention, quotation e citation
+  possuem disposição explícita; page rendering, derivative-image creation,
+  derivative-image retention, runtime derivative display e a intended source
+  or derivative distribution boundary permanecem `UNPROVEN`. Sem inferir
+  direitos a partir da permissão geral, a disposição factual foi
+  `BLOCKED/EXCLUDED`, não `READY_FOR_PRODUCT_ACTIVATION`. Nenhum dataset,
+  manifest, derivado, indexação, ativação, parser, renderer, runtime, teste,
+  gate, Human Gate ou lifecycle foi executado ou alterado.
 - Decisão arquitetural de armazenamento do corpus e evidência visual:
   [ADR-0008](../../docs/architecture/ADR-0008-Product-Corpus-Storage-And-Page-Image-Evidence.md)
   foi aceita explicitamente pelo proprietário em 2026-08-07 sobre
@@ -1185,7 +1204,7 @@ proprietários.
   a política de idioma acrescentou o 21º documento público por incremento
   versionado, e o ADR-0003 acrescentou o 22º.
 - A baseline aprovada no Human Gate de `STATE-00` permanece `3.4.0`.
-- O corpus de instruções vigente possui versão `4.10.5` e 13 arquivos em
+- O corpus de instruções vigente possui versão `4.10.6` e 13 arquivos em
   `prompts/`.
 - Visão, requisitos, arquitetura, RAG, segurança, qualidade, lifecycle,
   roadmap, backlog, estado, histórico e templates estão documentados.
@@ -1473,8 +1492,14 @@ autorizada.
 
 ## Evidências e decisões futuras pendentes
 
-1. Fornecer ou autorizar documentos PDF/CSV, direitos, proveniência e idioma
-   para cada banco antes de sua ativação.
+1. O A0 do primeiro candidato PostgreSQL foi disposto como
+   `BLOCKED/EXCLUDED`: identidade, proveniência, idiomas e atribuição
+   conferiram, mas page rendering, derivative-image creation/retention,
+   runtime display e a intended source/derivative distribution boundary
+   permanecem `UNPROVEN`. O proprietário precisa fornecer evidência e
+   disposição explícitas, operação por operação, antes de novo A0 ou qualquer
+   ativação. Cada documento posterior mantém o mesmo gate independente de
+   direitos, proveniência e idioma.
 2. Validar e ativar individualmente novos registros de fonte oficial; a
    aceitação arquitetural não autoriza URL, rede, download ou crawling.
 3. `S07-A` A1-A5 e seu Automatic Quality Gate foram concluídos e aprovados na
@@ -1527,6 +1552,16 @@ fronteira sintética local autorizada, com `S07-A-FIND-001` e o histórico
 homologação de produto nem prepara Human Gate: qualquer continuação deve nomear
 e autorizar separadamente a fronteira ainda `NOT_RUN`, sem inferir avanço de
 lifecycle.
+
+O A0 de prontidão de `postgresql-18-reference-a4` foi concluído sob
+`AUTH-S07-A-PRODUCT-A0-001` com disposição `BLOCKED/EXCLUDED`. Os bytes e o
+registro de identidade/proveniência/idiomas/atribuição conferiram, mas os cinco
+campos visuais e de distribuição exigidos por ADR-0008 permanecem `UNPROVEN`.
+A primeira condição de desbloqueio é uma disposição explícita, baseada em
+evidência e separada por operação, para page rendering, derivative-image
+creation, derivative-image retention, runtime derivative display e a intended
+source or derivative distribution boundary. Nenhum novo A0, dataset, import,
+render, indexação ou ativação está autorizado por este registro.
 
 O segundo refinamento arquitetural da ordem registrada em Lifecycle está
 implementado até integração v2, restart, cold backup/restore confinado e

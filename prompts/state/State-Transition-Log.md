@@ -6208,3 +6208,50 @@ contém somente fatos cronológicos.
   `0`; a auditoria cobriu 255 arquivos não ignorados. O histórico preservou o
   prefixo anterior com somente adição EOF; UTF-8 sem BOM, LF, newline final,
   escopo dos quatro paths e OpenAPI v1/v2 protegidas conferiram.
+
+## 2026-08-09 — A0 do primeiro documento de produto bloqueado por direitos não dispostos
+
+- Estado anterior e resultante: `STATE-07 TESTING_HOMOLOGATION` permanece
+  ativo; nenhum Automatic Quality Gate, Human Gate ou lifecycle foi executado
+  ou alterado.
+- Autoridade e baseline: `AUTH-S07-A-PRODUCT-A0-001`, branch `main`, commit
+  `78d49e135d7b517c7ff89a9e5edcbcc7839e4043`, corpus `4.10.5`, working tree
+  inicialmente limpa e OpenAPI v1/v2 protegidas.
+- Candidato verificado: `postgresql-18-reference-a4`, PostgreSQL `18.4`, no
+  path ignorado
+  `artifacts-local/state-07/source-intake/postgresql-18-reference-a4/postgresql-18-A4.pdf`.
+  O arquivo regular permaneceu confinado, não rastreado e sem reparse point;
+  seus `15.771.040` bytes, header `%PDF-1.4`, EOF e SHA-256
+  `cea7b845568095eb56dee1b51bfa145c6c6637bc4377c986019971577efefae4`
+  conferiram com o registro.
+- Metadados reconciliados: proveniência, `contentLanguage=en`,
+  `sourceDeclaredLanguage=en`, publisher e atribuição permaneceram
+  consistentes com a evidência de intake existente.
+- Direitos: parsing, indexing, source-byte retention, quotation e citation
+  conservam a disposição explícita existente. Page rendering,
+  derivative-image creation, derivative-image retention, runtime derivative
+  display e a intended source or derivative distribution boundary permanecem
+  `UNPROVEN`; nenhuma delas foi inferida da permissão geral de uso, cópia,
+  modificação e distribuição.
+- Disposição factual: `BLOCKED/EXCLUDED`, não
+  `READY_FOR_PRODUCT_ACTIVATION`. `ELIGIBLE_CANDIDATE` permanece somente como
+  elegibilidade anterior de consideração/textual; não existe autoridade de
+  dataset, import, render, indexação, ativação, consulta ou produto.
+- Versionamento: corpus elevado por `PATCH` factual de `4.10.5` para `4.10.6`,
+  sem mudança de autoridade, precedência, estado ou critério.
+- Limites preservados: os três manifests congelados e a evidência sintética
+  não mudaram. Nenhum parser, renderer, derivado, runtime, teste, harness,
+  provider, fonte online, rede, browser, tecnologia assistiva, carga,
+  benchmark, recuperação operacional, Linux, OCI, produção, OpenAPI, contrato,
+  código, schema, migration, ADR, dependência ou lockfile foi alterado ou
+  executado.
+- Verificação documental estática: o verificador dirigido, `git diff --check`
+  e `pwsh -NoProfile -File eng/check-repository.ps1` terminaram com exit code
+  `0`; a auditoria cobriu 255 arquivos não ignorados. O histórico preservou
+  byte a byte o prefixo anterior no SHA-256
+  `c33a09af090e828ed7906efccbb907100ef47d2f7eec036c948abb6cbd171d2f`;
+  UTF-8 sem BOM, LF, newline final, escopo dos quatro paths, manifests
+  congelados, candidato e OpenAPI v1/v2 protegidas conferiram.
+- Próxima condição: uma nova disposição A0 exige evidência explícita e
+  separada por operação para os cinco direitos ainda `UNPROVEN`, sob autoridade
+  humana própria; nenhuma continuação de produto é inferida.
