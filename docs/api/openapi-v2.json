@@ -1,0 +1,682 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "RAG-Challenge Public Query and Visual Evidence API",
+    "version": "2.0.0",
+    "description": "Separately versioned query contract with bounded same-origin PNG page evidence. This artefact freezes a contract; it is not implementation or homologation evidence."
+  },
+  "paths": {
+    "/api/v2/questions": {
+      "post": {
+        "operationId": "askQuestionV2",
+        "summary": "Ask a grounded question using the version 2 response contract.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/QueryRequestV2"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Answered or InsufficientEvidence completion.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/QueryResponseV2"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "429": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "500": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "503": {
+            "$ref": "#/components/responses/Problem"
+          }
+        }
+      }
+    },
+    "/api/v2/evidence/page-images/{indexGenerationId}/{renderManifestId}/{pageNumber}/{imageContentObjectId}": {
+      "get": {
+        "operationId": "getPageImageEvidenceV2",
+        "summary": "Read one currently authorised PDF page image from the same origin.",
+        "parameters": [
+          {
+            "name": "indexGenerationId",
+            "in": "path",
+            "required": true,
+            "description": "The exact active index generation returned by QueryResponseV2.",
+            "schema": {
+              "$ref": "#/components/schemas/IndexGenerationId"
+            }
+          },
+          {
+            "name": "renderManifestId",
+            "in": "path",
+            "required": true,
+            "description": "The final render manifest returned with the cited page.",
+            "schema": {
+              "$ref": "#/components/schemas/RenderManifestId"
+            }
+          },
+          {
+            "name": "pageNumber",
+            "in": "path",
+            "required": true,
+            "description": "The one-based physical PDF page returned with the citation.",
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            }
+          },
+          {
+            "name": "imageContentObjectId",
+            "in": "path",
+            "required": true,
+            "description": "The SHA-256 content identity of the exact PNG bytes.",
+            "schema": {
+              "$ref": "#/components/schemas/Sha256"
+            }
+          },
+          {
+            "name": "If-None-Match",
+            "in": "header",
+            "required": false,
+            "description": "An exact strong ETag from a previous authorised response.",
+            "schema": {
+              "type": "string",
+              "pattern": "^\"sha256-[a-f0-9]{64}\"$"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The exact verified PNG for the currently authorised page binding.",
+            "headers": {
+              "Content-Length": {
+                "$ref": "#/components/headers/PageImageContentLength"
+              },
+              "ETag": {
+                "$ref": "#/components/headers/PageImageEtag"
+              },
+              "Cache-Control": {
+                "$ref": "#/components/headers/PageImageCacheControl"
+              },
+              "X-Content-Type-Options": {
+                "$ref": "#/components/headers/NoSniff"
+              },
+              "Cross-Origin-Resource-Policy": {
+                "$ref": "#/components/headers/SameOriginResourcePolicy"
+              }
+            },
+            "content": {
+              "image/png": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            }
+          },
+          "304": {
+            "description": "The exact ETag still identifies an authorised active binding; no body is returned.",
+            "headers": {
+              "ETag": {
+                "$ref": "#/components/headers/PageImageEtag"
+              },
+              "Cache-Control": {
+                "$ref": "#/components/headers/PageImageCacheControl"
+              },
+              "X-Content-Type-Options": {
+                "$ref": "#/components/headers/NoSniff"
+              },
+              "Cross-Origin-Resource-Policy": {
+                "$ref": "#/components/headers/SameOriginResourcePolicy"
+              }
+            }
+          },
+          "404": {
+            "$ref": "#/components/responses/VisualEvidenceNotAvailable"
+          },
+          "429": {
+            "$ref": "#/components/responses/VisualEvidenceRateLimited"
+          },
+          "500": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "503": {
+            "$ref": "#/components/responses/VisualEvidenceUnavailable"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "headers": {
+      "PageImageContentLength": {
+        "description": "The exact positive persisted PNG byte length, bounded to 64 MiB.",
+        "schema": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 67108864
+        }
+      },
+      "PageImageEtag": {
+        "description": "Strong immutable validator derived from the exact PNG SHA-256.",
+        "schema": {
+          "type": "string",
+          "pattern": "^\"sha256-[a-f0-9]{64}\"$"
+        }
+      },
+      "PageImageCacheControl": {
+        "description": "Private storage is permitted, but every reuse must revalidate lifecycle authority.",
+        "schema": {
+          "type": "string",
+          "const": "private, no-cache"
+        }
+      },
+      "NoSniff": {
+        "description": "Disables media-type sniffing.",
+        "schema": {
+          "type": "string",
+          "const": "nosniff"
+        }
+      },
+      "SameOriginResourcePolicy": {
+        "description": "Prevents cross-origin embedding of the page image.",
+        "schema": {
+          "type": "string",
+          "const": "same-origin"
+        }
+      }
+    },
+    "responses": {
+      "Problem": {
+        "description": "Sanitised RFC 9457 Problem Details.",
+        "content": {
+          "application/problem+json": {
+            "schema": {
+              "$ref": "#/components/schemas/ProblemDetailsV2"
+            }
+          }
+        }
+      },
+      "VisualEvidenceNotAvailable": {
+        "description": "The selector is malformed, unknown, stale, cross-generation, mismatched, inactive, removed or not authorised. Every such case is indistinguishable and uses CH_VISUAL_EVIDENCE_NOT_AVAILABLE.",
+        "content": {
+          "application/problem+json": {
+            "schema": {
+              "$ref": "#/components/schemas/ProblemDetailsV2"
+            }
+          }
+        }
+      },
+      "VisualEvidenceRateLimited": {
+        "description": "The bounded visual-evidence request budget is exhausted and uses CH_VISUAL_EVIDENCE_RATE_LIMITED.",
+        "headers": {
+          "Retry-After": {
+            "description": "Whole seconds before a request may be retried.",
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            }
+          }
+        },
+        "content": {
+          "application/problem+json": {
+            "schema": {
+              "$ref": "#/components/schemas/ProblemDetailsV2"
+            }
+          }
+        }
+      },
+      "VisualEvidenceUnavailable": {
+        "description": "The authorised binding cannot be verified or read back safely and uses CH_VISUAL_EVIDENCE_UNAVAILABLE.",
+        "content": {
+          "application/problem+json": {
+            "schema": {
+              "$ref": "#/components/schemas/ProblemDetailsV2"
+            }
+          }
+        }
+      }
+    },
+    "schemas": {
+      "QueryRequestV2": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "corpusId",
+          "questionLanguage",
+          "question"
+        ],
+        "properties": {
+          "corpusId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 128
+          },
+          "questionLanguage": {
+            "$ref": "#/components/schemas/SupportedQueryLanguage"
+          },
+          "question": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 4096
+          }
+        }
+      },
+      "QueryResponseV2": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "outcome",
+          "answerLanguage",
+          "citations",
+          "evidenceCoverage",
+          "indexGenerationId",
+          "retrievalPolicyVersion",
+          "promptVersion",
+          "languageModelDescriptor",
+          "correlationId"
+        ],
+        "properties": {
+          "outcome": {
+            "type": "string",
+            "enum": [
+              "Answered",
+              "InsufficientEvidence"
+            ]
+          },
+          "answerLanguage": {
+            "$ref": "#/components/schemas/SupportedQueryLanguage"
+          },
+          "answer": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "citations": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CitationV2"
+            }
+          },
+          "evidenceCoverage": {
+            "$ref": "#/components/schemas/EvidenceCoverageV2"
+          },
+          "indexGenerationId": {
+            "$ref": "#/components/schemas/IndexGenerationId"
+          },
+          "retrievalPolicyVersion": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 128
+          },
+          "promptVersion": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 128
+          },
+          "languageModelDescriptor": {
+            "$ref": "#/components/schemas/LanguageModelDescriptorV2"
+          },
+          "correlationId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 128
+          }
+        }
+      },
+      "CitationV2": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "corpusId",
+          "indexGenerationId",
+          "databaseProductId",
+          "databaseProductRevision",
+          "documentId",
+          "documentVersion",
+          "documentFormat",
+          "contentLanguage",
+          "chunkId",
+          "sourceAdapterId",
+          "sourceTrustClass",
+          "excerpt",
+          "columns",
+          "sourceFreshness",
+          "pageImages"
+        ],
+        "properties": {
+          "corpusId": {
+            "type": "string"
+          },
+          "indexGenerationId": {
+            "$ref": "#/components/schemas/IndexGenerationId"
+          },
+          "databaseProductId": {
+            "type": "string"
+          },
+          "databaseProductRevision": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "documentId": {
+            "type": "string"
+          },
+          "documentVersion": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "documentFormat": {
+            "type": "string",
+            "enum": [
+              "Pdf",
+              "Csv"
+            ]
+          },
+          "contentLanguage": {
+            "$ref": "#/components/schemas/CanonicalDocumentLanguage"
+          },
+          "sourceDeclaredLanguage": {
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/ObservedDocumentLanguage"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "chunkId": {
+            "type": "string"
+          },
+          "sourceAdapterId": {
+            "type": "string"
+          },
+          "sourceTrustClass": {
+            "type": "string",
+            "enum": [
+              "LocalAuthorised",
+              "OfficialExternal"
+            ]
+          },
+          "excerpt": {
+            "type": "string"
+          },
+          "title": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "pageStart": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "minimum": 1
+          },
+          "pageEnd": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "minimum": 1
+          },
+          "recordStart": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "minimum": 1
+          },
+          "recordEnd": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "minimum": 1
+          },
+          "columns": {
+            "type": "array",
+            "maxItems": 64,
+            "items": {
+              "type": "string"
+            }
+          },
+          "canonicalUrl": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 2048
+          },
+          "sourceSnapshotId": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "revalidatedAt": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "sourceFreshness": {
+            "$ref": "#/components/schemas/SourceFreshness"
+          },
+          "pageImages": {
+            "type": "array",
+            "maxItems": 5,
+            "uniqueItems": true,
+            "items": {
+              "$ref": "#/components/schemas/PageImageEvidenceV1"
+            }
+          }
+        }
+      },
+      "PageImageEvidenceV1": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "pageNumber",
+          "renderManifestId",
+          "imageContentObjectId",
+          "mediaType",
+          "widthPixels",
+          "heightPixels",
+          "contentSha256"
+        ],
+        "properties": {
+          "pageNumber": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "renderManifestId": {
+            "$ref": "#/components/schemas/RenderManifestId"
+          },
+          "imageContentObjectId": {
+            "$ref": "#/components/schemas/Sha256"
+          },
+          "mediaType": {
+            "type": "string",
+            "const": "image/png"
+          },
+          "widthPixels": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 4096
+          },
+          "heightPixels": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 4096
+          },
+          "contentSha256": {
+            "$ref": "#/components/schemas/Sha256"
+          }
+        }
+      },
+      "EvidenceCoverageV2": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "activeDatabaseCount",
+          "activeDocumentCount",
+          "eligibleDatabaseCount",
+          "eligibleDocumentCount",
+          "degradedSources"
+        ],
+        "properties": {
+          "activeDatabaseCount": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "activeDocumentCount": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "eligibleDatabaseCount": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "eligibleDocumentCount": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "degradedSources": {
+            "type": "object",
+            "additionalProperties": {
+              "$ref": "#/components/schemas/SourceFreshness"
+            }
+          }
+        }
+      },
+      "LanguageModelDescriptorV2": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "providerId",
+          "modelId",
+          "modelRevision"
+        ],
+        "properties": {
+          "providerId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 128
+          },
+          "modelId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 128
+          },
+          "modelRevision": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 128
+          }
+        }
+      },
+      "ProblemDetailsV2": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "type",
+          "title",
+          "status",
+          "detail",
+          "code",
+          "correlationId"
+        ],
+        "properties": {
+          "type": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "status": {
+            "type": "integer"
+          },
+          "detail": {
+            "type": "string"
+          },
+          "instance": {
+            "type": "string"
+          },
+          "code": {
+            "type": "string",
+            "pattern": "^CH_[A-Z0-9_]+$"
+          },
+          "correlationId": {
+            "type": "string"
+          },
+          "retryAfterSeconds": {
+            "type": "integer",
+            "minimum": 1
+          }
+        }
+      },
+      "SupportedQueryLanguage": {
+        "type": "string",
+        "enum": [
+          "pt-BR",
+          "en-GB"
+        ]
+      },
+      "CanonicalDocumentLanguage": {
+        "type": "string",
+        "format": "bcp47",
+        "minLength": 2,
+        "maxLength": 128,
+        "description": "A validated canonical BCP 47 document-content language tag."
+      },
+      "ObservedDocumentLanguage": {
+        "type": "string",
+        "format": "bcp47",
+        "minLength": 2,
+        "maxLength": 128,
+        "description": "The exact valid BCP 47 tag observed from the source without inferred specificity."
+      },
+      "SourceFreshness": {
+        "type": "string",
+        "enum": [
+          "Local",
+          "Current",
+          "Stale",
+          "Withdrawn",
+          "Deactivated",
+          "Unavailable"
+        ]
+      },
+      "IndexGenerationId": {
+        "type": "string",
+        "pattern": "^idxgen-[a-f0-9]{64}$"
+      },
+      "RenderManifestId": {
+        "type": "string",
+        "pattern": "^rendermanifest-[a-f0-9]{64}$"
+      },
+      "Sha256": {
+        "type": "string",
+        "pattern": "^[a-f0-9]{64}$"
+      }
+    }
+  }
+}
