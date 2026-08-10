@@ -555,3 +555,58 @@ backup/restore, Linux, OCI, production, publication and deployment remain
 `NOT_RUN`. No product homologation, Human Gate or lifecycle transition is
 implied. No contract, OpenAPI, schema, migration, ADR, dependency, lockfile or
 retained product evidence was changed by the gate.
+
+## ADR-0011 visual-serving rights-policy correction
+
+### Authority, implementation and protected baseline
+
+The internal rights-policy correction authorised under
+`AUTH-S07-A-RIGHTS-POLICY-CORR-IMPL-001` was completed in focused commit
+`b9c3e5f3a72c2dd7762c256198452ae2c217b2d2`. This documentary
+reconciliation started from that clean `main` commit under
+`AUTH-S07-A-RIGHTS-POLICY-CORR-IMPL-RECONCILE-001`, prompt corpus `4.10.10`.
+
+The protected OpenAPI artefacts remained unchanged:
+
+| Artefact | SHA-256 | Git blob | Result |
+| --- | --- | --- | --- |
+| OpenAPI v1 | `d6a686b94c926914beb28b437f464430a01de6560c2e2d476cf5c36025813e34` | `a5fb3602fbab33bda6aa56cc4caaa9fdc37c8160` | preserved byte for byte |
+| OpenAPI v2 | `01ab26ae8066971af2e5ae83ec828fae556951d5ce6c335b42f6e7cf7b062640` | `8d31b200375ea834f148ea625664091cd5cdc84f` | preserved byte for byte |
+
+### Implemented fail-closed boundary
+
+The serving-specific `PdfVisualEvidenceServing` policy evaluates all ten
+independent rights decisions. `RuntimeDerivativeImageDisplay` must be
+`Permitted`. `SourceAndDerivativeByteDistributionOrPublication` set to
+`Unproven` blocks visual serving. A `Denied` distribution decision is
+compatible with the accepted same-origin display boundary only when
+`RuntimeDerivativeImageDisplay` is `Permitted`; it does not authorise external
+distribution or publication.
+
+The verified page-image reader applies this serving-specific policy before it
+opens the immutable PNG content. An ineligible record therefore remains
+fail-closed before the unchanged HTTP endpoint can produce `200` or `304`.
+The activation-oriented `PdfVisualEvidence` gate remains independent, and no
+rights field, storage mapping, schema, migration or public contract was added.
+
+### Focused observed verification
+
+The local, offline, synthetic Release checks observed during the implementation
+were:
+
+| Boundary | Observed result |
+| --- | --- |
+| Serving-policy unit tests | 19 of 19 passed |
+| Existing activation and render-candidate gate regressions | 23 of 23 passed |
+| Verified page-image reader integration tests | 3 of 3 passed |
+| Protected v1/v2 HTTP contract tests | 6 of 6 passed |
+
+The final implementation check found no RAG-Challenge runtime process and no
+owned listener. The working tree was clean after the focused commit.
+
+These results are focused implementation evidence only. They are not an
+Automatic Quality Gate, product homologation, Human Gate or lifecycle
+transition. No new A0 was executed. `postgresql-18-reference-a4` remains
+`BLOCKED/EXCLUDED`, and page rendering, derivative-image creation,
+derivative-image retention, runtime derivative display and the intended source
+or derivative distribution boundary remain `UNPROVEN` for that candidate.

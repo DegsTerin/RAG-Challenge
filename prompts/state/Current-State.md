@@ -694,9 +694,22 @@ proprietários.
   e change marking à linhagem de cada derivado. Nenhum contrato público ou
   comportamento mudou. `postgresql-18-reference-a4` permanece
   `BLOCKED/EXCLUDED`, com os cinco direitos `UNPROVEN`; nenhum novo A0 foi
-  executado. A incompatibilidade executável permanece: a política interna
-  `PdfVisualEvidence` ainda não avalia
-  `SourceAndDerivativeByteDistributionOrPublication`.
+  executado. Naquela baseline, a incompatibilidade executável ainda permanecia;
+  a correção interna posterior está registrada abaixo.
+- Correção interna da política de serving do ADR-0011: implementada sob
+  `AUTH-S07-A-RIGHTS-POLICY-CORR-IMPL-001` no commit
+  `b9c3e5f3a72c2dd7762c256198452ae2c217b2d2` e reconciliada
+  documentalmente sob `AUTH-S07-A-RIGHTS-POLICY-CORR-IMPL-RECONCILE-001`, a
+  partir desse `main`, corpus `4.10.10`, working tree limpa e OpenAPI v1/v2
+  protegidas. O gate interno `PdfVisualEvidenceServing` avalia as dez decisões:
+  `RuntimeDerivativeImageDisplay` deve estar `Permitted`;
+  `SourceAndDerivativeByteDistributionOrPublication` `Unproven` bloqueia; e
+  `Denied` é compatível somente com `RuntimeDerivativeImageDisplay`
+  `Permitted` na fronteira same-origin aceita. A verificação focal aprovou 19
+  testes da política, 23 regressões dos gates existentes, três testes do leitor
+  real e seis testes contratuais v1/v2. Nenhum runtime ou listener permaneceu.
+  Nenhum novo A0 ou gate foi executado; `postgresql-18-reference-a4` permanece
+  `BLOCKED/EXCLUDED` com os cinco direitos `UNPROVEN`.
 - Decisão arquitetural de armazenamento do corpus e evidência visual:
   [ADR-0008](../../docs/architecture/ADR-0008-Product-Corpus-Storage-And-Page-Image-Evidence.md)
   foi aceita explicitamente pelo proprietário em 2026-08-07 sobre
@@ -1235,9 +1248,10 @@ proprietários.
 - ADR-0011: `accepted` pela decisão humana explícita
   `ADR-0011: ACEITAR.` em 2026-08-09. A decisão refina o mapeamento de
   evidência de ADR-0004/ADR-0008; sua reconciliação semântica nos proprietários
-  documentais nomeados foi aplicada no corpus `4.10.10`. Implementação,
-  reclassificação do PostgreSQL e comportamento de produto continuam sem
-  autorização.
+  documentais nomeados foi aplicada no corpus `4.10.10`. A correção interna do
+  serving foi implementada no commit
+  `b9c3e5f3a72c2dd7762c256198452ae2c217b2d2`; reclassificação do PostgreSQL,
+  novo A0 e comportamento com dado de produto permanecem não executados.
 
 ## Baseline documental
 
@@ -1297,6 +1311,11 @@ proprietários.
   v2. A reconciliação preserva o candidato PostgreSQL bloqueado, não altera
   OpenAPI ou comportamento e mantém a correção interna e o novo A0 sob
   autoridades posteriores.
+- O corpus `4.10.11` registra a correção interna posteriormente implementada no
+  commit `b9c3e5f3a72c2dd7762c256198452ae2c217b2d2`. A política de serving
+  passa a avaliar as dez decisões e a falhar fechado diante de distribution
+  boundary `Unproven`, sem alterar OpenAPI, contrato público, candidato ou
+  lifecycle. Novo A0 permanece posterior e separadamente autorizado.
 - O corpus `4.3.0` formaliza a decisão explícita do proprietário de aceitar
   perguntas e respostas em `pt-BR` e `en-GB`: cada consulta declara o idioma,
   a resposta usa o mesmo idioma, textos derivados da fonte permanecem no
@@ -1560,10 +1579,10 @@ autorizada.
    runtime display e a intended source/derivative distribution boundary
    permanecem `UNPROVEN`. O ADR-0011 aceito define como uma concessão primária
    ampla pode ser mapeada operação por operação, mas não reclassifica o
-   candidato. A reconciliação semântica está concluída; antes de um novo A0, o
-   proprietário precisa autorizar e concluir a correção interna necessária
-   para a política de serving. Cada documento posterior mantém o mesmo gate
-   independente de direitos, proveniência e idioma.
+   candidato. A reconciliação semântica e a correção interna da política de
+   serving estão concluídas. Um novo A0 ainda exige autoridade separada e um
+   mapeamento candidato-específico auditável; cada documento posterior mantém
+   o mesmo gate independente de direitos, proveniência e idioma.
 2. Validar e ativar individualmente novos registros de fonte oficial; a
    aceitação arquitetural não autoriza URL, rede, download ou crawling.
 3. `S07-A` A1-A5 e seu Automatic Quality Gate foram concluídos e aprovados na
@@ -1627,13 +1646,12 @@ creation, derivative-image retention, runtime derivative display e a intended
 source or derivative distribution boundary. Nenhum novo A0, dataset, import,
 render, indexação ou ativação está autorizado por este registro.
 
-O ADR-0011 foi aceito e sua semântica foi reconciliada nos documentos
-normativos proprietários autorizados. A primeira ação relacionada é corrigir
-focalmente a política interna para que o serving v2 avalie a intended
-distribution boundary e as condições do mapeamento antes de `200` ou `304`,
-sob autoridade de implementação separada. O contrato público permanece
-inalterado, e o candidato PostgreSQL continua `BLOCKED/EXCLUDED` com os cinco
-direitos `UNPROVEN`; novo A0 continua posterior.
+O ADR-0011 foi aceito, sua semântica foi reconciliada e a política interna de
+serving v2 foi corrigida no commit
+`b9c3e5f3a72c2dd7762c256198452ae2c217b2d2`. A verificação agora ocorre antes
+de `200` ou `304`, sem alteração do contrato público. O candidato PostgreSQL
+continua `BLOCKED/EXCLUDED` com os cinco direitos `UNPROVEN`; novo A0 continua
+posterior e exige autoridade própria.
 
 O segundo refinamento arquitetural da ordem registrada em Lifecycle está
 implementado até integração v2, restart, cold backup/restore confinado e

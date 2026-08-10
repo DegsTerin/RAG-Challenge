@@ -6427,3 +6427,50 @@ contém somente fatos cronológicos.
 - Próxima condição: autoridade humana separada para a correção focal da
   política interna e de seus testes, preservando o contrato público e sem
   executar novo A0.
+
+## 2026-08-09 — Correção interna da política de serving do ADR-0011 reconciliada
+
+- Estado anterior e resultante: `STATE-07 TESTING_HOMOLOGATION` permanece
+  ativo; nenhum Automatic Quality Gate, Human Gate ou lifecycle foi executado
+  ou alterado.
+- Autoridade e baseline:
+  `AUTH-S07-A-RIGHTS-POLICY-CORR-IMPL-RECONCILE-001`, branch `main`, commit
+  `b9c3e5f3a72c2dd7762c256198452ae2c217b2d2`, corpus `4.10.10`, working tree
+  inicialmente limpa e OpenAPI v1/v2 protegidas.
+- Implementação registrada: o commit focal
+  `b9c3e5f3a72c2dd7762c256198452ae2c217b2d2` adiciona o gate interno
+  `PdfVisualEvidenceServing` e o aplica no leitor verificado antes da abertura
+  do PNG. As dez decisões permanecem independentes;
+  `RuntimeDerivativeImageDisplay` deve estar `Permitted`;
+  `SourceAndDerivativeByteDistributionOrPublication` `Unproven` bloqueia; e
+  `Denied` é compatível somente com `RuntimeDerivativeImageDisplay`
+  `Permitted` na fronteira same-origin aceita.
+- Evidência focal registrada: 19 testes da política, 23 regressões dos gates
+  existentes, três testes do leitor real e seis testes contratuais v1/v2 foram
+  aprovados. Nenhum runtime ou listener permaneceu após a implementação.
+- Contratos protegidos: OpenAPI v1 permaneceu no SHA-256
+  `d6a686b94c926914beb28b437f464430a01de6560c2e2d476cf5c36025813e34` e blob
+  `a5fb3602fbab33bda6aa56cc4caaa9fdc37c8160`; OpenAPI v2 permaneceu no
+  SHA-256 `01ab26ae8066971af2e5ae83ec828fae556951d5ce6c335b42f6e7cf7b062640` e
+  blob `8d31b200375ea834f148ea625664091cd5cdc84f`.
+- Candidato inalterado: `postgresql-18-reference-a4` permanece
+  `BLOCKED/EXCLUDED`; page rendering, derivative-image creation,
+  derivative-image retention, runtime derivative display e a intended source
+  or derivative distribution boundary permanecem `UNPROVEN`. Nenhum novo A0
+  ou mapeamento candidato-específico foi executado.
+- Versionamento: corpus elevado por `PATCH` factual de `4.10.10` para
+  `4.10.11`, sem mudança de contrato público, comportamento com dado de
+  produto, gate ou lifecycle.
+- Limites preservados: exatamente os cinco documentos autorizados foram
+  alterados. Nenhum código, teste, OpenAPI, contrato público, schema,
+  migration, ADR, dependência, lockfile ou dataset foi alterado. Nenhum parser,
+  renderer, runtime, rede, fonte, provider, Automatic Quality Gate, Human Gate,
+  lifecycle ou ação externa foi executado nesta reconciliação.
+- Verificação documental estática: `git diff --check` e
+  `pwsh -NoProfile -File eng/check-repository.ps1` terminaram com exit code
+  `0`; a auditoria cobriu 256 arquivos não ignorados. O histórico preservou
+  byte a byte o prefixo anterior no SHA-256
+  `9fe053986ece430a4293fa363c793acdcd1d7bb178f9c0a3c990632e6484eeee`.
+- Próxima condição: um novo A0 exige autoridade humana separada e mapeamento
+  candidato-específico auditável; esta reconciliação não concede nenhum dos
+  dois.

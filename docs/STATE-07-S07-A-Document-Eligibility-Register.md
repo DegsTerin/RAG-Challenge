@@ -17,7 +17,7 @@ for retrieval.
 | Lifecycle position | `STATE-07 TESTING_HOMOLOGATION` active by documentary entry only |
 | Decision | `ELIGIBLE_CANDIDATE` |
 | Product activation readiness | `BLOCKED/EXCLUDED` under `AUTH-S07-A-PRODUCT-A0-001` |
-| Current rights-policy basis | ADR-0011 `accepted`; documentary reconciliation under `AUTH-S07-A-RIGHTS-POLICY-CORR-RECONCILE-001`; no new A0 |
+| Current rights-policy basis | ADR-0011 `accepted` and reconciled; serving-policy correction implemented in `b9c3e5f3a72c2dd7762c256198452ae2c217b2d2`; no new A0 |
 | Dataset status | not materialised or frozen |
 | Retrieval status | not indexed, activated or published |
 
@@ -107,6 +107,29 @@ reference must remain bound to the derivative lineage. Adjacent or linked
 runtime details are sufficient only when the primary terms permit that
 placement; a notice embedded in the source PDF is not assumed to accompany a
 PNG. Unsupported in-binary or distribution-bundle obligations remain blocking.
+
+## Implemented serving policy and unchanged candidate disposition
+
+The focused internal correction in commit
+`b9c3e5f3a72c2dd7762c256198452ae2c217b2d2` adds a serving-specific
+evaluation of all ten independent rights decisions without changing this
+candidate record or the public contract. `RuntimeDerivativeImageDisplay` must
+be `PERMITTED`. An `UNPROVEN`
+`SourceAndDerivativeByteDistributionOrPublication` decision blocks visual
+serving. `DENIED` remains compatible with the accepted same-origin runtime
+display boundary only when `RuntimeDerivativeImageDisplay` is `PERMITTED`; it
+does not permit source or derivative distribution or publication.
+
+The implementation passed 19 serving-policy unit tests, 23 existing gate
+regressions, three verified page-image reader integration tests and six
+protected v1/v2 contract tests. No RAG-Challenge runtime process or owned
+listener remained after the focused checks, and both OpenAPI artefacts retained
+their protected identities.
+
+This implementation enforces later records; it does not supply evidence for
+this candidate. No new A0 or candidate-specific mapping was executed. The five
+visual and distribution decisions above therefore remain `UNPROVEN`, and
+`postgresql-18-reference-a4` remains `BLOCKED/EXCLUDED`.
 
 ## Document identity
 

@@ -2,13 +2,13 @@
 
 ## Versão atual
 
-- Versão: `4.10.10`
+- Versão: `4.10.11`
 - Data: 2026-08-09
-- Status: `STATE-07` ativo; ADR-0011 `accepted` e reconciliado nos proprietários
-  documentais autorizados; A0 do primeiro documento de produto permanece
-  `BLOCKED/EXCLUDED` por direitos visuais e de distribuição ainda `UNPROVEN`;
-  correção interna, homologação de produto, Human Gate e mudança de lifecycle
-  não executados
+- Status: `STATE-07` ativo; ADR-0011 `accepted`, reconciliado e com a correção
+  interna da política de serving implementada; A0 do primeiro documento de
+  produto permanece `BLOCKED/EXCLUDED` por direitos visuais e de distribuição
+  ainda `UNPROVEN`; novo A0, homologação de produto, Human Gate e mudança de
+  lifecycle não executados
 - Escopo: 13 arquivos ativos em `prompts/`
 
 A versão do corpus é independente da versão futura do software.
@@ -22,6 +22,29 @@ A versão do corpus é independente da versão futura do software.
 
 Toda alteração atualiza este arquivo e, quando necessário,
 [`../Start-Here.md`](../Start-Here.md).
+
+## 4.10.11 — 2026-08-09
+
+- Registra sob
+  `AUTH-S07-A-RIGHTS-POLICY-CORR-IMPL-RECONCILE-001`, sobre
+  `main@b9c3e5f3a72c2dd7762c256198452ae2c217b2d2`, corpus `4.10.10` e working
+  tree inicialmente limpa, a implementação focal da correção interna do
+  serving conforme o ADR-0011.
+- O gate interno `PdfVisualEvidenceServing` avalia as dez decisões:
+  `RuntimeDerivativeImageDisplay` deve estar `Permitted`;
+  `SourceAndDerivativeByteDistributionOrPublication` `Unproven` bloqueia; e
+  `Denied` é compatível somente com `RuntimeDerivativeImageDisplay`
+  `Permitted` na fronteira same-origin aceita.
+- Registra 19 testes da política, 23 regressões dos gates existentes, três
+  testes do leitor real e seis testes contratuais v1/v2 aprovados. Nenhum
+  runtime ou listener permaneceu, e OpenAPI v1/v2 conservaram hashes e blobs
+  protegidos.
+- Não reclassifica `postgresql-18-reference-a4`, não executa novo A0 e mantém
+  sua disposição `BLOCKED/EXCLUDED` com os cinco direitos `UNPROVEN`.
+- Nenhum código, teste, OpenAPI, contrato público, schema, migration, ADR,
+  dependência, lockfile ou dataset foi alterado por esta reconciliação. Nenhum
+  parser, renderer, runtime, rede, fonte, provider, Automatic Quality Gate,
+  Human Gate ou lifecycle foi executado. A mudança do corpus é `PATCH` factual.
 
 ## 4.10.10 — 2026-08-09
 
