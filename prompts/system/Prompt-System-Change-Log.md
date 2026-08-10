@@ -2,12 +2,12 @@
 
 ## Versão atual
 
-- Versão: `4.10.8`
+- Versão: `4.10.9`
 - Data: 2026-08-09
-- Status: `STATE-07` ativo; ADR-0011 preparado e ainda `proposed`; A0 do
-  primeiro documento de produto permanece `BLOCKED/EXCLUDED` por direitos
-  visuais e de distribuição ainda `UNPROVEN`; homologação de produto, Human
-  Gate e mudança de lifecycle não executados
+- Status: `STATE-07` ativo; ADR-0011 `accepted` exclusivamente como autoridade
+  arquitetural; A0 do primeiro documento de produto permanece
+  `BLOCKED/EXCLUDED` por direitos visuais e de distribuição ainda `UNPROVEN`;
+  homologação de produto, Human Gate e mudança de lifecycle não executados
 - Escopo: 13 arquivos ativos em `prompts/`
 
 A versão do corpus é independente da versão futura do software.
@@ -21,6 +21,25 @@ A versão do corpus é independente da versão futura do software.
 
 Toda alteração atualiza este arquivo e, quando necessário,
 [`../Start-Here.md`](../Start-Here.md).
+
+## 4.10.9 — 2026-08-09
+
+- Registra a decisão humana explícita `ADR-0011: ACEITAR.` sobre
+  `main@09f6760cb1a41d907da42b8c01cb34a7425030b9`, corpus `4.10.8` e working
+  tree inicialmente limpa.
+- Torna o ADR-0011 `accepted` exclusivamente como autoridade arquitetural para
+  o mapeamento explícito, auditável e condicionado de evidência primária, a
+  fronteira entre runtime same-origin display e distribuição/publicação e as
+  obrigações que acompanham derivados.
+- Preserva as dez decisões independentes e o fail-closed e mantém registrada a
+  incompatibilidade estática entre o contrato v2 e a política interna.
+- A aceitação não reclassifica `postgresql-18-reference-a4`: sua disposição
+  permanece `BLOCKED/EXCLUDED`, e os cinco direitos visuais e de distribuição
+  permanecem `UNPROVEN`.
+- Nenhuma reconciliação semântica dos documentos normativos proprietários,
+  correção de código, teste, OpenAPI, contrato, schema, migration, dataset,
+  runtime, gate, Human Gate, lifecycle ou ação externa foi autorizada ou
+  executada. A mudança do corpus é `PATCH` factual.
 
 ## 4.10.8 — 2026-08-09
 

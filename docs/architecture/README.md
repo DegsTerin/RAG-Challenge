@@ -31,13 +31,14 @@ The owner separately authorised the local, offline and sequential increment on
 verification without claiming an Automatic Quality Gate, Human Gate or
 lifecycle transition.
 
-ADR-0011 was prepared as a `proposed` decision on 2026-08-09 under
-`AUTH-S07-A-RIGHTS-POLICY-CORR-PREP-001`. It proposes an explicit,
+ADR-0011 was prepared on 2026-08-09 under
+`AUTH-S07-A-RIGHTS-POLICY-CORR-PREP-001` and explicitly accepted by the owner
+on the same date through `ADR-0011: ACEITAR.`. It establishes an explicit,
 auditable and conditional mapping from authoritative broad rights evidence to
 the existing ten independent technical decisions, and defines the boundary
 between same-origin derivative display and separate byte distribution or
-publication. It is not accepted, changes no candidate disposition and grants
-no implementation or product authority.
+publication. Acceptance changes no candidate disposition and grants no
+implementation or product authority.
 
 The later combined audit failed on `AQG-S02-001`, an internal contradiction
 between observation-inclusive generation identity and observation-only
@@ -209,8 +210,8 @@ Dashboard -- versioned HTTP --> API
   `S04-CORR-04-E` implemented locally under separate authority and reconciled
   in corpus `4.10.1`; formal gate remains separate)
 - [ADR-0011 — Source Rights Evidence Mapping and Same-Origin Derivative Display Boundary](ADR-0011-Source-Rights-Evidence-Mapping-And-Same-Origin-Derivative-Display-Boundary.md)
-  (`proposed`; not accepted; no PostgreSQL rights reclassification,
-  implementation or product authority)
+  (`accepted`; no PostgreSQL rights reclassification, implementation or
+  product authority)
 
 ## STATE-02 design artefacts
 

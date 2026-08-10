@@ -1,30 +1,33 @@
 # ADR-0011 — Source Rights Evidence Mapping and Same-Origin Derivative Display Boundary
 
-- Status: proposed
+- Status: accepted
 - Date: 2026-08-09
+- Accepted: 2026-08-09
 - Preparation authority: `AUTH-S07-A-RIGHTS-POLICY-CORR-PREP-001` on
   `main@17c41a78cbe853473860403d476797064b77c78a`, corpus `4.10.7`
-- Decision authority: none; explicit product-owner acceptance remains required
+- Decision authority: explicit product-owner decision `ADR-0011: ACEITAR.` on
+  `main@09f6760cb1a41d907da42b8c01cb34a7425030b9`, corpus `4.10.8`
 - Owners: RAG-Challenge product, architecture, data governance and security
-- State: `STATE-07 TESTING_HOMOLOGATION` documentary proposal
-- Implementation status: not authorised; this proposal changes no code, public
+- State: `STATE-07 TESTING_HOMOLOGATION` accepted architecture decision
+- Implementation status: not authorised; this decision changes no code, public
   contract, schema, migration, dataset, rights disposition or runtime behaviour
 
 ## Purpose and authority
 
-This proposal defines how authoritative primary evidence expressed through
+This decision defines how authoritative primary evidence expressed through
 broad grants, restrictions and conditions can be mapped to the ten technical
 rights decisions already required by
 [ADR-0008](ADR-0008-Product-Corpus-Storage-And-Page-Image-Evidence.md). It also
 defines the boundary between same-origin runtime display and separate source or
 derivative distribution or publication.
 
-The proposal replaces neither primary evidence nor qualified legal advice. It
-does not decide whether any specific licence is sufficient, accept itself,
-reclassify the PostgreSQL candidate, change the frozen v2 contract or authorise
-implementation. Until a later explicit decision and any separately authorised
-reconciliation, the accepted ADR-0004/ADR-0008 rules and current fail-closed
-behaviour remain authoritative.
+The decision replaces neither primary evidence nor qualified legal advice. It
+does not decide whether any specific licence is sufficient, reclassify the
+PostgreSQL candidate, change the frozen v2 contract or authorise
+implementation. It refines the evidence-mapping semantics of ADR-0004 and
+ADR-0008 without weakening their independent decisions or fail-closed rules.
+Any documentary reconciliation, internal correction or candidate reassessment
+remains separately authorised.
 
 ## Context
 
@@ -216,10 +219,11 @@ profile cannot produce, generation and serving remain blocked pending a
 separately authorised design. The product never assumes that a notice embedded
 only in the source PDF automatically accompanies a derivative PNG.
 
-### Internal enforcement if accepted
+### Required internal enforcement
 
-Acceptance would require a later, separately authorised internal correction
-that preserves the frozen public v2 contract and the ten-right schema:
+The accepted decision requires a later, separately authorised internal
+correction that preserves the frozen public v2 contract and the ten-right
+schema:
 
 - bind the reviewed mapping and obligation-set identity to the applicable
   rights evidence reference and derivative manifest lineage;
@@ -234,13 +238,13 @@ that preserves the frozen public v2 contract and the ten-right schema:
   notice failures and mismatched mapping revisions.
 
 No OpenAPI field, route, response, schema version or public behaviour is
-changed by this proposal. If implementing the accepted decision would require
+changed by this decision. If implementing the accepted decision would require
 a public-contract change, implementation must stop for separate architecture
 and contract authority.
 
 ## Candidate-specific non-decision
 
-This proposal does not reclassify `postgresql-18-reference-a4`. Its current A0
+This decision does not reclassify `postgresql-18-reference-a4`. Its current A0
 disposition remains `BLOCKED/EXCLUDED`, and its five recorded visual and
 distribution operations remain `UNPROVEN`.
 
@@ -291,9 +295,9 @@ compatible, never ignored or `Unproven`.
   remains `Unproven` pending owner-supplied authoritative evidence or qualified
   advice outside this ADR.
 
-## Acceptance conditions
+## Acceptance record
 
-The owner may accept this ADR only after confirming that it:
+The owner's explicit decision `ADR-0011: ACEITAR.` confirms that this ADR:
 
 1. preserves all ten independent decisions and `Permitted`/`Denied`/
    `Unproven` fail-closed semantics;
@@ -308,6 +312,6 @@ The owner may accept this ADR only after confirming that it:
 8. leaves implementation, A0 reassessment and all external action under later
    separate authority.
 
-Acceptance would establish architecture authority only. It would not authorise
+Acceptance establishes architecture authority only. It does not authorise
 code, schema, migration, dataset, renderer, runtime, test, gate, source access,
 network action, PostgreSQL reclassification or lifecycle progression.

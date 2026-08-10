@@ -6327,3 +6327,46 @@ contém somente fatos cronológicos.
 - Próxima condição: decisão humana explícita e separada sobre o ADR-0011. Uma
   eventual aceitação estabelecerá somente autoridade arquitetural e não
   autorizará reconciliação, implementação, novo A0 ou ativação.
+
+## 2026-08-09 — ADR-0011 aceito como autoridade arquitetural
+
+- Estado anterior e resultante: `STATE-07 TESTING_HOMOLOGATION` permanece
+  ativo; nenhum Automatic Quality Gate, Human Gate ou lifecycle foi executado
+  ou alterado.
+- Decisão e baseline: o proprietário declarou exatamente
+  `ADR-0011: ACEITAR.` sobre branch `main`, commit
+  `09f6760cb1a41d907da42b8c01cb34a7425030b9`, corpus `4.10.8`, working tree
+  inicialmente limpa e OpenAPI v1/v2 protegidas.
+- Disposição arquitetural: ADR-0011 passou de `proposed` para `accepted`. A
+  decisão estabelece o mapeamento explícito, auditável e condicionado entre
+  evidência primária ampla e as dez decisões técnicas independentes, preserva
+  `Permitted`/`Denied`/`Unproven` fail-closed e define a fronteira entre runtime
+  same-origin display e distribuição/publicação externa de bytes.
+- Obrigações preservadas: attribution, copyright/permission notices,
+  disclaimers, trademark e change marking continuam vinculados à origem, ao
+  derivative manifest e ao contexto de entrega aplicável, sem inferência de
+  cumprimento.
+- Incompatibilidade preservada: o contrato v2 exige reavaliar a intended
+  distribution boundary, enquanto a política interna ainda não avalia
+  `SourceAndDerivativeByteDistributionOrPublication`. A aceitação não corrige
+  essa diferença e não modifica o contrato público.
+- Não decisão: `postgresql-18-reference-a4` permanece `BLOCKED/EXCLUDED`; page
+  rendering, derivative-image creation, derivative-image retention, runtime
+  derivative display e a intended source or derivative distribution boundary
+  permanecem `UNPROVEN`.
+- Versionamento: corpus elevado por `PATCH` factual de `4.10.8` para `4.10.9`,
+  sem alteração de comportamento, gate, lifecycle ou autoridade executável.
+- Limites preservados: nenhuma reconciliação semântica dos documentos
+  normativos proprietários, código, teste, OpenAPI, contrato, schema,
+  migration, dependência, lockfile, dataset, parser, renderer, runtime,
+  provider, fonte, rede, gate, Human Gate, lifecycle ou ação externa foi
+  autorizada ou executada.
+- Verificação documental estática: `git diff --check` e
+  `pwsh -NoProfile -File eng/check-repository.ps1` terminaram com exit code
+  `0`; a auditoria cobriu 256 arquivos não ignorados. O histórico preservou
+  byte a byte o prefixo anterior no SHA-256
+  `ab134f14ff7b4126e34ca34b10a4bbc6cadb49ea5debfa5bebe0509a6bee2e52`;
+  UTF-8 sem BOM, LF, newline final e OpenAPI v1/v2 protegidas conferiram.
+- Próxima condição: autoridade humana separada para reconciliar semanticamente
+  o ADR-0011 aceito nos documentos normativos proprietários. Essa futura
+  reconciliação não autorizará por si só correção de código ou novo A0.
