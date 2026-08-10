@@ -662,6 +662,21 @@ proprietários.
   `BLOCKED/EXCLUDED`, não `READY_FOR_PRODUCT_ACTIVATION`. Nenhum dataset,
   manifest, derivado, indexação, ativação, parser, renderer, runtime, teste,
   gate, Human Gate ou lifecycle foi executado ou alterado.
+- Proposta arquitetural de mapeamento de direitos: preparada sob
+  `AUTH-S07-A-RIGHTS-POLICY-CORR-PREP-001` sobre
+  `main@17c41a78cbe853473860403d476797064b77c78a`, corpus `4.10.7` e working
+  tree inicialmente limpa. O
+  [ADR-0011](../../docs/architecture/ADR-0011-Source-Rights-Evidence-Mapping-And-Same-Origin-Derivative-Display-Boundary.md)
+  permanece `proposed`: preserva as dez decisões independentes e o
+  fail-closed, propõe mapeamento explícito, auditável e condicionado de
+  concessões primárias amplas e separa a exibição same-origin no runtime da
+  distribuição/publicação externa de bytes. A proposta registra a
+  incompatibilidade estática entre o contrato v2, que exige reavaliar a
+  intended distribution boundary, e
+  `DocumentRightsEligibilityPolicy.PdfVisualEvidence`, que não avalia
+  `SourceAndDerivativeByteDistributionOrPublication`. O ADR não foi aceito,
+  não alterou contrato público ou comportamento e não reclassificou os cinco
+  direitos `UNPROVEN` nem a disposição `BLOCKED/EXCLUDED` do PostgreSQL.
 - Decisão arquitetural de armazenamento do corpus e evidência visual:
   [ADR-0008](../../docs/architecture/ADR-0008-Product-Corpus-Storage-And-Page-Image-Evidence.md)
   foi aceita explicitamente pelo proprietário em 2026-08-07 sobre
@@ -1197,6 +1212,10 @@ proprietários.
   `4.10.0`. A aceitação de ADR não substitui as autoridades de implementação:
   `S04-CORR-04-A` a `S04-CORR-04-E` estão concluídos na fronteira local,
   offline e sintética autorizada; isso não constitui gate ou homologação.
+- ADR-0011: `proposed` sob
+  `AUTH-S07-A-RIGHTS-POLICY-CORR-PREP-001`; nenhuma decisão humana de
+  aceitação foi registrada. A proposta não refina nem substitui ADR-0004 ou
+  ADR-0008 enquanto permanecer proposta.
 
 ## Baseline documental
 
@@ -1204,7 +1223,7 @@ proprietários.
   a política de idioma acrescentou o 21º documento público por incremento
   versionado, e o ADR-0003 acrescentou o 22º.
 - A baseline aprovada no Human Gate de `STATE-00` permanece `3.4.0`.
-- O corpus de instruções vigente possui versão `4.10.7` e 13 arquivos em
+- O corpus de instruções vigente possui versão `4.10.8` e 13 arquivos em
   `prompts/`.
 - Visão, requisitos, arquitetura, RAG, segurança, qualidade, lifecycle,
   roadmap, backlog, estado, histórico e templates estão documentados.
@@ -1241,6 +1260,12 @@ proprietários.
   necessários passam a exigir significado e consequência explicados em
   `pt-BR`, sem ocultar incerteza, risco, limite de autoridade ou fato não
   verificado.
+- O corpus `4.10.8` registra somente a preparação do ADR-0011 como proposta.
+  A mudança documenta o mapeamento condicionado de evidência primária, a
+  fronteira entre serving same-origin e distribuição/publicação, as obrigações
+  que acompanham derivados e a incompatibilidade estática entre o contrato v2
+  e a política interna. Não aceita o ADR, muda direitos, contrato público ou
+  comportamento de produto.
 - O corpus `4.3.0` formaliza a decisão explícita do proprietário de aceitar
   perguntas e respostas em `pt-BR` e `en-GB`: cada consulta declara o idioma,
   a resposta usa o mesmo idioma, textos derivados da fonte permanecem no
@@ -1502,10 +1527,12 @@ autorizada.
    `BLOCKED/EXCLUDED`: identidade, proveniência, idiomas e atribuição
    conferiram, mas page rendering, derivative-image creation/retention,
    runtime display e a intended source/derivative distribution boundary
-   permanecem `UNPROVEN`. O proprietário precisa fornecer evidência e
-   disposição explícitas, operação por operação, antes de novo A0 ou qualquer
-   ativação. Cada documento posterior mantém o mesmo gate independente de
-   direitos, proveniência e idioma.
+   permanecem `UNPROVEN`. O ADR-0011 proposto descreve como uma concessão
+   primária ampla poderia ser mapeada operação por operação, mas não foi aceito
+   e não reclassifica o candidato. Antes de um novo A0, o proprietário precisa
+   decidir o ADR e, se aceito, autorizar separadamente sua reconciliação e a
+   correção interna necessária. Cada documento posterior mantém o mesmo gate
+   independente de direitos, proveniência e idioma.
 2. Validar e ativar individualmente novos registros de fonte oficial; a
    aceitação arquitetural não autoriza URL, rede, download ou crawling.
 3. `S07-A` A1-A5 e seu Automatic Quality Gate foram concluídos e aprovados na
@@ -1568,6 +1595,13 @@ evidência e separada por operação, para page rendering, derivative-image
 creation, derivative-image retention, runtime derivative display e a intended
 source or derivative distribution boundary. Nenhum novo A0, dataset, import,
 render, indexação ou ativação está autorizado por este registro.
+
+O ADR-0011 foi preparado somente como proposta documental. A primeira ação
+relacionada é a decisão explícita do proprietário de aceitar ou rejeitar a
+proposta. Enquanto ela não for aceita, ADR-0004 e ADR-0008 permanecem
+inalterados, a incompatibilidade estática entre o contrato v2 e a política
+interna permanece registrada e o candidato PostgreSQL continua
+`BLOCKED/EXCLUDED` com os cinco direitos `UNPROVEN`.
 
 O segundo refinamento arquitetural da ordem registrada em Lifecycle está
 implementado até integração v2, restart, cold backup/restore confinado e

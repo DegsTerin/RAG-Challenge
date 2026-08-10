@@ -2,11 +2,12 @@
 
 ## Versão atual
 
-- Versão: `4.10.7`
+- Versão: `4.10.8`
 - Data: 2026-08-09
-- Status: `STATE-07` ativo; A0 do primeiro documento de produto disposto como
-  `BLOCKED/EXCLUDED` por direitos visuais e de distribuição ainda `UNPROVEN`;
-  homologação de produto, Human Gate e mudança de lifecycle não executados
+- Status: `STATE-07` ativo; ADR-0011 preparado e ainda `proposed`; A0 do
+  primeiro documento de produto permanece `BLOCKED/EXCLUDED` por direitos
+  visuais e de distribuição ainda `UNPROVEN`; homologação de produto, Human
+  Gate e mudança de lifecycle não executados
 - Escopo: 13 arquivos ativos em `prompts/`
 
 A versão do corpus é independente da versão futura do software.
@@ -20,6 +21,29 @@ A versão do corpus é independente da versão futura do software.
 
 Toda alteração atualiza este arquivo e, quando necessário,
 [`../Start-Here.md`](../Start-Here.md).
+
+## 4.10.8 — 2026-08-09
+
+- Registra sob `AUTH-S07-A-RIGHTS-POLICY-CORR-PREP-001`, sobre
+  `main@17c41a78cbe853473860403d476797064b77c78a`, corpus `4.10.7` e working
+  tree inicialmente limpa, a preparação documental do ADR-0011 com status
+  `proposed`.
+- A proposta preserva as dez decisões independentes e o fail-closed, substitui
+  a correspondência literal por um mapeamento explícito, auditável e
+  condicionado e separa runtime same-origin display de distribuição ou
+  publicação externa de bytes.
+- Define como atribuição, copyright/permission notices, disclaimers, trademark
+  e change marking permanecem associados a cada derivado e ao seu contexto de
+  entrega.
+- Registra a incompatibilidade estática entre o contrato v2, que exige
+  reavaliar a intended distribution boundary, e
+  `DocumentRightsEligibilityPolicy.PdfVisualEvidence`, que não exige
+  `SourceAndDerivativeByteDistributionOrPublication`.
+- O ADR não foi aceito; o PostgreSQL permanece `BLOCKED/EXCLUDED` com cinco
+  direitos `UNPROVEN`. Nenhum código, teste, OpenAPI, contrato, schema,
+  migration, dataset, runtime, gate, Human Gate, lifecycle ou ação externa foi
+  alterado ou executado. A mudança do corpus é `PATCH` documental, sem mudança
+  de autoridade vigente.
 
 ## 4.10.7 — 2026-08-09
 

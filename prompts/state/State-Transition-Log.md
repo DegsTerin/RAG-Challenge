@@ -6279,3 +6279,51 @@ contém somente fatos cronológicos.
   prefixo anterior no SHA-256
   `62549f9060a3777525e13bfd08bd5eaad1a9f9f8657c1fb67d91401aece96700`, e
   OpenAPI v1/v2 permaneceram nos hashes e blobs protegidos.
+
+## 2026-08-09 — ADR-0011 preparado como proposta de mapeamento de direitos
+
+- Estado anterior e resultante: `STATE-07 TESTING_HOMOLOGATION` permanece
+  ativo; nenhum Automatic Quality Gate, Human Gate ou lifecycle foi executado
+  ou alterado.
+- Autoridade e baseline:
+  `AUTH-S07-A-RIGHTS-POLICY-CORR-PREP-001`, branch `main`, commit
+  `17c41a78cbe853473860403d476797064b77c78a`, corpus `4.10.7`, working tree
+  inicialmente limpa e OpenAPI v1/v2 protegidas.
+- Proposta: ADR-0011 preparado com status `proposed`, preservando as dez
+  decisões independentes e `Permitted`/`Denied`/`Unproven` fail-closed. O
+  mapeamento proposto liga cada operação a evidência primária, escopo,
+  condições e mecanismo de cumprimento sem exigir correspondência literal e
+  sem ampliar a concessão observada.
+- Fronteira: serving same-origin continua sendo entrega de bytes, mas pode ser
+  avaliado como `RuntimeDerivativeImageDisplay` somente dentro da rota
+  existente, do estado ativo e do contexto governado. Exportação,
+  redistribuição, hosting público, bundle ou publicação permanecem sob
+  `SourceAndDerivativeByteDistributionOrPublication`.
+- Obrigações: a proposta determina associação rastreável de attribution,
+  notices, disclaimers, trademark e change marking com o source record, cada
+  derivative manifest e o contexto de display ou distribuição aplicável.
+- Incompatibilidade estática: o contrato v2 exige reavaliar a intended
+  distribution boundary antes de servir a imagem, enquanto
+  `DocumentRightsEligibilityPolicy.PdfVisualEvidence` não avalia
+  `SourceAndDerivativeByteDistributionOrPublication`. A proposta exige uma
+  correção interna separadamente autorizada se vier a ser aceita; nenhum
+  contrato público foi alterado.
+- Não decisão: ADR-0011 não foi aceito e não reclassificou
+  `postgresql-18-reference-a4`. A disposição permanece `BLOCKED/EXCLUDED`, e
+  os cinco direitos visuais e de distribuição permanecem `UNPROVEN`.
+- Versionamento: corpus elevado por `PATCH` documental de `4.10.7` para
+  `4.10.8`, sem mudança de autoridade, estado, critério aceito, contrato ou
+  comportamento.
+- Limites preservados: nenhum código, teste, OpenAPI, contrato, schema,
+  migration, ADR aceito, dependência, lockfile, dataset, parser, renderer,
+  runtime, provider, fonte, rede, gate, Human Gate, lifecycle ou ação externa
+  foi alterado ou executado.
+- Verificação documental estática: `git diff --check` e
+  `pwsh -NoProfile -File eng/check-repository.ps1` terminaram com exit code
+  `0`; a auditoria cobriu 256 arquivos não ignorados. O histórico preservou
+  byte a byte o prefixo anterior no SHA-256
+  `153cfebc4b6b15106c6e8af087818e8f282487dfc6f1c79cbb20361d596f21e0`;
+  UTF-8 sem BOM, LF, newline final e OpenAPI v1/v2 protegidas conferiram.
+- Próxima condição: decisão humana explícita e separada sobre o ADR-0011. Uma
+  eventual aceitação estabelecerá somente autoridade arquitetural e não
+  autorizará reconciliação, implementação, novo A0 ou ativação.
