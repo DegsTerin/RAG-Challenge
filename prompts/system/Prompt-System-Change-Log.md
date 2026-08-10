@@ -2,7 +2,7 @@
 
 ## Versão atual
 
-- Versão: `4.10.22`
+- Versão: `4.10.23`
 - Data: 2026-08-10
 - Status: `STATE-07` ativo; ADR-0011 `accepted`, reconciliado e com a correção
   interna da política de serving implementada; o A0 candidato-específico mantém
@@ -13,7 +13,8 @@
   reconciliado semanticamente, com compatibilidade do adaptador implementada e
   Automatic Quality Gate específico aprovado somente na fronteira local,
   offline e com handlers falsos; a campanha candidata de provider possui uma
-  revisão sucessora sintética congelada e validada somente com handlers falsos;
+  revisão sucessora sintética congelada, com Automatic Quality Gate aprovado
+  somente na fronteira local, offline, determinística e com handlers falsos;
   homologação de produto, Human Gate e mudança de lifecycle não executados
 - Escopo: 13 arquivos ativos em `prompts/`
 
@@ -28,6 +29,31 @@ A versão do corpus é independente da versão futura do software.
 
 Toda alteração atualiza este arquivo e, quando necessário,
 [`../Start-Here.md`](../Start-Here.md).
+
+## 4.10.23 — 2026-08-10
+
+- Reconcilia sob `AUTH-STATE07-S07-A-PROVIDER-PREP-AQG-RECONCILE-001`, sobre
+  `main@5d74c9c9190b0b3465b11dc6864e3dd519cc88f9`, corpus `4.10.22`, working
+  tree inicialmente limpa e OpenAPI v1/v2 protegidas, o Automatic Quality Gate
+  autorizado sob `AUTH-S07-A-PROVIDER-PREP-AQG-001`.
+- Registra o resultado `APROVADO`, sem achado P0, P1, P2 ou P3. A auditoria
+  confirmou o escopo isolado dos commits, a preservação da predecessora, os
+  cinco manifests e seus digests, a matriz de 60 casos, 12 casos de prompt
+  injection, 20 casos de insuficiência, configuração congelada, máximo de 109
+  chamadas e orçamento operacional/absoluto de `USD 16`/`USD 20`.
+- Registra 2 de 2 testes do harness e 20 de 20 testes combinados aprovados com
+  handlers falsos. A CI offline completa aprovou 154 testes unitários, 193 de
+  integração, 11 de arquitetura e 45 do Dashboard, com 95,63% de cobertura de
+  linhas, 67,66% de branches e build sem avisos ou erros; formatação,
+  `git diff --check` e auditoria de 275 arquivos também passaram.
+- Limita a aprovação à preparação local, offline, determinística e com handlers
+  falsos. Conta, credencial, provider, chamada paga, corpus/fonte real,
+  avaliação real, qualidade bilíngue, groundedness, citações, insuficiência de
+  evidência real, prompt injection, latência, custo observado, OCI, deploy,
+  Human Gate e lifecycle permanecem `NOT_RUN`.
+- Esta reconciliação altera somente proprietários documentais factuais. O
+  corpus avança por `PATCH` de `4.10.22` para `4.10.23`; código, testes,
+  configuração, Domain, Application, ADRs e OpenAPI permanecem inalterados.
 
 ## 4.10.22 — 2026-08-10
 

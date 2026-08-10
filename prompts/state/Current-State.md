@@ -1371,7 +1371,11 @@ proprietários.
   `422286863e7a3c213e96db18144769bd0458a75b` e reconciliada factualmente no
   corpus `4.10.22`. Ela materializa uma revisão sucessora sintética, imutável e
   não pontuada, com harness limitado a handlers falsos; não executa ou homologa
-  o provider.
+  o provider. O Automatic Quality Gate específico da preparação foi
+  `APROVADO`, sem achado P0, P1, P2 ou P3, sob
+  `AUTH-S07-A-PROVIDER-PREP-AQG-001` na baseline
+  `main@5d74c9c9190b0b3465b11dc6864e3dd519cc88f9`, corpus `4.10.22`, somente na
+  fronteira local, offline, determinística e com handlers falsos.
 
 ## Baseline documental
 
@@ -1379,7 +1383,7 @@ proprietários.
   a política de idioma acrescentou o 21º documento público por incremento
   versionado, e o ADR-0003 acrescentou o 22º.
 - A baseline aprovada no Human Gate de `STATE-00` permanece `3.4.0`.
-- O corpus de instruções vigente possui versão `4.10.22` e 13 arquivos em
+- O corpus de instruções vigente possui versão `4.10.23` e 13 arquivos em
   `prompts/`.
 - Visão, requisitos, arquitetura, RAG, segurança, qualidade, lifecycle,
   roadmap, backlog, estado, histórico e templates estão documentados.
@@ -1522,6 +1526,21 @@ proprietários.
   insuficiência de evidência real, resistência a prompt injection, latência,
   custo observado, Automatic Quality Gate, Human Gate e lifecycle permanecem
   `NOT_RUN`.
+- O corpus `4.10.23` reconcilia sob
+  `AUTH-STATE07-S07-A-PROVIDER-PREP-AQG-RECONCILE-001` o Automatic Quality Gate
+  aprovado sem achados na baseline
+  `main@5d74c9c9190b0b3465b11dc6864e3dd519cc88f9`. A auditoria preservou a
+  predecessora, confirmou os cinco manifests e seus digests, os 60 casos, 12
+  casos de prompt injection, 20 casos de insuficiência, agenda máxima de 109
+  chamadas e orçamento congelado de `USD 16`/`USD 20`. Passaram 2 de 2 testes
+  focais, 20 de 20 testes combinados e a CI offline completa com 154 testes
+  unitários, 193 de integração, 11 de arquitetura e 45 do Dashboard; cobertura
+  de 95,63% de linhas e 67,66% de branches; build sem avisos ou erros. A
+  aprovação vale somente para preparação local, offline, determinística e com
+  handlers falsos. Conta, credencial, provider, chamada paga, corpus/fonte real,
+  avaliação real, qualidade bilíngue, groundedness, citações, insuficiência de
+  evidência real, resistência a prompt injection, latência, custo observado,
+  OCI, deploy, Human Gate e lifecycle permanecem `NOT_RUN`.
 - O corpus `4.3.0` formaliza a decisão explícita do proprietário de aceitar
   perguntas e respostas em `pt-BR` e `en-GB`: cada consulta declara o idioma,
   a resposta usa o mesmo idioma, textos derivados da fonte permanecem no
@@ -1805,10 +1824,12 @@ autorizada.
    continua não executado e não autorizado.
 4. A preparação sintética da campanha
    `s07-a-provider-gpt54m-candidate-001` está congelada no commit
-   `422286863e7a3c213e96db18144769bd0458a75b`, sem chamada real ou resultado
-   pontuado. Ainda é necessário verificar tier, entitlement, spend limit e
-   controles da conta OpenAI, além da recuperação/geração bilíngue, antes de
-   usar ou anunciar os providers.
+   `422286863e7a3c213e96db18144769bd0458a75b`; seu Automatic Quality Gate foi
+   `APROVADO` sem achados somente na fronteira local, offline, determinística e
+   com handlers falsos. Não houve chamada real ou resultado pontuado. Ainda é
+   necessário verificar tier, entitlement, spend limit e controles da conta
+   OpenAI, além da recuperação/geração bilíngue, antes de usar ou anunciar os
+   providers.
 5. Homologar desempenho e capacidade do `SqliteExactVectorStore`; a fixture
    funcional de 10.000 × 1.536 passou, mas não é benchmark, SLA ou teto de
    produto.
@@ -1859,10 +1880,11 @@ determinística e com handlers falsos. Isso não constitui avaliação real nem
 homologação. A campanha `s07-a-provider-gpt54m-candidate-001` possui preparação
 sintética congelada sob `AUTH-S07-A-PROVIDER-PREP-001` no commit
 `422286863e7a3c213e96db18144769bd0458a75b`, com agenda e orçamento somente
-planejados e zero execução real. Um Automatic Quality Gate dessa preparação e
-qualquer avaliação com conta, credencial, provider, chamada paga, corpus real
-ou OCI exigem autoridades humanas separadas; Human Gate e lifecycle permanecem
-sem alteração.
+planejados e zero execução real. Seu Automatic Quality Gate foi `APROVADO`, sem
+achados, sob `AUTH-S07-A-PROVIDER-PREP-AQG-001`, exclusivamente na fronteira
+local, offline, determinística e com handlers falsos. Qualquer avaliação com
+conta, credencial, provider, chamada paga, corpus real ou OCI exige autoridade
+humana separada; Human Gate e lifecycle permanecem sem alteração.
 
 `S07-A` A1-A5 e seu Automatic Quality Gate estão concluídos e aprovados na
 fronteira sintética local autorizada, com `S07-A-FIND-001` e o histórico

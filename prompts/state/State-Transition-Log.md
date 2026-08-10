@@ -6941,3 +6941,49 @@ contém somente fatos cronológicos.
   qualquer execução real da campanha exigem autoridades humanas separadas. A
   execução real também exige conta, referência de secret, egress, spend e
   corpus de produto explicitamente autorizados.
+
+## 2026-08-10 — Automatic Quality Gate da preparação da campanha GPT-5.4 mini aprovado
+
+- Estado anterior e resultante: `STATE-07 TESTING_HOMOLOGATION` permanece
+  ativo; nenhum Human Gate ou lifecycle foi executado ou alterado.
+- Autoridade e baseline documental:
+  `AUTH-STATE07-S07-A-PROVIDER-PREP-AQG-RECONCILE-001`, branch `main`, commit
+  `5d74c9c9190b0b3465b11dc6864e3dd519cc88f9`, corpus `4.10.22`, working tree
+  inicialmente limpa e OpenAPI v1/v2 protegidas. O runtime preflight desta
+  reconciliação puramente documental foi `NÃO APLICÁVEL`.
+- Gate reconciliado: o Automatic Quality Gate autorizado sob
+  `AUTH-S07-A-PROVIDER-PREP-AQG-001` auditou a preparação implementada no
+  commit `422286863e7a3c213e96db18144769bd0458a75b` e reconciliada no commit
+  `5d74c9c9190b0b3465b11dc6864e3dd519cc88f9`. O resultado foi `APROVADO`, sem
+  achado P0, P1, P2 ou P3, somente na fronteira local, offline, determinística
+  e com handlers falsos.
+- Auditoria estática: a revisão predecessora permaneceu inalterada; os cinco
+  manifests e seus digests conferiram; a sucessora preservou 60 casos, 12 de
+  prompt injection, 20 de insuficiência, configuração congelada, agenda máxima
+  de 109 chamadas, orçamento operacional de `USD 16` e teto absoluto de
+  `USD 20`. Nenhuma chamada da agenda foi executada.
+- Evidência observada: o preflight do gate encontrou zero processo do
+  RAG-Challenge; 2 de 2 testes do harness e 20 de 20 testes combinados passaram
+  com handlers falsos. A CI offline aprovou 154 testes unitários, 193 de
+  integração, 11 de arquitetura e 45 do Dashboard, com cobertura de 95,63% de
+  linhas e 67,66% de branches e build sem avisos ou erros. Formatação,
+  `git diff --check`, verificações de transporte/secrets e auditoria de 275
+  arquivos também passaram; o runtime terminou com zero processo pertencente
+  ao projeto.
+- Artefatos protegidos: OpenAPI v1 permaneceu no SHA-256
+  `d6a686b94c926914beb28b437f464430a01de6560c2e2d476cf5c36025813e34` e blob
+  `a5fb3602fbab33bda6aa56cc4caaa9fdc37c8160`; OpenAPI v2 permaneceu no
+  SHA-256 `f4dca8db7fb7bd453e580495bb1bb7760812d954344931063e8549ed8f036733` e
+  blob `5ed6a47631653dd0c137b6ea1e979ae2c14bf8a8`.
+- Limites preservados: conta, credencial, provider, chamada paga, corpus/fonte
+  real, avaliação real, qualidade bilíngue, groundedness, citações,
+  insuficiência de evidência real, resistência a prompt injection, latência,
+  custo observado, OCI, deploy, Human Gate e mudança de lifecycle permanecem
+  `NOT_RUN`.
+- Versionamento: corpus elevado por `PATCH` factual de `4.10.22` para
+  `4.10.23`. O histórico preservou byte a byte seu prefixo anterior no SHA-256
+  `38c8a5b6baa6890f13800cef3d7eb2e553512f713e46ae72e09925ab2502cb26`.
+- Próxima condição: qualquer avaliação real da campanha exige autoridade
+  humana separada para conta, referência de secret, egress, provider, chamadas
+  pagas, corpus/fonte real, limites operacionais e execução do plano de parada;
+  este gate não autoriza Human Gate nem mudança de lifecycle.

@@ -876,3 +876,65 @@ real-corpus suitability. No account, credential value, external provider,
 real corpus, real source, OCI or paid service was accessed. No real evaluation,
 deployment, Automatic Quality Gate, Human Gate, product homologation or
 lifecycle transition was executed or implied.
+
+### Automatic Quality Gate of the frozen preparation
+
+The separately authorised Automatic Quality Gate ran on 2026-08-10 under
+`AUTH-S07-A-PROVIDER-PREP-AQG-001` from clean
+`main@5d74c9c9190b0b3465b11dc6864e3dd519cc88f9`, prompt corpus `4.10.22`.
+It audited implementation commit
+`422286863e7a3c213e96db18144769bd0458a75b` and its factual documentary
+reconciliation commit `5d74c9c9190b0b3465b11dc6864e3dd519cc88f9`. Runtime preflight found zero
+RAG-Challenge-owned process before the checks and after their completion.
+
+The static audit confirmed the required parentage and isolated scopes: the
+implementation commit added only the five successor-revision manifests and
+four provider-harness paths, while the reconciliation commit changed only the
+four canonical factual documents. The predecessor revision remained byte for
+byte unchanged from the authorised baseline. All five successor file SHA-256
+values and all five embedded manifest SHA-256 values matched the frozen
+identities listed above. The audit also confirmed 60 synthetic cases, 40
+answerable cases with ten in each mandatory bilingual direction, 20
+insufficient-evidence cases split equally between the zero-call and
+evidence-present pathways, and 12 prompt-injection cases covering all six
+attack classes for each question language.
+
+The frozen campaign contract continued to require the exact
+`gpt-5.4-mini-2026-03-17` snapshot, `store=false`, omitted tools, zero retry,
+concurrency one, a maximum schedule of 109 calls and the fail-closed `USD 16`
+operational and `USD 20` absolute budget limits. Static scans found no
+default external transport path and no secret-like value in the audited
+campaign paths. The executable harness continued to receive its only transport
+through an injected `HttpMessageHandler`; the 109-call schedule was inspected
+but never run.
+
+The authorised local and offline commands produced these observed results:
+
+| Command or boundary | Exit code | Observed result |
+| --- | --- | --- |
+| read-only static verifier for commit scope, predecessor identity, manifest digests, case matrix, schedule, configuration and budget | `0` | all frozen identities and counts matched; predecessor unchanged |
+| `pwsh -NoProfile -File tests/RagChallenge.IntegrationTests/S07AProviderHarness/Invoke-S07AProviderHarness.ps1 -Mode Validate` | `0` | 2 of 2 provider-preparation tests passed with the in-process fake handler |
+| focused Release tests for `S07AProviderHarness` and `OpenAiHttpAdapterContractTests` with `--no-restore` | `0` | 20 of 20 passed with fake handlers |
+| `pwsh -NoProfile -File eng/ci.ps1 -Offline` | `0` | restore policy, build, tests, coverage, lint, typecheck, Dashboard tests/build and repository audit passed |
+| `dotnet format RAG-Challenge.sln --verify-no-changes --no-restore --verbosity minimal` | `0` | no formatting change required |
+| `pwsh -NoProfile -File eng/check-repository.ps1` | `0` | repository audit passed for 275 non-ignored files |
+| `git diff --check` | `0` | no whitespace error |
+
+The complete offline CI passed 154 unit, 193 integration, 11 architecture and
+45 Dashboard tests. Merged .NET coverage was 95.63% of lines and 67.66% of
+branches; the Release build had zero warnings and zero errors. Two preliminary
+ad hoc assertions used incorrect auditor-side assumptions about the predecessor
+path and corpus-version occurrence count. Their decomposed read-only reruns
+passed and found no repository divergence; they were not product findings.
+The protected OpenAPI v1 and v2 SHA-256 and Git blob identities remained
+unchanged, the final working tree was clean and no RAG-Challenge-owned process
+remained.
+
+The Automatic Quality Gate result is `APPROVED`, with no P0, P1, P2 or P3
+finding. Approval is restricted to the local, offline, deterministic and
+fake-handler-only campaign-preparation boundary. Account access, credentials,
+provider access or behaviour, paid calls, real corpus or source, real
+evaluation, bilingual quality, groundedness, citation quality, real-model
+insufficient-evidence behaviour, prompt-injection resistance, observed
+latency, observed cost, OCI, deployment, Human Gate and lifecycle transition
+remain `NOT_RUN`.
