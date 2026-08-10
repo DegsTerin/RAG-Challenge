@@ -747,6 +747,20 @@ proprietários.
   arquitetural: não reclassifica o PostgreSQL, altera OpenAPI, código, schema,
   migration, dataset ou comportamento; nenhum renderer, runtime, teste, gate,
   Human Gate ou lifecycle foi executado.
+- Reconciliação semântica do ADR-0012: autorizada sob
+  `AUTH-S07-A-NOTICE-BEARING-PROFILE-RECONCILE-001` sobre
+  `main@5c2cea66e45f13479486a345552e5cc3cd47fefe`, corpus `4.10.14`, working
+  tree inicialmente limpa e OpenAPI v1/v2 protegidas. ADR-0008, o contrato
+  documental v2, data dictionary, Security-And-Access, threat model e registro
+  de elegibilidade agora aplicam `pdf-page-png-notice-v1`, o
+  `DerivativeObligationSetV1`, vínculo ao manifest, storage/reachability,
+  backup/cold restore, serving same-origin e apresentação acessível. A
+  reconciliação identifica como futuros obrigatórios a revisão protegida do
+  contrato v2, schema e migration, sem executá-los. As dez decisões e o
+  fail-closed permanecem independentes; `postgresql-18-reference-a4` continua
+  `BLOCKED/EXCLUDED`, com quatro operações visuais `UNPROVEN` e distribuição/
+  publicação externa `DENIED`. Nenhum novo A0, código, teste, renderer,
+  runtime, gate, Human Gate ou lifecycle foi executado.
 - Decisão arquitetural de armazenamento do corpus e evidência visual:
   [ADR-0008](../../docs/architecture/ADR-0008-Product-Corpus-Storage-And-Page-Image-Evidence.md)
   foi aceita explicitamente pelo proprietário em 2026-08-07 sobre
@@ -1292,8 +1306,9 @@ proprietários.
   dado de produto.
 - ADR-0012: `accepted` pela decisão humana explícita
   `ADR-0012: ACEITAR.` em 2026-08-09. A decisão estabelece a imagem composta
-  autocontida e as mudanças necessárias de schema, migration e contrato v2,
-  sem autorizar reconciliação, implementação, reclassificação do PostgreSQL ou
+  autocontida e as mudanças necessárias de schema, migration e contrato v2.
+  Sua reconciliação semântica nos seis proprietários documentais foi aplicada
+  no corpus `4.10.15`, sem implementação, reclassificação do PostgreSQL ou
   comportamento de produto.
 
 ## Baseline documental
@@ -1302,7 +1317,7 @@ proprietários.
   a política de idioma acrescentou o 21º documento público por incremento
   versionado, e o ADR-0003 acrescentou o 22º.
 - A baseline aprovada no Human Gate de `STATE-00` permanece `3.4.0`.
-- O corpus de instruções vigente possui versão `4.10.14` e 13 arquivos em
+- O corpus de instruções vigente possui versão `4.10.15` e 13 arquivos em
   `prompts/`.
 - Visão, requisitos, arquitetura, RAG, segurança, qualidade, lifecycle,
   roadmap, backlog, estado, histórico e templates estão documentados.
@@ -1374,6 +1389,12 @@ proprietários.
   como autoridade arquitetural. A aceitação não executa reconciliação,
   revisão do contrato v2, schema, migration, implementação, novo A0, renderer,
   dataset, gate ou lifecycle e mantém OpenAPI v1/v2 protegidas.
+- O corpus `4.10.15` aplica a reconciliação semântica autorizada do ADR-0012
+  aos seis proprietários documentais. Registra o perfil notice-bearing, o
+  obligation set, seus vínculos de manifest/storage/reachability/recovery/
+  serving/acessibilidade e as futuras revisões obrigatórias de contrato v2,
+  schema e migration. Não altera OpenAPI, implementação, direitos do candidato,
+  gate ou lifecycle.
 - O corpus `4.3.0` formaliza a decisão explícita do proprietário de aceitar
   perguntas e respostas em `pt-BR` e `en-GB`: cada consulta declara o idioma,
   a resposta usa o mesmo idioma, textos derivados da fonte permanecem no
@@ -1638,9 +1659,10 @@ autorizada.
    Page rendering, derivative-image creation/retention e runtime display estão
    `UNPROVEN`; a distribuição/publicação fora do runtime está `DENIED` pela
    fronteira interna deliberadamente excluída. O ADR-0012 aceito estabelece a
-   arquitetura do mecanismo ausente, mas não muda essa disposição. Sua
-   reconciliação, contrato, schema, migration e implementação continuam sob
-   autoridades separadas. Cada documento posterior mantém o mesmo gate
+   arquitetura do mecanismo ausente e sua reconciliação semântica está
+   concluída, mas a disposição não muda. Contrato v2, schema, migration,
+   implementação, verificação e novo A0 continuam sob autoridades separadas.
+   Cada documento posterior mantém o mesmo gate
    independente de direitos, proveniência e idioma.
 2. Validar e ativar individualmente novos registros de fonte oficial; a
    aceitação arquitetural não autoriza URL, rede, download ou crawling.
@@ -1705,12 +1727,13 @@ está `DENIED` fora do runtime-display. Dataset, import, render, indexação e
 ativação continuam não autorizados por esse resultado.
 
 O ADR-0012 foi aceito explicitamente mediante `ADR-0012: ACEITAR.` somente
-como autoridade arquitetural. Ele estabelece o mecanismo autocontido e as
-mudanças necessárias de schema, migration e contrato v2, mas não reclassifica
-o candidato nem autoriza execução. A próxima condição diretamente relacionada
-é reconciliar semanticamente a decisão aceita nos proprietários documentais,
-sob autoridade separada, antes de contrato, schema, migration ou
-implementação.
+como autoridade arquitetural, e sua reconciliação semântica nos seis
+proprietários documentais foi concluída sob
+`AUTH-S07-A-NOTICE-BEARING-PROFILE-RECONCILE-001`. Ela registra o mecanismo
+autocontido e as mudanças necessárias de schema, migration e contrato v2, mas
+não reclassifica o candidato nem autoriza execução. A próxima condição
+diretamente relacionada é uma revisão protegida e separadamente autorizada do
+contrato v2, antes de schema, migration ou implementação.
 
 O ADR-0011 foi aceito, sua semântica foi reconciliada e a política interna de
 serving v2 foi corrigida no commit

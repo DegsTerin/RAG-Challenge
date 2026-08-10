@@ -27,6 +27,15 @@ The internal `AnswerEvidenceRecordV1` defined by
 remains an internal persistence and reachability contract, not a public HTTP
 resource.
 
+Accepted
+[ADR-0012](architecture/ADR-0012-Notice-Bearing-Page-Image-Profile-And-Derivative-Obligation-Delivery.md)
+defines a mandatory successor direction for notice-bearing derivatives. This
+document records that direction without changing the frozen contract or either
+OpenAPI artefact. Until a separately authorised v2 contract revision is frozen
+and implemented, `pdf-page-png-notice-v1`, `obligationSetId` and
+`DerivativeObligationPresentationV1` are not valid public v2 values and cannot
+authorise product serving.
+
 ## Frozen decisions
 
 ### Version coexistence
@@ -105,6 +114,24 @@ the exact PNG bytes. The reference is created by trusted server orchestration
 from the validated citation and persisted readback, never by the language
 model, source text, a language tag or caller input. The language model remains
 text-only.
+
+### Mandatory future notice-bearing v2 revision
+
+ADR-0012 requires a later protected contract freeze that retains every current
+field and the fixed same-origin route, and adds:
+
+- `obligationSetId` to every `pdf-page-png-notice-v1` page-image reference; and
+- one `DerivativeObligationPresentationV1` to the owning PDF citation, carrying
+  the same complete publisher/source attribution, copyright and permission
+  notices, ordered disclaimers, trademark treatment and change marking as the
+  immutable obligation set.
+
+A PDF citation with notice-bearing images must name exactly one obligation set,
+and every page reference must name that same set. The presentation is absent
+only when `pageImages` is empty; CSV cannot carry it. Missing, duplicate,
+mismatched, truncated, unsupported-language or oversized obligation content
+fails response construction closed. These are future required contract
+semantics, not fields in the current executable OpenAPI v2.
 
 ## Same-origin visual-evidence endpoint
 
@@ -185,6 +212,15 @@ boundary; `Permitted` distribution does not substitute for permitted runtime
 display. Missing, stale, conflicting, legally ambiguous or unenforceable
 mappings fail closed before `200` or `304`.
 
+For the future notice-bearing profile, the same validation order additionally
+requires the exact current rights-mapping revision, immutable obligation-set
+identity and digest, notice-bearing manifest schema, source/notice-region
+measurements and composite PNG identity. The strong ETag is the composite PNG
+SHA-256, so any obligation change creates new image, manifest and ETag
+identities. A conditional `304` still follows the full obligation, rights and
+lifecycle revalidation. These checks cannot be enabled under the current
+contract or schema by inference.
+
 The endpoint has the same caller access policy as textual query evidence,
 publishes no permissive CORS authority and adds
 `Cross-Origin-Resource-Policy: same-origin`. A later authentication policy must
@@ -251,6 +287,16 @@ embedded source-PDF notice is not assumed to accompany a PNG response, and a
 requirement for unsupported in-binary placement also makes the image
 ineligible.
 
+ADR-0012 accepts the future mechanism for that in-binary case: the complete
+reviewed obligation content appears in the separate panel of the same PNG and
+as escaped, selectable text immediately adjacent to the owning figure. The
+source-page pixels remain intact; the concise accessible name still identifies
+only document version and physical page, while the full notice is never hidden
+in `alt`, metadata or a link. Failure to decode, validate or present the exact
+obligation object blocks the image and leaves the textual citation usable.
+This accepted presentation remains unimplemented and requires the future v2
+contract revision.
+
 The page image is supplemental evidence, never the only carrier of a factual
 claim, navigation destination, error or status. The image has known width and
 height, a concise product-owned accessible name identifying the document
@@ -289,6 +335,14 @@ bindings and answer-evidence pages. The minimum implementation therefore
 requires no migration, inferred backfill, new dependency or lockfile change.
 Discovery of a need for a persisted public grant, token, session or different
 authority model is a stop condition, not permission to add a migration.
+
+That no-migration statement applies only to the frozen and already implemented
+`pdf-page-png-v1` contract. ADR-0012 deliberately requires a future schema and
+migration for immutable `DerivativeObligationSetV1` rows, ordered exact text,
+profile constraints, manifest obligation identity/digest, region measurements,
+foreign keys and reachability. It also requires the separately frozen public
+v2 revision above. Legacy rows and hashes remain immutable and receive no
+inferred backfill.
 
 ## SEC-IMG-02 acceptance matrix
 
@@ -337,9 +391,12 @@ This contract freeze does not correct existing factual-state wording, record
 an implementation result or grant the next implementation authority.
 
 The ADR-0011 documentary reconciliation records the accepted rights semantics
-without changing this frozen public contract. The observed internal mismatch
-remains: `DocumentRightsEligibilityPolicy.PdfVisualEvidence` does not evaluate
-`SourceAndDerivativeByteDistributionOrPublication`, although this serving
-contract requires the intended distribution boundary to be re-evaluated. A
-separately authorised internal policy and test correction is required before a
-product document can rely on this endpoint.
+without changing this frozen public contract. The previously observed internal
+mismatch was corrected in focal commit
+`b9c3e5f3a72c2dd7762c256198452ae2c217b2d2`: serving now evaluates all ten
+decisions and fails closed on an `Unproven` intended distribution boundary.
+
+This ADR-0012 reconciliation also changes no public contract byte. A protected
+v2 contract freeze, schema design, migration and implementation remain required
+before any notice-bearing derivative can be represented or served. The current
+PostgreSQL candidate remains `BLOCKED/EXCLUDED`; no new A0 is performed here.

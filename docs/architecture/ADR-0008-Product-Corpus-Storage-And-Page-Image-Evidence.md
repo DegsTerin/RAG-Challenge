@@ -11,7 +11,9 @@
 - State: `STATE-07 TESTING_HOMOLOGATION` accepted architecture decision
 - Supersession effect: refines the content-store and governed-document
   decisions; accepted ADR-0011 further refines rights-evidence mapping and the
-  same-origin derivative-display boundary
+  same-origin derivative-display boundary; accepted ADR-0012 further refines
+  the derivative format and obligation-delivery model without changing the
+  current executable contract or schema
 
 ## Purpose and authority
 
@@ -164,6 +166,27 @@ Changing DPI, colour model, page transform, size bound, renderer semantics or
 output encoding creates a new render profile and manifest. It never overwrites
 existing image objects.
 
+#### Accepted notice-bearing successor profile
+
+Accepted ADR-0012 defines `pdf-page-png-notice-v1` as an independent future
+profile. It does not reinterpret `pdf-page-png-v1` or make an existing manifest
+notice-bearing. For one source page and one immutable
+`DerivativeObligationSetV1`, it produces one opaque RGB PNG with:
+
+- a source-page region that is pixel-for-pixel identical to the independently
+  validated `pdf-page-png-v1` raster for the same source, page and renderer;
+- a separate visible notice panel appended below the final source-page row;
+- the complete reviewed attribution, copyright and permission notices, ordered
+  disclaimers, trademark or non-endorsement treatment and change marking; and
+- a deterministic renderer descriptor that includes the font-asset identity,
+  obligation-set SHA-256 and every layout input.
+
+The panel never overlays, crops, scales, recolours or substitutes a source-page
+pixel. Missing text or glyphs, font drift, truncation, an oversized composite or
+failure of the pixel-region proof rejects the complete candidate. The current
+schema and executable v2 contract do not yet represent this profile; their
+revision and migration remain mandatory separate increments.
+
 ### Page image object
 
 `DocumentPageImage` binds one rendered page to its source:
@@ -193,7 +216,9 @@ Canonical identity rules are:
 
 - `sourceContentObjectId` and `imageContentObjectId` are the existing lower-case
   64-character SHA-256 content identities;
-- `renderProfileId` is the stable identifier `pdf-page-png-v1`; and
+- `renderProfileId` is the stable identifier of the exact versioned profile;
+  existing manifests remain `pdf-page-png-v1`, while future notice-bearing
+  manifests require `pdf-page-png-notice-v1`; and
 - `renderManifestId` is `rendermanifest-` followed by the lower-case
   64-character `manifestSha256`.
 
@@ -222,6 +247,17 @@ Finalisation requires expected page count, consecutive numbering, unique
 bindings, byte and dimension limits, image signature validation, SHA-256
 recalculation and verified reopen of every referenced content object.
 
+For `pdf-page-png-notice-v1`, a future manifest schema revision also binds one
+`obligationSetId`, its canonical SHA-256, source-region width and height,
+notice-region height and composite PNG identity. `DerivativeObligationSetV1`
+is an immutable control-plane record identified by `obligationset-<sha256>`.
+It binds the exact source document/version/object and rights-mapping revision to
+ordered evidence references, source language, attribution, notices,
+disclaimers, trademark treatment, change marking and placement mode
+`VisibleInBinaryAndAccessibleContext`. Any change creates a new obligation set,
+new complete manifest and regenerated page bindings; no legacy row is inferred
+or mutated.
+
 ## Lifecycle and activation
 
 - A new PDF `DocumentVersion` and its render manifest begin as `Candidate`.
@@ -233,6 +269,10 @@ recalculation and verified reopen of every referenced content object.
 - Activation atomically binds the document version, source content object,
   finalised text/index generation and finalised render manifest when visual
   evidence is required for that PDF.
+- A future notice-bearing activation additionally binds the exact current
+  ten-decision rights snapshot, rights-mapping revision and immutable
+  obligation set in the same atomic authority. Missing, stale or mismatched
+  obligation evidence fails closed.
 - `Deactivated` and `Removed` documents cannot serve page images, even when
   their bytes remain retained.
 - Logical removal preserves catalogue, provenance, activation and manifest
@@ -249,11 +289,12 @@ rights, identity, accessibility and contract decision.
 
 ## Query and visual-evidence contract
 
-`QueryResponseV1` and `CitationV1` remain unchanged. The accepted architecture
-requires a separately versioned `QueryResponseV2` before visual evidence is
-implemented. This v2 direction is planned, not an implemented contract or
-OpenAPI artefact. `QueryResponseV2` retains the completed response semantics
-and uses `CitationV2[]` in place of `CitationV1[]`.
+`QueryResponseV1` and `CitationV1` remain unchanged. The separately versioned
+`QueryResponseV2` and visual-evidence route are frozen and implemented in the
+current local v2 boundary, with synthetic AQG evidence only.
+`QueryResponseV2` retains the completed response semantics and uses
+`CitationV2[]` in place of `CitationV1[]`. ADR-0012 does not modify those
+current public bytes; its successor fields require a new protected freeze.
 
 `CitationV2` retains every `CitationV1` field and adds
 `pageImages: PageImageEvidenceV1[]`. The collection is empty for CSV. An active
@@ -291,6 +332,14 @@ The initial response policy returns at most five distinct page-image
 references and never more than one reference for the same document version and
 page. A response requiring more visual evidence reports the remaining cited
 pages textually rather than expanding the binary response without bound.
+
+ADR-0012 requires a separately frozen v2 contract revision before a
+notice-bearing image can be served. That future revision retains the fixed
+same-origin route, adds `obligationSetId` to each notice-bearing page-image
+reference and adds one `DerivativeObligationPresentationV1` to the owning PDF
+citation. The presentation contains the same complete, bounded content as the
+immutable obligation set. OpenAPI v1 remains byte-for-byte unchanged, and the
+current OpenAPI v2 remains unchanged until that separate contract increment.
 
 The language model receives textual evidence only. Sending a page image or an
 image-derived representation to any provider requires separate provider,
@@ -359,8 +408,11 @@ permission notices, disclaimers, trademark constraints and change marking
 separately. Runtime presentation supplies the required accessible source
 details beside or directly linked to the image only when the primary terms
 permit that placement. Distribution bundles carry every notice and disclaimer
-required for each copy. A requirement for in-binary or otherwise unsupported
-placement blocks generation and serving rather than being approximated.
+required for each copy. Where the accepted mapping requires in-binary
+placement, only the separately implemented and verified
+`pdf-page-png-notice-v1` mechanism may satisfy it; until its contract, schema
+and implementation exist, generation and serving remain blocked rather than
+approximating the obligation.
 Rendering never removes attribution from the governed record or creates an
 endorsement claim. An embedded source-PDF notice is not assumed to accompany a
 PNG derivative, and Git distribution remains separately governed even when
@@ -379,9 +431,17 @@ runtime retention and display are permitted.
 - Deployment publishes software separately from corpus data and fails closed
   when an activation record references an absent or mismatched object.
 - Backup includes reachable source and image objects plus catalogue,
-  observation, render-manifest, index-generation and activation records.
+  observation, render-manifest, index-generation and activation records. For a
+  notice-bearing lineage it also includes the immutable obligation set, rights
+  mapping and their canonical hashes.
 - Restore proves manifest integrity, object readback and activation
-  consistency before readiness becomes healthy.
+  consistency before readiness becomes healthy. A notice-bearing cold restore
+  additionally proves obligation-set and manifest digest equality,
+  source/mapping/obligation/manifest binding, source/notice-region
+  measurements and active/rollback reachability.
+- Reachability protects both the composite PNG and its obligation record while
+  any active or retained manifest, answer-evidence record or rollback target
+  reaches them. Physical deletion requires both to be unreachable.
 - Content addressing deduplicates exact source or image bytes without erasing
   document/page provenance.
 
@@ -415,14 +475,15 @@ Its observed SHA-256 is
 This acceptance neither imports that file into `IDocumentContentStore` nor
 changes its Git status. No retained page PNG exists under this authority.
 
-Before any rendering authority, its eligibility record must explicitly cover
-page rendering, derivative-image creation, retention, runtime display and the
-intended source/derivative distribution boundary through the accepted ADR-0011
-mapping. Acceptance and reconciliation of ADR-0011 do not perform that
-candidate-specific assessment: all five decisions remain `UNPROVEN`, and the
-A0 disposition remains `BLOCKED/EXCLUDED`. A separate authority must then name
-the render profile, limits, destination content-store implementation and
-validation evidence.
+Its latest candidate-specific A0 mapped the official evidence under ADR-0011.
+Page rendering, derivative-image creation, retention and runtime display remain
+`UNPROVEN`; distribution/publication outside the accepted same-origin runtime
+boundary is `DENIED` by the internal product boundary. The disposition remains
+`BLOCKED/EXCLUDED`. Acceptance and this semantic reconciliation of ADR-0012 do
+not reclassify those decisions, create an obligation set or execute a new A0.
+Only after the mandatory contract, schema, migration and implementation
+increments are completed and verified may a separately authorised A0 evaluate
+the new mechanism for this candidate.
 
 ## Consequences
 
@@ -505,3 +566,11 @@ accepted mapping, boundary and derivative-obligation semantics to the named
 STATE-07 documentary owners. It preserves the public contracts and the
 candidate's disposition and does not correct the internal serving policy,
 execute a new A0 or authorise product behaviour.
+
+The separately authorised ADR-0012 reconciliation on 2026-08-09 applies the
+accepted notice-bearing profile, immutable obligation-set, manifest,
+reachability, recovery, same-origin and accessible-presentation semantics to
+the named documentary owners. It preserves OpenAPI v1/v2, the ten independent
+rights decisions, fail-closed behaviour and the candidate disposition. A
+protected v2 contract revision, schema design, migration and implementation
+remain mandatory future increments under separate authority.

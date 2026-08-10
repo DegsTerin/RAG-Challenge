@@ -2,14 +2,14 @@
 
 ## Versão atual
 
-- Versão: `4.10.14`
+- Versão: `4.10.15`
 - Data: 2026-08-09
 - Status: `STATE-07` ativo; ADR-0011 `accepted`, reconciliado e com a correção
   interna da política de serving implementada; o A0 candidato-específico mantém
   o primeiro documento `BLOCKED/EXCLUDED`, com quatro operações visuais
-  `UNPROVEN` e distribuição/publicação externa `DENIED`; ADR-0012 `accepted`
-  somente como autoridade arquitetural; homologação de produto, Human Gate e
-  mudança de lifecycle não executados
+  `UNPROVEN` e distribuição/publicação externa `DENIED`; ADR-0012 `accepted` e
+  semanticamente reconciliado, sem contrato/schema/implementação; homologação
+  de produto, Human Gate e mudança de lifecycle não executados
 - Escopo: 13 arquivos ativos em `prompts/`
 
 A versão do corpus é independente da versão futura do software.
@@ -23,6 +23,31 @@ A versão do corpus é independente da versão futura do software.
 
 Toda alteração atualiza este arquivo e, quando necessário,
 [`../Start-Here.md`](../Start-Here.md).
+
+## 4.10.15 — 2026-08-09
+
+- Reconcilia sob
+  `AUTH-S07-A-NOTICE-BEARING-PROFILE-RECONCILE-001`, sobre
+  `main@5c2cea66e45f13479486a345552e5cc3cd47fefe`, corpus `4.10.14` e working
+  tree inicialmente limpa, a decisão aceita no ADR-0012.
+- Aplica `pdf-page-png-notice-v1` e `DerivativeObligationSetV1` a ADR-0008, ao
+  contrato documental v2, data dictionary, Security-And-Access, threat model e
+  registro de elegibilidade, preservando a região da página pixel a pixel e o
+  fail-closed.
+- Registra vínculo imutável a rights mapping, manifest e ativação; content
+  storage e reachability conjuntos; backup/cold restore verificável; revalidação
+  same-origin antes de `200`/`304`; ETag do PNG composto; e texto completo,
+  escapado e acessível junto da figura.
+- Identifica como revisões futuras obrigatórias e separadamente autorizadas o
+  contrato público v2, schema e migration. OpenAPI v1/v2, contrato executável,
+  schema e implementação permanecem inalterados.
+- Preserva as dez decisões independentes e não executa novo A0.
+  `postgresql-18-reference-a4` continua `BLOCKED/EXCLUDED`: quatro operações
+  visuais permanecem `UNPROVEN` e distribuição/publicação externa permanece
+  `DENIED` pela fronteira interna registrada.
+- Nenhum código, teste, renderer, dataset, runtime, rede, fonte, provider,
+  Automatic Quality Gate, Human Gate, lifecycle ou ação externa foi executado.
+  A mudança do corpus é `PATCH` documental.
 
 ## 4.10.14 — 2026-08-09
 

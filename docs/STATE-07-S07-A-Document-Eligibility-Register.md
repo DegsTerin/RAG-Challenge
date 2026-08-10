@@ -17,7 +17,7 @@ for retrieval.
 | Lifecycle position | `STATE-07 TESTING_HOMOLOGATION` active by documentary entry only |
 | Decision | `ELIGIBLE_CANDIDATE` |
 | Product activation readiness | `BLOCKED/EXCLUDED` under `AUTH-S07-A-PRODUCT-A0-002` |
-| Current rights-policy basis | ADR-0011 `accepted` and reconciled; serving-policy correction implemented in `b9c3e5f3a72c2dd7762c256198452ae2c217b2d2`; candidate-specific A0 mapping recorded below |
+| Current rights-policy basis | ADR-0011 `accepted` and reconciled; serving-policy correction implemented in `b9c3e5f3a72c2dd7762c256198452ae2c217b2d2`; ADR-0012 `accepted` and semantically reconciled but not implemented; candidate-specific A0 mapping recorded below |
 | Latest A0 baseline | `main@f21cdea2052d28de1e2ffb86b1629c1c10bc6b6a`; corpus `4.10.11` |
 | Dataset status | not materialised or frozen |
 | Retrieval status | not indexed, activated or published |
@@ -192,9 +192,44 @@ derivative creation, derivative retention and runtime display are not all
 `BLOCKED/EXCLUDED`, not `READY_FOR_PRODUCT_ACTIVATION`.
 
 This is a fail-closed engineering evidence assessment, not a legal opinion.
-Resolving it requires authoritative evidence that determines acceptable notice
-placement or a separately accepted product/contract/rendering design that can
-implement the recorded all-copies condition without weakening it.
+ADR-0012 now supplies an accepted technical design for carrying the complete
+recorded notice set without changing source-page pixels. It does not prove that
+the design satisfies this candidate's conditions and does not change this A0.
+Resolution still requires the separately authorised contract, schema,
+migration, implementation and verification increments followed by a new
+candidate-specific A0, or additional authoritative evidence that changes the
+mapping.
+
+## Accepted notice-bearing mechanism and unchanged A0
+
+The accepted and semantically reconciled ADR-0012 defines
+`pdf-page-png-notice-v1`. Each future composite PNG retains an independently
+validated source-page region pixel for pixel and appends a separate panel with
+the complete reviewed attribution, copyright and permission notices, ordered
+disclaimers, trademark/non-endorsement treatment and change marking. Nothing in
+this reconciliation generates that PNG or decides that the placement satisfies
+the PostgreSQL terms.
+
+`DerivativeObligationSetV1` is the future immutable source-specific record for
+those exact blocks. Its canonical identity binds the PostgreSQL document
+version and source object to the rights-mapping revision and evidence
+references. The future notice-bearing manifest, activation, content-store
+lineage, reachability, backup/cold restore, same-origin `200`/`304` validation
+and accessible adjacent presentation must all reference that same set and fail
+closed on absence, staleness, mismatch or truncation.
+
+The current schema cannot persist this model and the current v2 contract cannot
+expose `obligationSetId` or `DerivativeObligationPresentationV1`. Separate
+schema design, migration and protected v2 contract revision are therefore
+mandatory before implementation. Existing `pdf-page-png-v1` manifests are not
+backfilled or reclassified.
+
+Accordingly, page rendering, derivative-image creation, derivative-image
+retention and `RuntimeDerivativeImageDisplay` remain `UNPROVEN` for
+`postgresql-18-reference-a4`; external distribution/publication remains
+`DENIED` by the recorded internal boundary. The candidate remains
+`BLOCKED/EXCLUDED`, no new A0 was executed and no obligation set, manifest,
+derivative, dataset, index or activation was created.
 
 ## Document identity
 

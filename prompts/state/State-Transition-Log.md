@@ -6622,3 +6622,45 @@ contém somente fatos cronológicos.
 - Próxima condição: a reconciliação semântica do ADR-0012 aceito exige
   autoridade humana separada e deve preceder qualquer revisão de contrato,
   schema, migration ou implementação.
+
+## 2026-08-09 — ADR-0012 reconciliado semanticamente
+
+- Estado anterior e resultante: `STATE-07 TESTING_HOMOLOGATION` permanece
+  ativo; nenhum Automatic Quality Gate, Human Gate ou lifecycle foi executado
+  ou alterado.
+- Autoridade e baseline:
+  `AUTH-S07-A-NOTICE-BEARING-PROFILE-RECONCILE-001`, branch `main`, commit
+  `5c2cea66e45f13479486a345552e5cc3cd47fefe`, corpus `4.10.14`, working tree
+  inicialmente limpa e OpenAPI v1/v2 protegidas.
+- Reconciliação aplicada: ADR-0008, o contrato documental v2, data dictionary,
+  Security-And-Access, threat model e registro de elegibilidade agora aplicam
+  semanticamente `pdf-page-png-notice-v1` e o
+  `DerivativeObligationSetV1` aceitos no ADR-0012.
+- Integridade e obrigações: a região da página permanece pixel a pixel intacta;
+  um painel separado do mesmo PNG carrega attribution, copyright/permission
+  notices, disclaimers, trademark treatment e change marking completos. O
+  obligation set é imutável e vinculado a source object, rights mapping,
+  manifest e ativação.
+- Persistência e entrega: storage e reachability protegem em conjunto PNG e
+  obligation set; backup/cold restore verificam objetos, digests, regiões e
+  vínculos; serving same-origin revalida antes de `200`/`304`, usa o hash
+  composto como ETag e exige apresentação textual completa e acessível junto
+  da figura.
+- Fronteiras futuras: revisão protegida do contrato v2, schema e migration são
+  obrigatórios antes da implementação. Nenhum deles foi executado; OpenAPI
+  v1/v2 e o contrato público executável permanecem inalterados.
+- Disposição preservada: as dez decisões continuam independentes e fail-closed.
+  `postgresql-18-reference-a4` permanece `BLOCKED/EXCLUDED`, com quatro
+  operações visuais `UNPROVEN` e distribuição/publicação externa `DENIED` pela
+  fronteira interna registrada. Nenhum novo A0 foi executado.
+- Versionamento: corpus elevado por `PATCH` documental de `4.10.14` para
+  `4.10.15`, sem código, teste, renderer, dataset, runtime, rede, fonte,
+  provider, gate ou mudança de lifecycle.
+- Verificação documental estática: `git diff --check` e
+  `pwsh -NoProfile -File eng/check-repository.ps1` terminaram com exit code
+  `0`; o histórico preservou byte a byte o prefixo anterior no SHA-256
+  `41a0b7c19360786c4249bb195b89a2b8c4605110163c3f397568cfeece909d8a`.
+- Próxima condição: uma revisão protegida e separadamente autorizada do contrato
+  v2 deve definir `obligationSetId` e
+  `DerivativeObligationPresentationV1` antes de schema, migration ou
+  implementação.

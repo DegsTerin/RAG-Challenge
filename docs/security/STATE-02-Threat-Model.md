@@ -25,6 +25,13 @@ reachability. The separately authorised `S04-CORR-04-E` increment now has local,
 offline and synthetic implementation/test evidence; that evidence is not an
 Automatic Quality Gate, Human Gate or operational control claim.
 
+Accepted ADR-0012 further defines the future `pdf-page-png-notice-v1` profile,
+immutable `DerivativeObligationSetV1` and exact obligation delivery through
+manifest, storage, recovery, same-origin serving and accessible presentation.
+This reconciliation is architectural only: the ADR-0012 schema, migration, v2
+contract revision and implementation evidence remain absent and separately
+authorised.
+
 ## Scope
 
 Included:
@@ -55,6 +62,7 @@ Excluded until a later decision:
 | Repository and build inputs | Integrity, reproducibility and no secrets. |
 | Database catalogue, PDF/CSV documents and official snapshots | Authorised provenance, integrity, bounded disclosure and retention. |
 | Source/page-image content objects, render manifests and backups | Immutability, confidentiality matching source, binding integrity, availability and verified recovery. |
+| Derivative obligation sets and notice-bearing PNGs | Exact reviewed text, source-pixel fidelity, immutable mapping/manifest binding, accessible presentation and fail-closed recovery. |
 | Catalogue and activation history | Atomic integrity, traceability and rollback availability. |
 | Vectors and chunks | Catalogue/generation isolation and source-equivalent protection. |
 | Provider credentials | Confidentiality, least privilege and revocability. |
@@ -151,6 +159,9 @@ change rather than weakening a control.
 | `THR-S02-039` | Language metadata is coerced (`en` to `en-GB`), used as resource/provider authority or silently merged in evaluation. | Misleading provenance/support claim, unsafe resource selection or false homologation. | Strict bounded BCP 47 parser; exact source-declared tag retention; separate closed query enum; no tag-driven path/provider; exact evaluation strata and v1 regression. | Corrective S03 implementation; S07 evidence. | Local synthetic implementation evidence exists; S07 remains open. |
 | `THR-S02-040` | Answer-evidence persistence captures question/answer/source text, user identity, provider payload or other unnecessary data, or its retention is refreshed indefinitely. | Privacy breach, unbounded retention and enlarged disclosure/backup scope. | Closed persistence allowlist; hashes and stable bindings only; fixed non-refreshing `P30D`; sanitised audit/logging; row and backup inspection tests. | Corrective S04; S07 evidence. | Local synthetic implementation evidence exists; formal gate and operational evidence remain open. |
 | `THR-S02-041` | An `Answered` response escapes before its evidence record is durably complete, or cleanup races record creation/expiry and deletes a newly reachable source/page object. | Unreproducible answer or irreversible evidence loss. | Persist and read back before response; one Control transaction; canonical replay/conflict; cleanup reserve plus full pre-delete reachability revalidation; injected crash/concurrency tests. | Corrective S04; S07 evidence. | Local synthetic restart/concurrency/failure/cleanup-race evidence exists; formal gate and operational evidence remain open. |
+| `THR-S02-042` | A notice-bearing image omits, truncates, translates, reorders or reconstructs an applicable obligation, or uses a stale/mismatched obligation set. | Rights-condition breach, misleading attribution or unauthorised display. | Immutable canonical `DerivativeObligationSetV1`; exact reviewed blocks; mapping/manifest/activation binding; no inference or network lookup; fail closed before render, activation, `200` and `304`. | Future ADR-0012 implementation; S07 evidence. | Open; architecture mitigated. |
+| `THR-S02-043` | Notice composition changes source-page pixels or drifts through workstation fonts, unavailable glyphs, locale or non-deterministic layout. | Distorted visual evidence, irreproducible derivative or incomplete notice. | Independent source-region pixel digest; fixed distributable font identity and layout; no overlay/crop/resample; bounded complete panel; reject any mismatch or truncation. | Future ADR-0012 implementation; S07 evidence. | Open; architecture mitigated. |
+| `THR-S02-044` | Backup, restore, rollback or cleanup retains a composite PNG without its obligation/mapping, or an obligation without the reachable image lineage. | Unauthorised serving after recovery or irreversible loss of compliance evidence. | Joint reachability; canonical obligation/manifest digests; cold-restore binding and region checks; unready on missing, stale or legacy-only mechanisms; atomic activation. | Future ADR-0012 implementation; S07/S08 evidence. | Open; architecture mitigated. |
 
 ## Abuse cases
 
@@ -189,6 +200,9 @@ content execution and no policy change.
   image whose dimensions/hash differ from the manifest.
 - Supplying a model-generated path, external URL or language tag as the image
   selector.
+- Supplying a stale, mismatched or truncated obligation set; presenting notice
+  text as markup; or returning a composite whose source-region digest, panel
+  measurements or ETag do not match the manifest.
 
 Expected result: bounded denial with no path disclosure or bytes served; active
 textual evidence and lifecycle authority remain unchanged.
@@ -230,6 +244,7 @@ succeeds; a deterministic status allows safe operator recovery.
 | `SEC-CAT-01` | Exact 51/54/9 seed, many-to-many uniqueness, lifecycle, tombstone and last-active-document invariant. |
 | `SEC-IMG-01` | Renderer isolation and limits; complete `pdf-page-png-v1` page set; canonical manifest, PNG signature/hash/dimensions and verified reopen; no partial activation. |
 | `SEC-IMG-02` | Citation-to-image binding, active generation/lifecycle revalidation, guessed/cross-generation IDs, same-origin PNG-only serving, ETag, `nosniff`, cache and accessible text equivalent. |
+| `SEC-IMG-03` | `pdf-page-png-notice-v1` source-region pixel identity; deterministic font/layout; complete ordered obligation blocks; obligation/manifest/activation binding; composite ETag; escaped adjacent presentation; joint reachability and cold-restore refusal on absence or mismatch. |
 | `SEC-LANG-01` | Bounded canonical BCP 47 validation, exact `sourceDeclaredLanguage`, no `en` to `en-GB` coercion, no tag-driven resource/provider selection and separate evaluation strata. |
 | `SEC-AER-01` | `Answered`-only creation before response; canonical record/citation/page digest vectors; same-ID replay/divergent conflict; injected commit/readback failures; no partial rows. |
 | `SEC-AER-02` | Persistence/log allowlist; no question/answer/source text, user identity or provider payload; fixed non-refreshing `P30D`; reachability before expiry and reserve/revalidate cleanup races after expiry. |

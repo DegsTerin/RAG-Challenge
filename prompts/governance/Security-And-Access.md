@@ -21,6 +21,7 @@
 | Trecho e resposta | Derivado do corpus | Limitar, citar e aplicar retenção. |
 | Bytes brutos e snapshots | Mesma classificação da origem | Content store durável, imutável, fora do Git e com retenção referencial. |
 | PNGs de páginas e render manifests | Derivado com a mesma classificação da origem | Content store durável, imutável, fora de Git/Git LFS; servir somente por binding ativo validado. |
+| `DerivativeObligationSetV1` e painel de avisos | Controle e texto derivado com a mesma classificação da origem | Registro imutável, vinculado à fonte, mapping, manifest e ativação; texto não confiável, nunca executável. |
 | Embedding/índice | Dado derivado | Proteger como o corpus de origem. |
 | API key/token | Secreto | Secret store; nunca logar ou persistir em claro. |
 | Telemetria | Interno sanitizado | Minimização e retenção. |
@@ -139,6 +140,17 @@ Upload público permanece fora do MVP.
   tempo, memória, dimensões, concorrência e quantidade total por operação.
 - O perfil `pdf-page-png-v1` remove metadados capazes de revelar path, host ou
   comando e produz somente PNG RGB opaco dentro dos limites aceitos.
+- O perfil futuro aceito `pdf-page-png-notice-v1` preserva a região da página
+  pixel a pixel e acrescenta abaixo dela um painel visível separado com o
+  `DerivativeObligationSetV1` completo. Ele não altera nem cobre pixels da
+  fonte e não reinterpreta manifests legados.
+- O obligation set é imutável e vincula fonte, revisão do mapping, evidências,
+  attribution, copyright/permission notices, disclaimers, trademark treatment
+  e change marking. O renderer recebe somente esse registro verificado: não
+  extrai termos do PDF, não consulta rede, não traduz, completa ou reduz texto.
+- Fonte determinística, glyphs, layout, dimensões, hashes da região e do PNG
+  composto são parte da validação. Ausência, divergência, truncamento, fonte não
+  aprovada, painel fora dos limites ou alteração de pixel falham fechado.
 - Recalcular hash, validar assinatura PNG, dimensões, page count, numeração
   consecutiva e manifesto canônico; reabrir fonte e todos os objetos antes de
   finalizar a candidata.
@@ -152,17 +164,29 @@ Upload público permanece fora do MVP.
 - Uma imagem só pode ser servida quando uma citação validada referencia a mesma
   versão documental, página, geração ativa e render manifest finalizado.
   Documento `Deactivated` ou `Removed` nunca serve imagem.
-- O contrato planejado não embute bytes nem expõe path. Um futuro endpoint
-  same-origin, read-only, revalida o binding, limita o corpo, usa ETag imutável,
+- Para o perfil notice-bearing, `200` e `304` também revalidam a revisão do
+  mapping, obligation set, medições das regiões e hash composto. O ETag usa o
+  SHA-256 do PNG composto; mudar uma obrigação exige novas identidades.
+- O contrato v2 não embute bytes nem expõe path. O endpoint same-origin,
+  read-only, revalida o binding, limita o corpo, usa ETag imutável,
   `X-Content-Type-Options: nosniff`, política de cache adequada e autorização
   equivalente à evidência textual.
 - Evidência textual adjacente permanece acessível; PNG nunca é o único portador
   de uma afirmação ou significado de navegação.
+- O texto completo das obrigações aparece também como texto escapado,
+  selecionável e associado à figura. Ele não fica escondido em `alt`, metadata
+  ou link e não aceita HTML, Markdown ou URL criada pela fonte.
 - O LLM recebe somente texto. Enviar imagem ou derivado a provider exige
   autoridade própria de egress, classificação, retenção, residência e custo.
 - Direito de ler, indexar ou citar não implica renderizar, criar/reter derivado,
   exibir ou distribuir. Ambiguidade em qualquer direito aplicável bloqueia a
   ativação visual.
+- Reachability, backup e cold restore protegem e verificam juntos fonte, PNG
+  composto, obligation set, mapping, manifest, ativação e answer evidence.
+  Readiness e serving falham fechado diante de ausência ou divergência.
+- O perfil aceito ainda exige revisão separada do contrato v2, schema e
+  migration. Nenhum campo, backfill ou compatibilidade é inferido do contrato
+  ou das linhas atuais.
 
 ## Evidência persistente de resposta
 
@@ -323,6 +347,10 @@ autorizados permanece bloqueado. A política é validada no ambiente alvo.
   partir de texto do modelo, tag de idioma, URL documental ou path.
 - Preservar o texto original da citação e alternativa acessível junto da página
   exibida; não traduzir conteúdo derivado da fonte.
+- Para `pdf-page-png-notice-v1`, apresentar o
+  `DerivativeObligationPresentationV1` completo como texto escapado junto da
+  figura e verificar que seu `obligationSetId` coincide com todas as imagens da
+  citação. Falha de validação bloqueia a imagem, não a citação textual.
 - Testar XSS armazenado/refletido em documento, pergunta, resposta, erro e
   metadados de citação.
 
@@ -411,6 +439,9 @@ trilha nominal.
 - Rollback de geração verificado.
 - Conteúdo fonte/PNG, render manifest, reachability, backup/restore e serving
   visual fail-closed verificados quando a capacidade for implementada.
+- Para o perfil notice-bearing, obrigação imutável, fidelidade da região da
+  página, painel integral, ETag composto, apresentação acessível e vínculos de
+  backup/cold restore verificados; ausência ou truncamento falha fechado.
 - `AnswerEvidenceRecordV1` permanece `Answered`-only, atômico, minimizado,
   expira em `P30D` sem refresh e protege reachability contra races de cleanup;
   a evidência local não substitui gate nem validação operacional.
