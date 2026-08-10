@@ -135,6 +135,63 @@ public sealed class SqliteActivationLifecycleTests
         Assert.Equal(VisualEvidenceReadOutcome.NotAvailable, noLongerActive.Outcome);
     }
 
+    [Theory]
+    [InlineData(DocumentRightDecisionState.Denied, VisualEvidenceReadOutcome.Available)]
+    [InlineData(DocumentRightDecisionState.Unproven, VisualEvidenceReadOutcome.NotAvailable)]
+    public async Task VisualReaderEnforcesTheProvenDistributionBoundaryBeforeServing(
+        DocumentRightDecisionState distributionState,
+        VisualEvidenceReadOutcome expectedOutcome)
+    {
+        await using var fixture = await SqlitePersistenceFixture.CreateAsync();
+        var (_, binding) = await fixture.CommitLocalCatalogueAsync();
+        var generation = await fixture.CommitGenerationAsync(binding, "visual-rights-boundary");
+        var evidence = await fixture.CreateActivationEvidenceAsync(
+            binding,
+            overriddenRight: DocumentRight.SourceAndDerivativeByteDistributionOrPublication,
+            overriddenState: distributionState);
+        var proposed = ActivationRecordFactory.CreateInitial(
+            generation,
+            [evidence],
+            SqlitePersistenceFixture.At(2));
+        var activation = await ActivateAsync(
+            fixture,
+            $"activation-visual-rights-{distributionState.ToString().ToLowerInvariant()}",
+            ActivationMutationKind.Initial,
+            expectedRevision: 0,
+            proposed,
+            SqlitePersistenceFixture.At(2));
+        Assert.Equal(StoreMutationOutcome.Applied, activation.Outcome);
+        var manifest = Assert.IsType<DocumentRenderManifest>(
+            await fixture.ControlStore.ReadAsync(
+                SqlitePersistenceFixture.CorpusId,
+                evidence.RenderManifestId!));
+        var page = Assert.Single(manifest.OrderedPageImages);
+        var reader = new VerifiedPageImageEvidenceReader(
+            SqlitePersistenceFixture.CorpusId,
+            new SqliteQueryActivationReader(fixture.Options),
+            fixture.ControlStore,
+            fixture.ContentStore);
+
+        var result = await reader.ReadAsync(
+            new VisualEvidenceSelector(
+                generation.IndexGenerationId,
+                manifest.RenderManifestId,
+                page.PageNumber,
+                page.ImageContentObjectId),
+            SqlitePersistenceFixture.At(3));
+
+        Assert.Equal(expectedOutcome, result.Outcome);
+
+        if (expectedOutcome == VisualEvidenceReadOutcome.Available)
+        {
+            await Assert.IsType<VisualEvidenceContent>(result.Evidence).DisposeAsync();
+        }
+        else
+        {
+            Assert.Null(result.Evidence);
+        }
+    }
+
     [Fact]
     public async Task ActivationAndQueryReaderPreserveStoredBcp47ForV2Projection()
     {

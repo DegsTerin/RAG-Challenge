@@ -145,6 +145,54 @@ public sealed class DocumentRightsEligibilityTests
         }
     }
 
+    [Theory]
+    [InlineData(DocumentRightDecisionState.Permitted, true)]
+    [InlineData(DocumentRightDecisionState.Denied, true)]
+    [InlineData(DocumentRightDecisionState.Unproven, false)]
+    public void PdfVisualEvidenceServingRequiresAProvenDistributionBoundary(
+        DocumentRightDecisionState distributionState,
+        bool expectedEligibility)
+    {
+        var result = DocumentRightsEligibilityPolicy.Evaluate(
+            Record(Decisions(
+                DocumentRightDecisionState.Permitted,
+                DocumentRight.SourceAndDerivativeByteDistributionOrPublication,
+                distributionState)),
+            DocumentRightsEligibilityGate.PdfVisualEvidenceServing);
+
+        Assert.Equal(expectedEligibility, result.IsEligible);
+        Assert.Equal(
+            Enum.GetValues<DocumentRight>().Length,
+            result.RequiredDecisions.Select(decision => decision.Right).Distinct().Count());
+        Assert.Contains(
+            result.RequiredDecisions,
+            decision => decision.Right ==
+                DocumentRight.SourceAndDerivativeByteDistributionOrPublication);
+        Assert.Equal(
+            distributionState == DocumentRightDecisionState.Unproven,
+            result.BlockingDecisions.Any(decision => decision.Right ==
+                DocumentRight.SourceAndDerivativeByteDistributionOrPublication));
+    }
+
+    [Theory]
+    [InlineData(DocumentRightDecisionState.Denied)]
+    [InlineData(DocumentRightDecisionState.Unproven)]
+    public void PdfVisualEvidenceServingRequiresPermittedRuntimeDisplay(
+        DocumentRightDecisionState runtimeDisplayState)
+    {
+        var result = DocumentRightsEligibilityPolicy.Evaluate(
+            Record(Decisions(
+                DocumentRightDecisionState.Permitted,
+                DocumentRight.RuntimeDerivativeImageDisplay,
+                runtimeDisplayState)),
+            DocumentRightsEligibilityGate.PdfVisualEvidenceServing);
+
+        var blocking = Assert.Single(result.BlockingDecisions);
+        Assert.False(result.IsEligible);
+        Assert.Equal(DocumentRight.RuntimeDerivativeImageDisplay, blocking.Right);
+        Assert.Equal(runtimeDisplayState, blocking.State);
+    }
+
     private static DocumentRightsEligibilityRecordV1 Record(
         IEnumerable<DocumentRightDecision> decisions) =>
         new(

@@ -1,6 +1,7 @@
 // Purpose: Revalidates the active generation, rights-bound final manifest, exact page tuple and immutable PNG bytes before allowing same-origin visual serving.
 using System.Buffers.Binary;
 
+using RagChallenge.Application.Documents;
 using RagChallenge.Application.IndexingRetrieval;
 using RagChallenge.Application.Persistence;
 using RagChallenge.Domain.CorpusCatalog;
@@ -57,15 +58,25 @@ public sealed class VerifiedPageImageEvidenceReader(
                     binding.RenderManifest?.RenderManifestId == selector.RenderManifestId)
                 .ToArray();
 
-            if (matchingBindings.Length != 1 ||
+            if (matchingBindings.Length != 1)
+            {
+                return VisualEvidenceReadResult.NotAvailable();
+            }
+
+            var matchingBinding = matchingBindings[0];
+            var servingRights = DocumentRightsEligibilityPolicy.Evaluate(
+                matchingBinding.EvidenceBinding.Rights,
+                DocumentRightsEligibilityGate.PdfVisualEvidenceServing);
+
+            if (!servingRights.IsEligible ||
                 !await IsCurrentlyActiveAsync(
-                    matchingBindings[0],
+                    matchingBinding,
                     cancellationToken).ConfigureAwait(false))
             {
                 return VisualEvidenceReadResult.NotAvailable();
             }
 
-            var matchingPages = matchingBindings[0].RenderManifest!.OrderedPageImages
+            var matchingPages = matchingBinding.RenderManifest!.OrderedPageImages
                 .Where(page =>
                     page.PageNumber == selector.PageNumber &&
                     page.ImageContentObjectId == selector.ImageContentObjectId)

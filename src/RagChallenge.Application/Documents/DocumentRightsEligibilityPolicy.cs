@@ -9,6 +9,7 @@ public enum DocumentRightsEligibilityGate
 {
     TextualEvidence,
     PdfVisualEvidence,
+    PdfVisualEvidenceServing,
 }
 
 public sealed class DocumentRightsEligibilityResult
@@ -16,7 +17,8 @@ public sealed class DocumentRightsEligibilityResult
     internal DocumentRightsEligibilityResult(
         DocumentRightsEligibilityGate gate,
         DocumentRightsEligibilityRecordV1 record,
-        IEnumerable<DocumentRightDecision> requiredDecisions)
+        IEnumerable<DocumentRightDecision> requiredDecisions,
+        Func<DocumentRightDecision, bool>? isBlocking = null)
     {
         if (!Enum.IsDefined(gate))
         {
@@ -35,10 +37,11 @@ public sealed class DocumentRightsEligibilityResult
         DocumentId = record.DocumentId;
         DocumentVersion = record.DocumentVersion;
         RequiredDecisions = Array.AsReadOnly(materialisedDecisions);
+        isBlocking ??= static decision =>
+            decision.State != DocumentRightDecisionState.Permitted;
         BlockingDecisions = Array.AsReadOnly(
             materialisedDecisions
-                .Where(decision =>
-                    decision.State != DocumentRightDecisionState.Permitted)
+                .Where(isBlocking)
                 .ToArray());
     }
 
@@ -77,6 +80,12 @@ public static class DocumentRightsEligibilityPolicy
         DocumentRight.RuntimeDerivativeImageDisplay,
     ];
 
+    private static readonly DocumentRight[] PdfVisualEvidenceServingRights =
+    [
+        .. PdfVisualEvidenceRights,
+        DocumentRight.SourceAndDerivativeByteDistributionOrPublication,
+    ];
+
     public static bool IsPermitted(
         DocumentRightsEligibilityRecordV1 record,
         DocumentRight right)
@@ -95,6 +104,8 @@ public static class DocumentRightsEligibilityPolicy
         {
             DocumentRightsEligibilityGate.TextualEvidence => TextualEvidenceRights,
             DocumentRightsEligibilityGate.PdfVisualEvidence => PdfVisualEvidenceRights,
+            DocumentRightsEligibilityGate.PdfVisualEvidenceServing =>
+                PdfVisualEvidenceServingRights,
             _ => throw new ArgumentOutOfRangeException(
                 nameof(gate),
                 gate,
@@ -104,6 +115,14 @@ public static class DocumentRightsEligibilityPolicy
         return new DocumentRightsEligibilityResult(
             gate,
             record,
-            requiredRights.Select(record.DecisionFor));
+            requiredRights.Select(record.DecisionFor),
+            gate == DocumentRightsEligibilityGate.PdfVisualEvidenceServing
+                ? IsPdfVisualEvidenceServingBlocked
+                : null);
     }
+
+    private static bool IsPdfVisualEvidenceServingBlocked(DocumentRightDecision decision) =>
+        decision.Right == DocumentRight.SourceAndDerivativeByteDistributionOrPublication
+            ? decision.State == DocumentRightDecisionState.Unproven
+            : decision.State != DocumentRightDecisionState.Permitted;
 }
