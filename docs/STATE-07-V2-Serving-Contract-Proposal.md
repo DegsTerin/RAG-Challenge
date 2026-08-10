@@ -19,7 +19,8 @@ access, an external action or a lifecycle transition.
 
 This contract applies the accepted direction in
 [ADR-0008](architecture/ADR-0008-Product-Corpus-Storage-And-Page-Image-Evidence.md),
-[ADR-0009](architecture/ADR-0009-Document-Evidence-And-Query-Language-Taxonomy.md)
+[ADR-0009](architecture/ADR-0009-Document-Evidence-And-Query-Language-Taxonomy.md),
+[ADR-0011](architecture/ADR-0011-Source-Rights-Evidence-Mapping-And-Same-Origin-Derivative-Display-Boundary.md)
 and the [canonical contracts](architecture/STATE-02-Canonical-Contracts.md).
 The internal `AnswerEvidenceRecordV1` defined by
 [ADR-0010](architecture/ADR-0010-Persistent-Answer-Evidence-Records-And-Bounded-Retention.md)
@@ -125,6 +126,21 @@ already validated `QueryResponseV2`. It must not accept an absolute URL or
 construct an image source from model text, source-derived text, language,
 document URL or filesystem data.
 
+Under accepted ADR-0011, this exact operation belongs to
+`RuntimeDerivativeImageDisplay`: one active, citation-bound and revalidated PNG
+is returned to the user's browser for presentation inside the governed
+RAG-Challenge citation context. The HTTP response still delivers derivative
+bytes. Same-origin, private revalidation and
+`Cross-Origin-Resource-Policy: same-origin` are security controls, not evidence
+that no copying or distribution occurs and not a rights grant.
+
+`SourceAndDerivativeByteDistributionOrPublication` independently governs
+availability beyond this narrow display boundary, including direct downloads,
+public or static hosting, permissive cross-origin delivery, CDN publication,
+bulk export, seed or deployment bundles delivered to another environment or
+party, Git/Git LFS distribution and downstream republication. This semantic
+clarification changes no route, field, response, error or OpenAPI byte.
+
 ### Serving authority and validation order
 
 The endpoint is authorised by the current active product state, not by an
@@ -140,9 +156,11 @@ every GET, including a conditional GET that may return `304`, the server must:
    source content object;
 5. require the document and its database product to be active, never
    `Deactivated` or `Removed`;
-6. re-evaluate the complete rights snapshot for source use, rendering,
-   derivative creation and retention, runtime display and the intended
-   distribution boundary;
+6. re-evaluate the complete ten-decision rights snapshot and its current
+   evidence mappings for source use, rendering, derivative creation and
+   retention, runtime display, the intended distribution boundary and every
+   applicable attribution, notice, disclaimer, trademark or change-marking
+   condition;
 7. require the exact page tuple to contain the requested page number,
    `imageContentObjectId`, SHA-256, byte length, PNG media type and bounded
    dimensions;
@@ -157,6 +175,15 @@ does not expose the record ID and introduces no public retention or history
 semantics. If later requirements need answer-scoped grants rather than the
 active-state selector above, implementation must stop for a new contract and
 possible persistence decision.
+
+`RuntimeDerivativeImageDisplay` must be `Permitted` for this exact endpoint
+operation. The independent intended distribution boundary must be explicitly
+determined and cannot be `Unproven`. A `Denied`
+`SourceAndDerivativeByteDistributionOrPublication` decision is compatible only
+when its audited mapping confines the denial outside this runtime-display
+boundary; `Permitted` distribution does not substitute for permitted runtime
+display. Missing, stale, conflicting, legally ambiguous or unenforceable
+mappings fail closed before `200` or `304`.
 
 The endpoint has the same caller access policy as textual query evidence,
 publishes no permissive CORS authority and adds
@@ -213,6 +240,17 @@ excerpt. The title and excerpt retain their source language. Product-owned
 controls and status text follow `interfaceLanguage`, independently of query,
 answer and evidence language.
 
+The activation-bound rights evidence and derivative lineage retain the
+source-specific attribution, copyright and permission notices, disclaimers,
+trademark constraints and change marking required by the current mapping. The
+existing citation context supplies only its already frozen source title,
+version, page, excerpt and applicable canonical URL. If those existing values
+cannot satisfy the mapped presentation obligation, the image is ineligible;
+this reconciliation does not add a public notice field or endpoint. An
+embedded source-PDF notice is not assumed to accompany a PNG response, and a
+requirement for unsupported in-binary placement also makes the image
+ineligible.
+
 The page image is supplemental evidence, never the only carrier of a factual
 claim, navigation destination, error or status. The image has known width and
 height, a concise product-owned accessible name identifying the document
@@ -259,7 +297,7 @@ authority model is a stop condition, not permission to add a migration.
 | Citation-to-image binding | Only pages covered by the same validated citation are emitted; missing, extra and duplicate page tuples fail closed. |
 | Active generation and lifecycle | Current generation succeeds; prior, guessed, deactivated and removed selectors return the uniform `404`. |
 | Exact manifest and page | Cross-document, cross-version, cross-manifest, wrong-page and equal-bytes/different-binding selectors return the uniform `404`. |
-| Rights | Missing, incompatible, expired or differently scoped display/derivative rights return the uniform `404`. |
+| Rights | The ten decisions remain independent. Missing, incompatible, expired, `Unproven`, stale-mapped or differently scoped display, derivative, intended-distribution or obligation decisions return the uniform `404`; a distribution `Denied` is compatible only when its mapping expressly excludes the boundary beyond same-origin runtime display. |
 | PNG integrity and bounds | Media type, signature, hash, stored length, dimensions, verified reopen and the 64 MiB serving ceiling are checked before headers or bytes. |
 | Conditional cache safety | Every `304` follows full revalidation; deactivation between requests changes the result to the uniform `404`. |
 | Same-origin boundary | No permissive CORS; `Cross-Origin-Resource-Policy: same-origin`; no redirects, paths or arbitrary URL selectors. |
@@ -286,6 +324,9 @@ A future executor must stop before or during implementation if:
   or lockfile appears necessary;
 - BCP 47 handling would infer specificity or broaden query/answer languages;
 - lifecycle and rights cannot be revalidated before both `200` and `304`;
+- the intended distribution boundary or any required derivative obligation is
+  absent, `Unproven`, stale, conflicting or not enforceable in the current
+  delivery context;
 - a new public outcome or contract field outside this freeze appears necessary;
 - tests require weakening an existing control; or
 - the work expands to real documents, renderer changes, dataset/homologation,
@@ -294,3 +335,11 @@ A future executor must stop before or during implementation if:
 
 This contract freeze does not correct existing factual-state wording, record
 an implementation result or grant the next implementation authority.
+
+The ADR-0011 documentary reconciliation records the accepted rights semantics
+without changing this frozen public contract. The observed internal mismatch
+remains: `DocumentRightsEligibilityPolicy.PdfVisualEvidence` does not evaluate
+`SourceAndDerivativeByteDistributionOrPublication`, although this serving
+contract requires the intended distribution boundary to be re-evaluated. A
+separately authorised internal policy and test correction is required before a
+product document can rely on this endpoint.

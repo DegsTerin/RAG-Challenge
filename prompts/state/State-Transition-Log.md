@@ -6370,3 +6370,60 @@ contém somente fatos cronológicos.
 - Próxima condição: autoridade humana separada para reconciliar semanticamente
   o ADR-0011 aceito nos documentos normativos proprietários. Essa futura
   reconciliação não autorizará por si só correção de código ou novo A0.
+
+## 2026-08-09 — Semântica do ADR-0011 reconciliada documentalmente
+
+- Estado anterior e resultante: `STATE-07 TESTING_HOMOLOGATION` permanece
+  ativo; nenhum Automatic Quality Gate, Human Gate ou lifecycle foi executado
+  ou alterado.
+- Autoridade e baseline:
+  `AUTH-S07-A-RIGHTS-POLICY-CORR-RECONCILE-001`, branch `main`, commit
+  `6fc81b973ca217693a286479df3ff6db0f4577e9`, corpus `4.10.9`, working tree
+  inicialmente limpa e OpenAPI v1/v2 protegidas.
+- Mapeamento reconciliado: ADR-0004, ADR-0008, o registro de elegibilidade
+  S07-A e o contrato documental v2 passam a exigir uma ligação explícita,
+  auditável e condicionada entre cada operação e a evidência primária, sem
+  correspondência literal obrigatória e sem propagação automática de uma
+  concessão ampla.
+- Fail-closed preservado: as dez decisões continuam independentes em
+  `Permitted`/`Denied`/`Unproven`; ausência, conflito, ambiguidade jurídica,
+  condição não determinada ou mecanismo não executável permanece `Unproven` e
+  bloqueia o gate dependente.
+- Fronteira reconciliada: a entrega do PNG ativo, citation-bound e revalidado
+  pela rota relativa same-origin pertence a `RuntimeDerivativeImageDisplay`,
+  mas continua sendo transmissão de bytes. Downloads, hosting público,
+  cross-origin permissivo, CDN, exports, bundles, Git/Git LFS e republicação
+  permanecem sob `SourceAndDerivativeByteDistributionOrPublication`.
+- Obrigações reconciliadas: attribution, copyright/permission notices,
+  disclaimers, trademark e change marking permanecem associados à evidência
+  de direitos e à linhagem de cada derivado. Se os campos públicos já
+  congelados ou o formato PNG não puderem cumprir a colocação exigida, o
+  derivado permanece inelegível; nenhum campo ou endpoint público foi criado.
+- Incompatibilidade executável preservada:
+  `DocumentRightsEligibilityPolicy.PdfVisualEvidence` ainda não avalia
+  `SourceAndDerivativeByteDistributionOrPublication`, embora o contrato v2
+  exija reavaliar a intended distribution boundary antes de `200` ou `304`.
+  A correção interna e seus testes permanecem posteriores e separadamente
+  autorizados.
+- Candidato inalterado: `postgresql-18-reference-a4` permanece
+  `BLOCKED/EXCLUDED`; page rendering, derivative-image creation,
+  derivative-image retention, runtime derivative display e a intended source
+  or derivative distribution boundary permanecem `UNPROVEN`. Nenhum novo A0
+  foi executado.
+- Versionamento: corpus elevado por `PATCH` documental de `4.10.9` para
+  `4.10.10`, sem mudança de contrato público, comportamento, gate, lifecycle
+  ou autoridade executável.
+- Limites preservados: exatamente os sete documentos autorizados foram
+  alterados. Nenhum código, teste, OpenAPI, contrato público, schema,
+  migration, dependência, lockfile, dataset, parser, renderer, runtime,
+  provider, fonte, rede, gate, Human Gate, lifecycle ou ação externa foi
+  alterado ou executado.
+- Verificação documental estática: `git diff --check` e
+  `pwsh -NoProfile -File eng/check-repository.ps1` terminaram com exit code
+  `0`; a auditoria cobriu 256 arquivos não ignorados. O histórico preservou
+  byte a byte o prefixo anterior no SHA-256
+  `792980801536730e5c2cce1afd3b31c135fc9b7bbde70855f740acf3494a0c90`;
+  UTF-8 sem BOM, LF, newline final e OpenAPI v1/v2 protegidas conferiram.
+- Próxima condição: autoridade humana separada para a correção focal da
+  política interna e de seus testes, preservando o contrato público e sem
+  executar novo A0.

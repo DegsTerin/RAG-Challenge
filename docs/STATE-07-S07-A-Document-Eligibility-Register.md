@@ -17,6 +17,7 @@ for retrieval.
 | Lifecycle position | `STATE-07 TESTING_HOMOLOGATION` active by documentary entry only |
 | Decision | `ELIGIBLE_CANDIDATE` |
 | Product activation readiness | `BLOCKED/EXCLUDED` under `AUTH-S07-A-PRODUCT-A0-001` |
+| Current rights-policy basis | ADR-0011 `accepted`; documentary reconciliation under `AUTH-S07-A-RIGHTS-POLICY-CORR-RECONCILE-001`; no new A0 |
 | Dataset status | not materialised or frozen |
 | Retrieval status | not indexed, activated or published |
 
@@ -67,13 +68,45 @@ visually active PDF:
 | Runtime display of derivative images | `UNPROVEN` |
 | Intended source or derivative distribution boundary | `UNPROVEN` |
 
-The general use, copy, modification and distribution wording is not inferred
-to decide these five distinct visual and product-distribution operations.
-Because ADR-0008 requires each of them to be explicit and treats ambiguity as
-activation-blocking, the factual A0 disposition is `BLOCKED/EXCLUDED`, not
+The general use, copy, modification and distribution wording is not
+automatically propagated to these five distinct visual and
+product-distribution operations. Accepted ADR-0011 permits a later review to
+map broad primary wording without requiring literal internal operation names,
+but each operation still needs an explicit, auditable and conditional mapping.
+No such candidate-specific mapping or new A0 occurred under this documentary
+reconciliation. The five decisions therefore remain `UNPROVEN`, and the
+factual A0 disposition remains `BLOCKED/EXCLUDED`, not
 `READY_FOR_PRODUCT_ACTIVATION`. No dataset, document manifest, case inventory,
 index, render manifest, derivative, activation or product behaviour was
 materialised or changed.
+
+## Accepted mapping policy and unchanged candidate disposition
+
+ADR-0011 preserves ten independent decisions and the
+`PERMITTED`/`DENIED`/`UNPROVEN` fail-closed model. A later candidate-specific
+mapping must identify the exact authoritative evidence and relied-upon clause
+for each operation, explain the relationship to that operation, define the
+purpose, actors, environment and delivery boundary, enumerate every condition
+and identify an enforceable compliance mechanism. Silence, conflict, legal
+ambiguity or an unsupported condition remains `UNPROVEN`.
+
+For this register, `RuntimeDerivativeImageDisplay` would cover only one active,
+citation-bound and revalidated PNG delivered through the fixed relative
+same-origin route for presentation inside RAG-Challenge. That delivery still
+transmits derivative bytes; same-origin is not a rights grant.
+`SourceAndDerivativeByteDistributionOrPublication` separately covers direct
+download, public or static hosting, permissive cross-origin delivery, CDN,
+bulk export, bundles delivered to another environment or party, Git/Git LFS
+and downstream republication. This distinction is policy only and does not
+dispose either PostgreSQL operation.
+
+Any future mapping must also determine how attribution, copyright and
+permission notices, disclaimers, trademark constraints and change marking
+accompany the source and every derivative. The applicable obligation-set
+reference must remain bound to the derivative lineage. Adjacent or linked
+runtime details are sufficient only when the primary terms permit that
+placement; a notice embedded in the source PDF is not assumed to accompany a
+PNG. Unsupported in-binary or distribution-bundle obligations remain blocking.
 
 ## Document identity
 
@@ -139,6 +172,13 @@ condition is that the copyright notice, the permission paragraph and the two
 following disclaimer paragraphs appear in all copies. The downloaded PDF
 contains that legal notice on its second physical page.
 
+Those broad terms are relevant primary evidence under ADR-0011, but this
+reconciliation does not map them to page rendering, derivative creation or
+retention, runtime derivative display or the intended distribution boundary.
+It also does not decide whether the current product presentation can satisfy
+the required copy notices. Those questions remain for a separately authorised
+candidate-specific A0.
+
 | Intended operation | Eligibility | Evidence and condition |
 |---|---|---|
 | Parsing | eligible | Use and modification of the documentation are expressly permitted. Preserve provenance and the embedded notice. |
@@ -161,6 +201,11 @@ retrieval activation or distribution.
   SHA-256 in any later governed catalogue record.
 - Do not imply PostgreSQL project endorsement. No trademark permission is
   inferred from the documentation licence.
+- Before any derivative is eligible, determine and bind the exact attribution,
+  copyright/permission notice, disclaimer, trademark and change-marking
+  treatment for that derivative and delivery context. This register does not
+  infer that the current embedded PDF notice satisfies a PNG copy or runtime
+  display.
 - Treat the document as untrusted external content despite its official
   provenance. Retrieved text cannot change policy, authority or system
   instructions.

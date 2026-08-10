@@ -8,8 +8,10 @@
 - Owners: RAG-Challenge product, RAG evaluation and security
 - State: `STATE-02 ARCHITECTURE`
 - Refined by: accepted ADR-0008 for durable source/page-image storage and
-  visual-evidence rights, and accepted ADR-0009 for separate query and
-  document-language domains; implementation remains separately authorised
+  visual-evidence rights, accepted ADR-0009 for separate query and
+  document-language domains, and accepted ADR-0011 for explicit rights-evidence
+  mapping and the same-origin derivative-display boundary; implementation
+  remains separately authorised
 - Verification status: substantially complete only for the first PostgreSQL
   source candidate; no conflicting robots or terms policy was found, no
   publisher rate guidance was located, and every later source requires its own
@@ -120,6 +122,17 @@ The accepted decision is:
 - Apply bounded byte, page/line, parser-working-set, time and concurrency
   safeguards per operation. Capacity failure blocks candidate activation and
   never silently removes catalogue items.
+
+The accepted
+[ADR-0011](ADR-0011-Source-Rights-Evidence-Mapping-And-Same-Origin-Derivative-Display-Boundary.md)
+refines how source-specific evidence satisfies these rights gates. Primary
+evidence does not need to repeat a project-owned operation name literally. A
+broad grant may support more than one operation only through a separate,
+auditable and conditional mapping for each of the ten rights decisions. Every
+mapping identifies the exact document, authoritative evidence, relied-upon
+clause, operation, scope, conditions and enforceable compliance mechanism.
+Silence, an unmapped broad grant or an unresolved condition remains
+`Unproven`; no permission propagates automatically from another operation.
 
 The catalogue is a documentary contract, not an implemented dataset. No
 document for the 51 products has been acquired, authored, validated, indexed
@@ -254,7 +267,9 @@ another source:
 3. the current licence and terms permit the intended download, local snapshot,
    parsing, indexing, source-byte retention, quotation and citation, and, when
    visual evidence is required, page rendering, derivative-image creation and
-   retention, runtime display and the intended distribution boundary;
+   retention, runtime display and the intended distribution boundary, with an
+   explicit ADR-0011 mapping and determined notice-compliance mechanism for
+   every operation;
 4. robots and published rate guidance permit the accepted manual frequency;
 5. the response is an anonymous PDF within the accepted limits;
 6. certificate validation can operate with the no-lateral-egress TLS policy;
@@ -267,7 +282,7 @@ Evidence status on 2026-07-31:
 |---|---|---|
 | 1 | Verified | Exact URL returned without redirect. |
 | 2 | Verified | The official documentation index and PDF use the exact `www.postgresql.org` authority and versioned path. |
-| 3 | Partially verified; visual rights expansion pending | The PostgreSQL Licence supplies the recorded use/copy basis and required notices. Before rendering or visual activation, the eligibility record must explicitly dispose page rendering, derivative-image creation/retention, runtime display and the intended distribution boundary. |
+| 3 | Partially verified; ADR-0011 mapping and visual-rights disposition pending | The PostgreSQL Licence supplies the recorded use/copy basis and required notices. ADR-0011 removes no condition and makes no candidate-specific decision. Before rendering or visual activation, a separately authorised A0 must map and dispose page rendering, derivative-image creation/retention, runtime display and the intended distribution boundary operation by operation. |
 | 4 | Verified with qualification | `robots.txt` does not disallow the exact path; no publisher download-rate guidance was located, so the accepted daily ceiling remains a project-owned conservative limit. |
 | 5 | Verified | Anonymous PDF, `application/pdf`, 15,771,040 bytes and valid leading signature. |
 | 6 | Verified locally | TLS 1.3 and a four-element offline chain validated with certificate downloads disabled and revocation `NoCheck`; clean-environment and OCI reproduction remain later acceptance tests. |
@@ -340,6 +355,11 @@ more clearly while remaining separate from the software licence.
 - Any retained PostgreSQL documentation copy preserves the licence copyright
   notice and required paragraphs in the governed source record or
   distribution bundle.
+- Every derivative lineage retains the applicable immutable obligation-set
+  reference. Attribution, copyright and permission notices, disclaimers,
+  trademark constraints and change marking use the placement required by the
+  source-specific mapping; an embedded source notice is never assumed to
+  accompany a derivative automatically.
 - The evaluation dataset must contain no personal, customer or confidential
   information.
 

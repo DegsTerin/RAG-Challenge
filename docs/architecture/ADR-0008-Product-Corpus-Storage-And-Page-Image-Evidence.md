@@ -10,7 +10,8 @@
 - Owners: RAG-Challenge product, RAG architecture, data governance and security
 - State: `STATE-07 TESTING_HOMOLOGATION` accepted architecture decision
 - Supersession effect: refines the content-store and governed-document
-  decisions; semantic reconciliation remains separately authorised
+  decisions; accepted ADR-0011 further refines rights-evidence mapping and the
+  same-origin derivative-display boundary
 
 ## Purpose and authority
 
@@ -31,6 +32,12 @@ governed-document decision in
 [ADR-0004](ADR-0004-MVP-Corpus-Official-Source-And-Evaluation.md).
 Reconciliation of normative architecture, security, data and API documents
 remains a separately authorised increment.
+
+Accepted
+[ADR-0011](ADR-0011-Source-Rights-Evidence-Mapping-And-Same-Origin-Derivative-Display-Boundary.md)
+now refines this ADR's rights semantics. Its authorised documentary
+reconciliation changes neither the ten-right schema nor the public v2 contract,
+and it does not reclassify a source candidate or authorise implementation.
 
 ## Context
 
@@ -304,16 +311,60 @@ Every document eligibility record must independently decide and evidence:
 - distribution or publication of source and derivative bytes; and
 - attribution, notice, trademark and change-marking requirements.
 
-Failure or ambiguity in rendering, derivative retention or display rights
+The ten decisions remain separate. One authoritative primary clause may
+support multiple decisions, but each operation requires its own explicit,
+auditable and conditional mapping. The mapping identifies the exact document,
+issuer, evidence reference and relied-upon clause, then records the operation,
+purpose, actors, environment, delivery boundary, conditions and enforcement
+mechanism. Primary evidence need not contain the literal project-owned right
+name, but a broad grant never propagates automatically to another operation.
+
+Each decision remains `Permitted`, `Denied` or `Unproven`. `Permitted` requires
+an applicable grant and a determined mechanism for every condition. `Denied`
+requires an evidenced prohibition or an explicitly excluded boundary; it does
+not substitute for an unassessed operation. Missing issuer authority,
+applicability, mapping, scope, condition, notice mechanism, expiry, revocation
+or enforcement remains `Unproven`. Conflict or legal ambiguity also remains
+`Unproven` pending authoritative resolution. Every dependent gate fails closed
+on `Unproven`.
+
+Failure or ambiguity in rendering, derivative retention or runtime display
 blocks activation of a PDF document under this decision. It does not silently
 infer rights from permission to read, cite or index text. A future policy that
 permits text-only PDF activation would require a separately accepted decision
 and explicit capability disclosure.
 
-Required notices remain associated with the source and every derivative
-manifest. Rendering never removes attribution from the governed record or
-creates an endorsement claim. Git distribution remains separately governed
-even when runtime retention and display are permitted.
+`RuntimeDerivativeImageDisplay` covers only the current application returning
+one active, citation-bound and revalidated PNG through the fixed relative
+same-origin route for presentation inside its governed citation context. This
+HTTP response delivers derivative bytes; same-origin and
+`Cross-Origin-Resource-Policy: same-origin` are security controls, not proof
+that no copying or distribution occurs. The source-specific mapping must
+explicitly permit this delivery act.
+
+`SourceAndDerivativeByteDistributionOrPublication` independently covers
+availability beyond that narrow runtime-display boundary, including direct
+downloads, public or static hosting, permissive cross-origin delivery, CDN
+publication, bulk export, seed or deployment bundles delivered to another
+environment or party, Git/Git LFS distribution and downstream republication.
+A `Denied` decision for that external boundary does not automatically deny
+runtime display when the mapping explicitly separates the scopes. A
+`Permitted` distribution decision does not automatically permit runtime
+display. An `Unproven` intended distribution boundary blocks v2 image serving.
+
+The source rights record owns the obligation mapping, and the source content
+record and every derivative manifest retain an immutable reference to its
+applicable obligation set. The mapping disposes attribution, copyright and
+permission notices, disclaimers, trademark constraints and change marking
+separately. Runtime presentation supplies the required accessible source
+details beside or directly linked to the image only when the primary terms
+permit that placement. Distribution bundles carry every notice and disclaimer
+required for each copy. A requirement for in-binary or otherwise unsupported
+placement blocks generation and serving rather than being approximated.
+Rendering never removes attribution from the governed record or creates an
+endorsement claim. An embedded source-PDF notice is not assumed to accompany a
+PNG derivative, and Git distribution remains separately governed even when
+runtime retention and display are permitted.
 
 ## Offline availability, deployment and recovery
 
@@ -365,9 +416,13 @@ This acceptance neither imports that file into `IDocumentContentStore` nor
 changes its Git status. No retained page PNG exists under this authority.
 
 Before any rendering authority, its eligibility record must explicitly cover
-page rendering, derivative-image creation, retention and runtime display. A
-separate authority must then name the render profile, limits, destination
-content-store implementation and validation evidence.
+page rendering, derivative-image creation, retention, runtime display and the
+intended source/derivative distribution boundary through the accepted ADR-0011
+mapping. Acceptance and reconciliation of ADR-0011 do not perform that
+candidate-specific assessment: all five decisions remain `UNPROVEN`, and the
+A0 disposition remains `BLOCKED/EXCLUDED`. A separate authority must then name
+the render profile, limits, destination content-store implementation and
+validation evidence.
 
 ## Consequences
 
@@ -444,3 +499,9 @@ The separately authorised semantic reconciliation on 2026-08-07 applies this
 decision together with ADR-0009 across its named normative owners as prompt
 corpus `4.9.5`. It preserves OpenAPI v1 byte for byte and does not implement,
 import, render, index, activate, evaluate, publish or deploy any content.
+
+The separately authorised ADR-0011 reconciliation on 2026-08-09 applies the
+accepted mapping, boundary and derivative-obligation semantics to the named
+STATE-07 documentary owners. It preserves the public contracts and the
+candidate's disposition and does not correct the internal serving policy,
+execute a new A0 or authorise product behaviour.

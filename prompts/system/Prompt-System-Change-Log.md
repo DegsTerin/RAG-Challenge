@@ -2,12 +2,13 @@
 
 ## Versão atual
 
-- Versão: `4.10.9`
+- Versão: `4.10.10`
 - Data: 2026-08-09
-- Status: `STATE-07` ativo; ADR-0011 `accepted` exclusivamente como autoridade
-  arquitetural; A0 do primeiro documento de produto permanece
+- Status: `STATE-07` ativo; ADR-0011 `accepted` e reconciliado nos proprietários
+  documentais autorizados; A0 do primeiro documento de produto permanece
   `BLOCKED/EXCLUDED` por direitos visuais e de distribuição ainda `UNPROVEN`;
-  homologação de produto, Human Gate e mudança de lifecycle não executados
+  correção interna, homologação de produto, Human Gate e mudança de lifecycle
+  não executados
 - Escopo: 13 arquivos ativos em `prompts/`
 
 A versão do corpus é independente da versão futura do software.
@@ -21,6 +22,34 @@ A versão do corpus é independente da versão futura do software.
 
 Toda alteração atualiza este arquivo e, quando necessário,
 [`../Start-Here.md`](../Start-Here.md).
+
+## 4.10.10 — 2026-08-09
+
+- Aplica sob `AUTH-S07-A-RIGHTS-POLICY-CORR-RECONCILE-001`, sobre
+  `main@6fc81b973ca217693a286479df3ff6db0f4577e9`, corpus `4.10.9` e working
+  tree inicialmente limpa, a reconciliação documental do ADR-0011 aceito.
+- ADR-0004, ADR-0008, o registro S07-A de elegibilidade e o contrato documental
+  v2 agora aplicam o mapeamento explícito, auditável e condicionado de
+  concessões primárias amplas, preservando as dez decisões independentes e o
+  fail-closed.
+- Distingue a entrega same-origin de um PNG ativo e citation-bound como
+  `RuntimeDerivativeImageDisplay` da distribuição/publicação externa sob
+  `SourceAndDerivativeByteDistributionOrPublication`, sem tratar same-origin
+  como concessão de direitos ou ausência de transmissão de bytes.
+- Registra que attribution, copyright/permission notices, disclaimers,
+  trademark e change marking permanecem associados à origem, à linhagem de
+  cada derivado e ao contexto de entrega determinado pelo mapeamento.
+- Preserva a incompatibilidade executável: o contrato v2 exige reavaliar a
+  intended distribution boundary, mas a política interna `PdfVisualEvidence`
+  ainda não avalia
+  `SourceAndDerivativeByteDistributionOrPublication`. A correção permanece
+  posterior e separadamente autorizada.
+- Não reclassifica `postgresql-18-reference-a4`, não executa novo A0 e mantém
+  sua disposição `BLOCKED/EXCLUDED` com os cinco direitos `UNPROVEN`.
+- Nenhum código, teste, OpenAPI, contrato público, schema, migration,
+  dependência, lockfile, dataset, parser, renderer, runtime, provider, fonte,
+  rede, gate, Human Gate, lifecycle ou ação externa foi alterado ou executado.
+  A mudança do corpus é `PATCH` documental.
 
 ## 4.10.9 — 2026-08-09
 

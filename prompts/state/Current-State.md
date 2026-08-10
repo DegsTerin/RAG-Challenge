@@ -679,8 +679,24 @@ proprietários.
   `SourceAndDerivativeByteDistributionOrPublication`. A aceitação estabelece
   somente autoridade arquitetural: não alterou contrato público ou
   comportamento e não reclassificou os cinco direitos `UNPROVEN` nem a
-  disposição `BLOCKED/EXCLUDED` do PostgreSQL. Reconciliação semântica,
-  correção interna e novo A0 permanecem separadamente autorizados.
+  disposição `BLOCKED/EXCLUDED` do PostgreSQL. A aceitação por si só não
+  autorizou reconciliação semântica, correção interna ou novo A0; a
+  reconciliação posterior está registrada abaixo, e as duas etapas executáveis
+  continuam separadamente autorizadas.
+- Reconciliação semântica do ADR-0011: autorizada sob
+  `AUTH-S07-A-RIGHTS-POLICY-CORR-RECONCILE-001` sobre
+  `main@6fc81b973ca217693a286479df3ff6db0f4577e9`, corpus `4.10.9`, working
+  tree inicialmente limpa e OpenAPI v1/v2 protegidas. ADR-0004, ADR-0008, o
+  registro de elegibilidade e o contrato documental v2 agora aplicam o
+  mapeamento explícito, auditável e condicionado, preservam as dez decisões e
+  o fail-closed, distinguem same-origin runtime display da distribuição ou
+  publicação externa e vinculam attribution, notices, disclaimers, trademark
+  e change marking à linhagem de cada derivado. Nenhum contrato público ou
+  comportamento mudou. `postgresql-18-reference-a4` permanece
+  `BLOCKED/EXCLUDED`, com os cinco direitos `UNPROVEN`; nenhum novo A0 foi
+  executado. A incompatibilidade executável permanece: a política interna
+  `PdfVisualEvidence` ainda não avalia
+  `SourceAndDerivativeByteDistributionOrPublication`.
 - Decisão arquitetural de armazenamento do corpus e evidência visual:
   [ADR-0008](../../docs/architecture/ADR-0008-Product-Corpus-Storage-And-Page-Image-Evidence.md)
   foi aceita explicitamente pelo proprietário em 2026-08-07 sobre
@@ -1218,8 +1234,10 @@ proprietários.
   offline e sintética autorizada; isso não constitui gate ou homologação.
 - ADR-0011: `accepted` pela decisão humana explícita
   `ADR-0011: ACEITAR.` em 2026-08-09. A decisão refina o mapeamento de
-  evidência de ADR-0004/ADR-0008 sem autorizar reconciliação semântica,
-  implementação, reclassificação do PostgreSQL ou comportamento de produto.
+  evidência de ADR-0004/ADR-0008; sua reconciliação semântica nos proprietários
+  documentais nomeados foi aplicada no corpus `4.10.10`. Implementação,
+  reclassificação do PostgreSQL e comportamento de produto continuam sem
+  autorização.
 
 ## Baseline documental
 
@@ -1227,7 +1245,7 @@ proprietários.
   a política de idioma acrescentou o 21º documento público por incremento
   versionado, e o ADR-0003 acrescentou o 22º.
 - A baseline aprovada no Human Gate de `STATE-00` permanece `3.4.0`.
-- O corpus de instruções vigente possui versão `4.10.9` e 13 arquivos em
+- O corpus de instruções vigente possui versão `4.10.10` e 13 arquivos em
   `prompts/`.
 - Visão, requisitos, arquitetura, RAG, segurança, qualidade, lifecycle,
   roadmap, backlog, estado, histórico e templates estão documentados.
@@ -1274,6 +1292,11 @@ proprietários.
   como autoridade arquitetural. A aceitação não executa a reconciliação
   semântica, a correção interna da política, novo A0 ou qualquer mudança de
   direito, contrato público, comportamento, gate ou lifecycle.
+- O corpus `4.10.10` aplica a reconciliação documental autorizada do ADR-0011
+  a ADR-0004, ADR-0008, ao registro de elegibilidade e ao contrato documental
+  v2. A reconciliação preserva o candidato PostgreSQL bloqueado, não altera
+  OpenAPI ou comportamento e mantém a correção interna e o novo A0 sob
+  autoridades posteriores.
 - O corpus `4.3.0` formaliza a decisão explícita do proprietário de aceitar
   perguntas e respostas em `pt-BR` e `en-GB`: cada consulta declara o idioma,
   a resposta usa o mesmo idioma, textos derivados da fonte permanecem no
@@ -1537,10 +1560,10 @@ autorizada.
    runtime display e a intended source/derivative distribution boundary
    permanecem `UNPROVEN`. O ADR-0011 aceito define como uma concessão primária
    ampla pode ser mapeada operação por operação, mas não reclassifica o
-   candidato. Antes de um novo A0, o proprietário precisa autorizar
-   separadamente a reconciliação semântica e a correção interna necessária.
-   Cada documento posterior mantém o mesmo gate independente de direitos,
-   proveniência e idioma.
+   candidato. A reconciliação semântica está concluída; antes de um novo A0, o
+   proprietário precisa autorizar e concluir a correção interna necessária
+   para a política de serving. Cada documento posterior mantém o mesmo gate
+   independente de direitos, proveniência e idioma.
 2. Validar e ativar individualmente novos registros de fonte oficial; a
    aceitação arquitetural não autoriza URL, rede, download ou crawling.
 3. `S07-A` A1-A5 e seu Automatic Quality Gate foram concluídos e aprovados na
@@ -1604,12 +1627,13 @@ creation, derivative-image retention, runtime derivative display e a intended
 source or derivative distribution boundary. Nenhum novo A0, dataset, import,
 render, indexação ou ativação está autorizado por este registro.
 
-O ADR-0011 foi aceito exclusivamente como autoridade arquitetural. A primeira
-ação relacionada é reconciliar semanticamente a decisão aceita nos documentos
-normativos proprietários, sob autoridade separada, antes de qualquer correção
-de código ou novo A0. A incompatibilidade estática entre o contrato v2 e a
-política interna permanece registrada, e o candidato PostgreSQL continua
-`BLOCKED/EXCLUDED` com os cinco direitos `UNPROVEN`.
+O ADR-0011 foi aceito e sua semântica foi reconciliada nos documentos
+normativos proprietários autorizados. A primeira ação relacionada é corrigir
+focalmente a política interna para que o serving v2 avalie a intended
+distribution boundary e as condições do mapeamento antes de `200` ou `304`,
+sob autoridade de implementação separada. O contrato público permanece
+inalterado, e o candidato PostgreSQL continua `BLOCKED/EXCLUDED` com os cinco
+direitos `UNPROVEN`; novo A0 continua posterior.
 
 O segundo refinamento arquitetural da ordem registrada em Lifecycle está
 implementado até integração v2, restart, cold backup/restore confinado e
