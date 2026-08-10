@@ -708,8 +708,28 @@ proprietários.
   `Permitted` na fronteira same-origin aceita. A verificação focal aprovou 19
   testes da política, 23 regressões dos gates existentes, três testes do leitor
   real e seis testes contratuais v1/v2. Nenhum runtime ou listener permaneceu.
-  Nenhum novo A0 ou gate foi executado; `postgresql-18-reference-a4` permanece
-  `BLOCKED/EXCLUDED` com os cinco direitos `UNPROVEN`.
+  Naquela baseline, nenhum novo A0 ou gate havia sido executado e
+  `postgresql-18-reference-a4` permanecia `BLOCKED/EXCLUDED` com os cinco
+  direitos `UNPROVEN`; a reavaliação posterior está registrada abaixo.
+- Reavaliação A0 candidato-específica sob ADR-0011: executada localmente,
+  offline, sequencialmente e sem comportamento de produto sob
+  `AUTH-S07-A-PRODUCT-A0-002`, sobre
+  `main@f21cdea2052d28de1e2ffb86b1629c1c10bc6b6a`, corpus `4.10.11`, working
+  tree inicialmente limpa e OpenAPI v1/v2 protegidas. O PDF ignorado permaneceu
+  arquivo regular, sem reparse point, com `15.771.040` bytes e SHA-256
+  `cea7b845568095eb56dee1b51bfa145c6c6637bc4377c986019971577efefae4`.
+  A concessão oficial já registrada é relevante às cinco operações, mas exige
+  copyright, permission notice e dois disclaimers em todas as cópias. O
+  contrato atual não oferece mecanismo determinado para esses textos no PNG ou
+  na citação pública. Page rendering, derivative-image creation,
+  derivative-image retention e `RuntimeDerivativeImageDisplay` permanecem
+  `UNPROVEN`; `SourceAndDerivativeByteDistributionOrPublication` está `DENIED`
+  fora da fronteira de runtime-display por exclusão deliberada de download,
+  hosting público, CORS permissivo, CDN, export, bundles, Git/Git LFS e
+  republicação. A disposição permanece `BLOCKED/EXCLUDED`, não
+  `READY_FOR_PRODUCT_ACTIVATION`. Nenhum dataset, manifest, derivado, parser,
+  renderer, indexação, ativação, teste, runtime, gate, Human Gate ou lifecycle
+  foi executado ou alterado.
 - Decisão arquitetural de armazenamento do corpus e evidência visual:
   [ADR-0008](../../docs/architecture/ADR-0008-Product-Corpus-Storage-And-Page-Image-Evidence.md)
   foi aceita explicitamente pelo proprietário em 2026-08-07 sobre
@@ -1250,8 +1270,9 @@ proprietários.
   evidência de ADR-0004/ADR-0008; sua reconciliação semântica nos proprietários
   documentais nomeados foi aplicada no corpus `4.10.10`. A correção interna do
   serving foi implementada no commit
-  `b9c3e5f3a72c2dd7762c256198452ae2c217b2d2`; reclassificação do PostgreSQL,
-  novo A0 e comportamento com dado de produto permanecem não executados.
+  `b9c3e5f3a72c2dd7762c256198452ae2c217b2d2`; o A0 candidato-específico
+  posterior preservou o PostgreSQL `BLOCKED/EXCLUDED`, sem comportamento com
+  dado de produto.
 
 ## Baseline documental
 
@@ -1316,6 +1337,11 @@ proprietários.
   passa a avaliar as dez decisões e a falhar fechado diante de distribution
   boundary `Unproven`, sem alterar OpenAPI, contrato público, candidato ou
   lifecycle. Novo A0 permanece posterior e separadamente autorizado.
+- O corpus `4.10.12` registra o A0 candidato-específico autorizado sob
+  `AUTH-S07-A-PRODUCT-A0-002`. Quatro operações visuais permanecem `UNPROVEN`
+  por ausência de mecanismo determinado para os avisos exigidos em todas as
+  cópias, a distribuição/publicação externa está `DENIED` pela fronteira
+  interna excluída e o candidato permanece `BLOCKED/EXCLUDED`.
 - O corpus `4.3.0` formaliza a decisão explícita do proprietário de aceitar
   perguntas e respostas em `pt-BR` e `en-GB`: cada consulta declara o idioma,
   a resposta usa o mesmo idioma, textos derivados da fonte permanecem no
@@ -1573,15 +1599,13 @@ autorizada.
 
 ## Evidências e decisões futuras pendentes
 
-1. O A0 do primeiro candidato PostgreSQL foi disposto como
-   `BLOCKED/EXCLUDED`: identidade, proveniência, idiomas e atribuição
-   conferiram, mas page rendering, derivative-image creation/retention,
-   runtime display e a intended source/derivative distribution boundary
-   permanecem `UNPROVEN`. O ADR-0011 aceito define como uma concessão primária
-   ampla pode ser mapeada operação por operação, mas não reclassifica o
-   candidato. A reconciliação semântica e a correção interna da política de
-   serving estão concluídas. Um novo A0 ainda exige autoridade separada e um
-   mapeamento candidato-específico auditável; cada documento posterior mantém
+1. O A0 candidato-específico de `postgresql-18-reference-a4` foi disposto como
+   `BLOCKED/EXCLUDED`: identidade, proveniência e idiomas conferiram; a
+   concessão ampla foi mapeada sob ADR-0011, mas o mecanismo para copyright,
+   permission notice e dois disclaimers em cada PNG permanece não determinado.
+   Page rendering, derivative-image creation/retention e runtime display estão
+   `UNPROVEN`; a distribuição/publicação fora do runtime está `DENIED` pela
+   fronteira interna deliberadamente excluída. Cada documento posterior mantém
    o mesmo gate independente de direitos, proveniência e idioma.
 2. Validar e ativar individualmente novos registros de fonte oficial; a
    aceitação arquitetural não autoriza URL, rede, download ou crawling.
@@ -1636,22 +1660,21 @@ homologação de produto nem prepara Human Gate: qualquer continuação deve nom
 e autorizar separadamente a fronteira ainda `NOT_RUN`, sem inferir avanço de
 lifecycle.
 
-O A0 de prontidão de `postgresql-18-reference-a4` foi concluído sob
-`AUTH-S07-A-PRODUCT-A0-001` com disposição `BLOCKED/EXCLUDED`. Os bytes e o
-registro de identidade/proveniência/idiomas/atribuição conferiram, mas os cinco
-campos visuais e de distribuição exigidos por ADR-0008 permanecem `UNPROVEN`.
-A primeira condição de desbloqueio é uma disposição explícita, baseada em
-evidência e separada por operação, para page rendering, derivative-image
-creation, derivative-image retention, runtime derivative display e a intended
-source or derivative distribution boundary. Nenhum novo A0, dataset, import,
-render, indexação ou ativação está autorizado por este registro.
+O A0 candidato-específico de `postgresql-18-reference-a4` foi repetido sob
+`AUTH-S07-A-PRODUCT-A0-002` e manteve a disposição `BLOCKED/EXCLUDED`. A
+concessão oficial já registrada foi mapeada operação por operação: page
+rendering, derivative-image creation, derivative-image retention e runtime
+derivative display permanecem `UNPROVEN` porque o mecanismo de avisos em cada
+PNG não está determinado; a intended source/derivative distribution boundary
+está `DENIED` fora do runtime-display. Dataset, import, render, indexação e
+ativação continuam não autorizados por esse resultado.
 
 O ADR-0011 foi aceito, sua semântica foi reconciliada e a política interna de
 serving v2 foi corrigida no commit
 `b9c3e5f3a72c2dd7762c256198452ae2c217b2d2`. A verificação agora ocorre antes
-de `200` ou `304`, sem alteração do contrato público. O candidato PostgreSQL
-continua `BLOCKED/EXCLUDED` com os cinco direitos `UNPROVEN`; novo A0 continua
-posterior e exige autoridade própria.
+de `200` ou `304`, sem alteração do contrato público. O A0 posterior confirmou
+que o candidato PostgreSQL continua `BLOCKED/EXCLUDED`: quatro operações
+visuais estão `UNPROVEN` e a distribuição/publicação externa está `DENIED`.
 
 O segundo refinamento arquitetural da ordem registrada em Lifecycle está
 implementado até integração v2, restart, cold backup/restore confinado e

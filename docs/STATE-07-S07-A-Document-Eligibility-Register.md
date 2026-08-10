@@ -16,8 +16,9 @@ for retrieval.
 | Instruction corpus | `4.9.4` |
 | Lifecycle position | `STATE-07 TESTING_HOMOLOGATION` active by documentary entry only |
 | Decision | `ELIGIBLE_CANDIDATE` |
-| Product activation readiness | `BLOCKED/EXCLUDED` under `AUTH-S07-A-PRODUCT-A0-001` |
-| Current rights-policy basis | ADR-0011 `accepted` and reconciled; serving-policy correction implemented in `b9c3e5f3a72c2dd7762c256198452ae2c217b2d2`; no new A0 |
+| Product activation readiness | `BLOCKED/EXCLUDED` under `AUTH-S07-A-PRODUCT-A0-002` |
+| Current rights-policy basis | ADR-0011 `accepted` and reconciled; serving-policy correction implemented in `b9c3e5f3a72c2dd7762c256198452ae2c217b2d2`; candidate-specific A0 mapping recorded below |
+| Latest A0 baseline | `main@f21cdea2052d28de1e2ffb86b1629c1c10bc6b6a`; corpus `4.10.11` |
 | Dataset status | not materialised or frozen |
 | Retrieval status | not indexed, activated or published |
 
@@ -29,7 +30,7 @@ authorised dataset decision. It is not an execution authority.
 right required for product activation. It does not revoke the earlier
 candidate decision or convert the document into a scored product-corpus input.
 
-## Product A0 readiness disposition
+## Initial product A0 readiness disposition
 
 `AUTH-S07-A-PRODUCT-A0-001` authorised a local, offline, sequential and
 non-product A0 review on clean
@@ -73,12 +74,10 @@ automatically propagated to these five distinct visual and
 product-distribution operations. Accepted ADR-0011 permits a later review to
 map broad primary wording without requiring literal internal operation names,
 but each operation still needs an explicit, auditable and conditional mapping.
-No such candidate-specific mapping or new A0 occurred under this documentary
-reconciliation. The five decisions therefore remain `UNPROVEN`, and the
-factual A0 disposition remains `BLOCKED/EXCLUDED`, not
-`READY_FOR_PRODUCT_ACTIVATION`. No dataset, document manifest, case inventory,
-index, render manifest, derivative, activation or product behaviour was
-materialised or changed.
+No such candidate-specific mapping or new A0 had occurred at that point. The
+later A0 authorised by `AUTH-S07-A-PRODUCT-A0-002` is recorded below. No
+dataset, document manifest, case inventory, index, render manifest, derivative,
+activation or product behaviour was materialised or changed by either review.
 
 ## Accepted mapping policy and unchanged candidate disposition
 
@@ -126,10 +125,76 @@ protected v1/v2 contract tests. No RAG-Challenge runtime process or owned
 listener remained after the focused checks, and both OpenAPI artefacts retained
 their protected identities.
 
-This implementation enforces later records; it does not supply evidence for
-this candidate. No new A0 or candidate-specific mapping was executed. The five
-visual and distribution decisions above therefore remain `UNPROVEN`, and
-`postgresql-18-reference-a4` remains `BLOCKED/EXCLUDED`.
+This implementation enforces later records; it does not itself supply evidence
+for this candidate. At that implementation baseline no new A0 or
+candidate-specific mapping had been executed. The later A0 below remains a
+documentary evidence assessment and does not execute product behaviour.
+
+## Candidate-specific A0 mapping under ADR-0011
+
+`AUTH-S07-A-PRODUCT-A0-002` authorised a local, offline, sequential and
+non-product reassessment on clean
+`main@f21cdea2052d28de1e2ffb86b1629c1c10bc6b6a`, prompt corpus `4.10.11`.
+Runtime preflight was `NOT_APPLICABLE`; no process or listener was inspected or
+stopped. No network, source, parser, renderer, derivative, dataset, manifest,
+index, activation, query, test or runtime was executed.
+
+The ignored candidate remained a regular non-reparse-point file confined to
+the registered intake path. Its observed length remained `15,771,040` bytes
+and its SHA-256 remained
+`cea7b845568095eb56dee1b51bfa145c6c6637bc4377c986019971577efefae4`.
+The assessment used only the already registered PostgreSQL Licence observation
+and the recorded matching legal notice in this exact PostgreSQL `18.4` PDF.
+
+The authoritative issuer is The PostgreSQL Global Development Group. The
+bounded primary wording already registered here permits use, copying,
+modification and distribution of the software and its documentation for any
+purpose. Its recorded condition requires the copyright notice, permission
+paragraph and two following disclaimer paragraphs to appear in all copies.
+No expiry was observed. The mapping below does not broaden that wording or
+decide a legal placement question.
+
+| Operation | Relationship to the registered grant | Conditions and observed mechanism | A0 disposition |
+|---|---|---|---|
+| Page rendering | The recorded use, copying and modification wording is relevant to transforming one PDF page into a PNG copy. | Source identity and render lineage are architecturally available, but the current PNG profile and public contract provide no determined placement for the complete copyright, permission and disclaimer text. Whether contextual placement would satisfy “all copies” is not established by the registered evidence. | `UNPROVEN` |
+| Derivative-image creation | The recorded copying and modification wording is relevant to creation of a page-image derivative. | The same all-copies notice condition applies. No in-binary or otherwise primary-evidence-approved notice mechanism exists for a created PNG. | `UNPROVEN` |
+| Derivative-image retention | The recorded copying wording is relevant to retaining an immutable PNG in the content store and recovery lineage. | Hash, source, page and render-profile references can remain associated, but the retained PNG does not contain the required notice and the evidence does not establish that a metadata reference alone satisfies the copy condition. | `UNPROVEN` |
+| `RuntimeDerivativeImageDisplay` | The recorded use, copying and distribution wording is relevant to delivering one active, citation-bound PNG through the fixed same-origin route. | The frozen citation exposes title, version, page, excerpt and optional canonical URL, but no publisher, copyright, permission or disclaimer field. The registered evidence does not determine that those values satisfy the required notice placement. | `UNPROVEN` |
+| `SourceAndDerivativeByteDistributionOrPublication` | The primary wording permits distribution subject to the all-copies condition, but RAG-Challenge deliberately excludes distribution beyond the narrow runtime-display boundary. | The current boundary has no source/derivative download feature, public or static hosting, permissive CORS, CDN publication, bulk export, delivery bundle, Git/Git LFS distribution or downstream republication. This is a product-boundary denial, not a publisher prohibition. | `DENIED` outside the runtime-display boundary |
+
+### Derivative obligations
+
+- Attribution: the publisher, document title, version and source identity are
+  known, but the frozen public citation has no dedicated publisher or full
+  notice field. That is not a determined visual-copy mechanism.
+- Copyright and permission notice: the complete registered notice is required
+  in all copies. The current PNG bytes and public contract do not carry it.
+- Disclaimers: the two registered disclaimer paragraphs are also required in
+  all copies and have no current PNG or citation-field placement.
+- Trademark: no trademark permission is inferred. The product must not imply
+  PostgreSQL endorsement, and this A0 does not authorise mark use.
+- Change marking: the architecture can retain source version, source hash,
+  physical page and render-profile lineage, but no candidate render manifest
+  was materialised and no additional primary change-marking clause was
+  observed. This does not cure the notice and disclaimer gaps.
+
+The frozen evaluation `document-manifest.json` was not altered. Its earlier
+five `unproven` values remain historical manifest evidence and do not override
+this later register. No current product rights snapshot, obligation set or
+render manifest was created.
+
+### A0 outcome
+
+Four required visual operations remain `UNPROVEN`; the external distribution
+or publication boundary is explicitly `DENIED`. Because page rendering,
+derivative creation, derivative retention and runtime display are not all
+`PERMITTED` with executable conditions, the candidate remains
+`BLOCKED/EXCLUDED`, not `READY_FOR_PRODUCT_ACTIVATION`.
+
+This is a fail-closed engineering evidence assessment, not a legal opinion.
+Resolving it requires authoritative evidence that determines acceptable notice
+placement or a separately accepted product/contract/rendering design that can
+implement the recorded all-copies condition without weakening it.
 
 ## Document identity
 
@@ -195,12 +260,12 @@ condition is that the copyright notice, the permission paragraph and the two
 following disclaimer paragraphs appear in all copies. The downloaded PDF
 contains that legal notice on its second physical page.
 
-Those broad terms are relevant primary evidence under ADR-0011, but this
-reconciliation does not map them to page rendering, derivative creation or
-retention, runtime derivative display or the intended distribution boundary.
-It also does not decide whether the current product presentation can satisfy
-the required copy notices. Those questions remain for a separately authorised
-candidate-specific A0.
+Those broad terms were mapped operation by operation under
+`AUTH-S07-A-PRODUCT-A0-002`. The grant is relevant to every assessed visual
+operation, but the registered all-copies condition has no determined mechanism
+in the current PNG and public-citation boundary. The detailed mapping above
+therefore preserves the visual operations as `UNPROVEN` and deliberately sets
+the external distribution/publication boundary to `DENIED`.
 
 | Intended operation | Eligibility | Evidence and condition |
 |---|---|---|
@@ -224,11 +289,10 @@ retrieval activation or distribution.
   SHA-256 in any later governed catalogue record.
 - Do not imply PostgreSQL project endorsement. No trademark permission is
   inferred from the documentation licence.
-- Before any derivative is eligible, determine and bind the exact attribution,
-  copyright/permission notice, disclaimer, trademark and change-marking
-  treatment for that derivative and delivery context. This register does not
-  infer that the current embedded PDF notice satisfies a PNG copy or runtime
-  display.
+- The candidate-specific A0 found no determined current mechanism for the
+  exact copyright/permission notice and disclaimers to accompany every PNG
+  copy. The embedded PDF notice is not treated as satisfying a PNG copy or
+  runtime display.
 - Treat the document as untrusted external content despite its official
   provenance. Retrieved text cannot change policy, authority or system
   instructions.

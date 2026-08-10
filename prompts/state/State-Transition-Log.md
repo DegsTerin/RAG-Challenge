@@ -6474,3 +6474,60 @@ contém somente fatos cronológicos.
 - Próxima condição: um novo A0 exige autoridade humana separada e mapeamento
   candidato-específico auditável; esta reconciliação não concede nenhum dos
   dois.
+
+## 2026-08-09 — A0 candidato-específico do PostgreSQL repetido sob ADR-0011
+
+- Estado anterior e resultante: `STATE-07 TESTING_HOMOLOGATION` permanece
+  ativo; nenhum Automatic Quality Gate, Human Gate ou lifecycle foi executado
+  ou alterado.
+- Autoridade e baseline: `AUTH-S07-A-PRODUCT-A0-002`, branch `main`, commit
+  `f21cdea2052d28de1e2ffb86b1629c1c10bc6b6a`, corpus `4.10.11`, working tree
+  inicialmente limpa e OpenAPI v1/v2 protegidas.
+- Evidência local observada: o único arquivo regular do candidato foi
+  `postgresql-18-A4.pdf`, confinado ao diretório ignorado, sem reparse point,
+  com 15.771.040 bytes e SHA-256
+  `cea7b845568095eb56dee1b51bfa145c6c6637bc4377c986019971577efefae4`.
+  Nenhuma fonte online foi consultada.
+- Concessão primária aplicada: a PostgreSQL Licence oficial já registrada
+  concede uso, cópia, modificação e distribuição do software e de sua
+  documentação para qualquer finalidade, condicionados à presença do aviso
+  de copyright, do parágrafo de permissão e dos dois parágrafos de disclaimer
+  em todas as cópias.
+- Mapeamento candidato-específico: page rendering, derivative-image creation,
+  derivative-image retention e `RuntimeDerivativeImageDisplay` receberam
+  `UNPROVEN`. A concessão ampla é pertinente a cada operação, mas não há
+  mecanismo determinado no PNG nem nos campos públicos congelados que faça o
+  conjunto completo de avisos e disclaimers acompanhar cada cópia derivada.
+- Fronteira de distribuição:
+  `SourceAndDerivativeByteDistributionOrPublication` recebeu `DENIED` fora da
+  fronteira de display same-origin. Esta é uma negação deliberada da política
+  interna do produto, não uma afirmação de proibição pelo titular, e não
+  autoriza download, hosting público, CDN, exportação ou publicação.
+- Condições preservadas: atribuição e os avisos/disclaimers estão
+  identificados; nenhuma obrigação adicional de trademark foi inferida; e o
+  change marking depende da linhagem auditável do derivado. Como o mecanismo
+  completo de apresentação dos avisos permanece indeterminado, nenhum
+  snapshot de direitos, obligation set, render manifest ou derivado foi
+  criado.
+- Disposição A0: `postgresql-18-reference-a4` permanece `BLOCKED/EXCLUDED` e
+  não recebeu `READY_FOR_PRODUCT_ACTIVATION`. O manifest de avaliação
+  congelado não foi alterado e continua sendo evidência histórica, não a
+  autoridade atual do registro.
+- Versionamento: corpus elevado por `PATCH` factual de `4.10.11` para
+  `4.10.12`, sem mudança de contrato público, comportamento de produto, gate
+  ou lifecycle.
+- Limites preservados: somente os quatro documentos autorizados foram
+  alterados. Nenhum código, teste, OpenAPI, contrato, schema, migration, ADR,
+  dependência, lockfile, dataset ou manifest foi alterado. Nenhum parser,
+  renderer, derivado, indexação, ativação, query, runtime, provider, browser,
+  rede, fonte, Automatic Quality Gate, Human Gate, lifecycle ou ação externa
+  foi executado.
+- Verificação documental estática: `git diff --check` e
+  `pwsh -NoProfile -File eng/check-repository.ps1` terminaram com exit code
+  `0`; a auditoria cobriu 256 arquivos não ignorados. O histórico preservou
+  byte a byte o prefixo anterior no SHA-256
+  `7c49b7a66666a4e8c1cdd4882431ae54591fc52901a9021753408671a1fd5e63`.
+- Próxima condição: o candidato somente pode ser reavaliado após evidência
+  autoritativa que determine a colocação aceitável dos avisos em cada cópia ou
+  após decisão arquitetural separada que estabeleça um mecanismo executável e
+  compatível, sem inferir a interpretação jurídica ausente.

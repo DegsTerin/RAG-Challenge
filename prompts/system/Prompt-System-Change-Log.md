@@ -2,13 +2,13 @@
 
 ## Versão atual
 
-- Versão: `4.10.11`
+- Versão: `4.10.12`
 - Data: 2026-08-09
 - Status: `STATE-07` ativo; ADR-0011 `accepted`, reconciliado e com a correção
-  interna da política de serving implementada; A0 do primeiro documento de
-  produto permanece `BLOCKED/EXCLUDED` por direitos visuais e de distribuição
-  ainda `UNPROVEN`; novo A0, homologação de produto, Human Gate e mudança de
-  lifecycle não executados
+  interna da política de serving implementada; o A0 candidato-específico mantém
+  o primeiro documento `BLOCKED/EXCLUDED`, com quatro operações visuais
+  `UNPROVEN` e distribuição/publicação externa `DENIED`; homologação de
+  produto, Human Gate e mudança de lifecycle não executados
 - Escopo: 13 arquivos ativos em `prompts/`
 
 A versão do corpus é independente da versão futura do software.
@@ -22,6 +22,33 @@ A versão do corpus é independente da versão futura do software.
 
 Toda alteração atualiza este arquivo e, quando necessário,
 [`../Start-Here.md`](../Start-Here.md).
+
+## 4.10.12 — 2026-08-09
+
+- Registra sob `AUTH-S07-A-PRODUCT-A0-002`, sobre
+  `main@f21cdea2052d28de1e2ffb86b1629c1c10bc6b6a`, corpus `4.10.11` e working
+  tree inicialmente limpa, o A0 candidato-específico local, offline,
+  sequencial e sem comportamento de produto de
+  `postgresql-18-reference-a4`.
+- Confirma o PDF ignorado como arquivo regular sem reparse point, com
+  `15.771.040` bytes e SHA-256
+  `cea7b845568095eb56dee1b51bfa145c6c6637bc4377c986019971577efefae4`.
+- Mapeia separadamente a concessão oficial já registrada para page rendering,
+  derivative-image creation, derivative-image retention, runtime display e a
+  intended distribution boundary. A condição registrada exige copyright,
+  permission notice e dois disclaimers em todas as cópias.
+- Mantém page rendering, derivative-image creation, derivative-image retention
+  e `RuntimeDerivativeImageDisplay` como `UNPROVEN`, pois o contrato e o PNG
+  atuais não fornecem mecanismo determinado para os avisos completos. Registra
+  `SourceAndDerivativeByteDistributionOrPublication` como `DENIED` fora do
+  runtime-display pela fronteira interna deliberadamente excluída, não por
+  proibição do publisher.
+- Preserva `BLOCKED/EXCLUDED`, não registra
+  `READY_FOR_PRODUCT_ACTIVATION` e não altera o manifest congelado, dataset,
+  código, teste, OpenAPI, contrato, schema, migration, ADR, dependência ou
+  lockfile. Nenhum parser, renderer, derivado, indexação, ativação, query,
+  runtime, rede, fonte, provider, Automatic Quality Gate, Human Gate ou
+  lifecycle foi executado. A mudança do corpus é `PATCH` factual.
 
 ## 4.10.11 — 2026-08-09
 
