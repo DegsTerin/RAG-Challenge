@@ -2,14 +2,14 @@
 
 ## Versão atual
 
-- Versão: `4.10.13`
+- Versão: `4.10.14`
 - Data: 2026-08-09
 - Status: `STATE-07` ativo; ADR-0011 `accepted`, reconciliado e com a correção
   interna da política de serving implementada; o A0 candidato-específico mantém
   o primeiro documento `BLOCKED/EXCLUDED`, com quatro operações visuais
-  `UNPROVEN` e distribuição/publicação externa `DENIED`; ADR-0012 permanece
-  `proposed`; homologação de produto, Human Gate e mudança de lifecycle não
-  executados
+  `UNPROVEN` e distribuição/publicação externa `DENIED`; ADR-0012 `accepted`
+  somente como autoridade arquitetural; homologação de produto, Human Gate e
+  mudança de lifecycle não executados
 - Escopo: 13 arquivos ativos em `prompts/`
 
 A versão do corpus é independente da versão futura do software.
@@ -23,6 +23,28 @@ A versão do corpus é independente da versão futura do software.
 
 Toda alteração atualiza este arquivo e, quando necessário,
 [`../Start-Here.md`](../Start-Here.md).
+
+## 4.10.14 — 2026-08-09
+
+- Registra a decisão humana explícita `ADR-0012: ACEITAR.` sobre
+  `main@243a448823a114190f68a25f9d521e1849eddacf`, corpus `4.10.13`, working
+  tree inicialmente limpa e OpenAPI v1/v2 protegidas.
+- Torna o ADR-0012 `accepted` exclusivamente como autoridade arquitetural para
+  `pdf-page-png-notice-v1`, `DerivativeObligationSetV1`, vínculo ao render
+  manifest, armazenamento/recovery, serving same-origin e apresentação
+  acessível das obrigações.
+- Preserva a região da página pixel a pixel, as dez decisões independentes, o
+  fail-closed e OpenAPI v1 byte a byte. Registra que schema, migration e revisão
+  pública do contrato v2 permanecem mudanças futuras separadamente
+  autorizadas; OpenAPI v2 não foi alterada nesta aceitação.
+- A aceitação não reclassifica `postgresql-18-reference-a4`: sua disposição
+  permanece `BLOCKED/EXCLUDED`, quatro operações visuais permanecem `UNPROVEN`
+  e a distribuição/publicação externa permanece `DENIED` pela fronteira
+  interna já registrada.
+- Nenhuma reconciliação semântica, revisão de contrato, schema, migration,
+  implementação, código, teste, renderer, dataset, runtime, Automatic Quality
+  Gate, Human Gate, lifecycle ou ação externa foi autorizada ou executada. A
+  mudança do corpus é `PATCH` factual.
 
 ## 4.10.13 — 2026-08-09
 

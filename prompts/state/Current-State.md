@@ -730,20 +730,23 @@ proprietários.
   `READY_FOR_PRODUCT_ACTIVATION`. Nenhum dataset, manifest, derivado, parser,
   renderer, indexação, ativação, teste, runtime, gate, Human Gate ou lifecycle
   foi executado ou alterado.
-- Proposta arquitetural de imagem derivada autocontida: preparada sob
+- Decisão arquitetural de imagem derivada autocontida: preparada sob
   `AUTH-S07-A-NOTICE-BEARING-PROFILE-ADR-PREP-001` sobre
   `main@1b64ca88a0efebd7ab450f5bdc22004a72f3dc53`, corpus `4.10.12`, working
-  tree inicialmente limpa e OpenAPI v1/v2 protegidas. O
+  tree inicialmente limpa e aceita explicitamente pelo proprietário mediante
+  `ADR-0012: ACEITAR.` sobre
+  `main@243a448823a114190f68a25f9d521e1849eddacf`, corpus `4.10.13`, working
+  tree limpa e OpenAPI v1/v2 protegidas. O
   [ADR-0012](../../docs/architecture/ADR-0012-Notice-Bearing-Page-Image-Profile-And-Derivative-Obligation-Delivery.md)
-  permanece `proposed`: define um único perfil versionado de PNG composto, no
+  está `accepted`: define um único perfil versionado de PNG composto, no
   qual a região da página preserva cada pixel e um painel separado carrega os
-  avisos completos. A proposta também define `DerivativeObligationSetV1`, seu
+  avisos completos. A decisão também define `DerivativeObligationSetV1`, seu
   vínculo imutável ao render manifest, armazenamento, backup/cold restore,
   serving same-origin, apresentação acessível e os impactos necessários de
-  schema, migration e contrato v2. Não houve aceitação, reclassificação do
-  PostgreSQL, alteração de OpenAPI, código, schema, migration, dataset ou
-  comportamento; nenhum renderer, runtime, teste, gate, Human Gate ou
-  lifecycle foi executado.
+  schema, migration e contrato v2. A aceitação concede somente autoridade
+  arquitetural: não reclassifica o PostgreSQL, altera OpenAPI, código, schema,
+  migration, dataset ou comportamento; nenhum renderer, runtime, teste, gate,
+  Human Gate ou lifecycle foi executado.
 - Decisão arquitetural de armazenamento do corpus e evidência visual:
   [ADR-0008](../../docs/architecture/ADR-0008-Product-Corpus-Storage-And-Page-Image-Evidence.md)
   foi aceita explicitamente pelo proprietário em 2026-08-07 sobre
@@ -1287,11 +1290,11 @@ proprietários.
   `b9c3e5f3a72c2dd7762c256198452ae2c217b2d2`; o A0 candidato-específico
   posterior preservou o PostgreSQL `BLOCKED/EXCLUDED`, sem comportamento com
   dado de produto.
-- ADR-0012: `proposed` sob
-  `AUTH-S07-A-NOTICE-BEARING-PROFILE-ADR-PREP-001` em 2026-08-09. A proposta
-  define a imagem composta autocontida e registra explicitamente as mudanças
-  necessárias de schema, migration e contrato v2; não está aceita e não
-  concede autoridade de reconciliação, implementação ou produto.
+- ADR-0012: `accepted` pela decisão humana explícita
+  `ADR-0012: ACEITAR.` em 2026-08-09. A decisão estabelece a imagem composta
+  autocontida e as mudanças necessárias de schema, migration e contrato v2,
+  sem autorizar reconciliação, implementação, reclassificação do PostgreSQL ou
+  comportamento de produto.
 
 ## Baseline documental
 
@@ -1299,7 +1302,7 @@ proprietários.
   a política de idioma acrescentou o 21º documento público por incremento
   versionado, e o ADR-0003 acrescentou o 22º.
 - A baseline aprovada no Human Gate de `STATE-00` permanece `3.4.0`.
-- O corpus de instruções vigente possui versão `4.10.13` e 13 arquivos em
+- O corpus de instruções vigente possui versão `4.10.14` e 13 arquivos em
   `prompts/`.
 - Visão, requisitos, arquitetura, RAG, segurança, qualidade, lifecycle,
   roadmap, backlog, estado, histórico e templates estão documentados.
@@ -1367,6 +1370,10 @@ proprietários.
   serving e apresentação acessível. A proposta identifica mudanças futuras de
   schema, migration e contrato v2, preserva v1 e o fail-closed e não aceita o
   ADR, reclassifica o candidato ou altera comportamento.
+- O corpus `4.10.14` registra a decisão explícita `ADR-0012: ACEITAR.` somente
+  como autoridade arquitetural. A aceitação não executa reconciliação,
+  revisão do contrato v2, schema, migration, implementação, novo A0, renderer,
+  dataset, gate ou lifecycle e mantém OpenAPI v1/v2 protegidas.
 - O corpus `4.3.0` formaliza a decisão explícita do proprietário de aceitar
   perguntas e respostas em `pt-BR` e `en-GB`: cada consulta declara o idioma,
   a resposta usa o mesmo idioma, textos derivados da fonte permanecem no
@@ -1630,9 +1637,10 @@ autorizada.
    permission notice e dois disclaimers em cada PNG permanece não determinado.
    Page rendering, derivative-image creation/retention e runtime display estão
    `UNPROVEN`; a distribuição/publicação fora do runtime está `DENIED` pela
-   fronteira interna deliberadamente excluída. O ADR-0012 agora registra uma
-   proposta técnica para o mecanismo ausente, mas permanece `proposed` e não
-   muda essa disposição. Cada documento posterior mantém o mesmo gate
+   fronteira interna deliberadamente excluída. O ADR-0012 aceito estabelece a
+   arquitetura do mecanismo ausente, mas não muda essa disposição. Sua
+   reconciliação, contrato, schema, migration e implementação continuam sob
+   autoridades separadas. Cada documento posterior mantém o mesmo gate
    independente de direitos, proveniência e idioma.
 2. Validar e ativar individualmente novos registros de fonte oficial; a
    aceitação arquitetural não autoriza URL, rede, download ou crawling.
@@ -1696,12 +1704,13 @@ PNG não está determinado; a intended source/derivative distribution boundary
 está `DENIED` fora do runtime-display. Dataset, import, render, indexação e
 ativação continuam não autorizados por esse resultado.
 
-O ADR-0012 foi preparado somente como `proposed` sob
-`AUTH-S07-A-NOTICE-BEARING-PROFILE-ADR-PREP-001`. Ele registra um mecanismo
-autocontido e as mudanças necessárias de schema, migration e contrato v2, mas
-não foi aceito. A próxima condição diretamente relacionada é uma decisão
-humana explícita de aceitar ou rejeitar essa proposta; aceitação arquitetural
-não autorizaria por si só reconciliação ou implementação.
+O ADR-0012 foi aceito explicitamente mediante `ADR-0012: ACEITAR.` somente
+como autoridade arquitetural. Ele estabelece o mecanismo autocontido e as
+mudanças necessárias de schema, migration e contrato v2, mas não reclassifica
+o candidato nem autoriza execução. A próxima condição diretamente relacionada
+é reconciliar semanticamente a decisão aceita nos proprietários documentais,
+sob autoridade separada, antes de contrato, schema, migration ou
+implementação.
 
 O ADR-0011 foi aceito, sua semântica foi reconciliada e a política interna de
 serving v2 foi corrigida no commit

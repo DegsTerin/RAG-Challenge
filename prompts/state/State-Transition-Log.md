@@ -6579,3 +6579,46 @@ contém somente fatos cronológicos.
   ADR-0012. Uma eventual aceitação estabelecerá somente autoridade
   arquitetural e não autorizará reconciliação, contrato, schema, migration ou
   implementação.
+
+## 2026-08-09 — ADR-0012 aceito como autoridade arquitetural
+
+- Estado anterior e resultante: `STATE-07 TESTING_HOMOLOGATION` permanece
+  ativo; nenhum Automatic Quality Gate, Human Gate ou lifecycle foi executado
+  ou alterado.
+- Decisão e baseline: o proprietário declarou explicitamente
+  `ADR-0012: ACEITAR.` sobre branch `main`, commit
+  `243a448823a114190f68a25f9d521e1849eddacf`, corpus `4.10.13`, working tree
+  inicialmente limpa e OpenAPI v1/v2 protegidas.
+- Autoridade arquitetural: ADR-0012 passa de `proposed` para `accepted` e
+  seleciona `pdf-page-png-notice-v1` como o único mecanismo de imagem
+  autocontida, com região da página pixel a pixel intacta e painel separado de
+  obrigações completas no mesmo PNG.
+- Modelo aceito: `DerivativeObligationSetV1` permanece imutável e vinculado ao
+  source object, rights mapping, render manifest e ativação. O mesmo conteúdo
+  acompanha armazenamento, backup/cold restore, serving same-origin e a
+  apresentação textual acessível adjacente no Dashboard.
+- Impactos preservados como futuros: novo schema de obligation set/manifest,
+  migration dos constraints SQLite e revisão pública do contrato v2 continuam
+  necessários e separadamente autorizados. OpenAPI v1 permanece byte a byte
+  protegida e OpenAPI v2 não foi alterada por esta aceitação.
+- Candidato inalterado: `postgresql-18-reference-a4` permanece
+  `BLOCKED/EXCLUDED`; page rendering, derivative-image creation/retention e
+  runtime display permanecem `UNPROVEN`, e a distribuição/publicação externa
+  permanece `DENIED` pela fronteira interna já registrada. Nenhum novo A0 foi
+  executado.
+- Versionamento: corpus elevado por `PATCH` factual de `4.10.13` para
+  `4.10.14`, sem mudança de contrato, schema, migration, implementação,
+  comportamento de produto, gate ou lifecycle.
+- Limites preservados: somente ADR-0012, o índice arquitetural,
+  `Current-State.md`, este EOF append-only e o changelog do corpus foram
+  alterados. Nenhum código, teste, OpenAPI, contrato, schema, migration,
+  dependência, lockfile ou dataset foi alterado. Nenhum renderer, runtime,
+  rede, fonte, provider, Automatic Quality Gate, Human Gate, lifecycle ou ação
+  externa foi executado.
+- Verificação documental estática: `git diff --check` e
+  `pwsh -NoProfile -File eng/check-repository.ps1` terminaram com exit code
+  `0`; o histórico preservou byte a byte o prefixo anterior no SHA-256
+  `d6c503c268ddabd9a832de9b15b160100aed9f76492669834dd372f27fd6af96`.
+- Próxima condição: a reconciliação semântica do ADR-0012 aceito exige
+  autoridade humana separada e deve preceder qualquer revisão de contrato,
+  schema, migration ou implementação.

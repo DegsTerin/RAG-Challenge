@@ -1,37 +1,39 @@
 # ADR-0012 — Notice-Bearing Page-Image Profile and Derivative Obligation Delivery
 
-- Status: proposed
+- Status: accepted
 - Date: 2026-08-09
+- Accepted: 2026-08-09
 - Preparation authority:
   `AUTH-S07-A-NOTICE-BEARING-PROFILE-ADR-PREP-001` on
   `main@1b64ca88a0efebd7ab450f5bdc22004a72f3dc53`, corpus `4.10.12`
-- Decision authority: not granted; explicit owner acceptance remains required
+- Decision authority: explicit product-owner decision `ADR-0012: ACEITAR.` on
+  `main@243a448823a114190f68a25f9d521e1849eddacf`, corpus `4.10.13`
 - Owners: RAG-Challenge product, architecture, data governance, security and
   accessibility
-- State: `STATE-07 TESTING_HOMOLOGATION` proposed architecture correction
-- Implementation status: not authorised; this proposal changes no code,
+- State: `STATE-07 TESTING_HOMOLOGATION` accepted architecture decision
+- Implementation status: not authorised; this decision changes no code,
   OpenAPI, schema, migration, dataset, rights disposition or runtime behaviour
 
 ## Purpose and authority
 
-This proposal defines one deterministic mechanism for a complete copyright,
+This decision defines one deterministic mechanism for a complete copyright,
 permission-notice and disclaimer set to accompany every derived page-image
 copy while the source-page pixels remain intact. It also identifies the
 schema, migration and public v2 contract changes that the mechanism would
-require if this ADR were later accepted.
+require under separately authorised follow-on increments.
 
-The proposed mechanism is a self-contained notice-bearing PNG: an unchanged
+The selected mechanism is a self-contained notice-bearing PNG: an unchanged
 source-page raster occupies one bounded region and a separate visible notice
 panel occupies an appended region of the same immutable PNG. The governed
 runtime also presents the same obligation text as accessible HTML adjacent to
 the image.
 
-This ADR is a proposal only. It does not accept the design, interpret a
+This ADR is accepted architecture authority only. It does not interpret a
 licence, determine that a particular notice placement is legally sufficient,
 reclassify `postgresql-18-reference-a4`, modify the protected OpenAPI
-artefacts, authorise a migration or permit rendering or product activation.
-Any ambiguity in primary evidence or required placement remains `Unproven`
-under
+artefacts, authorise reconciliation or a migration, or permit rendering or
+product activation. Any ambiguity in primary evidence or required placement
+remains `Unproven` under
 [ADR-0011](ADR-0011-Source-Rights-Evidence-Mapping-And-Same-Origin-Derivative-Display-Boundary.md).
 
 ## Context
@@ -71,7 +73,7 @@ The implemented system has four relevant constraints:
 These constraints make an in-place change to `pdf-page-png-v1` invalid and
 make an adjacent-only workaround incomplete. A new versioned render profile,
 persistent obligation record and explicit v2 presentation contract are
-required for the proposed mechanism.
+required for the selected mechanism.
 
 ## Decision drivers
 
@@ -89,7 +91,7 @@ required for the proposed mechanism.
   hiding them in an implementation increment.
 - Preserve bounded generation, serving, backup, restore and deletion.
 
-## Proposed decision
+## Decision
 
 ### New render profile
 
@@ -235,7 +237,7 @@ activation.
 
 ### Persistence schema and migration
 
-Acceptance would require a separately designed and authorised schema revision
+Implementation requires a separately designed and authorised schema revision
 and migration. At minimum it must:
 
 - persist immutable obligation sets and their ordered exact text blocks;
@@ -316,10 +318,11 @@ republication remain outside this mechanism and unauthorised.
 
 OpenAPI v1 and all v1 behaviour remain byte-for-byte unchanged. The current v2
 contract cannot supply the complete accessible obligation material and cannot
-prove which obligation set belongs to a page image. Acceptance would therefore
-require a separately frozen OpenAPI v2 revision before implementation.
+prove which obligation set belongs to a page image. The accepted decision
+therefore requires a separately frozen OpenAPI v2 revision before
+implementation.
 
-The proposed v2 revision retains every existing query, citation and page-image
+The required v2 revision retains every existing query, citation and page-image
 field and adds:
 
 - `obligationSetId` to each notice-bearing page-image reference; and
@@ -336,7 +339,7 @@ unsupported language or excess size fail response construction closed.
 
 This is a public contract change even though the existing route is preserved.
 It requires an explicit contract-freeze increment, regenerated strict clients
-and v1/v2 regression evidence. This proposal does not modify the current
+and v1/v2 regression evidence. This acceptance does not modify the current
 OpenAPI v2 bytes or claim backwards compatibility for strict v2 clients.
 
 ### Accessible Dashboard presentation
@@ -381,21 +384,22 @@ an ambiguous placement requirement into permission.
 
 ### Rights and activation consequence
 
-If this ADR is accepted, implemented and verified, a later candidate-specific
-A0 may evaluate whether the mechanism satisfies the already mapped technical
-conditions. That later A0 independently disposes `PageRendering`,
-`DerivativeImageCreationAndRetention`, `RuntimeDerivativeImageDisplay`,
+If this decision is reconciled, implemented and verified, a later
+candidate-specific A0 may evaluate whether the mechanism satisfies the already
+mapped technical conditions. That later A0 independently disposes
+`PageRendering`, `DerivativeImageCreationAndRetention`,
+`RuntimeDerivativeImageDisplay`,
 `SourceAndDerivativeByteDistributionOrPublication` and
 `AttributionNoticeTrademarkAndChangeMarkingRequirements`.
 
-This proposal does not predetermine any `Permitted` decision.
+This decision does not predetermine any `Permitted` decision.
 `postgresql-18-reference-a4` remains `BLOCKED/EXCLUDED`; no source object,
 obligation set, manifest, image, dataset, index or activation is created.
 
-## Required follow-on increments if accepted
+## Required follow-on increments
 
-Acceptance would establish architecture authority only. It would still require
-separate sequential authorities for:
+Acceptance establishes architecture authority only. It still requires separate
+sequential authorities for:
 
 1. semantic reconciliation of ADR-0008, the v2 serving contract, the data
    dictionary, security/threat owners and candidate register without changing
@@ -477,7 +481,7 @@ fidelity and violate the owner's explicit intact-pixel boundary.
 
 ## Stop conditions
 
-Any later acceptance, reconciliation or implementation must stop if:
+Any later reconciliation or implementation must stop if:
 
 - authoritative evidence does not supply the exact complete obligation text
   and its applicable placement;
@@ -498,10 +502,24 @@ Any later acceptance, reconciliation or implementation must stop if:
 - implementation would broaden external distribution, provider, network,
   dataset, lifecycle or deployment authority.
 
-## Proposal disposition
+## Acceptance record
 
-`ADR-0012` remains `proposed`. The owner has not accepted it. Preparation
-records one technically executable design and its unavoidable impacts; it
-does not authorise reconciliation, contract revision, schema work, migration,
-code, tests, rendering, dataset materialisation, candidate reclassification,
-Automatic Quality Gate, Human Gate or lifecycle progression.
+The owner's explicit decision `ADR-0012: ACEITAR.` confirms the architecture
+decision on clean `main@243a448823a114190f68a25f9d521e1849eddacf`, corpus
+`4.10.13`, with protected OpenAPI v1/v2 identities. The decision:
+
+1. selects `pdf-page-png-notice-v1` as the sole mechanism for an
+   intact source-page region and a complete in-binary notice region;
+2. requires an immutable `DerivativeObligationSetV1` and exact manifest,
+   activation, storage, backup and restore binding;
+3. requires accessible adjacent presentation and a separately frozen public
+   v2 contract revision while preserving v1 byte for byte;
+4. preserves the ten independent rights decisions and all fail-closed rules;
+5. does not interpret primary evidence or predetermine a candidate right;
+6. leaves `postgresql-18-reference-a4` `BLOCKED/EXCLUDED`; and
+7. leaves reconciliation, contract revision, schema, migration, code, tests,
+   rendering, dataset materialisation, candidate reassessment, Automatic
+   Quality Gate, Human Gate and lifecycle under later separate authorities.
+
+Acceptance establishes architecture authority only. It does not itself change
+OpenAPI, schema, migration, implementation, product behaviour or lifecycle.
