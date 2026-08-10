@@ -22,6 +22,16 @@ public sealed class ControlPlaneDbContext(DbContextOptions<ControlPlaneDbContext
 
     internal DbSet<DocumentVersionRow> DocumentVersions => Set<DocumentVersionRow>();
 
+    internal DbSet<DerivativeObligationSetRow> DerivativeObligationSets =>
+        Set<DerivativeObligationSetRow>();
+
+    internal DbSet<DerivativeObligationEvidenceReferenceRow>
+        DerivativeObligationEvidenceReferences =>
+            Set<DerivativeObligationEvidenceReferenceRow>();
+
+    internal DbSet<DerivativeObligationDisclaimerRow> DerivativeObligationDisclaimers =>
+        Set<DerivativeObligationDisclaimerRow>();
+
     internal DbSet<DocumentRenderManifestRow> DocumentRenderManifests =>
         Set<DocumentRenderManifestRow>();
 
@@ -93,6 +103,7 @@ public sealed class ControlPlaneDbContext(DbContextOptions<ControlPlaneDbContext
     {
         ConfigureCorpora(modelBuilder);
         ConfigureCatalogue(modelBuilder);
+        ConfigureDerivativeObligations(modelBuilder);
         ConfigureOfficialSources(modelBuilder);
         ConfigureGenerations(modelBuilder);
         ConfigureActivations(modelBuilder);
@@ -223,17 +234,32 @@ public sealed class ControlPlaneDbContext(DbContextOptions<ControlPlaneDbContext
                     "substr(render_manifest_id, 1, 15) = 'rendermanifest-' AND " +
                     "substr(render_manifest_id, 16) = manifest_sha256");
                 table.HasCheckConstraint("ck_render_manifests_sha", Sha256("manifest_sha256"));
-                table.HasCheckConstraint("ck_render_manifests_schema", "schema_version = 1");
+                table.HasCheckConstraint("ck_render_manifests_schema", "schema_version IN (1, 2)");
                 table.HasCheckConstraint("ck_render_manifests_pages", "source_page_count > 0");
                 table.HasCheckConstraint(
                     "ck_render_manifests_profile",
-                    "render_profile_id = 'pdf-page-png-v1'");
+                    "render_profile_id IN ('pdf-page-png-v1', 'pdf-page-png-notice-v1')");
+                table.HasCheckConstraint(
+                    "ck_render_manifests_obligation",
+                    "(render_profile_id = 'pdf-page-png-v1' AND schema_version = 1 " +
+                    "AND obligation_set_id IS NULL AND obligation_set_sha256 IS NULL) OR " +
+                    "(render_profile_id = 'pdf-page-png-notice-v1' AND schema_version = 2 " +
+                    "AND obligation_set_id IS NOT NULL AND obligation_set_sha256 IS NOT NULL)");
+                table.HasCheckConstraint(
+                    "ck_render_manifests_obligation_identity",
+                    "(obligation_set_id IS NULL AND obligation_set_sha256 IS NULL) OR " +
+                    "(length(obligation_set_id) = 78 " +
+                    "AND substr(obligation_set_id, 1, 14) = 'obligationset-' " +
+                    "AND substr(obligation_set_id, 15) = obligation_set_sha256 " +
+                    $"AND {Sha256("obligation_set_sha256")})");
                 table.HasCheckConstraint(
                     "ck_render_manifests_renderer",
                     StableId("renderer_descriptor"));
                 table.HasCheckConstraint(
                     "ck_render_manifests_generated_utc",
                     UtcInstant("generated_at_utc"));
+                table.HasTrigger("trg_render_manifests_notice_obligation_complete_insert");
+                table.HasTrigger("trg_render_manifests_notice_obligation_complete_update");
             });
             entity.HasKey(row => row.RenderManifestId);
             entity.Property(row => row.RenderManifestId).HasMaxLength(79);
@@ -243,6 +269,8 @@ public sealed class ControlPlaneDbContext(DbContextOptions<ControlPlaneDbContext
             entity.Property(row => row.SourceContentSha256).HasMaxLength(64);
             entity.Property(row => row.RenderProfileId).HasMaxLength(128);
             entity.Property(row => row.RendererDescriptor).HasMaxLength(128);
+            entity.Property(row => row.ObligationSetId).HasMaxLength(78);
+            entity.Property(row => row.ObligationSetSha256).HasMaxLength(64);
             entity.Property(row => row.GeneratedAtUtc).HasMaxLength(33);
             entity.HasAlternateKey(row => new
             {
@@ -271,6 +299,23 @@ public sealed class ControlPlaneDbContext(DbContextOptions<ControlPlaneDbContext
                 row.DocumentVersion,
                 row.ContentSha256,
             }).OnDelete(DeleteBehavior.Restrict);
+            entity.HasOne<DerivativeObligationSetRow>().WithMany().HasForeignKey(row => new
+            {
+                row.ObligationSetId,
+                CanonicalSha256 = row.ObligationSetSha256,
+                row.CorpusId,
+                row.DocumentId,
+                row.DocumentVersion,
+                row.SourceContentSha256,
+            }).HasPrincipalKey(row => new
+            {
+                row.ObligationSetId,
+                row.CanonicalSha256,
+                row.CorpusId,
+                row.DocumentId,
+                row.DocumentVersion,
+                row.SourceContentSha256,
+            }).OnDelete(DeleteBehavior.Restrict);
         });
 
         modelBuilder.Entity<DocumentPageImageRow>(entity =>
@@ -280,7 +325,7 @@ public sealed class ControlPlaneDbContext(DbContextOptions<ControlPlaneDbContext
                 table.HasCheckConstraint("ck_page_images_page", "page_number > 0");
                 table.HasCheckConstraint(
                     "ck_page_images_profile",
-                    "render_profile_id = 'pdf-page-png-v1'");
+                    "render_profile_id IN ('pdf-page-png-v1', 'pdf-page-png-notice-v1')");
                 table.HasCheckConstraint(
                     "ck_page_images_renderer",
                     StableId("renderer_descriptor"));
@@ -293,6 +338,21 @@ public sealed class ControlPlaneDbContext(DbContextOptions<ControlPlaneDbContext
                 table.HasCheckConstraint(
                     "ck_page_images_dimensions",
                     "width_pixels BETWEEN 1 AND 4096 AND height_pixels BETWEEN 1 AND 4096");
+                table.HasCheckConstraint(
+                    "ck_page_images_regions",
+                    "(render_profile_id = 'pdf-page-png-v1' " +
+                    "AND source_region_width_pixels IS NULL " +
+                    "AND source_region_height_pixels IS NULL " +
+                    "AND notice_region_height_pixels IS NULL) OR " +
+                    "(render_profile_id = 'pdf-page-png-notice-v1' " +
+                    "AND source_region_width_pixels IS NOT NULL " +
+                    "AND source_region_height_pixels IS NOT NULL " +
+                    "AND notice_region_height_pixels IS NOT NULL " +
+                    "AND source_region_width_pixels BETWEEN 1 AND 4096 " +
+                    "AND source_region_height_pixels BETWEEN 1 AND 4096 " +
+                    "AND notice_region_height_pixels BETWEEN 1 AND 4096 " +
+                    "AND source_region_width_pixels = width_pixels " +
+                    "AND source_region_height_pixels + notice_region_height_pixels = height_pixels)");
             });
             entity.HasKey(row => new { row.RenderManifestId, row.PageNumber });
             entity.Property(row => row.RenderManifestId).HasMaxLength(79);
@@ -420,6 +480,173 @@ public sealed class ControlPlaneDbContext(DbContextOptions<ControlPlaneDbContext
                 row.CorpusId,
                 row.CatalogueRevision,
             }).OnDelete(DeleteBehavior.Restrict);
+        });
+    }
+
+    private static void ConfigureDerivativeObligations(ModelBuilder modelBuilder)
+    {
+        modelBuilder.Entity<DerivativeObligationSetRow>(entity =>
+        {
+            entity.ToTable("derivative_obligation_sets", table =>
+            {
+                table.HasCheckConstraint(
+                    "ck_derivative_obligation_sets_identity",
+                    "length(obligation_set_id) = 78 " +
+                    "AND substr(obligation_set_id, 1, 14) = 'obligationset-' " +
+                    "AND substr(obligation_set_id, 15) = canonical_sha256");
+                table.HasCheckConstraint(
+                    "ck_derivative_obligation_sets_canonical_sha",
+                    Sha256("canonical_sha256"));
+                table.HasCheckConstraint("ck_derivative_obligation_sets_schema", "schema_version = 1");
+                table.HasCheckConstraint(
+                    "ck_derivative_obligation_sets_document_version",
+                    "document_version > 0");
+                table.HasCheckConstraint(
+                    "ck_derivative_obligation_sets_mapping_revision",
+                    StableId("rights_mapping_revision"));
+                table.HasCheckConstraint(
+                    "ck_derivative_obligation_sets_language",
+                    Bcp47Shape("content_language"));
+                table.HasCheckConstraint(
+                    "ck_derivative_obligation_sets_publisher",
+                    "length(authoritative_publisher_or_author) BETWEEN 1 AND 512");
+                table.HasCheckConstraint(
+                    "ck_derivative_obligation_sets_title",
+                    "length(document_title) BETWEEN 1 AND 512");
+                table.HasCheckConstraint(
+                    "ck_derivative_obligation_sets_version_label",
+                    "length(document_version_label) BETWEEN 1 AND 128");
+                table.HasCheckConstraint(
+                    "ck_derivative_obligation_sets_source_reference",
+                    "length(source_reference) BETWEEN 1 AND 2048");
+                table.HasCheckConstraint(
+                    "ck_derivative_obligation_sets_attribution",
+                    "length(attribution_text) BETWEEN 1 AND 4096");
+                table.HasCheckConstraint(
+                    "ck_derivative_obligation_sets_copyright",
+                    "length(copyright_notice) BETWEEN 1 AND 8192");
+                table.HasCheckConstraint(
+                    "ck_derivative_obligation_sets_permission",
+                    "length(permission_notice) BETWEEN 1 AND 8192");
+                table.HasCheckConstraint(
+                    "ck_derivative_obligation_sets_trademark_treatment",
+                    "trademark_treatment IN ('Required', 'Prohibited', 'NotApplicable')");
+                table.HasCheckConstraint(
+                    "ck_derivative_obligation_sets_trademark_text",
+                    "length(trademark_or_non_endorsement_text) BETWEEN 1 AND 4096");
+                table.HasCheckConstraint(
+                    "ck_derivative_obligation_sets_change_marking",
+                    "length(change_marking_text) BETWEEN 1 AND 4096");
+                table.HasCheckConstraint(
+                    "ck_derivative_obligation_sets_placement",
+                    "placement_mode = 'VisibleInBinaryAndAccessibleContext'");
+                table.HasCheckConstraint(
+                    "ck_derivative_obligation_sets_assessed_utc",
+                    UtcInstant("assessed_at_utc"));
+                table.HasCheckConstraint(
+                    "ck_derivative_obligation_sets_assessor",
+                    StableId("assessor_id"));
+                table.HasTrigger("trg_derivative_obligation_sets_immutable_update");
+            });
+            entity.HasKey(row => row.ObligationSetId);
+            entity.HasAlternateKey(row => new
+            {
+                row.ObligationSetId,
+                row.CanonicalSha256,
+                row.CorpusId,
+                row.DocumentId,
+                row.DocumentVersion,
+                row.SourceContentSha256,
+            });
+            entity.Property(row => row.ObligationSetId).HasMaxLength(78);
+            entity.Property(row => row.CanonicalSha256).HasMaxLength(64);
+            entity.Property(row => row.CorpusId).HasMaxLength(128);
+            entity.Property(row => row.DocumentId).HasMaxLength(128);
+            entity.Property(row => row.SourceContentSha256).HasMaxLength(64);
+            entity.Property(row => row.RightsMappingRevision).HasMaxLength(128);
+            entity.Property(row => row.ContentLanguage).HasMaxLength(128);
+            entity.Property(row => row.AuthoritativePublisherOrAuthor).HasMaxLength(512);
+            entity.Property(row => row.DocumentTitle).HasMaxLength(512);
+            entity.Property(row => row.DocumentVersionLabel).HasMaxLength(128);
+            entity.Property(row => row.SourceReference).HasMaxLength(2048);
+            entity.Property(row => row.AttributionText).HasMaxLength(4096);
+            entity.Property(row => row.CopyrightNotice).HasMaxLength(8192);
+            entity.Property(row => row.PermissionNotice).HasMaxLength(8192);
+            entity.Property(row => row.TrademarkTreatment).HasMaxLength(13);
+            entity.Property(row => row.TrademarkOrNonEndorsementText).HasMaxLength(4096);
+            entity.Property(row => row.ChangeMarkingText).HasMaxLength(4096);
+            entity.Property(row => row.PlacementMode).HasMaxLength(35);
+            entity.Property(row => row.AssessedAtUtc).HasMaxLength(33);
+            entity.Property(row => row.AssessorId).HasMaxLength(128);
+            entity.HasIndex(row => new
+            {
+                row.CorpusId,
+                row.DocumentId,
+                row.DocumentVersion,
+                row.SourceContentSha256,
+                row.RightsMappingRevision,
+            });
+            entity.HasOne<ContentObjectRow>().WithMany()
+                .HasForeignKey(row => row.SourceContentSha256)
+                .OnDelete(DeleteBehavior.Restrict);
+            entity.HasOne<DocumentVersionRow>().WithMany().HasForeignKey(row => new
+            {
+                row.CorpusId,
+                row.DocumentId,
+                row.DocumentVersion,
+                ContentSha256 = row.SourceContentSha256,
+            }).HasPrincipalKey(row => new
+            {
+                row.CorpusId,
+                row.DocumentId,
+                row.DocumentVersion,
+                row.ContentSha256,
+            }).OnDelete(DeleteBehavior.Restrict);
+        });
+
+        modelBuilder.Entity<DerivativeObligationEvidenceReferenceRow>(entity =>
+        {
+            entity.ToTable("derivative_obligation_evidence_references", table =>
+            {
+                table.HasCheckConstraint(
+                    "ck_derivative_obligation_evidence_ordinal",
+                    "ordinal > 0");
+                table.HasCheckConstraint(
+                    "ck_derivative_obligation_evidence_reference",
+                    StableId("evidence_reference"));
+                table.HasTrigger("trg_derivative_obligation_evidence_immutable_update");
+                table.HasTrigger("trg_derivative_obligation_evidence_sealed_insert");
+                table.HasTrigger("trg_derivative_obligation_evidence_sealed_delete");
+            });
+            entity.HasKey(row => new { row.ObligationSetId, row.Ordinal });
+            entity.Property(row => row.ObligationSetId).HasMaxLength(78);
+            entity.Property(row => row.EvidenceReference).HasMaxLength(128);
+            entity.HasIndex(row => new { row.ObligationSetId, row.EvidenceReference }).IsUnique();
+            entity.HasOne<DerivativeObligationSetRow>().WithMany()
+                .HasForeignKey(row => row.ObligationSetId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        modelBuilder.Entity<DerivativeObligationDisclaimerRow>(entity =>
+        {
+            entity.ToTable("derivative_obligation_disclaimers", table =>
+            {
+                table.HasCheckConstraint(
+                    "ck_derivative_obligation_disclaimers_ordinal",
+                    "ordinal BETWEEN 1 AND 16");
+                table.HasCheckConstraint(
+                    "ck_derivative_obligation_disclaimers_text",
+                    "length(disclaimer_text) BETWEEN 1 AND 8192");
+                table.HasTrigger("trg_derivative_obligation_disclaimers_immutable_update");
+                table.HasTrigger("trg_derivative_obligation_disclaimers_sealed_insert");
+                table.HasTrigger("trg_derivative_obligation_disclaimers_sealed_delete");
+            });
+            entity.HasKey(row => new { row.ObligationSetId, row.Ordinal });
+            entity.Property(row => row.ObligationSetId).HasMaxLength(78);
+            entity.Property(row => row.DisclaimerText).HasMaxLength(8192);
+            entity.HasOne<DerivativeObligationSetRow>().WithMany()
+                .HasForeignKey(row => row.ObligationSetId)
+                .OnDelete(DeleteBehavior.Cascade);
         });
     }
 

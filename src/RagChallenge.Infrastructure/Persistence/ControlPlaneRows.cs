@@ -85,6 +85,71 @@ internal sealed class DocumentVersionRow
     public string? OfficialSnapshotId { get; set; }
 }
 
+internal sealed class DerivativeObligationSetRow
+{
+    public required string ObligationSetId { get; set; }
+
+    public int SchemaVersion { get; set; }
+
+    public required string CanonicalSha256 { get; set; }
+
+    public required string CorpusId { get; set; }
+
+    public required string DocumentId { get; set; }
+
+    public long DocumentVersion { get; set; }
+
+    public required string SourceContentSha256 { get; set; }
+
+    public required string RightsMappingRevision { get; set; }
+
+    public required string ContentLanguage { get; set; }
+
+    public required string AuthoritativePublisherOrAuthor { get; set; }
+
+    public required string DocumentTitle { get; set; }
+
+    public required string DocumentVersionLabel { get; set; }
+
+    public required string SourceReference { get; set; }
+
+    public required string AttributionText { get; set; }
+
+    public required string CopyrightNotice { get; set; }
+
+    public required string PermissionNotice { get; set; }
+
+    public required string TrademarkTreatment { get; set; }
+
+    public required string TrademarkOrNonEndorsementText { get; set; }
+
+    public required string ChangeMarkingText { get; set; }
+
+    public required string PlacementMode { get; set; }
+
+    public required string AssessedAtUtc { get; set; }
+
+    public required string AssessorId { get; set; }
+}
+
+internal sealed class DerivativeObligationEvidenceReferenceRow
+{
+    public required string ObligationSetId { get; set; }
+
+    public int Ordinal { get; set; }
+
+    public required string EvidenceReference { get; set; }
+}
+
+internal sealed class DerivativeObligationDisclaimerRow
+{
+    public required string ObligationSetId { get; set; }
+
+    public int Ordinal { get; set; }
+
+    public required string DisclaimerText { get; set; }
+}
+
 internal sealed class DocumentRenderManifestRow
 {
     public required string RenderManifestId { get; set; }
@@ -106,6 +171,10 @@ internal sealed class DocumentRenderManifestRow
     public required string RenderProfileId { get; set; }
 
     public required string RendererDescriptor { get; set; }
+
+    public string? ObligationSetId { get; set; }
+
+    public string? ObligationSetSha256 { get; set; }
 
     public required string GeneratedAtUtc { get; set; }
 }
@@ -139,6 +208,12 @@ internal sealed class DocumentPageImageRow
     public int WidthPixels { get; set; }
 
     public int HeightPixels { get; set; }
+
+    public int? SourceRegionWidthPixels { get; set; }
+
+    public int? SourceRegionHeightPixels { get; set; }
+
+    public int? NoticeRegionHeightPixels { get; set; }
 }
 
 internal sealed class CatalogueRevisionRow
