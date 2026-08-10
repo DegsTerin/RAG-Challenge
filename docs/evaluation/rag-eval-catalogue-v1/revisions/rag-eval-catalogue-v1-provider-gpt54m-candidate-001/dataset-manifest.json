@@ -1,0 +1,92 @@
+{
+  "schemaVersion": 1,
+  "manifestType": "rag-evaluation-dataset-manifest",
+  "datasetId": "rag-eval-catalogue-v1",
+  "datasetRevision": "rag-eval-catalogue-v1-provider-gpt54m-candidate-001",
+  "predecessorRevision": "rag-eval-catalogue-v1-candidate-001",
+  "status": "frozen-provider-candidate-preparation-unscored",
+  "authorityId": "AUTH-S07-A-PROVIDER-PREP-001",
+  "freezeDate": "2026-08-10",
+  "digestRule": "SHA-256 over the exact UTF-8 LF file bytes after replacing only manifestSha256 with 64 lower-case zero characters.",
+  "manifestSha256": "cb5c4f5a2b3f2a26056158aafc33d9e30bcd2deef22a8db1fdcbd708f184690c",
+  "immutable": true,
+  "scoredResultObserved": false,
+  "providerRunCount": 0,
+  "campaignId": "s07-a-provider-gpt54m-candidate-001",
+  "environmentId": "ENV-S07-A-PROVIDER-01",
+  "predecessorFiles": {
+    "dataset-manifest.json": {
+      "fileSha256": "7275056bac4c3d545df0502494f36739704e21714f9499e9497250d3dd31261a",
+      "byteLength": 6844
+    },
+    "document-manifest.json": {
+      "fileSha256": "4dc91aa62d84d0c4acb4cc03b7fb11c25b3621c9b063f67c37c5ca062bad4dfd",
+      "byteLength": 8571
+    },
+    "case-inventory.json": {
+      "fileSha256": "549474bbdc75100e37fe17af7d691f805c7362e523c9ec9abd2e354d0570a0be",
+      "byteLength": 26056
+    }
+  },
+  "files": [
+    {
+      "path": "campaign-contract.json",
+      "fileSha256": "1b5f50e2d9885ffc4a3a4f84df5081574c940045ac2744e07ada84373b11b2ae",
+      "embeddedManifestSha256": "cd67240154a81170d17f00d06e32d898a5b2598f6b866eb40bf5347165f1fb54"
+    },
+    {
+      "path": "call-schedule.json",
+      "fileSha256": "6ace9c204e44ab997d1a57ec122609e7aa1dae012e5645e430d5271efe5553e7",
+      "embeddedManifestSha256": "5e586ed4c948d3ac6401d441c3ceaabd7880c2569ed99060fcef51b861f568d9"
+    },
+    {
+      "path": "case-inventory.json",
+      "fileSha256": "e8801e964f3026ea15ffe6b6806ea7e1546e7ab0e18df53ba75e769f24ad2c3b",
+      "embeddedManifestSha256": "ceb860fe4b4a0847a788412a5d5af1a89fc9f1644374123bdcf56d89be3e63cc"
+    },
+    {
+      "path": "document-manifest.json",
+      "fileSha256": "18e2771fafa5cf2b54266031d3676ababb609312826a159babaa0bc7a38b473e",
+      "embeddedManifestSha256": "85063c59b873ab7046c42eb27a0457246d7cd22457c8fab7c726d3855d5d41a4"
+    }
+  ],
+  "counts": {
+    "scoredProductCorpusDocuments": 0,
+    "realSourceDocuments": 0,
+    "syntheticFixtureDocuments": 2,
+    "scoredProductCorpusCases": 0,
+    "syntheticFixtureCases": 60,
+    "answerableExpectedOutcomes": 40,
+    "insufficientEvidenceExpectedOutcomes": 20,
+    "providerCallingUniqueCases": 50,
+    "maximumProviderCalls": 109
+  },
+  "frozenComponents": [
+    "dataset",
+    "documents",
+    "cases",
+    "prompt",
+    "response-schema",
+    "provider-configuration",
+    "limits",
+    "call-schedule",
+    "budget",
+    "secret-reference-policy"
+  ],
+  "boundary": {
+    "local": true,
+    "offline": true,
+    "deterministic": true,
+    "fakeHandlerValidationOnly": true,
+    "productCorpus": false,
+    "realSource": false,
+    "providerUsed": false,
+    "credentialValueAccessed": false,
+    "paidCalls": 0,
+    "evaluationExecuted": false,
+    "deploymentExecuted": false,
+    "automaticQualityGateExecuted": false,
+    "humanGateExecuted": false,
+    "lifecycleChanged": false
+  }
+}

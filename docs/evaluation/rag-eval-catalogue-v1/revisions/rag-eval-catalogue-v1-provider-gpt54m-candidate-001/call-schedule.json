@@ -1,0 +1,900 @@
+{
+  "schemaVersion": 1,
+  "manifestType": "rag-evaluation-provider-call-schedule",
+  "datasetId": "rag-eval-catalogue-v1",
+  "datasetRevision": "rag-eval-catalogue-v1-provider-gpt54m-candidate-001",
+  "campaignId": "s07-a-provider-gpt54m-candidate-001",
+  "status": "frozen-preparation-unexecuted",
+  "authorityId": "AUTH-S07-A-PROVIDER-PREP-001",
+  "freezeDate": "2026-08-10",
+  "digestRule": "SHA-256 over the exact UTF-8 LF file bytes after replacing only manifestSha256 with 64 lower-case zero characters.",
+  "manifestSha256": "5e586ed4c948d3ac6401d441c3ceaabd7880c2569ed99060fcef51b861f568d9",
+  "maximumProviderCalls": 109,
+  "counts": {
+    "contractSmoke": 4,
+    "warmUp": 5,
+    "measured": 100,
+    "total": 109
+  },
+  "retryCount": 0,
+  "concurrency": 1,
+  "providerCallingUniqueCaseCount": 50,
+  "repeatedCasesAffectOnly": [
+    "latency",
+    "stability"
+  ],
+  "calls": [
+    {
+      "callIndex": 1,
+      "phase": "contract-smoke",
+      "caseId": "case-provider-001-pt-br-to-pt-br-answerable",
+      "repetition": 0,
+      "measured": false,
+      "qualityDenominatorContribution": false
+    },
+    {
+      "callIndex": 2,
+      "phase": "contract-smoke",
+      "caseId": "case-provider-011-pt-br-to-en-gb-answerable",
+      "repetition": 0,
+      "measured": false,
+      "qualityDenominatorContribution": false
+    },
+    {
+      "callIndex": 3,
+      "phase": "contract-smoke",
+      "caseId": "case-provider-021-en-gb-to-pt-br-answerable",
+      "repetition": 0,
+      "measured": false,
+      "qualityDenominatorContribution": false
+    },
+    {
+      "callIndex": 4,
+      "phase": "contract-smoke",
+      "caseId": "case-provider-031-en-gb-to-en-gb-answerable",
+      "repetition": 0,
+      "measured": false,
+      "qualityDenominatorContribution": false
+    },
+    {
+      "callIndex": 5,
+      "phase": "warm-up",
+      "caseId": "case-provider-002-pt-br-to-pt-br-answerable",
+      "repetition": 0,
+      "measured": false,
+      "qualityDenominatorContribution": false
+    },
+    {
+      "callIndex": 6,
+      "phase": "warm-up",
+      "caseId": "case-provider-012-pt-br-to-en-gb-answerable",
+      "repetition": 0,
+      "measured": false,
+      "qualityDenominatorContribution": false
+    },
+    {
+      "callIndex": 7,
+      "phase": "warm-up",
+      "caseId": "case-provider-022-en-gb-to-pt-br-answerable",
+      "repetition": 0,
+      "measured": false,
+      "qualityDenominatorContribution": false
+    },
+    {
+      "callIndex": 8,
+      "phase": "warm-up",
+      "caseId": "case-provider-032-en-gb-to-en-gb-answerable",
+      "repetition": 0,
+      "measured": false,
+      "qualityDenominatorContribution": false
+    },
+    {
+      "callIndex": 9,
+      "phase": "warm-up",
+      "caseId": "case-provider-046-pt-br-insufficient-evidence-present",
+      "repetition": 0,
+      "measured": false,
+      "qualityDenominatorContribution": false
+    },
+    {
+      "callIndex": 10,
+      "phase": "measured",
+      "caseId": "case-provider-001-pt-br-to-pt-br-answerable",
+      "repetition": 1,
+      "measured": true,
+      "qualityDenominatorContribution": true
+    },
+    {
+      "callIndex": 11,
+      "phase": "measured",
+      "caseId": "case-provider-002-pt-br-to-pt-br-answerable",
+      "repetition": 1,
+      "measured": true,
+      "qualityDenominatorContribution": true
+    },
+    {
+      "callIndex": 12,
+      "phase": "measured",
+      "caseId": "case-provider-003-pt-br-to-pt-br-answerable",
+      "repetition": 1,
+      "measured": true,
+      "qualityDenominatorContribution": true
+    },
+    {
+      "callIndex": 13,
+      "phase": "measured",
+      "caseId": "case-provider-004-pt-br-to-pt-br-answerable",
+      "repetition": 1,
+      "measured": true,
+      "qualityDenominatorContribution": true
+    },
+    {
+      "callIndex": 14,
+      "phase": "measured",
+      "caseId": "case-provider-005-pt-br-to-pt-br-answerable",
+      "repetition": 1,
+      "measured": true,
+      "qualityDenominatorContribution": true
+    },
+    {
+      "callIndex": 15,
+      "phase": "measured",
+      "caseId": "case-provider-006-pt-br-to-pt-br-answerable",
+      "repetition": 1,
+      "measured": true,
+      "qualityDenominatorContribution": true
+    },
+    {
+      "callIndex": 16,
+      "phase": "measured",
+      "caseId": "case-provider-007-pt-br-to-pt-br-answerable",
+      "repetition": 1,
+      "measured": true,
+      "qualityDenominatorContribution": true
+    },
+    {
+      "callIndex": 17,
+      "phase": "measured",
+      "caseId": "case-provider-008-pt-br-to-pt-br-answerable",
+      "repetition": 1,
+      "measured": true,
+      "qualityDenominatorContribution": true
+    },
+    {
+      "callIndex": 18,
+      "phase": "measured",
+      "caseId": "case-provider-009-pt-br-to-pt-br-answerable",
+      "repetition": 1,
+      "measured": true,
+      "qualityDenominatorContribution": true
+    },
+    {
+      "callIndex": 19,
+      "phase": "measured",
+      "caseId": "case-provider-010-pt-br-to-pt-br-answerable",
+      "repetition": 1,
+      "measured": true,
+      "qualityDenominatorContribution": true
+    },
+    {
+      "callIndex": 20,
+      "phase": "measured",
+      "caseId": "case-provider-011-pt-br-to-en-gb-answerable",
+      "repetition": 1,
+      "measured": true,
+      "qualityDenominatorContribution": true
+    },
+    {
+      "callIndex": 21,
+      "phase": "measured",
+      "caseId": "case-provider-012-pt-br-to-en-gb-answerable",
+      "repetition": 1,
+      "measured": true,
+      "qualityDenominatorContribution": true
+    },
+    {
+      "callIndex": 22,
+      "phase": "measured",
+      "caseId": "case-provider-013-pt-br-to-en-gb-answerable",
+      "repetition": 1,
+      "measured": true,
+      "qualityDenominatorContribution": true
+    },
+    {
+      "callIndex": 23,
+      "phase": "measured",
+      "caseId": "case-provider-014-pt-br-to-en-gb-answerable",
+      "repetition": 1,
+      "measured": true,
+      "qualityDenominatorContribution": true
+    },
+    {
+      "callIndex": 24,
+      "phase": "measured",
+      "caseId": "case-provider-015-pt-br-to-en-gb-answerable",
+      "repetition": 1,
+      "measured": true,
+      "qualityDenominatorContribution": true
+    },
+    {
+      "callIndex": 25,
+      "phase": "measured",
+      "caseId": "case-provider-016-pt-br-to-en-gb-answerable",
+      "repetition": 1,
+      "measured": true,
+      "qualityDenominatorContribution": true
+    },
+    {
+      "callIndex": 26,
+      "phase": "measured",
+      "caseId": "case-provider-017-pt-br-to-en-gb-answerable",
+      "repetition": 1,
+      "measured": true,
+      "qualityDenominatorContribution": true
+    },
+    {
+      "callIndex": 27,
+      "phase": "measured",
+      "caseId": "case-provider-018-pt-br-to-en-gb-answerable",
+      "repetition": 1,
+      "measured": true,
+      "qualityDenominatorContribution": true
+    },
+    {
+      "callIndex": 28,
+      "phase": "measured",
+      "caseId": "case-provider-019-pt-br-to-en-gb-answerable",
+      "repetition": 1,
+      "measured": true,
+      "qualityDenominatorContribution": true
+    },
+    {
+      "callIndex": 29,
+      "phase": "measured",
+      "caseId": "case-provider-020-pt-br-to-en-gb-answerable",
+      "repetition": 1,
+      "measured": true,
+      "qualityDenominatorContribution": true
+    },
+    {
+      "callIndex": 30,
+      "phase": "measured",
+      "caseId": "case-provider-021-en-gb-to-pt-br-answerable",
+      "repetition": 1,
+      "measured": true,
+      "qualityDenominatorContribution": true
+    },
+    {
+      "callIndex": 31,
+      "phase": "measured",
+      "caseId": "case-provider-022-en-gb-to-pt-br-answerable",
+      "repetition": 1,
+      "measured": true,
+      "qualityDenominatorContribution": true
+    },
+    {
+      "callIndex": 32,
+      "phase": "measured",
+      "caseId": "case-provider-023-en-gb-to-pt-br-answerable",
+      "repetition": 1,
+      "measured": true,
+      "qualityDenominatorContribution": true
+    },
+    {
+      "callIndex": 33,
+      "phase": "measured",
+      "caseId": "case-provider-024-en-gb-to-pt-br-answerable",
+      "repetition": 1,
+      "measured": true,
+      "qualityDenominatorContribution": true
+    },
+    {
+      "callIndex": 34,
+      "phase": "measured",
+      "caseId": "case-provider-025-en-gb-to-pt-br-answerable",
+      "repetition": 1,
+      "measured": true,
+      "qualityDenominatorContribution": true
+    },
+    {
+      "callIndex": 35,
+      "phase": "measured",
+      "caseId": "case-provider-026-en-gb-to-pt-br-answerable",
+      "repetition": 1,
+      "measured": true,
+      "qualityDenominatorContribution": true
+    },
+    {
+      "callIndex": 36,
+      "phase": "measured",
+      "caseId": "case-provider-027-en-gb-to-pt-br-answerable",
+      "repetition": 1,
+      "measured": true,
+      "qualityDenominatorContribution": true
+    },
+    {
+      "callIndex": 37,
+      "phase": "measured",
+      "caseId": "case-provider-028-en-gb-to-pt-br-answerable",
+      "repetition": 1,
+      "measured": true,
+      "qualityDenominatorContribution": true
+    },
+    {
+      "callIndex": 38,
+      "phase": "measured",
+      "caseId": "case-provider-029-en-gb-to-pt-br-answerable",
+      "repetition": 1,
+      "measured": true,
+      "qualityDenominatorContribution": true
+    },
+    {
+      "callIndex": 39,
+      "phase": "measured",
+      "caseId": "case-provider-030-en-gb-to-pt-br-answerable",
+      "repetition": 1,
+      "measured": true,
+      "qualityDenominatorContribution": true
+    },
+    {
+      "callIndex": 40,
+      "phase": "measured",
+      "caseId": "case-provider-031-en-gb-to-en-gb-answerable",
+      "repetition": 1,
+      "measured": true,
+      "qualityDenominatorContribution": true
+    },
+    {
+      "callIndex": 41,
+      "phase": "measured",
+      "caseId": "case-provider-032-en-gb-to-en-gb-answerable",
+      "repetition": 1,
+      "measured": true,
+      "qualityDenominatorContribution": true
+    },
+    {
+      "callIndex": 42,
+      "phase": "measured",
+      "caseId": "case-provider-033-en-gb-to-en-gb-answerable",
+      "repetition": 1,
+      "measured": true,
+      "qualityDenominatorContribution": true
+    },
+    {
+      "callIndex": 43,
+      "phase": "measured",
+      "caseId": "case-provider-034-en-gb-to-en-gb-answerable",
+      "repetition": 1,
+      "measured": true,
+      "qualityDenominatorContribution": true
+    },
+    {
+      "callIndex": 44,
+      "phase": "measured",
+      "caseId": "case-provider-035-en-gb-to-en-gb-answerable",
+      "repetition": 1,
+      "measured": true,
+      "qualityDenominatorContribution": true
+    },
+    {
+      "callIndex": 45,
+      "phase": "measured",
+      "caseId": "case-provider-036-en-gb-to-en-gb-answerable",
+      "repetition": 1,
+      "measured": true,
+      "qualityDenominatorContribution": true
+    },
+    {
+      "callIndex": 46,
+      "phase": "measured",
+      "caseId": "case-provider-037-en-gb-to-en-gb-answerable",
+      "repetition": 1,
+      "measured": true,
+      "qualityDenominatorContribution": true
+    },
+    {
+      "callIndex": 47,
+      "phase": "measured",
+      "caseId": "case-provider-038-en-gb-to-en-gb-answerable",
+      "repetition": 1,
+      "measured": true,
+      "qualityDenominatorContribution": true
+    },
+    {
+      "callIndex": 48,
+      "phase": "measured",
+      "caseId": "case-provider-039-en-gb-to-en-gb-answerable",
+      "repetition": 1,
+      "measured": true,
+      "qualityDenominatorContribution": true
+    },
+    {
+      "callIndex": 49,
+      "phase": "measured",
+      "caseId": "case-provider-040-en-gb-to-en-gb-answerable",
+      "repetition": 1,
+      "measured": true,
+      "qualityDenominatorContribution": true
+    },
+    {
+      "callIndex": 50,
+      "phase": "measured",
+      "caseId": "case-provider-046-pt-br-insufficient-evidence-present",
+      "repetition": 1,
+      "measured": true,
+      "qualityDenominatorContribution": true
+    },
+    {
+      "callIndex": 51,
+      "phase": "measured",
+      "caseId": "case-provider-047-pt-br-insufficient-evidence-present",
+      "repetition": 1,
+      "measured": true,
+      "qualityDenominatorContribution": true
+    },
+    {
+      "callIndex": 52,
+      "phase": "measured",
+      "caseId": "case-provider-048-pt-br-insufficient-evidence-present",
+      "repetition": 1,
+      "measured": true,
+      "qualityDenominatorContribution": true
+    },
+    {
+      "callIndex": 53,
+      "phase": "measured",
+      "caseId": "case-provider-049-pt-br-insufficient-evidence-present",
+      "repetition": 1,
+      "measured": true,
+      "qualityDenominatorContribution": true
+    },
+    {
+      "callIndex": 54,
+      "phase": "measured",
+      "caseId": "case-provider-050-pt-br-insufficient-evidence-present",
+      "repetition": 1,
+      "measured": true,
+      "qualityDenominatorContribution": true
+    },
+    {
+      "callIndex": 55,
+      "phase": "measured",
+      "caseId": "case-provider-056-en-gb-insufficient-evidence-present",
+      "repetition": 1,
+      "measured": true,
+      "qualityDenominatorContribution": true
+    },
+    {
+      "callIndex": 56,
+      "phase": "measured",
+      "caseId": "case-provider-057-en-gb-insufficient-evidence-present",
+      "repetition": 1,
+      "measured": true,
+      "qualityDenominatorContribution": true
+    },
+    {
+      "callIndex": 57,
+      "phase": "measured",
+      "caseId": "case-provider-058-en-gb-insufficient-evidence-present",
+      "repetition": 1,
+      "measured": true,
+      "qualityDenominatorContribution": true
+    },
+    {
+      "callIndex": 58,
+      "phase": "measured",
+      "caseId": "case-provider-059-en-gb-insufficient-evidence-present",
+      "repetition": 1,
+      "measured": true,
+      "qualityDenominatorContribution": true
+    },
+    {
+      "callIndex": 59,
+      "phase": "measured",
+      "caseId": "case-provider-060-en-gb-insufficient-evidence-present",
+      "repetition": 1,
+      "measured": true,
+      "qualityDenominatorContribution": true
+    },
+    {
+      "callIndex": 60,
+      "phase": "measured",
+      "caseId": "case-provider-001-pt-br-to-pt-br-answerable",
+      "repetition": 2,
+      "measured": true,
+      "qualityDenominatorContribution": false
+    },
+    {
+      "callIndex": 61,
+      "phase": "measured",
+      "caseId": "case-provider-002-pt-br-to-pt-br-answerable",
+      "repetition": 2,
+      "measured": true,
+      "qualityDenominatorContribution": false
+    },
+    {
+      "callIndex": 62,
+      "phase": "measured",
+      "caseId": "case-provider-003-pt-br-to-pt-br-answerable",
+      "repetition": 2,
+      "measured": true,
+      "qualityDenominatorContribution": false
+    },
+    {
+      "callIndex": 63,
+      "phase": "measured",
+      "caseId": "case-provider-004-pt-br-to-pt-br-answerable",
+      "repetition": 2,
+      "measured": true,
+      "qualityDenominatorContribution": false
+    },
+    {
+      "callIndex": 64,
+      "phase": "measured",
+      "caseId": "case-provider-005-pt-br-to-pt-br-answerable",
+      "repetition": 2,
+      "measured": true,
+      "qualityDenominatorContribution": false
+    },
+    {
+      "callIndex": 65,
+      "phase": "measured",
+      "caseId": "case-provider-006-pt-br-to-pt-br-answerable",
+      "repetition": 2,
+      "measured": true,
+      "qualityDenominatorContribution": false
+    },
+    {
+      "callIndex": 66,
+      "phase": "measured",
+      "caseId": "case-provider-007-pt-br-to-pt-br-answerable",
+      "repetition": 2,
+      "measured": true,
+      "qualityDenominatorContribution": false
+    },
+    {
+      "callIndex": 67,
+      "phase": "measured",
+      "caseId": "case-provider-008-pt-br-to-pt-br-answerable",
+      "repetition": 2,
+      "measured": true,
+      "qualityDenominatorContribution": false
+    },
+    {
+      "callIndex": 68,
+      "phase": "measured",
+      "caseId": "case-provider-009-pt-br-to-pt-br-answerable",
+      "repetition": 2,
+      "measured": true,
+      "qualityDenominatorContribution": false
+    },
+    {
+      "callIndex": 69,
+      "phase": "measured",
+      "caseId": "case-provider-010-pt-br-to-pt-br-answerable",
+      "repetition": 2,
+      "measured": true,
+      "qualityDenominatorContribution": false
+    },
+    {
+      "callIndex": 70,
+      "phase": "measured",
+      "caseId": "case-provider-011-pt-br-to-en-gb-answerable",
+      "repetition": 2,
+      "measured": true,
+      "qualityDenominatorContribution": false
+    },
+    {
+      "callIndex": 71,
+      "phase": "measured",
+      "caseId": "case-provider-012-pt-br-to-en-gb-answerable",
+      "repetition": 2,
+      "measured": true,
+      "qualityDenominatorContribution": false
+    },
+    {
+      "callIndex": 72,
+      "phase": "measured",
+      "caseId": "case-provider-013-pt-br-to-en-gb-answerable",
+      "repetition": 2,
+      "measured": true,
+      "qualityDenominatorContribution": false
+    },
+    {
+      "callIndex": 73,
+      "phase": "measured",
+      "caseId": "case-provider-014-pt-br-to-en-gb-answerable",
+      "repetition": 2,
+      "measured": true,
+      "qualityDenominatorContribution": false
+    },
+    {
+      "callIndex": 74,
+      "phase": "measured",
+      "caseId": "case-provider-015-pt-br-to-en-gb-answerable",
+      "repetition": 2,
+      "measured": true,
+      "qualityDenominatorContribution": false
+    },
+    {
+      "callIndex": 75,
+      "phase": "measured",
+      "caseId": "case-provider-016-pt-br-to-en-gb-answerable",
+      "repetition": 2,
+      "measured": true,
+      "qualityDenominatorContribution": false
+    },
+    {
+      "callIndex": 76,
+      "phase": "measured",
+      "caseId": "case-provider-017-pt-br-to-en-gb-answerable",
+      "repetition": 2,
+      "measured": true,
+      "qualityDenominatorContribution": false
+    },
+    {
+      "callIndex": 77,
+      "phase": "measured",
+      "caseId": "case-provider-018-pt-br-to-en-gb-answerable",
+      "repetition": 2,
+      "measured": true,
+      "qualityDenominatorContribution": false
+    },
+    {
+      "callIndex": 78,
+      "phase": "measured",
+      "caseId": "case-provider-019-pt-br-to-en-gb-answerable",
+      "repetition": 2,
+      "measured": true,
+      "qualityDenominatorContribution": false
+    },
+    {
+      "callIndex": 79,
+      "phase": "measured",
+      "caseId": "case-provider-020-pt-br-to-en-gb-answerable",
+      "repetition": 2,
+      "measured": true,
+      "qualityDenominatorContribution": false
+    },
+    {
+      "callIndex": 80,
+      "phase": "measured",
+      "caseId": "case-provider-021-en-gb-to-pt-br-answerable",
+      "repetition": 2,
+      "measured": true,
+      "qualityDenominatorContribution": false
+    },
+    {
+      "callIndex": 81,
+      "phase": "measured",
+      "caseId": "case-provider-022-en-gb-to-pt-br-answerable",
+      "repetition": 2,
+      "measured": true,
+      "qualityDenominatorContribution": false
+    },
+    {
+      "callIndex": 82,
+      "phase": "measured",
+      "caseId": "case-provider-023-en-gb-to-pt-br-answerable",
+      "repetition": 2,
+      "measured": true,
+      "qualityDenominatorContribution": false
+    },
+    {
+      "callIndex": 83,
+      "phase": "measured",
+      "caseId": "case-provider-024-en-gb-to-pt-br-answerable",
+      "repetition": 2,
+      "measured": true,
+      "qualityDenominatorContribution": false
+    },
+    {
+      "callIndex": 84,
+      "phase": "measured",
+      "caseId": "case-provider-025-en-gb-to-pt-br-answerable",
+      "repetition": 2,
+      "measured": true,
+      "qualityDenominatorContribution": false
+    },
+    {
+      "callIndex": 85,
+      "phase": "measured",
+      "caseId": "case-provider-026-en-gb-to-pt-br-answerable",
+      "repetition": 2,
+      "measured": true,
+      "qualityDenominatorContribution": false
+    },
+    {
+      "callIndex": 86,
+      "phase": "measured",
+      "caseId": "case-provider-027-en-gb-to-pt-br-answerable",
+      "repetition": 2,
+      "measured": true,
+      "qualityDenominatorContribution": false
+    },
+    {
+      "callIndex": 87,
+      "phase": "measured",
+      "caseId": "case-provider-028-en-gb-to-pt-br-answerable",
+      "repetition": 2,
+      "measured": true,
+      "qualityDenominatorContribution": false
+    },
+    {
+      "callIndex": 88,
+      "phase": "measured",
+      "caseId": "case-provider-029-en-gb-to-pt-br-answerable",
+      "repetition": 2,
+      "measured": true,
+      "qualityDenominatorContribution": false
+    },
+    {
+      "callIndex": 89,
+      "phase": "measured",
+      "caseId": "case-provider-030-en-gb-to-pt-br-answerable",
+      "repetition": 2,
+      "measured": true,
+      "qualityDenominatorContribution": false
+    },
+    {
+      "callIndex": 90,
+      "phase": "measured",
+      "caseId": "case-provider-031-en-gb-to-en-gb-answerable",
+      "repetition": 2,
+      "measured": true,
+      "qualityDenominatorContribution": false
+    },
+    {
+      "callIndex": 91,
+      "phase": "measured",
+      "caseId": "case-provider-032-en-gb-to-en-gb-answerable",
+      "repetition": 2,
+      "measured": true,
+      "qualityDenominatorContribution": false
+    },
+    {
+      "callIndex": 92,
+      "phase": "measured",
+      "caseId": "case-provider-033-en-gb-to-en-gb-answerable",
+      "repetition": 2,
+      "measured": true,
+      "qualityDenominatorContribution": false
+    },
+    {
+      "callIndex": 93,
+      "phase": "measured",
+      "caseId": "case-provider-034-en-gb-to-en-gb-answerable",
+      "repetition": 2,
+      "measured": true,
+      "qualityDenominatorContribution": false
+    },
+    {
+      "callIndex": 94,
+      "phase": "measured",
+      "caseId": "case-provider-035-en-gb-to-en-gb-answerable",
+      "repetition": 2,
+      "measured": true,
+      "qualityDenominatorContribution": false
+    },
+    {
+      "callIndex": 95,
+      "phase": "measured",
+      "caseId": "case-provider-036-en-gb-to-en-gb-answerable",
+      "repetition": 2,
+      "measured": true,
+      "qualityDenominatorContribution": false
+    },
+    {
+      "callIndex": 96,
+      "phase": "measured",
+      "caseId": "case-provider-037-en-gb-to-en-gb-answerable",
+      "repetition": 2,
+      "measured": true,
+      "qualityDenominatorContribution": false
+    },
+    {
+      "callIndex": 97,
+      "phase": "measured",
+      "caseId": "case-provider-038-en-gb-to-en-gb-answerable",
+      "repetition": 2,
+      "measured": true,
+      "qualityDenominatorContribution": false
+    },
+    {
+      "callIndex": 98,
+      "phase": "measured",
+      "caseId": "case-provider-039-en-gb-to-en-gb-answerable",
+      "repetition": 2,
+      "measured": true,
+      "qualityDenominatorContribution": false
+    },
+    {
+      "callIndex": 99,
+      "phase": "measured",
+      "caseId": "case-provider-040-en-gb-to-en-gb-answerable",
+      "repetition": 2,
+      "measured": true,
+      "qualityDenominatorContribution": false
+    },
+    {
+      "callIndex": 100,
+      "phase": "measured",
+      "caseId": "case-provider-046-pt-br-insufficient-evidence-present",
+      "repetition": 2,
+      "measured": true,
+      "qualityDenominatorContribution": false
+    },
+    {
+      "callIndex": 101,
+      "phase": "measured",
+      "caseId": "case-provider-047-pt-br-insufficient-evidence-present",
+      "repetition": 2,
+      "measured": true,
+      "qualityDenominatorContribution": false
+    },
+    {
+      "callIndex": 102,
+      "phase": "measured",
+      "caseId": "case-provider-048-pt-br-insufficient-evidence-present",
+      "repetition": 2,
+      "measured": true,
+      "qualityDenominatorContribution": false
+    },
+    {
+      "callIndex": 103,
+      "phase": "measured",
+      "caseId": "case-provider-049-pt-br-insufficient-evidence-present",
+      "repetition": 2,
+      "measured": true,
+      "qualityDenominatorContribution": false
+    },
+    {
+      "callIndex": 104,
+      "phase": "measured",
+      "caseId": "case-provider-050-pt-br-insufficient-evidence-present",
+      "repetition": 2,
+      "measured": true,
+      "qualityDenominatorContribution": false
+    },
+    {
+      "callIndex": 105,
+      "phase": "measured",
+      "caseId": "case-provider-056-en-gb-insufficient-evidence-present",
+      "repetition": 2,
+      "measured": true,
+      "qualityDenominatorContribution": false
+    },
+    {
+      "callIndex": 106,
+      "phase": "measured",
+      "caseId": "case-provider-057-en-gb-insufficient-evidence-present",
+      "repetition": 2,
+      "measured": true,
+      "qualityDenominatorContribution": false
+    },
+    {
+      "callIndex": 107,
+      "phase": "measured",
+      "caseId": "case-provider-058-en-gb-insufficient-evidence-present",
+      "repetition": 2,
+      "measured": true,
+      "qualityDenominatorContribution": false
+    },
+    {
+      "callIndex": 108,
+      "phase": "measured",
+      "caseId": "case-provider-059-en-gb-insufficient-evidence-present",
+      "repetition": 2,
+      "measured": true,
+      "qualityDenominatorContribution": false
+    },
+    {
+      "callIndex": 109,
+      "phase": "measured",
+      "caseId": "case-provider-060-en-gb-insufficient-evidence-present",
+      "repetition": 2,
+      "measured": true,
+      "qualityDenominatorContribution": false
+    }
+  ]
+}
