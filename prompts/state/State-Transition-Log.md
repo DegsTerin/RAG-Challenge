@@ -6747,3 +6747,35 @@ contém somente fatos cronológicos.
 - Próxima condição: a implementação do obligation-set model, renderer,
   manifest, storage, reachability, serving e Dashboard notice-bearing exige
   autoridade humana separada antes da verificação focal ou de um novo A0.
+
+## 2026-08-10 — ADR-0013 aceito como autoridade arquitetural
+
+- Estado anterior e resultante: `STATE-07 TESTING_HOMOLOGATION` permanece
+  ativo; nenhum Automatic Quality Gate, Human Gate ou lifecycle foi executado
+  ou alterado.
+- Decisão e baseline: o proprietário declarou explicitamente
+  `ADR-0013: ACEITAR.` sobre branch `main`, commit
+  `f03162bad0fc166a597739b22e55fbc46ec59535`, corpus `4.10.17`, working tree
+  inicialmente limpa e OpenAPI v1/v2 protegidas.
+- Autoridade arquitetural: ADR-0013 passa de `proposed` para `accepted`,
+  seleciona `gpt-5.4-mini-2026-03-17` como único candidato de LLM do MVP e
+  substitui somente a seleção anterior de LLM do ADR-0005. Todas as demais
+  decisões do ADR-0005 permanecem inalteradas.
+- Candidato diferido: `gpt-5.6-sol` permanece inativo e não é fallback, modelo
+  secundário ou alvo configurável do runtime. Seu identificador móvel continua
+  registrado como risco de reprodutibilidade para uma avaliação futura.
+- Requisitos preservados: a matriz `pt-BR`/`en-GB`, groundedness, identidade de
+  citações, insuficiência de evidência, prompt injection e limites de latência
+  permanecem gates obrigatórios. Custo continua excluído do ranking sem
+  remover os controles de gasto já aceitos.
+- Limites preservados: não foram autorizados ou executados reconciliação
+  semântica, código, adaptador, configuração, OpenAPI, conta, credencial,
+  provider, chamada paga, corpus real, avaliação, OCI, deploy ou comportamento
+  de produto.
+- Versionamento: corpus elevado por `PATCH` factual de `4.10.17` para
+  `4.10.18`. O histórico preservou byte a byte seu prefixo anterior no SHA-256
+  `b5a989543edc1895388997b2395934fd3a0827fac8811a85b8d8118a1eb09e4b`.
+- Próxima condição: uma reconciliação semântica separadamente autorizada deve
+  aplicar somente a seleção de LLM do ADR-0013 ao ADR-0005 e aos proprietários
+  documentais aplicáveis, sem alterar código, OpenAPI, configuração, provider,
+  corpus real, OCI ou lifecycle.

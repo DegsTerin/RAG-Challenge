@@ -1,15 +1,16 @@
 # ADR-0013 — MVP Language-Model Candidate and Deferred Frontier Evaluation
 
-- Status: proposed
+- Status: accepted
 - Date: 2026-08-10
+- Accepted: 2026-08-10
 - Preparation authority:
   `AUTH-STATE07-LLM-CANDIDATE-ADR-PREP-001`, granted by the product owner on
   `main@f682827d1a26b08fa8c450a1fadb3bd0e1fa1700`, corpus `4.10.17`
-- Decision authority: none; this proposal has not been accepted
+- Decision authority: explicit product-owner decision `ADR-0013: ACEITAR.` on
+  `main@f03162bad0fc166a597739b22e55fbc46ec59535`, corpus `4.10.17`
 - Owners: RAG-Challenge product, architecture, security and operations
-- State: `STATE-07 TESTING_HOMOLOGATION` documentary proposal only
-- Proposed relationship: if separately accepted, supersede only the
-  language-model candidate selection in
+- State: `STATE-07 TESTING_HOMOLOGATION` accepted architecture decision
+- Relationship: supersedes only the language-model candidate selection in
   [ADR-0005](ADR-0005-MVP-Providers-Persistence-And-OCI-Deployment.md); all
   other ADR-0005 decisions remain unchanged
 - Verification status: current unauthenticated public model documentation was
@@ -18,23 +19,23 @@
 
 ## Purpose and authority
 
-This proposal re-evaluates the language-model candidate selected by ADR-0005.
-It proposes `gpt-5.4-mini-2026-03-17` for the first online MVP and retains
+This decision re-evaluates the language-model candidate selected by ADR-0005.
+It selects `gpt-5.4-mini-2026-03-17` for the first online MVP and retains
 `gpt-5.6-sol` only as a future evaluation candidate.
 
-The proposal prioritises predictable delivery, a dated model snapshot,
+The decision prioritises predictable delivery, a dated model snapshot,
 adapter fit, bilingual grounded-answer quality, citation integrity,
 insufficient-evidence behaviour, prompt-injection resistance and the accepted
 query-latency thresholds. Cost is deliberately excluded from the comparative
 ranking. That exclusion does not remove any existing spend control or grant
 authority to incur provider charges.
 
-While this ADR remains `proposed`, ADR-0005 continues to select
-`gpt-4.1-mini-2025-04-14`. This document does not change configuration, code,
-the OpenAPI contracts, lifecycle state or provider authority. It does not
-authorise an account inspection, credential access, real-corpus processing,
-network egress, a paid call, OCI access, implementation, evaluation or
-deployment.
+Acceptance supersedes only ADR-0005's selection of
+`gpt-4.1-mini-2025-04-14`; every other ADR-0005 decision remains unchanged.
+This acceptance does not change configuration, code, the OpenAPI contracts,
+lifecycle state or provider authority. It does not authorise an account
+inspection, credential access, real-corpus processing, network egress, a paid
+call, OCI access, implementation, evaluation or deployment.
 
 ## Context
 
@@ -88,11 +89,11 @@ project-specific groundedness, citation, prompt-injection or latency results.
 - Exclude cost from model ranking without weakening existing spend and
   external-action controls.
 
-## Proposed decision
+## Decision
 
 ### MVP candidate
 
-If this ADR is accepted, select:
+Select:
 
 - provider ID: `openai`;
 - model ID: `gpt-5.4-mini-2026-03-17`;
@@ -110,8 +111,8 @@ contract supports it for the selected reasoning configuration. It must not
 simulate determinism with an ungrounded repair call or silently substitute a
 different model.
 
-This model is a candidate, not an approved provider runtime. Acceptance would
-authorise the architecture selection only. Adapter implementation, account
+This model is a candidate, not an approved provider runtime. Acceptance
+authorises the architecture selection only. Adapter implementation, account
 configuration, secret references, egress, paid evaluation and deployment each
 remain separately authorised work.
 
@@ -138,9 +139,9 @@ The generic `gpt-5.6` alias must not be used as a substitute for the explicit
 
 The existing `ILanguageModel` port and public query contract remain suitable.
 The documented models both support `/v1/responses` and Structured Outputs, so
-no Domain, Application or OpenAPI change is proposed.
+no Domain, Application or OpenAPI change is required by this decision.
 
-Before the proposed MVP candidate can be called, a separately authorised
+Before the selected MVP candidate can be called, a separately authorised
 Infrastructure increment must:
 
 1. make reasoning effort and reasoning context typed, non-secret and
@@ -156,8 +157,8 @@ Infrastructure increment must:
 7. add fake-handler contract tests before any separately authorised provider
    call.
 
-These requirements describe future acceptance and implementation work; they
-do not authorise a code change under this proposal.
+These requirements describe future implementation work; they do not authorise
+a code change under this decision.
 
 ## Bilingual and grounded-answer evaluation
 
@@ -212,10 +213,10 @@ same frozen dataset, prompt version, evidence order and limits, release
 artefact, environment and sample-count rule. It records p50, p95, p99,
 timeouts, refusals and invalid-structure outcomes separately.
 
-`gpt-5.4-mini-2026-03-17` remains the proposed MVP candidate unless a later
+`gpt-5.4-mini-2026-03-17` remains the selected MVP candidate unless a later
 decision is supported by a frontier candidate that passes every hard gate and
 shows a material, repeatable quality improvement within the latency limits.
-Cost does not break a quality tie in this proposal. Reproducibility and lower
+Cost does not break a quality tie in this decision. Reproducibility and lower
 observed latency do.
 
 ## Mutable-identifier risk
@@ -234,10 +235,9 @@ evaluation baseline and must not silently alter the active runtime.
 
 ### Retain `gpt-4.1-mini-2025-04-14`
 
-Viable and currently accepted by ADR-0005, but not proposed for the first
-online MVP because the owner has selected the newer dated 5.4 mini candidate
-for evaluation. It remains the architectural status quo until this ADR is
-separately accepted.
+Viable and previously selected by ADR-0005, but not retained for the first
+online MVP because the owner selected the newer dated 5.4 mini candidate. It
+remains neither an active fallback nor an authorised runtime model.
 
 ### Select `gpt-5.6-sol` immediately
 
@@ -254,12 +254,12 @@ unmeasured behavioural differences.
 
 ### Select a local language model
 
-Not reconsidered by this proposal. Local models remain the separately
+Not reconsidered by this decision. Local models remain the separately
 documented fallback if external-provider data terms or recurring cost are
 rejected; no local runtime, licence, capacity or quality evidence is added
 here.
 
-## Consequences if accepted
+## Consequences
 
 - Only ADR-0005's language-model candidate changes; its provider disclosure,
   data-control, secret, egress, persistence, embedding and OCI decisions stay
@@ -276,19 +276,25 @@ here.
 - Existing provider spend limits remain enforceable even though cost was not
   used to rank the two candidates.
 
-## Acceptance checks
+## Acceptance record
 
-Before this proposal can be presented for a decision, confirm that:
+The owner's explicit decision `ADR-0013: ACEITAR.` confirms this architecture
+decision on clean `main@f03162bad0fc166a597739b22e55fbc46ec59535`, corpus
+`4.10.17`, with the protected OpenAPI v1 and v2 identities unchanged. The
+decision:
 
-- it remains `proposed` and records no acceptance date or decision authority;
-- it changes no current factual state, lifecycle record, OpenAPI artefact,
-  source, test, configuration, provider resource or corpus;
-- its public model facts still match the official OpenAI documentation;
-- the dated 5.4 mini snapshot and mutable Sol identifier are stated exactly;
-- it preserves the accepted bilingual, citation, grounding, insufficient-
-  evidence, prompt-injection and latency thresholds;
-- it does not infer account availability, runtime compatibility or model
-  quality from public documentation; and
-- any later acceptance uses an explicit product-owner decision naming
-  `ADR-0013` and does not authorise implementation, provider access or
-  lifecycle advancement by implication.
+1. selects `gpt-5.4-mini-2026-03-17` as the sole MVP language-model candidate;
+2. supersedes only ADR-0005's earlier language-model candidate selection;
+3. preserves every other provider, persistence, OCI, data-control, spend and
+   operational decision in ADR-0005;
+4. retains `gpt-5.6-sol` only as an inactive future evaluation candidate and
+   records its mutable-identifier risk;
+5. preserves the accepted bilingual, grounding, citation, insufficient-
+   evidence, prompt-injection and latency requirements; and
+6. leaves adapter reconciliation and implementation, account configuration,
+   credentials, provider calls, real-corpus evaluation, OCI, deployment,
+   Automatic Quality Gate, Human Gate and lifecycle under later separate
+   authorities.
+
+Acceptance establishes architecture authority only. It does not itself change
+configuration, code, OpenAPI, runtime behaviour, provider state or lifecycle.

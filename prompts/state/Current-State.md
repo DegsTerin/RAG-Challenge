@@ -1347,6 +1347,14 @@ proprietários.
   corpus `4.10.16`. Schema e migrations foram implementados no commit
   `98036f3c8c496544f4532d1fe48c981f836a1871`; o comportamento notice-bearing
   continua não implementado e o PostgreSQL não foi reclassificado.
+- ADR-0013: `accepted` pela decisão humana explícita
+  `ADR-0013: ACEITAR.` em 2026-08-10 sobre
+  `main@f03162bad0fc166a597739b22e55fbc46ec59535`, corpus `4.10.17`. A decisão
+  seleciona `gpt-5.4-mini-2026-03-17` como único candidato de LLM do MVP,
+  substitui somente a seleção anterior de LLM do ADR-0005 e mantém
+  `gpt-5.6-sol` inativo para avaliação futura. Não autoriza reconciliação
+  semântica, implementação do adaptador, conta, credencial, provider, chamada
+  paga, corpus real, OCI, deploy, gate ou lifecycle.
 
 ## Baseline documental
 
@@ -1354,7 +1362,7 @@ proprietários.
   a política de idioma acrescentou o 21º documento público por incremento
   versionado, e o ADR-0003 acrescentou o 22º.
 - A baseline aprovada no Human Gate de `STATE-00` permanece `3.4.0`.
-- O corpus de instruções vigente possui versão `4.10.17` e 13 arquivos em
+- O corpus de instruções vigente possui versão `4.10.18` e 13 arquivos em
   `prompts/`.
 - Visão, requisitos, arquitetura, RAG, segurança, qualidade, lifecycle,
   roadmap, backlog, estado, histórico e templates estão documentados.
@@ -1445,6 +1453,13 @@ proprietários.
   foreign keys e sealing triggers fail-closed, sem backfill ou mutação legada.
   Renderer, PNG, serving notice-bearing, Dashboard, direitos, dataset, novo A0,
   gate e lifecycle permanecem inalterados ou `NOT_RUN`.
+- O corpus `4.10.18` registra a decisão explícita `ADR-0013: ACEITAR.` somente
+  como autoridade arquitetural. `gpt-5.4-mini-2026-03-17` passa a ser o único
+  candidato de LLM do MVP e `gpt-5.6-sol` permanece inativo para avaliação
+  futura, com risco de identificador móvel registrado. A aceitação não executa
+  reconciliação semântica, implementação, acesso a conta, credencial, provider,
+  chamada paga, corpus real, OCI, deploy, gate ou lifecycle e mantém OpenAPI
+  v1/v2 protegidas.
 - O corpus `4.3.0` formaliza a decisão explícita do proprietário de aceitar
   perguntas e respostas em `pt-BR` e `en-GB`: cada consulta declara o idioma,
   a resposta usa o mesmo idioma, textos derivados da fonte permanecem no
@@ -1760,6 +1775,14 @@ autorizada.
    recuperação operacional, Linux, OCI e produção continuam `NOT_RUN`.
 
 ## Próxima autoridade
+
+O ADR-0013 foi aceito explicitamente mediante `ADR-0013: ACEITAR.` somente
+como autoridade arquitetural. Ele seleciona `gpt-5.4-mini-2026-03-17` para o
+MVP e mantém `gpt-5.6-sol` apenas como candidato futuro inativo. A próxima
+condição diretamente relacionada é uma autoridade humana separada para
+reconciliar semanticamente a decisão aceita no ADR-0005 e nos proprietários
+documentais aplicáveis, sem alterar código, OpenAPI, configuração, provider,
+corpus real, OCI ou lifecycle.
 
 `S07-A` A1-A5 e seu Automatic Quality Gate estão concluídos e aprovados na
 fronteira sintética local autorizada, com `S07-A-FIND-001` e o histórico

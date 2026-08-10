@@ -2,15 +2,16 @@
 
 ## Versão atual
 
-- Versão: `4.10.17`
+- Versão: `4.10.18`
 - Data: 2026-08-10
 - Status: `STATE-07` ativo; ADR-0011 `accepted`, reconciliado e com a correção
   interna da política de serving implementada; o A0 candidato-específico mantém
   o primeiro documento `BLOCKED/EXCLUDED`, com quatro operações visuais
   `UNPROVEN` e distribuição/publicação externa `DENIED`; ADR-0012 `accepted`,
   reconciliado, com revisão do contrato v2 congelada e schema/migrations
-  implementados, mas sem comportamento notice-bearing; homologação de produto,
-  Human Gate e mudança de lifecycle não executados
+  implementados, mas sem comportamento notice-bearing; ADR-0013 `accepted`
+  somente como autoridade arquitetural, sem reconciliação ou implementação;
+  homologação de produto, Human Gate e mudança de lifecycle não executados
 - Escopo: 13 arquivos ativos em `prompts/`
 
 A versão do corpus é independente da versão futura do software.
@@ -24,6 +25,25 @@ A versão do corpus é independente da versão futura do software.
 
 Toda alteração atualiza este arquivo e, quando necessário,
 [`../Start-Here.md`](../Start-Here.md).
+
+## 4.10.18 — 2026-08-10
+
+- Registra a decisão humana explícita `ADR-0013: ACEITAR.` sobre
+  `main@f03162bad0fc166a597739b22e55fbc46ec59535`, corpus `4.10.17`, working
+  tree inicialmente limpa e OpenAPI v1/v2 protegidas.
+- Torna o ADR-0013 `accepted` exclusivamente como autoridade arquitetural,
+  seleciona `gpt-5.4-mini-2026-03-17` como único candidato de LLM do MVP e
+  substitui somente a seleção anterior de LLM do ADR-0005.
+- Mantém `gpt-5.6-sol` como candidato futuro inativo, registra o risco de seu
+  identificador móvel e preserva os requisitos bilíngues, de groundedness,
+  citações, insuficiência de evidência, prompt injection e latência.
+- Preserva todas as demais decisões do ADR-0005, inclusive controles de dados,
+  secrets, egress, gastos, persistência e OCI. Custo permanece fora do ranking,
+  sem remoção dos controles de gasto aceitos.
+- Nenhuma reconciliação semântica, alteração de adaptador, configuração,
+  OpenAPI, acesso a conta, credencial, provider, chamada paga, corpus real,
+  avaliação, OCI, deploy, Automatic Quality Gate, Human Gate ou lifecycle foi
+  autorizada ou executada. A mudança do corpus é `PATCH` factual.
 
 ## 4.10.17 — 2026-08-10
 

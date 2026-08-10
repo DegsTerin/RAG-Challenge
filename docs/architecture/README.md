@@ -50,6 +50,16 @@ required schema, migration and v2 contract direction. Acceptance grants no
 reconciliation, implementation, migration, rendering, candidate or product
 authority.
 
+ADR-0013 was prepared on 2026-08-10 under
+`AUTH-STATE07-LLM-CANDIDATE-ADR-PREP-001` and explicitly accepted by the owner
+on the same date through `ADR-0013: ACEITAR.`. It selects the dated
+`gpt-5.4-mini-2026-03-17` snapshot as the sole MVP language-model candidate,
+superseding only ADR-0005's earlier language-model candidate selection, and
+retains `gpt-5.6-sol` only as an inactive future evaluation candidate with a
+recorded mutable-identifier risk. Acceptance grants no semantic
+reconciliation, adapter change, provider access, paid evaluation, real-corpus
+processing, OCI, deployment or product authority.
+
 The later combined audit failed on `AQG-S02-001`, an internal contradiction
 between observation-inclusive generation identity and observation-only
 freshness rebinding. The owner accepted ADR-0007 explicitly on 2026-08-02. It
@@ -225,6 +235,9 @@ Dashboard -- versioned HTTP --> API
 - [ADR-0012 — Notice-Bearing Page-Image Profile and Derivative Obligation Delivery](ADR-0012-Notice-Bearing-Page-Image-Profile-And-Derivative-Obligation-Delivery.md)
   (`accepted`; no contract revision, schema, migration, implementation,
   rendering or PostgreSQL reclassification authority)
+- [ADR-0013 — MVP Language-Model Candidate and Deferred Frontier Evaluation](ADR-0013-MVP-Language-Model-Candidate-And-Deferred-Frontier-Evaluation.md)
+  (`accepted`; no semantic reconciliation, adapter implementation, provider
+  access, paid evaluation, OCI or deployment authority)
 
 ## STATE-02 design artefacts
 
