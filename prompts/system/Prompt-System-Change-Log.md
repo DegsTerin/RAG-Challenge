@@ -2,7 +2,7 @@
 
 ## Versão atual
 
-- Versão: `4.10.21`
+- Versão: `4.10.22`
 - Data: 2026-08-10
 - Status: `STATE-07` ativo; ADR-0011 `accepted`, reconciliado e com a correção
   interna da política de serving implementada; o A0 candidato-específico mantém
@@ -12,7 +12,8 @@
   implementados, mas sem comportamento notice-bearing; ADR-0013 `accepted` e
   reconciliado semanticamente, com compatibilidade do adaptador implementada e
   Automatic Quality Gate específico aprovado somente na fronteira local,
-  offline e com handlers falsos;
+  offline e com handlers falsos; a campanha candidata de provider possui uma
+  revisão sucessora sintética congelada e validada somente com handlers falsos;
   homologação de produto, Human Gate e mudança de lifecycle não executados
 - Escopo: 13 arquivos ativos em `prompts/`
 
@@ -27,6 +28,36 @@ A versão do corpus é independente da versão futura do software.
 
 Toda alteração atualiza este arquivo e, quando necessário,
 [`../Start-Here.md`](../Start-Here.md).
+
+## 4.10.22 — 2026-08-10
+
+- Reconcilia sob `AUTH-STATE07-S07-A-PROVIDER-PREP-RECONCILE-001`, sobre
+  `main@422286863e7a3c213e96db18144769bd0458a75b`, corpus `4.10.21`, working
+  tree inicialmente limpa e OpenAPI v1/v2 protegidas, a preparação autorizada
+  sob `AUTH-S07-A-PROVIDER-PREP-001`.
+- Registra a campanha `s07-a-provider-gpt54m-candidate-001` e sua revisão
+  sucessora imutável
+  `rag-eval-catalogue-v1-provider-gpt54m-candidate-001`, preservando
+  `rag-eval-catalogue-v1-candidate-001`. A revisão contém dois documentos
+  sintéticos e 60 casos: 40 respondíveis, dez em cada uma das quatro direções
+  obrigatórias `pt-BR`/`en-GB`; 20 de insuficiência; e 12 de prompt injection,
+  cobrindo seis classes por idioma de pergunta.
+- Registra o snapshot `gpt-5.4-mini-2026-03-17`, prompt, schema, configuração,
+  limites, 4 chamadas de smoke, 5 de warm-up, 100 medidas, máximo de 109,
+  retry zero, concorrência um, orçamento operacional de `USD 16` e teto
+  absoluto de `USD 20` como valores congelados e não executados.
+- Registra as verificações observadas na preparação: 2 de 2 testes do novo
+  harness e 20 de 20 testes combinados do harness e do contrato OpenAI
+  passaram somente com handlers falsos; formatação não exigiu mudança;
+  `git diff --check` passou; e a auditoria aprovou 275 arquivos não ignorados.
+- Não registra disponibilidade de conta ou provider, qualidade bilíngue,
+  groundedness, citações, insuficiência de evidência real, resistência a
+  prompt injection, latência ou custo observado. Nenhuma credencial, chamada
+  externa ou paga, corpus/fonte real, OCI, deploy, Automatic Quality Gate,
+  Human Gate ou mudança de lifecycle foi executada.
+- Esta reconciliação altera somente proprietários documentais factuais. O
+  corpus avança por `PATCH` de `4.10.21` para `4.10.22`; código, testes,
+  configuração, Domain, Application, ADRs e OpenAPI permanecem inalterados.
 
 ## 4.10.21 — 2026-08-10
 

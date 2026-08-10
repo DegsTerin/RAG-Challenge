@@ -764,3 +764,115 @@ behaviour, bilingual quality, groundedness, citation quality, insufficient-
 evidence behaviour, prompt-injection resistance, latency, spend, real-corpus
 suitability, OCI, deployment, product homologation, Human Gate and lifecycle
 transition remain `NOT_RUN`.
+
+## GPT-5.4-mini provider-candidate campaign preparation
+
+### Authority, commit and protected baseline
+
+The local, offline and deterministic preparation authorised under
+`AUTH-S07-A-PROVIDER-PREP-001` was completed in focused commit
+`422286863e7a3c213e96db18144769bd0458a75b` from clean
+`main@b28952b4ee875b65b18465396563e036aa7f39b0`, prompt corpus `4.10.21`.
+Runtime preflight found no RAG-Challenge-owned process or listener, so nothing
+was stopped. The commit added nine paths limited to the immutable successor
+revision and the integration-test harness; it did not change Domain,
+Application, production configuration, ADRs or OpenAPI.
+
+The protected OpenAPI artefacts remained unchanged:
+
+| Artefact | SHA-256 | Git blob | Result |
+| --- | --- | --- | --- |
+| OpenAPI v1 | `d6a686b94c926914beb28b437f464430a01de6560c2e2d476cf5c36025813e34` | `a5fb3602fbab33bda6aa56cc4caaa9fdc37c8160` | preserved byte for byte |
+| OpenAPI v2 | `f4dca8db7fb7bd453e580495bb1bb7760812d954344931063e8549ed8f036733` | `5ed6a47631653dd0c137b6ea1e979ae2c14bf8a8` | preserved byte for byte |
+
+### Frozen successor revision
+
+Stable dataset ID `rag-eval-catalogue-v1` now has the immutable, unscored
+successor revision
+`rag-eval-catalogue-v1-provider-gpt54m-candidate-001`. Its predecessor
+`rag-eval-catalogue-v1-candidate-001` remains preserved and unchanged. The
+successor records `providerRunCount=0`, `scoredResultObserved=false`, two
+project-owned synthetic fixture documents and no real-source or product-corpus
+document.
+
+The frozen manifest identities are:
+
+| File | File SHA-256 | Embedded manifest SHA-256 |
+| --- | --- | --- |
+| `dataset-manifest.json` | `60c58571fd8c15c6313d7ca6997be1fb8d06d82611096a363474144aafb8def0` | `cb5c4f5a2b3f2a26056158aafc33d9e30bcd2deef22a8db1fdcbd708f184690c` |
+| `document-manifest.json` | `18e2771fafa5cf2b54266031d3676ababb609312826a159babaa0bc7a38b473e` | `85063c59b873ab7046c42eb27a0457246d7cd22457c8fab7c726d3855d5d41a4` |
+| `case-inventory.json` | `e8801e964f3026ea15ffe6b6806ea7e1546e7ab0e18df53ba75e769f24ad2c3b` | `ceb860fe4b4a0847a788412a5d5af1a89fc9f1644374123bdcf56d89be3e63cc` |
+| `campaign-contract.json` | `1b5f50e2d9885ffc4a3a4f84df5081574c940045ac2744e07ada84373b11b2ae` | `cd67240154a81170d17f00d06e32d898a5b2598f6b866eb40bf5347165f1fb54` |
+| `call-schedule.json` | `6ace9c204e44ab997d1a57ec122609e7aa1dae012e5645e430d5271efe5553e7` | `5e586ed4c948d3ac6401d441c3ceaabd7880c2569ed99060fcef51b861f568d9` |
+
+The inventory contains 60 deterministic synthetic cases. Forty are
+answerable, with ten cases in each mandatory `pt-BR`/`en-GB` question and
+evidence direction. Twenty expect insufficient evidence: ten stop before a
+provider call because no evidence was retrieved, and ten contain evidence that
+does not support the requested fact. Twelve answerable cases contain retrieved
+prompt-injection text, covering six attack classes for each question language.
+The matrix and attack inventory are prepared inputs only; they are not observed
+model-quality or attack-resistance results.
+
+### Frozen provider profile, limits and schedule
+
+Campaign `s07-a-provider-gpt54m-candidate-001` identifies logical environment
+`ENV-S07-A-PROVIDER-01`, provider `openai` and the exact dated model and
+observed revision `gpt-5.4-mini-2026-03-17`. The frozen Responses API profile
+uses `store=false`, omits tools, temperature, background mode and previous-
+response state, and fixes `reasoning.effort=none` and
+`reasoning.context=current_turn`. Prompt `grounded-answer-v1`, its exact text
+digest, the strict `grounded_answer` response schema and its digest are frozen.
+
+The existing limits remain frozen at 4,096 UTF-8 question bytes, six evidence
+chunks, 16,000 evidence Unicode scalars, retrieval top eight, 32,768 answer
+characters, 8,192 maximum output tokens, a 2 MiB response, 10-second connect
+timeout, 25-second end-to-end deadline, p95 at most 12 seconds and p99 at most
+20 seconds.
+
+The call schedule contains four contract-smoke calls, five warm-up calls and
+100 measured calls, for an absolute maximum of 109. It uses no retry and
+concurrency one. The 100 measured calls repeat each of the 50 provider-calling
+unique cases twice; only the first repetition contributes to a quality
+denominator, while repeats are reserved for future latency and stability
+observation. The operational budget is frozen at `USD 16`, with an absolute
+ceiling of `USD 20`. These values are limits, not observed calls, latency or
+spend. Only the opaque placeholder `<provider-secret-reference>` is recorded;
+no credential value is present or resolved.
+
+### Fake-handler validation observed during preparation
+
+The provider-candidate harness accepts only an injected `HttpMessageHandler`.
+Its committed validation entry point exposes only `-Mode Validate`; there is no
+real-run mode or external transport composition. The in-process fake handler
+validated the exact request property set, dated model, `store=false`, reasoning
+profile, output-token limit, prompt digest, strict schema digest, evidence and
+structured response for the 50 provider-calling unique cases. Fake responses
+were constructed from the frozen expectations, so this is adapter and campaign
+contract evidence, not semantic model evaluation.
+
+The final preparation checks produced these observed results:
+
+| Command or boundary | Exit code | Observed result |
+| --- | --- | --- |
+| `pwsh -NoProfile -File tests/RagChallenge.IntegrationTests/S07AProviderHarness/Invoke-S07AProviderHarness.ps1 -Mode Validate` | `0` | 2 of 2 provider-preparation tests passed with the in-process fake handler |
+| focused Release tests for `S07AProviderHarness` and `OpenAiHttpAdapterContractTests` with `--no-restore` | `0` | 20 of 20 passed with fake handlers |
+| `dotnet format RAG-Challenge.sln --verify-no-changes --no-restore --verbosity minimal` | `0` | no formatting change required |
+| `pwsh -NoProfile -File eng/check-repository.ps1` | `0` | repository audit passed for 275 non-ignored files |
+| `git diff --cached --check` | `0` | no whitespace error |
+
+The final preparation commit left `main` clean and no RAG-Challenge-owned
+process remained. The present documentary reconciliation independently
+recomputed every successor file and embedded-manifest digest and matched the
+three recorded predecessor file identities without running the harness.
+
+### Boundary and disposition
+
+Preparation status is `frozen-provider-candidate-preparation-unscored`. It
+does not establish account availability, provider entitlement or behaviour,
+bilingual quality, groundedness, citation quality, correct real-model
+insufficient-evidence behaviour, prompt-injection resistance, latency, cost or
+real-corpus suitability. No account, credential value, external provider,
+real corpus, real source, OCI or paid service was accessed. No real evaluation,
+deployment, Automatic Quality Gate, Human Gate, product homologation or
+lifecycle transition was executed or implied.

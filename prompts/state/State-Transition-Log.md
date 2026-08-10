@@ -6890,3 +6890,54 @@ contém somente fatos cronológicos.
   autoridade humana separada e deve congelar dataset, prompt, configuração,
   ambiente, limites, orçamento e critérios de parada antes de acessar conta,
   credencial, provider, corpus real ou OCI ou executar chamada paga.
+
+## 2026-08-10 — Preparação da campanha candidata GPT-5.4 mini reconciliada
+
+- Estado anterior e resultante: `STATE-07 TESTING_HOMOLOGATION` permanece
+  ativo; nenhum Automatic Quality Gate, Human Gate ou lifecycle foi executado
+  ou alterado.
+- Autoridade e baseline documental:
+  `AUTH-STATE07-S07-A-PROVIDER-PREP-RECONCILE-001`, branch `main`, commit
+  `422286863e7a3c213e96db18144769bd0458a75b`, corpus `4.10.21`, working tree
+  inicialmente limpa e OpenAPI v1/v2 protegidas. O runtime preflight desta
+  reconciliação puramente documental foi `NÃO APLICÁVEL`.
+- Preparação reconciliada: o incremento autorizado sob
+  `AUTH-S07-A-PROVIDER-PREP-001` criou no commit focal
+  `422286863e7a3c213e96db18144769bd0458a75b` somente a revisão sucessora
+  imutável `rag-eval-catalogue-v1-provider-gpt54m-candidate-001` e seu harness
+  de integração. A revisão anterior permaneceu preservada.
+- Matriz sintética: dois documentos sintéticos e zero documento real suportam
+  60 casos; 40 respondíveis, dez por cada direção obrigatória
+  `pt-BR`/`en-GB`; 20 de insuficiência, divididos igualmente entre zero chamada
+  e evidência presente porém insuficiente; e 12 de prompt injection, com seis
+  classes por idioma de pergunta. Esses números são inventário preparado, não
+  resultado de qualidade.
+- Configuração congelada: snapshot `gpt-5.4-mini-2026-03-17`, prompt e schema
+  com digests, `store=false`, tools e parâmetros não comprovados omitidos,
+  `reasoning.effort=none`, `reasoning.context=current_turn`, limites aceitos,
+  agenda de 4 smoke + 5 warm-up + 100 medidas, máximo 109, retry zero,
+  concorrência um, orçamento operacional de `USD 16` e teto absoluto de
+  `USD 20`. Nenhum desses valores constitui uso ou custo observado.
+- Evidência focal observada na preparação: 2 de 2 testes do novo harness e 20
+  de 20 testes combinados com o contrato OpenAI passaram somente com handlers
+  falsos; a formatação não exigiu mudança; `git diff --check` passou; e a
+  auditoria aprovou 275 arquivos não ignorados. A reconciliação atual
+  recomputou os cinco digests de arquivo e de manifest e conferiu as três
+  identidades da revisão predecessora sem executar o harness.
+- Artefatos protegidos: OpenAPI v1 permaneceu no SHA-256
+  `d6a686b94c926914beb28b437f464430a01de6560c2e2d476cf5c36025813e34` e blob
+  `a5fb3602fbab33bda6aa56cc4caaa9fdc37c8160`; OpenAPI v2 permaneceu no
+  SHA-256 `f4dca8db7fb7bd453e580495bb1bb7760812d954344931063e8549ed8f036733` e
+  blob `5ed6a47631653dd0c137b6ea1e979ae2c14bf8a8`.
+- Limites preservados: conta, credencial, provider, corpus/fonte real, OCI,
+  chamada externa ou paga, avaliação real, qualidade bilíngue, groundedness,
+  citações, insuficiência de evidência real, resistência a prompt injection,
+  latência, custo observado, deploy, Automatic Quality Gate, Human Gate e
+  mudança de lifecycle permanecem `NOT_RUN`.
+- Versionamento: corpus elevado por `PATCH` factual de `4.10.21` para
+  `4.10.22`. O histórico preservou byte a byte seu prefixo anterior no SHA-256
+  `b933841bef5680cd7c4616ae68169a0740607fa938bd19ae627d2a35b1c443c6`.
+- Próxima condição: um Automatic Quality Gate local e offline da preparação e
+  qualquer execução real da campanha exigem autoridades humanas separadas. A
+  execução real também exige conta, referência de secret, egress, spend e
+  corpus de produto explicitamente autorizados.

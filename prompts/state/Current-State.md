@@ -1365,7 +1365,13 @@ proprietários.
   permanece limitada a Infrastructure, testes locais offline e handlers
   falsos; não houve configuração operacional, conta, credencial, chamada ao
   provider, corpus real, OCI, deploy, avaliação real, Human Gate ou mudança de
-  lifecycle.
+  lifecycle. A preparação local, offline e determinística da campanha
+  `s07-a-provider-gpt54m-candidate-001` foi concluída sob
+  `AUTH-S07-A-PROVIDER-PREP-001` no commit
+  `422286863e7a3c213e96db18144769bd0458a75b` e reconciliada factualmente no
+  corpus `4.10.22`. Ela materializa uma revisão sucessora sintética, imutável e
+  não pontuada, com harness limitado a handlers falsos; não executa ou homologa
+  o provider.
 
 ## Baseline documental
 
@@ -1373,7 +1379,7 @@ proprietários.
   a política de idioma acrescentou o 21º documento público por incremento
   versionado, e o ADR-0003 acrescentou o 22º.
 - A baseline aprovada no Human Gate de `STATE-00` permanece `3.4.0`.
-- O corpus de instruções vigente possui versão `4.10.21` e 13 arquivos em
+- O corpus de instruções vigente possui versão `4.10.22` e 13 arquivos em
   `prompts/`.
 - Visão, requisitos, arquitetura, RAG, segurança, qualidade, lifecycle,
   roadmap, backlog, estado, histórico e templates estão documentados.
@@ -1502,6 +1508,20 @@ proprietários.
   falsos. Provider real, avaliação bilíngue, groundedness, citações,
   insuficiência de evidência, prompt injection, latência, custo, corpus real,
   OCI, deploy, Human Gate e lifecycle permanecem `NOT_RUN`.
+- O corpus `4.10.22` reconcilia sob
+  `AUTH-STATE07-S07-A-PROVIDER-PREP-RECONCILE-001` a preparação concluída no
+  commit `422286863e7a3c213e96db18144769bd0458a75b`. A revisão sucessora
+  `rag-eval-catalogue-v1-provider-gpt54m-candidate-001` preserva a revisão
+  congelada anterior e registra dois documentos sintéticos, 60 casos, 40
+  casos respondíveis distribuídos em dez por cada direção obrigatória
+  `pt-BR`/`en-GB`, 20 casos de insuficiência e 12 casos de prompt injection.
+  Prompt, schema, snapshot `gpt-5.4-mini-2026-03-17`, configuração, limites,
+  agenda máxima de 109 chamadas, orçamento operacional de `USD 16` e teto
+  absoluto de `USD 20` estão congelados. O harness e os testes usaram somente
+  handlers falsos; provider real, qualidade bilíngue, groundedness, citações,
+  insuficiência de evidência real, resistência a prompt injection, latência,
+  custo observado, Automatic Quality Gate, Human Gate e lifecycle permanecem
+  `NOT_RUN`.
 - O corpus `4.3.0` formaliza a decisão explícita do proprietário de aceitar
   perguntas e respostas em `pt-BR` e `en-GB`: cada consulta declara o idioma,
   a resposta usa o mesmo idioma, textos derivados da fonte permanecem no
@@ -1783,8 +1803,12 @@ autorizada.
    segurança dinâmica, carga, recuperação operacional, acessibilidade, Linux,
    OCI e produção permanecem `NOT_RUN`; qualquer outro lote de `STATE-07`
    continua não executado e não autorizado.
-4. Verificar tier, entitlement, spend limit e controles da conta OpenAI, além
-   da recuperação/geração bilíngue, antes de usar ou anunciar os providers.
+4. A preparação sintética da campanha
+   `s07-a-provider-gpt54m-candidate-001` está congelada no commit
+   `422286863e7a3c213e96db18144769bd0458a75b`, sem chamada real ou resultado
+   pontuado. Ainda é necessário verificar tier, entitlement, spend limit e
+   controles da conta OpenAI, além da recuperação/geração bilíngue, antes de
+   usar ou anunciar os providers.
 5. Homologar desempenho e capacidade do `SqliteExactVectorStore`; a fixture
    funcional de 10.000 × 1.536 passou, mas não é benchmark, SLA ou teto de
    produto.
@@ -1793,9 +1817,12 @@ autorizada.
    confinada, sem representar armazenamento ou recuperação operacional.
 7. Verificar capacidade, entitlement, IAM, restore, custo e cobrança reais da
    tenancy OCI; as fontes públicas ainda divergem sobre a franquia gratuita.
-8. Materializar `rag-eval-catalogue-v1`, a rubrica e thresholds antes de cada
-   execução pontuada, preservando a matriz `pt-BR`/`en-GB` e acrescentando
-   estratos por tag documental exata sem contar `en` como `en-GB`.
+8. A revisão sucessora sintética de `rag-eval-catalogue-v1` materializa a
+   matriz `pt-BR`/`en-GB`, prompt, schema, configuração, limites, agenda e
+   orçamento da candidata sem pontuação. Antes de qualquer execução real, a
+   revisão pontuada ainda deve congelar o corpus de produto autorizado, a
+   rubrica e os thresholds, acrescentar estratos por tag documental exata e
+   nunca contar `en` como `en-GB`.
 9. `S03-CORR-01` concluiu o primeiro item da ordem de dependência.
    `S04-CORR-04-A` concluiu descritores verificados do content store e
    `S04-CORR-04-B` concluiu contratos/gates de direitos;
@@ -1829,9 +1856,13 @@ determinístico de compatibilidade do adaptador foi implementado sob
 específico foi `APROVADO` sem achados sob
 `AUTH-STATE07-LLM-ADAPTER-COMPAT-AQG-001`, somente na fronteira local, offline,
 determinística e com handlers falsos. Isso não constitui avaliação real nem
-homologação. Qualquer avaliação com conta, credencial, provider, chamada paga,
-corpus real ou OCI exige proposta e autoridade humanas separadas; Human Gate e
-lifecycle permanecem sem alteração.
+homologação. A campanha `s07-a-provider-gpt54m-candidate-001` possui preparação
+sintética congelada sob `AUTH-S07-A-PROVIDER-PREP-001` no commit
+`422286863e7a3c213e96db18144769bd0458a75b`, com agenda e orçamento somente
+planejados e zero execução real. Um Automatic Quality Gate dessa preparação e
+qualquer avaliação com conta, credencial, provider, chamada paga, corpus real
+ou OCI exigem autoridades humanas separadas; Human Gate e lifecycle permanecem
+sem alteração.
 
 `S07-A` A1-A5 e seu Automatic Quality Gate estão concluídos e aprovados na
 fronteira sintética local autorizada, com `S07-A-FIND-001` e o histórico
