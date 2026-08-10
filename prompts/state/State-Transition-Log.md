@@ -6849,3 +6849,44 @@ contém somente fatos cronológicos.
   autoridade humana separada e permanece limitado à fronteira local, offline,
   determinística e com handler falso; não autoriza provider, conta,
   credencial, corpus real, OCI ou chamada paga.
+
+## 2026-08-10 — Automatic Quality Gate do adaptador GPT-5.4 mini aprovado
+
+- Estado anterior e resultante: `STATE-07 TESTING_HOMOLOGATION` permanece
+  ativo; nenhum Human Gate ou lifecycle foi executado ou alterado.
+- Autoridade e baseline documental:
+  `AUTH-STATE07-LLM-ADAPTER-COMPAT-AQG-RECONCILE-001`, branch `main`, commit
+  `6e6fdabb91e2fb4c5186c464ce08f5da390d727a`, corpus `4.10.20`, working tree
+  inicialmente limpa e OpenAPI v1/v2 protegidas. O runtime preflight desta
+  reconciliação puramente documental foi `NÃO APLICÁVEL`.
+- Gate reconciliado: o Automatic Quality Gate autorizado sob
+  `AUTH-STATE07-LLM-ADAPTER-COMPAT-AQG-001` auditou o commit de implementação
+  `b6d6f9102ecf0ea93309f8080acebad02cf16584` somente na fronteira local,
+  offline, determinística e com handlers falsos. O resultado foi `APROVADO`,
+  sem achado P0, P1, P2 ou P3.
+- Evidência observada: o preflight do gate não encontrou processo ou listener
+  do RAG-Challenge; a auditoria aprovou 266 arquivos, a formatação não exigiu
+  mudanças, 18 de 18 testes focais e 11 de 11 testes de arquitetura passaram.
+  A CI offline completa aprovou 154 testes unitários, 191 de integração, 11 de
+  arquitetura e 45 do Dashboard, com cobertura de 95,63% de linhas e 67,65%
+  de branches e build sem avisos ou erros.
+- Auditoria estática: os sete requisitos do ADR-0013 foram atendidos, o
+  incremento conservou somente os dois paths executáveis esperados, não houve
+  diff executável posterior nem padrão de secret, e nenhum identificador de
+  modelo legado ou candidato futuro inativo permaneceu em `src/` ou `tests/`.
+- Artefatos protegidos: OpenAPI v1 permaneceu no SHA-256
+  `d6a686b94c926914beb28b437f464430a01de6560c2e2d476cf5c36025813e34` e blob
+  `a5fb3602fbab33bda6aa56cc4caaa9fdc37c8160`; OpenAPI v2 permaneceu no
+  SHA-256 `f4dca8db7fb7bd453e580495bb1bb7760812d954344931063e8549ed8f036733` e
+  blob `5ed6a47631653dd0c137b6ea1e979ae2c14bf8a8`.
+- Limites preservados: avaliação real, conta, credencial, provider, qualidade
+  bilíngue, groundedness, citações, insuficiência de evidência, prompt
+  injection, latência, custo, corpus real, OCI, deploy, Human Gate e mudança
+  de lifecycle permanecem `NOT_RUN`.
+- Versionamento: corpus elevado por `PATCH` factual de `4.10.20` para
+  `4.10.21`. O histórico preservou byte a byte seu prefixo anterior no SHA-256
+  `a35fdb41fb9eb8798d35b0aa96b4d5e7afe36719e3fcc913b6ace2b84c44c755`.
+- Próxima condição: qualquer proposta de avaliação real do modelo exige
+  autoridade humana separada e deve congelar dataset, prompt, configuração,
+  ambiente, limites, orçamento e critérios de parada antes de acessar conta,
+  credencial, provider, corpus real ou OCI ou executar chamada paga.

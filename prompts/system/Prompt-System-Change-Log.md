@@ -2,7 +2,7 @@
 
 ## Versão atual
 
-- Versão: `4.10.20`
+- Versão: `4.10.21`
 - Data: 2026-08-10
 - Status: `STATE-07` ativo; ADR-0011 `accepted`, reconciliado e com a correção
   interna da política de serving implementada; o A0 candidato-específico mantém
@@ -11,7 +11,8 @@
   reconciliado, com revisão do contrato v2 congelada e schema/migrations
   implementados, mas sem comportamento notice-bearing; ADR-0013 `accepted` e
   reconciliado semanticamente, com compatibilidade do adaptador implementada e
-  verificada somente na fronteira local, offline e com handler falso;
+  Automatic Quality Gate específico aprovado somente na fronteira local,
+  offline e com handlers falsos;
   homologação de produto, Human Gate e mudança de lifecycle não executados
 - Escopo: 13 arquivos ativos em `prompts/`
 
@@ -26,6 +27,30 @@ A versão do corpus é independente da versão futura do software.
 
 Toda alteração atualiza este arquivo e, quando necessário,
 [`../Start-Here.md`](../Start-Here.md).
+
+## 4.10.21 — 2026-08-10
+
+- Reconcilia sob `AUTH-STATE07-LLM-ADAPTER-COMPAT-AQG-RECONCILE-001`, sobre
+  `main@6e6fdabb91e2fb4c5186c464ce08f5da390d727a`, corpus `4.10.20`, working
+  tree inicialmente limpa e OpenAPI v1/v2 protegidas, o Automatic Quality Gate
+  autorizado sob `AUTH-STATE07-LLM-ADAPTER-COMPAT-AQG-001`.
+- Registra o resultado `APROVADO`, sem achado P0, P1, P2 ou P3. A auditoria
+  estática confirmou os sete requisitos de compatibilidade do ADR-0013, os
+  dois paths executáveis esperados, ausência de diff executável posterior e
+  ausência dos identificadores legado ou futuro inativo em `src/` e `tests/`.
+- Registra 266 arquivos aprovados na auditoria do repositório, formatação sem
+  mudança, 18 de 18 testes focais e 11 de 11 testes de arquitetura aprovados.
+  A CI offline completa aprovou 154 testes unitários, 191 de integração, 11 de
+  arquitetura e 45 do Dashboard, com 95,63% de cobertura de linhas, 67,65% de
+  branches e build sem avisos ou erros.
+- Limita a aprovação à compatibilidade local, offline, determinística e com
+  handlers falsos. Avaliação real, conta, credencial, provider, qualidade
+  bilíngue, groundedness, citações, insuficiência de evidência, prompt
+  injection, latência, custo, corpus real, OCI, deploy, Human Gate e lifecycle
+  permanecem `NOT_RUN`.
+- Esta reconciliação altera somente proprietários documentais factuais. O
+  corpus avança por `PATCH` de `4.10.20` para `4.10.21`; código, testes,
+  configuração, Domain, Application, ADRs e OpenAPI permanecem inalterados.
 
 ## 4.10.20 — 2026-08-10
 

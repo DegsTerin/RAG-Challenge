@@ -723,3 +723,44 @@ latency, spend or real-corpus suitability. No account, credential, external
 provider, real corpus, OCI or paid service was accessed. No Automatic Quality
 Gate, Human Gate, deployment, product homologation or lifecycle transition was
 executed or implied.
+
+### Automatic Quality Gate
+
+The separately authorised Automatic Quality Gate ran on 2026-08-10 under
+`AUTH-STATE07-LLM-ADAPTER-COMPAT-AQG-001` from clean
+`main@6e6fdabb91e2fb4c5186c464ce08f5da390d727a`, prompt corpus `4.10.20`.
+Runtime preflight found no RAG-Challenge-owned process or listener, so nothing
+was stopped. The gate used PowerShell `7.6.4`, .NET SDK `10.0.302`, Node.js
+`24.19.0` and npm `11.17.0`.
+
+The static audit confirmed that implementation commit
+`b6d6f9102ecf0ea93309f8080acebad02cf16584` has the required parent
+`27b385d0f534739ccbc4e8d946eea654e00df9fe`, changes only the Infrastructure
+adapter and its integration contract tests, and has no later executable diff.
+It confirmed all seven ADR-0013 adapter requirements, no secret-like value in
+the implementation diff, and no legacy or inactive future model identifier in
+`src/` or `tests/`.
+
+The authorised local and offline commands produced these observed results:
+
+| Command or boundary | Exit code | Observed result |
+| --- | --- | --- |
+| `pwsh -NoProfile -File eng/check-repository.ps1` | `0` | repository audit passed for 266 non-ignored files |
+| `dotnet format RAG-Challenge.sln --verify-no-changes --no-restore --verbosity minimal` | `0` | no formatting change required |
+| focused `OpenAiHttpAdapterContractTests` in Release with `--no-restore` | `0` | 18 of 18 passed through in-process fake handlers |
+| Release architecture tests with `--no-restore` | `0` | 11 of 11 passed |
+| `pwsh -NoProfile -File eng/ci.ps1 -Offline` | `0` | restore policy, build, tests, coverage, lint, typecheck, Dashboard build and final repository audit passed |
+
+The complete offline CI passed 154 unit, 191 integration, 11 architecture and
+45 Dashboard tests. Merged .NET coverage was 95.63% of lines and 67.65% of
+branches; the Release build had zero warnings and zero errors. The protected
+OpenAPI v1 and v2 SHA-256 and Git blob identities remained unchanged. The
+working tree was clean at the end, and no RAG-Challenge-owned process remained.
+
+The Automatic Quality Gate result is `APPROVED`, with no P0, P1, P2 or P3
+finding. Approval is limited to the local, offline, deterministic adapter
+compatibility boundary and fake handlers. Account availability, real-provider
+behaviour, bilingual quality, groundedness, citation quality, insufficient-
+evidence behaviour, prompt-injection resistance, latency, spend, real-corpus
+suitability, OCI, deployment, product homologation, Human Gate and lifecycle
+transition remain `NOT_RUN`.

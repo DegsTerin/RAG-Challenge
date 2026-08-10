@@ -1358,10 +1358,14 @@ proprietários.
   determinístico de compatibilidade do adaptador foi implementado sob
   `AUTH-STATE07-LLM-ADAPTER-COMPAT-001` no commit
   `b6d6f9102ecf0ea93309f8080acebad02cf16584` e reconciliado factualmente no
-  corpus `4.10.20`. A implementação permanece limitada a Infrastructure e ao
-  teste de contrato com handler falso; não houve configuração operacional,
-  conta, credencial, chamada ao provider, corpus real, OCI, deploy, avaliação,
-  Automatic Quality Gate, Human Gate ou mudança de lifecycle.
+  corpus `4.10.20`. O Automatic Quality Gate específico foi `APROVADO`, sem
+  achado P0, P1, P2 ou P3, sob
+  `AUTH-STATE07-LLM-ADAPTER-COMPAT-AQG-001` na baseline
+  `main@6e6fdabb91e2fb4c5186c464ce08f5da390d727a`, corpus `4.10.20`. A evidência
+  permanece limitada a Infrastructure, testes locais offline e handlers
+  falsos; não houve configuração operacional, conta, credencial, chamada ao
+  provider, corpus real, OCI, deploy, avaliação real, Human Gate ou mudança de
+  lifecycle.
 
 ## Baseline documental
 
@@ -1369,7 +1373,7 @@ proprietários.
   a política de idioma acrescentou o 21º documento público por incremento
   versionado, e o ADR-0003 acrescentou o 22º.
 - A baseline aprovada no Human Gate de `STATE-00` permanece `3.4.0`.
-- O corpus de instruções vigente possui versão `4.10.20` e 13 arquivos em
+- O corpus de instruções vigente possui versão `4.10.21` e 13 arquivos em
   `prompts/`.
 - Visão, requisitos, arquitetura, RAG, segurança, qualidade, lifecycle,
   roadmap, backlog, estado, histórico e templates estão documentados.
@@ -1486,6 +1490,18 @@ proprietários.
   passaram. Esses resultados não constituem chamada ao provider, avaliação
   bilíngue ou de qualidade, homologação, Automatic Quality Gate, Human Gate,
   deploy ou mudança de lifecycle.
+- O corpus `4.10.21` reconcilia sob
+  `AUTH-STATE07-LLM-ADAPTER-COMPAT-AQG-RECONCILE-001` o Automatic Quality Gate
+  aprovado sem achados na baseline
+  `main@6e6fdabb91e2fb4c5186c464ce08f5da390d727a`. A auditoria confirmou os sete
+  requisitos do ADR-0013, 18 de 18 testes focais, 11 de 11 testes de
+  arquitetura e a CI offline completa com 154 testes unitários, 191 de
+  integração, 11 de arquitetura e 45 do Dashboard; cobertura de 95,63% de
+  linhas e 67,65% de branches; build sem avisos ou erros. A aprovação vale
+  somente para compatibilidade local, offline, determinística e com handlers
+  falsos. Provider real, avaliação bilíngue, groundedness, citações,
+  insuficiência de evidência, prompt injection, latência, custo, corpus real,
+  OCI, deploy, Human Gate e lifecycle permanecem `NOT_RUN`.
 - O corpus `4.3.0` formaliza a decisão explícita do proprietário de aceitar
   perguntas e respostas em `pt-BR` e `en-GB`: cada consulta declara o idioma,
   a resposta usa o mesmo idioma, textos derivados da fonte permanecem no
@@ -1809,12 +1825,13 @@ semântica documental foi concluída sob
 `AUTH-STATE07-LLM-CANDIDATE-ADR-RECONCILE-001`, e o incremento local, offline e
 determinístico de compatibilidade do adaptador foi implementado sob
 `AUTH-STATE07-LLM-ADAPTER-COMPAT-001` no commit
-`b6d6f9102ecf0ea93309f8080acebad02cf16584`. Esta reconciliação factual não é
-Automatic Quality Gate nem homologação. A próxima condição diretamente
-relacionada é autoridade humana separada para o Automatic Quality Gate desse
-incremento, ainda restrito à fronteira local, offline, determinística e com
-handler falso, sem acesso a conta, credencial, provider, corpus real ou OCI e
-sem chamadas pagas.
+`b6d6f9102ecf0ea93309f8080acebad02cf16584`. O Automatic Quality Gate
+específico foi `APROVADO` sem achados sob
+`AUTH-STATE07-LLM-ADAPTER-COMPAT-AQG-001`, somente na fronteira local, offline,
+determinística e com handlers falsos. Isso não constitui avaliação real nem
+homologação. Qualquer avaliação com conta, credencial, provider, chamada paga,
+corpus real ou OCI exige proposta e autoridade humanas separadas; Human Gate e
+lifecycle permanecem sem alteração.
 
 `S07-A` A1-A5 e seu Automatic Quality Gate estão concluídos e aprovados na
 fronteira sintética local autorizada, com `S07-A-FIND-001` e o histórico
