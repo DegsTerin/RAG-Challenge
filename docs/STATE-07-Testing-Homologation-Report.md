@@ -663,3 +663,63 @@ composition, storage/reachability behaviour, serving, Dashboard presentation,
 dataset and product activation remain unimplemented or `NOT_RUN` as applicable.
 No new A0 was executed, and `postgresql-18-reference-a4` remains
 `BLOCKED/EXCLUDED` with its recorded rights disposition unchanged.
+
+## ADR-0013 OpenAI language-model adapter compatibility
+
+### Authority, implementation and protected baseline
+
+The local, offline and deterministic adapter increment authorised under
+`AUTH-STATE07-LLM-ADAPTER-COMPAT-001` was completed in focused commit
+`b6d6f9102ecf0ea93309f8080acebad02cf16584` from clean
+`main@27b385d0f534739ccbc4e8d946eea654e00df9fe`, prompt corpus `4.10.19`.
+Runtime preflight found no RAG-Challenge-owned process or listener, so nothing
+was stopped.
+
+The protected OpenAPI artefacts remained unchanged:
+
+| Artefact | SHA-256 | Git blob | Result |
+| --- | --- | --- | --- |
+| OpenAPI v1 | `d6a686b94c926914beb28b437f464430a01de6560c2e2d476cf5c36025813e34` | `a5fb3602fbab33bda6aa56cc4caaa9fdc37c8160` | preserved byte for byte |
+| OpenAPI v2 | `f4dca8db7fb7bd453e580495bb1bb7760812d954344931063e8549ed8f036733` | `5ed6a47631653dd0c137b6ea1e979ae2c14bf8a8` | preserved byte for byte |
+
+### Implemented compatibility boundary
+
+`OpenAiLanguageModelOptions` now fixes provider ID `openai`, model ID and
+observed revision to the dated `gpt-5.4-mini-2026-03-17` snapshot. Reasoning
+effort and context are typed, non-secret and immutable for the adapter
+instance; the accepted values serialise as `reasoning.effort=none` and
+`reasoning.context=current_turn`.
+
+The Responses API request preserves `store=false`, bounded input and output,
+the strict structured-output schema and the existing cancellation policy. It
+does not emit `tools`, background mode, previous-response state or
+`temperature`; no support for `temperature` was assumed for the selected
+reasoning configuration.
+
+The response parser requires the exact dated observed model, root and message
+status `completed`, one assistant message and one `output_text` content item.
+Unexpected reasoning items, refusals, incomplete responses, mutable aliases,
+invalid structures and unsupported citations fail with the existing typed,
+sanitised provider outcome. No repair call or fallback model was added.
+
+No operational configuration or runtime composition was added. The adapter
+remains exercised only through an in-process fake HTTP handler.
+
+### Focused observed verification
+
+| Boundary | Observed result |
+| --- | --- |
+| OpenAI adapter contract tests | 18 of 18 passed with an in-process fake handler |
+| Architecture tests | 11 of 11 passed |
+| Formatting verification | passed with `--no-restore` and no changes required |
+| Repository audit | 266 non-ignored files passed |
+| Scope | only the Infrastructure adapter and its integration contract tests changed |
+| Final repository state | focused commit on `main`; working tree clean |
+
+These are focused compatibility results only. They do not establish account
+availability, provider behaviour, bilingual quality, groundedness, citation
+quality, insufficient-evidence behaviour, prompt-injection resistance,
+latency, spend or real-corpus suitability. No account, credential, external
+provider, real corpus, OCI or paid service was accessed. No Automatic Quality
+Gate, Human Gate, deployment, product homologation or lifecycle transition was
+executed or implied.

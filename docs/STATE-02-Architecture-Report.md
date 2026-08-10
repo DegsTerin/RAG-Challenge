@@ -194,7 +194,7 @@ and requested separately.
 | Normalisation | Unicode NFC and deterministic whitespace/control policy | ADR-0005 `accepted`; not implemented. |
 | Chunking | `paragraph-window-v1`, target 3,200 scalars, overlap 480, hard max 4,000 | ADR-0005 `accepted`; must pass evaluation. |
 | Embeddings | OpenAI `text-embedding-3-small`, 1,536 dimensions, cosine | ADR-0005 `accepted` with mutable-alias and disclosure controls; actual tier and `pt-BR`/`en-GB` retrieval quality remain unverified. |
-| Language model | OpenAI `gpt-5.4-mini-2026-03-17` | ADR-0013 `accepted`, superseding only ADR-0005's earlier language-model candidate; default retention/disclosure and no verified Brazilian residency remain accepted, while adapter compatibility, account availability, bilingual quality and latency remain untested. |
+| Language model | OpenAI `gpt-5.4-mini-2026-03-17` | ADR-0013 `accepted`, superseding only ADR-0005's earlier language-model candidate; local adapter contract compatibility passed deterministic fake-handler tests in `b6d6f9102ecf0ea93309f8080acebad02cf16584`, while account availability, real-provider behaviour, bilingual quality and latency remain untested. Default retention/disclosure and no verified Brazilian residency remain accepted. |
 | Catalogue/control persistence | EF Core SQLite | ADR-0005 `accepted`; exact packages remain conditional. |
 | Raw content | Durable content-addressed filesystem | ADR-0005 `accepted`; contract specified, not implemented. |
 | Vector store | Local `SqliteExactVectorStore`, hard SQL pre-filter and exact cosine ranking | ADR-0005 `accepted`; 10,000 chunks is an initial benchmark point, not a product limit. Representative catalogue performance remains untested. |

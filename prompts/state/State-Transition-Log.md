@@ -6809,3 +6809,43 @@ contém somente fatos cronológicos.
   ADR-0013 exige autoridade humana separada. Essa futura autoridade não pode
   inferir acesso a conta, credencial, provider, corpus real, OCI, chamada paga,
   avaliação, gate ou lifecycle.
+
+## 2026-08-10 — Compatibilidade local do adaptador GPT-5.4 mini reconciliada
+
+- Estado anterior e resultante: `STATE-07 TESTING_HOMOLOGATION` permanece
+  ativo; nenhum Automatic Quality Gate, Human Gate ou lifecycle foi executado
+  ou alterado.
+- Autoridade e baseline documental:
+  `AUTH-STATE07-LLM-ADAPTER-COMPAT-RECONCILE-001`, branch `main`, commit
+  `b6d6f9102ecf0ea93309f8080acebad02cf16584`, corpus `4.10.19`, working tree
+  inicialmente limpa e OpenAPI v1/v2 protegidas. O runtime preflight desta
+  reconciliação puramente documental foi `NÃO APLICÁVEL`.
+- Implementação reconciliada: o incremento autorizado sob
+  `AUTH-STATE07-LLM-ADAPTER-COMPAT-001` partiu de
+  `main@27b385d0f534739ccbc4e8d946eea654e00df9fe` e alterou somente o adaptador
+  OpenAI em Infrastructure e seus testes de contrato. O commit focal
+  `b6d6f9102ecf0ea93309f8080acebad02cf16584` exige o snapshot exato
+  `gpt-5.4-mini-2026-03-17`, configura reasoning effort/context de modo tipado
+  e imutável, preserva `store=false`, omite `tools`, `temperature` e estado de
+  resposta anterior e valida estritamente a mensagem estruturada final.
+- Evidência focal observada: 18 de 18 testes do adaptador com handler falso e
+  11 de 11 testes de arquitetura passaram; a verificação de formatação passou
+  sem mudanças e a auditoria do repositório aprovou 266 arquivos não
+  ignorados. O commit final deixou a working tree limpa.
+- Artefatos protegidos: OpenAPI v1 permaneceu no SHA-256
+  `d6a686b94c926914beb28b437f464430a01de6560c2e2d476cf5c36025813e34` e blob
+  `a5fb3602fbab33bda6aa56cc4caaa9fdc37c8160`; OpenAPI v2 permaneceu no
+  SHA-256 `f4dca8db7fb7bd453e580495bb1bb7760812d954344931063e8549ed8f036733` e
+  blob `5ed6a47631653dd0c137b6ea1e979ae2c14bf8a8`.
+- Limites preservados: não houve configuração operacional, acesso a conta,
+  credencial, provider, corpus real ou OCI, chamada externa ou paga, avaliação
+  real, deploy, Automatic Quality Gate, Human Gate ou mudança de lifecycle. A
+  evidência não homologa qualidade bilíngue, groundedness, citações,
+  insuficiência de evidência, prompt injection ou latência do provider.
+- Versionamento: corpus elevado por `PATCH` factual de `4.10.19` para
+  `4.10.20`. O histórico preservou byte a byte seu prefixo anterior no SHA-256
+  `75b34802ec60281caeef1386f85cc1a61a8a48cae6d647df2eb91305bd5f9504`.
+- Próxima condição: o Automatic Quality Gate específico deste incremento exige
+  autoridade humana separada e permanece limitado à fronteira local, offline,
+  determinística e com handler falso; não autoriza provider, conta,
+  credencial, corpus real, OCI ou chamada paga.

@@ -2,7 +2,7 @@
 
 ## Versão atual
 
-- Versão: `4.10.19`
+- Versão: `4.10.20`
 - Data: 2026-08-10
 - Status: `STATE-07` ativo; ADR-0011 `accepted`, reconciliado e com a correção
   interna da política de serving implementada; o A0 candidato-específico mantém
@@ -10,8 +10,9 @@
   `UNPROVEN` e distribuição/publicação externa `DENIED`; ADR-0012 `accepted`,
   reconciliado, com revisão do contrato v2 congelada e schema/migrations
   implementados, mas sem comportamento notice-bearing; ADR-0013 `accepted` e
-  reconciliado semanticamente, sem adaptação ou implementação; homologação de
-  produto, Human Gate e mudança de lifecycle não executados
+  reconciliado semanticamente, com compatibilidade do adaptador implementada e
+  verificada somente na fronteira local, offline e com handler falso;
+  homologação de produto, Human Gate e mudança de lifecycle não executados
 - Escopo: 13 arquivos ativos em `prompts/`
 
 A versão do corpus é independente da versão futura do software.
@@ -25,6 +26,32 @@ A versão do corpus é independente da versão futura do software.
 
 Toda alteração atualiza este arquivo e, quando necessário,
 [`../Start-Here.md`](../Start-Here.md).
+
+## 4.10.20 — 2026-08-10
+
+- Reconcilia sob `AUTH-STATE07-LLM-ADAPTER-COMPAT-RECONCILE-001`, sobre
+  `main@b6d6f9102ecf0ea93309f8080acebad02cf16584`, corpus `4.10.19`, working
+  tree inicialmente limpa e OpenAPI v1/v2 protegidas, o incremento local,
+  offline e determinístico autorizado sob
+  `AUTH-STATE07-LLM-ADAPTER-COMPAT-001`.
+- Registra configuração tipada e imutável de reasoning effort/context, o
+  snapshot exato `gpt-5.4-mini-2026-03-17`, emissão limitada a parâmetros
+  suportados, `store=false`, ausência de `tools` e validação estrita do modelo,
+  status, mensagem, role e único `output_text` estruturado observado.
+- Registra como evidência focal final 18 de 18 testes de contrato do adaptador
+  com handler falso, 11 de 11 testes de arquitetura, verificação de formatação
+  sem mudança e auditoria de 266 arquivos não ignorados aprovada. Somente o
+  adaptador de Infrastructure e seu teste de contrato compõem o commit de
+  implementação.
+- Não registra disponibilidade em conta, comportamento real do provider,
+  qualidade bilíngue, groundedness, citações, insuficiência de evidência,
+  resistência a prompt injection ou latência real. Nenhuma chamada externa ou
+  paga, credencial, corpus real, OCI, deploy, Automatic Quality Gate, Human
+  Gate ou mudança de lifecycle foi executada.
+- Esta reconciliação altera apenas os proprietários documentais factuais. O
+  versionamento do corpus é um `PATCH` de `4.10.19` para `4.10.20`; código,
+  testes, configuração, Domain, Application, ADRs e OpenAPI permanecem
+  inalterados durante esta etapa.
 
 ## 4.10.19 — 2026-08-10
 

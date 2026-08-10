@@ -1,6 +1,6 @@
 # Estado Atual
 
-Este documento é o snapshot factual vigente do workspace em 2026-08-09. Ele
+Este documento é o snapshot factual vigente do workspace em 2026-08-10. Ele
 não concede autoridade. Evolução e decisões no contexto original pertencem ao
 [`State-Transition-Log.md`](State-Transition-Log.md) e aos relatórios
 proprietários.
@@ -1354,9 +1354,14 @@ proprietários.
   substitui somente a seleção anterior de LLM do ADR-0005 e mantém
   `gpt-5.6-sol` inativo para avaliação futura. Sua reconciliação semântica no
   ADR-0005, no relatório arquitetural de `STATE-02` e no índice de arquitetura
-  foi aplicada no corpus `4.10.19`. Não houve implementação do adaptador,
-  alteração de configuração, conta, credencial, provider, chamada paga,
-  corpus real, OCI, deploy, gate ou lifecycle.
+  foi aplicada no corpus `4.10.19`. O incremento local, offline e
+  determinístico de compatibilidade do adaptador foi implementado sob
+  `AUTH-STATE07-LLM-ADAPTER-COMPAT-001` no commit
+  `b6d6f9102ecf0ea93309f8080acebad02cf16584` e reconciliado factualmente no
+  corpus `4.10.20`. A implementação permanece limitada a Infrastructure e ao
+  teste de contrato com handler falso; não houve configuração operacional,
+  conta, credencial, chamada ao provider, corpus real, OCI, deploy, avaliação,
+  Automatic Quality Gate, Human Gate ou mudança de lifecycle.
 
 ## Baseline documental
 
@@ -1364,7 +1369,7 @@ proprietários.
   a política de idioma acrescentou o 21º documento público por incremento
   versionado, e o ADR-0003 acrescentou o 22º.
 - A baseline aprovada no Human Gate de `STATE-00` permanece `3.4.0`.
-- O corpus de instruções vigente possui versão `4.10.19` e 13 arquivos em
+- O corpus de instruções vigente possui versão `4.10.20` e 13 arquivos em
   `prompts/`.
 - Visão, requisitos, arquitetura, RAG, segurança, qualidade, lifecycle,
   roadmap, backlog, estado, histórico e templates estão documentados.
@@ -1470,6 +1475,17 @@ proprietários.
   futuro inativo. Nenhuma outra decisão do ADR-0005 muda; código, testes,
   OpenAPI, configuração, provider, conta, credencial, chamada paga, corpus
   real, OCI, deploy, gate e lifecycle permanecem inalterados ou `NOT_RUN`.
+- O corpus `4.10.20` reconcilia sob
+  `AUTH-STATE07-LLM-ADAPTER-COMPAT-RECONCILE-001` o incremento implementado no
+  commit `b6d6f9102ecf0ea93309f8080acebad02cf16584`. O adaptador exige o snapshot
+  exato `gpt-5.4-mini-2026-03-17`, usa configuração tipada e imutável para
+  `reasoning.effort=none` e `reasoning.context=current_turn`, preserva
+  `store=false`, não emite `tools` nem parâmetros não comprovados e valida
+  estritamente a mensagem estruturada final. Os testes locais com handler
+  falso aprovaram 18 de 18 casos, e os 11 testes de arquitetura também
+  passaram. Esses resultados não constituem chamada ao provider, avaliação
+  bilíngue ou de qualidade, homologação, Automatic Quality Gate, Human Gate,
+  deploy ou mudança de lifecycle.
 - O corpus `4.3.0` formaliza a decisão explícita do proprietário de aceitar
   perguntas e respostas em `pt-BR` e `en-GB`: cada consulta declara o idioma,
   a resposta usa o mesmo idioma, textos derivados da fonte permanecem no
@@ -1790,10 +1806,14 @@ O ADR-0013 foi aceito explicitamente mediante `ADR-0013: ACEITAR.` somente
 como autoridade arquitetural. Ele seleciona `gpt-5.4-mini-2026-03-17` para o
 MVP e mantém `gpt-5.6-sol` apenas como candidato futuro inativo. A reconciliação
 semântica documental foi concluída sob
-`AUTH-STATE07-LLM-CANDIDATE-ADR-RECONCILE-001`, preservando todas as demais
-decisões do ADR-0005. A próxima condição diretamente relacionada é autoridade
-humana separada para o incremento de compatibilidade do adaptador descrito no
-ADR-0013, ainda sem acesso a conta, credencial, provider, corpus real ou OCI e
+`AUTH-STATE07-LLM-CANDIDATE-ADR-RECONCILE-001`, e o incremento local, offline e
+determinístico de compatibilidade do adaptador foi implementado sob
+`AUTH-STATE07-LLM-ADAPTER-COMPAT-001` no commit
+`b6d6f9102ecf0ea93309f8080acebad02cf16584`. Esta reconciliação factual não é
+Automatic Quality Gate nem homologação. A próxima condição diretamente
+relacionada é autoridade humana separada para o Automatic Quality Gate desse
+incremento, ainda restrito à fronteira local, offline, determinística e com
+handler falso, sem acesso a conta, credencial, provider, corpus real ou OCI e
 sem chamadas pagas.
 
 `S07-A` A1-A5 e seu Automatic Quality Gate estão concluídos e aprovados na
