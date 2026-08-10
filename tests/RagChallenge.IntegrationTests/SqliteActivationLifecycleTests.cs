@@ -192,6 +192,120 @@ public sealed class SqliteActivationLifecycleTests
         }
     }
 
+    [Theory]
+    [InlineData(false, VisualEvidenceReadOutcome.Available)]
+    [InlineData(true, VisualEvidenceReadOutcome.Unavailable)]
+    public async Task NoticeBearingVisualReaderRevalidatesTheExactRightsMapping(
+        bool mismatchActiveRights,
+        VisualEvidenceReadOutcome expectedOutcome)
+    {
+        await using var fixture = await SqlitePersistenceFixture.CreateAsync();
+        var (catalogue, binding) = await fixture.CommitLocalCatalogueAsync();
+        var document = Assert.Single(catalogue.DocumentVersions);
+        var generation = await fixture.CommitGenerationAsync(binding, "notice-visual-serving");
+        var mappedRights = CreateRights(binding);
+        var obligationSet = DerivativeObligationSetV1.Create(
+            mappedRights,
+            document.ContentObjectId,
+            mappedRights.Decisions.Select(decision => decision.EvidenceReference),
+            DocumentContentLanguage.EnGb,
+            "Synthetic Documentation Group",
+            "Synthetic Notice Reference",
+            "1.0",
+            "synthetic-source-v1",
+            "Synthetic attribution.",
+            "Synthetic copyright notice.",
+            "Synthetic permission notice.",
+            ["Synthetic disclaimer."],
+            DerivativeTrademarkTreatment.NotApplicable,
+            "NotApplicable: no trademark applies to this synthetic fixture.",
+            "Rendered synthetic derivative with an unchanged source region.",
+            SqlitePersistenceFixture.At(2),
+            "assessor-synthetic-v1");
+        var imageBytes = CreatePngHeader(width: 1, height: 2);
+        await using var imageStream = new MemoryStream(imageBytes, writable: false);
+        var image = await fixture.ContentStore.PutAndVerifyAsync(new BoundedContentInput(
+            imageStream,
+            imageBytes.Length,
+            ContentMediaType.ImagePng));
+        var profile = new RenderProfileId(RenderProfileId.PdfPagePngNoticeV1);
+        var renderer = new RendererDescriptor("notice-png-v1:synthetic");
+        var page = new DocumentPageImage(
+            binding.DocumentId,
+            binding.DocumentVersion,
+            document.ContentObjectId,
+            1,
+            profile,
+            renderer,
+            image.ContentObjectId,
+            new ImageSha256(image.Sha256.Value),
+            image.ByteLength,
+            DocumentPageImage.PngMediaType,
+            1,
+            2,
+            sourceRegionWidthPixels: 1,
+            sourceRegionHeightPixels: 1,
+            noticeRegionHeightPixels: 1);
+        var manifest = DocumentRenderManifest.CreateNoticeBearing(
+            binding.DocumentId,
+            binding.DocumentVersion,
+            document.ContentObjectId,
+            1,
+            renderer,
+            obligationSet,
+            [page],
+            SqlitePersistenceFixture.At(2));
+        var committed = await fixture.ControlStore.CommitAsync(
+            new RenderManifestCommitRequest(
+                SqlitePersistenceFixture.CorpusId,
+                manifest,
+                obligationSet));
+        Assert.Equal(StoreMutationOutcome.Applied, committed.Outcome);
+        var activeRights = mismatchActiveRights
+            ? CreateRights(
+                binding,
+                DocumentRight.SourceAndDerivativeByteDistributionOrPublication,
+                DocumentRightDecisionState.Denied)
+            : mappedRights;
+        var evidence = new DocumentActivationEvidenceBinding(
+            binding,
+            document.ContentObjectId,
+            activeRights,
+            manifest.RenderManifestId);
+        var proposed = ActivationRecordFactory.CreateInitial(
+            generation,
+            [evidence],
+            SqlitePersistenceFixture.At(2));
+        var activation = await ActivateAsync(
+            fixture,
+            $"activation-notice-{mismatchActiveRights.ToString().ToLowerInvariant()}",
+            ActivationMutationKind.Initial,
+            0,
+            proposed,
+            SqlitePersistenceFixture.At(2));
+        Assert.Equal(StoreMutationOutcome.Applied, activation.Outcome);
+        var reader = new VerifiedPageImageEvidenceReader(
+            SqlitePersistenceFixture.CorpusId,
+            new SqliteQueryActivationReader(fixture.Options),
+            fixture.ControlStore,
+            fixture.ContentStore);
+
+        var result = await reader.ReadAsync(
+            new VisualEvidenceSelector(
+                generation.IndexGenerationId,
+                manifest.RenderManifestId,
+                1,
+                page.ImageContentObjectId),
+            SqlitePersistenceFixture.At(3));
+
+        Assert.Equal(expectedOutcome, result.Outcome);
+
+        if (result.Evidence is not null)
+        {
+            await result.Evidence.DisposeAsync();
+        }
+    }
+
     [Fact]
     public async Task ActivationAndQueryReaderPreserveStoredBcp47ForV2Projection()
     {
@@ -888,6 +1002,32 @@ public sealed class SqliteActivationLifecycleTests
         Assert.Equal(1, await fixture.ScalarAsync("SELECT COUNT(*) FROM generation_retention;"));
         Assert.Equal(1, await fixture.ScalarAsync(
             "SELECT COUNT(*) FROM admin_operations WHERE operation_kind = 'ActivationCAS';"));
+    }
+
+    private static DocumentRightsEligibilityRecordV1 CreateRights(
+        DocumentBinding binding,
+        DocumentRight? overriddenRight = null,
+        DocumentRightDecisionState overriddenState = DocumentRightDecisionState.Permitted) =>
+        new(
+            binding.DocumentId,
+            binding.DocumentVersion,
+            Enum.GetValues<DocumentRight>().Select(right => new DocumentRightDecision(
+                right,
+                right == overriddenRight
+                    ? overriddenState
+                    : DocumentRightDecisionState.Permitted,
+                new DocumentRightsEvidenceReference($"fixture-rights-{right}"))));
+
+    private static byte[] CreatePngHeader(int width, int height)
+    {
+        var bytes = new byte[24];
+        byte[] signature = [137, 80, 78, 71, 13, 10, 26, 10];
+        signature.CopyTo(bytes, 0);
+        bytes[11] = 13;
+        Encoding.ASCII.GetBytes("IHDR").CopyTo(bytes, 12);
+        System.Buffers.Binary.BinaryPrimitives.WriteInt32BigEndian(bytes.AsSpan(16, 4), width);
+        System.Buffers.Binary.BinaryPrimitives.WriteInt32BigEndian(bytes.AsSpan(20, 4), height);
+        return bytes;
     }
 
     private static Task<ActivationMutationResult> ActivateAsync(

@@ -137,7 +137,27 @@ internal static class QueryContractMapper
             page.WidthPixels,
             page.HeightPixels,
             page.ContentSha256.Value,
-            ObligationSetId: null)).ToArray();
+            page.ObligationSetId?.Value)).ToArray();
+        var obligationSet = pages.Any(page => page.ObligationSetId is not null)
+            ? citation.DerivativeObligationSet
+            : null;
+        var presentation = obligationSet is null
+            ? null
+            : new DerivativeObligationPresentationV1(
+                obligationSet.ObligationSetId.Value,
+                obligationSet.ContentLanguage.ToCanonicalTag(),
+                obligationSet.AuthoritativePublisherOrAuthor,
+                obligationSet.DocumentTitle,
+                obligationSet.DocumentVersionLabel,
+                obligationSet.SourceReference,
+                obligationSet.AttributionText,
+                obligationSet.CopyrightNotice,
+                obligationSet.PermissionNotice,
+                obligationSet.OrderedDisclaimers,
+                obligationSet.TrademarkTreatment.ToString(),
+                obligationSet.TrademarkOrNonEndorsementText,
+                obligationSet.ChangeMarkingText);
+        var noticeIds = pages.Select(page => page.ObligationSetId).ToArray();
 
         if (citation.DocumentFormat == DocumentFormat.Csv && pages.Length != 0 ||
             citation.DocumentFormat == DocumentFormat.Pdf && pages.Any(page =>
@@ -145,7 +165,12 @@ internal static class QueryContractMapper
             pages.Any(page =>
                 page.ImageContentObjectId != page.ContentSha256 ||
                 !string.Equals(page.MediaType, DocumentPageImage.PngMediaType,
-                    StringComparison.Ordinal)))
+                    StringComparison.Ordinal)) ||
+            noticeIds.Any(id => id is not null) &&
+                (presentation is null ||
+                 noticeIds.Any(id => id != presentation.ObligationSetId) ||
+                 presentation.ContentLanguage != citation.ContentLanguage.ToCanonicalTag()) ||
+            noticeIds.All(id => id is null) && presentation is not null)
         {
             throw new InvalidDataException(
                 "A citation contains visual evidence outside its exact source binding.");
@@ -176,6 +201,6 @@ internal static class QueryContractMapper
             citation.RevalidatedAt,
             citation.SourceFreshness.ToString(),
             pages,
-            DerivativeObligationPresentation: null);
+            presentation);
     }
 }

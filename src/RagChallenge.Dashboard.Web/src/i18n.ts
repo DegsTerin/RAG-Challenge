@@ -53,6 +53,16 @@ export interface DashboardCopy {
   sourceDeclaredLanguageLabel: string;
   pageImageDescription: (title: string, version: number, page: number) => string;
   pageImageUnavailable: string;
+  derivativeNoticeHeading: string;
+  authoritativePublisherLabel: string;
+  sourceReferenceLabel: string;
+  attributionLabel: string;
+  copyrightNoticeLabel: string;
+  permissionNoticeLabel: string;
+  disclaimersLabel: string;
+  trademarkTreatmentLabel: string;
+  trademarkNoticeLabel: string;
+  changeMarkingLabel: string;
   pdfLocation: (start: number | null, end: number | null) => string;
   csvLocation: (start: number | null, end: number | null) => string;
   columnsLabel: string;
@@ -128,6 +138,16 @@ export const dashboardCopy: Readonly<Record<InterfaceLanguage, DashboardCopy>> =
     pageImageDescription: (title, version, page) =>
       `Evidência visual de ${title}, versão ${version}, página ${page}`,
     pageImageUnavailable: "A imagem não pôde ser apresentada; a citação textual permanece disponível.",
+    derivativeNoticeHeading: "Avisos da imagem derivada",
+    authoritativePublisherLabel: "Publicador ou autor",
+    sourceReferenceLabel: "Referência da fonte",
+    attributionLabel: "Atribuição",
+    copyrightNoticeLabel: "Aviso de copyright",
+    permissionNoticeLabel: "Aviso de permissão",
+    disclaimersLabel: "Disclaimers",
+    trademarkTreatmentLabel: "Tratamento de marca",
+    trademarkNoticeLabel: "Marca ou não endosso",
+    changeMarkingLabel: "Identificação da alteração",
     pdfLocation: (start, end) => formatRange("Página", "Páginas", start, end, "não informada"),
     csvLocation: (start, end) => formatRange("Registro", "Registros", start, end, "não informado"),
     columnsLabel: "Colunas",
@@ -219,6 +239,16 @@ export const dashboardCopy: Readonly<Record<InterfaceLanguage, DashboardCopy>> =
     pageImageDescription: (title, version, page) =>
       `Visual evidence from ${title}, version ${version}, page ${page}`,
     pageImageUnavailable: "The image could not be presented; the textual citation remains available.",
+    derivativeNoticeHeading: "Derivative image notices",
+    authoritativePublisherLabel: "Publisher or author",
+    sourceReferenceLabel: "Source reference",
+    attributionLabel: "Attribution",
+    copyrightNoticeLabel: "Copyright notice",
+    permissionNoticeLabel: "Permission notice",
+    disclaimersLabel: "Disclaimers",
+    trademarkTreatmentLabel: "Trademark treatment",
+    trademarkNoticeLabel: "Trademark or non-endorsement",
+    changeMarkingLabel: "Change marking",
     pdfLocation: (start, end) => formatRange("Page", "Pages", start, end, "not provided"),
     csvLocation: (start, end) => formatRange("Record", "Records", start, end, "not provided"),
     columnsLabel: "Columns",

@@ -312,50 +312,65 @@ public sealed class AnswerEvidencePageBindingV1
         int widthPixels,
         int heightPixels)
     {
+        ArgumentNullException.ThrowIfNull(documentId);
+        ArgumentNullException.ThrowIfNull(documentVersion);
+        ArgumentNullException.ThrowIfNull(sourceContentObjectId);
         ArgumentNullException.ThrowIfNull(renderManifestId);
-        PageImage = new DocumentPageImage(
-            documentId,
-            documentVersion,
-            sourceContentObjectId,
-            pageNumber,
-            renderProfileId,
-            rendererDescriptor,
-            imageContentObjectId,
-            imageSha256,
-            byteLength,
-            mediaType,
-            widthPixels,
-            heightPixels);
+        ArgumentNullException.ThrowIfNull(renderProfileId);
+        ArgumentNullException.ThrowIfNull(rendererDescriptor);
+        ArgumentNullException.ThrowIfNull(imageContentObjectId);
+        ArgumentNullException.ThrowIfNull(imageSha256);
+
+        if (pageNumber <= 0 || byteLength <= 0 ||
+            widthPixels is <= 0 or > DocumentPageImage.MaximumDimensionPixels ||
+            heightPixels is <= 0 or > DocumentPageImage.MaximumDimensionPixels ||
+            imageContentObjectId.Value != imageSha256.Value ||
+            !string.Equals(mediaType, DocumentPageImage.PngMediaType, StringComparison.Ordinal))
+        {
+            throw new ArgumentException(
+                "An answer-evidence page must retain a bounded exact PNG binding.");
+        }
+
+        DocumentId = documentId;
+        DocumentVersion = documentVersion;
+        SourceContentObjectId = sourceContentObjectId;
+        PageNumber = pageNumber;
         RenderManifestId = renderManifestId;
+        RenderProfileId = renderProfileId;
+        RendererDescriptor = rendererDescriptor;
+        ImageContentObjectId = imageContentObjectId;
+        ImageSha256 = imageSha256;
+        ByteLength = byteLength;
+        MediaType = mediaType;
+        WidthPixels = widthPixels;
+        HeightPixels = heightPixels;
     }
 
-    public DocumentId DocumentId => PageImage.DocumentId;
+    public DocumentId DocumentId { get; }
 
-    public DocumentVersionNumber DocumentVersion => PageImage.DocumentVersion;
+    public DocumentVersionNumber DocumentVersion { get; }
 
-    public ContentObjectId SourceContentObjectId => PageImage.SourceContentObjectId;
+    public ContentObjectId SourceContentObjectId { get; }
 
-    public int PageNumber => PageImage.PageNumber;
+    public int PageNumber { get; }
 
     public RenderManifestId RenderManifestId { get; }
 
-    public RenderProfileId RenderProfileId => PageImage.RenderProfileId;
+    public RenderProfileId RenderProfileId { get; }
 
-    public RendererDescriptor RendererDescriptor => PageImage.RendererDescriptor;
+    public RendererDescriptor RendererDescriptor { get; }
 
-    public ContentObjectId ImageContentObjectId => PageImage.ImageContentObjectId;
+    public ContentObjectId ImageContentObjectId { get; }
 
-    public ImageSha256 ImageSha256 => PageImage.ImageSha256;
+    public ImageSha256 ImageSha256 { get; }
 
-    public long ByteLength => PageImage.ByteLength;
+    public long ByteLength { get; }
 
-    public string MediaType => PageImage.MediaType;
+    public string MediaType { get; }
 
-    public int WidthPixels => PageImage.WidthPixels;
+    public int WidthPixels { get; }
 
-    public int HeightPixels => PageImage.HeightPixels;
-
-    private DocumentPageImage PageImage { get; }
+    public int HeightPixels { get; }
 }
 
 public sealed class AnswerEvidenceRecordV1

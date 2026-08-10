@@ -272,3 +272,140 @@ public interface IPngPageImageValidator
         RenderedPdfPageCandidate candidate,
         PdfRenderPolicy policy);
 }
+
+public static class PdfPagePngNoticeV1RendererIdentity
+{
+    public const string RendererId = "notice-png-v1";
+    public const string FontAssetId = "rag-challenge-pixel-5x7-v1";
+    public const int SeparatorHeightPixels = 2;
+    public const int PanelPaddingPixels = 16;
+    public const int GlyphScale = 2;
+    public const int GlyphWidthPixels = 5;
+    public const int GlyphHeightPixels = 7;
+    public const int GlyphAdvancePixels = 12;
+    public const int LineAdvancePixels = 18;
+
+    public static RendererDescriptor CreateDescriptor(
+        PdfRenderPolicy policy,
+        RendererDescriptor sourceRendererDescriptor,
+        DerivativeObligationSetV1 obligationSet,
+        string fontAssetSha256)
+    {
+        ArgumentNullException.ThrowIfNull(policy);
+        ArgumentNullException.ThrowIfNull(sourceRendererDescriptor);
+        ArgumentNullException.ThrowIfNull(obligationSet);
+        _ = new ImageSha256(fontAssetSha256);
+        string[] settings =
+        [
+            "descriptorSchema=notice-png-v1-descriptor-v1",
+            $"rendererId={RendererId}",
+            $"sourceRendererDescriptor={sourceRendererDescriptor.Value}",
+            $"profile={RenderProfileId.PdfPagePngNoticeV1}",
+            $"obligationSetSha256={obligationSet.CanonicalSha256.Value}",
+            $"fontAssetId={FontAssetId}",
+            $"fontAssetSha256={fontAssetSha256}",
+            $"separatorHeightPixels={SeparatorHeightPixels}",
+            $"panelPaddingPixels={PanelPaddingPixels}",
+            $"glyphScale={GlyphScale}",
+            $"glyphWidthPixels={GlyphWidthPixels}",
+            $"glyphHeightPixels={GlyphHeightPixels}",
+            $"glyphAdvancePixels={GlyphAdvancePixels}",
+            $"lineAdvancePixels={LineAdvancePixels}",
+            "foreground=000000",
+            "background=ffffff",
+            "separator=303030",
+            "textDirection=ltr",
+            "lineBreaking=ascii-codepoint-fixed-width-v1",
+            "pngEncoding=SkiaSharp-4.151.1-quality-100",
+            $"maximumDimensionPixels={PdfRenderPolicy.MaximumDimensionPixels}",
+            $"maximumPageOutputByteLength={policy.MaximumPageOutputByteLength.ToString(CultureInfo.InvariantCulture)}",
+            $"maximumTotalOutputByteLength={policy.MaximumTotalOutputByteLength.ToString(CultureInfo.InvariantCulture)}",
+        ];
+        var digest = SHA256.HashData(Encoding.UTF8.GetBytes(string.Join('\n', settings)));
+        var base64Url = Convert.ToBase64String(digest)
+            .TrimEnd('=')
+            .Replace('+', '-')
+            .Replace('/', '_');
+        return new RendererDescriptor($"{RendererId}:{fontAssetSha256}:{base64Url}");
+    }
+}
+
+public sealed class NoticeBearingPageCandidate
+{
+    private readonly byte[] pngBytes;
+
+    public NoticeBearingPageCandidate(
+        int pageNumber,
+        ReadOnlySpan<byte> pngBytes,
+        int sourceRegionWidthPixels,
+        int sourceRegionHeightPixels,
+        int noticeRegionHeightPixels,
+        RendererDescriptor rendererDescriptor)
+    {
+        ArgumentOutOfRangeException.ThrowIfNegativeOrZero(pageNumber);
+        ArgumentNullException.ThrowIfNull(rendererDescriptor);
+
+        if (pngBytes.IsEmpty || sourceRegionWidthPixels <= 0 ||
+            sourceRegionHeightPixels <= 0 || noticeRegionHeightPixels <= 0)
+        {
+            throw new ArgumentException(
+                "A notice-bearing page candidate requires bytes and positive region dimensions.");
+        }
+
+        PageNumber = pageNumber;
+        this.pngBytes = pngBytes.ToArray();
+        SourceRegionWidthPixels = sourceRegionWidthPixels;
+        SourceRegionHeightPixels = sourceRegionHeightPixels;
+        NoticeRegionHeightPixels = noticeRegionHeightPixels;
+        RendererDescriptor = rendererDescriptor;
+    }
+
+    public int PageNumber { get; }
+
+    public ReadOnlyMemory<byte> PngBytes => pngBytes;
+
+    public int SourceRegionWidthPixels { get; }
+
+    public int SourceRegionHeightPixels { get; }
+
+    public int NoticeRegionHeightPixels { get; }
+
+    public RendererDescriptor RendererDescriptor { get; }
+}
+
+public sealed record NoticeBearingPageValidation(
+    int PageNumber,
+    int WidthPixels,
+    int HeightPixels,
+    int SourceRegionWidthPixels,
+    int SourceRegionHeightPixels,
+    int NoticeRegionHeightPixels,
+    ImageSha256 SourceRegionPixelSha256,
+    ContentObjectId Sha256,
+    long ByteLength);
+
+public interface INoticeBearingPageImageCompositor
+{
+    string FontAssetSha256 { get; }
+
+    RendererDescriptor Describe(
+        PdfRenderPolicy policy,
+        RendererDescriptor sourceRendererDescriptor,
+        DerivativeObligationSetV1 obligationSet);
+
+    NoticeBearingPageCandidate Compose(
+        RenderedPdfPageCandidate sourcePage,
+        PngPageImageValidation sourceValidation,
+        RendererDescriptor sourceRendererDescriptor,
+        DerivativeObligationSetV1 obligationSet,
+        PdfRenderPolicy policy);
+}
+
+public interface INoticeBearingPageImageValidator
+{
+    NoticeBearingPageValidation Validate(
+        RenderedPdfPageCandidate sourcePage,
+        PngPageImageValidation sourceValidation,
+        NoticeBearingPageCandidate composite,
+        PdfRenderPolicy policy);
+}

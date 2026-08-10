@@ -71,6 +71,41 @@ public sealed class ApiV2ContractTests
     }
 
     [Fact]
+    public async Task QueryEndpointProjectsTheCompleteNoticeBearingObligationSet()
+    {
+        var service = new FakeQuestionService { NoticeBearing = true };
+        await using var app = SetupHost.Build(
+            [],
+            services => services.AddSingleton<IQuestionAnsweringService>(service));
+        var context = CreateContext(app.Services, HttpMethods.Post);
+
+        var result = await V2.QueryEndpoints.HandleAsync(
+            new V2.QueryRequestV2("main-corpus", "en-GB", "What is the evidence?"),
+            context,
+            service,
+            app.Services.GetRequiredService<QueryConcurrencyGate>());
+        await result.ExecuteAsync(context);
+        context.Response.Body.Position = 0;
+        using var response = await JsonDocument.ParseAsync(context.Response.Body);
+        var citation = response.RootElement.GetProperty("citations")[0];
+        var image = citation.GetProperty("pageImages")[0];
+        var obligations = citation.GetProperty("derivativeObligationPresentation");
+
+        Assert.Equal(StatusCodes.Status200OK, context.Response.StatusCode);
+        Assert.Equal(
+            obligations.GetProperty("obligationSetId").GetString(),
+            image.GetProperty("obligationSetId").GetString());
+        Assert.Equal("en-GB", obligations.GetProperty("contentLanguage").GetString());
+        Assert.Equal("Synthetic copyright notice.",
+            obligations.GetProperty("copyrightNotice").GetString());
+        Assert.Equal(2, obligations.GetProperty("orderedDisclaimers").GetArrayLength());
+        Assert.Equal("NotApplicable",
+            obligations.GetProperty("trademarkTreatment").GetString());
+        Assert.Equal("Rendered synthetic derivative with unchanged source pixels.",
+            obligations.GetProperty("changeMarkingText").GetString());
+    }
+
+    [Fact]
     public async Task VisualEndpointRevalidatesBeforeBothContentAndNotModified()
     {
         var reader = new FakeVisualEvidenceReader();
@@ -328,6 +363,8 @@ public sealed class ApiV2ContractTests
     {
         public QueryContractVersion ContractVersion { get; private set; }
 
+        public bool NoticeBearing { get; init; }
+
         public Task<QueryExecutionResult> AskAsync(
             QueryRequest request,
             DateTimeOffset observedAt,
@@ -335,13 +372,42 @@ public sealed class ApiV2ContractTests
         {
             ContractVersion = request.ContractVersion;
             var imageId = new ContentObjectId(ImageDigest);
+            var documentId = new DocumentId("document-1");
+            var documentVersion = new DocumentVersionNumber(1);
+            var rights = new DocumentRightsEligibilityRecordV1(
+                documentId,
+                documentVersion,
+                Enum.GetValues<DocumentRight>().Select(right => new DocumentRightDecision(
+                    right,
+                    DocumentRightDecisionState.Permitted,
+                    new DocumentRightsEvidenceReference($"rights-contract-{right}"))));
+            var obligationSet = NoticeBearing
+                ? DerivativeObligationSetV1.Create(
+                    rights,
+                    new ContentObjectId(new string('c', 64)),
+                    rights.Decisions.Select(decision => decision.EvidenceReference),
+                    DocumentContentLanguage.EnGb,
+                    "Synthetic Documentation Group",
+                    "Synthetic Reference",
+                    "1.0",
+                    "synthetic-source-v1",
+                    "Synthetic attribution.",
+                    "Synthetic copyright notice.",
+                    "Synthetic permission notice.",
+                    ["Synthetic disclaimer one.", "Synthetic disclaimer two."],
+                    DerivativeTrademarkTreatment.NotApplicable,
+                    "NotApplicable: no trademark applies to the synthetic fixture.",
+                    "Rendered synthetic derivative with unchanged source pixels.",
+                    new DateTimeOffset(2026, 8, 10, 12, 0, 0, TimeSpan.Zero),
+                    "assessor-synthetic-v1")
+                : null;
             var citation = new QueryCitation(
                 new CorpusId("main-corpus"),
                 new IndexGenerationId($"idxgen-{GenerationDigest}"),
                 new DatabaseProductId("database-1"),
                 new DatabaseProductRevision(1),
-                new DocumentId("document-1"),
-                new DocumentVersionNumber(1),
+                documentId,
+                documentVersion,
                 DocumentFormat.Pdf,
                 DocumentContentLanguage.EnGb,
                 "chunk-1",
@@ -369,8 +435,10 @@ public sealed class ApiV2ContractTests
                         "image/png",
                         16,
                         24,
-                        new ImageSha256(ImageDigest)),
+                        new ImageSha256(ImageDigest),
+                        obligationSet?.ObligationSetId),
                 ],
+                DerivativeObligationSet = obligationSet,
             };
             return Task.FromResult(QueryExecutionResult.Completed(new QueryCompletion(
                 QueryOutcome.Answered,

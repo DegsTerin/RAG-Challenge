@@ -223,6 +223,7 @@ public sealed class ProjectBoundaryTests
                 "HeightPixels",
                 "ImageContentObjectId",
                 "MediaType",
+                "ObligationSetId",
                 "PageNumber",
                 "RenderManifestId",
                 "WidthPixels",

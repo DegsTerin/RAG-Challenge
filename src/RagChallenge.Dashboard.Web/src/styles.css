@@ -659,6 +659,47 @@ select:focus-visible,
   line-height: 1.45;
 }
 
+.derivative-obligation {
+  padding: 0.9rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 0.55rem;
+}
+
+.derivative-obligation h5 {
+  margin: 0 0 0.75rem;
+  font-family: var(--font-display);
+  font-size: 1rem;
+}
+
+.derivative-obligation dl {
+  display: grid;
+  gap: 0.65rem;
+  margin: 0;
+}
+
+.derivative-obligation dl > div {
+  display: grid;
+  gap: 0.2rem;
+}
+
+.derivative-obligation dt {
+  color: var(--text-muted);
+  font-size: 0.76rem;
+  font-weight: 700;
+}
+
+.derivative-obligation dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+  white-space: pre-wrap;
+}
+
+.derivative-obligation ol {
+  margin: 0;
+  padding-inline-start: 1.35rem;
+}
+
 .pending-workspace {
   display: grid;
   gap: 0.75rem;

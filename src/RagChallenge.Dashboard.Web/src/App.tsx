@@ -641,9 +641,15 @@ function VisualEvidenceImage({
     citation.documentVersion,
     pageImage.pageNumber,
   );
+  const obligation = pageImage.obligationSetId === null
+    ? null
+    : citation.derivativeObligationPresentation;
+  const noticeId = obligation === null
+    ? undefined
+    : `derivative-notice-${obligation.obligationSetId}-${pageImage.pageNumber}`;
 
   return (
-    <figure className="visual-evidence">
+    <figure className="visual-evidence" aria-describedby={noticeId}>
       {!loadFailed && (
         <img
           src={createPageImageUrl(generationId, pageImage)}
@@ -659,6 +665,63 @@ function VisualEvidenceImage({
         <span>{description}</span>
         {loadFailed && <span role="status">{copy.pageImageUnavailable}</span>}
       </figcaption>
+      {obligation !== null && (
+        <section
+          className="derivative-obligation"
+          id={noticeId}
+          aria-labelledby={`${noticeId}-heading`}
+        >
+          <h5 id={`${noticeId}-heading`}>{copy.derivativeNoticeHeading}</h5>
+          <dl>
+            <div>
+              <dt>{copy.authoritativePublisherLabel}</dt>
+              <dd lang={obligation.contentLanguage}>{obligation.authoritativePublisherOrAuthor}</dd>
+            </div>
+            <div>
+              <dt>{copy.documentLabel}</dt>
+              <dd lang={obligation.contentLanguage}>{obligation.documentTitle} — {obligation.documentVersionLabel}</dd>
+            </div>
+            <div>
+              <dt>{copy.sourceReferenceLabel}</dt>
+              <dd lang={obligation.contentLanguage}>{obligation.sourceReference}</dd>
+            </div>
+            <div>
+              <dt>{copy.attributionLabel}</dt>
+              <dd lang={obligation.contentLanguage}>{obligation.attributionText}</dd>
+            </div>
+            <div>
+              <dt>{copy.copyrightNoticeLabel}</dt>
+              <dd lang={obligation.contentLanguage}>{obligation.copyrightNotice}</dd>
+            </div>
+            <div>
+              <dt>{copy.permissionNoticeLabel}</dt>
+              <dd lang={obligation.contentLanguage}>{obligation.permissionNotice}</dd>
+            </div>
+            <div>
+              <dt>{copy.disclaimersLabel}</dt>
+              <dd lang={obligation.contentLanguage}>
+                <ol>
+                  {obligation.orderedDisclaimers.map((disclaimer, index) => (
+                    <li key={`${obligation.obligationSetId}-disclaimer-${index}`}>{disclaimer}</li>
+                  ))}
+                </ol>
+              </dd>
+            </div>
+            <div>
+              <dt>{copy.trademarkTreatmentLabel}</dt>
+              <dd lang={obligation.contentLanguage}>{obligation.trademarkTreatment}</dd>
+            </div>
+            <div>
+              <dt>{copy.trademarkNoticeLabel}</dt>
+              <dd lang={obligation.contentLanguage}>{obligation.trademarkOrNonEndorsementText}</dd>
+            </div>
+            <div>
+              <dt>{copy.changeMarkingLabel}</dt>
+              <dd lang={obligation.contentLanguage}>{obligation.changeMarkingText}</dd>
+            </div>
+          </dl>
+        </section>
+      )}
     </figure>
   );
 }

@@ -35,6 +35,20 @@ public sealed class SqliteControlPlaneStore(SqliteStoreOptions options)
             context,
             cancellationToken).ConfigureAwait(false);
         var manifest = request.Manifest;
+        var noticeBearing = manifest.RenderProfileId.Value == RenderProfileId.PdfPagePngNoticeV1;
+
+        if (noticeBearing &&
+            (request.ObligationSet is null ||
+             manifest.ObligationSetId != request.ObligationSet.ObligationSetId ||
+             manifest.ObligationSetSha256 != request.ObligationSet.CanonicalSha256 ||
+             manifest.DocumentId != request.ObligationSet.DocumentId ||
+             manifest.DocumentVersion != request.ObligationSet.DocumentVersion ||
+             manifest.SourceContentObjectId != request.ObligationSet.SourceContentObjectId) ||
+            !noticeBearing && request.ObligationSet is not null)
+        {
+            throw new InvalidOperationException(
+                "A render-manifest commit must carry the exact obligation set only for the notice-bearing profile.");
+        }
         var existing = await context.DocumentRenderManifests.AsNoTracking()
             .FirstOrDefaultAsync(
                 row => row.CorpusId == request.CorpusId.Value &&
@@ -74,6 +88,16 @@ public sealed class SqliteControlPlaneStore(SqliteStoreOptions options)
             return new RenderManifestCommitResult(StoreMutationOutcome.NotFound, null);
         }
 
+        if (request.ObligationSet is not null)
+        {
+            await AddOrValidateObligationSetAsync(
+                context,
+                request.CorpusId,
+                request.ObligationSet,
+                cancellationToken).ConfigureAwait(false);
+            await context.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
+        }
+
         foreach (var page in manifest.OrderedPageImages)
         {
             await AddOrValidateContentObjectAsync(
@@ -96,6 +120,8 @@ public sealed class SqliteControlPlaneStore(SqliteStoreOptions options)
             SourcePageCount = manifest.SourcePageCount,
             RenderProfileId = manifest.RenderProfileId.Value,
             RendererDescriptor = manifest.RendererDescriptor.Value,
+            ObligationSetId = manifest.ObligationSetId?.Value,
+            ObligationSetSha256 = manifest.ObligationSetSha256?.Value,
             GeneratedAtUtc = ControlPlaneMapping.FormatUtc(manifest.GeneratedAt),
         });
         context.DocumentPageImages.AddRange(manifest.OrderedPageImages.Select(page =>
@@ -115,6 +141,9 @@ public sealed class SqliteControlPlaneStore(SqliteStoreOptions options)
                 MediaType = page.MediaType,
                 WidthPixels = page.WidthPixels,
                 HeightPixels = page.HeightPixels,
+                SourceRegionWidthPixels = page.SourceRegionWidthPixels,
+                SourceRegionHeightPixels = page.SourceRegionHeightPixels,
+                NoticeRegionHeightPixels = page.NoticeRegionHeightPixels,
             }));
         await context.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
         await transaction.CommitAsync(cancellationToken).ConfigureAwait(false);
@@ -138,6 +167,21 @@ public sealed class SqliteControlPlaneStore(SqliteStoreOptions options)
             ? null
             : await ReadRenderManifestAsync(context, row, cancellationToken)
                 .ConfigureAwait(false);
+    }
+
+    public async Task<DerivativeObligationSetV1?> ReadObligationSetAsync(
+        CorpusId corpusId,
+        DerivativeObligationSetId obligationSetId,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(corpusId);
+        ArgumentNullException.ThrowIfNull(obligationSetId);
+        await using var context = options.CreateControlContext();
+        return await ReadObligationSetAsync(
+            context,
+            corpusId,
+            obligationSetId,
+            cancellationToken).ConfigureAwait(false);
     }
 
     public async Task<StoreMutationResult> CommitCatalogueAsync(
@@ -1801,12 +1845,160 @@ public sealed class SqliteControlPlaneStore(SqliteStoreOptions options)
                 }));
     }
 
+    private static async Task AddOrValidateObligationSetAsync(
+        ControlPlaneDbContext context,
+        CorpusId corpusId,
+        DerivativeObligationSetV1 obligationSet,
+        CancellationToken cancellationToken)
+    {
+        var existing = await context.DerivativeObligationSets.AsNoTracking()
+            .SingleOrDefaultAsync(
+                row => row.ObligationSetId == obligationSet.ObligationSetId.Value,
+                cancellationToken).ConfigureAwait(false);
+
+        if (existing is not null)
+        {
+            var persisted = await ReadObligationSetAsync(
+                context,
+                corpusId,
+                obligationSet.ObligationSetId,
+                cancellationToken).ConfigureAwait(false);
+
+            if (persisted is null ||
+                !persisted.SerialiseCanonicalUtf8().AsSpan()
+                    .SequenceEqual(obligationSet.SerialiseCanonicalUtf8()))
+            {
+                throw new InvalidDataException(
+                    "An obligation-set identity was reused with different canonical content.");
+            }
+
+            return;
+        }
+
+        context.DerivativeObligationSets.Add(new DerivativeObligationSetRow
+        {
+            ObligationSetId = obligationSet.ObligationSetId.Value,
+            SchemaVersion = obligationSet.SchemaVersion,
+            CanonicalSha256 = obligationSet.CanonicalSha256.Value,
+            CorpusId = corpusId.Value,
+            DocumentId = obligationSet.DocumentId.Value,
+            DocumentVersion = obligationSet.DocumentVersion.Value,
+            SourceContentSha256 = obligationSet.SourceContentObjectId.Value,
+            RightsMappingRevision = obligationSet.RightsMappingRevision.Value,
+            ContentLanguage = obligationSet.ContentLanguage.ToCanonicalTag(),
+            AuthoritativePublisherOrAuthor = obligationSet.AuthoritativePublisherOrAuthor,
+            DocumentTitle = obligationSet.DocumentTitle,
+            DocumentVersionLabel = obligationSet.DocumentVersionLabel,
+            SourceReference = obligationSet.SourceReference,
+            AttributionText = obligationSet.AttributionText,
+            CopyrightNotice = obligationSet.CopyrightNotice,
+            PermissionNotice = obligationSet.PermissionNotice,
+            TrademarkTreatment = obligationSet.TrademarkTreatment.ToString(),
+            TrademarkOrNonEndorsementText = obligationSet.TrademarkOrNonEndorsementText,
+            ChangeMarkingText = obligationSet.ChangeMarkingText,
+            PlacementMode = obligationSet.PlacementMode,
+            AssessedAtUtc = ControlPlaneMapping.FormatUtc(obligationSet.AssessedAt),
+            AssessorId = obligationSet.AssessorId,
+        });
+        context.DerivativeObligationEvidenceReferences.AddRange(
+            obligationSet.OrderedEvidenceReferences.Select((reference, index) =>
+                new DerivativeObligationEvidenceReferenceRow
+                {
+                    ObligationSetId = obligationSet.ObligationSetId.Value,
+                    Ordinal = index + 1,
+                    EvidenceReference = reference.Value,
+                }));
+        context.DerivativeObligationDisclaimers.AddRange(
+            obligationSet.OrderedDisclaimers.Select((disclaimer, index) =>
+                new DerivativeObligationDisclaimerRow
+                {
+                    ObligationSetId = obligationSet.ObligationSetId.Value,
+                    Ordinal = index + 1,
+                    DisclaimerText = disclaimer,
+                }));
+    }
+
+    private static async Task<DerivativeObligationSetV1?> ReadObligationSetAsync(
+        ControlPlaneDbContext context,
+        CorpusId corpusId,
+        DerivativeObligationSetId obligationSetId,
+        CancellationToken cancellationToken)
+    {
+        var row = await context.DerivativeObligationSets.AsNoTracking()
+            .SingleOrDefaultAsync(
+                item => item.CorpusId == corpusId.Value &&
+                    item.ObligationSetId == obligationSetId.Value,
+                cancellationToken).ConfigureAwait(false);
+
+        if (row is null)
+        {
+            return null;
+        }
+
+        if (row.SchemaVersion != DerivativeObligationSetV1.CurrentSchemaVersion ||
+            !Enum.TryParse<DerivativeTrademarkTreatment>(
+                row.TrademarkTreatment,
+                ignoreCase: false,
+                out var trademarkTreatment))
+        {
+            throw new InvalidDataException(
+                "A persisted derivative obligation set uses an unsupported schema or treatment.");
+        }
+
+        var evidence = await context.DerivativeObligationEvidenceReferences.AsNoTracking()
+            .Where(item => item.ObligationSetId == row.ObligationSetId)
+            .OrderBy(item => item.Ordinal)
+            .ToArrayAsync(cancellationToken).ConfigureAwait(false);
+        var disclaimers = await context.DerivativeObligationDisclaimers.AsNoTracking()
+            .Where(item => item.ObligationSetId == row.ObligationSetId)
+            .OrderBy(item => item.Ordinal)
+            .ToArrayAsync(cancellationToken).ConfigureAwait(false);
+
+        if (evidence.Length == 0 || evidence.Select((item, index) => item.Ordinal == index + 1).Any(valid => !valid) ||
+            disclaimers.Select((item, index) => item.Ordinal == index + 1).Any(valid => !valid))
+        {
+            throw new InvalidDataException(
+                "A persisted derivative obligation set has incomplete ordered blocks.");
+        }
+
+        var obligationSet = DerivativeObligationSetV1.Rehydrate(
+            new DocumentId(row.DocumentId),
+            new DocumentVersionNumber(row.DocumentVersion),
+            new ContentObjectId(row.SourceContentSha256),
+            new RightsMappingRevision(row.RightsMappingRevision),
+            evidence.Select(item => new DocumentRightsEvidenceReference(item.EvidenceReference)),
+            new DocumentContentLanguage(row.ContentLanguage),
+            row.AuthoritativePublisherOrAuthor,
+            row.DocumentTitle,
+            row.DocumentVersionLabel,
+            row.SourceReference,
+            row.AttributionText,
+            row.CopyrightNotice,
+            row.PermissionNotice,
+            disclaimers.Select(item => item.DisclaimerText),
+            trademarkTreatment,
+            row.TrademarkOrNonEndorsementText,
+            row.ChangeMarkingText,
+            ControlPlaneMapping.ParseUtc(row.AssessedAtUtc),
+            row.AssessorId,
+            new DerivativeObligationSetSha256(row.CanonicalSha256));
+
+        if (obligationSet.ObligationSetId != obligationSetId)
+        {
+            throw new InvalidDataException(
+                "A persisted derivative-obligation identifier does not match its canonical digest.");
+        }
+
+        return obligationSet;
+    }
+
     private static async Task<DocumentRenderManifest> ReadRenderManifestAsync(
         ControlPlaneDbContext context,
         DocumentRenderManifestRow row,
         CancellationToken cancellationToken)
     {
-        if (row.SchemaVersion != DocumentRenderManifest.CurrentSchemaVersion)
+        if (row.SchemaVersion is not DocumentRenderManifest.CurrentSchemaVersion and
+                not DocumentRenderManifest.NoticeBearingSchemaVersion)
         {
             throw new InvalidDataException(
                 "A persisted render manifest uses an unsupported schema version.");
@@ -1833,7 +2025,10 @@ public sealed class SqliteControlPlaneStore(SqliteStoreOptions options)
             page.ByteLength,
             page.MediaType,
             page.WidthPixels,
-            page.HeightPixels));
+            page.HeightPixels,
+            page.SourceRegionWidthPixels,
+            page.SourceRegionHeightPixels,
+            page.NoticeRegionHeightPixels));
         var manifest = DocumentRenderManifest.Rehydrate(
             documentId,
             documentVersion,
@@ -1843,7 +2038,13 @@ public sealed class SqliteControlPlaneStore(SqliteStoreOptions options)
             renderer,
             pageImages,
             new ManifestSha256(row.ManifestSha256),
-            ControlPlaneMapping.ParseUtc(row.GeneratedAtUtc));
+            ControlPlaneMapping.ParseUtc(row.GeneratedAtUtc),
+            row.ObligationSetId is null
+                ? null
+                : new DerivativeObligationSetId(row.ObligationSetId),
+            row.ObligationSetSha256 is null
+                ? null
+                : new DerivativeObligationSetSha256(row.ObligationSetSha256));
 
         if (manifest.RenderManifestId.Value != row.RenderManifestId)
         {

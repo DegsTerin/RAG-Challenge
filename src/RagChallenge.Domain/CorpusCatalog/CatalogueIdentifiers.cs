@@ -208,16 +208,64 @@ public sealed record ManifestSha256 : LowercaseSha256
 public sealed record RenderProfileId : StableIdentifier
 {
     public const string PdfPagePngV1 = "pdf-page-png-v1";
+    public const string PdfPagePngNoticeV1 = "pdf-page-png-notice-v1";
 
     public RenderProfileId(string value)
         : base(value, nameof(value))
     {
-        if (!string.Equals(value, PdfPagePngV1, StringComparison.Ordinal))
+        if (!string.Equals(value, PdfPagePngV1, StringComparison.Ordinal) &&
+            !string.Equals(value, PdfPagePngNoticeV1, StringComparison.Ordinal))
         {
             throw new ArgumentException(
-                "The render profile must be the accepted 'pdf-page-png-v1' profile.",
+                "A render profile must be a supported deterministic PDF page-image profile.",
                 nameof(value));
         }
+    }
+}
+
+public sealed record DerivativeObligationSetSha256 : LowercaseSha256
+{
+    public DerivativeObligationSetSha256(string value)
+        : base(value, nameof(value))
+    {
+    }
+}
+
+public sealed record DerivativeObligationSetId
+{
+    private const string Prefix = "obligationset-";
+
+    public DerivativeObligationSetId(string value)
+    {
+        ArgumentNullException.ThrowIfNull(value);
+
+        if (value.Length != Prefix.Length + 64 ||
+            !value.StartsWith(Prefix, StringComparison.Ordinal))
+        {
+            throw new ArgumentException(
+                "An obligation-set ID must use 'obligationset-' followed by a lower-case SHA-256 digest.",
+                nameof(value));
+        }
+
+        _ = new DerivativeObligationSetSha256(value[Prefix.Length..]);
+        Value = value;
+    }
+
+    public string Value { get; }
+
+    public static DerivativeObligationSetId FromSha256(
+        DerivativeObligationSetSha256 sha256)
+    {
+        ArgumentNullException.ThrowIfNull(sha256);
+        return new DerivativeObligationSetId(Prefix + sha256.Value);
+    }
+}
+
+public sealed record RightsMappingRevision : StableIdentifier
+{
+    public RightsMappingRevision(string value)
+        : base(value, nameof(value))
+    {
     }
 }
 

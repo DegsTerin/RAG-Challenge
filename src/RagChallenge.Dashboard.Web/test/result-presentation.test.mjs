@@ -8,6 +8,7 @@ import { createServer } from "vite";
 import {
   answeredResponse,
   insufficientEvidenceResponse,
+  noticeBearingAnsweredResponse,
   rateLimitedProblem,
 } from "./fixtures/query-v2.mjs";
 
@@ -15,6 +16,30 @@ const vite = await createServer({
   logLevel: "silent",
   server: { middlewareMode: true },
   appType: "custom",
+});
+
+test("presents every notice-bearing block as adjacent selectable source-language text", async () => {
+  const { QueryResultPanel } = await vite.ssrLoadModule("/src/App.tsx");
+  const html = renderResult(QueryResultPanel, "pt-BR", {
+    phase: "completed",
+    activeRequestId: null,
+    response: noticeBearingAnsweredResponse,
+    problem: null,
+    clientFailure: null,
+  });
+
+  assert.match(html, /Avisos da imagem derivada/);
+  assert.match(html, /aria-describedby="derivative-notice-obligationset-/);
+  assert.match(html, /lang="en-GB">Synthetic Documentation Group/);
+  assert.match(html, /Synthetic source attribution/);
+  assert.match(html, /Synthetic copyright notice/);
+  assert.match(html, /Synthetic permission notice/);
+  assert.match(html, /Synthetic first disclaimer/);
+  assert.match(html, /Synthetic second disclaimer/);
+  assert.match(html, /NotApplicable/);
+  assert.match(html, /No endorsement is claimed/);
+  assert.match(html, /Rendered derivative of version 1.0, page 142/);
+  assert.equal(html.includes("dangerouslySetInnerHTML"), false);
 });
 
 test.after(async () => {

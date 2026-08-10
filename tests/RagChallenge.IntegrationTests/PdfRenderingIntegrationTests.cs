@@ -1,4 +1,4 @@
-// Purpose: Verifies the selected native renderer, worker boundary, PNG policy and existing-schema manifest persistence with synthetic PDF and image bytes only.
+// Purpose: Verifies the selected native renderer, worker boundary, legacy and notice-bearing PNG policies, immutable manifest persistence and reachability with synthetic bytes only.
 using System.Buffers.Binary;
 using System.Diagnostics;
 using System.Globalization;
@@ -10,6 +10,7 @@ using RagChallenge.Application.Documents;
 using RagChallenge.Application.Persistence;
 using RagChallenge.Domain.CorpusCatalog;
 using RagChallenge.Infrastructure.Documents;
+using RagChallenge.Infrastructure.Persistence;
 
 using SkiaSharp;
 
@@ -185,6 +186,172 @@ public sealed class PdfRenderingIntegrationTests
                 new ExpectedHashAndLength(page.ImageContentObjectId, page.ByteLength));
             Assert.Equal(0, reopened.Content.Position);
         }
+    }
+
+    [Fact]
+    public async Task NoticeBearingFinaliserPreservesSourcePixelsAndPersistsExactObligations()
+    {
+        await using var fixture = await SqlitePersistenceFixture.CreateAsync();
+        var pdf = CreatePdf(new PageSpec(600, 300));
+        var document = await CommitPdfCatalogueAsync(fixture, pdf);
+        var rights = new DocumentRightsEligibilityRecordV1(
+            document.Id,
+            document.Version,
+            Enum.GetValues<DocumentRight>().Select(right => new DocumentRightDecision(
+                right,
+                DocumentRightDecisionState.Permitted,
+                new DocumentRightsEvidenceReference($"rights-notice-{right}"))));
+        var obligationSet = DerivativeObligationSetV1.Create(
+            rights,
+            document.ContentObjectId,
+            rights.Decisions.Select(decision => decision.EvidenceReference),
+            DocumentContentLanguage.EnGb,
+            "Synthetic Documentation Group",
+            "Synthetic Database Reference",
+            "1.0",
+            "synthetic-source-reference-v1",
+            "Synthetic Documentation Group attribution.",
+            "Copyright 2026 Synthetic Documentation Group.",
+            "Permission is granted for this project-owned synthetic fixture.",
+            ["Synthetic fixture disclaimer one.", "Synthetic fixture disclaimer two."],
+            DerivativeTrademarkTreatment.NotApplicable,
+            "NotApplicable: this synthetic fixture contains no third-party trademark.",
+            "Rendered derivative of the synthetic source; source pixels remain unchanged.",
+            new DateTimeOffset(2026, 8, 10, 12, 0, 0, TimeSpan.Zero),
+            "assessor-synthetic-v1");
+        var policy = Policy(maximumPages: 1, maximumPixels: 5_000_000);
+        var compositor = new NoticeBearingPageImageCompositor();
+        var sourceRenderer = CreateWorkerRenderer();
+        await using var source = await fixture.ContentStore.OpenVerifiedAsync(
+            document.ContentObjectId,
+            new ExpectedHashAndLength(document.ContentObjectId, document.ByteLength));
+        var renderedSource = await sourceRenderer.RenderAsync(source, policy);
+        var sourcePage = Assert.Single(renderedSource.Pages);
+        var sourceValidation = new PngPageImageValidator().Validate(sourcePage, policy);
+        var composed = compositor.Compose(
+            sourcePage,
+            sourceValidation,
+            renderedSource.RendererDescriptor,
+            obligationSet,
+            policy);
+        _ = compositor.Validate(sourcePage, sourceValidation, composed, policy);
+        var service = new DocumentRenderCandidateService(
+            fixture.ContentStore,
+            sourceRenderer,
+            new PngPageImageValidator(),
+            fixture.ControlStore,
+            compositor,
+            compositor);
+        var request = new DocumentRenderCandidateRequest(
+            SqlitePersistenceFixture.CorpusId,
+            document.Id,
+            document.Version,
+            document.ContentObjectId,
+            document.ByteLength,
+            rights,
+            policy,
+            new DateTimeOffset(2026, 8, 10, 12, 30, 0, TimeSpan.Zero),
+            obligationSet);
+
+        var applied = await service.FinaliseAsync(request);
+        var replay = await service.FinaliseAsync(request);
+        var persistedObligations = await fixture.ControlStore.ReadObligationSetAsync(
+            SqlitePersistenceFixture.CorpusId,
+            obligationSet.ObligationSetId);
+        var page = Assert.Single(applied.Manifest.OrderedPageImages);
+
+        Assert.Equal(StoreMutationOutcome.Applied, applied.Outcome);
+        Assert.Equal(StoreMutationOutcome.AlreadyApplied, replay.Outcome);
+        Assert.Equal(DocumentRenderManifest.NoticeBearingSchemaVersion, applied.Manifest.SchemaVersion);
+        Assert.Equal(RenderProfileId.PdfPagePngNoticeV1, applied.Manifest.RenderProfileId.Value);
+        Assert.Equal(obligationSet.ObligationSetId, applied.Manifest.ObligationSetId);
+        Assert.Equal(obligationSet.CanonicalSha256, applied.Manifest.ObligationSetSha256);
+        Assert.Equal(page.WidthPixels, page.SourceRegionWidthPixels);
+        Assert.Equal(page.HeightPixels, page.SourceRegionHeightPixels + page.NoticeRegionHeightPixels);
+        Assert.NotNull(persistedObligations);
+        Assert.Equal(
+            obligationSet.SerialiseCanonicalUtf8(),
+            persistedObligations.SerialiseCanonicalUtf8());
+        Assert.Equal(1, await fixture.ScalarAsync("SELECT COUNT(*) FROM derivative_obligation_sets;"));
+        Assert.Equal(10, await fixture.ScalarAsync("SELECT COUNT(*) FROM derivative_obligation_evidence_references;"));
+        Assert.Equal(2, await fixture.ScalarAsync("SELECT COUNT(*) FROM derivative_obligation_disclaimers;"));
+
+        await using var composite = await fixture.ContentStore.OpenVerifiedAsync(
+            page.ImageContentObjectId,
+            new ExpectedHashAndLength(page.ImageContentObjectId, page.ByteLength));
+        using var compositeBytes = new MemoryStream();
+        await composite.Content.CopyToAsync(compositeBytes);
+        var validation = compositor.Validate(
+            sourcePage,
+            sourceValidation,
+            new NoticeBearingPageCandidate(
+                page.PageNumber,
+                compositeBytes.ToArray(),
+                page.SourceRegionWidthPixels!.Value,
+                page.SourceRegionHeightPixels!.Value,
+                page.NoticeRegionHeightPixels!.Value,
+                page.RendererDescriptor),
+            policy);
+        Assert.Equal(page.ImageSha256.Value, validation.Sha256.Value);
+
+        var cleanup = await new SqliteStorageMaintenance(fixture.Options).RunManualCleanupAsync(
+            new OperationId("cleanup-notice-bearing-reachability"),
+            SqlitePersistenceFixture.CorpusId,
+            new DateTimeOffset(2026, 9, 10, 12, 0, 0, TimeSpan.Zero));
+        Assert.Equal(0, cleanup.RemovedContentObjects);
+        await using var preserved = await fixture.ContentStore.OpenVerifiedAsync(
+            page.ImageContentObjectId,
+            new ExpectedHashAndLength(page.ImageContentObjectId, page.ByteLength));
+        Assert.Equal(page.ByteLength, preserved.ByteLength);
+    }
+
+    [Fact]
+    public void NoticeBearingCompositorFailsClosedWhenTheProjectOwnedGlyphSetCannotRepresentText()
+    {
+        var policy = Policy(maximumPages: 1, maximumPixels: 5_000_000);
+        var rendered = PdfToImagePdfPageRenderer.Render(
+            CreatePdf(new PageSpec(600, 300)),
+            policy,
+            RuntimeInformation.RuntimeIdentifier);
+        var page = Assert.Single(rendered.Pages);
+        var validation = new PngPageImageValidator().Validate(page, policy);
+        var documentId = new DocumentId("document-unsupported-glyph");
+        var documentVersion = new DocumentVersionNumber(1);
+        var rights = new DocumentRightsEligibilityRecordV1(
+            documentId,
+            documentVersion,
+            Enum.GetValues<DocumentRight>().Select(right => new DocumentRightDecision(
+                right,
+                DocumentRightDecisionState.Permitted,
+                new DocumentRightsEvidenceReference($"rights-glyph-{right}"))));
+        var obligationSet = DerivativeObligationSetV1.Create(
+            rights,
+            new ContentObjectId(new string('a', 64)),
+            rights.Decisions.Select(decision => decision.EvidenceReference),
+            DocumentContentLanguage.EnGb,
+            "Synthétic Publisher".Normalize(NormalizationForm.FormC),
+            "Synthetic Reference",
+            "1.0",
+            "synthetic-source-v1",
+            "Synthetic attribution.",
+            "Synthetic copyright notice.",
+            "Synthetic permission notice.",
+            [],
+            DerivativeTrademarkTreatment.NotApplicable,
+            "NotApplicable: no trademark applies.",
+            "Rendered synthetic derivative.",
+            new DateTimeOffset(2026, 8, 10, 12, 0, 0, TimeSpan.Zero),
+            "assessor-synthetic-v1");
+        var compositor = new NoticeBearingPageImageCompositor();
+
+        var exception = Assert.Throws<PdfRenderException>(() => compositor.Compose(
+            page,
+            validation,
+            rendered.RendererDescriptor,
+            obligationSet,
+            policy));
+
+        Assert.Equal(PdfRenderFailureKind.InvalidPageImage, exception.FailureKind);
     }
 
     [Fact]

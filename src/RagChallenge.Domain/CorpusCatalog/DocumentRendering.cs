@@ -22,7 +22,10 @@ public sealed class DocumentPageImage
         long byteLength,
         string mediaType,
         int widthPixels,
-        int heightPixels)
+        int heightPixels,
+        int? sourceRegionWidthPixels = null,
+        int? sourceRegionHeightPixels = null,
+        int? noticeRegionHeightPixels = null)
     {
         ArgumentNullException.ThrowIfNull(documentId);
         ArgumentNullException.ThrowIfNull(documentVersion);
@@ -81,6 +84,23 @@ public sealed class DocumentPageImage
                 nameof(imageSha256));
         }
 
+        var isLegacy = string.Equals(
+            renderProfileId.Value,
+            RenderProfileId.PdfPagePngV1,
+            StringComparison.Ordinal);
+        var hasNoRegions = sourceRegionWidthPixels is null &&
+            sourceRegionHeightPixels is null && noticeRegionHeightPixels is null;
+        var hasNoticeRegions = sourceRegionWidthPixels == widthPixels &&
+            sourceRegionHeightPixels is > 0 and <= MaximumDimensionPixels &&
+            noticeRegionHeightPixels is > 0 and <= MaximumDimensionPixels &&
+            sourceRegionHeightPixels + noticeRegionHeightPixels == heightPixels;
+
+        if (isLegacy && !hasNoRegions || !isLegacy && !hasNoticeRegions)
+        {
+            throw new ArgumentException(
+                "Page-image region measurements must match the selected render profile.");
+        }
+
         DocumentId = documentId;
         DocumentVersion = documentVersion;
         SourceContentObjectId = sourceContentObjectId;
@@ -93,6 +113,9 @@ public sealed class DocumentPageImage
         MediaType = mediaType;
         WidthPixels = widthPixels;
         HeightPixels = heightPixels;
+        SourceRegionWidthPixels = sourceRegionWidthPixels;
+        SourceRegionHeightPixels = sourceRegionHeightPixels;
+        NoticeRegionHeightPixels = noticeRegionHeightPixels;
     }
 
     public DocumentId DocumentId { get; }
@@ -118,11 +141,18 @@ public sealed class DocumentPageImage
     public int WidthPixels { get; }
 
     public int HeightPixels { get; }
+
+    public int? SourceRegionWidthPixels { get; }
+
+    public int? SourceRegionHeightPixels { get; }
+
+    public int? NoticeRegionHeightPixels { get; }
 }
 
 public sealed class DocumentRenderManifest
 {
     public const int CurrentSchemaVersion = 1;
+    public const int NoticeBearingSchemaVersion = 2;
 
     private DocumentRenderManifest(
         DocumentId documentId,
@@ -132,10 +162,14 @@ public sealed class DocumentRenderManifest
         RenderProfileId renderProfileId,
         RendererDescriptor rendererDescriptor,
         DocumentPageImage[] orderedPageImages,
+        DerivativeObligationSetId? obligationSetId,
+        DerivativeObligationSetSha256? obligationSetSha256,
         ManifestSha256 manifestSha256,
         DateTimeOffset generatedAt)
     {
-        SchemaVersion = CurrentSchemaVersion;
+        SchemaVersion = renderProfileId.Value == RenderProfileId.PdfPagePngV1
+            ? CurrentSchemaVersion
+            : NoticeBearingSchemaVersion;
         DocumentId = documentId;
         DocumentVersion = documentVersion;
         SourceContentObjectId = sourceContentObjectId;
@@ -143,6 +177,8 @@ public sealed class DocumentRenderManifest
         RenderProfileId = renderProfileId;
         RendererDescriptor = rendererDescriptor;
         OrderedPageImages = Array.AsReadOnly(orderedPageImages);
+        ObligationSetId = obligationSetId;
+        ObligationSetSha256 = obligationSetSha256;
         ManifestSha256 = manifestSha256;
         RenderManifestId = RenderManifestId.FromManifestSha256(manifestSha256);
         GeneratedAt = generatedAt;
@@ -163,6 +199,10 @@ public sealed class DocumentRenderManifest
     public RendererDescriptor RendererDescriptor { get; }
 
     public IReadOnlyList<DocumentPageImage> OrderedPageImages { get; }
+
+    public DerivativeObligationSetId? ObligationSetId { get; }
+
+    public DerivativeObligationSetSha256? ObligationSetSha256 { get; }
 
     public ManifestSha256 ManifestSha256 { get; }
 
@@ -188,6 +228,8 @@ public sealed class DocumentRenderManifest
             renderProfileId,
             rendererDescriptor,
             orderedPageImages,
+            null,
+            null,
             generatedAt);
         var digest = CanonicalDigest(
             documentId,
@@ -196,7 +238,9 @@ public sealed class DocumentRenderManifest
             sourcePageCount,
             renderProfileId,
             rendererDescriptor,
-            pages);
+            pages,
+            null,
+            null);
         return new DocumentRenderManifest(
             documentId,
             documentVersion,
@@ -205,6 +249,55 @@ public sealed class DocumentRenderManifest
             renderProfileId,
             rendererDescriptor,
             pages,
+            null,
+            null,
+            digest,
+            generatedAt);
+    }
+
+    public static DocumentRenderManifest CreateNoticeBearing(
+        DocumentId documentId,
+        DocumentVersionNumber documentVersion,
+        ContentObjectId sourceContentObjectId,
+        int sourcePageCount,
+        RendererDescriptor rendererDescriptor,
+        DerivativeObligationSetV1 obligationSet,
+        IEnumerable<DocumentPageImage> orderedPageImages,
+        DateTimeOffset generatedAt)
+    {
+        ArgumentNullException.ThrowIfNull(obligationSet);
+        var profile = new RenderProfileId(RenderProfileId.PdfPagePngNoticeV1);
+        var pages = Validate(
+            documentId,
+            documentVersion,
+            sourceContentObjectId,
+            sourcePageCount,
+            profile,
+            rendererDescriptor,
+            orderedPageImages,
+            obligationSet.ObligationSetId,
+            obligationSet.CanonicalSha256,
+            generatedAt);
+        var digest = CanonicalDigest(
+            documentId,
+            documentVersion,
+            sourceContentObjectId,
+            sourcePageCount,
+            profile,
+            rendererDescriptor,
+            pages,
+            obligationSet.ObligationSetId,
+            obligationSet.CanonicalSha256);
+        return new DocumentRenderManifest(
+            documentId,
+            documentVersion,
+            sourceContentObjectId,
+            sourcePageCount,
+            profile,
+            rendererDescriptor,
+            pages,
+            obligationSet.ObligationSetId,
+            obligationSet.CanonicalSha256,
             digest,
             generatedAt);
     }
@@ -218,10 +311,12 @@ public sealed class DocumentRenderManifest
         RendererDescriptor rendererDescriptor,
         IEnumerable<DocumentPageImage> orderedPageImages,
         ManifestSha256 manifestSha256,
-        DateTimeOffset generatedAt)
+        DateTimeOffset generatedAt,
+        DerivativeObligationSetId? obligationSetId = null,
+        DerivativeObligationSetSha256? obligationSetSha256 = null)
     {
         ArgumentNullException.ThrowIfNull(manifestSha256);
-        var manifest = Create(
+        var pages = Validate(
             documentId,
             documentVersion,
             sourceContentObjectId,
@@ -229,6 +324,30 @@ public sealed class DocumentRenderManifest
             renderProfileId,
             rendererDescriptor,
             orderedPageImages,
+            obligationSetId,
+            obligationSetSha256,
+            generatedAt);
+        var digest = CanonicalDigest(
+            documentId,
+            documentVersion,
+            sourceContentObjectId,
+            sourcePageCount,
+            renderProfileId,
+            rendererDescriptor,
+            pages,
+            obligationSetId,
+            obligationSetSha256);
+        var manifest = new DocumentRenderManifest(
+            documentId,
+            documentVersion,
+            sourceContentObjectId,
+            sourcePageCount,
+            renderProfileId,
+            rendererDescriptor,
+            pages,
+            obligationSetId,
+            obligationSetSha256,
+            digest,
             generatedAt);
 
         if (manifest.ManifestSha256 != manifestSha256)
@@ -248,6 +367,8 @@ public sealed class DocumentRenderManifest
         RenderProfileId renderProfileId,
         RendererDescriptor rendererDescriptor,
         IEnumerable<DocumentPageImage> orderedPageImages,
+        DerivativeObligationSetId? obligationSetId,
+        DerivativeObligationSetSha256? obligationSetSha256,
         DateTimeOffset generatedAt)
     {
         ArgumentNullException.ThrowIfNull(documentId);
@@ -270,6 +391,16 @@ public sealed class DocumentRenderManifest
             throw new ArgumentException(
                 "A render-manifest generation instant must be expressed in UTC.",
                 nameof(generatedAt));
+        }
+
+        var isLegacy = renderProfileId.Value == RenderProfileId.PdfPagePngV1;
+
+        if (isLegacy && (obligationSetId is not null || obligationSetSha256 is not null) ||
+            !isLegacy && (obligationSetId is null || obligationSetSha256 is null ||
+                obligationSetId != DerivativeObligationSetId.FromSha256(obligationSetSha256)))
+        {
+            throw new ArgumentException(
+                "A render manifest must carry obligation identity exactly when it uses the notice-bearing profile.");
         }
 
         var pages = orderedPageImages.ToArray();
@@ -316,17 +447,30 @@ public sealed class DocumentRenderManifest
         int sourcePageCount,
         RenderProfileId renderProfileId,
         RendererDescriptor rendererDescriptor,
-        IReadOnlyList<DocumentPageImage> pages)
+        IReadOnlyList<DocumentPageImage> pages,
+        DerivativeObligationSetId? obligationSetId,
+        DerivativeObligationSetSha256? obligationSetSha256)
     {
+        var isLegacy = renderProfileId.Value == RenderProfileId.PdfPagePngV1;
         var canonical = new StringBuilder();
-        Append(canonical, "canonicalSchema", "rag-render-manifest-v1");
-        Append(canonical, "schemaVersion", CurrentSchemaVersion.ToString(CultureInfo.InvariantCulture));
+        Append(canonical, "canonicalSchema", isLegacy
+            ? "rag-render-manifest-v1"
+            : "rag-render-manifest-v2");
+        Append(canonical, "schemaVersion", (isLegacy
+            ? CurrentSchemaVersion
+            : NoticeBearingSchemaVersion).ToString(CultureInfo.InvariantCulture));
         Append(canonical, "documentId", documentId.Value);
         Append(canonical, "documentVersion", documentVersion.ToCanonicalString());
         Append(canonical, "sourceContentObjectId", sourceContentObjectId.Value);
         Append(canonical, "sourcePageCount", sourcePageCount.ToString(CultureInfo.InvariantCulture));
         Append(canonical, "renderProfileId", renderProfileId.Value);
         Append(canonical, "rendererDescriptor", rendererDescriptor.Value);
+
+        if (!isLegacy)
+        {
+            Append(canonical, "obligationSetId", obligationSetId!.Value);
+            Append(canonical, "obligationSetSha256", obligationSetSha256!.Value);
+        }
 
         foreach (var page in pages)
         {
@@ -342,6 +486,13 @@ public sealed class DocumentRenderManifest
             Append(canonical, "page.mediaType", page.MediaType);
             Append(canonical, "page.widthPixels", page.WidthPixels.ToString(CultureInfo.InvariantCulture));
             Append(canonical, "page.heightPixels", page.HeightPixels.ToString(CultureInfo.InvariantCulture));
+
+            if (!isLegacy)
+            {
+                Append(canonical, "page.sourceRegionWidthPixels", page.SourceRegionWidthPixels!.Value.ToString(CultureInfo.InvariantCulture));
+                Append(canonical, "page.sourceRegionHeightPixels", page.SourceRegionHeightPixels!.Value.ToString(CultureInfo.InvariantCulture));
+                Append(canonical, "page.noticeRegionHeightPixels", page.NoticeRegionHeightPixels!.Value.ToString(CultureInfo.InvariantCulture));
+            }
         }
 
         var digest = SHA256.HashData(Encoding.UTF8.GetBytes(canonical.ToString()));

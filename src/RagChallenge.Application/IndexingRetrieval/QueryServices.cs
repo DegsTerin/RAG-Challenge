@@ -29,7 +29,8 @@ public sealed record QueryEvidenceBinding
         string? title = null,
         string? canonicalUrl = null,
         DateTimeOffset? revalidatedAt = null,
-        SourceDeclaredLanguage? sourceDeclaredLanguage = null)
+        SourceDeclaredLanguage? sourceDeclaredLanguage = null,
+        DerivativeObligationSetV1? derivativeObligationSet = null)
     {
         Binding = binding ?? throw new ArgumentNullException(nameof(binding));
         EvidenceBinding = evidenceBinding ??
@@ -60,6 +61,25 @@ public sealed record QueryEvidenceBinding
             throw new ArgumentException(
                 "Query-time CSV evidence cannot carry a render manifest.",
                 nameof(renderManifest));
+        }
+
+        var noticeBearing = renderManifest?.RenderProfileId.Value ==
+            RenderProfileId.PdfPagePngNoticeV1;
+
+        if (noticeBearing &&
+            (derivativeObligationSet is null ||
+             renderManifest!.ObligationSetId != derivativeObligationSet.ObligationSetId ||
+             renderManifest.ObligationSetSha256 != derivativeObligationSet.CanonicalSha256 ||
+             derivativeObligationSet.DocumentId != binding.DocumentId ||
+             derivativeObligationSet.DocumentVersion != binding.DocumentVersion ||
+             derivativeObligationSet.SourceContentObjectId != evidenceBinding.SourceContentObjectId ||
+             derivativeObligationSet.ContentLanguage != contentLanguage ||
+             !derivativeObligationSet.MatchesRights(evidenceBinding.Rights)) ||
+            !noticeBearing && derivativeObligationSet is not null)
+        {
+            throw new ArgumentException(
+                "Query-time notice-bearing evidence requires its exact obligation set and rights mapping.",
+                nameof(derivativeObligationSet));
         }
 
         if (!Enum.IsDefined(freshness))
@@ -100,6 +120,7 @@ public sealed record QueryEvidenceBinding
         CanonicalUrl = canonicalUrl;
         RevalidatedAt = revalidatedAt;
         SourceDeclaredLanguage = sourceDeclaredLanguage;
+        DerivativeObligationSet = derivativeObligationSet;
     }
 
     public DocumentBinding Binding { get; }
@@ -119,6 +140,8 @@ public sealed record QueryEvidenceBinding
     public DateTimeOffset? RevalidatedAt { get; }
 
     public SourceDeclaredLanguage? SourceDeclaredLanguage { get; }
+
+    public DerivativeObligationSetV1? DerivativeObligationSet { get; }
 
     public bool IsEligible =>
         Freshness is SourceFreshness.Local or SourceFreshness.Current;
@@ -306,7 +329,8 @@ public sealed record QueryPageImage(
     string MediaType,
     int WidthPixels,
     int HeightPixels,
-    ImageSha256 ContentSha256);
+    ImageSha256 ContentSha256,
+    DerivativeObligationSetId? ObligationSetId = null);
 
 public sealed record QueryCitation(
     CorpusId CorpusId,
@@ -335,6 +359,8 @@ public sealed record QueryCitation(
     public SourceDeclaredLanguage? SourceDeclaredLanguage { get; init; }
 
     public IReadOnlyCollection<QueryPageImage> PageImages { get; init; } = [];
+
+    public DerivativeObligationSetV1? DerivativeObligationSet { get; init; }
 }
 
 public sealed record QueryCompletion(
@@ -842,6 +868,7 @@ public sealed class QuestionAnsweringService : IQuestionAnsweringService
             item.Binding.Freshness)
         {
             SourceDeclaredLanguage = item.Binding.SourceDeclaredLanguage,
+            DerivativeObligationSet = item.Binding.DerivativeObligationSet,
         };
 
     private static QueryCompletion AttachPageImages(
@@ -883,7 +910,12 @@ public sealed class QuestionAnsweringService : IQuestionAnsweringService
                         page.MediaType,
                         page.WidthPixels,
                         page.HeightPixels,
-                        page.ImageSha256);
+                        page.ImageSha256,
+                        page.RenderProfileId.Value == RenderProfileId.PdfPagePngNoticeV1
+                            ? citation.DerivativeObligationSet?.ObligationSetId ??
+                                throw new InvalidDataException(
+                                    "A notice-bearing answer-evidence page has no matching obligation set.")
+                            : null);
                 })
                 .ToArray();
             remaining -= pages.Length;

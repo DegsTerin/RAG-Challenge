@@ -64,11 +64,29 @@ public sealed class VerifiedPageImageEvidenceReader(
             }
 
             var matchingBinding = matchingBindings[0];
+            var manifest = matchingBinding.RenderManifest!;
             var servingRights = DocumentRightsEligibilityPolicy.Evaluate(
                 matchingBinding.EvidenceBinding.Rights,
                 DocumentRightsEligibilityGate.PdfVisualEvidenceServing);
+            var noticeBearing = manifest.RenderProfileId.Value ==
+                RenderProfileId.PdfPagePngNoticeV1;
+            var obligationSet = matchingBinding.DerivativeObligationSet;
 
             if (!servingRights.IsEligible ||
+                noticeBearing &&
+                    (obligationSet is null ||
+                     manifest.ObligationSetId != obligationSet.ObligationSetId ||
+                     manifest.ObligationSetSha256 != obligationSet.CanonicalSha256 ||
+                     !obligationSet.MatchesRights(matchingBinding.EvidenceBinding.Rights) ||
+                     matchingBinding.EvidenceBinding.Rights.DecisionFor(
+                         DocumentRight.RuntimeDerivativeImageDisplay).State !=
+                         DocumentRightDecisionState.Permitted ||
+                     matchingBinding.EvidenceBinding.Rights.DecisionFor(
+                         DocumentRight.SourceAndDerivativeByteDistributionOrPublication).State ==
+                         DocumentRightDecisionState.Unproven) ||
+                !noticeBearing &&
+                    (obligationSet is not null || manifest.ObligationSetId is not null ||
+                     manifest.ObligationSetSha256 is not null) ||
                 !await IsCurrentlyActiveAsync(
                     matchingBinding,
                     cancellationToken).ConfigureAwait(false))
@@ -76,7 +94,7 @@ public sealed class VerifiedPageImageEvidenceReader(
                 return VisualEvidenceReadResult.NotAvailable();
             }
 
-            var matchingPages = matchingBinding.RenderManifest!.OrderedPageImages
+            var matchingPages = manifest.OrderedPageImages
                 .Where(page =>
                     page.PageNumber == selector.PageNumber &&
                     page.ImageContentObjectId == selector.ImageContentObjectId)
@@ -92,7 +110,17 @@ public sealed class VerifiedPageImageEvidenceReader(
             if (page.ByteLength is <= 0 or > MaximumByteLength ||
                 page.ImageContentObjectId.Value != page.ImageSha256.Value ||
                 !string.Equals(page.MediaType, DocumentPageImage.PngMediaType,
-                    StringComparison.Ordinal))
+                    StringComparison.Ordinal) ||
+                noticeBearing &&
+                    (page.SourceRegionWidthPixels != page.WidthPixels ||
+                     page.SourceRegionHeightPixels is null ||
+                     page.NoticeRegionHeightPixels is null ||
+                     page.SourceRegionHeightPixels + page.NoticeRegionHeightPixels !=
+                        page.HeightPixels) ||
+                !noticeBearing &&
+                    (page.SourceRegionWidthPixels is not null ||
+                     page.SourceRegionHeightPixels is not null ||
+                     page.NoticeRegionHeightPixels is not null))
             {
                 return VisualEvidenceReadResult.Unavailable();
             }

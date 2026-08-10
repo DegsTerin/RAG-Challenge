@@ -183,7 +183,8 @@ public interface IControlPlaneStore
 
 public sealed record RenderManifestCommitRequest(
     CorpusId CorpusId,
-    DocumentRenderManifest Manifest);
+    DocumentRenderManifest Manifest,
+    DerivativeObligationSetV1? ObligationSet = null);
 
 public sealed record RenderManifestCommitResult(
     StoreMutationOutcome Outcome,
@@ -199,6 +200,12 @@ public interface IDocumentRenderManifestStore
         CorpusId corpusId,
         RenderManifestId renderManifestId,
         CancellationToken cancellationToken = default);
+
+    Task<DerivativeObligationSetV1?> ReadObligationSetAsync(
+        CorpusId corpusId,
+        DerivativeObligationSetId obligationSetId,
+        CancellationToken cancellationToken = default) =>
+        Task.FromResult<DerivativeObligationSetV1?>(null);
 }
 
 public sealed record ContentMediaType

@@ -45,7 +45,8 @@ public sealed class DocumentRenderCandidateRequest
         long sourceByteLength,
         DocumentRightsEligibilityRecordV1 rights,
         PdfRenderPolicy policy,
-        DateTimeOffset generatedAt)
+        DateTimeOffset generatedAt,
+        DerivativeObligationSetV1? obligationSet = null)
     {
         ArgumentNullException.ThrowIfNull(corpusId);
         ArgumentNullException.ThrowIfNull(documentId);
@@ -60,6 +61,17 @@ public sealed class DocumentRenderCandidateRequest
             throw new ArgumentException(
                 "The rights record must bind the exact render-candidate document version.",
                 nameof(rights));
+        }
+
+        if (obligationSet is not null &&
+            (obligationSet.DocumentId != documentId ||
+             obligationSet.DocumentVersion != documentVersion ||
+             obligationSet.SourceContentObjectId != sourceContentObjectId ||
+             !obligationSet.MatchesRights(rights)))
+        {
+            throw new ArgumentException(
+                "The obligation set must bind the exact source and ten-decision rights mapping.",
+                nameof(obligationSet));
         }
 
         if (generatedAt.Offset != TimeSpan.Zero)
@@ -77,6 +89,7 @@ public sealed class DocumentRenderCandidateRequest
         Rights = rights;
         Policy = policy;
         GeneratedAt = generatedAt;
+        ObligationSet = obligationSet;
     }
 
     public CorpusId CorpusId { get; }
@@ -94,6 +107,8 @@ public sealed class DocumentRenderCandidateRequest
     public PdfRenderPolicy Policy { get; }
 
     public DateTimeOffset GeneratedAt { get; }
+
+    public DerivativeObligationSetV1? ObligationSet { get; }
 }
 
 public sealed record DocumentRenderCandidateResult(
@@ -106,17 +121,23 @@ public sealed class DocumentRenderCandidateService
     private readonly IPdfPageRenderer renderer;
     private readonly IPngPageImageValidator pngValidator;
     private readonly IDocumentRenderManifestStore manifestStore;
+    private readonly INoticeBearingPageImageCompositor? noticeCompositor;
+    private readonly INoticeBearingPageImageValidator? noticeValidator;
 
     public DocumentRenderCandidateService(
         IDocumentContentStore contentStore,
         IPdfPageRenderer renderer,
         IPngPageImageValidator pngValidator,
-        IDocumentRenderManifestStore manifestStore)
+        IDocumentRenderManifestStore manifestStore,
+        INoticeBearingPageImageCompositor? noticeCompositor = null,
+        INoticeBearingPageImageValidator? noticeValidator = null)
     {
         this.contentStore = contentStore ?? throw new ArgumentNullException(nameof(contentStore));
         this.renderer = renderer ?? throw new ArgumentNullException(nameof(renderer));
         this.pngValidator = pngValidator ?? throw new ArgumentNullException(nameof(pngValidator));
         this.manifestStore = manifestStore ?? throw new ArgumentNullException(nameof(manifestStore));
+        this.noticeCompositor = noticeCompositor;
+        this.noticeValidator = noticeValidator;
     }
 
     public async Task<DocumentRenderCandidateResult> FinaliseAsync(
@@ -130,6 +151,14 @@ public sealed class DocumentRenderCandidateService
             DocumentRightsEligibilityGate.PdfVisualEvidence);
 
         if (!rights.IsEligible)
+        {
+            throw new DocumentRenderCandidateException(
+                DocumentRenderCandidateFailureKind.RightsIneligible);
+        }
+
+        if (request.ObligationSet is not null &&
+            (noticeCompositor is null || noticeValidator is null ||
+             !request.ObligationSet.MatchesRights(request.Rights)))
         {
             throw new DocumentRenderCandidateException(
                 DocumentRenderCandidateFailureKind.RightsIneligible);
@@ -176,34 +205,100 @@ public sealed class DocumentRenderCandidateService
                 DocumentRenderCandidateFailureKind.SourceVerificationFailed);
         }
 
-        var expectedDescriptor = renderer.Describe(request.Policy);
+        var sourceDescriptor = renderer.Describe(request.Policy);
         var validatedPages = ValidateCompleteRendererOutput(
             rendered,
-            expectedDescriptor,
+            sourceDescriptor,
             request.Policy);
         var pageBindings = new List<DocumentPageImage>(validatedPages.Count);
+        var expectedDescriptor = request.ObligationSet is null
+            ? sourceDescriptor
+            : noticeCompositor!.Describe(
+                request.Policy,
+                sourceDescriptor,
+                request.ObligationSet);
+        long publishedPixels = 0;
+        long publishedBytes = 0;
 
         foreach (var item in validatedPages)
         {
+            ReadOnlyMemory<byte> pageBytes = item.Candidate.PngBytes;
+            var pageSha256 = item.Validation.Sha256;
+            var pageByteLength = item.Validation.ByteLength;
+            var widthPixels = item.Validation.WidthPixels;
+            var heightPixels = item.Validation.HeightPixels;
+            int? sourceRegionWidthPixels = null;
+            int? sourceRegionHeightPixels = null;
+            int? noticeRegionHeightPixels = null;
+
+            if (request.ObligationSet is not null)
+            {
+                try
+                {
+                    var composite = noticeCompositor!.Compose(
+                        item.Candidate,
+                        item.Validation,
+                        sourceDescriptor,
+                        request.ObligationSet,
+                        request.Policy);
+                    var validation = noticeValidator!.Validate(
+                        item.Candidate,
+                        item.Validation,
+                        composite,
+                        request.Policy);
+
+                    if (composite.RendererDescriptor != expectedDescriptor ||
+                        validation.PageNumber != item.Validation.PageNumber)
+                    {
+                        throw new PdfRenderException(PdfRenderFailureKind.ProtocolViolation);
+                    }
+
+                    pageBytes = composite.PngBytes;
+                    pageSha256 = validation.Sha256;
+                    pageByteLength = validation.ByteLength;
+                    widthPixels = validation.WidthPixels;
+                    heightPixels = validation.HeightPixels;
+                    sourceRegionWidthPixels = validation.SourceRegionWidthPixels;
+                    sourceRegionHeightPixels = validation.SourceRegionHeightPixels;
+                    noticeRegionHeightPixels = validation.NoticeRegionHeightPixels;
+                }
+                catch (PdfRenderException)
+                {
+                    throw new DocumentRenderCandidateException(
+                        DocumentRenderCandidateFailureKind.PageImageInvalid);
+                }
+            }
+
+            publishedPixels = checked(publishedPixels + ((long)widthPixels * heightPixels));
+            publishedBytes = checked(publishedBytes + pageByteLength);
+
+            if (pageByteLength > request.Policy.MaximumPageOutputByteLength ||
+                publishedPixels > request.Policy.MaximumTotalPixels ||
+                publishedBytes > request.Policy.MaximumTotalOutputByteLength)
+            {
+                throw new DocumentRenderCandidateException(
+                    DocumentRenderCandidateFailureKind.PageImageInvalid);
+            }
+
             ContentObjectDescriptor descriptor;
 
             try
             {
                 await using var png = new MemoryStream(
-                    item.Candidate.PngBytes.ToArray(),
+                    pageBytes.ToArray(),
                     writable: false);
                 descriptor = await contentStore.PutAndVerifyAsync(
                     new BoundedContentInput(
                         png,
                         request.Policy.MaximumPageOutputByteLength,
                         ContentMediaType.ImagePng,
-                        item.Validation.Sha256),
+                        pageSha256),
                     cancellationToken).ConfigureAwait(false);
                 await using var reopened = await contentStore.OpenVerifiedAsync(
                     descriptor.ContentObjectId,
                     new ExpectedHashAndLength(
-                        item.Validation.Sha256,
-                        item.Validation.ByteLength),
+                        pageSha256,
+                        pageByteLength),
                     cancellationToken).ConfigureAwait(false);
             }
             catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
@@ -217,8 +312,8 @@ public sealed class DocumentRenderCandidateService
                     DocumentRenderCandidateFailureKind.ContentPublicationFailed);
             }
 
-            if (descriptor.Sha256 != item.Validation.Sha256 ||
-                descriptor.ByteLength != item.Validation.ByteLength ||
+            if (descriptor.Sha256 != pageSha256 ||
+                descriptor.ByteLength != pageByteLength ||
                 descriptor.MediaType != ContentMediaType.ImagePng)
             {
                 throw new DocumentRenderCandidateException(
@@ -230,27 +325,42 @@ public sealed class DocumentRenderCandidateService
                 request.DocumentVersion,
                 request.SourceContentObjectId,
                 item.Validation.PageNumber,
-                new RenderProfileId(RenderProfileId.PdfPagePngV1),
+                new RenderProfileId(request.ObligationSet is null
+                    ? RenderProfileId.PdfPagePngV1
+                    : RenderProfileId.PdfPagePngNoticeV1),
                 expectedDescriptor,
                 descriptor.ContentObjectId,
                 new ImageSha256(descriptor.Sha256.Value),
                 descriptor.ByteLength,
                 descriptor.MediaType.Value,
-                item.Validation.WidthPixels,
-                item.Validation.HeightPixels));
+                widthPixels,
+                heightPixels,
+                sourceRegionWidthPixels,
+                sourceRegionHeightPixels,
+                noticeRegionHeightPixels));
         }
 
-        var manifest = DocumentRenderManifest.Create(
-            request.DocumentId,
-            request.DocumentVersion,
-            request.SourceContentObjectId,
-            rendered.SourcePageCount,
-            new RenderProfileId(RenderProfileId.PdfPagePngV1),
-            expectedDescriptor,
-            pageBindings,
-            request.GeneratedAt);
+        var manifest = request.ObligationSet is null
+            ? DocumentRenderManifest.Create(
+                request.DocumentId,
+                request.DocumentVersion,
+                request.SourceContentObjectId,
+                rendered.SourcePageCount,
+                new RenderProfileId(RenderProfileId.PdfPagePngV1),
+                expectedDescriptor,
+                pageBindings,
+                request.GeneratedAt)
+            : DocumentRenderManifest.CreateNoticeBearing(
+                request.DocumentId,
+                request.DocumentVersion,
+                request.SourceContentObjectId,
+                rendered.SourcePageCount,
+                expectedDescriptor,
+                request.ObligationSet,
+                pageBindings,
+                request.GeneratedAt);
         var commit = await manifestStore.CommitAsync(
-            new RenderManifestCommitRequest(request.CorpusId, manifest),
+            new RenderManifestCommitRequest(request.CorpusId, manifest, request.ObligationSet),
             cancellationToken).ConfigureAwait(false);
 
         if (commit.Outcome is not (StoreMutationOutcome.Applied or StoreMutationOutcome.AlreadyApplied) ||
@@ -347,6 +457,8 @@ public sealed class DocumentRenderCandidateService
         left.SourcePageCount == right.SourcePageCount &&
         left.RenderProfileId == right.RenderProfileId &&
         left.RendererDescriptor == right.RendererDescriptor &&
+        left.ObligationSetId == right.ObligationSetId &&
+        left.ObligationSetSha256 == right.ObligationSetSha256 &&
         left.OrderedPageImages.Select(PageIdentity)
             .SequenceEqual(right.OrderedPageImages.Select(PageIdentity));
 
@@ -358,7 +470,10 @@ public sealed class DocumentRenderCandidateService
             page.ImageSha256.Value,
             page.ByteLength,
             page.WidthPixels,
-            page.HeightPixels);
+            page.HeightPixels,
+            page.SourceRegionWidthPixels,
+            page.SourceRegionHeightPixels,
+            page.NoticeRegionHeightPixels);
 
     private sealed record ValidatedPage(
         RenderedPdfPageCandidate Candidate,

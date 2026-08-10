@@ -110,6 +110,22 @@ public sealed class SqliteQueryActivationReader(SqliteStoreOptions options)
                     cancellationToken).ConfigureAwait(false) ??
                     throw new InvalidDataException(
                         "An active PDF evidence binding has no readable final render manifest.");
+            var obligationSet = hydratedRenderManifest?.ObligationSetId is null
+                ? null
+                : await controlStore.ReadObligationSetAsync(
+                    corpusId,
+                    hydratedRenderManifest.ObligationSetId,
+                    cancellationToken).ConfigureAwait(false) ??
+                    throw new InvalidDataException(
+                        "An active notice-bearing manifest has no readable obligation set.");
+
+            if (obligationSet is not null &&
+                (!obligationSet.MatchesRights(evidence.Rights) ||
+                 obligationSet.SourceContentObjectId != evidence.SourceContentObjectId))
+            {
+                throw new InvalidDataException(
+                    "An active notice-bearing obligation set differs from its exact rights or source binding.");
+            }
 
             DocumentContentLanguage language;
 
@@ -148,7 +164,8 @@ public sealed class SqliteQueryActivationReader(SqliteStoreOptions options)
                     language,
                     SourceFreshness.Local,
                     product.DisplayName,
-                    sourceDeclaredLanguage: sourceDeclaredLanguage));
+                    sourceDeclaredLanguage: sourceDeclaredLanguage,
+                    derivativeObligationSet: obligationSet));
                 continue;
             }
 
@@ -184,7 +201,8 @@ public sealed class SqliteQueryActivationReader(SqliteStoreOptions options)
                 product.DisplayName,
                 registration.CanonicalHttpsUrl,
                 observation.RevalidatedAt,
-                sourceDeclaredLanguage));
+                sourceDeclaredLanguage,
+                obligationSet));
         }
 
         return new QueryActivationSnapshot(activation, resolved);
