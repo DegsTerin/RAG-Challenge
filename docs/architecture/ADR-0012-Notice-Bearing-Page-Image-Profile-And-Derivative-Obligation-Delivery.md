@@ -11,8 +11,11 @@
 - Owners: RAG-Challenge product, architecture, data governance, security and
   accessibility
 - State: `STATE-07 TESTING_HOMOLOGATION` accepted architecture decision
-- Implementation status: not authorised; this decision changes no code,
-  OpenAPI, schema, migration, dataset, rights disposition or runtime behaviour
+- Implementation status: the protected v2 contract revision and the schema and
+  migration increment are implemented under their separate authorities;
+  renderer, manifest composition, storage/reachability behaviour, serving and
+  accessible Dashboard implementation remain outstanding. No candidate rights
+  disposition, dataset or product runtime behaviour is changed by this record.
 
 ## Purpose and authority
 
@@ -418,6 +421,16 @@ sequential authorities for:
    their own authorities.
 
 No item is authorised merely by preparing or accepting this ADR.
+
+Items 1 to 3 were subsequently completed under their separate authorities. The
+schema and migration increment was implemented in focused commit
+`98036f3c8c496544f4532d1fe48c981f836a1871`: it persists immutable
+`DerivativeObligationSetV1` rows and ordered blocks, permits the notice-bearing
+profile alongside the legacy profile, binds obligation identity and digest plus
+source/notice-region dimensions to the render manifest, and enforces the
+required foreign keys, conditional constraints and fail-closed sealing rules.
+Legacy records, manifests, hashes and activations remain unchanged. This
+progress record does not authorise or complete items 4 to 8.
 
 ## Alternatives considered
 

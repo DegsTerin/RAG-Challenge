@@ -41,8 +41,9 @@ Accepted
 [ADR-0012](architecture/ADR-0012-Notice-Bearing-Page-Image-Profile-And-Derivative-Obligation-Delivery.md)
 defines the notice-bearing derivative direction applied by this revision.
 `obligationSetId` and `DerivativeObligationPresentationV1` are now frozen v2
-transport fields. This contract change does not implement the obligation-set,
-schema, renderer, projection, serving validation or accessible Dashboard
+transport fields. The later schema and migration increment was implemented in
+focused commit `98036f3c8c496544f4532d1fe48c981f836a1871`; it does not implement
+the renderer, projection, serving validation or accessible Dashboard
 presentation and cannot authorise notice-bearing product serving by itself.
 
 ## Frozen decisions
@@ -369,12 +370,13 @@ Discovery of a need for a persisted public grant, token, session or different
 authority model is a stop condition, not permission to add a migration.
 
 That no-migration statement applies only to the frozen and already implemented
-`pdf-page-png-v1` contract. ADR-0012 deliberately requires a future schema and
-migration for immutable `DerivativeObligationSetV1` rows, ordered exact text,
-profile constraints, manifest obligation identity/digest, region measurements,
-foreign keys and reachability. It also requires the separately frozen public
-v2 revision above. Legacy rows and hashes remain immutable and receive no
-inferred backfill.
+`pdf-page-png-v1` contract. ADR-0012 required a separate schema and migration
+for immutable `DerivativeObligationSetV1` rows, ordered exact text, profile
+constraints, manifest obligation identity/digest, region measurements, foreign
+keys and reachability. That increment is implemented in
+`98036f3c8c496544f4532d1fe48c981f836a1871`, alongside the separately frozen
+public v2 revision above. Legacy rows and hashes remain immutable and received
+no inferred backfill.
 
 ## SEC-IMG-02 acceptance matrix
 
@@ -430,7 +432,9 @@ mismatch was corrected in focal commit
 decisions and fails closed on an `Unproven` intended distribution boundary.
 
 The ADR-0012 contract revision is now frozen in OpenAPI v2 and the strict
-server/Dashboard transport owners. Schema design, migration and implementation
-remain required before a notice-bearing derivative can be produced or served.
-The current PostgreSQL candidate remains `BLOCKED/EXCLUDED`; no new A0 is
-performed here.
+server/Dashboard transport owners. Schema design and migration are implemented
+in `98036f3c8c496544f4532d1fe48c981f836a1871`; obligation-set composition,
+renderer, manifest finalisation, storage/reachability behaviour, serving and
+accessible Dashboard implementation remain required before a notice-bearing
+derivative can be produced or served. The current PostgreSQL candidate remains
+`BLOCKED/EXCLUDED`; no new A0 is performed here.

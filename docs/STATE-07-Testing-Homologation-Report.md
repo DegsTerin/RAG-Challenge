@@ -607,6 +607,59 @@ owned listener. The working tree was clean after the focused commit.
 These results are focused implementation evidence only. They are not an
 Automatic Quality Gate, product homologation, Human Gate or lifecycle
 transition. No new A0 was executed. `postgresql-18-reference-a4` remains
-`BLOCKED/EXCLUDED`, and page rendering, derivative-image creation,
-derivative-image retention, runtime derivative display and the intended source
-or derivative distribution boundary remain `UNPROVEN` for that candidate.
+`BLOCKED/EXCLUDED`: page rendering, derivative-image creation,
+derivative-image retention and runtime derivative display remain `UNPROVEN`,
+while external source or derivative distribution/publication remains `DENIED`
+under the recorded boundary.
+
+## ADR-0012 notice-bearing schema and migration implementation
+
+### Authority, implementation and protected baseline
+
+The schema and migration increment authorised under
+`AUTH-S07-A-NOTICE-BEARING-SCHEMA-MIGRATION-001` was completed in focused
+commit `98036f3c8c496544f4532d1fe48c981f836a1871` from clean
+`main@564d9efd72285bb41545a5e60b63fcd44f9705fd`, prompt corpus `4.10.16`.
+
+The protected OpenAPI artefacts remained unchanged:
+
+| Artefact | SHA-256 | Git blob | Result |
+| --- | --- | --- | --- |
+| OpenAPI v1 | `d6a686b94c926914beb28b437f464430a01de6560c2e2d476cf5c36025813e34` | `a5fb3602fbab33bda6aa56cc4caaa9fdc37c8160` | preserved byte for byte |
+| OpenAPI v2 | `f4dca8db7fb7bd453e580495bb1bb7760812d954344931063e8549ed8f036733` | `5ed6a47631653dd0c137b6ea1e979ae2c14bf8a8` | preserved byte for byte |
+
+### Implemented persistence boundary
+
+The Control schema now persists immutable `DerivativeObligationSetV1` rows and
+their ordered evidence-reference, disclaimer and exact-text blocks. The
+`pdf-page-png-notice-v1` profile coexists with the legacy profile and binds one
+obligation-set identity and digest, source-region dimensions and notice-region
+dimensions to each notice-bearing render manifest and page.
+
+The two migrations
+`20260810033026_AddNoticeBearingObligationSchema` and
+`20260810034537_SealNoticeBearingObligationBindings` add the relational model
+and seal its bindings after the SQLite table rebuild. Conditional constraints,
+foreign keys and triggers fail closed on absent, mixed, mutable or mismatched
+notice-bearing state. Legacy records, manifests, hashes and activations remain
+unchanged; no inferred notice, right or backfill was introduced.
+
+### Focused observed verification
+
+The local, offline and synthetic verification observed during implementation
+was:
+
+| Boundary | Observed result |
+| --- | --- |
+| Focused migration and compatibility tests | 7 of 7 passed |
+| Entity Framework model check | no pending model changes |
+| Relational integrity | `foreign_key_check`, upgrade, rollback to zero and reapply passed in task-owned temporary SQLite stores |
+| Cleanup | task-owned cleanup completed |
+
+These results are focused implementation evidence only. No test, runtime,
+Automatic Quality Gate, Human Gate or lifecycle action was executed during this
+documentary reconciliation. Renderer, notice-bearing PNG creation, manifest
+composition, storage/reachability behaviour, serving, Dashboard presentation,
+dataset and product activation remain unimplemented or `NOT_RUN` as applicable.
+No new A0 was executed, and `postgresql-18-reference-a4` remains
+`BLOCKED/EXCLUDED` with its recorded rights disposition unchanged.

@@ -774,10 +774,28 @@ proprietários.
   PDF: valores `null` preservam a projeção legada, enquanto páginas
   notice-bearing exigem um único ID e apresentação completa coincidentes. Os
   tipos C# e o decoder estrito do Dashboard foram atualizados. Cinco testes do
-  decoder e seis testes contratuais .NET passaram focalmente; schema, migration,
-  renderer, armazenamento e comportamento notice-bearing permanecem não
-  implementados. O PostgreSQL continua `BLOCKED/EXCLUDED`; nenhum novo A0,
-  runtime, gate, Human Gate ou lifecycle foi executado.
+  decoder e seis testes contratuais .NET passaram focalmente. Ao fim daquele
+  incremento, schema, migration, renderer, armazenamento e comportamento
+  notice-bearing ainda não estavam implementados. O PostgreSQL continua
+  `BLOCKED/EXCLUDED`; nenhum novo A0, runtime, gate, Human Gate ou lifecycle foi
+  executado.
+- Schema e migrations notice-bearing: implementados sob
+  `AUTH-S07-A-NOTICE-BEARING-SCHEMA-MIGRATION-001` no commit
+  `98036f3c8c496544f4532d1fe48c981f836a1871`, sobre
+  `main@564d9efd72285bb41545a5e60b63fcd44f9705fd`, corpus `4.10.16`, working
+  tree inicialmente limpa e OpenAPI v1/v2 protegidas. O Control schema agora
+  persiste `DerivativeObligationSetV1` imutável e seus blocos ordenados, aceita
+  `pdf-page-png-notice-v1` junto ao perfil legado e vincula
+  `obligationSetId`/digest e dimensões source/notice ao render manifest. As
+  migrations `20260810033026_AddNoticeBearingObligationSchema` e
+  `20260810034537_SealNoticeBearingObligationBindings` aplicam constraints,
+  foreign keys e sealing triggers fail-closed sem backfill inferido ou mutação
+  de registros, manifests, hashes ou ativações legados. Sete de sete testes
+  focais passaram; não havia pending model changes; `foreign_key_check`,
+  upgrade e rollback/reapply foram aprovados em stores SQLite temporários
+  task-owned. O cleanup foi concluído. Renderer, PNG, comportamento
+  notice-bearing, dataset, novo A0, gate, Human Gate e lifecycle não foram
+  executados; o PostgreSQL permanece `BLOCKED/EXCLUDED`.
 - Decisão arquitetural de armazenamento do corpus e evidência visual:
   [ADR-0008](../../docs/architecture/ADR-0008-Product-Corpus-Storage-And-Page-Image-Evidence.md)
   foi aceita explicitamente pelo proprietário em 2026-08-07 sobre
@@ -1326,8 +1344,9 @@ proprietários.
   autocontida e as mudanças necessárias de schema, migration e contrato v2.
   Sua reconciliação semântica nos seis proprietários documentais foi aplicada
   no corpus `4.10.15`, e a revisão protegida do contrato v2 foi congelada no
-  corpus `4.10.16`. Schema, migration e comportamento notice-bearing continuam
-  não implementados; o PostgreSQL não foi reclassificado.
+  corpus `4.10.16`. Schema e migrations foram implementados no commit
+  `98036f3c8c496544f4532d1fe48c981f836a1871`; o comportamento notice-bearing
+  continua não implementado e o PostgreSQL não foi reclassificado.
 
 ## Baseline documental
 
@@ -1335,7 +1354,7 @@ proprietários.
   a política de idioma acrescentou o 21º documento público por incremento
   versionado, e o ADR-0003 acrescentou o 22º.
 - A baseline aprovada no Human Gate de `STATE-00` permanece `3.4.0`.
-- O corpus de instruções vigente possui versão `4.10.16` e 13 arquivos em
+- O corpus de instruções vigente possui versão `4.10.17` e 13 arquivos em
   `prompts/`.
 - Visão, requisitos, arquitetura, RAG, segurança, qualidade, lifecycle,
   roadmap, backlog, estado, histórico e templates estão documentados.
@@ -1419,6 +1438,13 @@ proprietários.
   anteriores permanecem. A compatibilidade legada usa valores `null`, enquanto
   o caso notice-bearing falha fechado em mistura, ausência ou divergência.
   OpenAPI v1, schema, migration, direitos, dataset, gate e lifecycle não mudam.
+- O corpus `4.10.17` reconcilia a implementação do schema e das duas migrations
+  notice-bearing no commit `98036f3c8c496544f4532d1fe48c981f836a1871`.
+  Registra obrigação imutável e blocos ordenados, coexistência dos perfis,
+  vínculo e digest do obligation set, dimensões source/notice, constraints,
+  foreign keys e sealing triggers fail-closed, sem backfill ou mutação legada.
+  Renderer, PNG, serving notice-bearing, Dashboard, direitos, dataset, novo A0,
+  gate e lifecycle permanecem inalterados ou `NOT_RUN`.
 - O corpus `4.3.0` formaliza a decisão explícita do proprietário de aceitar
   perguntas e respostas em `pt-BR` e `en-GB`: cada consulta declara o idioma,
   a resposta usa o mesmo idioma, textos derivados da fonte permanecem no
@@ -1684,9 +1710,9 @@ autorizada.
    `UNPROVEN`; a distribuição/publicação fora do runtime está `DENIED` pela
    fronteira interna deliberadamente excluída. O ADR-0012 aceito estabelece a
    arquitetura do mecanismo ausente e sua reconciliação semântica está
-   concluída e o contrato v2 está congelado, mas a disposição não muda. Schema,
-   migration, implementação, verificação e novo A0 continuam sob autoridades
-   separadas.
+   concluída e o contrato v2 e o schema/migrations estão implementados, mas a
+   disposição não muda. Implementação do comportamento notice-bearing,
+   verificação e novo A0 continuam sob autoridades separadas.
    Cada documento posterior mantém o mesmo gate
    independente de direitos, proveniência e idioma.
 2. Validar e ativar individualmente novos registros de fonte oficial; a
@@ -1757,9 +1783,11 @@ proprietários documentais foi concluída sob
 `AUTH-S07-A-NOTICE-BEARING-PROFILE-RECONCILE-001`. Ela registra o mecanismo
 autocontido. A revisão protegida do contrato v2 foi congelada sob
 `AUTH-S07-A-NOTICE-BEARING-V2-CONTRACT-001`, preservando v1 e a rota v2. Isso
-não reclassifica o candidato nem implementa o perfil. A próxima condição
-diretamente relacionada é o design e a migration de schema separadamente
-autorizados, antes da implementação.
+não reclassifica o candidato. O schema e as migrations foram implementados no
+commit `98036f3c8c496544f4532d1fe48c981f836a1871`, preservando registros legados
+e falhando fechado. A próxima condição diretamente relacionada é a autoridade
+separada para implementar o obligation set, renderer, manifest, storage,
+reachability, serving e Dashboard notice-bearing.
 
 O ADR-0011 foi aceito, sua semântica foi reconciliada e a política interna de
 serving v2 foi corrigida no commit

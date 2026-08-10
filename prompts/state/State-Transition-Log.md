@@ -6703,3 +6703,47 @@ contém somente fatos cronológicos.
 - Próxima condição: o design e a migration de schema exigidos pelo ADR-0012
   permanecem sob autoridade separada e devem preceder a implementação do
   obligation set, renderer e serving notice-bearing.
+
+## 2026-08-10 — Schema e migrations notice-bearing reconciliados
+
+- Estado anterior e resultante: `STATE-07 TESTING_HOMOLOGATION` permanece
+  ativo; nenhum Automatic Quality Gate, Human Gate ou lifecycle foi executado
+  ou alterado.
+- Autoridade e baseline:
+  `AUTH-S07-A-NOTICE-BEARING-SCHEMA-MIGRATION-RECONCILE-001`, branch `main`,
+  commit `98036f3c8c496544f4532d1fe48c981f836a1871`, corpus `4.10.16`, working
+  tree inicialmente limpa e OpenAPI v1/v2 protegidas.
+- Implementação reconciliada: o incremento
+  `AUTH-S07-A-NOTICE-BEARING-SCHEMA-MIGRATION-001`, concluído no commit focal
+  `98036f3c8c496544f4532d1fe48c981f836a1871`, persiste
+  `DerivativeObligationSetV1` imutável e seus blocos ordenados, permite
+  `pdf-page-png-notice-v1` ao lado do perfil legado e vincula
+  `obligationSetId`/digest e dimensões source/notice ao render manifest.
+- Migrations e fail-closed: as migrations
+  `20260810033026_AddNoticeBearingObligationSchema` e
+  `20260810034537_SealNoticeBearingObligationBindings` aplicam constraints,
+  foreign keys e sealing triggers depois do rebuild SQLite. Nenhum notice ou
+  direito foi inferido; registros, manifests, hashes e ativações legados não
+  receberam backfill nem mutação.
+- Evidência focal observada: 7/7 testes passaram; Entity Framework não informou
+  pending model changes; `foreign_key_check`, upgrade, rollback para zero,
+  reapply passaram em stores SQLite temporários task-owned.
+- Integridade protegida: OpenAPI v1 permaneceu no SHA-256
+  `d6a686b94c926914beb28b437f464430a01de6560c2e2d476cf5c36025813e34` e blob
+  `a5fb3602fbab33bda6aa56cc4caaa9fdc37c8160`; OpenAPI v2 permaneceu no SHA-256
+  `f4dca8db7fb7bd453e580495bb1bb7760812d954344931063e8549ed8f036733` e blob
+  `5ed6a47631653dd0c137b6ea1e979ae2c14bf8a8`.
+- Cleanup e escopo negativo: o cleanup task-owned foi concluído. Nenhum código,
+  teste, OpenAPI, contrato público, schema, migration, renderer, serving,
+  Dashboard, dataset, dependência ou lockfile foi alterado nesta reconciliação.
+  Nenhum novo A0, rede, fonte, provider, Automatic Quality Gate, Human Gate ou
+  lifecycle foi executado.
+- Disposição preservada: `postgresql-18-reference-a4` continua
+  `BLOCKED/EXCLUDED`, com as cinco decisões candidato-específicas registradas
+  sem reclassificação.
+- Versionamento: corpus elevado por `PATCH` factual de `4.10.16` para
+  `4.10.17`. O histórico preservou byte a byte seu prefixo anterior no SHA-256
+  `3f73437db25258856be047f291e002c1738e2b7b764afbb9199bf2f91d4fdb23`.
+- Próxima condição: a implementação do obligation-set model, renderer,
+  manifest, storage, reachability, serving e Dashboard notice-bearing exige
+  autoridade humana separada antes da verificação focal ou de um novo A0.

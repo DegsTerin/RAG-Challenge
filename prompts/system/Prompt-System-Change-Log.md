@@ -2,15 +2,15 @@
 
 ## Versão atual
 
-- Versão: `4.10.16`
+- Versão: `4.10.17`
 - Data: 2026-08-10
 - Status: `STATE-07` ativo; ADR-0011 `accepted`, reconciliado e com a correção
   interna da política de serving implementada; o A0 candidato-específico mantém
   o primeiro documento `BLOCKED/EXCLUDED`, com quatro operações visuais
   `UNPROVEN` e distribuição/publicação externa `DENIED`; ADR-0012 `accepted`,
-  reconciliado e com revisão do contrato v2 congelada, sem schema/migration/
-  implementação notice-bearing; homologação de produto, Human Gate e mudança
-  de lifecycle não executados
+  reconciliado, com revisão do contrato v2 congelada e schema/migrations
+  implementados, mas sem comportamento notice-bearing; homologação de produto,
+  Human Gate e mudança de lifecycle não executados
 - Escopo: 13 arquivos ativos em `prompts/`
 
 A versão do corpus é independente da versão futura do software.
@@ -24,6 +24,31 @@ A versão do corpus é independente da versão futura do software.
 
 Toda alteração atualiza este arquivo e, quando necessário,
 [`../Start-Here.md`](../Start-Here.md).
+
+## 4.10.17 — 2026-08-10
+
+- Reconcilia sob
+  `AUTH-S07-A-NOTICE-BEARING-SCHEMA-MIGRATION-RECONCILE-001`, sobre
+  `main@98036f3c8c496544f4532d1fe48c981f836a1871`, corpus `4.10.16` e working
+  tree inicialmente limpa, os fatos do incremento de schema e migrations
+  implementado sob `AUTH-S07-A-NOTICE-BEARING-SCHEMA-MIGRATION-001`.
+- Registra a persistência imutável de `DerivativeObligationSetV1` e blocos
+  ordenados, a coexistência de `pdf-page-png-notice-v1` com o perfil legado, o
+  vínculo de obligation-set ID/digest e dimensões source/notice ao render
+  manifest, e constraints, foreign keys e sealing triggers fail-closed.
+- Registra as migrations
+  `20260810033026_AddNoticeBearingObligationSchema` e
+  `20260810034537_SealNoticeBearingObligationBindings`, sem backfill inferido ou
+  mutação de registros, manifests, hashes ou ativações legados.
+- Registra 7/7 testes focais aprovados, ausência de pending model changes,
+  `foreign_key_check`, upgrade e rollback/reapply em stores SQLite temporários
+  task-owned, além do cleanup concluído.
+- Preserva OpenAPI v1/v2, `postgresql-18-reference-a4` `BLOCKED/EXCLUDED`, as
+  dez decisões e o fail-closed. Nenhum novo A0, renderer, PNG, serving,
+  Dashboard, dataset, Automatic Quality Gate, Human Gate ou lifecycle foi
+  executado.
+- A mudança do corpus é `PATCH` factual e não concede autoridade para o próximo
+  incremento.
 
 ## 4.10.16 — 2026-08-10
 
