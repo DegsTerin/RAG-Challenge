@@ -1352,9 +1352,11 @@ proprietários.
   `main@f03162bad0fc166a597739b22e55fbc46ec59535`, corpus `4.10.17`. A decisão
   seleciona `gpt-5.4-mini-2026-03-17` como único candidato de LLM do MVP,
   substitui somente a seleção anterior de LLM do ADR-0005 e mantém
-  `gpt-5.6-sol` inativo para avaliação futura. Não autoriza reconciliação
-  semântica, implementação do adaptador, conta, credencial, provider, chamada
-  paga, corpus real, OCI, deploy, gate ou lifecycle.
+  `gpt-5.6-sol` inativo para avaliação futura. Sua reconciliação semântica no
+  ADR-0005, no relatório arquitetural de `STATE-02` e no índice de arquitetura
+  foi aplicada no corpus `4.10.19`. Não houve implementação do adaptador,
+  alteração de configuração, conta, credencial, provider, chamada paga,
+  corpus real, OCI, deploy, gate ou lifecycle.
 
 ## Baseline documental
 
@@ -1362,7 +1364,7 @@ proprietários.
   a política de idioma acrescentou o 21º documento público por incremento
   versionado, e o ADR-0003 acrescentou o 22º.
 - A baseline aprovada no Human Gate de `STATE-00` permanece `3.4.0`.
-- O corpus de instruções vigente possui versão `4.10.18` e 13 arquivos em
+- O corpus de instruções vigente possui versão `4.10.19` e 13 arquivos em
   `prompts/`.
 - Visão, requisitos, arquitetura, RAG, segurança, qualidade, lifecycle,
   roadmap, backlog, estado, histórico e templates estão documentados.
@@ -1460,6 +1462,14 @@ proprietários.
   reconciliação semântica, implementação, acesso a conta, credencial, provider,
   chamada paga, corpus real, OCI, deploy, gate ou lifecycle e mantém OpenAPI
   v1/v2 protegidas.
+- O corpus `4.10.19` aplica sob
+  `AUTH-STATE07-LLM-CANDIDATE-ADR-RECONCILE-001` a reconciliação semântica
+  documental do ADR-0013 aceito. ADR-0005 e o relatório arquitetural de
+  `STATE-02` agora selecionam `gpt-5.4-mini-2026-03-17`, preservam a seleção
+  anterior como fato histórico e mantêm `gpt-5.6-sol` somente como candidato
+  futuro inativo. Nenhuma outra decisão do ADR-0005 muda; código, testes,
+  OpenAPI, configuração, provider, conta, credencial, chamada paga, corpus
+  real, OCI, deploy, gate e lifecycle permanecem inalterados ou `NOT_RUN`.
 - O corpus `4.3.0` formaliza a decisão explícita do proprietário de aceitar
   perguntas e respostas em `pt-BR` e `en-GB`: cada consulta declara o idioma,
   a resposta usa o mesmo idioma, textos derivados da fonte permanecem no
@@ -1778,11 +1788,13 @@ autorizada.
 
 O ADR-0013 foi aceito explicitamente mediante `ADR-0013: ACEITAR.` somente
 como autoridade arquitetural. Ele seleciona `gpt-5.4-mini-2026-03-17` para o
-MVP e mantém `gpt-5.6-sol` apenas como candidato futuro inativo. A próxima
-condição diretamente relacionada é uma autoridade humana separada para
-reconciliar semanticamente a decisão aceita no ADR-0005 e nos proprietários
-documentais aplicáveis, sem alterar código, OpenAPI, configuração, provider,
-corpus real, OCI ou lifecycle.
+MVP e mantém `gpt-5.6-sol` apenas como candidato futuro inativo. A reconciliação
+semântica documental foi concluída sob
+`AUTH-STATE07-LLM-CANDIDATE-ADR-RECONCILE-001`, preservando todas as demais
+decisões do ADR-0005. A próxima condição diretamente relacionada é autoridade
+humana separada para o incremento de compatibilidade do adaptador descrito no
+ADR-0013, ainda sem acesso a conta, credencial, provider, corpus real ou OCI e
+sem chamadas pagas.
 
 `S07-A` A1-A5 e seu Automatic Quality Gate estão concluídos e aprovados na
 fronteira sintética local autorizada, com `S07-A-FIND-001` e o histórico

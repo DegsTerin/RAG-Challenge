@@ -8,6 +8,10 @@
   `main@39e2f803bf73cb4e2b59e56a0596e2858a3aed51`, corpus `4.7.0`
 - Owners: RAG-Challenge architecture, data and operations
 - State: `STATE-02 ARCHITECTURE`
+- Relationship: accepted
+  [ADR-0013](ADR-0013-MVP-Language-Model-Candidate-And-Deferred-Frontier-Evaluation.md)
+  supersedes only this ADR's language-model candidate selection; every other
+  decision remains active
 - Verification status: public primary-source verification completed on
   2026-07-31 for the named PDF/provider/OCI candidates; the CSV package is
   unselected, and all exact package versions, account-specific entitlement,
@@ -21,6 +25,10 @@ package, call a provider, create an OCI resource or approve spend. Bounded
 direct-URL read-only verification was completed on 2026-07-31;
 tenancy-specific facts, exact package versions and executable evidence remain
 conditional or pending where stated below.
+
+Accepted ADR-0013 later supersedes only the language-model candidate selected
+here. It does not supersede this ADR's provider, disclosure, data-control,
+secret, egress, spend, persistence, embedding, OCI or operational decisions.
 
 ## Context
 
@@ -139,10 +147,12 @@ active generation.
 ### Language model
 
 - Select provider ID `openai` and versioned model candidate
-  `gpt-4.1-mini-2025-04-14`.
-- Use deterministic settings where the provider supports them: temperature
-  `0`, no tool access, bounded output and one response candidate. Use the
-  Responses API with `store=false`; do not use background mode,
+  `gpt-5.4-mini-2026-03-17`, as superseded by accepted ADR-0013.
+- Use the ADR-0013 initial baseline of `reasoning.effort=none` and
+  `reasoning.context=current_turn`, no tool access, bounded output and one
+  authorised final structured message. Send temperature `0` only when the
+  accepted provider contract supports it for that reasoning configuration.
+  Use the Responses API with `store=false`; do not use background mode,
   conversations, previous-response state or hosted tools.
 - Send only the validated question, the minimum retrieved evidence, trusted
   response instructions and non-secret citation identifiers.
@@ -159,18 +169,29 @@ active generation.
   failures or `InsufficientEvidence` according to the canonical contract; do
   not repair factual content with an ungrounded second call.
 
-The current
+The
 [model page](https://developers.openai.com/api/docs/models/gpt-4.1-mini)
-identifies `gpt-4.1-mini-2025-04-14` as the default and only listed snapshot,
-supports Responses and Structured Outputs, and confirms a 1,047,576-token
-context window, 32,768 maximum output tokens and current prices of USD 0.40
+observed on 2026-07-31 identified `gpt-4.1-mini-2025-04-14` as the default and
+only listed snapshot, supported Responses and Structured Outputs, and
+confirmed a 1,047,576-token
+context window, 32,768 maximum output tokens and then-current prices of USD 0.40
 input, USD 0.10 cached input and USD 1.60 output per million tokens. The
 [Responses contract](https://developers.openai.com/api/reference/resources/responses/methods/create)
 defines `POST /v1/responses`, bounded `max_output_tokens`, temperature from 0
-to 2, `store` and JSON-schema structured output. Public Tier 1 limits are 500
+to 2, `store` and JSON-schema structured output. The then-public Tier 1 limits
+were 500
 RPM, 10,000 RPD, 200,000 TPM and a 2,000,000-token batch queue; long-context
 requests above 128,000 input tokens have a separate 200 RPM and 400,000 TPM
 Tier 1 schedule. The actual account tier and spend limit remain unverified.
+
+That paragraph is preserved as the historical verification record for this
+ADR's original candidate; it no longer describes the selected MVP
+language-model candidate. Accepted ADR-0013 records the separate 2026-08-10
+public-documentation review, selects the dated
+`gpt-5.4-mini-2026-03-17` snapshot and retains the mutable `gpt-5.6-sol`
+identifier only as an inactive future evaluation candidate. This semantic
+reconciliation performs no new external verification and does not establish
+account availability, runtime compatibility, quality or latency.
 
 The [OpenAI data-control documentation](https://developers.openai.com/api/docs/guides/your-data)
 states that API data is not used for model training unless the customer opts
@@ -372,7 +393,7 @@ The following bounded read-only evidence was observed on 2026-07-31:
 | Area | Status | Primary evidence or remaining boundary |
 |---|---|---|
 | PdfPig package | Public metadata verified | The [NuGet version index](https://api.nuget.org/v3-flatcontainer/pdfpig/index.json), [0.1.15 registration](https://api.nuget.org/v3/registration5-semver1/pdfpig/0.1.15.json), catalogue, package page, allowlisted source/release and GitHub security pages verify the current stable candidate, publication instant, listed status, repository identity, Apache-2.0, computed .NET 10 compatibility and absence of a published security policy or advisory. Absence of public advisory evidence is not absence of vulnerability; executable parser evidence remains a separately authorised spike. |
-| OpenAI embedding/model contracts | Public facts verified | Current model pages and API references verify availability, selected IDs, dimensions, limits, endpoints, structured output and price. `text-embedding-3-small` has no immutable dated snapshot, and the actual project tier remains account-specific. |
+| OpenAI embedding/model contracts | Public facts verified at their recorded observation dates | The 2026-07-31 pages and API references verify the original embedding/model IDs, dimensions, limits, endpoints, structured output and price; accepted ADR-0013 separately records its 2026-08-10 public-documentation review and the superseding `gpt-5.4-mini-2026-03-17` selection. `text-embedding-3-small` has no immutable dated snapshot, and the actual project tier remains account-specific. No provider call or account access verifies runtime availability. |
 | OpenAI data controls | Public policy verified | Default no-training, up-to-30-day abuse monitoring, endpoint application-state behaviour, ZDR/MAM eligibility and regional storage/processing support are documented. Brazil is not a listed residency region; account eligibility and any modified-retention agreement are unverified without login or contract. |
 | OpenAI .NET SDK | Public metadata verified | The official repository and NuGet catalogue identify stable candidate `OpenAI` 2.12.0, MIT, with `net10.0`, `EmbeddingClient` and `ResponsesClient`. No package was selected, downloaded or installed. |
 | OCI region, shape, limits and prices | Verified with account boundary | Public documentation verifies the region, one-AD topology, valid A1 configuration, default limits and price rates. The two current official free-allowance sources conflict, and actual entitlement/capacity is tenancy-specific. |
@@ -486,6 +507,9 @@ conflict with the accepted lifecycle model.
 - The authorised evaluation proves answer-language equality, original-language
   citation preservation and all four question/evidence language pairs before
   either provider is described as supporting the product requirement.
+- Accepted ADR-0013 supersedes only the language-model candidate with
+  `gpt-5.4-mini-2026-03-17`; `gpt-5.6-sol` remains inactive. Adapter
+  compatibility, provider access and evaluation require separate authorities.
 - A clean local environment and the named OCI architecture can reopen raw
   content, catalogue and vector data after restart.
 - Backup/restore and activation rollback have distinct procedures and owners;

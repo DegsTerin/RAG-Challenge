@@ -6779,3 +6779,33 @@ contém somente fatos cronológicos.
   aplicar somente a seleção de LLM do ADR-0013 ao ADR-0005 e aos proprietários
   documentais aplicáveis, sem alterar código, OpenAPI, configuração, provider,
   corpus real, OCI ou lifecycle.
+
+## 2026-08-10 — ADR-0013 reconciliado semanticamente
+
+- Estado anterior e resultante: `STATE-07 TESTING_HOMOLOGATION` permanece
+  ativo; nenhum Automatic Quality Gate, Human Gate ou lifecycle foi executado
+  ou alterado.
+- Autoridade e baseline:
+  `AUTH-STATE07-LLM-CANDIDATE-ADR-RECONCILE-001`, branch `main`, commit
+  `a08aa83c7319b97ead6c91a92ae8cbb4da5c28cc`, corpus `4.10.18`, working tree
+  inicialmente limpa e OpenAPI v1/v2 protegidas.
+- Reconciliação aplicada: ADR-0005, o relatório arquitetural de `STATE-02` e o
+  índice de arquitetura passam a selecionar `gpt-5.4-mini-2026-03-17` como
+  único candidato de LLM do MVP. A seleção anterior
+  `gpt-4.1-mini-2025-04-14` permanece identificada somente nos contextos
+  históricos pertinentes.
+- Candidato diferido: `gpt-5.6-sol` permanece futuro e inativo, não é fallback,
+  modelo secundário ou alvo de troca dinâmica e conserva o risco registrado de
+  identificador móvel.
+- Limites preservados: todas as demais decisões do ADR-0005 permanecem
+  inalteradas. Os documentos temáticos de RAG e segurança já eram compatíveis e
+  não fixavam o modelo substituído. Nenhum código, teste, OpenAPI, configuração,
+  conta, credencial, provider, chamada paga, corpus real, avaliação, OCI,
+  deploy ou comportamento de produto foi alterado, acessado ou executado.
+- Versionamento: corpus elevado por `PATCH` documental de `4.10.18` para
+  `4.10.19`. O histórico preservou byte a byte seu prefixo anterior no SHA-256
+  `3401d62915f81170512152471c2ebf5b357991bd943b6f432be39e1daaaff610`.
+- Próxima condição: o incremento de compatibilidade do adaptador descrito no
+  ADR-0013 exige autoridade humana separada. Essa futura autoridade não pode
+  inferir acesso a conta, credencial, provider, corpus real, OCI, chamada paga,
+  avaliação, gate ou lifecycle.

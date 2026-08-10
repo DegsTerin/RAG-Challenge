@@ -2,16 +2,16 @@
 
 ## Versão atual
 
-- Versão: `4.10.18`
+- Versão: `4.10.19`
 - Data: 2026-08-10
 - Status: `STATE-07` ativo; ADR-0011 `accepted`, reconciliado e com a correção
   interna da política de serving implementada; o A0 candidato-específico mantém
   o primeiro documento `BLOCKED/EXCLUDED`, com quatro operações visuais
   `UNPROVEN` e distribuição/publicação externa `DENIED`; ADR-0012 `accepted`,
   reconciliado, com revisão do contrato v2 congelada e schema/migrations
-  implementados, mas sem comportamento notice-bearing; ADR-0013 `accepted`
-  somente como autoridade arquitetural, sem reconciliação ou implementação;
-  homologação de produto, Human Gate e mudança de lifecycle não executados
+  implementados, mas sem comportamento notice-bearing; ADR-0013 `accepted` e
+  reconciliado semanticamente, sem adaptação ou implementação; homologação de
+  produto, Human Gate e mudança de lifecycle não executados
 - Escopo: 13 arquivos ativos em `prompts/`
 
 A versão do corpus é independente da versão futura do software.
@@ -25,6 +25,28 @@ A versão do corpus é independente da versão futura do software.
 
 Toda alteração atualiza este arquivo e, quando necessário,
 [`../Start-Here.md`](../Start-Here.md).
+
+## 4.10.19 — 2026-08-10
+
+- Reconcilia sob `AUTH-STATE07-LLM-CANDIDATE-ADR-RECONCILE-001`, sobre
+  `main@a08aa83c7319b97ead6c91a92ae8cbb4da5c28cc`, corpus `4.10.18`, working
+  tree inicialmente limpa e OpenAPI v1/v2 protegidas, a decisão aceita no
+  ADR-0013.
+- Aplica `gpt-5.4-mini-2026-03-17` como único candidato de LLM do MVP ao
+  ADR-0005, ao relatório arquitetural de `STATE-02` e ao índice de arquitetura.
+  A seleção anterior `gpt-4.1-mini-2025-04-14` permanece identificada somente
+  como fato histórico.
+- Mantém `gpt-5.6-sol` como candidato futuro inativo, sem fallback ou troca
+  dinâmica, e preserva seu risco de identificador móvel e todos os gates
+  bilíngues, de groundedness, citação, insuficiência de evidência, prompt
+  injection e latência.
+- Preserva todas as demais decisões do ADR-0005. Os proprietários de RAG e
+  segurança permanecem semanticamente compatíveis porque já expressam portas,
+  provider e controles sem fixar o modelo substituído.
+- Nenhum código, teste, OpenAPI, configuração, conta, credencial, provider,
+  chamada paga, corpus real, avaliação, OCI, deploy, Automatic Quality Gate,
+  Human Gate ou lifecycle foi alterado, acessado ou executado. A mudança do
+  corpus é `PATCH` documental.
 
 ## 4.10.18 — 2026-08-10
 

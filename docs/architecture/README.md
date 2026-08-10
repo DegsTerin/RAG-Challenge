@@ -56,9 +56,10 @@ on the same date through `ADR-0013: ACEITAR.`. It selects the dated
 `gpt-5.4-mini-2026-03-17` snapshot as the sole MVP language-model candidate,
 superseding only ADR-0005's earlier language-model candidate selection, and
 retains `gpt-5.6-sol` only as an inactive future evaluation candidate with a
-recorded mutable-identifier risk. Acceptance grants no semantic
-reconciliation, adapter change, provider access, paid evaluation, real-corpus
-processing, OCI, deployment or product authority.
+recorded mutable-identifier risk. Corpus `4.10.19` applies the separately
+authorised semantic reconciliation to ADR-0005 and the `STATE-02` architecture
+report. Reconciliation grants no adapter change, provider access, paid
+evaluation, real-corpus processing, OCI, deployment or product authority.
 
 The later combined audit failed on `AQG-S02-001`, an internal contradiction
 between observation-inclusive generation identity and observation-only
@@ -236,8 +237,9 @@ Dashboard -- versioned HTTP --> API
   (`accepted`; no contract revision, schema, migration, implementation,
   rendering or PostgreSQL reclassification authority)
 - [ADR-0013 — MVP Language-Model Candidate and Deferred Frontier Evaluation](ADR-0013-MVP-Language-Model-Candidate-And-Deferred-Frontier-Evaluation.md)
-  (`accepted`; no semantic reconciliation, adapter implementation, provider
-  access, paid evaluation, OCI or deployment authority)
+  (`accepted`; semantic reconciliation applied in corpus `4.10.19`; no adapter
+  implementation, provider access, paid evaluation, OCI or deployment
+  authority)
 
 ## STATE-02 design artefacts
 

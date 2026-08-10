@@ -27,6 +27,8 @@ deployment, CD and DB-Notifier changes.
 | ADR-0007 decision baseline | `664187c6926be5ce4bef3734603f8d936626d535` |
 | ADR-0007 semantic-reconciliation baseline | `9aa90c012e3bc973330f5a79678fc358c81809df` |
 | Renewed combined-audit baseline | `3978a17201cf5f6ac4ddc189862736fc3646457b` |
+| ADR-0013 decision baseline | `f03162bad0fc166a597739b22e55fbc46ec59535` |
+| ADR-0013 semantic-reconciliation baseline | `a08aa83c7319b97ead6c91a92ae8cbb4da5c28cc` |
 | External-verification baseline | `8ba91889c0517d78747ae2980fb766c36268edf6` |
 | External-verification completion baseline | `f1066c3509f5f48d4fe6e21c9e36403e642c1431` |
 | Direct-URL verification resumption baseline | `e80f8c41bea3f28deff3d8cdccafccbca5dcc016` |
@@ -35,6 +37,8 @@ deployment, CD and DB-Notifier changes.
 | Corrective proposal corpus | `4.8.1` |
 | ADR-0007 decision corpus | `4.9.0` |
 | ADR-0007 semantic-reconciliation corpus | `4.9.1` |
+| ADR-0013 decision corpus | `4.10.17` |
+| ADR-0013 semantic-reconciliation corpus | `4.10.18` |
 | Entry working tree | Clean |
 | Runtime preflight | `NÃO APLICÁVEL` |
 
@@ -158,7 +162,7 @@ external state was changed.
 | PostgreSQL TLS | Three DNS answers were public; direct TLS negotiated TLS 1.3 with `TLS_AES_256_GCM_SHA384`. A four-element chain validated locally with certificate downloads disabled and revocation `NoCheck`; the leaf was valid from `2026-06-02T17:09:47Z` to `2026-08-31T17:09:46Z`, SHA-256 `2738805715f7b32e7850b33dc2319e9d7b39d9acfb44936d56a1d18a6ef805ac`. | Current local no-lateral-download validation verified; offline-revocation, future rotation and clean OCI reproduction remain explicit residual/later-test concerns. |
 | Proposed owner-authored-document licence | The [CC BY 4.0 deed](https://creativecommons.org/licenses/by/4.0/) and [Portuguese legal code](https://creativecommons.org/licenses/by/4.0/legalcode.pt) confirm sharing/adaptation rights and attribution, licence-link, change-marking and no-additional-restriction duties. | Licence terms verified; no owner-authored product document currently exists and the owner has not granted the licence on one. |
 | PdfPig | The live [NuGet version index](https://api.nuget.org/v3-flatcontainer/pdfpig/index.json), [0.1.15 registration](https://api.nuget.org/v3/registration5-semver1/pdfpig/0.1.15.json), catalogue, [package page](https://www.nuget.org/packages/PdfPig/0.1.15), [release](https://github.com/UglyToad/PdfPig/releases/tag/v0.1.15) and [security page](https://github.com/UglyToad/PdfPig/security) identify 0.1.15 as newest stable, listed, Apache-2.0, computed compatible with `net10.0` and tied to commit `f131f642976936e06ee91cb19d3ed728f9dd18b6`. GitHub reports no security policy and no published advisory; the release adds nesting-depth enforcement support. | Public package/security metadata verified. Empty advisory/catalogue vulnerability fields do not prove absence of vulnerability; no version was selected or installed, and extraction/runtime evidence still requires a separately authorised spike. |
-| OpenAI models/contracts | The current [embedding model](https://developers.openai.com/api/docs/models/text-embedding-3-small), [embedding guide](https://developers.openai.com/api/docs/guides/embeddings), [GPT-4.1 mini model](https://developers.openai.com/api/docs/models/gpt-4.1-mini) and API references verify the proposed IDs, 1,536 embedding dimensions, `POST /v1/embeddings`, `POST /v1/responses`, Structured Outputs, model limits and current public quota tables. The embedding model exposes only a mutable alias; `gpt-4.1-mini-2025-04-14` remains the default and only listed snapshot. | Public contract facts verified. Current prices are USD 0.02 per million embedding input tokens and USD 0.40/0.10/1.60 per million GPT input/cached/output tokens. Actual project tier, spend limit and account availability remain unverified without login. |
+| OpenAI models/contracts | The [embedding model](https://developers.openai.com/api/docs/models/text-embedding-3-small), [embedding guide](https://developers.openai.com/api/docs/guides/embeddings), [GPT-4.1 mini model](https://developers.openai.com/api/docs/models/gpt-4.1-mini) and API references observed on 2026-07-31 verified the original proposed IDs, 1,536 embedding dimensions, `POST /v1/embeddings`, `POST /v1/responses`, Structured Outputs, model limits and then-current public quota tables. The embedding model exposed only a mutable alias; `gpt-4.1-mini-2025-04-14` was the default and only listed snapshot in that historical observation. | Historical public contract facts verified. Accepted ADR-0013 separately records the 2026-08-10 public-documentation review and superseding `gpt-5.4-mini-2026-03-17` selection. The historical prices were USD 0.02 per million embedding input tokens and USD 0.40/0.10/1.60 per million GPT input/cached/output tokens. Actual project tier, spend limit, account availability and runtime compatibility remain unverified without login or a provider call. |
 | OpenAI data/SDK | The [data-control guide](https://developers.openai.com/api/docs/guides/your-data) states no training unless opt-in, default abuse monitoring for up to 30 days, no embedding application state and at least 30 days of Responses application state by default or with `store=true`. ZDR/MAM and non-US residency require approval; Brazil is not listed. The [official .NET repository](https://github.com/openai/openai-dotnet), releases and NuGet metadata identify stable `OpenAI` 2.12.0, MIT, targeting `net10.0`, with embedding and Responses clients. | Public policy and SDK metadata verified. The accepted decision requires Responses `store=false`, no provider state/tools and records acceptance of default retention/disclosure and no verified Brazilian residency. No SDK was installed and no provider endpoint was contacted. |
 | OCI region/compute | The [regions table](https://docs.oracle.com/en-us/iaas/Content/General/Concepts/regions.htm) verifies `sa-saopaulo-1`, realm `OC1`, with one availability domain. The [shape reference](https://docs.oracle.com/en-us/iaas/Content/Compute/References/computeshapes.htm) verifies the ARM64 A1 shape and candidate 1-OCPU/6-GiB configuration. The public default is 16 A1 OCPUs/96 GiB per availability domain for Pay As You Go or Trial. | Region and configuration verified; future tenancy capacity is not public and requires authenticated `ListShapes`/provisioning. Always Free documentation warns about host-capacity exhaustion. |
 | OCI price/capacity | The [Always Free page](https://docs.oracle.com/en-us/iaas/Content/FreeTier/freetier_topic-Always_Free_Resources.htm) states 1,500 A1 OCPU-hours and 9,000 GB-hours, equivalent to 2 OCPUs/12 GiB. The [live price-list JSON](https://www.oracle.com/a/ocom/docs/pricing/cloud-price-list.json), build 350 dated 2026-07-16, instead prices zero through 3,000/18,000 and then USD 0.01/OCPU-hour plus USD 0.0015/GB-hour. | Primary sources conflict on the free allowance. The candidate fits the lower figure, but zero-cost entitlement and billing cannot be claimed before tenancy verification. |
@@ -190,7 +194,7 @@ and requested separately.
 | Normalisation | Unicode NFC and deterministic whitespace/control policy | ADR-0005 `accepted`; not implemented. |
 | Chunking | `paragraph-window-v1`, target 3,200 scalars, overlap 480, hard max 4,000 | ADR-0005 `accepted`; must pass evaluation. |
 | Embeddings | OpenAI `text-embedding-3-small`, 1,536 dimensions, cosine | ADR-0005 `accepted` with mutable-alias and disclosure controls; actual tier and `pt-BR`/`en-GB` retrieval quality remain unverified. |
-| Language model | OpenAI `gpt-4.1-mini-2025-04-14` | ADR-0005 `accepted` with default retention/disclosure and no verified Brazilian residency; answer-language compliance remains untested. |
+| Language model | OpenAI `gpt-5.4-mini-2026-03-17` | ADR-0013 `accepted`, superseding only ADR-0005's earlier language-model candidate; default retention/disclosure and no verified Brazilian residency remain accepted, while adapter compatibility, account availability, bilingual quality and latency remain untested. |
 | Catalogue/control persistence | EF Core SQLite | ADR-0005 `accepted`; exact packages remain conditional. |
 | Raw content | Durable content-addressed filesystem | ADR-0005 `accepted`; contract specified, not implemented. |
 | Vector store | Local `SqliteExactVectorStore`, hard SQL pre-filter and exact cosine ranking | ADR-0005 `accepted`; 10,000 chunks is an initial benchmark point, not a product limit. Representative catalogue performance remains untested. |
@@ -325,6 +329,13 @@ reconciled `4.7.0` baseline:
   methods, per-source allowlists, documented OCI endpoints, read-only runtime
   secret retrieval, residual TLS risk, local administration and HTTP/OpenAPI
   v1 policy.
+
+The ADR-0005 bullet above remains the historical 2026-08-01 decision record.
+Accepted ADR-0013 later supersedes only its `gpt-4.1-mini-2025-04-14`
+language-model candidate with `gpt-5.4-mini-2026-03-17`; every other ADR-0005
+decision remains unchanged. `gpt-5.6-sol` is an inactive future evaluation
+candidate, not a fallback or runtime switch target. This reconciliation does
+not change code, configuration, OpenAPI, provider state or lifecycle.
 
 No one decision implies another, installs a candidate, enables egress, creates
 a resource, executes the combined audit, requests the Human Gate or authorises
