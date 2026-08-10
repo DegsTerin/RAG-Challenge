@@ -2,14 +2,15 @@
 
 ## Versão atual
 
-- Versão: `4.10.15`
-- Data: 2026-08-09
+- Versão: `4.10.16`
+- Data: 2026-08-10
 - Status: `STATE-07` ativo; ADR-0011 `accepted`, reconciliado e com a correção
   interna da política de serving implementada; o A0 candidato-específico mantém
   o primeiro documento `BLOCKED/EXCLUDED`, com quatro operações visuais
-  `UNPROVEN` e distribuição/publicação externa `DENIED`; ADR-0012 `accepted` e
-  semanticamente reconciliado, sem contrato/schema/implementação; homologação
-  de produto, Human Gate e mudança de lifecycle não executados
+  `UNPROVEN` e distribuição/publicação externa `DENIED`; ADR-0012 `accepted`,
+  reconciliado e com revisão do contrato v2 congelada, sem schema/migration/
+  implementação notice-bearing; homologação de produto, Human Gate e mudança
+  de lifecycle não executados
 - Escopo: 13 arquivos ativos em `prompts/`
 
 A versão do corpus é independente da versão futura do software.
@@ -23,6 +24,31 @@ A versão do corpus é independente da versão futura do software.
 
 Toda alteração atualiza este arquivo e, quando necessário,
 [`../Start-Here.md`](../Start-Here.md).
+
+## 4.10.16 — 2026-08-10
+
+- Congela sob `AUTH-S07-A-NOTICE-BEARING-V2-CONTRACT-001`, sobre
+  `main@6982b0643468aee0a97c3bea6b5bbe9018f0804c`, corpus `4.10.15` e working
+  tree inicialmente limpa, a revisão pública v2 exigida pelo ADR-0012.
+- OpenAPI v1 permanece byte a byte no SHA-256
+  `d6a686b94c926914beb28b437f464430a01de6560c2e2d476cf5c36025813e34` e blob
+  `a5fb3602fbab33bda6aa56cc4caaa9fdc37c8160`. A nova OpenAPI v2 possui SHA-256
+  `f4dca8db7fb7bd453e580495bb1bb7760812d954344931063e8549ed8f036733` e blob
+  `5ed6a47631653dd0c137b6ea1e979ae2c14bf8a8`.
+- Acrescenta somente `obligationSetId` a `PageImageEvidenceV1` e
+  `DerivativeObligationPresentationV1` a `CitationV2`, preservando a rota e
+  todos os campos anteriores. O contrato mantém a projeção legada com ambos os
+  novos valores `null`; o caso notice-bearing exige um único ID, apresentação
+  completa e idioma coincidentes e rejeita mistura, ausência ou divergência.
+- Atualiza os tipos C# e TypeScript, o decoder estrito e os testes contratuais
+  diretamente responsáveis. Cinco testes do decoder, seis testes .NET e o
+  typecheck do Dashboard passaram focalmente.
+- Preserva `postgresql-18-reference-a4` `BLOCKED/EXCLUDED`, as dez decisões e o
+  fail-closed. Nenhum novo A0, schema, migration, renderer, armazenamento,
+  runtime de produto, dataset, rede, fonte, provider, Automatic Quality Gate,
+  Human Gate ou lifecycle foi executado.
+- A mudança do corpus é `PATCH` factual e não concede autoridade para o próximo
+  incremento.
 
 ## 4.10.15 — 2026-08-09
 

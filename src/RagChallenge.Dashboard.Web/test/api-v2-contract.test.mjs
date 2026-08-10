@@ -1,4 +1,4 @@
-// Purpose: Pins the frozen API v2 artefact and verifies fail-closed BCP 47 and composite visual-selector decoding with synthetic data only.
+// Purpose: Pins the frozen API v2 artefact and verifies fail-closed language, visual-selector and notice-obligation decoding with synthetic data only.
 import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
 import { readFile } from "node:fs/promises";
@@ -9,7 +9,10 @@ import {
   createPageImageUrl,
   decodeQueryResponse,
 } from "../src/contracts/api-v2.ts";
-import { answeredResponse } from "./fixtures/query-v2.mjs";
+import {
+  answeredResponse,
+  noticeBearingAnsweredResponse,
+} from "./fixtures/query-v2.mjs";
 
 test("pins the separately versioned OpenAPI v2 snapshot", async () => {
   const bytes = await readFile(new URL("../../../docs/api/openapi-v2.json", import.meta.url));
@@ -17,7 +20,7 @@ test("pins the separately versioned OpenAPI v2 snapshot", async () => {
 
   assert.equal(
     createHash("sha256").update(bytes).digest("hex"),
-    "01ab26ae8066971af2e5ae83ec828fae556951d5ce6c335b42f6e7cf7b062640",
+    "f4dca8db7fb7bd453e580495bb1bb7760812d954344931063e8549ed8f036733",
   );
   assert.deepEqual(Object.keys(document.paths).sort(), [
     "/api/v2/evidence/page-images/{indexGenerationId}/{renderManifestId}/{pageNumber}/{imageContentObjectId}",
@@ -25,6 +28,14 @@ test("pins the separately versioned OpenAPI v2 snapshot", async () => {
   ]);
   assert.equal(document.components.schemas.CitationV2.additionalProperties, false);
   assert.equal(document.components.schemas.PageImageEvidenceV1.additionalProperties, false);
+  assert.equal(
+    document.components.schemas.DerivativeObligationPresentationV1.additionalProperties,
+    false,
+  );
+  assert.equal(
+    document.components.schemas.ObligationSetId.pattern,
+    "^obligationset-[a-f0-9]{64}$",
+  );
 });
 
 test("preserves observed source language and constructs only the frozen relative route", () => {
@@ -41,6 +52,22 @@ test("preserves observed source language and constructs only the frozen relative
   );
   assert.equal(url.startsWith("/"), true);
   assert.equal(url.includes("://"), false);
+  assert.equal(page.obligationSetId, null);
+  assert.equal(citation.derivativeObligationPresentation, null);
+});
+
+test("accepts one exact obligation set for every notice-bearing page", () => {
+  const response = decodeQueryResponse(noticeBearingAnsweredResponse, "pt-BR");
+  const citation = response.citations[0];
+  const presentation = citation.derivativeObligationPresentation;
+
+  assert.notEqual(presentation, null);
+  assert.equal(citation.pageImages[0].obligationSetId, presentation.obligationSetId);
+  assert.equal(presentation.contentLanguage, citation.contentLanguage);
+  assert.deepEqual(presentation.orderedDisclaimers, [
+    "Synthetic first disclaimer.",
+    "Synthetic second disclaimer.",
+  ]);
 });
 
 test("rejects coerced languages, cross-citation pages, duplicate pages and mismatched hashes", () => {
@@ -69,6 +96,87 @@ test("rejects coerced languages, cross-citation pages, duplicate pages and misma
       citations: [pdf, { ...csv, pageImages: [pdf.pageImages[0]] }],
     },
     { ...answeredResponse, internalAuthority: "must-not-be-accepted" },
+  ];
+
+  for (const response of invalidResponses) {
+    assert.throws(() => decodeQueryResponse(response, "pt-BR"), ContractValidationError);
+  }
+});
+
+test("rejects incomplete, mixed or mismatched notice-bearing obligations", () => {
+  const pdf = noticeBearingAnsweredResponse.citations[0];
+  const csv = noticeBearingAnsweredResponse.citations[1];
+  const presentation = pdf.derivativeObligationPresentation;
+  const invalidResponses = [
+    {
+      ...noticeBearingAnsweredResponse,
+      citations: [{ ...pdf, derivativeObligationPresentation: null }, csv],
+    },
+    {
+      ...noticeBearingAnsweredResponse,
+      citations: [{
+        ...pdf,
+        pageImages: [{ ...pdf.pageImages[0], obligationSetId: null }],
+      }, csv],
+    },
+    {
+      ...noticeBearingAnsweredResponse,
+      citations: [{
+        ...pdf,
+        pageImages: [{
+          ...pdf.pageImages[0],
+          obligationSetId: `obligationset-${"e".repeat(64)}`,
+        }],
+      }, csv],
+    },
+    {
+      ...noticeBearingAnsweredResponse,
+      citations: [{
+        ...pdf,
+        derivativeObligationPresentation: {
+          ...presentation,
+          contentLanguage: "pt-BR",
+        },
+      }, csv],
+    },
+    {
+      ...noticeBearingAnsweredResponse,
+      citations: [{
+        ...pdf,
+        derivativeObligationPresentation: {
+          ...presentation,
+          unexpectedAuthority: "must-not-be-accepted",
+        },
+      }, csv],
+    },
+    {
+      ...noticeBearingAnsweredResponse,
+      citations: [{
+        ...pdf,
+        derivativeObligationPresentation: {
+          ...presentation,
+          copyrightNotice: "",
+        },
+      }, csv],
+    },
+    {
+      ...noticeBearingAnsweredResponse,
+      citations: [{
+        ...pdf,
+        derivativeObligationPresentation: {
+          ...presentation,
+          orderedDisclaimers: Array.from({ length: 17 }, (_, index) =>
+            `Synthetic disclaimer ${index + 1}.`),
+        },
+      }, csv],
+    },
+    {
+      ...noticeBearingAnsweredResponse,
+      citations: [pdf, {
+        ...csv,
+        derivativeObligationPresentation: presentation,
+      }],
+    },
   ];
 
   for (const response of invalidResponses) {

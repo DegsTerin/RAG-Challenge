@@ -6664,3 +6664,42 @@ contém somente fatos cronológicos.
   v2 deve definir `obligationSetId` e
   `DerivativeObligationPresentationV1` antes de schema, migration ou
   implementação.
+
+## 2026-08-10 — Contrato público v2 notice-bearing congelado
+
+- Estado anterior e resultante: `STATE-07 TESTING_HOMOLOGATION` permanece
+  ativo; nenhum Automatic Quality Gate, Human Gate ou lifecycle foi executado
+  ou alterado.
+- Autoridade e baseline: `AUTH-S07-A-NOTICE-BEARING-V2-CONTRACT-001`, branch
+  `main`, commit `6982b0643468aee0a97c3bea6b5bbe9018f0804c`, corpus `4.10.15`,
+  working tree inicialmente limpa e OpenAPI v1/v2 protegidas.
+- Contrato congelado: `PageImageEvidenceV1` acrescenta somente o required
+  nullable `obligationSetId`; `CitationV2` acrescenta somente o required
+  nullable `DerivativeObligationPresentationV1`. A rota same-origin e todos os
+  campos anteriores permanecem.
+- Compatibilidade e fail-closed: a projeção legada usa ambos os valores `null`.
+  Uma citação notice-bearing exige o mesmo ID não nulo em todas as suas páginas
+  e uma apresentação completa com ID e `contentLanguage` coincidentes. Mistura,
+  ausência, divergência, campo desconhecido, texto vazio ou acima dos limites
+  falha no decoder estrito; a projeção confiável permanece responsável por
+  conferir o texto integral contra o obligation set. CSV permanece sem imagens
+  ou obrigações.
+- Identidades: OpenAPI v1 permaneceu byte a byte no SHA-256
+  `d6a686b94c926914beb28b437f464430a01de6560c2e2d476cf5c36025813e34` e blob
+  `a5fb3602fbab33bda6aa56cc4caaa9fdc37c8160`. A nova OpenAPI v2 possui SHA-256
+  `f4dca8db7fb7bd453e580495bb1bb7760812d954344931063e8549ed8f036733` e blob
+  `5ed6a47631653dd0c137b6ea1e979ae2c14bf8a8`.
+- Verificação focal: lint e typecheck do Dashboard passaram; os cinco testes do
+  decoder v2 e os seis testes .NET de `ApiV2ContractTests` passaram; a auditoria
+  estática aprovou 257 arquivos não ignorados e `git diff --check` terminou com
+  exit code `0`.
+- Disposição preservada: `postgresql-18-reference-a4` continua
+  `BLOCKED/EXCLUDED`; nenhum novo A0, schema, migration, renderer, armazenamento,
+  runtime de produto, dataset, rede, fonte, provider, Automatic Quality Gate,
+  Human Gate ou lifecycle foi executado.
+- Versionamento: corpus elevado por `PATCH` factual de `4.10.15` para
+  `4.10.16`. O histórico preservou byte a byte seu prefixo anterior no SHA-256
+  `5b59d6eedcf59daf525d499d8739e087c82d406469aaa732f67f7240dc716dc6`.
+- Próxima condição: o design e a migration de schema exigidos pelo ADR-0012
+  permanecem sob autoridade separada e devem preceder a implementação do
+  obligation set, renderer e serving notice-bearing.

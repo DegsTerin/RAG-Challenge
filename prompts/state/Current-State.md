@@ -761,6 +761,23 @@ proprietários.
   `BLOCKED/EXCLUDED`, com quatro operações visuais `UNPROVEN` e distribuição/
   publicação externa `DENIED`. Nenhum novo A0, código, teste, renderer,
   runtime, gate, Human Gate ou lifecycle foi executado.
+- Revisão protegida do contrato v2 notice-bearing: congelada sob
+  `AUTH-S07-A-NOTICE-BEARING-V2-CONTRACT-001` sobre
+  `main@6982b0643468aee0a97c3bea6b5bbe9018f0804c`, corpus `4.10.15`, working
+  tree inicialmente limpa e OpenAPI v1/v2 protegidas. OpenAPI v1 permaneceu
+  byte a byte no SHA-256
+  `d6a686b94c926914beb28b437f464430a01de6560c2e2d476cf5c36025813e34` e blob
+  `a5fb3602fbab33bda6aa56cc4caaa9fdc37c8160`; a nova revisão OpenAPI v2 possui
+  SHA-256 `f4dca8db7fb7bd453e580495bb1bb7760812d954344931063e8549ed8f036733`
+  e blob `5ed6a47631653dd0c137b6ea1e979ae2c14bf8a8`. O contrato acrescenta somente
+  `obligationSetId` às imagens e `DerivativeObligationPresentationV1` à citação
+  PDF: valores `null` preservam a projeção legada, enquanto páginas
+  notice-bearing exigem um único ID e apresentação completa coincidentes. Os
+  tipos C# e o decoder estrito do Dashboard foram atualizados. Cinco testes do
+  decoder e seis testes contratuais .NET passaram focalmente; schema, migration,
+  renderer, armazenamento e comportamento notice-bearing permanecem não
+  implementados. O PostgreSQL continua `BLOCKED/EXCLUDED`; nenhum novo A0,
+  runtime, gate, Human Gate ou lifecycle foi executado.
 - Decisão arquitetural de armazenamento do corpus e evidência visual:
   [ADR-0008](../../docs/architecture/ADR-0008-Product-Corpus-Storage-And-Page-Image-Evidence.md)
   foi aceita explicitamente pelo proprietário em 2026-08-07 sobre
@@ -1308,8 +1325,9 @@ proprietários.
   `ADR-0012: ACEITAR.` em 2026-08-09. A decisão estabelece a imagem composta
   autocontida e as mudanças necessárias de schema, migration e contrato v2.
   Sua reconciliação semântica nos seis proprietários documentais foi aplicada
-  no corpus `4.10.15`, sem implementação, reclassificação do PostgreSQL ou
-  comportamento de produto.
+  no corpus `4.10.15`, e a revisão protegida do contrato v2 foi congelada no
+  corpus `4.10.16`. Schema, migration e comportamento notice-bearing continuam
+  não implementados; o PostgreSQL não foi reclassificado.
 
 ## Baseline documental
 
@@ -1317,7 +1335,7 @@ proprietários.
   a política de idioma acrescentou o 21º documento público por incremento
   versionado, e o ADR-0003 acrescentou o 22º.
 - A baseline aprovada no Human Gate de `STATE-00` permanece `3.4.0`.
-- O corpus de instruções vigente possui versão `4.10.15` e 13 arquivos em
+- O corpus de instruções vigente possui versão `4.10.16` e 13 arquivos em
   `prompts/`.
 - Visão, requisitos, arquitetura, RAG, segurança, qualidade, lifecycle,
   roadmap, backlog, estado, histórico e templates estão documentados.
@@ -1395,6 +1413,12 @@ proprietários.
   serving/acessibilidade e as futuras revisões obrigatórias de contrato v2,
   schema e migration. Não altera OpenAPI, implementação, direitos do candidato,
   gate ou lifecycle.
+- O corpus `4.10.16` registra o contrato público v2 notice-bearing congelado.
+  OpenAPI v2 e seus tipos/decoders estritos acrescentam somente a identidade do
+  obligation set e sua apresentação completa; a rota e todos os campos
+  anteriores permanecem. A compatibilidade legada usa valores `null`, enquanto
+  o caso notice-bearing falha fechado em mistura, ausência ou divergência.
+  OpenAPI v1, schema, migration, direitos, dataset, gate e lifecycle não mudam.
 - O corpus `4.3.0` formaliza a decisão explícita do proprietário de aceitar
   perguntas e respostas em `pt-BR` e `en-GB`: cada consulta declara o idioma,
   a resposta usa o mesmo idioma, textos derivados da fonte permanecem no
@@ -1660,8 +1684,9 @@ autorizada.
    `UNPROVEN`; a distribuição/publicação fora do runtime está `DENIED` pela
    fronteira interna deliberadamente excluída. O ADR-0012 aceito estabelece a
    arquitetura do mecanismo ausente e sua reconciliação semântica está
-   concluída, mas a disposição não muda. Contrato v2, schema, migration,
-   implementação, verificação e novo A0 continuam sob autoridades separadas.
+   concluída e o contrato v2 está congelado, mas a disposição não muda. Schema,
+   migration, implementação, verificação e novo A0 continuam sob autoridades
+   separadas.
    Cada documento posterior mantém o mesmo gate
    independente de direitos, proveniência e idioma.
 2. Validar e ativar individualmente novos registros de fonte oficial; a
@@ -1730,10 +1755,11 @@ O ADR-0012 foi aceito explicitamente mediante `ADR-0012: ACEITAR.` somente
 como autoridade arquitetural, e sua reconciliação semântica nos seis
 proprietários documentais foi concluída sob
 `AUTH-S07-A-NOTICE-BEARING-PROFILE-RECONCILE-001`. Ela registra o mecanismo
-autocontido e as mudanças necessárias de schema, migration e contrato v2, mas
-não reclassifica o candidato nem autoriza execução. A próxima condição
-diretamente relacionada é uma revisão protegida e separadamente autorizada do
-contrato v2, antes de schema, migration ou implementação.
+autocontido. A revisão protegida do contrato v2 foi congelada sob
+`AUTH-S07-A-NOTICE-BEARING-V2-CONTRACT-001`, preservando v1 e a rota v2. Isso
+não reclassifica o candidato nem implementa o perfil. A próxima condição
+diretamente relacionada é o design e a migration de schema separadamente
+autorizados, antes da implementação.
 
 O ADR-0011 foi aceito, sua semântica foi reconciliada e a política interna de
 serving v2 foi corrigida no commit

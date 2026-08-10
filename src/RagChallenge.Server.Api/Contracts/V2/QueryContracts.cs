@@ -1,4 +1,4 @@
-// Purpose: Defines the frozen transport-only v2 query and visual-evidence projection without exposing internal persistence identities, paths, rights or bytes.
+// Purpose: Defines the frozen transport-only v2 query, visual-evidence and notice-obligation projection without exposing internal persistence identities, paths, rights records or bytes.
 using RagChallenge.Application.IndexingRetrieval;
 using RagChallenge.Domain.CorpusCatalog;
 
@@ -23,7 +23,23 @@ public sealed record PageImageEvidenceV1(
     string MediaType,
     int WidthPixels,
     int HeightPixels,
-    string ContentSha256);
+    string ContentSha256,
+    string? ObligationSetId);
+
+public sealed record DerivativeObligationPresentationV1(
+    string ObligationSetId,
+    string ContentLanguage,
+    string AuthoritativePublisherOrAuthor,
+    string DocumentTitle,
+    string DocumentVersionLabel,
+    string SourceReference,
+    string AttributionText,
+    string CopyrightNotice,
+    string PermissionNotice,
+    IReadOnlyCollection<string> OrderedDisclaimers,
+    string TrademarkTreatment,
+    string TrademarkOrNonEndorsementText,
+    string ChangeMarkingText);
 
 public sealed record CitationV2(
     string CorpusId,
@@ -49,7 +65,8 @@ public sealed record CitationV2(
     string? SourceSnapshotId,
     DateTimeOffset? RevalidatedAt,
     string SourceFreshness,
-    IReadOnlyCollection<PageImageEvidenceV1> PageImages);
+    IReadOnlyCollection<PageImageEvidenceV1> PageImages,
+    DerivativeObligationPresentationV1? DerivativeObligationPresentation);
 
 public sealed record LanguageModelDescriptorV2(
     string ProviderId,
@@ -119,7 +136,8 @@ internal static class QueryContractMapper
             page.MediaType,
             page.WidthPixels,
             page.HeightPixels,
-            page.ContentSha256.Value)).ToArray();
+            page.ContentSha256.Value,
+            ObligationSetId: null)).ToArray();
 
         if (citation.DocumentFormat == DocumentFormat.Csv && pages.Length != 0 ||
             citation.DocumentFormat == DocumentFormat.Pdf && pages.Any(page =>
@@ -157,6 +175,7 @@ internal static class QueryContractMapper
             citation.SourceSnapshotId?.Value,
             citation.RevalidatedAt,
             citation.SourceFreshness.ToString(),
-            pages);
+            pages,
+            DerivativeObligationPresentation: null);
     }
 }

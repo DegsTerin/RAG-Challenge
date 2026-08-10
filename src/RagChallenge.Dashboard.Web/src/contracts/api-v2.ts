@@ -1,4 +1,4 @@
-// Purpose: Validates the frozen Dashboard-facing API v2 contract and constructs only fixed same-origin visual-evidence routes from server-returned selectors.
+// Purpose: Validates the frozen Dashboard-facing API v2 visual and notice-obligation contract and constructs only fixed same-origin evidence routes from server-returned selectors.
 import {
   ContractValidationError,
   createQueryRequest as createQueryRequestV1,
@@ -65,6 +65,15 @@ export type QueryRequestV2 = QueryRequestV1;
 export type EvidenceCoverageV2 = EvidenceCoverageV1;
 export type LanguageModelDescriptorV2 = LanguageModelDescriptorV1;
 
+export const derivativeObligationTreatments = [
+  "Required",
+  "Prohibited",
+  "NotApplicable",
+] as const;
+
+export type DerivativeObligationTreatment =
+  typeof derivativeObligationTreatments[number];
+
 export function decodeProblemDetails(value: unknown): ProblemDetailsV1 {
   const object = requireObject(value, "problem details");
   requireOnlyProperties(
@@ -84,6 +93,23 @@ export interface PageImageEvidenceV1 {
   widthPixels: number;
   heightPixels: number;
   contentSha256: string;
+  obligationSetId: string | null;
+}
+
+export interface DerivativeObligationPresentationV1 {
+  obligationSetId: string;
+  contentLanguage: string;
+  authoritativePublisherOrAuthor: string;
+  documentTitle: string;
+  documentVersionLabel: string;
+  sourceReference: string;
+  attributionText: string;
+  copyrightNotice: string;
+  permissionNotice: string;
+  orderedDisclaimers: readonly string[];
+  trademarkTreatment: DerivativeObligationTreatment;
+  trademarkOrNonEndorsementText: string;
+  changeMarkingText: string;
 }
 
 export interface CitationV2 {
@@ -111,6 +137,7 @@ export interface CitationV2 {
   revalidatedAt: string | null;
   sourceFreshness: SourceFreshness;
   pageImages: readonly PageImageEvidenceV1[];
+  derivativeObligationPresentation: DerivativeObligationPresentationV1 | null;
 }
 
 export interface QueryResponseV2 {
@@ -242,9 +269,7 @@ export function decodeQueryResponse(
       );
     }
 
-    if (citation.documentFormat === "Csv" && citation.pageImages.length !== 0) {
-      throw new ContractValidationError("CSV citations cannot contain page images.");
-    }
+    validateDerivativeObligationBinding(citation);
 
     for (const page of citation.pageImages) {
       if (citation.pageStart === null || citation.pageEnd === null ||
@@ -278,7 +303,7 @@ function decodeCitation(value: unknown, index: number): CitationV2 {
       "sourceDeclaredLanguage", "chunkId", "sourceAdapterId", "sourceTrustClass",
       "excerpt", "title", "pageStart", "pageEnd", "recordStart", "recordEnd",
       "columns", "canonicalUrl", "sourceSnapshotId", "revalidatedAt",
-      "sourceFreshness", "pageImages"],
+      "sourceFreshness", "pageImages", "derivativeObligationPresentation"],
     `citations[${index}]`,
   );
   const contentLanguage = requireCanonicalLanguage(object.contentLanguage, "contentLanguage");
@@ -296,6 +321,10 @@ function decodeCitation(value: unknown, index: number): CitationV2 {
 
   const pageImages = requireArray(object.pageImages, "pageImages")
     .map((page, pageIndex) => decodePageImage(page, `pageImages[${pageIndex}]`));
+  const derivativeObligationPresentation = decodeNullableDerivativeObligationPresentation(
+    object.derivativeObligationPresentation,
+    `citations[${index}].derivativeObligationPresentation`,
+  );
 
   if (pageImages.length > 5) {
     throw new ContractValidationError("Citation contains too many page images.");
@@ -342,6 +371,7 @@ function decodeCitation(value: unknown, index: number): CitationV2 {
       "sourceFreshness",
     ),
     pageImages,
+    derivativeObligationPresentation,
   };
 }
 
@@ -350,7 +380,7 @@ function decodePageImage(value: unknown, field: string): PageImageEvidenceV1 {
   requireOnlyProperties(
     object,
     ["pageNumber", "renderManifestId", "imageContentObjectId", "mediaType",
-      "widthPixels", "heightPixels", "contentSha256"],
+      "widthPixels", "heightPixels", "contentSha256", "obligationSetId"],
     field,
   );
   const page: PageImageEvidenceV1 = {
@@ -373,6 +403,11 @@ function decodePageImage(value: unknown, field: string): PageImageEvidenceV1 {
       /^[a-f0-9]{64}$/,
       `${field}.contentSha256`,
     ),
+    obligationSetId: requireNullablePattern(
+      object.obligationSetId,
+      /^obligationset-[a-f0-9]{64}$/,
+      `${field}.obligationSetId`,
+    ),
   };
   validatePageImage(page, field);
   return page;
@@ -383,6 +418,163 @@ function validatePageImage(page: PageImageEvidenceV1, field: string): void {
     page.heightPixels > 4096 || page.imageContentObjectId !== page.contentSha256) {
     throw new ContractValidationError(`${field} is outside the frozen PNG contract.`);
   }
+}
+
+function decodeNullableDerivativeObligationPresentation(
+  value: unknown,
+  field: string,
+): DerivativeObligationPresentationV1 | null {
+  if (value === null) {
+    return null;
+  }
+
+  const object = requireObject(value, field);
+  requireOnlyProperties(
+    object,
+    ["obligationSetId", "contentLanguage", "authoritativePublisherOrAuthor",
+      "documentTitle", "documentVersionLabel", "sourceReference", "attributionText",
+      "copyrightNotice", "permissionNotice", "orderedDisclaimers", "trademarkTreatment",
+      "trademarkOrNonEndorsementText", "changeMarkingText"],
+    field,
+  );
+  const orderedDisclaimers = requireArray(
+    object.orderedDisclaimers,
+    `${field}.orderedDisclaimers`,
+  ).map((disclaimer, index) => requireBoundedText(
+    disclaimer,
+    `${field}.orderedDisclaimers[${index}]`,
+    8192,
+  ));
+
+  if (orderedDisclaimers.length > 16) {
+    throw new ContractValidationError(`${field} contains too many disclaimers.`);
+  }
+
+  return {
+    obligationSetId: requirePattern(
+      object.obligationSetId,
+      /^obligationset-[a-f0-9]{64}$/,
+      `${field}.obligationSetId`,
+    ),
+    contentLanguage: requireCanonicalLanguage(
+      object.contentLanguage,
+      `${field}.contentLanguage`,
+    ),
+    authoritativePublisherOrAuthor: requireBoundedText(
+      object.authoritativePublisherOrAuthor,
+      `${field}.authoritativePublisherOrAuthor`,
+      512,
+    ),
+    documentTitle: requireBoundedText(object.documentTitle, `${field}.documentTitle`, 512),
+    documentVersionLabel: requireBoundedText(
+      object.documentVersionLabel,
+      `${field}.documentVersionLabel`,
+      128,
+    ),
+    sourceReference: requireBoundedText(
+      object.sourceReference,
+      `${field}.sourceReference`,
+      2048,
+    ),
+    attributionText: requireBoundedText(
+      object.attributionText,
+      `${field}.attributionText`,
+      4096,
+    ),
+    copyrightNotice: requireBoundedText(
+      object.copyrightNotice,
+      `${field}.copyrightNotice`,
+      8192,
+    ),
+    permissionNotice: requireBoundedText(
+      object.permissionNotice,
+      `${field}.permissionNotice`,
+      8192,
+    ),
+    orderedDisclaimers,
+    trademarkTreatment: requireEnum(
+      object.trademarkTreatment,
+      derivativeObligationTreatments,
+      `${field}.trademarkTreatment`,
+    ),
+    trademarkOrNonEndorsementText: requireBoundedText(
+      object.trademarkOrNonEndorsementText,
+      `${field}.trademarkOrNonEndorsementText`,
+      4096,
+    ),
+    changeMarkingText: requireBoundedText(
+      object.changeMarkingText,
+      `${field}.changeMarkingText`,
+      4096,
+    ),
+  };
+}
+
+function validateDerivativeObligationBinding(citation: CitationV2): void {
+  const presentation = citation.derivativeObligationPresentation;
+
+  if (citation.documentFormat === "Csv") {
+    if (citation.pageImages.length !== 0 || presentation !== null) {
+      throw new ContractValidationError(
+        "CSV citations cannot contain page images or derivative obligations.",
+      );
+    }
+
+    return;
+  }
+
+  if (citation.pageImages.length === 0) {
+    if (presentation !== null) {
+      throw new ContractValidationError(
+        "A derivative obligation presentation requires notice-bearing page images.",
+      );
+    }
+
+    return;
+  }
+
+  const obligationSetIds = citation.pageImages.map(page => page.obligationSetId);
+  const noticeBearingIds = obligationSetIds.filter((id): id is string => id !== null);
+
+  if (noticeBearingIds.length === 0) {
+    if (presentation !== null) {
+      throw new ContractValidationError(
+        "Legacy page images cannot carry a derivative obligation presentation.",
+      );
+    }
+
+    return;
+  }
+
+  if (presentation === null || noticeBearingIds.length !== obligationSetIds.length ||
+    noticeBearingIds.some(id => id !== presentation.obligationSetId) ||
+    presentation.contentLanguage !== citation.contentLanguage) {
+    throw new ContractValidationError(
+      "Notice-bearing page images require one matching derivative obligation presentation.",
+    );
+  }
+}
+
+function requireNullablePattern(
+  value: unknown,
+  pattern: RegExp,
+  field: string,
+): string | null {
+  if (value === null) {
+    return null;
+  }
+
+  return requirePattern(value, pattern, field);
+}
+
+function requireBoundedText(value: unknown, field: string, maximumLength: number): string {
+  const observed = requireNonEmptyString(value, field);
+
+  if (observed.length > maximumLength) {
+    throw new ContractValidationError(`${field} exceeds its maximum length.`);
+  }
+
+  return observed;
 }
 
 function requireCanonicalLanguage(value: unknown, field: string): string {

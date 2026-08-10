@@ -3,7 +3,7 @@
   "info": {
     "title": "RAG-Challenge Public Query and Visual Evidence API",
     "version": "2.0.0",
-    "description": "Separately versioned query contract with bounded same-origin PNG page evidence. This artefact freezes a contract; it is not implementation or homologation evidence."
+    "description": "Separately versioned query contract with bounded same-origin PNG page evidence and fail-closed notice-bearing derivative obligations. This artefact freezes a contract; it is not implementation or homologation evidence."
   },
   "paths": {
     "/api/v2/questions": {
@@ -357,7 +357,8 @@
           "excerpt",
           "columns",
           "sourceFreshness",
-          "pageImages"
+          "pageImages",
+          "derivativeObligationPresentation"
         ],
         "properties": {
           "corpusId": {
@@ -487,6 +488,17 @@
             "items": {
               "$ref": "#/components/schemas/PageImageEvidenceV1"
             }
+          },
+          "derivativeObligationPresentation": {
+            "description": "The complete accessible obligation content shared by every notice-bearing page image in this PDF citation. Null for CSV, citations without images and legacy pdf-page-png-v1 images.",
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/DerivativeObligationPresentationV1"
+              },
+              {
+                "type": "null"
+              }
+            ]
           }
         }
       },
@@ -500,7 +512,8 @@
           "mediaType",
           "widthPixels",
           "heightPixels",
-          "contentSha256"
+          "contentSha256",
+          "obligationSetId"
         ],
         "properties": {
           "pageNumber": {
@@ -529,6 +542,107 @@
           },
           "contentSha256": {
             "$ref": "#/components/schemas/Sha256"
+          },
+          "obligationSetId": {
+            "description": "The immutable obligation set carried by a pdf-page-png-notice-v1 image. Null only for a legacy pdf-page-png-v1 image.",
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/ObligationSetId"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        }
+      },
+      "DerivativeObligationPresentationV1": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "obligationSetId",
+          "contentLanguage",
+          "authoritativePublisherOrAuthor",
+          "documentTitle",
+          "documentVersionLabel",
+          "sourceReference",
+          "attributionText",
+          "copyrightNotice",
+          "permissionNotice",
+          "orderedDisclaimers",
+          "trademarkTreatment",
+          "trademarkOrNonEndorsementText",
+          "changeMarkingText"
+        ],
+        "properties": {
+          "obligationSetId": {
+            "$ref": "#/components/schemas/ObligationSetId"
+          },
+          "contentLanguage": {
+            "$ref": "#/components/schemas/CanonicalDocumentLanguage"
+          },
+          "authoritativePublisherOrAuthor": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 512
+          },
+          "documentTitle": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 512
+          },
+          "documentVersionLabel": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 128
+          },
+          "sourceReference": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 2048,
+            "description": "A source-specific display reference treated as untrusted text, never as executable navigation authority."
+          },
+          "attributionText": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 4096
+          },
+          "copyrightNotice": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 8192
+          },
+          "permissionNotice": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 8192
+          },
+          "orderedDisclaimers": {
+            "type": "array",
+            "maxItems": 16,
+            "items": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 8192
+            }
+          },
+          "trademarkTreatment": {
+            "type": "string",
+            "enum": [
+              "Required",
+              "Prohibited",
+              "NotApplicable"
+            ]
+          },
+          "trademarkOrNonEndorsementText": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 4096
+          },
+          "changeMarkingText": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 4096
           }
         }
       },
@@ -672,6 +786,10 @@
       "RenderManifestId": {
         "type": "string",
         "pattern": "^rendermanifest-[a-f0-9]{64}$"
+      },
+      "ObligationSetId": {
+        "type": "string",
+        "pattern": "^obligationset-[a-f0-9]{64}$"
       },
       "Sha256": {
         "type": "string",

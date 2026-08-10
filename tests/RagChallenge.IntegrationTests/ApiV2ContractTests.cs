@@ -62,6 +62,9 @@ public sealed class ApiV2ContractTests
         Assert.Equal($"rendermanifest-{ManifestDigest}",
             image.GetProperty("renderManifestId").GetString());
         Assert.Equal(ImageDigest, image.GetProperty("imageContentObjectId").GetString());
+        Assert.Equal(JsonValueKind.Null, image.GetProperty("obligationSetId").ValueKind);
+        Assert.Equal(JsonValueKind.Null,
+            citation.GetProperty("derivativeObligationPresentation").ValueKind);
         Assert.False(response.RootElement.TryGetProperty("answerEvidenceRecordId", out _));
         Assert.False(citation.TryGetProperty("path", out _));
         Assert.False(citation.TryGetProperty("rights", out _));
@@ -257,7 +260,7 @@ public sealed class ApiV2ContractTests
             "d6a686b94c926914beb28b437f464430a01de6560c2e2d476cf5c36025813e34",
             Convert.ToHexString(SHA256.HashData(v1)).ToLowerInvariant());
         Assert.Equal(
-            "01ab26ae8066971af2e5ae83ec828fae556951d5ce6c335b42f6e7cf7b062640",
+            "f4dca8db7fb7bd453e580495bb1bb7760812d954344931063e8549ed8f036733",
             Convert.ToHexString(SHA256.HashData(v2)).ToLowerInvariant());
         using var v2Document = JsonDocument.Parse(v2);
         Assert.True(v2Document.RootElement.GetProperty("paths")
@@ -266,6 +269,12 @@ public sealed class ApiV2ContractTests
             .TryGetProperty(
                 "/api/v2/evidence/page-images/{indexGenerationId}/{renderManifestId}/{pageNumber}/{imageContentObjectId}",
                 out _));
+        var schemas = v2Document.RootElement.GetProperty("components").GetProperty("schemas");
+        Assert.False(schemas.GetProperty("DerivativeObligationPresentationV1")
+            .GetProperty("additionalProperties").GetBoolean());
+        Assert.Equal(
+            "^obligationset-[a-f0-9]{64}$",
+            schemas.GetProperty("ObligationSetId").GetProperty("pattern").GetString());
     }
 
     private static RouteEndpoint FindEndpoint(WebApplication app, string route) =>

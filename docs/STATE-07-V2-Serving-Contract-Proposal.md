@@ -11,11 +11,21 @@ clean working tree. The protected OpenAPI v1 artefact had SHA-256
 blob `a5fb3602fbab33bda6aa56cc4caaa9fdc37c8160`.
 
 The versioned machine-readable contract is
-[`openapi-v2.json`](api/openapi-v2.json). This freeze is documentary contract
-authority only. It does not implement an endpoint, type, resolver, Dashboard
-component, migration or test; does not prove accessibility or security; and
-does not authorise runtime, a gate, a provider, a source, a browser, network
-access, an external action or a lifecycle transition.
+[`openapi-v2.json`](api/openapi-v2.json). The original 2026-08-09 freeze was
+documentary contract authority only. At that point it did not implement an
+endpoint, type, resolver, Dashboard component, migration or test; did not prove
+accessibility or security; and did not authorise runtime, a gate, a provider, a
+source, a browser, network access, an external action or a lifecycle
+transition.
+
+The notice-bearing revision was separately frozen under
+`AUTH-S07-A-NOTICE-BEARING-V2-CONTRACT-001` on 2026-08-10 from clean
+`main@6982b0643468aee0a97c3bea6b5bbe9018f0804c`, corpus `4.10.15`. It
+preserves the protected OpenAPI v1 SHA-256
+`d6a686b94c926914beb28b437f464430a01de6560c2e2d476cf5c36025813e34` and Git
+blob `a5fb3602fbab33bda6aa56cc4caaa9fdc37c8160`. The revised OpenAPI v2 has
+SHA-256 `f4dca8db7fb7bd453e580495bb1bb7760812d954344931063e8549ed8f036733`
+and Git blob `5ed6a47631653dd0c137b6ea1e979ae2c14bf8a8`.
 
 This contract applies the accepted direction in
 [ADR-0008](architecture/ADR-0008-Product-Corpus-Storage-And-Page-Image-Evidence.md),
@@ -29,12 +39,11 @@ resource.
 
 Accepted
 [ADR-0012](architecture/ADR-0012-Notice-Bearing-Page-Image-Profile-And-Derivative-Obligation-Delivery.md)
-defines a mandatory successor direction for notice-bearing derivatives. This
-document records that direction without changing the frozen contract or either
-OpenAPI artefact. Until a separately authorised v2 contract revision is frozen
-and implemented, `pdf-page-png-notice-v1`, `obligationSetId` and
-`DerivativeObligationPresentationV1` are not valid public v2 values and cannot
-authorise product serving.
+defines the notice-bearing derivative direction applied by this revision.
+`obligationSetId` and `DerivativeObligationPresentationV1` are now frozen v2
+transport fields. This contract change does not implement the obligation-set,
+schema, renderer, projection, serving validation or accessible Dashboard
+presentation and cannot authorise notice-bearing product serving by itself.
 
 ## Frozen decisions
 
@@ -79,7 +88,9 @@ field and adds:
   tag;
 - optional `sourceDeclaredLanguage`, as the exact valid tag observed from the
   source without inferred specificity; and
-- required `pageImages: PageImageEvidenceV1[]`.
+- required `pageImages: PageImageEvidenceV1[]`; and
+- required nullable
+  `derivativeObligationPresentation: DerivativeObligationPresentationV1`.
 
 `questionLanguage` and `answerLanguage` do not broaden with document language.
 In particular, `en` is not `en-GB`. Source-derived title, excerpt and location
@@ -107,7 +118,10 @@ Each `PageImageEvidenceV1` contains exactly:
 - `imageContentObjectId`;
 - `mediaType`, exactly `image/png`;
 - `widthPixels` and `heightPixels`, each from 1 through 4,096; and
-- `contentSha256`.
+- `contentSha256`; and
+- required nullable `obligationSetId`, using
+  `obligationset-<lower-case SHA-256>` for `pdf-page-png-notice-v1` and `null`
+  for the existing `pdf-page-png-v1` projection.
 
 `imageContentObjectId` and `contentSha256` are the same lower-case SHA-256 of
 the exact PNG bytes. The reference is created by trusted server orchestration
@@ -115,10 +129,10 @@ from the validated citation and persisted readback, never by the language
 model, source text, a language tag or caller input. The language model remains
 text-only.
 
-### Mandatory future notice-bearing v2 revision
+### Frozen notice-bearing v2 revision
 
-ADR-0012 requires a later protected contract freeze that retains every current
-field and the fixed same-origin route, and adds:
+This protected revision retains every prior field and the fixed same-origin
+route, and adds:
 
 - `obligationSetId` to every `pdf-page-png-notice-v1` page-image reference; and
 - one `DerivativeObligationPresentationV1` to the owning PDF citation, carrying
@@ -126,12 +140,29 @@ field and the fixed same-origin route, and adds:
   notices, ordered disclaimers, trademark treatment and change marking as the
   immutable obligation set.
 
-A PDF citation with notice-bearing images must name exactly one obligation set,
-and every page reference must name that same set. The presentation is absent
-only when `pageImages` is empty; CSV cannot carry it. Missing, duplicate,
-mismatched, truncated, unsupported-language or oversized obligation content
-fails response construction closed. These are future required contract
-semantics, not fields in the current executable OpenAPI v2.
+A PDF citation with notice-bearing images names exactly one obligation set,
+every page reference names that same set and the presentation repeats that
+identity. `contentLanguage` also matches the owning citation. Missing,
+duplicate, mixed, mismatched, unsupported-language, empty or oversized
+obligation content fails strict decoding closed. The trusted producer must
+also verify the exact unabridged text against the immutable obligation set;
+that semantic equality cannot be inferred by a public client from text alone.
+
+Compatibility is explicit and narrow: a legacy `pdf-page-png-v1` page has
+`obligationSetId: null` and its citation has
+`derivativeObligationPresentation: null`. A citation cannot mix legacy and
+notice-bearing pages. A PDF without page images and every CSV citation also
+uses a null presentation; CSV continues to forbid page images. The null legacy
+case preserves the existing v2 projection but never represents, upgrades or
+authorises a notice-bearing derivative.
+
+`DerivativeObligationPresentationV1` is strict and rejects unknown members. It
+contains the obligation-set identity, exact `contentLanguage`, bounded
+publisher/author, title, version and source reference, complete attribution,
+copyright and permission text, up to 16 ordered unabridged disclaimers,
+trademark treatment `Required|Prohibited|NotApplicable`, the corresponding
+trademark or non-endorsement text and change marking. All values are untrusted
+plain text; no field grants navigation, markup or execution authority.
 
 ## Same-origin visual-evidence endpoint
 
@@ -212,14 +243,15 @@ boundary; `Permitted` distribution does not substitute for permitted runtime
 display. Missing, stale, conflicting, legally ambiguous or unenforceable
 mappings fail closed before `200` or `304`.
 
-For the future notice-bearing profile, the same validation order additionally
+For the notice-bearing profile, a later serving implementation of this frozen
+contract additionally
 requires the exact current rights-mapping revision, immutable obligation-set
 identity and digest, notice-bearing manifest schema, source/notice-region
 measurements and composite PNG identity. The strong ETag is the composite PNG
 SHA-256, so any obligation change creates new image, manifest and ETag
 identities. A conditional `304` still follows the full obligation, rights and
-lifecycle revalidation. These checks cannot be enabled under the current
-contract or schema by inference.
+lifecycle revalidation. These checks cannot be enabled without the separately
+authorised schema and runtime implementation or inferred from legacy data.
 
 The endpoint has the same caller access policy as textual query evidence,
 publishes no permissive CORS authority and adds
@@ -287,15 +319,15 @@ embedded source-PDF notice is not assumed to accompany a PNG response, and a
 requirement for unsupported in-binary placement also makes the image
 ineligible.
 
-ADR-0012 accepts the future mechanism for that in-binary case: the complete
+ADR-0012 accepts the mechanism for that in-binary case: the complete
 reviewed obligation content appears in the separate panel of the same PNG and
 as escaped, selectable text immediately adjacent to the owning figure. The
 source-page pixels remain intact; the concise accessible name still identifies
 only document version and physical page, while the full notice is never hidden
 in `alt`, metadata or a link. Failure to decode, validate or present the exact
 obligation object blocks the image and leaves the textual citation usable.
-This accepted presentation remains unimplemented and requires the future v2
-contract revision.
+The transport fields are frozen by this revision, but the accessible visual
+presentation remains unimplemented.
 
 The page image is supplemental evidence, never the only carrier of a factual
 claim, navigation destination, error or status. The image has known width and
@@ -352,6 +384,7 @@ inferred backfill.
 | Active generation and lifecycle | Current generation succeeds; prior, guessed, deactivated and removed selectors return the uniform `404`. |
 | Exact manifest and page | Cross-document, cross-version, cross-manifest, wrong-page and equal-bytes/different-binding selectors return the uniform `404`. |
 | Rights | The ten decisions remain independent. Missing, incompatible, expired, `Unproven`, stale-mapped or differently scoped display, derivative, intended-distribution or obligation decisions return the uniform `404`; a distribution `Denied` is compatible only when its mapping expressly excludes the boundary beyond same-origin runtime display. |
+| Notice-bearing contract | Legacy pages use both new values as null. Notice-bearing pages share one non-null `obligationSetId` and one matching complete citation presentation; mixed, missing, mismatched, unknown, empty or oversized values fail strict decoding, while the trusted producer verifies unabridged semantic equality. |
 | PNG integrity and bounds | Media type, signature, hash, stored length, dimensions, verified reopen and the 64 MiB serving ceiling are checked before headers or bytes. |
 | Conditional cache safety | Every `304` follows full revalidation; deactivation between requests changes the result to the uniform `404`. |
 | Same-origin boundary | No permissive CORS; `Cross-Origin-Resource-Policy: same-origin`; no redirects, paths or arbitrary URL selectors. |
@@ -396,7 +429,8 @@ mismatch was corrected in focal commit
 `b9c3e5f3a72c2dd7762c256198452ae2c217b2d2`: serving now evaluates all ten
 decisions and fails closed on an `Unproven` intended distribution boundary.
 
-This ADR-0012 reconciliation also changes no public contract byte. A protected
-v2 contract freeze, schema design, migration and implementation remain required
-before any notice-bearing derivative can be represented or served. The current
-PostgreSQL candidate remains `BLOCKED/EXCLUDED`; no new A0 is performed here.
+The ADR-0012 contract revision is now frozen in OpenAPI v2 and the strict
+server/Dashboard transport owners. Schema design, migration and implementation
+remain required before a notice-bearing derivative can be produced or served.
+The current PostgreSQL candidate remains `BLOCKED/EXCLUDED`; no new A0 is
+performed here.
