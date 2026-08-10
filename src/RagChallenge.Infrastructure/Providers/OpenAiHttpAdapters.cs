@@ -23,6 +23,62 @@ public static class OpenAiHttpClientPolicy
         };
 }
 
+public enum OpenAiReasoningEffort
+{
+    None,
+}
+
+public enum OpenAiReasoningContext
+{
+    CurrentTurn,
+}
+
+public sealed class OpenAiLanguageModelOptions
+{
+    public const string MvpModelId = "gpt-5.4-mini-2026-03-17";
+
+    public OpenAiLanguageModelOptions(
+        LanguageModelDescriptor expectedDescriptor,
+        OpenAiReasoningEffort reasoningEffort,
+        OpenAiReasoningContext reasoningContext)
+    {
+        ExpectedDescriptor = expectedDescriptor ??
+            throw new ArgumentNullException(nameof(expectedDescriptor));
+
+        if (!string.Equals(expectedDescriptor.ProviderId, "openai", StringComparison.Ordinal) ||
+            !string.Equals(expectedDescriptor.ModelId, MvpModelId, StringComparison.Ordinal) ||
+            !string.Equals(expectedDescriptor.ModelRevision, MvpModelId, StringComparison.Ordinal))
+        {
+            throw new ArgumentException(
+                "The OpenAI language-model options require the accepted dated MVP snapshot.",
+                nameof(expectedDescriptor));
+        }
+
+        ReasoningEffortApiValue = reasoningEffort switch
+        {
+            OpenAiReasoningEffort.None => "none",
+            _ => throw new ArgumentOutOfRangeException(nameof(reasoningEffort)),
+        };
+        ReasoningContextApiValue = reasoningContext switch
+        {
+            OpenAiReasoningContext.CurrentTurn => "current_turn",
+            _ => throw new ArgumentOutOfRangeException(nameof(reasoningContext)),
+        };
+        ReasoningEffort = reasoningEffort;
+        ReasoningContext = reasoningContext;
+    }
+
+    public LanguageModelDescriptor ExpectedDescriptor { get; }
+
+    public OpenAiReasoningEffort ReasoningEffort { get; }
+
+    public OpenAiReasoningContext ReasoningContext { get; }
+
+    internal string ReasoningEffortApiValue { get; }
+
+    internal string ReasoningContextApiValue { get; }
+}
+
 public sealed class OpenAiHttpEmbeddingProvider : IEmbeddingProvider
 {
     private static readonly Uri Route = new("/v1/embeddings", UriKind.Relative);
@@ -292,28 +348,31 @@ public sealed class OpenAiHttpLanguageModel : ILanguageModel
     private static readonly Uri Route = new("/v1/responses", UriKind.Relative);
     private readonly HttpClient httpClient;
     private readonly Func<CancellationToken, ValueTask<string>> credentialSource;
-    private readonly LanguageModelDescriptor expectedDescriptor;
+    private readonly OpenAiLanguageModelOptions options;
 
     public OpenAiHttpLanguageModel(
         HttpClient httpClient,
         Func<CancellationToken, ValueTask<string>> credentialSource,
         LanguageModelDescriptor expectedDescriptor)
+        : this(
+            httpClient,
+            credentialSource,
+            new OpenAiLanguageModelOptions(
+                expectedDescriptor,
+                OpenAiReasoningEffort.None,
+                OpenAiReasoningContext.CurrentTurn))
+    {
+    }
+
+    public OpenAiHttpLanguageModel(
+        HttpClient httpClient,
+        Func<CancellationToken, ValueTask<string>> credentialSource,
+        OpenAiLanguageModelOptions options)
     {
         this.httpClient = OpenAiHttpEmbeddingProvider.ValidateClient(httpClient);
         this.credentialSource = credentialSource ??
             throw new ArgumentNullException(nameof(credentialSource));
-        this.expectedDescriptor = expectedDescriptor ??
-            throw new ArgumentNullException(nameof(expectedDescriptor));
-
-        if (!string.Equals(
-                expectedDescriptor.ProviderId,
-                "openai",
-                StringComparison.Ordinal))
-        {
-            throw new ArgumentException(
-                "The OpenAI adapter requires the OpenAI provider descriptor.",
-                nameof(expectedDescriptor));
-        }
+        this.options = options ?? throw new ArgumentNullException(nameof(options));
     }
 
     public async Task<GroundedGenerationResult> GenerateAsync(
@@ -341,11 +400,15 @@ public sealed class OpenAiHttpLanguageModel : ILanguageModel
         {
             Content = JsonContent.Create(new
             {
-                model = expectedDescriptor.ModelId,
+                model = options.ExpectedDescriptor.ModelId,
                 store = false,
-                temperature = 0,
                 max_output_tokens = ConvertCharacterBudgetToTokenBudget(
                     request.MaximumOutputCharacters),
+                reasoning = new
+                {
+                    effort = options.ReasoningEffortApiValue,
+                    context = options.ReasoningContextApiValue,
+                },
                 input = new object[]
                 {
                     new
@@ -391,8 +454,9 @@ public sealed class OpenAiHttpLanguageModel : ILanguageModel
 
             if (!string.Equals(
                     observedModel,
-                    expectedDescriptor.ModelRevision,
+                    options.ExpectedDescriptor.ModelRevision,
                     StringComparison.Ordinal) ||
+                OpenAiHttpEmbeddingProvider.ReadRequiredString(root, "status") != "completed" ||
                 !root.TryGetProperty("output", out var outputElement) ||
                 outputElement.ValueKind != JsonValueKind.Array)
             {
@@ -403,6 +467,8 @@ public sealed class OpenAiHttpLanguageModel : ILanguageModel
 
             if (outputItems.Length != 1 ||
                 OpenAiHttpEmbeddingProvider.ReadRequiredString(outputItems[0], "type") != "message" ||
+                OpenAiHttpEmbeddingProvider.ReadRequiredString(outputItems[0], "role") != "assistant" ||
+                OpenAiHttpEmbeddingProvider.ReadRequiredString(outputItems[0], "status") != "completed" ||
                 !outputItems[0].TryGetProperty("content", out var contentElement) ||
                 contentElement.ValueKind != JsonValueKind.Array)
             {
@@ -474,7 +540,7 @@ public sealed class OpenAiHttpLanguageModel : ILanguageModel
             }
 
             return new GroundedGenerationResult(
-                expectedDescriptor,
+                options.ExpectedDescriptor,
                 answerLanguage,
                 answer,
                 cited.Select(item => item!).ToArray());

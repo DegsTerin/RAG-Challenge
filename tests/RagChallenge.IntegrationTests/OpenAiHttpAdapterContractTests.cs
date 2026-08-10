@@ -11,6 +11,10 @@ namespace RagChallenge.IntegrationTests;
 
 public sealed class OpenAiHttpAdapterContractTests
 {
+    private const string MvpLanguageModel = OpenAiLanguageModelOptions.MvpModelId;
+    private static readonly string[] ExpectedLanguageModelRequestProperties =
+        ["input", "max_output_tokens", "model", "reasoning", "store", "text"];
+
     [Fact]
     public async Task EmbeddingAdapterUsesOnlyTheExactRouteAndOrderedFloatContract()
     {
@@ -43,7 +47,7 @@ public sealed class OpenAiHttpAdapterContractTests
     }
 
     [Fact]
-    public async Task ResponseAdapterDisablesStateAndToolsAndMapsStructuredCitations()
+    public async Task ResponseAdapterUsesTheAcceptedMvpProfileAndMapsStructuredCitations()
     {
         var structured = JsonSerializer.Serialize(new
         {
@@ -53,23 +57,23 @@ public sealed class OpenAiHttpAdapterContractTests
         });
         var response = JsonSerializer.Serialize(new
         {
-            model = "gpt-4.1-mini-2025-04-14",
+            model = MvpLanguageModel,
+            status = "completed",
             output = new[]
             {
                 new
                 {
                     type = "message",
+                    role = "assistant",
+                    status = "completed",
                     content = new[] { new { type = "output_text", text = structured } },
                 },
             },
         });
         var handler = new RecordingHandler(response);
         using var client = CreateClient(handler);
-        var descriptor = new LanguageModelDescriptor(
-            "openai",
-            "gpt-4.1-mini-2025-04-14",
-            "gpt-4.1-mini-2025-04-14");
-        var adapter = new OpenAiHttpLanguageModel(client, Credential, descriptor);
+        var options = CreateLanguageModelOptions();
+        var adapter = new OpenAiHttpLanguageModel(client, Credential, options);
 
         var result = await adapter.GenerateAsync(new GroundedGenerationRequest(
             "Trusted instruction.",
@@ -79,17 +83,27 @@ public sealed class OpenAiHttpAdapterContractTests
             new[] { new GroundedEvidence("chunk-allowed", "Synthetic evidence.", DocumentContentLanguage.EnGb) },
             maximumOutputCharacters: 1024));
 
-        Assert.Equal(descriptor, result.ObservedDescriptor);
+        Assert.Equal(options.ExpectedDescriptor, result.ObservedDescriptor);
         Assert.Equal(SupportedQueryLanguage.EnGb, result.AnswerLanguage);
         Assert.Equal("Grounded answer.", result.Answer);
         Assert.Equal("chunk-allowed", Assert.Single(result.CitedChunkIds));
         Assert.Equal("https://api.openai.com/v1/responses", handler.Uri!.AbsoluteUri);
         using var body = JsonDocument.Parse(handler.RequestBody!);
+        Assert.Equal(MvpLanguageModel, body.RootElement.GetProperty("model").GetString());
         Assert.False(body.RootElement.GetProperty("store").GetBoolean());
-        Assert.Equal(0, body.RootElement.GetProperty("temperature").GetInt32());
+        Assert.False(body.RootElement.TryGetProperty("temperature", out _));
         Assert.False(body.RootElement.TryGetProperty("tools", out _));
         Assert.False(body.RootElement.TryGetProperty("background", out _));
         Assert.False(body.RootElement.TryGetProperty("previous_response_id", out _));
+        Assert.Equal("none", body.RootElement.GetProperty("reasoning")
+            .GetProperty("effort").GetString());
+        Assert.Equal("current_turn", body.RootElement.GetProperty("reasoning")
+            .GetProperty("context").GetString());
+        Assert.Equal(
+            ExpectedLanguageModelRequestProperties,
+            body.RootElement.EnumerateObject()
+                .Select(property => property.Name)
+                .Order(StringComparer.Ordinal));
         Assert.Equal("json_schema", body.RootElement.GetProperty("text")
             .GetProperty("format").GetProperty("type").GetString());
         Assert.Equal(512, body.RootElement.GetProperty("max_output_tokens").GetInt32());
@@ -160,12 +174,15 @@ public sealed class OpenAiHttpAdapterContractTests
     {
         var response = JsonSerializer.Serialize(new
         {
-            model = "unexpected-model",
+            model = "gpt-5.4-mini",
+            status = "completed",
             output = new[]
             {
                 new
                 {
                     type = "message",
+                    role = "assistant",
+                    status = "completed",
                     content = new[] { new { type = "output_text", text = "{}" } },
                 },
             },
@@ -174,10 +191,7 @@ public sealed class OpenAiHttpAdapterContractTests
         var adapter = new OpenAiHttpLanguageModel(
             client,
             Credential,
-            new LanguageModelDescriptor(
-                "openai",
-                "gpt-4.1-mini-2025-04-14",
-                "gpt-4.1-mini-2025-04-14"));
+            CreateLanguageModelOptions());
         var request = new GroundedGenerationRequest(
             "Trusted instruction.",
             "prompt-v1",
@@ -197,7 +211,61 @@ public sealed class OpenAiHttpAdapterContractTests
 
         Assert.Equal("generation", failure.Stage);
         Assert.Equal("The language-model provider response was invalid.", failure.Message);
-        Assert.DoesNotContain("unexpected-model", failure.Message, StringComparison.Ordinal);
+        Assert.DoesNotContain("gpt-5.4-mini", failure.Message, StringComparison.Ordinal);
+    }
+
+    [Theory]
+    [InlineData("""
+        {"model":"gpt-5.4-mini-2026-03-17","status":"completed","output":[{"type":"reasoning"}]}
+        """)]
+    [InlineData("""
+        {"model":"gpt-5.4-mini-2026-03-17","status":"completed","output":[{"type":"message","role":"assistant","status":"completed","content":[{"type":"refusal","refusal":"synthetic refusal"}]}]}
+        """)]
+    [InlineData("""
+        {"model":"gpt-5.4-mini-2026-03-17","status":"incomplete","output":[]}
+        """)]
+    public async Task ResponseAdapterRejectsUnauthorisedOutputItems(string responseJson)
+    {
+        using var client = CreateClient(new RecordingHandler(responseJson));
+        var adapter = new OpenAiHttpLanguageModel(
+            client,
+            Credential,
+            CreateLanguageModelOptions());
+
+        var failure = await Assert.ThrowsAsync<ProviderStageUnavailableException>(() =>
+            adapter.GenerateAsync(CreateGenerationRequest()));
+
+        Assert.Equal("generation", failure.Stage);
+        Assert.Equal("The language-model provider response was invalid.", failure.Message);
+        Assert.DoesNotContain("synthetic refusal", failure.Message, StringComparison.Ordinal);
+    }
+
+    [Theory]
+    [InlineData("other", "gpt-5.4-mini-2026-03-17", "gpt-5.4-mini-2026-03-17")]
+    [InlineData("openai", "gpt-5.4-mini", "gpt-5.4-mini")]
+    [InlineData("openai", "gpt-5.4-mini-2026-03-17", "gpt-5.4-mini")]
+    public void LanguageModelOptionsRejectAnUnapprovedDescriptor(
+        string providerId,
+        string modelId,
+        string modelRevision)
+    {
+        Assert.Throws<ArgumentException>(() => new OpenAiLanguageModelOptions(
+            new LanguageModelDescriptor(providerId, modelId, modelRevision),
+            OpenAiReasoningEffort.None,
+            OpenAiReasoningContext.CurrentTurn));
+    }
+
+    [Fact]
+    public void LanguageModelOptionsRejectUnsupportedReasoningConfiguration()
+    {
+        Assert.Throws<ArgumentOutOfRangeException>(() => new OpenAiLanguageModelOptions(
+            CreateLanguageModelDescriptor(),
+            (OpenAiReasoningEffort)999,
+            OpenAiReasoningContext.CurrentTurn));
+        Assert.Throws<ArgumentOutOfRangeException>(() => new OpenAiLanguageModelOptions(
+            CreateLanguageModelDescriptor(),
+            OpenAiReasoningEffort.None,
+            (OpenAiReasoningContext)999));
     }
 
     [Fact]
@@ -227,6 +295,30 @@ public sealed class OpenAiHttpAdapterContractTests
             BaseAddress = new Uri("https://api.openai.com/", UriKind.Absolute),
             Timeout = TimeSpan.FromSeconds(25),
         };
+
+    private static OpenAiLanguageModelOptions CreateLanguageModelOptions() =>
+        new(
+            CreateLanguageModelDescriptor(),
+            OpenAiReasoningEffort.None,
+            OpenAiReasoningContext.CurrentTurn);
+
+    private static LanguageModelDescriptor CreateLanguageModelDescriptor() =>
+        new("openai", MvpLanguageModel, MvpLanguageModel);
+
+    private static GroundedGenerationRequest CreateGenerationRequest() =>
+        new(
+            "Trusted instruction.",
+            "prompt-v1",
+            "Question?",
+            SupportedQueryLanguage.EnGb,
+            new[]
+            {
+                new GroundedEvidence(
+                    "chunk-allowed",
+                    "Synthetic evidence.",
+                    DocumentContentLanguage.EnGb),
+            },
+            maximumOutputCharacters: 1024);
 
     private static ValueTask<string> Credential(CancellationToken cancellationToken)
     {
