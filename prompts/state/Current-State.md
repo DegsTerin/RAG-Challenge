@@ -1204,7 +1204,7 @@ proprietários.
   a política de idioma acrescentou o 21º documento público por incremento
   versionado, e o ADR-0003 acrescentou o 22º.
 - A baseline aprovada no Human Gate de `STATE-00` permanece `3.4.0`.
-- O corpus de instruções vigente possui versão `4.10.6` e 13 arquivos em
+- O corpus de instruções vigente possui versão `4.10.7` e 13 arquivos em
   `prompts/`.
 - Visão, requisitos, arquitetura, RAG, segurança, qualidade, lifecycle,
   roadmap, backlog, estado, histórico e templates estão documentados.
@@ -1235,6 +1235,12 @@ proprietários.
   resultados auditáveis; AGENTS mantém enforcement transversal mínimo; Start
   Here mantém roteamento; Language Policy conserva somente convenções de
   idioma.
+- O corpus `4.10.7` registra a instrução permanente do proprietário de receber
+  primeiro uma explicação prática, concisa e em linguagem simples, adequada a
+  quem não possui conhecimento técnico especializado. Termos técnicos
+  necessários passam a exigir significado e consequência explicados em
+  `pt-BR`, sem ocultar incerteza, risco, limite de autoridade ou fato não
+  verificado.
 - O corpus `4.3.0` formaliza a decisão explícita do proprietário de aceitar
   perguntas e respostas em `pt-BR` e `en-GB`: cada consulta declara o idioma,
   a resposta usa o mesmo idioma, textos derivados da fonte permanecem no

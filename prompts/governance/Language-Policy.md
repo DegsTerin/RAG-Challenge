@@ -15,6 +15,15 @@ restating it.
 - Always communicate with the owner in Brazilian Portuguese (`pt-BR`).
 - Questions, explanations, progress updates, approvals, warnings,
   recommendations, hand-offs and ready-to-copy messages use `pt-BR`.
+- Explain the practical result first and use plain language suitable for an
+  owner without specialist software, architecture, legal or infrastructure
+  knowledge.
+- Do not assume that the owner knows technical terminology. When a technical
+  literal is necessary, explain its meaning and consequence briefly in
+  `pt-BR`, using a concrete example when that improves understanding.
+- Keep the initial explanation concise and add technical evidence only when it
+  is needed for the decision or requested by the owner. Simplification must
+  never hide uncertainty, risk, an authority boundary or an unverified fact.
 - Present headings, labels, guidance and explanatory values intended for the
   owner in `pt-BR`. Do not add bilingual labels merely to mirror an internal
   canonical name.

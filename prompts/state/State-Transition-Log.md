@@ -6255,3 +6255,27 @@ contém somente fatos cronológicos.
 - Próxima condição: uma nova disposição A0 exige evidência explícita e
   separada por operação para os cinco direitos ainda `UNPROVEN`, sob autoridade
   humana própria; nenhuma continuação de produto é inferida.
+
+## 2026-08-09 — Comunicação com o proprietário passa a exigir linguagem simples
+
+- Estado anterior e resultante: `STATE-07 TESTING_HOMOLOGATION` permanece
+  ativo; nenhum Automatic Quality Gate, Human Gate ou lifecycle foi executado
+  ou alterado.
+- Autoridade: instrução explícita do proprietário nesta conversa para sempre
+  explicar de forma simples para uma pessoa leiga e documentar essa regra.
+- Regra registrada: a comunicação apresenta primeiro o resultado prático em
+  linguagem concisa e compreensível por quem não possui conhecimento técnico
+  especializado; termos técnicos necessários têm significado e consequência
+  explicados em `pt-BR`, com exemplo quando útil.
+- Limite preservado: simplificação não omite incerteza, risco, autoridade ou
+  fato não verificado. A regra foi centralizada em `Language-Policy.md`, sem
+  duplicação em AGENTS, Governance ou Templates.
+- Versionamento: corpus elevado por `PATCH` de `4.10.6` para `4.10.7`, sem
+  alterar lifecycle, gate, código, teste, OpenAPI, contrato, schema, migration,
+  ADR, dependência, lockfile, dataset, runtime ou ação externa.
+- Verificação documental estática: `git diff --check` e
+  `pwsh -NoProfile -File eng/check-repository.ps1` terminaram com exit code
+  `0`; a auditoria cobriu 255 arquivos não ignorados. O histórico preservou o
+  prefixo anterior no SHA-256
+  `62549f9060a3777525e13bfd08bd5eaad1a9f9f8657c1fb67d91401aece96700`, e
+  OpenAPI v1/v2 permaneceram nos hashes e blobs protegidos.

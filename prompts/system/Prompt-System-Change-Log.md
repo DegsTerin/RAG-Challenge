@@ -2,7 +2,7 @@
 
 ## Versão atual
 
-- Versão: `4.10.6`
+- Versão: `4.10.7`
 - Data: 2026-08-09
 - Status: `STATE-07` ativo; A0 do primeiro documento de produto disposto como
   `BLOCKED/EXCLUDED` por direitos visuais e de distribuição ainda `UNPROVEN`;
@@ -20,6 +20,20 @@ A versão do corpus é independente da versão futura do software.
 
 Toda alteração atualiza este arquivo e, quando necessário,
 [`../Start-Here.md`](../Start-Here.md).
+
+## 4.10.7 — 2026-08-09
+
+- Registra a instrução explícita do proprietário para que toda explicação seja
+  apresentada primeiro de forma prática, concisa e compreensível por uma
+  pessoa sem conhecimento técnico especializado.
+- Exige que termos técnicos necessários tenham significado e consequência
+  explicados em `pt-BR`, com exemplo concreto quando ele melhorar a
+  compreensão.
+- Preserva precisão factual: simplificação não pode ocultar incerteza, risco,
+  limite de autoridade ou fato não verificado.
+- Centraliza a regra em `Language-Policy.md`, sem duplicá-la em AGENTS,
+  Governance ou Templates. A mudança é `PATCH` e não altera lifecycle, gate,
+  código, contrato, OpenAPI ou comportamento do produto.
 
 ## 4.10.6 — 2026-08-09
 
