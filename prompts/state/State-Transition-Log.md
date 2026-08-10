@@ -6531,3 +6531,51 @@ contém somente fatos cronológicos.
   autoritativa que determine a colocação aceitável dos avisos em cada cópia ou
   após decisão arquitetural separada que estabeleça um mecanismo executável e
   compatível, sem inferir a interpretação jurídica ausente.
+
+## 2026-08-09 — ADR-0012 proposto para imagens derivadas autocontidas
+
+- Estado anterior e resultante: `STATE-07 TESTING_HOMOLOGATION` permanece
+  ativo; nenhum Automatic Quality Gate, Human Gate ou lifecycle foi executado
+  ou alterado.
+- Autoridade e baseline:
+  `AUTH-S07-A-NOTICE-BEARING-PROFILE-ADR-PREP-001`, branch `main`, commit
+  `1b64ca88a0efebd7ab450f5bdc22004a72f3dc53`, corpus `4.10.12`, working tree
+  inicialmente limpa e OpenAPI v1/v2 protegidas.
+- Proposta preparada: ADR-0012 registra o perfil determinístico
+  `pdf-page-png-notice-v1`. Cada PNG proposto mantém o raster da página em uma
+  região pixel a pixel intacta e acrescenta, fora dessa região, um painel com
+  o conjunto completo de obrigações aplicáveis.
+- Obrigações e acessibilidade: o `DerivativeObligationSetV1` proposto conserva
+  attribution, copyright/permission notices, disclaimers, trademark treatment
+  e change marking exatos. O mesmo conjunto acompanha o manifest, o PNG e a
+  apresentação textual acessível adjacente no Dashboard.
+- Persistência e recuperação: a proposta vincula o obligation set ao source
+  object, rights mapping, render manifest e ativação; inclui esse vínculo no
+  reachability, backup e cold restore e bloqueia readiness ou serving diante
+  de ausência, divergência ou staleness.
+- Impactos explícitos: uma implementação futura exigiria novo schema de
+  manifest e obligation set, migration dos constraints SQLite que hoje aceitam
+  somente `pdf-page-png-v1` e revisão pública do contrato v2 para transportar
+  a identidade e o texto acessível. OpenAPI v1 permaneceria byte a byte
+  protegida.
+- Disposição: ADR-0012 permanece `proposed` e não foi aceito. O candidato
+  `postgresql-18-reference-a4` permanece `BLOCKED/EXCLUDED`; seus quatro
+  direitos visuais continuam `UNPROVEN` e a distribuição/publicação externa
+  continua `DENIED` pela fronteira interna já registrada.
+- Versionamento: corpus elevado por `PATCH` documental de `4.10.12` para
+  `4.10.13`, sem mudança de autoridade executável, contrato, schema, migration,
+  comportamento de produto, gate ou lifecycle.
+- Limites preservados: somente o ADR proposto, o índice arquitetural,
+  `Current-State.md`, este EOF append-only e o changelog do corpus foram
+  alterados. Nenhum código, teste, OpenAPI, contrato, schema, migration,
+  dependência, lockfile ou dataset foi alterado. Nenhum renderer, runtime,
+  rede, fonte, provider, Automatic Quality Gate, Human Gate, lifecycle ou ação
+  externa foi executado.
+- Verificação documental estática: `git diff --check` e
+  `pwsh -NoProfile -File eng/check-repository.ps1` terminaram com exit code
+  `0`; o histórico preservou byte a byte o prefixo anterior no SHA-256
+  `50b091900650543f7f5a73017a83e8bf11b7622adf9164c53a3a68a43f9b2957`.
+- Próxima condição: uma decisão humana explícita pode aceitar ou rejeitar o
+  ADR-0012. Uma eventual aceitação estabelecerá somente autoridade
+  arquitetural e não autorizará reconciliação, contrato, schema, migration ou
+  implementação.

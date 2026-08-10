@@ -730,6 +730,20 @@ proprietários.
   `READY_FOR_PRODUCT_ACTIVATION`. Nenhum dataset, manifest, derivado, parser,
   renderer, indexação, ativação, teste, runtime, gate, Human Gate ou lifecycle
   foi executado ou alterado.
+- Proposta arquitetural de imagem derivada autocontida: preparada sob
+  `AUTH-S07-A-NOTICE-BEARING-PROFILE-ADR-PREP-001` sobre
+  `main@1b64ca88a0efebd7ab450f5bdc22004a72f3dc53`, corpus `4.10.12`, working
+  tree inicialmente limpa e OpenAPI v1/v2 protegidas. O
+  [ADR-0012](../../docs/architecture/ADR-0012-Notice-Bearing-Page-Image-Profile-And-Derivative-Obligation-Delivery.md)
+  permanece `proposed`: define um único perfil versionado de PNG composto, no
+  qual a região da página preserva cada pixel e um painel separado carrega os
+  avisos completos. A proposta também define `DerivativeObligationSetV1`, seu
+  vínculo imutável ao render manifest, armazenamento, backup/cold restore,
+  serving same-origin, apresentação acessível e os impactos necessários de
+  schema, migration e contrato v2. Não houve aceitação, reclassificação do
+  PostgreSQL, alteração de OpenAPI, código, schema, migration, dataset ou
+  comportamento; nenhum renderer, runtime, teste, gate, Human Gate ou
+  lifecycle foi executado.
 - Decisão arquitetural de armazenamento do corpus e evidência visual:
   [ADR-0008](../../docs/architecture/ADR-0008-Product-Corpus-Storage-And-Page-Image-Evidence.md)
   foi aceita explicitamente pelo proprietário em 2026-08-07 sobre
@@ -1273,6 +1287,11 @@ proprietários.
   `b9c3e5f3a72c2dd7762c256198452ae2c217b2d2`; o A0 candidato-específico
   posterior preservou o PostgreSQL `BLOCKED/EXCLUDED`, sem comportamento com
   dado de produto.
+- ADR-0012: `proposed` sob
+  `AUTH-S07-A-NOTICE-BEARING-PROFILE-ADR-PREP-001` em 2026-08-09. A proposta
+  define a imagem composta autocontida e registra explicitamente as mudanças
+  necessárias de schema, migration e contrato v2; não está aceita e não
+  concede autoridade de reconciliação, implementação ou produto.
 
 ## Baseline documental
 
@@ -1280,7 +1299,7 @@ proprietários.
   a política de idioma acrescentou o 21º documento público por incremento
   versionado, e o ADR-0003 acrescentou o 22º.
 - A baseline aprovada no Human Gate de `STATE-00` permanece `3.4.0`.
-- O corpus de instruções vigente possui versão `4.10.10` e 13 arquivos em
+- O corpus de instruções vigente possui versão `4.10.13` e 13 arquivos em
   `prompts/`.
 - Visão, requisitos, arquitetura, RAG, segurança, qualidade, lifecycle,
   roadmap, backlog, estado, histórico e templates estão documentados.
@@ -1342,6 +1361,12 @@ proprietários.
   por ausência de mecanismo determinado para os avisos exigidos em todas as
   cópias, a distribuição/publicação externa está `DENIED` pela fronteira
   interna excluída e o candidato permanece `BLOCKED/EXCLUDED`.
+- O corpus `4.10.13` registra somente a preparação do ADR-0012 como proposta.
+  O novo perfil preserva a região da página pixel a pixel e acrescenta um
+  painel autocontido de obrigações, com registro imutável, manifest, recovery,
+  serving e apresentação acessível. A proposta identifica mudanças futuras de
+  schema, migration e contrato v2, preserva v1 e o fail-closed e não aceita o
+  ADR, reclassifica o candidato ou altera comportamento.
 - O corpus `4.3.0` formaliza a decisão explícita do proprietário de aceitar
   perguntas e respostas em `pt-BR` e `en-GB`: cada consulta declara o idioma,
   a resposta usa o mesmo idioma, textos derivados da fonte permanecem no
@@ -1605,8 +1630,10 @@ autorizada.
    permission notice e dois disclaimers em cada PNG permanece não determinado.
    Page rendering, derivative-image creation/retention e runtime display estão
    `UNPROVEN`; a distribuição/publicação fora do runtime está `DENIED` pela
-   fronteira interna deliberadamente excluída. Cada documento posterior mantém
-   o mesmo gate independente de direitos, proveniência e idioma.
+   fronteira interna deliberadamente excluída. O ADR-0012 agora registra uma
+   proposta técnica para o mecanismo ausente, mas permanece `proposed` e não
+   muda essa disposição. Cada documento posterior mantém o mesmo gate
+   independente de direitos, proveniência e idioma.
 2. Validar e ativar individualmente novos registros de fonte oficial; a
    aceitação arquitetural não autoriza URL, rede, download ou crawling.
 3. `S07-A` A1-A5 e seu Automatic Quality Gate foram concluídos e aprovados na
@@ -1668,6 +1695,13 @@ derivative display permanecem `UNPROVEN` porque o mecanismo de avisos em cada
 PNG não está determinado; a intended source/derivative distribution boundary
 está `DENIED` fora do runtime-display. Dataset, import, render, indexação e
 ativação continuam não autorizados por esse resultado.
+
+O ADR-0012 foi preparado somente como `proposed` sob
+`AUTH-S07-A-NOTICE-BEARING-PROFILE-ADR-PREP-001`. Ele registra um mecanismo
+autocontido e as mudanças necessárias de schema, migration e contrato v2, mas
+não foi aceito. A próxima condição diretamente relacionada é uma decisão
+humana explícita de aceitar ou rejeitar essa proposta; aceitação arquitetural
+não autorizaria por si só reconciliação ou implementação.
 
 O ADR-0011 foi aceito, sua semântica foi reconciliada e a política interna de
 serving v2 foi corrigida no commit

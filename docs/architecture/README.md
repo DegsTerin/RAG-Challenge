@@ -40,6 +40,15 @@ between same-origin derivative display and separate byte distribution or
 publication. Acceptance changes no candidate disposition and grants no
 implementation or product authority.
 
+ADR-0012 was prepared as a proposal on 2026-08-09 under
+`AUTH-S07-A-NOTICE-BEARING-PROFILE-ADR-PREP-001`. It defines one deterministic
+self-contained PNG mechanism that preserves the source-page pixels in a
+separate region while making complete derivative obligations part of each
+image and of the adjacent accessible context. It also exposes the required
+schema, migration and v2 contract impacts. The proposal is not accepted and
+grants no reconciliation, implementation, migration, rendering, candidate or
+product authority.
+
 The later combined audit failed on `AQG-S02-001`, an internal contradiction
 between observation-inclusive generation identity and observation-only
 freshness rebinding. The owner accepted ADR-0007 explicitly on 2026-08-02. It
@@ -212,6 +221,9 @@ Dashboard -- versioned HTTP --> API
 - [ADR-0011 — Source Rights Evidence Mapping and Same-Origin Derivative Display Boundary](ADR-0011-Source-Rights-Evidence-Mapping-And-Same-Origin-Derivative-Display-Boundary.md)
   (`accepted`; no PostgreSQL rights reclassification, implementation or
   product authority)
+- [ADR-0012 — Notice-Bearing Page-Image Profile and Derivative Obligation Delivery](ADR-0012-Notice-Bearing-Page-Image-Profile-And-Derivative-Obligation-Delivery.md)
+  (`proposed`; no acceptance, contract revision, schema, migration,
+  implementation, rendering or PostgreSQL reclassification authority)
 
 ## STATE-02 design artefacts
 

@@ -2,13 +2,14 @@
 
 ## Versão atual
 
-- Versão: `4.10.12`
+- Versão: `4.10.13`
 - Data: 2026-08-09
 - Status: `STATE-07` ativo; ADR-0011 `accepted`, reconciliado e com a correção
   interna da política de serving implementada; o A0 candidato-específico mantém
   o primeiro documento `BLOCKED/EXCLUDED`, com quatro operações visuais
-  `UNPROVEN` e distribuição/publicação externa `DENIED`; homologação de
-  produto, Human Gate e mudança de lifecycle não executados
+  `UNPROVEN` e distribuição/publicação externa `DENIED`; ADR-0012 permanece
+  `proposed`; homologação de produto, Human Gate e mudança de lifecycle não
+  executados
 - Escopo: 13 arquivos ativos em `prompts/`
 
 A versão do corpus é independente da versão futura do software.
@@ -22,6 +23,29 @@ A versão do corpus é independente da versão futura do software.
 
 Toda alteração atualiza este arquivo e, quando necessário,
 [`../Start-Here.md`](../Start-Here.md).
+
+## 4.10.13 — 2026-08-09
+
+- Prepara sob `AUTH-S07-A-NOTICE-BEARING-PROFILE-ADR-PREP-001`, sobre
+  `main@1b64ca88a0efebd7ab450f5bdc22004a72f3dc53`, corpus `4.10.12` e working
+  tree inicialmente limpa, o ADR-0012 como proposta arquitetural.
+- Define um único perfil determinístico `pdf-page-png-notice-v1`: a região da
+  página preserva pixel a pixel o raster de origem, enquanto um painel separado
+  e pertencente ao mesmo PNG contém attribution, copyright/permission notices,
+  disclaimers, trademark treatment e change marking completos.
+- Propõe `DerivativeObligationSetV1`, vínculo imutável ao render manifest,
+  persistência e reachability próprias, backup/cold restore verificável,
+  serving same-origin com revalidação e apresentação textual acessível no
+  Dashboard.
+- Expõe como mudanças futuras obrigatórias um novo schema de manifest e
+  obligation set, a migration dos constraints de perfil e uma revisão pública
+  do contrato v2. OpenAPI v1 permanece protegida; OpenAPI v2 não foi alterada
+  nesta preparação.
+- Mantém o ADR-0012 `proposed`, o candidato
+  `postgresql-18-reference-a4` `BLOCKED/EXCLUDED` e as disposições A0
+  inalteradas. Não aceita o ADR nem autoriza reconciliação, contrato, schema,
+  migration, código, teste, renderer, dataset, runtime, Automatic Quality Gate,
+  Human Gate ou lifecycle. A mudança do corpus é `PATCH` documental.
 
 ## 4.10.12 — 2026-08-09
 
