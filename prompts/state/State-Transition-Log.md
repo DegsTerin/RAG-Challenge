@@ -6987,3 +6987,51 @@ contém somente fatos cronológicos.
   humana separada para conta, referência de secret, egress, provider, chamadas
   pagas, corpus/fonte real, limites operacionais e execução do plano de parada;
   este gate não autoriza Human Gate nem mudança de lifecycle.
+
+## 2026-08-11 — Implementação notice-bearing reconciliada factualmente
+
+- Estado anterior e resultante: `STATE-07 TESTING_HOMOLOGATION` permanece
+  ativo; nenhum Automatic Quality Gate, Human Gate ou lifecycle foi executado
+  ou alterado.
+- Autoridade e baseline documental:
+  `AUTH-S07-A-NOTICE-BEARING-PROFILE-IMPL-RECONCILE-001`, concedida pela
+  solicitação explícita do proprietário para auditar e finalizar as pendências
+  das duas tarefas, branch `main`, commit
+  `7f363a3e2036e4a76626eff482052bf7343c3cd7`, corpus `4.10.23`, working tree
+  inicialmente limpa e OpenAPI v1/v2 protegidas. O runtime preflight desta
+  reconciliação puramente documental foi `NÃO APLICÁVEL`.
+- Escopo documental fechado: `README.md`, `docs/README.md`, o índice de
+  arquitetura, ADR-0008, ADR-0011, ADR-0012, contratos canônicos, dicionário de
+  dados, threat model, proposta v2, registro de elegibilidade, relatório de
+  homologação, RAG Module, Solution Architecture, Security and Access, Current
+  State, este histórico append-only e Prompt System Change Log; 18 arquivos ao
+  todo. Afirmações cronológicas de incrementos anteriores foram preservadas.
+- Implementação reconciliada: o commit focal
+  `f682827d1a26b08fa8c450a1fadb3bd0e1fa1700` implementou o
+  `DerivativeObligationSetV1`, a composição determinística de
+  `pdf-page-png-notice-v1` com região da página preservada pixel a pixel, o
+  vínculo ao manifest e à persistência/reachability, a revalidação fail-closed
+  em readback e serving v2 same-origin e a apresentação acessível do conteúdo
+  integral no Dashboard. O commit é ancestral do baseline atual e seus 22
+  paths de código/testes permanecem byte-idênticos no `HEAD` auditado.
+- Evidência histórica observada no incremento: build Release sem avisos ou
+  erros; 47 de 47 testes unitários, 40 de 40 testes de integração/contrato
+  v1/v2, 11 de 11 testes de arquitetura e 45 de 45 testes do Dashboard; build
+  e lint do Dashboard aprovados; cleanup sem processo ou listener residual do
+  projeto. Essa evidência é focal e não constitui Automatic Quality Gate.
+- Artefatos protegidos: OpenAPI v1 permaneceu no SHA-256
+  `d6a686b94c926914beb28b437f464430a01de6560c2e2d476cf5c36025813e34` e
+  OpenAPI v2 permaneceu no SHA-256
+  `f4dca8db7fb7bd453e580495bb1bb7760812d954344931063e8549ed8f036733`.
+- Limites preservados: registros legados e a disposição do PostgreSQL não
+  mudaram; nenhum obligation set, manifest, derivado, dataset, índice ou
+  ativação candidato-específico foi criado. Novo A0, dado/corpus real,
+  browser/tecnologia assistiva, provider, fonte/rede, OCI, deploy, Automatic
+  Quality Gate, Human Gate e mudança de lifecycle permanecem `NOT_RUN`.
+- Versionamento: corpus elevado por `PATCH` factual de `4.10.23` para
+  `4.10.24`. O histórico preservou byte a byte seu prefixo anterior no SHA-256
+  `c3c3463ad029286cb5c66b53c8954da44502113d7ac8f5406316495908a8d2f2`.
+- Próxima condição: obter autoridade humana separada para executar o Automatic
+  Quality Gate local, offline, determinístico e sintético do comportamento
+  notice-bearing. Somente após eventual aprovação e reconciliação cabe um novo
+  A0 candidato-específico, também sob autoridade separada.

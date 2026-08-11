@@ -658,10 +658,45 @@ was:
 
 These results are focused implementation evidence only. No test, runtime,
 Automatic Quality Gate, Human Gate or lifecycle action was executed during this
-documentary reconciliation. Renderer, notice-bearing PNG creation, manifest
-composition, storage/reachability behaviour, serving, Dashboard presentation,
-dataset and product activation remain unimplemented or `NOT_RUN` as applicable.
-No new A0 was executed, and `postgresql-18-reference-a4` remains
+documentary reconciliation. At that point, renderer, notice-bearing PNG
+creation, manifest composition, storage/reachability behaviour, serving,
+Dashboard presentation, dataset and product activation remained unimplemented
+or `NOT_RUN` as applicable. No new A0 was executed, and
+`postgresql-18-reference-a4` remained `BLOCKED/EXCLUDED` with its recorded
+rights disposition unchanged.
+
+## ADR-0012 notice-bearing behaviour implementation
+
+### Authority and implementation
+
+The local implementation increment was completed in focused commit
+`f682827d1a26b08fa8c450a1fadb3bd0e1fa1700`. It added deterministic
+`DerivativeObligationSetV1` composition, preserved-source-pixel composite PNG
+rendering, manifest and persistence bindings, storage/reachability validation,
+fail-closed readback and same-origin v2 serving, and accessible Dashboard
+presentation of the exact obligation blocks.
+
+Existing legacy render-profile state was not reclassified or backfilled. The
+implementation used synthetic, project-owned fixtures and did not create a
+PostgreSQL obligation set, derivative, dataset, index or activation.
+
+### Focused observed verification
+
+The implementation turn recorded the following focused evidence:
+
+| Boundary | Observed result |
+| --- | --- |
+| Release build | passed with zero warnings and zero errors |
+| Focused unit tests | 47 of 47 passed |
+| Focused integration and protected v1/v2 contract tests | 40 of 40 passed |
+| Architecture tests | 11 of 11 passed |
+| Dashboard | 45 of 45 tests passed; build and lint passed |
+| Cleanup | no residual RAG-Challenge-owned process or listener was observed |
+
+This is focused implementation evidence, not an Automatic Quality Gate. The
+notice-bearing behaviour AQG, a new candidate-specific A0, product-data and
+browser/assistive-technology homologation, Human Gate and lifecycle transition
+remain separate and `NOT_RUN`. `postgresql-18-reference-a4` therefore remains
 `BLOCKED/EXCLUDED` with its recorded rights disposition unchanged.
 
 ## ADR-0013 OpenAI language-model adapter compatibility

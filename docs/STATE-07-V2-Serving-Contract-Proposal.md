@@ -42,9 +42,12 @@ Accepted
 defines the notice-bearing derivative direction applied by this revision.
 `obligationSetId` and `DerivativeObligationPresentationV1` are now frozen v2
 transport fields. The later schema and migration increment was implemented in
-focused commit `98036f3c8c496544f4532d1fe48c981f836a1871`; it does not implement
-the renderer, projection, serving validation or accessible Dashboard
-presentation and cannot authorise notice-bearing product serving by itself.
+focused commit `98036f3c8c496544f4532d1fe48c981f836a1871`. The later local behaviour
+increment was implemented in focused commit
+`f682827d1a26b08fa8c450a1fadb3bd0e1fa1700`, including renderer, projection,
+serving validation and accessible Dashboard presentation. Neither increment
+authorises candidate reclassification or notice-bearing product serving with
+real data by itself.
 
 ## Frozen decisions
 
@@ -327,8 +330,10 @@ source-page pixels remain intact; the concise accessible name still identifies
 only document version and physical page, while the full notice is never hidden
 in `alt`, metadata or a link. Failure to decode, validate or present the exact
 obligation object blocks the image and leaves the textual citation usable.
-The transport fields are frozen by this revision, but the accessible visual
-presentation remains unimplemented.
+The transport fields are frozen by this revision. Their local accessible
+presentation was subsequently implemented in
+`f682827d1a26b08fa8c450a1fadb3bd0e1fa1700`; browser and assistive-technology
+homologation remain `NOT_RUN`.
 
 The page image is supplemental evidence, never the only carrier of a factual
 claim, navigation destination, error or status. The image has known width and
@@ -435,6 +440,8 @@ The ADR-0012 contract revision is now frozen in OpenAPI v2 and the strict
 server/Dashboard transport owners. Schema design and migration are implemented
 in `98036f3c8c496544f4532d1fe48c981f836a1871`; obligation-set composition,
 renderer, manifest finalisation, storage/reachability behaviour, serving and
-accessible Dashboard implementation remain required before a notice-bearing
-derivative can be produced or served. The current PostgreSQL candidate remains
-`BLOCKED/EXCLUDED`; no new A0 is performed here.
+accessible Dashboard presentation are implemented locally in
+`f682827d1a26b08fa8c450a1fadb3bd0e1fa1700`. Focused implementation evidence
+does not replace the separate Automatic Quality Gate, a new candidate-specific
+A0 or product-data/browser/assistive-technology homologation. The current
+PostgreSQL candidate remains `BLOCKED/EXCLUDED`; no new A0 is performed here.

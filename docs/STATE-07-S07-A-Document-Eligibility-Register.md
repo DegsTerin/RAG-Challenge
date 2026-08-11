@@ -17,7 +17,7 @@ for retrieval.
 | Lifecycle position | `STATE-07 TESTING_HOMOLOGATION` active by documentary entry only |
 | Decision | `ELIGIBLE_CANDIDATE` |
 | Product activation readiness | `BLOCKED/EXCLUDED` under `AUTH-S07-A-PRODUCT-A0-002` |
-| Current rights-policy basis | ADR-0011 `accepted` and reconciled; serving-policy correction implemented in `b9c3e5f3a72c2dd7762c256198452ae2c217b2d2`; ADR-0012 `accepted` and semantically reconciled, with its protected v2 contract and schema/migration increments implemented but notice-bearing product behaviour not implemented; candidate-specific A0 mapping recorded below |
+| Current rights-policy basis | ADR-0011 `accepted` and reconciled; serving-policy correction implemented in `b9c3e5f3a72c2dd7762c256198452ae2c217b2d2`; ADR-0012 `accepted` and semantically reconciled, with its protected v2 contract, schema/migrations and local notice-bearing behaviour implemented; the behaviour's Automatic Quality Gate and a new candidate-specific A0 remain separate and `NOT_RUN`; candidate-specific A0 mapping recorded below |
 | Latest A0 baseline | `main@f21cdea2052d28de1e2ffb86b1629c1c10bc6b6a`; corpus `4.10.11` |
 | Dataset status | not materialised or frozen |
 | Retrieval status | not indexed, activated or published |
@@ -196,24 +196,26 @@ ADR-0012 now supplies an accepted technical design for carrying the complete
 recorded notice set without changing source-page pixels. It does not prove that
 the design satisfies this candidate's conditions and does not change this A0.
 The protected contract and schema/migration increments are now implemented.
-Resolution still requires the separately authorised notice-bearing behaviour
-and verification increments followed by a new candidate-specific A0, or
-additional authoritative evidence that changes the mapping.
+The local notice-bearing behaviour is also implemented in
+`f682827d1a26b08fa8c450a1fadb3bd0e1fa1700`. Resolution still requires its
+separately authorised Automatic Quality Gate followed by a new
+candidate-specific A0, or additional authoritative evidence that changes the
+mapping.
 
 ## Accepted notice-bearing mechanism and unchanged A0
 
 The accepted and semantically reconciled ADR-0012 defines
-`pdf-page-png-notice-v1`. Each future composite PNG retains an independently
+`pdf-page-png-notice-v1`. Each composite PNG retains an independently
 validated source-page region pixel for pixel and appends a separate panel with
 the complete reviewed attribution, copyright and permission notices, ordered
 disclaimers, trademark/non-endorsement treatment and change marking. Nothing in
 this reconciliation generates that PNG or decides that the placement satisfies
 the PostgreSQL terms.
 
-`DerivativeObligationSetV1` is the future immutable source-specific record for
+`DerivativeObligationSetV1` is the immutable source-specific record for
 those exact blocks. Its canonical identity binds the PostgreSQL document
 version and source object to the rights-mapping revision and evidence
-references. The future notice-bearing manifest, activation, content-store
+references. The notice-bearing manifest, activation, content-store
 lineage, reachability, backup/cold restore, same-origin `200`/`304` validation
 and accessible adjacent presentation must all reference that same set and fail
 closed on absence, staleness, mismatch or truncation.
@@ -223,7 +225,11 @@ The protected v2 contract can expose `obligationSetId` and
 `98036f3c8c496544f4532d1fe48c981f836a1871` can persist the immutable model,
 its ordered blocks, manifest identity/digest and source/notice-region
 dimensions. Existing `pdf-page-png-v1` manifests were not backfilled or
-reclassified. No candidate-specific obligation set, notice-bearing manifest or
+reclassified. The generic local behaviour implemented in
+`f682827d1a26b08fa8c450a1fadb3bd0e1fa1700` composes and persists the bound
+obligation set, finalises the notice-bearing manifest and image, revalidates
+the bindings during readback/serving and presents the exact text accessibly.
+No PostgreSQL candidate-specific obligation set, notice-bearing manifest or
 derivative was created.
 
 Accordingly, page rendering, derivative-image creation, derivative-image
@@ -231,7 +237,7 @@ retention and `RuntimeDerivativeImageDisplay` remain `UNPROVEN` for
 `postgresql-18-reference-a4`; external distribution/publication remains
 `DENIED` by the recorded internal boundary. The candidate remains
 `BLOCKED/EXCLUDED`, no new A0 was executed and no obligation set, manifest,
-derivative, dataset, index or activation was created.
+derivative, dataset, index or activation was created for that candidate.
 
 ## Document identity
 

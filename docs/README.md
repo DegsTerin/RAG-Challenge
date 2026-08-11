@@ -2,16 +2,15 @@
 
 ## Status
 
-Este índice descreve o corpus documental vigente `4.9.5`. `STATE-00`,
+Este índice descreve o corpus documental vigente `4.10.24`. `STATE-00`,
 `GATE-B01` e `STATE-01` a `STATE-06` estão encerrados com seus gates
-registrados. `STATE-07 TESTING_HOMOLOGATION` está ativo exclusivamente por
-entrada documental sobre
-`main@3240a4b13acd82a1cf5815ac64f6997b2a7f89bf`, sem lote autorizado ou
-executado.
+registrados. `STATE-07 TESTING_HOMOLOGATION` está ativo; incrementos locais,
+offline, determinísticos e sintéticos foram executados e reconciliados, sem
+constituir homologação de produto ou autorização geral de execução.
 
-Dataset, avaliação RAG, testes, carga, segurança dinâmica, browser,
-providers, fontes reais, rede, OCI, GitHub, publicação e deploy permanecem
-não autorizados e não executados. Relatórios são evidência histórica; o
+Campanha/provider real, corpus e fontes reais, browser/tecnologia assistiva,
+carga, recuperação operacional, OCI, publicação e deploy permanecem sob
+fronteiras próprias e não executadas. Relatórios são evidência histórica; o
 presente factual pertence a
 [`Current-State.md`](../prompts/state/Current-State.md).
 
@@ -56,10 +55,14 @@ presente factual pertence a
   (`accepted`; semantic reconciliation applied; renewed audit approved)
 - [ADR-0008 — Product Corpus Storage and Page-Image Evidence](architecture/ADR-0008-Product-Corpus-Storage-And-Page-Image-Evidence.md)
   (`accepted`; semantic reconciliation applied in corpus `4.9.5`;
-  implementation not authorised)
+  local rendering, activation, v2 serving and notice-bearing increments later
+  implemented; product homologation remains separate)
 - [ADR-0009 — Document, Evidence and Query Language Taxonomy](architecture/ADR-0009-Document-Evidence-And-Query-Language-Taxonomy.md)
   (`accepted`; semantic reconciliation applied in corpus `4.9.5`;
-  implementation not authorised)
+  internal split and v2 projection later implemented)
+- [ADR-0012 — Notice-Bearing Page-Image Profile and Derivative Obligation Delivery](architecture/ADR-0012-Notice-Bearing-Page-Image-Profile-And-Derivative-Obligation-Delivery.md)
+  (`accepted`; contract, schema/migrations and local behaviour implemented;
+  AQG notice-bearing, new A0 and product homologation remain separate)
 - [Contratos canônicos de STATE-02](architecture/STATE-02-Canonical-Contracts.md)
 - [Dicionário lógico de dados e índice de S03-A](data/STATE-03-S03-A-Data-Dictionary.md)
 - [Threat model de STATE-02](security/STATE-02-Threat-Model.md)

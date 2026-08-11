@@ -1346,7 +1346,10 @@ proprietários.
   no corpus `4.10.15`, e a revisão protegida do contrato v2 foi congelada no
   corpus `4.10.16`. Schema e migrations foram implementados no commit
   `98036f3c8c496544f4532d1fe48c981f836a1871`; o comportamento notice-bearing
-  continua não implementado e o PostgreSQL não foi reclassificado.
+  foi implementado no commit
+  `f682827d1a26b08fa8c450a1fadb3bd0e1fa1700` e possui verificação focal, mas
+  seu Automatic Quality Gate próprio permanece `NOT_RUN`. O PostgreSQL não foi
+  reclassificado.
 - ADR-0013: `accepted` pela decisão humana explícita
   `ADR-0013: ACEITAR.` em 2026-08-10 sobre
   `main@f03162bad0fc166a597739b22e55fbc46ec59535`, corpus `4.10.17`. A decisão
@@ -1383,7 +1386,7 @@ proprietários.
   a política de idioma acrescentou o 21º documento público por incremento
   versionado, e o ADR-0003 acrescentou o 22º.
 - A baseline aprovada no Human Gate de `STATE-00` permanece `3.4.0`.
-- O corpus de instruções vigente possui versão `4.10.23` e 13 arquivos em
+- O corpus de instruções vigente possui versão `4.10.24` e 13 arquivos em
   `prompts/`.
 - Visão, requisitos, arquitetura, RAG, segurança, qualidade, lifecycle,
   roadmap, backlog, estado, histórico e templates estão documentados.
@@ -1541,6 +1544,18 @@ proprietários.
   avaliação real, qualidade bilíngue, groundedness, citações, insuficiência de
   evidência real, resistência a prompt injection, latência, custo observado,
   OCI, deploy, Human Gate e lifecycle permanecem `NOT_RUN`.
+- O corpus `4.10.24` reconcilia sob
+  `AUTH-S07-A-NOTICE-BEARING-PROFILE-IMPL-RECONCILE-001` a implementação
+  notice-bearing do commit
+  `f682827d1a26b08fa8c450a1fadb3bd0e1fa1700`. O obligation set imutável, o
+  compositor PNG com região da página preservada, os vínculos de manifest,
+  persistence/reachability, readback/serving v2 fail-closed e a apresentação
+  acessível do Dashboard estão implementados. A evidência focal observada foi
+  build Release limpo, 47 testes unitários, 40 de integração/contrato, 11 de
+  arquitetura e 45 do Dashboard, além de build e lint do Dashboard. Isso não é
+  Automatic Quality Gate. Novo A0, dado de produto, browser/tecnologia
+  assistiva, Human Gate e lifecycle permanecem `NOT_RUN`; o PostgreSQL continua
+  `BLOCKED/EXCLUDED`.
 - O corpus `4.3.0` formaliza a decisão explícita do proprietário de aceitar
   perguntas e respostas em `pt-BR` e `en-GB`: cada consulta declara o idioma,
   a resposta usa o mesmo idioma, textos derivados da fonte permanecem no
@@ -1800,15 +1815,15 @@ autorizada.
 
 1. O A0 candidato-específico de `postgresql-18-reference-a4` foi disposto como
    `BLOCKED/EXCLUDED`: identidade, proveniência e idiomas conferiram; a
-   concessão ampla foi mapeada sob ADR-0011, mas o mecanismo para copyright,
-   permission notice e dois disclaimers em cada PNG permanece não determinado.
-   Page rendering, derivative-image creation/retention e runtime display estão
-   `UNPROVEN`; a distribuição/publicação fora do runtime está `DENIED` pela
-   fronteira interna deliberadamente excluída. O ADR-0012 aceito estabelece a
-   arquitetura do mecanismo ausente e sua reconciliação semântica está
-   concluída e o contrato v2 e o schema/migrations estão implementados, mas a
-   disposição não muda. Implementação do comportamento notice-bearing,
-   verificação e novo A0 continuam sob autoridades separadas.
+   concessão ampla foi mapeada sob ADR-0011. O mecanismo para transportar
+   copyright, permission notice e dois disclaimers em cada PNG foi determinado
+   pelo ADR-0012 e implementado localmente no commit
+   `f682827d1a26b08fa8c450a1fadb3bd0e1fa1700`, com verificação focal. Essa
+   implementação não altera retroativamente o A0: page rendering,
+   derivative-image creation/retention e runtime display continuam `UNPROVEN`
+   para o candidato; a distribuição/publicação fora do runtime está `DENIED`
+   pela fronteira interna deliberadamente excluída. Automatic Quality Gate do
+   comportamento e novo A0 continuam sob autoridades separadas.
    Cada documento posterior mantém o mesmo gate
    independente de direitos, proveniência e idioma.
 2. Validar e ativar individualmente novos registros de fonte oficial; a
@@ -1910,9 +1925,12 @@ autocontido. A revisão protegida do contrato v2 foi congelada sob
 `AUTH-S07-A-NOTICE-BEARING-V2-CONTRACT-001`, preservando v1 e a rota v2. Isso
 não reclassifica o candidato. O schema e as migrations foram implementados no
 commit `98036f3c8c496544f4532d1fe48c981f836a1871`, preservando registros legados
-e falhando fechado. A próxima condição diretamente relacionada é a autoridade
-separada para implementar o obligation set, renderer, manifest, storage,
-reachability, serving e Dashboard notice-bearing.
+e falhando fechado. O obligation set, renderer composto, manifest, storage,
+reachability, serving v2 fail-closed e Dashboard notice-bearing foram
+implementados no commit `f682827d1a26b08fa8c450a1fadb3bd0e1fa1700`, com
+evidência focal que não constitui gate. A próxima condição diretamente
+relacionada é a autoridade separada para o Automatic Quality Gate local,
+offline, determinístico e sintético desse comportamento.
 
 O ADR-0011 foi aceito, sua semântica foi reconciliada e a política interna de
 serving v2 foi corrigida no commit

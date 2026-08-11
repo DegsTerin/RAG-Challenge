@@ -140,7 +140,7 @@ Upload público permanece fora do MVP.
   tempo, memória, dimensões, concorrência e quantidade total por operação.
 - O perfil `pdf-page-png-v1` remove metadados capazes de revelar path, host ou
   comando e produz somente PNG RGB opaco dentro dos limites aceitos.
-- O perfil futuro aceito `pdf-page-png-notice-v1` preserva a região da página
+- O perfil implementado `pdf-page-png-notice-v1` preserva a região da página
   pixel a pixel e acrescenta abaixo dela um painel visível separado com o
   `DerivativeObligationSetV1` completo. Ele não altera nem cobre pixels da
   fonte e não reinterpreta manifests legados.
@@ -184,9 +184,10 @@ Upload público permanece fora do MVP.
 - Reachability, backup e cold restore protegem e verificam juntos fonte, PNG
   composto, obligation set, mapping, manifest, ativação e answer evidence.
   Readiness e serving falham fechado diante de ausência ou divergência.
-- O perfil aceito ainda exige revisão separada do contrato v2, schema e
-  migration. Nenhum campo, backfill ou compatibilidade é inferido do contrato
-  ou das linhas atuais.
+- A revisão protegida do contrato v2, schema/migrations e o comportamento local
+  do perfil estão implementados sob autoridades separadas. Nenhum campo,
+  backfill ou compatibilidade é inferido de linhas legadas; AQG notice-bearing,
+  novo A0 e homologação operacional permanecem separados.
 
 ## Evidência persistente de resposta
 
@@ -342,7 +343,7 @@ autorizados permanece bloqueado. A política é validada no ambiente alvo.
 - Permitir apenas schemes de URL aprovados, sem links de citação executáveis
   derivados diretamente do modelo.
 - Aplicar Content Security Policy e codificação contextual.
-- Para a futura evidência visual, aceitar somente a referência same-origin
+- Para a evidência visual, aceitar somente a referência same-origin
   criada pelo servidor, com tamanho/mime conhecidos; nunca construir `src` a
   partir de texto do modelo, tag de idioma, URL documental ou path.
 - Preservar o texto original da citação e alternativa acessível junto da página
@@ -438,7 +439,8 @@ trilha nominal.
 - Logs sem dados sensíveis.
 - Rollback de geração verificado.
 - Conteúdo fonte/PNG, render manifest, reachability, backup/restore e serving
-  visual fail-closed verificados quando a capacidade for implementada.
+  visual fail-closed verificados em cada fronteira aplicável; evidência local
+  não substitui AQG ou recuperação operacional.
 - Para o perfil notice-bearing, obrigação imutável, fidelidade da região da
   página, painel integral, ETag composto, apresentação acessível e vínculos de
   backup/cold restore verificados; ausência ou truncamento falha fechado.

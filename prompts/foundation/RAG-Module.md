@@ -6,8 +6,10 @@ Contrato arquitetural vigente para o MVP e sua evolução, reconciliado com os
 ADRs aceitos. O estado implementado e testado pertence ao Current State e aos
 relatórios dos estados. Os incrementos corretivos implementaram a separação de
 idiomas, o content store, os gates de direitos, o renderer/PNG e os vínculos de
-ativação previstos pelos ADRs 0008/0009; serving e v2 permanecem não
-implementados. O `AnswerEvidenceRecordV1`, sua retenção `P30D` e participação em
+ativação previstos pelos ADRs 0008/0009. Incrementos posteriores implementaram
+v2, serving same-origin e o perfil notice-bearing local, preservando v1 byte a
+byte; o AQG notice-bearing e a homologação de produto permanecem separados. O
+`AnswerEvidenceRecordV1`, sua retenção `P30D` e participação em
 reachability previstas pelo ADR-0010 foram implementados localmente por
 `S04-CORR-04-E`, sem gate ou homologação. Nenhum corpus real, provider real ou
 conteúdo real está ativo.
@@ -128,7 +130,8 @@ O runtime implementa `SupportedQueryLanguage` fechado em `pt-BR` e `en-GB` e
 `DocumentContentLanguage` BCP 47 separado, preservando
 `sourceDeclaredLanguage` exato. O contrato público v1 continua fechado em
 `pt-BR|en-GB`; o candidato PostgreSQL `en` não é coagido para `en-GB` nem se
-torna ativo por essa superfície. O contrato v2 permanece planejado.
+torna ativo por essa superfície. O contrato v2 está implementado localmente e
+mantém a separação entre idioma de consulta e idioma documental.
 
 ### Conteúdo e evidência visual de página
 
@@ -146,6 +149,13 @@ perfil/renderer e conteúdo PNG. `DocumentRenderManifest` registra o conjunto
 completo e ordinal, page count, descriptors e digest canônico. Falha, lacuna,
 duplicidade, limite excedido, assinatura inválida ou readback inconsistente
 reprova a candidata inteira. CSV não recebe visualização implícita.
+
+O perfil `pdf-page-png-notice-v1` implementado preserva essa região de página
+pixel a pixel e acrescenta um painel determinístico com o
+`DerivativeObligationSetV1` integral. Manifest, persistence/reachability,
+readback e serving vinculam e revalidam a mesma identidade/digest; o Dashboard
+apresenta o conteúdo exato como texto acessível junto da figura. Isso não
+reclassifica candidato, cria corpus de produto ou substitui seu AQG próprio.
 
 Importar ou renderizar não ativa conteúdo. Um PDF com evidência visual só
 pode ficar `Active` quando direitos, objeto fonte, manifesto completo, todos os
@@ -675,14 +685,17 @@ apresentado como citação. No contrato v1 implementado, `contentLanguage`
 continua fechado em `pt-BR|en-GB`; uma tag mais ampla não é coagida nem ativada
 por essa superfície.
 
-O contrato v2 aceito permanece planejado e não implementado. Ele conserva
+O contrato v2 implementado conserva
 `questionLanguage`/`answerLanguage` fechados, amplia `CitationV2.contentLanguage`
 para BCP 47, preserva `sourceDeclaredLanguage` e adiciona referências
-`PageImageEvidenceV1`. A resposta não embute PNG nem path; no máximo cinco
-páginas distintas citadas são referenciadas, e um futuro endpoint same-origin
-revalida binding ativo/manifests antes de servir bytes limitados. Evidência
-textual adjacente continua acessível. O LLM recebe somente texto; imagem exige
-autoridade separada de provider/egress/dados/custo.
+`PageImageEvidenceV1`. Para o perfil notice-bearing, cada página carrega
+`obligationSetId` e a citação carrega uma
+`DerivativeObligationPresentationV1` completa e coincidente. A resposta não
+embute PNG nem path; no máximo cinco páginas distintas citadas são
+referenciadas, e o endpoint same-origin revalida binding ativo, manifest,
+direitos e obrigação antes de servir bytes limitados. Evidência textual e
+obrigação acessível adjacentes continuam disponíveis. O LLM recebe somente
+texto; imagem exige autoridade separada de provider/egress/dados/custo.
 
 A resposta inclui metadados técnicos:
 

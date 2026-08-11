@@ -11,8 +11,10 @@ language/content model, durable content store, rights gates, deterministic PDF
 rendering and immutable activation-evidence bindings described below while the
 v1 public surface and its OpenAPI artefact remain unchanged. Persistent answer
 evidence is implemented locally by the separately authorised
-`S04-CORR-04-E`; image serving and v2 remain unimplemented successor
-capabilities.
+`S04-CORR-04-E`. Subsequent separately authorised increments implemented v2,
+same-origin page-image serving and the local notice-bearing profile while
+preserving OpenAPI v1 byte for byte. Their product-data/browser homologation
+remains separate.
 
 The contracts preserve inward dependencies: Domain owns identities and
 invariants; Application owns ports, use cases and failure semantics;
@@ -167,7 +169,10 @@ object. CSV has no implicit render contract. `DocumentPageImage`,
 Control-plane source/image bindings are implemented by `S03-CORR-01`.
 `S04-CORR-04-C` implements bounded rendering, PNG signature validation and
 verified manifest finalisation. `S04-CORR-04-D` implements immutable activation
-binding and fail-closed readback. Evidence serving remains unimplemented.
+binding and fail-closed readback. Later v2 increments implement bounded
+same-origin evidence serving; the notice-bearing behaviour is implemented in
+`f682827d1a26b08fa8c450a1fadb3bd0e1fa1700` with focused synthetic evidence,
+not product homologation.
 
 ### `IChunkingStrategy`
 
@@ -601,11 +606,13 @@ implementation authority; the separately authorised `S04-CORR-04-E` increment
 now implements this internal contract, migration and local synthetic tests
 without creating a gate or homologation result.
 
-## Planned query contract v2 — not implemented
+## Implemented query contract v2
 
-ADR-0008 and ADR-0009 establish a single planned successor boundary. No v2
-OpenAPI artefact, endpoint, type, schema or runtime behaviour is created by
-this document.
+ADR-0008 and ADR-0009 established a single successor boundary. This document
+did not itself create runtime behaviour; separately authorised later increments
+froze and implemented OpenAPI v2, its endpoint/types and same-origin visual
+evidence serving. ADR-0012 then added and implemented the notice-bearing fields
+without changing v1.
 
 ```text
 QueryRequestV2
@@ -630,6 +637,7 @@ CitationV2
   contentLanguage: canonical BCP 47 tag
   sourceDeclaredLanguage?: exact observed BCP 47 tag
   pageImages: PageImageEvidenceV1[]
+  derivativeObligationPresentation: DerivativeObligationPresentationV1 | null
 
 PageImageEvidenceV1
   pageNumber
@@ -639,6 +647,22 @@ PageImageEvidenceV1
   widthPixels
   heightPixels
   contentSha256
+  obligationSetId: exact immutable obligation-set identity | null
+
+DerivativeObligationPresentationV1
+  obligationSetId
+  contentLanguage
+  authoritativePublisherOrAuthor
+  documentTitle
+  documentVersionLabel
+  sourceReference
+  attributionText
+  copyrightNotice
+  permissionNotice
+  orderedDisclaimers[]
+  trademarkTreatment
+  trademarkOrNonEndorsementText
+  changeMarkingText
 ```
 
 `CitationV2` preserves source-derived title, section, excerpt, page label and
@@ -647,11 +671,14 @@ contains only distinct pages referenced by validated citations, with at most
 five references per response and no duplicate document-version/page tuple.
 The JSON never inlines PNG bytes or exposes a path.
 
-A separately defined same-origin read-only evidence endpoint must revalidate
+The same-origin read-only evidence endpoint revalidates
 the active citation and render-manifest binding before streaming exact bounded
-PNG bytes with immutable ETag and `X-Content-Type-Options: nosniff`. Textual
-evidence remains available to assistive technology. The language model receives
-text only; image disclosure to a provider requires separate authority.
+PNG bytes with immutable ETag and `X-Content-Type-Options: nosniff`. For the
+notice-bearing profile it also revalidates the current rights mapping,
+obligation-set identity/digest and notice-bearing dimensions before `200` or
+`304`. Textual evidence and the exact escaped obligation presentation remain
+available to assistive technology. The language model receives text only;
+image disclosure to a provider requires separate authority.
 
 ## Failure taxonomy and HTTP mapping
 
@@ -736,7 +763,7 @@ structured stderr/audit without secret content.
 - OpenAPI v1 breaking changes require v2 unless the owner explicitly accepts a
   pre-release reset before any external consumer exists.
 - Broader document-language values and page-image references belong only to the
-  planned v2 boundary; they never widen v1 by inference.
+  implemented v2 boundary; they never widen v1 by inference.
 - Parser, normalisation, chunking, embedding or vector schema changes require
   a new `IndexCompatibilityKey` and generation.
 - Prompt/model changes require a new prompt/model descriptor and evaluation
@@ -781,7 +808,7 @@ structured stderr/audit without secret content.
 - Dataset/evaluation tests retain that mandatory matrix and report every
   additional exact `DocumentContentLanguage` as its own evidence stratum. `en`
   is never counted as `en-GB`.
-- Planned visual-evidence tests cover deterministic full-page rendering,
+- Visual-evidence tests cover deterministic full-page rendering,
   canonical manifest/hash validation, verified reopen, rights gating,
   lifecycle/reachability, citation-to-image binding, bounded same-origin
   serving, cache headers and text-equivalent accessibility.
@@ -790,8 +817,9 @@ structured stderr/audit without secret content.
   `Answered`-only creation before response, complete citation/source/manifest/
   page binding, atomic replay/conflict/failure, fixed `P30D` expiry, privacy
   allowlists and cleanup races with reserve/revalidate semantics.
-- OpenAPI regression proves the v1 artefact is byte-for-byte unchanged; future
-  v2 implementation and compatibility evidence require separate authority.
+- OpenAPI regression proves the v1 artefact is byte-for-byte unchanged; v2 and
+  notice-bearing compatibility evidence remain separately scoped from product
+  homologation.
 - Readiness tests proving per-source degradation is explicit, never silently
   substituted and remains servable only while eligible evidence exists.
 

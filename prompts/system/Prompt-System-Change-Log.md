@@ -2,14 +2,16 @@
 
 ## Versão atual
 
-- Versão: `4.10.23`
-- Data: 2026-08-10
+- Versão: `4.10.24`
+- Data: 2026-08-11
 - Status: `STATE-07` ativo; ADR-0011 `accepted`, reconciliado e com a correção
   interna da política de serving implementada; o A0 candidato-específico mantém
   o primeiro documento `BLOCKED/EXCLUDED`, com quatro operações visuais
   `UNPROVEN` e distribuição/publicação externa `DENIED`; ADR-0012 `accepted`,
-  reconciliado, com revisão do contrato v2 congelada e schema/migrations
-  implementados, mas sem comportamento notice-bearing; ADR-0013 `accepted` e
+  reconciliado, com revisão do contrato v2 congelada, schema/migrations e
+  comportamento notice-bearing implementados; a verificação focal desse
+  comportamento não substitui seu Automatic Quality Gate, ainda `NOT_RUN`;
+  ADR-0013 `accepted` e
   reconciliado semanticamente, com compatibilidade do adaptador implementada e
   Automatic Quality Gate específico aprovado somente na fronteira local,
   offline e com handlers falsos; a campanha candidata de provider possui uma
@@ -29,6 +31,47 @@ A versão do corpus é independente da versão futura do software.
 
 Toda alteração atualiza este arquivo e, quando necessário,
 [`../Start-Here.md`](../Start-Here.md).
+
+## 4.10.24 — 2026-08-11
+
+- Reconcilia sob
+  `AUTH-S07-A-NOTICE-BEARING-PROFILE-IMPL-RECONCILE-001`, após a solicitação
+  explícita do proprietário para auditar e finalizar as pendências das duas
+  tarefas, sobre `main@7f363a3e2036e4a76626eff482052bf7343c3cd7`, corpus
+  `4.10.23`, working tree inicialmente limpa e OpenAPI v1/v2 protegidas, a
+  implementação notice-bearing do commit
+  `f682827d1a26b08fa8c450a1fadb3bd0e1fa1700`.
+- Corrige as afirmações factuais atuais em 18 superfícies nomeadas: README e
+  índices documentais, ADR-0008/0011/0012, contratos canônicos, dicionário de
+  dados, threat model, proposta v2, registro de elegibilidade, relatório de
+  homologação e os proprietários ativos em `prompts/`. Relatos cronológicos de
+  incrementos anteriores permanecem inalterados.
+- Registra `DerivativeObligationSetV1`, composição determinística do PNG com a
+  região da página preservada pixel a pixel, vínculo ao manifest, persistência
+  e reachability, readback e serving v2 same-origin fail-closed e apresentação
+  acessível do texto integral no Dashboard. Registros legados não foram
+  reclassificados ou preenchidos por inferência.
+- Evidência focal observada no incremento: build Release sem avisos ou erros;
+  47 de 47 testes unitários, 40 de 40 testes de integração/contrato v1/v2, 11
+  de 11 testes de arquitetura e 45 de 45 testes do Dashboard; build e lint do
+  Dashboard aprovados; cleanup sem processo ou listener residual do projeto.
+  Essa evidência não é Automatic Quality Gate.
+- Artefatos protegidos: OpenAPI v1 permaneceu no SHA-256
+  `d6a686b94c926914beb28b437f464430a01de6560c2e2d476cf5c36025813e34` e
+  OpenAPI v2 permaneceu no SHA-256
+  `f4dca8db7fb7bd453e580495bb1bb7760812d954344931063e8549ed8f036733`.
+- Limites preservados: nenhum dado/corpus real, obrigação ou derivado do
+  PostgreSQL, novo A0, browser, tecnologia assistiva, provider, fonte/rede,
+  OCI, deploy, Automatic Quality Gate, Human Gate ou mudança de lifecycle foi
+  executado por esta reconciliação puramente documental. O runtime preflight
+  foi `NÃO APLICÁVEL`.
+- Versionamento: corpus elevado por `PATCH` factual de `4.10.23` para
+  `4.10.24`. O histórico preservou byte a byte seu prefixo anterior no SHA-256
+  `c3c3463ad029286cb5c66b53c8954da44502113d7ac8f5406316495908a8d2f2`.
+- Próxima condição: o Automatic Quality Gate local, offline, determinístico e
+  sintético do comportamento notice-bearing exige autoridade humana separada;
+  somente após eventual aprovação e reconciliação cabe um novo A0
+  candidato-específico, também separado.
 
 ## 4.10.23 — 2026-08-10
 

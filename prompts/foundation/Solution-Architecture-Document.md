@@ -11,8 +11,9 @@ ao ADR-0002 e aos ADR-0004 a ADR-0006. Os ADRs estão indexados em
 representa por si só implementação, teste, deploy ou homologação. O ADR-0007
 corrige identidade de geração/freshness; os ADRs aceitos 0008 e 0009 refinam
 armazenamento/evidência visual e idiomas documentais. O estado implementado
-permanece no snapshot factual; esses dois últimos refinamentos continuam
-planejados e não implementados.
+permanece no snapshot factual; incrementos posteriores implementaram esses
+refinamentos, v2/serving same-origin e o perfil notice-bearing na fronteira
+local e sintética, sem constituir homologação de produto.
 
 ## Princípios
 
@@ -258,8 +259,10 @@ não ocorre no fluxo de pergunta.
 - O mesmo content store preserva PNGs determinísticos de páginas. Cada PDF usa
   o perfil `pdf-page-png-v1`, um binding imutável por página física e um
   `DocumentRenderManifest` canônico completo; CSV não recebe imagem implícita.
-- Renderização e serving continuam capacidades planejadas: não há renderer,
-  PNG persistente ou endpoint visual implementado por esta reconciliação.
+- Renderização, PNG persistente e serving v2 same-origin estão implementados
+  localmente. O sucessor `pdf-page-png-notice-v1` preserva os pixels da página,
+  vincula o obligation set ao manifest/reachability e apresenta o texto exato
+  no Dashboard; AQG notice-bearing e produto real permanecem separados.
 - O armazenamento vetorial permanece atrás de `IVectorStore`.
 - Vector store gerenciado exige política de egress e tratamento de dados
   próprios; escolher implementação local evita esse egress no MVP.
@@ -331,7 +334,7 @@ teste de compatibilidade. Ele permanece byte a byte inalterado nesta
 reconciliação. A política de breaking changes pertence ao `STATE-02`; a
 implementação e a prova do artefato pertencem ao `STATE-04`.
 
-O sucessor aceito é somente contrato planejado e não implementado:
+O sucessor aceito está implementado sob autoridades posteriores:
 
 ```text
 QueryRequestV2
@@ -345,14 +348,20 @@ CitationV2
   contentLanguage: canonical BCP 47 tag
   sourceDeclaredLanguage?: exact observed BCP 47 tag
   pageImages: PageImageEvidenceV1[]
+  derivativeObligationPresentation: DerivativeObligationPresentationV1 | null
+
+PageImageEvidenceV1
+  obligationSetId: exact immutable obligation-set identity | null
 ```
 
 `CitationV2` conserva os demais campos do v1, expõe somente referências PNG
 validadas pelo binding ativo e preserva todo texto da fonte no idioma original.
-O JSON não embute bytes nem paths. Um futuro endpoint same-origin, somente
-leitura, revalida citação e manifesto antes de servir o PNG limitado. O modelo
-de linguagem continua recebendo somente evidência textual. Criar OpenAPI v2,
-tipos, endpoint e compatibilidade exige autoridade própria.
+O JSON não embute bytes nem paths. O endpoint same-origin, somente leitura,
+revalida citação, manifesto, direitos e obligation set antes de servir o PNG
+limitado. A apresentação completa permanece como texto acessível junto da
+figura. O modelo de linguagem continua recebendo somente evidência textual.
+OpenAPI v1 permanece protegido; v2 e a implementação notice-bearing não
+autorizam corpus/provider real nem homologação de produto.
 
 Os campos de idioma pertencem ao contrato de consulta e não selecionam o
 idioma visual. O Dashboard suporta separadamente `interfaceLanguage=pt-BR` ou
@@ -461,7 +470,7 @@ question
 - Secrets somente por referências ou nomes de variáveis.
 - Startup valida provider, modelo, dimensão, limites, catálogo, content store,
   durabilidade mínima, compatibilidade do índice e, quando a capacidade visual
-  for implementada, perfil/renderer/manifests. O perfil oficial valida cada
+  estiver habilitada, perfil/renderer/manifests. O perfil oficial valida cada
   registro de URL/allowlist, política de egress e freshness sem executar
   sincronização.
 - Capacidade incompleta permanece desativada; não há fallback silencioso.

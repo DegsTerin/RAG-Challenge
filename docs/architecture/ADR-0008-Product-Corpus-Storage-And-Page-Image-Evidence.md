@@ -168,7 +168,7 @@ existing image objects.
 
 #### Accepted notice-bearing successor profile
 
-Accepted ADR-0012 defines `pdf-page-png-notice-v1` as an independent future
+Accepted ADR-0012 defines `pdf-page-png-notice-v1` as an independent successor
 profile. It does not reinterpret `pdf-page-png-v1` or make an existing manifest
 notice-bearing. For one source page and one immutable
 `DerivativeObligationSetV1`, it produces one opaque RGB PNG with:
@@ -183,9 +183,11 @@ notice-bearing. For one source page and one immutable
 
 The panel never overlays, crops, scales, recolours or substitutes a source-page
 pixel. Missing text or glyphs, font drift, truncation, an oversized composite or
-failure of the pixel-region proof rejects the complete candidate. The current
-schema and executable v2 contract do not yet represent this profile; their
-revision and migration remain mandatory separate increments.
+failure of the pixel-region proof rejects the complete candidate. The protected
+v2 contract and schema/migrations now represent this profile, and the local
+behaviour is implemented in
+`f682827d1a26b08fa8c450a1fadb3bd0e1fa1700`; its Automatic Quality Gate and
+product-data homologation remain separate.
 
 ### Page image object
 
@@ -217,7 +219,7 @@ Canonical identity rules are:
 - `sourceContentObjectId` and `imageContentObjectId` are the existing lower-case
   64-character SHA-256 content identities;
 - `renderProfileId` is the stable identifier of the exact versioned profile;
-  existing manifests remain `pdf-page-png-v1`, while future notice-bearing
+  existing manifests remain `pdf-page-png-v1`, while notice-bearing
   manifests require `pdf-page-png-notice-v1`; and
 - `renderManifestId` is `rendermanifest-` followed by the lower-case
   64-character `manifestSha256`.
@@ -247,7 +249,7 @@ Finalisation requires expected page count, consecutive numbering, unique
 bindings, byte and dimension limits, image signature validation, SHA-256
 recalculation and verified reopen of every referenced content object.
 
-For `pdf-page-png-notice-v1`, a future manifest schema revision also binds one
+For `pdf-page-png-notice-v1`, the notice-bearing manifest schema binds one
 `obligationSetId`, its canonical SHA-256, source-region width and height,
 notice-region height and composite PNG identity. `DerivativeObligationSetV1`
 is an immutable control-plane record identified by `obligationset-<sha256>`.
@@ -269,7 +271,7 @@ or mutated.
 - Activation atomically binds the document version, source content object,
   finalised text/index generation and finalised render manifest when visual
   evidence is required for that PDF.
-- A future notice-bearing activation additionally binds the exact current
+- A notice-bearing activation additionally binds the exact current
   ten-decision rights snapshot, rights-mapping revision and immutable
   obligation set in the same atomic authority. Missing, stale or mismatched
   obligation evidence fails closed.
@@ -333,13 +335,14 @@ references and never more than one reference for the same document version and
 page. A response requiring more visual evidence reports the remaining cited
 pages textually rather than expanding the binary response without bound.
 
-ADR-0012 requires a separately frozen v2 contract revision before a
-notice-bearing image can be served. That future revision retains the fixed
+ADR-0012 required a separately frozen v2 contract revision before a
+notice-bearing image could be served. That revision now retains the fixed
 same-origin route, adds `obligationSetId` to each notice-bearing page-image
 reference and adds one `DerivativeObligationPresentationV1` to the owning PDF
 citation. The presentation contains the same complete, bounded content as the
-immutable obligation set. OpenAPI v1 remains byte-for-byte unchanged, and the
-current OpenAPI v2 remains unchanged until that separate contract increment.
+immutable obligation set. OpenAPI v1 remains byte-for-byte unchanged; the
+protected v2 revision and its local serving behaviour are implemented, without
+constituting browser, assistive-technology or product-data homologation.
 
 The language model receives textual evidence only. Sending a page image or an
 image-derived representation to any provider requires separate provider,
@@ -410,9 +413,10 @@ details beside or directly linked to the image only when the primary terms
 permit that placement. Distribution bundles carry every notice and disclaimer
 required for each copy. Where the accepted mapping requires in-binary
 placement, only the separately implemented and verified
-`pdf-page-png-notice-v1` mechanism may satisfy it; until its contract, schema
-and implementation exist, generation and serving remain blocked rather than
-approximating the obligation.
+`pdf-page-png-notice-v1` mechanism may satisfy it. Its contract, schema and
+local behaviour now exist, but generation and serving for a specific candidate
+remain blocked unless its current mapping and A0 authorise every required
+operation; the product never approximates the obligation.
 Rendering never removes attribution from the governed record or creates an
 endorsement claim. An embedded source-PDF notice is not assumed to accompany a
 PNG derivative, and Git distribution remains separately governed even when
@@ -571,6 +575,8 @@ The separately authorised ADR-0012 reconciliation on 2026-08-09 applies the
 accepted notice-bearing profile, immutable obligation-set, manifest,
 reachability, recovery, same-origin and accessible-presentation semantics to
 the named documentary owners. It preserves OpenAPI v1/v2, the ten independent
-rights decisions, fail-closed behaviour and the candidate disposition. A
-protected v2 contract revision, schema design, migration and implementation
-remain mandatory future increments under separate authority.
+rights decisions, fail-closed behaviour and the candidate disposition. The
+protected v2 revision, schema/migrations and local behaviour were subsequently
+completed under separate authorities, culminating in
+`f682827d1a26b08fa8c450a1fadb3bd0e1fa1700`; the notice-bearing AQG, a new A0
+and product homologation remain separate.

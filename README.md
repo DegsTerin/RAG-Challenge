@@ -231,10 +231,13 @@ decisão explícita e adapter compatível.
 
 Domain e Application contêm os modelos e casos de uso; Infrastructure contém
 migrations SQLite, stores persistentes, parsers PDF/CSV, adapters de provider e
-transporte governado; a API expõe health e consulta v1; e o Dashboard consome
-esse contrato. A integração executável autorizada usa somente composição
-sintética e local. Administração permanece one-shot fora de HTTP, e nenhum
-provider ou acervo real está configurado.
+transporte governado. A API preserva health e consulta v1 e também implementa o
+fluxo v2 local, incluindo referências de página, serving PNG same-origin
+fail-closed e o perfil notice-bearing; o Dashboard consome os dois contratos e
+apresenta as obrigações acessíveis junto da imagem. A evidência executável
+permanece local e sintética; o AQG notice-bearing, corpus/provider real e
+homologação de produto continuam separados. Administração permanece one-shot
+fora de HTTP, e nenhum provider ou acervo real está configurado.
 
 ## Governança
 

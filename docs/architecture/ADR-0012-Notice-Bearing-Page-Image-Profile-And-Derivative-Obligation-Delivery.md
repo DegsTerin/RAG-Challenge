@@ -11,11 +11,12 @@
 - Owners: RAG-Challenge product, architecture, data governance, security and
   accessibility
 - State: `STATE-07 TESTING_HOMOLOGATION` accepted architecture decision
-- Implementation status: the protected v2 contract revision and the schema and
-  migration increment are implemented under their separate authorities;
-  renderer, manifest composition, storage/reachability behaviour, serving and
-  accessible Dashboard implementation remain outstanding. No candidate rights
-  disposition, dataset or product runtime behaviour is changed by this record.
+- Implementation status: the protected v2 contract revision, schema/migrations
+  and the local notice-bearing behaviour are implemented under their separate
+  authorities. Focused verification was observed for the implementation, but
+  its Automatic Quality Gate, candidate-specific A0 and product-data/browser
+  homologation remain separate and `NOT_RUN`. No candidate rights disposition,
+  dataset or product activation is changed by this record.
 
 ## Purpose and authority
 
@@ -422,15 +423,23 @@ sequential authorities for:
 
 No item is authorised merely by preparing or accepting this ADR.
 
-Items 1 to 3 were subsequently completed under their separate authorities. The
+Items 1 to 4 were subsequently completed under their separate authorities. The
 schema and migration increment was implemented in focused commit
 `98036f3c8c496544f4532d1fe48c981f836a1871`: it persists immutable
 `DerivativeObligationSetV1` rows and ordered blocks, permits the notice-bearing
 profile alongside the legacy profile, binds obligation identity and digest plus
 source/notice-region dimensions to the render manifest, and enforces the
 required foreign keys, conditional constraints and fail-closed sealing rules.
-Legacy records, manifests, hashes and activations remain unchanged. This
-progress record does not authorise or complete items 4 to 8.
+Legacy records, manifests, hashes and activations remain unchanged. Item 4 was
+implemented in focused commit
+`f682827d1a26b08fa8c450a1fadb3bd0e1fa1700`: deterministic obligation-set
+composition and composite PNG rendering are bound to the manifest and persisted
+lineage; readback and v2 same-origin serving revalidate the current bindings and
+fail closed; and the Dashboard presents the complete escaped obligation text
+adjacent to the image. The implementation turn observed a clean Release build,
+47 focused unit tests, 40 focused integration/contract tests, 11 architecture
+tests and 45 Dashboard tests, with build and lint passing. That evidence is not
+an Automatic Quality Gate and does not authorise or complete items 5 to 8.
 
 ## Alternatives considered
 

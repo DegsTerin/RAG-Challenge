@@ -19,7 +19,9 @@ content-addressed source/page-image storage, deterministic PDF render
 manifests, expanded rights gates, separate closed query and open BCP 47
 document-language domains, original-language citations and stratified
 evaluation. This is architecture documentation only; OpenAPI v1 remains
-byte-for-byte unchanged and v2 remains planned and unimplemented.
+byte-for-byte unchanged. Subsequent separately authorised increments implemented
+OpenAPI v2, same-origin page-image serving and the local notice-bearing profile;
+that evidence remains synthetic and does not constitute product homologation.
 
 The owner accepted ADR-0010 on 2026-08-07 and authorised its documentary
 registration as corpus `4.10.0`. It assigns `S04-CORR-04-E` to the internal
@@ -49,6 +51,14 @@ of each image and of the adjacent accessible context. It also establishes the
 required schema, migration and v2 contract direction. Acceptance grants no
 reconciliation, implementation, migration, rendering, candidate or product
 authority.
+
+Subsequent separately authorised increments reconciled ADR-0012, froze the
+protected v2 revision, implemented its schema/migrations and implemented the
+local notice-bearing behaviour in
+`f682827d1a26b08fa8c450a1fadb3bd0e1fa1700`. Focused implementation evidence
+does not replace the still-separate notice-bearing Automatic Quality Gate, a
+new candidate-specific A0 or product-data/browser/assistive-technology
+homologation.
 
 ADR-0013 was prepared on 2026-08-10 under
 `AUTH-STATE07-LLM-CANDIDATE-ADR-PREP-001` and explicitly accepted by the owner
@@ -220,8 +230,8 @@ Dashboard -- versioned HTTP --> API
   approved)
 - [ADR-0008 — Product Corpus Storage and Page-Image Evidence](ADR-0008-Product-Corpus-Storage-And-Page-Image-Evidence.md)
   (`accepted`; semantic reconciliation applied in corpus `4.9.5`;
-  corrective content/render/activation increments implemented; serving and v2
-  remain separately authorised)
+  corrective content/render/activation, v2 serving and notice-bearing
+  increments implemented locally; product homologation remains separate)
 - [ADR-0009 — Document, Evidence and Query Language Taxonomy](ADR-0009-Document-Evidence-And-Query-Language-Taxonomy.md)
   (`accepted`; semantic reconciliation applied in corpus `4.9.5`;
   internal language split implemented; broader public v2 remains separately
@@ -231,11 +241,11 @@ Dashboard -- versioned HTTP --> API
   `S04-CORR-04-E` implemented locally under separate authority and reconciled
   in corpus `4.10.1`; formal gate remains separate)
 - [ADR-0011 — Source Rights Evidence Mapping and Same-Origin Derivative Display Boundary](ADR-0011-Source-Rights-Evidence-Mapping-And-Same-Origin-Derivative-Display-Boundary.md)
-  (`accepted`; no PostgreSQL rights reclassification, implementation or
-  product authority)
+  (`accepted`; serving-policy correction implemented; no PostgreSQL rights
+  reclassification or product authority)
 - [ADR-0012 — Notice-Bearing Page-Image Profile and Derivative Obligation Delivery](ADR-0012-Notice-Bearing-Page-Image-Profile-And-Derivative-Obligation-Delivery.md)
-  (`accepted`; no contract revision, schema, migration, implementation,
-  rendering or PostgreSQL reclassification authority)
+  (`accepted`; contract, schema/migrations and local behaviour implemented;
+  AQG, new A0 and PostgreSQL reclassification remain separate)
 - [ADR-0013 — MVP Language-Model Candidate and Deferred Frontier Evaluation](ADR-0013-MVP-Language-Model-Candidate-And-Deferred-Frontier-Evaluation.md)
   (`accepted`; semantic reconciliation applied in corpus `4.10.19`; no adapter
   implementation, provider access, paid evaluation, OCI or deployment

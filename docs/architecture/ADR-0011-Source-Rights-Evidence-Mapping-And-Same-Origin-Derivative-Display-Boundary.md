@@ -52,26 +52,29 @@ a delivery of derivative bytes for runtime display. Same-origin and
 `Cross-Origin-Resource-Policy: same-origin` are security controls; they are not
 licence grants and do not prove that no distribution has occurred.
 
-## Observed static policy mismatch
+## Previously observed static policy mismatch
 
 The frozen
 [v2 serving contract](../STATE-07-V2-Serving-Contract-Proposal.md#serving-authority-and-validation-order)
 requires every page-image request to re-evaluate the complete rights snapshot,
 including the intended distribution boundary, before returning `200` or `304`.
 
-The implemented internal
-`DocumentRightsEligibilityPolicy.PdfVisualEvidence` gate requires textual
-rights, `PageRendering`, `DerivativeImageCreationAndRetention` and
-`RuntimeDerivativeImageDisplay`, but does not require or otherwise evaluate
-`SourceAndDerivativeByteDistributionOrPublication`. The current unit contract
-also treats that visual gate as eligible when the distribution decision is
+The `DocumentRightsEligibilityPolicy.PdfVisualEvidence` gate at the time
+required textual rights, `PageRendering`,
+`DerivativeImageCreationAndRetention` and
+`RuntimeDerivativeImageDisplay`, but did not require or otherwise evaluate
+`SourceAndDerivativeByteDistributionOrPublication`. The unit contract then
+also treated that visual gate as eligible when the distribution decision was
 `Denied`.
 
-This is a static incompatibility between the serving contract and internal
-policy coverage. It does not prove an exploitable runtime failure, alter the
-public contract or decide how a particular source must be classified. If this
-ADR is accepted, the mismatch requires a separately authorised internal policy
-and test correction before product activation.
+This was a static incompatibility between the serving contract and internal
+policy coverage. The separately authorised correction in
+`b9c3e5f3a72c2dd7762c256198452ae2c217b2d2` added the serving-specific
+fail-closed decision and focused tests without changing the public contract.
+The later notice-bearing implementation in
+`f682827d1a26b08fa8c450a1fadb3bd0e1fa1700` also revalidates the mapping and
+bound obligation set during readback and serving. Neither change classifies a
+particular source or authorises product activation.
 
 ## Decision drivers
 
@@ -219,11 +222,10 @@ profile cannot produce, generation and serving remain blocked pending a
 separately authorised design. The product never assumes that a notice embedded
 only in the source PDF automatically accompanies a derivative PNG.
 
-### Required internal enforcement
+### Implemented internal enforcement
 
-The accepted decision requires a later, separately authorised internal
-correction that preserves the frozen public v2 contract and the ten-right
-schema:
+The accepted decision required a separately authorised internal correction
+that preserved the frozen public v2 contract and the ten-right schema:
 
 - bind the reviewed mapping and obligation-set identity to the applicable
   rights evidence reference and derivative manifest lineage;
@@ -237,6 +239,12 @@ schema:
 - add focused tests for `Permitted`, boundary-confined `Denied`, `Unproven`,
   notice failures and mismatched mapping revisions.
 
+That correction was implemented in
+`b9c3e5f3a72c2dd7762c256198452ae2c217b2d2`. The later notice-bearing
+behaviour binds and revalidates the exact mapping/obligation lineage in
+`f682827d1a26b08fa8c450a1fadb3bd0e1fa1700`. Focused evidence does not replace
+the separate notice-bearing AQG or candidate-specific A0.
+
 No OpenAPI field, route, response, schema version or public behaviour is
 changed by this decision. If implementing the accepted decision would require
 a public-contract change, implementation must stop for separate architecture
@@ -245,15 +253,15 @@ and contract authority.
 ## Candidate-specific non-decision
 
 This decision does not reclassify `postgresql-18-reference-a4`. Its current A0
-disposition remains `BLOCKED/EXCLUDED`, and its five recorded visual and
-distribution operations remain `UNPROVEN`.
+disposition remains `BLOCKED/EXCLUDED`: four visual operations remain
+`UNPROVEN`, while external distribution/publication is `DENIED` under the
+recorded internal-only boundary.
 
-If this ADR is later accepted and its required internal/documentary
-reconciliation is completed, a new separately authorised A0 may map the
-already recorded authoritative PostgreSQL evidence operation by operation. It
-must still preserve all conditions and may return `Permitted`, `Denied` or
-`Unproven` independently for each decision. Neither acceptance nor
-implementation predetermines that result.
+Acceptance, reconciliation and local implementation are complete, but a new
+separately authorised A0 must still map the already recorded authoritative
+PostgreSQL evidence operation by operation. It must preserve all conditions and
+may return `Permitted`, `Denied` or `Unproven` independently for each decision.
+Neither acceptance nor implementation predetermines that result.
 
 ## Alternatives considered
 
@@ -287,8 +295,9 @@ compatible, never ignored or `Unproven`.
   evidence records and condition enforcement.
 - Same-origin display remains narrow and fail-closed; it does not become an
   export or publication authority.
-- A future internal policy correction is required to make v2 serving coverage
-  match the frozen contract. Until then, product activation remains blocked.
+- The internal policy correction makes v2 serving coverage match the frozen
+  contract; product activation remains blocked by the candidate disposition and
+  the still-separate notice-bearing AQG/new A0 sequence.
 - Notice placement can require source-specific implementation. Ambiguity or an
   unsupported placement blocks generation or serving.
 - This architecture cannot resolve a genuinely legal ambiguity. Such a case

@@ -16,10 +16,10 @@ Control schema and migration, persisted vector-language compatibility and
 render-manifest reachability slice recorded below. It does not implement the
 content/rendering pipeline, real PNG validation or evidence serving.
 
-Accepted ADR-0012 defines a later logical successor for notice-bearing PNGs.
-This reconciliation records that model but does not change the implemented
-Control schema, execute a migration or make the new profile representable by
-the current executable v2 contract.
+Accepted ADR-0012 defines the logical successor for notice-bearing PNGs. This
+documentary reconciliation did not itself change the Control schema or execute
+a migration; later separately authorised increments implemented the protected
+v2 revision, schema/migrations and local notice-bearing behaviour.
 
 Later separately authorised `S04-CORR-04-A` to `S04-CORR-04-E` increments
 implement verified content storage, rights gates, deterministic render
@@ -148,7 +148,9 @@ rewriting existing `pt-BR` or `en-GB` values:
 Broader document-language values are catalogue data, not code branches or
 provider selections. A candidate whose language is outside v1 remains
 ineligible for v1 activation until compatible model, dataset, runtime and
-planned v2 contracts are separately implemented and verified.
+v2 contracts are separately implemented and verified. The v2 contract/runtime
+now exist locally; candidate eligibility, dataset and product homologation
+remain independent gates.
 
 ### `DocumentPageImage`
 
@@ -158,7 +160,7 @@ planned v2 contracts are separately implemented and verified.
 | `documentVersion` | `DocumentVersionNumber` | No | Exact source version. |
 | `sourceContentObjectId` | `ContentObjectId` | No | Verified PDF source bytes. |
 | `pageNumber` | Positive integer | No | One-based physical PDF page. |
-| `renderProfileId` | Stable identifier | No | Implemented legacy value `pdf-page-png-v1`; accepted future notice-bearing value `pdf-page-png-notice-v1` requires the separate schema revision below. |
+| `renderProfileId` | Stable identifier | No | Implemented legacy value `pdf-page-png-v1`; implemented notice-bearing value `pdf-page-png-notice-v1` uses the separate schema revision below. |
 | `rendererDescriptor` | Non-secret descriptor | No | Stable renderer ID/version and canonical settings. |
 | `imageContentObjectId` | `ContentObjectId` | No | SHA-256 identity of exact PNG bytes. |
 | `imageSha256` | SHA-256 value | No | Equals the image content identity. |
@@ -192,9 +194,9 @@ source-version and page-image bindings. The renderer, content publication,
 PNG signature/hash recalculation and verified reopen remain outside
 `S03-CORR-01`.
 
-### ADR-0012 notice-bearing successor model — accepted, not implemented
+### ADR-0012 notice-bearing successor model — implemented locally
 
-`DerivativeObligationSetV1` is a future immutable control-plane aggregate with
+`DerivativeObligationSetV1` is an immutable control-plane aggregate with
 identity `obligationset-<sha256>`, where the suffix is the canonical SHA-256 of
 its versioned UTF-8 serialisation.
 
@@ -206,30 +208,33 @@ its versioned UTF-8 serialisation.
 | Treatment | Trademark treatment, trademark/non-endorsement text and change-marking text are separately disposed by the owning rights mapping. |
 | Placement and audit | `placementMode` is `VisibleInBinaryAndAccessibleContext`; `canonicalSha256`, `assessedAt` and `assessorId` preserve immutable identity and audit. |
 
-A future `DocumentRenderManifest` schema revision for
+The `DocumentRenderManifest` schema revision for
 `pdf-page-png-notice-v1` binds exactly one obligation-set ID and digest. Every
-future page row additionally records source-region width/height,
+notice-bearing page row additionally records source-region width/height,
 notice-region height and the composite PNG identity. Canonical manifest
 identity includes these fields. The source-region digest must equal the
 independently validated `pdf-page-png-v1` raster for the same source page; the
 notice region begins after its final row.
 
-The future schema and migration must persist the obligation set and ordered
-exact text, admit the new profile without rewriting the legacy one, add the
-manifest/page fields and conditional foreign keys, and extend activation and
-reachability. Existing manifests, page hashes and activation history remain
-immutable and receive no inferred notice text or compliance backfill. An
-absent or mismatched obligation set fails closed.
+The schema and migrations implemented in
+`98036f3c8c496544f4532d1fe48c981f836a1871` persist the obligation set and
+ordered exact text, admit the new profile without rewriting the legacy one, add
+the manifest/page fields and conditional foreign keys, and extend activation
+and reachability. Existing manifests, page hashes and activation history remain
+immutable and receive no inferred notice text or compliance backfill. An absent
+or mismatched obligation set fails closed.
 
 `IDocumentContentStore` remains the byte authority for each exact composite
 PNG; the Control plane owns the obligation set and its manifest association.
-The future same-origin response revalidates all ten rights decisions, mapping,
+The same-origin response revalidates all ten rights decisions, mapping,
 obligation, manifest and page identities before both `200` and `304`, and uses
-the composite SHA-256 as ETag. A future public v2 revision must expose the page
+the composite SHA-256 as ETag. The protected public v2 revision exposes the page
 `obligationSetId` and one citation-level
 `DerivativeObligationPresentationV1` so the Dashboard can render the same
-complete content as escaped, selectable text adjacent to the figure. Neither
-the current schema nor the current v2 contract contains those fields.
+complete content as escaped, selectable text adjacent to the figure. The local
+behaviour implementing those bindings and presentation is in
+`f682827d1a26b08fa8c450a1fadb3bd0e1fa1700`; its AQG and product homologation
+remain separate.
 
 ### `S04-CORR-04-A` executable content-object boundary
 
@@ -462,13 +467,12 @@ document binding. The evidence binding does not participate in
 domains retain their existing projections and semantics. Exact operation replay
 compares the complete evidence binding and all rights decisions.
 
-For a future `pdf-page-png-notice-v1` activation, a revised evidence-binding
-model must also bind the current rights-mapping revision and exact
+For a `pdf-page-png-notice-v1` activation, the revised evidence-binding model
+also binds the current rights-mapping revision and exact
 `DerivativeObligationSetV1` to the final notice-bearing manifest. Activation,
 replacement and rollback verify that document, source, mapping, obligation set,
-manifest and generation all agree. This is a mandatory future schema/migration
-delta; it is not present in the current binding and cannot be inferred from a
-legacy row.
+manifest and generation all agree. The schema/migration and local behaviour are
+implemented; the binding is never inferred from a legacy row.
 
 ### Revision-domain separation
 
@@ -595,13 +599,14 @@ foreign keys plus the closed schema-v1 constraints. It performs no data
 operation and does not infer or backfill rights, manifests or bindings for
 historical activation rows. The Vector schema remains unchanged.
 
-ADR-0012 requires a later, separately designed and authorised Control schema
-revision and migration. It must add immutable obligation-set persistence,
-ordered exact text, notice-bearing profile constraints, manifest obligation
-identity/digest, source/notice-region measurements, conditional foreign keys
-and reachability. SQLite table rebuilds needed to replace the current exact
-`pdf-page-png-v1` checks are migrations, not an implementation detail. This
-documentary reconciliation performs none of those changes.
+ADR-0012 required a separately designed and authorised Control schema revision
+and migration. The increment in
+`98036f3c8c496544f4532d1fe48c981f836a1871` adds immutable obligation-set
+persistence, ordered exact text, notice-bearing profile constraints, manifest
+obligation identity/digest, source/notice-region measurements, conditional
+foreign keys and reachability. Its SQLite table rebuilds are explicit
+migrations, not an implementation detail; this documentary record does not
+execute them.
 
 `S04-CORR-04-E` adds the single Control migration
 `20260808033247_AddAnswerEvidenceRecords`. It creates empty
