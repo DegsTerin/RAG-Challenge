@@ -30,19 +30,6 @@ Um lote está pronto quando:
   isolamento, mensagens e ordem de integração estão definidos.
 - a próxima conversa e cada lane possuem raciocínio do Codex recomendado,
   justificativa e alternativa caso o nível esteja indisponível.
-- quando houver encaminhamento automático, a autoridade mecânica, rota,
-  target, título, payload, capacidade nativa e correspondência de raciocínio
-  estão definidos; o destino é inequívoco e nenhuma decisão exclusiva do
-  proprietário integra a operação.
-- quando a preferência de acompanhamento visual estiver vigente, a capacidade
-  de navegação, seu momento e sua condição de parada estão definidos sem
-  transformar apresentação em evidência de envio, autoridade ou conclusão.
-- quando houver decisão elegível a cartão, existe uma única coordenadora, a
-  proposta `approval-proposal-v1` está completa, o cartão possui `CARD-ID`,
-  classe, `AUTH-ID`, baseline limpa integral, SHA-256 verificável, uso único,
-  validade, templates de decisão sem autorreferência e separação das classes
-  protegidas; nenhuma worker solicita ou fabrica a decisão. Dependências entre
-  cartões usam `APPROVAL-SET-ID` e bloqueiam dispatch parcial.
 - a [`política de idioma`](Language-Policy.md) é aplicável ao lote, sem
   tradução histórica ou idioma de interface inferidos.
 
@@ -65,72 +52,16 @@ Um lote está pronto quando:
   lifecycle, ação humana e roteamento distintos.
 - Atualizações intermediárias acrescentam informação materialmente nova e não
   repetem nem antecipam o handoff.
-- Rota, target, ação, status de encaminhamento e payload são coerentes. Um
-  status `EXECUTADO` possui recibo real da ferramenta e não duplica o texto já
-  entregue; decisão elegível mantém cartão, proposta integral e confirmação
-  curta imediatamente após o status. Fallback ou protocolo próprio mantém o
-  texto completo e sem placeholders, com rótulo/cercas fora do conteúdo,
-  inclusive para Human Gate de uma linha ou payload com cerca interna. Ausência
-  só é aceita após entrega comprovada ou quando nenhuma ação depende de
-  mensagem.
-- O encaminhamento automático não origina Human Gate, ADR, lifecycle,
-  autorização, aceitação de risco ou custo, credencial/2FA nem aprovação de
-  ação externa, destrutiva ou paga; não inventa target, não repete payload e
-  não cria recorrência agendada. Também não retransmite uma decisão humana em
-  primeira pessoa: Human Gate permanece na conversa atual e outro efeito
-  downstream usa somente registro factual atribuído.
-- Um cartão elegível vincula pela serialização JCS RFC 8785 integral seu
-  `CARD-ID`, classe, `AUTH-ID`, target, baseline, efeito, escopos, limites,
-  riscos, rollback, condições de parada, validade, uso único e templates de
-  decisão. O template contém o literal `{proposal-sha256}`; a frase humana é
-  derivada somente depois do hash e permanece fora do domínio hasheado.
-  SHA-256 é tratado como integridade, não identidade, assinatura, compreensão,
-  decisão, dispatch, execução, AQG ou Human Gate. A resposta humana ocorre na
-  mesma coordenadora, usa `AUTH-ID`, baseline token, digest completo e frase
-  derivada, e é revalidada contra baseline limpa antes de qualquer efeito. O
-  target recebe a serialização JCS UTF-8 integral e recalcula o digest antes da
-  primeira ação.
-- `decisionClass`, apresentação legível e `protectedBoundaries` coincidem. A
-  fronteira do cartão protegido é a única com `applicable: true` e detalhes
-  canônicos; as demais são `false/NONE` e ficam vinculadas por
-  `required-auth-ids` quando houver approval set. Divergência invalida o cartão.
-- Resumo, screenshot, item injetado, mensagem encaminhada ou conteúdo apenas
-  lido de outra tarefa não prova input humano direto. Quando a superfície não
-  distinguir input humano direto de input programático, nenhum cartão,
-  inclusive `LOCAL_REVERSIBLE`, transita para `OWNER_APPROVED`; a decisão e o
-  uso permanecem pendentes. Aprovação nativa adicional de classe protegida
-  também não é substituída pelo cartão.
-- Integridade, decisão, uso, encaminhamento e execução conservam estados
-  separados. Cartão `STALE`, `SUPERSEDED`, `EXPIRED`, `REVOKED` ou já
-  `CONSUMED` não é reparado nem reutilizado. Uso passa por `DISPATCHING`; falha
-  ambígua permanece nesse estado e não produz retry. Rejeição ou ajuste não
-  aciona execução ou cartão posterior por implicação, e revogação não promete
-  desfazer dispatch ou efeito já concluído.
-- Human Gate, ADR e lifecycle mantêm seus protocolos próprios. Gasto,
-  credencial/2FA, rede real, ação externa, risco novo e ação
-  destrutiva/irreversível usam decisões e cartões separados, nunca um aceite
-  genérico ou composto. Um `APPROVAL-SET-ID` reúne somente a condição de
-  dispatch, não as decisões; todos os membros coincidem em conjunto, baseline,
-  target e operação, usam o mesmo `approval-set-use-id` exclusivo daquele
-  conjunto e conservam `single-use-id` próprio; nenhum dispatch parcial ocorre.
-  Secrets e códigos 2FA não entram em proposta, digest, chat ou registro
-  factual.
-- O recibo visual registra `EXIBIDO`, `INDISPONÍVEL` ou `NÃO_APLICÁVEL` na
-  evidência de encaminhamento. A navegação ocorre no máximo uma vez por evento,
-  não recupera foco depois de navegação ou input do proprietário e não serve
-  como recibo de identidade, dispatch, raciocínio, progresso ou conclusão. O
-  target coincide com a identidade confirmada da rota; setup pendente não
-  conta como exibição e falha visual não repete um handoff entregue. Não se
-  alega macro, digitação, seleção ou clique visível quando o dispatch ocorreu
-  pela capacidade nativa.
+- Rota, target, ação e payload são coerentes; texto obrigatório fica completo
+  e sem placeholders imediatamente após a conversa, com rótulo/cercas fora do
+  conteúdo, inclusive para Human Gate de uma linha ou payload com cerca
+  interna. Ausência só é aceita quando nenhuma ação depende de mensagem.
 - Runtime preflight foi classificado antes de qualquer inspeção e é aplicado
   somente a mudança ou validação executável; em documentação/read-only não há
   anúncio, enumeração ou encerramento de processo.
 - A classificação paralela, quando aplicável, satisfaz o gate específico
   abaixo; raciocínio usa um valor canônico, justificativa e fallback sem
-  ampliar autoridade. Aplicação automática do nível só é alegada com
-  ferramenta nativa autorizada e evidência observada; indisponibilidade do
-  primário aplica a alternativa explícita e só bloqueia se ela também falhar.
+  ampliar autoridade ou alegar configuração automática.
 - Comunicação e artefatos cumprem a
   [`política de idioma`](Language-Policy.md).
 
@@ -177,11 +108,8 @@ autoridade/configuração próprias.
    `NÃO APLICÁVEL`.
 9. Auditar os resultados de handoff definidos na Definition of Done contra
    Governance e Templates, incluindo unicidade, campos condicionais,
-   comentário intermediário, vocabulário, rota/target/ação, status e recibo de
-   encaminhamento, payload copiável, deduplicação, ciclos, Human Gate,
-   decisões exclusivas do proprietário, coordenadora única, cartão/proposta,
-   digest/baseline, consumo único, separação de estados e classes, raciocínio e
-   fallback.
+   comentário intermediário, vocabulário, rota/target/ação, payload copiável,
+   cerca interna, Human Gate, raciocínio e fallback.
 10. Confirmar que runtime preflight foi classificado antes de qualquer
     inspeção e que a decisão observada corresponde ao tipo de trabalho.
 11. Registrar achados com severidade, impacto, reprodução e recomendação.

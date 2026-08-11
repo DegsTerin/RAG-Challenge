@@ -1383,7 +1383,7 @@ proprietários.
   a política de idioma acrescentou o 21º documento público por incremento
   versionado, e o ADR-0003 acrescentou o 22º.
 - A baseline aprovada no Human Gate de `STATE-00` permanece `3.4.0`.
-- O corpus de instruções vigente possui versão `5.2.0` e 13 arquivos em
+- O corpus de instruções vigente possui versão `6.0.0` e 13 arquivos em
   `prompts/`.
 - Visão, requisitos, arquitetura, RAG, segurança, qualidade, lifecycle,
   roadmap, backlog, estado, histórico e templates estão documentados.
@@ -1599,6 +1599,25 @@ proprietários.
   foi emitido, decidido, encaminhado ou consumido nesta mudança. Produto,
   runtime, OpenAPI, gates e lifecycle permanecem inalterados; o runtime
   preflight documental foi `NÃO APLICÁVEL`.
+- O corpus `6.0.0` registra sob
+  `AUTH-GOV-CONVERSATION-MANUAL-HANDOFF-RESTORE-001` a solicitação explícita
+  do proprietário de remover a operação por Coordenadora Única, cartões e
+  automação e voltar ao fluxo anterior ao pedido de ZIP e à automação. As
+  autoridades `AUTH-GOV-CONVERSATION-ROUTING-AUTOMATION-001`,
+  `AUTH-GOV-CONVERSATION-ROUTING-VISUAL-FOLLOW-001` e
+  `AUTH-GOV-CONVERSATION-APPROVAL-CARDS-001` estão `REVOKED`; nenhum handoff,
+  monitoramento, navegação visual ou retomada automática pode ser inferido
+  delas. O contrato owner-facing volta a exigir seleção manual da conversa e
+  um payload integral em `pt-BR` no bloco `Texto para copiar e enviar`. A
+  proposta de aquisição de ZIP
+  `AUTH-S07-A-PROVIDER-EGRESS-DOCKER-TOOLCHAIN-ACQUIRE-RETRY-001` permanece sem
+  autoridade e todo cartão não consumido derivado do protocolo revogado,
+  inclusive
+  `AUTH-S07-A-PROVIDER-EGRESS-DOCKER-NETGUARD-C3-PROVE-APPLY-RETRY-OFFLINE-002`,
+  está `REVOKED` e não pode ser encaminhado ou executado. A restauração é
+  documental e não desfaz código, staging ou evidência técnica já produzidos
+  por workers; também não autoriza retry, Docker, rede, download, instalação,
+  produto, runtime, OpenAPI, gate, Human Gate ou lifecycle.
 - O corpus `4.3.0` formaliza a decisão explícita do proprietário de aceitar
   perguntas e respostas em `pt-BR` e `en-GB`: cada consulta declara o idioma,
   a resposta usa o mesmo idioma, textos derivados da fonte permanecem no

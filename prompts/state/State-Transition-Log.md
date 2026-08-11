@@ -7151,3 +7151,44 @@ contém somente fatos cronológicos.
 - Evidência operacional: nenhum cartão real foi emitido, decidido, encaminhado
   ou consumido nesta mudança documental; o primeiro uso continua sujeito à
   recomputação independente e aos recibos definidos pelo contrato.
+
+## 2026-08-11 — Handoff manual restaurado e Coordenadora Única revogada
+
+- Estado anterior e resultante: `STATE-07 TESTING_HOMOLOGATION` permanece
+  ativo; nenhum Automatic Quality Gate, Human Gate ou lifecycle foi executado
+  ou alterado.
+- Autoridade e baseline documental: o pedido explícito do proprietário de
+  remover a operação por Coordenadora Única e voltar ao comportamento anterior
+  ao pedido de ZIP e à automação foi registrado como
+  `AUTH-GOV-CONVERSATION-MANUAL-HANDOFF-RESTORE-001` sobre branch `main`, commit
+  `a8152521d4b91e1dc36086d67acaa9c2cc794adb`, corpus `5.2.0`, working tree
+  inicialmente limpa e 13 arquivos em `prompts/`. OpenAPI v1 permaneceu no
+  SHA-256 `d6a686b94c926914beb28b437f464430a01de6560c2e2d476cf5c36025813e34` e blob
+  `a5fb3602fbab33bda6aa56cc4caaa9fdc37c8160`; OpenAPI v2 permaneceu no
+  SHA-256 `f4dca8db7fb7bd453e580495bb1bb7760812d954344931063e8549ed8f036733` e blob
+  `5ed6a47631653dd0c137b6ea1e979ae2c14bf8a8`. O runtime preflight desta
+  mudança puramente documental foi `NÃO APLICÁVEL`.
+- Decisão: `AUTH-GOV-CONVERSATION-ROUTING-AUTOMATION-001`,
+  `AUTH-GOV-CONVERSATION-ROUTING-VISUAL-FOLLOW-001` e
+  `AUTH-GOV-CONVERSATION-APPROVAL-CARDS-001` estão `REVOKED`. A semântica
+  owner-facing de `AGENTS.md`, Governance, Quality Gates e Templates volta à
+  baseline manual de `main@85784b2d01f7c493bbf8064f43ebfb4ac2c4c5ef`,
+  corpus `4.10.23`: o proprietário escolhe a conversa e recebe um payload
+  integral em `pt-BR` no bloco `Texto para copiar e enviar`.
+- Autoridade operacional: a proposta de aquisição de ZIP
+  `AUTH-S07-A-PROVIDER-EGRESS-DOCKER-TOOLCHAIN-ACQUIRE-RETRY-001` continua sem
+  autoridade. Todo cartão não consumido derivado do protocolo revogado,
+  inclusive
+  `AUTH-S07-A-PROVIDER-EGRESS-DOCKER-NETGUARD-C3-PROVE-APPLY-RETRY-OFFLINE-002`,
+  está `REVOKED` e não pode ser encaminhado ou executado.
+- Preservação: os registros históricos de `5.0.0`, `5.1.0` e `5.2.0`
+  permanecem append-only. Código, staging e evidência técnica já produzidos por
+  workers não foram revertidos. Nenhum retry, Docker, rede, download,
+  instalação, provider, produto, runtime, OpenAPI, gate ou lifecycle foi
+  autorizado ou executado por esta restauração.
+- Versionamento: corpus elevado por `MAJOR` de `5.2.0` para `6.0.0` porque a
+  responsabilidade de handoff volta de execução nativa permanente para seleção
+  e envio manuais pelo proprietário.
+- Próxima condição: todo handoff futuro usa somente `CONTINUE_CURRENT`,
+  `START_NEW` ou `RETURN_TO_EXISTING` como recomendação e fornece o texto
+  integral copiável quando a continuidade exigir uma mensagem.

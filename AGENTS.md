@@ -247,10 +247,8 @@ hand-off states the request result and exact pending work; one next deliverable,
 owner and condition when that deliverable is directly related to the current
 request, or its explicit absence otherwise; lifecycle position and next entry
 condition when relevant; the owner's immediate action; conversation route,
-target and reason; automatic-routing status and observed evidence; copy-ready
-text or a sealed approval card plus short human confirmation when required;
-reasoning level, justification and fallback; and the parallel-work
-classification and reason.
+target and reason; copy-ready text when required; reasoning level,
+justification and fallback; and the parallel-work classification and reason.
 
 Every final hand-off answers the owner's standing question — what the next
 step, task, activity or action is — with exactly one concrete, prioritised and
@@ -258,11 +256,10 @@ directly related next action, its owner and its authority or entry condition.
 A completed request, a project that can wait or the absence of current
 execution authority does not by itself justify omitting that action. When a
 required datum, decision or authority is missing, obtaining it is the next
-action and the hand-off supplies the exact owner action through the eligible
-approval-card protocol or the copy-ready fallback/protocol of record. Use the
-canonical absence form only after checking Current State and the relevant
-owner documents and finding no directly related actionable continuation at
-all.
+action and the hand-off supplies the exact owner action and copy-ready payload.
+Use the canonical absence form only after checking Current State and the
+relevant owner documents and finding no directly related actionable
+continuation at all.
 
 When an owner document defines an ordered dependency sequence or named
 follow-on increments and the current item is complete, the next action is the
@@ -288,130 +285,26 @@ invent owner work to populate a required field: when no directly related next
 deliverable exists, state its absence using the canonical template form.
 
 Use only `CONTINUE_CURRENT`, `START_NEW` or `RETURN_TO_EXISTING` as defined by
-Governance. When the owner has explicitly authorised automatic task routing
-and the active Codex surface exposes native task-management capabilities, the
-coordinator performs the route mechanically instead of asking the owner to
-copy, navigate or select the reasoning level. It continues the same logical
-turn for `CONTINUE_CURRENT` when no human input is required, without emitting
-an intermediate hand-off; otherwise it queues exactly one native follow-up to
-that same confirmed current task after its running turn ends. It creates a
-separate task with the exact prompt, suggested title and supported reasoning
-effort for `START_NEW`, and locates one uniquely confirmed task before
-`RETURN_TO_EXISTING`. It monitors a dispatched task in the background and
-reports creation, naming, delivery or completion only after the corresponding
-tool result succeeds. Another task is never a `CONTINUE_CURRENT` target.
+Governance. Never claim to open, rename or switch conversations, invent an
+existing target or present a proposed title as confirmed. Every continuation
+message routes through `AGENTS.md`, Start Here, Current State and the relevant
+owner documents, preserving authority and negative scope; conversation history
+is context, not project memory.
 
-While `AUTH-GOV-CONVERSATION-ROUTING-VISUAL-FOLLOW-001` remains in force, the
-coordinator also presents the confirmed target task in the most recently
-focused main Codex window after a native dispatch succeeds, so the owner can
-watch the turn in progress. If an owner-only decision blocks dispatch, it may
-instead present the uniquely confirmed task that contains that decision,
-without sending the decision. It navigates at most once per routing event and
-does not reclaim focus after the owner navigates elsewhere or supplies new
-input. A navigation receipt is presentation evidence only: it never proves
-identity by itself, delivery, reasoning, authority, progress or completion.
-The visual target must be the same confirmed task identity used by the route;
-a pending setup or provisional client identifier is insufficient. Visual
-failure never repeats a separately proven dispatch. This preference does not
-authorise mouse, keyboard or macro automation of the Codex interface: the
-supported sequence is native dispatch followed by native navigation, so the
-owner sees the target processing rather than simulated typing or clicks.
-
-While `AUTH-GOV-CONVERSATION-APPROVAL-CARDS-001` remains in force, one task is
-the owner-facing coordinator for each logical workflow. Workers return
-decision requests to it mechanically. For one eligible owner decision, the
-coordinator displays a documentary approval card and the complete canonical
-proposal, both bound to one `AUTH-ID`, a clean exact baseline and the full
-lowercase SHA-256 of the proposal's RFC 8785 JCS serialization; the owner
-replies only with the exact short phrase derived from the sealed template.
-That phrase includes the full `AUTH-ID`, baseline token and digest. The card is
-not a claimed native widget, signature or receipt. SHA-256 proves integrity and
-binding, not identity, understanding, dispatch, execution, AQG, Human Gate or
-lifecycle.
-
-The canonical proposal is typed I-JSON under
-`rag-challenge.approval-proposal.v1`; hash its RFC 8785 JCS serialization in
-UTF-8 without BOM. Reject duplicate keys, ambiguous numeric values, invalid or
-invisible Unicode and missing native identities. Decision templates contain
-the literal `{proposal-sha256}` and final phrases are derived only after the
-hash, avoiding self-reference. Any material object, baseline, target, scope,
-limit, risk, rollback, validity or template change requires a new card and
-digest. A valid decision is a new, exact owner message in that same coordinator
-task; a summary, screenshot, forwarded message, abbreviated hash, `sim`, `ok`,
-silence or emoji never qualifies. Content recovered through task reads,
-summaries, compaction or injected items is not proof of direct human input. If
-the surface cannot distinguish direct human input from programmatic input for
-any card, do not transition to `OWNER_APPROVED`: retain `UNUSED` and use the
-native human approval or protocol of record. Revalidate the clean baseline
-before single-use consumption. Stale, superseded, expired, revoked or consumed
-cards stop. Reserve use as `DISPATCHING` before delivery; an unambiguous
-receipt consumes it, while an ambiguous result remains reserved and is not
-retried.
-
-Human Gate, ADR and lifecycle retain their own protocols. Spending, credential
-or 2FA, real network, external action, new risk, and destructive or
-irreversible action remain separate owner decisions with separate cards and
-dedicated phrases; never bundle them with each other, implementation, AQG or
-another authority. Cards required for one effect share an approval-set id and
-produce no partial dispatch until every listed decision is valid on the same
-baseline. Their approval-set use id is identical within that set and unique
-outside it; each card retains its own unique single-use id. A secret or 2FA
-value is never placed in a card, digest, chat or downstream record. After a
-valid eligible decision or complete approval set,
-transport only a factual attributed record plus the exact canonical proposal
-JCS serialization, never the owner's first-person phrase. Automate the target
-reasoning, dispatch, monitoring, visual presentation and resume only after
-these checks and only while no further owner decision is required.
-
-Automatic routing transports only authority already granted. It never writes
-or sends an owner-only act on the owner's behalf, including a Human Gate
-phrase, ADR or lifecycle decision, new authorisation, acceptance of risk or
-cost, credential or 2FA response, or approval of an external, destructive or
-paid action. A standing automation instruction delegates mechanical delivery
-and monitoring only. When an owner-only act is required, the coordinator stops
-and obtains the exact decision in the conversation that contains the required
-current summary. It never retransmits that decision as a simulated first-person
-owner message. A Human Gate remains and is processed only in that current
-conversation; another valid owner decision may reach downstream work only as
-a factual, attributed record with its source, authority and exact scope.
-
-Do not invent an existing target, silently substitute a route, model or
-reasoning effort, or present a proposed title as confirmed before tool success.
-`RETURN_TO_EXISTING` requires one exact task identity; zero or multiple
-candidates stop automation. If the recommended reasoning effort is
-unsupported, apply and record only its documented fallback; stop when the
-fallback is also unsupported or cannot be proven. A tool failure, pending
-worktree, stale baseline, running-turn conflict, repeated hand-off or new user
-input also stops or safely waits according to Governance. When native task
-management is unavailable, unauthorised or unsuccessful, retain the manual
-copy-ready fallback and state the limitation factually. Every
-continuation message routes through `AGENTS.md`, Start Here, Current State and
-the relevant owner documents, preserving authority and negative scope;
-conversation history is context, not project memory.
-
-Record `Encaminhamento automático` immediately after `Conversa recomendada`
-using the status and evidence defined by Governance and Templates. When native
-delivery succeeds, the target task holds the complete `pt-BR` payload and the
-owner does not need a duplicate copy block. For an eligible owner decision,
-place `Cartão de aprovação`, `Proposta integral` and `Confirmação humana curta`
-immediately after that status and omit the long copy block. For Human Gate,
-another protocol of record or unavailable automation, retain the complete
-`pt-BR` payload in the copy-ready fenced form owned by Templates. Labels and
-fences remain outside canonical content. Never use an automatic-success status
-without observed tool evidence, collapse card/decision/use into dispatch, or
-replace a required human decision with the absence sentinel. The same evidence
-line records `acompanhamento visual` as `EXIBIDO`, `INDISPONÍVEL` or
-`NÃO_APLICÁVEL`; visual failure does not erase a separately proven dispatch
-and visual success does not upgrade any other result.
+When the owner must continue, start, return, respond, confirm, decide,
+authorise or send something, provide the complete `pt-BR` payload immediately
+after `Conversa recomendada` in the copy-ready fenced form owned by Templates.
+The label and fences remain outside the payload, including for a one-line
+Human Gate phrase; use an unambiguous outer fence when the payload contains a
+fence. Never defer or replace required text with the absence sentinel. Use the
+inline absence form only when no action depends on a message and no useful
+continuity message exists.
 
 Apply the [language policy](prompts/governance/Language-Policy.md) and retain
 the required spelling of technical literals. Recommend the lowest sufficient
 canonical reasoning level for each conversation or lane, with justification
-and an explicit fallback. During authorised automatic routing, apply only the
-matching supported reasoning-effort override and keep the configured model
-unless the owner explicitly selected another one. Outside that case the value
-is advisory. A reasoning recommendation never changes authority, scope,
-lifecycle, sandbox, environment or parallel-work classification.
+and an explicit fallback; it is advisory and never changes configuration,
+authority, scope or lifecycle.
 
 Request an exact Human Gate phrase only with `CONTINUE_CURRENT` to `current`
 when the complete current-baseline summary is in the same hand-off. A new or

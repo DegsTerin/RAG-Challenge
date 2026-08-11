@@ -2,7 +2,7 @@
 
 ## Versão atual
 
-- Versão: `5.2.0`
+- Versão: `6.0.0`
 - Data: 2026-08-11
 - Status: `STATE-07` ativo; ADR-0011 `accepted`, reconciliado e com a correção
   interna da política de serving implementada; o A0 candidato-específico mantém
@@ -16,10 +16,10 @@
   revisão sucessora sintética congelada, com Automatic Quality Gate aprovado
   somente na fronteira local, offline, determinística e com handlers falsos;
   homologação de produto, Human Gate e mudança de lifecycle não executados; o
-  roteamento mecânico de tarefas do Codex está autorizado, com decisões
-  exclusivas do proprietário preservadas e acompanhamento visual permanente
-  dos targets confirmados; uma coordenadora única apresenta decisões elegíveis
-  por cartões documentais selados, sem agrupar classes humanas protegidas
+  handoff entre tarefas voltou a ser manual, com conversa escolhida pelo
+  proprietário e payload integral em `pt-BR` pronto para copiar e enviar; as
+  autoridades de roteamento automático, acompanhamento visual e Coordenadora
+  Única/cartões estão revogadas
 - Escopo: 13 arquivos ativos em `prompts/`
 
 A versão do corpus é independente da versão futura do software.
@@ -33,6 +33,45 @@ A versão do corpus é independente da versão futura do software.
 
 Toda alteração atualiza este arquivo e, quando necessário,
 [`../Start-Here.md`](../Start-Here.md).
+
+## 6.0.0 — 2026-08-11
+
+- Registra a solicitação explícita do proprietário de remover a operação por
+  Coordenadora Única e voltar ao comportamento anterior ao pedido de ZIP e à
+  automação como `AUTH-GOV-CONVERSATION-MANUAL-HANDOFF-RESTORE-001`, sobre a
+  baseline limpa
+  `main@a8152521d4b91e1dc36086d67acaa9c2cc794adb`, corpus `5.2.0`, com 13
+  prompts, OpenAPI v1 no SHA-256
+  `d6a686b94c926914beb28b437f464430a01de6560c2e2d476cf5c36025813e34` e blob
+  `a5fb3602fbab33bda6aa56cc4caaa9fdc37c8160`, OpenAPI v2 no SHA-256
+  `f4dca8db7fb7bd453e580495bb1bb7760812d954344931063e8549ed8f036733` e blob
+  `5ed6a47631653dd0c137b6ea1e979ae2c14bf8a8`, e runtime preflight
+  `NÃO APLICÁVEL`.
+- Revoga `AUTH-GOV-CONVERSATION-ROUTING-AUTOMATION-001`,
+  `AUTH-GOV-CONVERSATION-ROUTING-VISUAL-FOLLOW-001` e
+  `AUTH-GOV-CONVERSATION-APPROVAL-CARDS-001`. O Codex deixa de criar, enviar,
+  monitorar, abrir ou retomar tarefas por autoridade permanente e deixa de
+  exigir uma Coordenadora Única ou cartões documentais genéricos.
+- Restaura em `AGENTS.md`, Governance, Quality Gates e Templates a semântica
+  manual existente em `main@85784b2d01f7c493bbf8064f43ebfb4ac2c4c5ef`,
+  corpus `4.10.23`: o handoff recomenda `CONTINUE_CURRENT`, `START_NEW` ou
+  `RETURN_TO_EXISTING`, e sempre fornece o payload completo em `pt-BR` no
+  bloco `Texto para copiar e enviar` quando o proprietário precisa continuar
+  em outra tarefa.
+- Preserva o histórico append-only das versões `5.0.0`, `5.1.0` e `5.2.0`
+  como evidência, sem mantê-las como autoridade vigente. A proposta de
+  aquisição de ZIP
+  `AUTH-S07-A-PROVIDER-EGRESS-DOCKER-TOOLCHAIN-ACQUIRE-RETRY-001` continua sem
+  autoridade, e todo cartão não consumido emitido pelo protocolo revogado,
+  inclusive
+  `AUTH-S07-A-PROVIDER-EGRESS-DOCKER-NETGUARD-C3-PROVE-APPLY-RETRY-OFFLINE-002`,
+  fica `REVOKED` e não pode ser encaminhado ou executado.
+- A restauração não reverte código, staging ou evidência técnica já produzidos
+  por workers e não autoriza retry, Docker, rede, download, instalação,
+  provider, produto, runtime, OpenAPI, Automatic Quality Gate, Human Gate ou
+  lifecycle. O corpus avança por `MAJOR` de `5.2.0` para `6.0.0` porque remove
+  de forma incompatível o ator único, os cartões e o encaminhamento nativo e
+  restabelece a responsabilidade manual do proprietário no handoff.
 
 ## 5.2.0 — 2026-08-11
 
