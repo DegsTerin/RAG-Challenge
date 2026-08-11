@@ -1379,6 +1379,18 @@ proprietários.
   `AUTH-S07-A-PROVIDER-PREP-AQG-001` na baseline
   `main@5d74c9c9190b0b3465b11dc6864e3dd519cc88f9`, corpus `4.10.22`, somente na
   fronteira local, offline, determinística e com handlers falsos.
+- ADR-0014: `accepted` pela decisão humana explícita `ADR-0014: ACEITAR.` em
+  2026-08-11 sobre `main@52e1ac7d9bc61be196549a8ee61399fde477b8fb`, corpus
+  `4.10.26`, working tree limpa e OpenAPI v1/v2 protegidas. A decisão registra
+  a ordenação existente `Score DESC, global ChunkOrdinal ASC`, preserva
+  `retrieval-v1` para entradas válidas, define a porta Application retrieval-
+  only tipada e fail-closed e estabelece o desenho governado da baseline de
+  retrieval. `retrieval-multi-query-v1-candidate` permanece estacionado. O
+  corpus `4.10.27` reconcilia somente essa autoridade arquitetural sob
+  `AUTH-STATE07-RETRIEVAL-DETERMINISM-ADR-RECONCILE-001`; implementação,
+  testes executáveis, dataset, campanha, provider, rede, chamada paga, OpenAPI,
+  schema, migration, Automatic Quality Gate, Human Gate e lifecycle permanecem
+  `NOT_RUN`.
 - Fechamento sanitizado da chave administrativa de provisionamento: o cleanup
   concluído sob `AUTH-S07-A-PROVIDER-ADMIN-KEY-CLEANUP-002` foi reconciliado
   documentalmente sob
@@ -1415,7 +1427,7 @@ proprietários.
   a política de idioma acrescentou o 21º documento público por incremento
   versionado, e o ADR-0003 acrescentou o 22º.
 - A baseline aprovada no Human Gate de `STATE-00` permanece `3.4.0`.
-- O corpus de instruções vigente possui versão `4.10.26` e 13 arquivos em
+- O corpus de instruções vigente possui versão `4.10.27` e 13 arquivos em
   `prompts/`.
 - Visão, requisitos, arquitetura, RAG, segurança, qualidade, lifecycle,
   roadmap, backlog, estado, histórico e templates estão documentados.
@@ -1602,6 +1614,16 @@ proprietários.
   O mecanismo notice-bearing implementado em `f682827d` não altera o A0
   histórico. Automatic Quality Gate notice-bearing, eventual reconciliação de
   seu resultado e novo A0 permanecem separados e `NOT_RUN`.
+- O corpus `4.10.27` registra sob
+  `AUTH-STATE07-RETRIEVAL-DETERMINISM-ADR-RECONCILE-001` a decisão explícita
+  `ADR-0014: ACEITAR.` somente como autoridade arquitetural. A ordenação
+  `Score DESC, global ChunkOrdinal ASC` torna-se contrato explícito sem alterar
+  resultados válidos de `retrieval-v1`; a porta tipada, as falhas fail-closed,
+  o scorer e os freezes de design, dataset e `campaign-input` permanecem
+  requisitos futuros não implementados. MultiQuery continua estacionado.
+  Implementação, teste executável, dataset, campanha, provider, rede, chamada
+  paga, OpenAPI, schema, migration, gate, Human Gate e lifecycle permanecem
+  `NOT_RUN`.
 - O corpus `4.3.0` formaliza a decisão explícita do proprietário de aceitar
   perguntas e respostas em `pt-BR` e `en-GB`: cada consulta declara o idioma,
   a resposta usa o mesmo idioma, textos derivados da fonte permanecem no
@@ -1928,6 +1950,17 @@ autorizada.
    recuperação operacional, Linux, OCI e produção continuam `NOT_RUN`.
 
 ## Próxima autoridade
+
+O ADR-0014 foi aceito explicitamente mediante `ADR-0014: ACEITAR.` somente
+como autoridade arquitetural e reconciliado documentalmente sob
+`AUTH-STATE07-RETRIEVAL-DETERMINISM-ADR-RECONCILE-001`. `DR-0` e `DR-1` estão
+concluídos. A próxima condição diretamente relacionada é autoridade humana
+separada para `DR-2 — Determinism implementation`, limitada à porta tipada, às
+validações finitas/fail-closed e aos testes focais que não alterem resultados
+válidos de `retrieval-v1`. Essa autoridade não foi concedida; dataset,
+campanha, provider, rede, chamada paga, OpenAPI, schema, migration, Automatic
+Quality Gate, Human Gate e lifecycle permanecem fora do escopo, e
+`retrieval-multi-query-v1-candidate` continua estacionado.
 
 O ADR-0013 foi aceito explicitamente mediante `ADR-0013: ACEITAR.` somente
 como autoridade arquitetural. Ele seleciona `gpt-5.4-mini-2026-03-17` para o

@@ -7126,3 +7126,57 @@ contém somente fatos cronológicos.
 - Próxima condição: obter autoridade humana separada para o Automatic Quality
   Gate notice-bearing. Sua eventual reconciliação e um novo A0
   candidato-específico exigem autoridades posteriores e independentes.
+
+## 2026-08-11 — ADR-0014 aceito como autoridade arquitetural
+
+- Estado anterior e resultante: `STATE-07 TESTING_HOMOLOGATION` permanece
+  ativo; nenhum Automatic Quality Gate, Human Gate ou lifecycle foi executado
+  ou alterado.
+- Autoridade e baseline documental:
+  `AUTH-STATE07-RETRIEVAL-DETERMINISM-ADR-RECONCILE-001`, decisão explícita do
+  proprietário `ADR-0014: ACEITAR.`, branch `main`, commit
+  `52e1ac7d9bc61be196549a8ee61399fde477b8fb`, corpus `4.10.26`, working tree
+  inicialmente limpa e OpenAPI v1/v2 protegidas. O runtime preflight desta
+  reconciliação puramente documental foi `NÃO APLICÁVEL`.
+- Autoridade arquitetural: ADR-0014 passa de `proposed` para `accepted` e
+  registra como contrato explícito a ordenação já existente
+  `Score DESC, global ChunkOrdinal ASC`. `retrieval-v1` permanece inalterado
+  para entradas válidas; nenhum defeito de não determinismo em entradas válidas
+  foi alegado ou corrigido por um novo tie-break.
+- Fronteira interna: a decisão define a futura porta Application retrieval-only,
+  scores finitos em `[-1, 1]`, ordinal global único, outcomes tipados e falha
+  fechada. Esses requisitos não foram implementados nem testados nesta
+  reconciliação.
+- Baseline de avaliação: a decisão separa contrato de design, dataset de
+  produto materializado e manifests de `campaign-input` específicos por
+  política; define scorer, métricas, denominadores, matrizes mínimas, replay
+  determinístico e as classificações `COMPARATIVE_PILOT` e representativa de
+  produto. Nenhum dataset, vetor, campanha, score ou resultado foi
+  materializado ou executado.
+- MultiQuery: `retrieval-multi-query-v1-candidate` permanece não canônico e
+  estacionado. Uma comparação futura exige autoridade própria, o mesmo
+  denominador exato de casos e resultados executados separadamente.
+- Limites preservados: nenhum código, teste executável, corpus real, dataset,
+  campanha, provider, credencial, rede, chamada paga, OpenAPI, schema,
+  migration, Automatic Quality Gate, Human Gate, lifecycle, push ou publicação
+  foi autorizado ou executado.
+- Artefatos protegidos: OpenAPI v1 permaneceu no SHA-256
+  `d6a686b94c926914beb28b437f464430a01de6560c2e2d476cf5c36025813e34` e blob
+  `a5fb3602fbab33bda6aa56cc4caaa9fdc37c8160`; OpenAPI v2 permaneceu no
+  SHA-256 `f4dca8db7fb7bd453e580495bb1bb7760812d954344931063e8549ed8f036733` e blob
+  `5ed6a47631653dd0c137b6ea1e979ae2c14bf8a8`.
+- Escopo documental fechado: somente ADR-0014, o índice de arquitetura,
+  Current State, este histórico append-only no EOF e Prompt System Change Log
+  foram alterados.
+- Verificação documental: `git diff --check` terminou com exit code `0`;
+  `eng/check-repository.ps1` aprovou 276 arquivos não ignorados; o diff conteve
+  somente os cinco documentos autorizados; UTF-8/LF, newline final, espaços
+  finais, links e formato passaram; e o prefixo append-only deste histórico foi
+  preservado byte a byte.
+- Versionamento: corpus elevado por `PATCH` factual de `4.10.26` para
+  `4.10.27`. O histórico preservou byte a byte seu prefixo anterior no SHA-256
+  `33f360c67c53e0b089f6a6e17f3a3278f06fde7e6678e09f79382b7efbdbf87c`.
+- Próxima condição: obter autoridade humana separada para
+  `DR-2 — Determinism implementation`. Dataset, campanha, provider, rede,
+  chamada paga, OpenAPI, schema, migration e cada gate posterior exigem
+  autoridades independentes; MultiQuery permanece estacionado.

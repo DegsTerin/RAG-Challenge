@@ -2,7 +2,7 @@
 
 ## Versão atual
 
-- Versão: `4.10.26`
+- Versão: `4.10.27`
 - Data: 2026-08-11
 - Status: `STATE-07` ativo; ADR-0011 `accepted`, reconciliado e com a correção
   interna da política de serving implementada; o A0 candidato-específico mantém
@@ -24,8 +24,10 @@
   autoridade ou pendência; o caminho temporário da Admin key de provisionamento
   está fechado, com
   revogação, estado histórico somente Inactive e remoção verificada do target
-  local registradas de forma sanitizada; homologação de produto, Human Gate e
-  mudança de lifecycle não executados
+  local registradas de forma sanitizada; ADR-0014 `accepted` somente como
+  autoridade arquitetural, com `retrieval-v1` inalterado para entradas válidas
+  e MultiQuery estacionado; homologação de produto, Human Gate e mudança de
+  lifecycle não executados
 - Escopo: 13 arquivos ativos em `prompts/`
 
 A versão do corpus é independente da versão futura do software.
@@ -39,6 +41,42 @@ A versão do corpus é independente da versão futura do software.
 
 Toda alteração atualiza este arquivo e, quando necessário,
 [`../Start-Here.md`](../Start-Here.md).
+
+## 4.10.27 — 2026-08-11
+
+- Reconcilia sob
+  `AUTH-STATE07-RETRIEVAL-DETERMINISM-ADR-RECONCILE-001`, sobre branch `main`,
+  commit `52e1ac7d9bc61be196549a8ee61399fde477b8fb`, corpus `4.10.26`, working tree
+  inicialmente limpa e OpenAPI v1/v2 protegidas, a decisão explícita do
+  proprietário `ADR-0014: ACEITAR.`.
+- Torna ADR-0014 `accepted` exclusivamente como autoridade arquitetural,
+  registra a ordenação existente `Score DESC, global ChunkOrdinal ASC` e
+  preserva `retrieval-v1` para entradas válidas.
+- Define como requisitos futuros a porta Application retrieval-only tipada,
+  scores finitos, ordinal global único, falhas fail-closed, scorer, métricas,
+  replay determinístico e os freezes separados de design, dataset e
+  `campaign-input`. Nenhum desses requisitos foi implementado ou executado.
+- Mantém `retrieval-multi-query-v1-candidate` não canônico e estacionado. Uma
+  comparação futura exige autoridade própria, o mesmo denominador exato de
+  casos e resultados executados separadamente.
+- Nenhum código, teste executável, corpus real, dataset, campanha, provider,
+  credencial, rede, chamada paga, OpenAPI, schema, migration, Automatic Quality
+  Gate, Human Gate, lifecycle, push ou publicação foi autorizado ou executado.
+- Artefatos protegidos: OpenAPI v1 permaneceu no SHA-256
+  `d6a686b94c926914beb28b437f464430a01de6560c2e2d476cf5c36025813e34` e blob
+  `a5fb3602fbab33bda6aa56cc4caaa9fdc37c8160`; OpenAPI v2 permaneceu no
+  SHA-256 `f4dca8db7fb7bd453e580495bb1bb7760812d954344931063e8549ed8f036733` e blob
+  `5ed6a47631653dd0c137b6ea1e979ae2c14bf8a8`.
+- Validação documental: `git diff --check` terminou com exit code `0`;
+  `eng/check-repository.ps1` aprovou 276 arquivos não ignorados; somente os
+  cinco documentos autorizados mudaram; UTF-8/LF, newline final, espaços
+  finais, links, formato e o prefixo append-only do histórico passaram.
+- Versionamento: corpus elevado por `PATCH` factual de `4.10.26` para
+  `4.10.27`. O histórico preservou byte a byte seu prefixo anterior no SHA-256
+  `33f360c67c53e0b089f6a6e17f3a3278f06fde7e6678e09f79382b7efbdbf87c`.
+- Próxima condição: obter autoridade humana separada para
+  `DR-2 — Determinism implementation`; cada dataset, campanha, provider, gate
+  e reconsideração de MultiQuery permanece sob autoridade independente.
 
 ## 4.10.26 — 2026-08-11
 

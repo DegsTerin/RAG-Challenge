@@ -71,6 +71,18 @@ authorised semantic reconciliation to ADR-0005 and the `STATE-02` architecture
 report. Reconciliation grants no adapter change, provider access, paid
 evaluation, real-corpus processing, OCI, deployment or product authority.
 
+ADR-0014 was prepared on 2026-08-11 under
+`AUTH-STATE07-RETRIEVAL-DETERMINISM-ADR-PREP-001` and explicitly accepted by
+the owner on the same date through `ADR-0014: ACEITAR.` on clean
+`main@52e1ac7d9bc61be196549a8ee61399fde477b8fb`, corpus `4.10.26`. It records
+the existing `Score DESC, global ChunkOrdinal ASC` total ranking, defines the
+typed fail-closed Application retrieval boundary and establishes the governed
+retrieval-only evaluation design. `retrieval-v1` remains unchanged for valid
+inputs and `retrieval-multi-query-v1-candidate` remains parked. Corpus
+`4.10.27` records this acceptance only as architecture authority; it grants no
+implementation, executable test, dataset, campaign, provider, network,
+OpenAPI, schema, migration, gate or lifecycle authority.
+
 The later combined audit failed on `AQG-S02-001`, an internal contradiction
 between observation-inclusive generation identity and observation-only
 freshness rebinding. The owner accepted ADR-0007 explicitly on 2026-08-02. It
@@ -250,6 +262,9 @@ Dashboard -- versioned HTTP --> API
   (`accepted`; semantic reconciliation applied in corpus `4.10.19`; no adapter
   implementation, provider access, paid evaluation, OCI or deployment
   authority)
+- [ADR-0014 — Deterministic Retrieval Ranking and Retrieval-Only Baseline](ADR-0014-Deterministic-Retrieval-Ranking-And-Retrieval-Only-Baseline.md)
+  (`accepted`; `retrieval-v1` remains unchanged for valid inputs, MultiQuery
+  remains parked and implementation/evaluation authority remains separate)
 
 ## STATE-02 design artefacts
 

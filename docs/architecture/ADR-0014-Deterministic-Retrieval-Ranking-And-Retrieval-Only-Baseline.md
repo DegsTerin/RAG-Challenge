@@ -1,16 +1,18 @@
 # ADR-0014 — Deterministic Retrieval Ranking and Retrieval-Only Baseline
 
-- Status: proposed
+- Status: accepted
 - Date: 2026-08-11
+- Accepted: 2026-08-11
 - Preparation authority:
   `AUTH-STATE07-RETRIEVAL-DETERMINISM-ADR-PREP-001`, granted by the product
   owner on clean
   `main@5dbb1cd786785bd1394f45066ebfacc7de674cdc`, corpus `4.10.26`
-- Decision authority: none; this proposal has not been accepted
+- Decision authority: explicit product-owner decision `ADR-0014: ACEITAR.` on
+  clean `main@52e1ac7d9bc61be196549a8ee61399fde477b8fb`, corpus `4.10.26`
 - Owners: RAG-Challenge product, architecture, evaluation, security and
   operations
-- State: `STATE-07 TESTING_HOMOLOGATION` documentary proposal only
-- Proposed relationship: clarify the retrieval and evaluation semantics in
+- State: `STATE-07 TESTING_HOMOLOGATION` accepted architecture decision
+- Relationship: clarifies the retrieval and evaluation semantics in
   [ADR-0002](ADR-0002-RAG-Lifecycle-Providers-And-Source-Separation.md),
   [ADR-0004](ADR-0004-MVP-Corpus-Official-Source-And-Evaluation.md),
   [ADR-0005](ADR-0005-MVP-Providers-Persistence-And-OCI-Deployment.md),
@@ -31,7 +33,7 @@
 
 ## Purpose and authority
 
-This proposal records the smallest governed increment needed to make the
+This decision records the smallest governed increment needed to make the
 existing `retrieval-v1` ranking contract explicit, reject invalid ranking
 states deterministically and establish a retrieval-only baseline before
 considering retrieval expansion. It distinguishes a comparative pilot from a
@@ -40,15 +42,15 @@ representativeness.
 
 The current SQLite implementation already applies the complete ordering
 `Score DESC, global ChunkOrdinal ASC` before `top-k` for valid finite scores.
-This proposal therefore does not treat the existing algorithm as a
-demonstrated non-determinism defect and does not propose an additional
-document, digest or provider-specific tie-breaker.
+This decision therefore does not treat the existing algorithm as a
+demonstrated non-determinism defect and does not add a document, digest or
+provider-specific tie-breaker.
 
-If separately accepted, this ADR would authorise no implementation by itself.
-It would define the contract and gate sequence for later, separately
-authorised increments. While this ADR remains `proposed`, it changes no code,
-configuration, public contract, dataset, generation, provider authority,
-gate disposition or lifecycle state.
+Acceptance establishes architecture authority only. It authorises no
+implementation by itself and defines the contract and gate sequence for later,
+separately authorised increments. Acceptance changes no code, configuration,
+public contract, dataset, generation, provider authority, gate disposition or
+lifecycle state.
 
 `retrieval-v1` remains unchanged for valid inputs. The non-canonical
 `retrieval-multi-query-v1-candidate` remains parked: it is neither an active
@@ -133,14 +135,13 @@ required.
 - Keep the public OpenAPI v1 and v2 contracts byte-for-byte unchanged.
 - Bind every scored result to one immutable corpus, generation, policy,
   embedding descriptor, query vector, dataset revision and environment.
-- Preserve the accepted Recall@5 and MRR@5 threshold values while proposing an
-  explicit scorer and prohibiting threshold or scorer selection after seeing a
-  result.
+- Preserve the accepted Recall@5 and MRR@5 threshold values, define an explicit
+  scorer and prohibit threshold or scorer selection after seeing a result.
 - Keep synthetic contract evidence separate from product quality evidence.
 - Obtain a measured `retrieval-v1` baseline before evaluating MultiQuery or
   another retrieval expansion.
 
-## Proposed decision
+## Decision
 
 ### Total ranking contract
 
@@ -278,27 +279,26 @@ versions.
 
 ### Frozen `retrieval-v1` semantics
 
-If separately accepted and materialised, the first retrieval-policy manifest
-would newly bind the following semantics:
+If separately materialised, the first retrieval-policy manifest must newly
+bind the following semantics:
 
 | Field | `retrieval-v1` value |
 |---|---|
 | Ranking | `Score DESC, global ChunkOrdinal ASC` |
 | Vector search | exact cosine over the eligible validated generation |
 | Vector `top-k` | `8` |
-| Minimum-score policy | proposed `minimum-score-v1`; not currently implemented |
-| Minimum score | `0.25`, inclusive; observed in the only concrete enabled host composition and proposed to become normative |
+| Minimum-score policy | selected `minimum-score-v1`; not currently implemented |
+| Minimum score | `0.25`, inclusive; observed in the only concrete enabled host composition and established by this decision as normative |
 | Maximum selected evidence | `6` |
 | Maximum selected evidence size | `16,000` Unicode scalar values |
 | Invalid ranking state | typed fail-closed result; never insufficient evidence |
 
-This proposal does not claim that the current generic constructor parameter is
-already a versioned `0.25` contract. Acceptance would establish that
-architecture semantic; implementation, readiness and evidence would remain
-future work. The policy-manifest digest is evaluation evidence. It does not add
-a public response field in this proposal. `retrievalPolicyVersion` remains the
-public and answer-evidence identity already carried by the implemented
-contracts.
+This decision does not claim that the current generic constructor parameter is
+already a versioned `0.25` contract. It establishes that architecture semantic;
+implementation, readiness and evidence remain future work. The policy-manifest
+digest is evaluation evidence. It does not add a public response field under
+this decision. `retrievalPolicyVersion` remains the public and answer-evidence
+identity already carried by the implemented contracts.
 
 ## Versioning and compatibility
 
@@ -353,7 +353,7 @@ measures enforcement of:
 - hard pre-filtering;
 - exact vector ranking and total tie-break;
 - `top-k=8`;
-- inclusive proposed `minimumScore=0.25`;
+- inclusive `minimumScore=0.25`;
 - the 16,000-scalar budget; and
 - the maximum of six selected evidence items.
 
@@ -473,11 +473,12 @@ SelectedEvidenceRelevantLocationRecall@5_i =
 
 The cut-off `5` belongs exclusively to the evaluation design contract and
 `retrieval-evaluation-scorer-v1`, not to the retrieval-policy manifest. The
-proposed scorer applies the accepted numeric threshold values to this selected-
-evidence metric: at least `0.90` over the simple case macro, and at least `0.85`
-separately for every reportable database stratum, every reportable source
-stratum and every mandatory question-language × exact-content-language row.
-ADR-0014 proposes the previously unspecified location-group, language-row and
+scorer defined by this decision applies the accepted numeric threshold values
+to this selected-evidence metric: at least `0.90` over the simple case macro,
+and at least `0.85` separately for every reportable database stratum, every
+reportable source stratum and every mandatory question-language × exact-
+content-language row.
+ADR-0014 defines the previously unspecified location-group, language-row and
 aggregation semantics; earlier results calculated with another formula are not
 silently comparable.
 
@@ -491,14 +492,15 @@ SelectedEvidenceMRR@5_i = 1 / rank_i, when rank_i <= 5
 SelectedEvidenceMRR@5_i = 0, otherwise
 ```
 
-The proposed scorer applies the accepted numeric threshold value of at least
-`0.75` separately to every reportable database stratum, every reportable source
-stratum and every mandatory question-language × exact-content-language row.
+The scorer defined by this decision applies the accepted numeric threshold
+value of at least `0.75` separately to every reportable database stratum, every
+reportable source stratum and every mandatory question-language × exact-
+content-language row.
 
 ### Diagnostic retrieval measures
 
 The following measures are diagnostic and have no acceptance threshold in
-this proposal:
+this decision:
 
 - `RawVectorRelevantLocationRecall@5`, using the first five ordered raw vector
   hits and the same `L_i` denominator;
@@ -554,11 +556,11 @@ The retrieval-only campaign must report at least:
 | `SelectedEvidenceMRR@5` for positive product cases | at least `0.75` separately per reportable database stratum, reportable source stratum and mandatory language row |
 
 The deterministic, coverage and negative-selection dispositions preceding
-Recall@5 and MRR@5 are new hard gates proposed by ADR-0014; they are not
+Recall@5 and MRR@5 are new hard gates defined by ADR-0014; they are not
 inherited thresholds from ADR-0004. The `0.95` negative-selection value is a
 new retrieval-only threshold and does not satisfy the separate end-to-end
 insufficient-evidence threshold. Applying the accepted Recall@5/MRR@5 numbers
-to mandatory language rows is also part of this proposed scorer definition.
+to mandatory language rows is also part of this scorer definition.
 The normative formulas are:
 
 ```text
@@ -686,7 +688,7 @@ decision pre-registers one:
 - score distributions and distance from the inclusive threshold.
 
 The accepted end-to-end insufficient-evidence threshold and 12/20-second query
-thresholds remain separate requirements. Passing the proposed retrieval-only
+thresholds remain separate requirements. Passing the retrieval-only
 `NegativeEmptySelectionRate` does not establish end-to-end insufficient-
 evidence behaviour.
 
@@ -788,7 +790,7 @@ Any change after campaign-input freeze creates a new campaign-input-manifest
 revision and campaign, even before a result exists. It does not require a new
 dataset revision when every Stage 2 identity is unchanged. The parked
 `retrieval-multi-query-v1-candidate` receives no manifest or execution authority
-from this proposal.
+from this decision.
 
 ### Sampling floor
 
@@ -892,7 +894,7 @@ Each policy campaign then defines at least:
 
 Each run then creates a sanitised `run-manifest.json`, ordered retrieval
 results and metrics. Exact paths, schemas and retention are determined in the
-separately authorised design-materialisation increment; this proposal creates
+separately authorised design-materialisation increment; this decision creates
 none of those artefacts.
 
 ## Ordered gates and authority envelopes
@@ -902,7 +904,7 @@ thresholds are shared immutable inputs:
 
 | Gate | Deliverable and pass condition | Stop condition |
 |---|---|---|
-| `DR-0 — ADR preparation` | This one proposed ADR, static checks and a focused local commit | Baseline, scope, protected hash or file ownership diverges |
+| `DR-0 — ADR preparation` | The proposed ADR, static checks and a focused local commit | Baseline, scope, protected hash or file ownership diverges |
 | `DR-1 — Architecture decision` | Explicit owner acceptance or rejection naming ADR-0014 | No implementation authority is inferred from acceptance |
 | `DR-2 — Determinism implementation` | Separately authorised typed port, finite-state validation, fail-closed mapping and focused tests with no valid-input ranking change | Any successful valid-input order changes or another file/contract boundary becomes necessary without authority |
 | `DR-3 — Determinism Automatic Quality Gate` | Independent review and focused/full applicable checks prove the total-order contract | Finding is recorded; it is not corrected inside the gate |
@@ -933,8 +935,8 @@ compatibility consequences defined above.
 ### Measure raw `IVectorIndexStore` hits only
 
 Rejected as the primary product baseline. It omits the minimum score, scalar
-budget and final selected-evidence limit that this ADR proposes to bind as the
-complete `retrieval-v1` policy. Raw hits remain diagnostic evidence.
+budget and final selected-evidence limit that this ADR binds architecturally as
+the complete `retrieval-v1` policy. Raw hits remain diagnostic evidence.
 
 ### Drive the answer path with a fake or real language model
 
@@ -993,7 +995,7 @@ own later architecture and evaluation decision.
   information and therefore inherits the campaign input's storage and access
   boundary.
 - Provider-inclusive vector creation requires exact provider, account, secret-
-  reference, egress and spend authority. This proposal grants none.
+  reference, egress and spend authority. This decision grants none.
 - No metric denominator is merged across dataset revisions, generations,
   policies, providers or environments. A pre-registered paired report may link
   complete, separately executed policy results by `caseId` without merging
@@ -1003,7 +1005,7 @@ own later architecture and evaluation decision.
 
 - OpenAPI v1 and v2 remain byte-for-byte unchanged.
 - Existing v1/v2 response fields and `AnswerEvidenceRecordV1` continue to use
-  `retrievalPolicyVersion`; no schema or migration is required to propose this
+  `retrievalPolicyVersion`; no schema or migration is required by this
   decision.
 - Formalising the existing valid ordering alone does not require a new index
   generation.
@@ -1017,54 +1019,50 @@ own later architecture and evaluation decision.
 - Existing synthetic dataset revisions and historical reports remain
   immutable and retain their original claims.
 
-## Acceptance checks
+## Acceptance record
 
-Before a future explicit decision can accept this ADR, verify that it:
+The owner's explicit decision `ADR-0014: ACEITAR.` accepts this architecture
+decision on clean `main@52e1ac7d9bc61be196549a8ee61399fde477b8fb`, corpus
+`4.10.26`, with the protected OpenAPI v1 and v2 identities unchanged. The
+decision:
 
-- identifies the current total ordering as
-  `Score DESC, global ChunkOrdinal ASC` and does not claim a demonstrated
-  valid-input ranking defect;
-- preserves `retrieval-v1` for unchanged valid successful results;
-- requires finite scores in `[-1, 1]`, preserves stored zero-vector score `0`
-  and rejects invalid scores or duplicate ordinals without adding a silent
-  tie-break, clamp or epsilon;
-- keeps expected retrieval failures typed and maps invalid index state to the
-  existing fail-closed taxonomy;
-- places the retrieval-only port in Application and stops it before answer
-  generation, with finalised generation, compatibility and eligibility-policy
-  identities bound;
-- applies the accepted Recall@5/MRR@5 threshold values through the proposed
-  `retrieval-evaluation-scorer-v1` over the first five final selected-evidence
-  items, including mandatory language rows, and does not treat differently
-  scored history as comparable;
-- defines every hard rate denominator, negative-selection disposition,
-  mandatory contract/leakage matrix and canonical digest byte encoding;
-- separates an evaluation-design-contract freeze from product dataset
-  materialisation and policy-specific campaign-input freezes;
-- keeps synthetic and product denominators separate;
-- pre-registers formulas, simultaneous sampling quotas, qrels,
-  representativeness classification and stop conditions before results;
-- requires a successor policy and, when applicable, a new compatibility key
-  and generation for observable ranking changes;
-- keeps `retrieval-multi-query-v1-candidate` parked while preserving a future
-  exact-case paired design with policy-specific vectors and separate results;
-- preserves both protected OpenAPI artefacts; and
-- grants no implementation, execution, gate, external-action or lifecycle
-  authority.
+1. records the current total ordering as
+   `Score DESC, global ChunkOrdinal ASC` without claiming a demonstrated valid-
+   input ranking defect;
+2. preserves `retrieval-v1` for unchanged valid successful results and requires
+   a successor identity for an observable valid-input ranking change;
+3. requires finite scores in `[-1, 1]`, preserves stored zero-vector score `0`
+   and rejects invalid scores or duplicate ordinals without a silent tie-break,
+   clamp or epsilon;
+4. keeps retrieval failures typed and fail-closed and places the retrieval-only
+   port in Application before answer generation, with finalised generation,
+   compatibility and eligibility-policy identities bound;
+5. defines `retrieval-evaluation-scorer-v1`, hard-rate denominators, negative-
+   selection disposition, mandatory contract/leakage matrices and canonical
+   digest encoding while keeping synthetic and product denominators separate;
+6. separates the evaluation-design-contract, product dataset materialisation
+   and policy-specific campaign-input freezes and pre-registers their formulas,
+   sampling quotas, qrels, representativeness classification and stop
+   conditions;
+7. keeps `retrieval-multi-query-v1-candidate` parked while preserving a future
+   exact-case paired design with policy-specific vectors and separate results;
+   and
+8. preserves both protected OpenAPI artefacts and grants no implementation,
+   execution, gate, external-action or lifecycle authority.
 
-An explicit future owner decision naming `ADR-0014` is required for acceptance.
-Acceptance would establish architecture authority only and would not itself
-authorise implementation, dataset materialisation, a campaign, an Automatic
-Quality Gate, a Human Gate or a lifecycle transition.
+The preparation commit completed `DR-0`; the owner's decision completed only
+`DR-1`. `DR-2` and every later implementation, evaluation and gate remain
+`NOT_RUN` and require separate explicit authority.
 
-## Proposal negative scope
+## Acceptance negative scope
 
-Preparation of this ADR excludes:
+Acceptance and its documentary reconciliation exclude:
 
-- ADR acceptance or rejection;
-- changes to source, tests, existing documents, manifests, configuration,
-  dependencies or lockfiles;
-- executable tests, notebooks, provider calls, network or paid activity;
+- changes to source, tests, manifests, configuration, dependencies or
+  lockfiles;
+- implementation or executable tests;
+- dataset materialisation, campaign creation or execution;
+- provider, credential, network or paid activity;
 - product corpus access, import, indexing, activation or evaluation;
 - OpenAPI, schema, migration or public-contract changes;
 - Automatic Quality Gate, Human Gate or lifecycle transition; and
