@@ -2,7 +2,7 @@
 
 ## Versão atual
 
-- Versão: `4.10.24`
+- Versão: `4.10.25`
 - Data: 2026-08-11
 - Status: `STATE-07` ativo; ADR-0011 `accepted`, reconciliado e com a correção
   interna da política de serving implementada; o A0 candidato-específico mantém
@@ -17,7 +17,10 @@
   offline e com handlers falsos; a campanha candidata de provider possui uma
   revisão sucessora sintética congelada, com Automatic Quality Gate aprovado
   somente na fronteira local, offline, determinística e com handlers falsos;
-  homologação de produto, Human Gate e mudança de lifecycle não executados
+  o caminho temporário da Admin key de provisionamento está fechado, com
+  revogação, estado histórico somente Inactive e remoção verificada do target
+  local registradas de forma sanitizada; homologação de produto, Human Gate e
+  mudança de lifecycle não executados
 - Escopo: 13 arquivos ativos em `prompts/`
 
 A versão do corpus é independente da versão futura do software.
@@ -31,6 +34,42 @@ A versão do corpus é independente da versão futura do software.
 
 Toda alteração atualiza este arquivo e, quando necessário,
 [`../Start-Here.md`](../Start-Here.md).
+
+## 4.10.25 — 2026-08-11
+
+- Reconcilia sob
+  `AUTH-S07-A-PROVIDER-ADMIN-KEY-CLEANUP-RECONCILE-001`, sobre branch `main`,
+  commit `b2654088d11ab94c23cdf19e2aa57d89f0b3ae49`, corpus `4.10.24`, working
+  tree inicialmente limpa e OpenAPI v1/v2 protegidas, o fechamento concluído
+  sob `AUTH-S07-A-PROVIDER-ADMIN-KEY-CLEANUP-002`.
+- Registra de forma sanitizada que a Admin key com label exato
+  `s07-a-provider-gpt54m-candidate-001-admin-provisioning` foi revogada, está
+  ausente do inventário Active e aparece historicamente somente como Inactive;
+  `Last used` permaneceu `Never` e o gasto permaneceu `USD 0.00`.
+- Registra que o target
+  `RAG-Challenge/OpenAI/AdminKey/s07-a-provider-gpt54m-candidate-001` foi
+  removido do Windows Credential Manager e que sua ausência foi verificada no
+  cleanup autorizado. Nenhum secret, fragmento, fingerprint ou representação
+  mascarada foi incluído.
+- A fonte factual é o registro de fechamento sanitizado fornecido pelo
+  proprietário. Esta reconciliação puramente documental não reacessou OpenAI,
+  Credential Manager, provider, billing, projeto ou qualquer credencial; o
+  runtime preflight foi `NÃO APLICÁVEL`.
+- Não houve chamada de provider ou `/v1/responses`, custo novo, alteração de
+  billing, limites, allowlist ou projeto, Human Gate ou mudança de lifecycle.
+- Artefatos protegidos: OpenAPI v1 permaneceu no SHA-256
+  `d6a686b94c926914beb28b437f464430a01de6560c2e2d476cf5c36025813e34` e blob
+  `a5fb3602fbab33bda6aa56cc4caaa9fdc37c8160`; OpenAPI v2 permaneceu no
+  SHA-256 `f4dca8db7fb7bd453e580495bb1bb7760812d954344931063e8549ed8f036733` e
+  blob `5ed6a47631653dd0c137b6ea1e979ae2c14bf8a8`.
+- Validação documental: `git diff --check` terminou com exit code `0`,
+  `eng/check-repository.ps1` aprovou 275 arquivos não ignorados, somente os
+  quatro documentos autorizados mudaram e o prefixo append-only do histórico
+  conferiu no SHA-256 anterior.
+- Versionamento: corpus elevado por `PATCH` factual de `4.10.24` para
+  `4.10.25`.
+- Próxima condição diretamente relacionada: nenhuma; o cleanup administrativo
+  e sua reconciliação factual estão encerrados sem gate ou lifecycle.
 
 ## 4.10.24 — 2026-08-11
 

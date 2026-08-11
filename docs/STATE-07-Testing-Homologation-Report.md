@@ -973,3 +973,53 @@ evaluation, bilingual quality, groundedness, citation quality, real-model
 insufficient-evidence behaviour, prompt-injection resistance, observed
 latency, observed cost, OCI, deployment, Human Gate and lifecycle transition
 remain `NOT_RUN`.
+
+## Administrative provisioning-key cleanup
+
+### Authority, evidence source and protected baseline
+
+The administrative provisioning-key cleanup was completed under
+`AUTH-S07-A-PROVIDER-ADMIN-KEY-CLEANUP-002`. This documentary reconciliation
+is authorised by `AUTH-S07-A-PROVIDER-ADMIN-KEY-CLEANUP-RECONCILE-001` from
+clean `main@b2654088d11ab94c23cdf19e2aa57d89f0b3ae49`, prompt corpus `4.10.24`.
+Runtime preflight is `NOT_APPLICABLE` because this reconciliation changes and
+validates documentation only.
+
+The factual source for this section is the sanitised completion record supplied
+by the owner for the completed cleanup. This reconciliation did not re-access
+OpenAI, the provider, billing, the project, Windows Credential Manager or any
+credential material, and therefore does not claim an independent live
+re-observation.
+
+The protected OpenAPI artefacts remained unchanged at the baseline:
+
+| Artefact | SHA-256 | Git blob | Result |
+| --- | --- | --- | --- |
+| OpenAPI v1 | `d6a686b94c926914beb28b437f464430a01de6560c2e2d476cf5c36025813e34` | `a5fb3602fbab33bda6aa56cc4caaa9fdc37c8160` | preserved byte for byte |
+| OpenAPI v2 | `f4dca8db7fb7bd453e580495bb1bb7760812d954344931063e8549ed8f036733` | `5ed6a47631653dd0c137b6ea1e979ae2c14bf8a8` | preserved byte for byte |
+
+### Sanitised closure record
+
+- The Admin key labelled exactly
+  `s07-a-provider-gpt54m-candidate-001-admin-provisioning` was revoked.
+- It is absent from the Active inventory and its historical record appears only
+  as Inactive.
+- `Last used` remained `Never`, and recorded spend remained `USD 0.00`.
+- The Windows Credential Manager target
+  `RAG-Challenge/OpenAI/AdminKey/s07-a-provider-gpt54m-candidate-001` was
+  removed, and its absence was verified during the authorised cleanup.
+- No provider or `/v1/responses` call, new cost, billing change, limit change,
+  allowlist change, project change, Human Gate or lifecycle transition
+  occurred.
+- No secret value, fragment, fingerprint or masked representation is retained
+  in this report or in the other reconciliation records.
+
+The cleanup closes only the temporary administrative provisioning path. It is
+not provider evaluation, product homologation, an Automatic Quality Gate, a
+Human Gate or a lifecycle transition.
+
+Documentary validation completed with `git diff --check` exit code `0` and a
+successful `eng/check-repository.ps1` audit of 275 non-ignored files. The diff
+contained only the four authorised documents, the append-only history prefix
+matched its prior SHA-256, and both protected OpenAPI identities remained
+unchanged.

@@ -1,6 +1,6 @@
 # Estado Atual
 
-Este documento é o snapshot factual vigente do workspace em 2026-08-10. Ele
+Este documento é o snapshot factual vigente do workspace em 2026-08-11. Ele
 não concede autoridade. Evolução e decisões no contexto original pertencem ao
 [`State-Transition-Log.md`](State-Transition-Log.md) e aos relatórios
 proprietários.
@@ -1379,6 +1379,22 @@ proprietários.
   `AUTH-S07-A-PROVIDER-PREP-AQG-001` na baseline
   `main@5d74c9c9190b0b3465b11dc6864e3dd519cc88f9`, corpus `4.10.22`, somente na
   fronteira local, offline, determinística e com handlers falsos.
+- Fechamento sanitizado da chave administrativa de provisionamento: o cleanup
+  concluído sob `AUTH-S07-A-PROVIDER-ADMIN-KEY-CLEANUP-002` foi reconciliado
+  documentalmente sob
+  `AUTH-S07-A-PROVIDER-ADMIN-KEY-CLEANUP-RECONCILE-001`, sobre
+  `main@b2654088d11ab94c23cdf19e2aa57d89f0b3ae49`, corpus `4.10.24`, working
+  tree inicialmente limpa e OpenAPI v1/v2 protegidas. Segundo o registro de
+  fechamento sanitizado fornecido pelo proprietário, a Admin key com label
+  exato `s07-a-provider-gpt54m-candidate-001-admin-provisioning` foi revogada,
+  está ausente do inventário Active e aparece historicamente somente como
+  Inactive; `Last used` permaneceu `Never` e o gasto permaneceu `USD 0.00`. O
+  target `RAG-Challenge/OpenAI/AdminKey/s07-a-provider-gpt54m-candidate-001`
+  foi removido do Windows Credential Manager e sua ausência foi verificada no
+  cleanup autorizado. Esta reconciliação não reacessou esses sistemas e não
+  reteve secret, fragmento, fingerprint ou representação mascarada. Não houve
+  chamada de provider ou `/v1/responses`, custo novo, alteração de billing,
+  limites, allowlist ou projeto, Human Gate ou lifecycle.
 
 ## Baseline documental
 
@@ -1386,7 +1402,7 @@ proprietários.
   a política de idioma acrescentou o 21º documento público por incremento
   versionado, e o ADR-0003 acrescentou o 22º.
 - A baseline aprovada no Human Gate de `STATE-00` permanece `3.4.0`.
-- O corpus de instruções vigente possui versão `4.10.24` e 13 arquivos em
+- O corpus de instruções vigente possui versão `4.10.25` e 13 arquivos em
   `prompts/`.
 - Visão, requisitos, arquitetura, RAG, segurança, qualidade, lifecycle,
   roadmap, backlog, estado, histórico e templates estão documentados.
@@ -1556,6 +1572,14 @@ proprietários.
   Automatic Quality Gate. Novo A0, dado de produto, browser/tecnologia
   assistiva, Human Gate e lifecycle permanecem `NOT_RUN`; o PostgreSQL continua
   `BLOCKED/EXCLUDED`.
+- O corpus `4.10.25` reconcilia sob
+  `AUTH-S07-A-PROVIDER-ADMIN-KEY-CLEANUP-RECONCILE-001` o fechamento concluído
+  sob `AUTH-S07-A-PROVIDER-ADMIN-KEY-CLEANUP-002`. O registro sanitizado
+  documenta revogação e estado histórico Inactive da Admin key nomeada,
+  `Last used` `Never`, gasto `USD 0.00` e remoção verificada do target do
+  Windows Credential Manager. Nenhum secret é retido. A reconciliação não
+  reacessa OpenAI, Credential Manager, provider, billing ou projeto e não
+  executa chamada, custo, mudança de configuração, gate ou lifecycle.
 - O corpus `4.3.0` formaliza a decisão explícita do proprietário de aceitar
   perguntas e respostas em `pt-BR` e `en-GB`: cada consulta declara o idioma,
   a resposta usa o mesmo idioma, textos derivados da fonte permanecem no

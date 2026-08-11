@@ -7035,3 +7035,47 @@ contém somente fatos cronológicos.
   Quality Gate local, offline, determinístico e sintético do comportamento
   notice-bearing. Somente após eventual aprovação e reconciliação cabe um novo
   A0 candidato-específico, também sob autoridade separada.
+
+## 2026-08-11 — Fechamento sanitizado da Admin key reconciliado factualmente
+
+- Estado anterior e resultante: `STATE-07 TESTING_HOMOLOGATION` permanece
+  ativo; nenhum Automatic Quality Gate, Human Gate ou lifecycle foi executado
+  ou alterado.
+- Autoridade e baseline documental:
+  `AUTH-S07-A-PROVIDER-ADMIN-KEY-CLEANUP-RECONCILE-001`, branch `main`, commit
+  `b2654088d11ab94c23cdf19e2aa57d89f0b3ae49`, corpus `4.10.24`, working tree
+  inicialmente limpa e OpenAPI v1/v2 protegidas. O runtime preflight desta
+  reconciliação puramente documental foi `NÃO APLICÁVEL`.
+- Fonte factual: registro de fechamento sanitizado fornecido pelo proprietário
+  para o cleanup concluído sob `AUTH-S07-A-PROVIDER-ADMIN-KEY-CLEANUP-002`.
+  Esta reconciliação não reacessou OpenAI, Credential Manager, provider,
+  billing, projeto ou qualquer credencial e não constitui reobservação live
+  independente.
+- Fechamento registrado: a Admin key com label exato
+  `s07-a-provider-gpt54m-candidate-001-admin-provisioning` foi revogada, está
+  ausente do inventário Active e aparece historicamente somente como Inactive;
+  `Last used` permaneceu `Never` e o gasto permaneceu `USD 0.00`.
+- Cleanup local registrado: o target
+  `RAG-Challenge/OpenAI/AdminKey/s07-a-provider-gpt54m-candidate-001` foi
+  removido do Windows Credential Manager e sua ausência foi verificada no
+  cleanup autorizado. Nenhum secret, fragmento, fingerprint ou representação
+  mascarada foi incluído nos registros.
+- Limites preservados: não houve chamada de provider ou `/v1/responses`, custo
+  novo, alteração de billing, limites, allowlist ou projeto, Automatic Quality
+  Gate, Human Gate ou mudança de lifecycle.
+- Artefatos protegidos: OpenAPI v1 permaneceu no SHA-256
+  `d6a686b94c926914beb28b437f464430a01de6560c2e2d476cf5c36025813e34` e blob
+  `a5fb3602fbab33bda6aa56cc4caaa9fdc37c8160`; OpenAPI v2 permaneceu no
+  SHA-256 `f4dca8db7fb7bd453e580495bb1bb7760812d954344931063e8549ed8f036733` e blob
+  `5ed6a47631653dd0c137b6ea1e979ae2c14bf8a8`.
+- Escopo documental fechado: somente o relatório de homologação, Current State,
+  este histórico append-only no EOF e Prompt System Change Log foram alterados.
+- Verificação documental: `git diff --check` terminou com exit code `0` e
+  `eng/check-repository.ps1` aprovou 275 arquivos não ignorados. O diff conteve
+  somente os quatro documentos autorizados; UTF-8/LF, newline final, links e
+  formato passaram; e OpenAPI v1/v2 permaneceram byte a byte protegidas.
+- Versionamento: corpus elevado por `PATCH` factual de `4.10.24` para
+  `4.10.25`. O histórico preservou byte a byte seu prefixo anterior no SHA-256
+  `1eea14d98fcd7014d99c070b4c6b1a92c096ef0f8dfec927f96bafda45492a63`.
+- Próxima condição diretamente relacionada: nenhuma; o cleanup administrativo
+  e sua reconciliação factual estão encerrados sem gate ou lifecycle.
