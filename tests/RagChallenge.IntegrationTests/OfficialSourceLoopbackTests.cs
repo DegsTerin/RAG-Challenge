@@ -347,13 +347,15 @@ public sealed class OfficialSourceLoopbackTests
                     SqlitePersistenceFixture.CorpusId,
                     SqlitePersistenceFixture.At(4)));
             Assert.Equal(manifest.IndexGenerationId, querySnapshot.ActivationRecord.IndexGenerationId);
-            var hits = await fixture.VectorStore.SearchExactAsync(new VectorSearchRequest(
+            var search = await fixture.VectorStore.SearchExactAsync(new VectorSearchRequest(
                 SqlitePersistenceFixture.CorpusId,
                 manifest.IndexGenerationId,
+                manifest.IndexCompatibilityKey,
                 new float[] { 1, 1, generationSeed.Length },
                 maximumResults: 1,
                 [VectorSearchBindingSelector.FromBinding(binding)]));
-            Assert.Single(hits);
+            Assert.Equal(VectorSearchOutcome.Succeeded, search.Outcome);
+            Assert.Single(search.Hits);
         }
         finally
         {

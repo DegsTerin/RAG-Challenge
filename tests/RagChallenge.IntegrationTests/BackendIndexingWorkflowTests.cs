@@ -106,16 +106,19 @@ public sealed class BackendIndexingWorkflowTests
         var resolvedBinding = Assert.Single(querySnapshot.EvidenceBindings);
         Assert.Equal(DocumentContentLanguage.EnGb, resolvedBinding.ContentLanguage);
         Assert.Equal(SourceFreshness.Local, resolvedBinding.Freshness);
-        var hits = await fixture.VectorStore.SearchExactAsync(
+        var search = await fixture.VectorStore.SearchExactAsync(
             new VectorSearchRequest(
                 activated.CurrentRecord.CorpusId,
                 activated.CurrentRecord.IndexGenerationId,
+                built.Manifest.IndexCompatibilityKey,
                 new float[] { 1, 0, 0 },
                 maximumResults: 2,
                 activated.CurrentRecord.DocumentBindings
                     .Select(VectorSearchBindingSelector.FromBinding)
                     .ToArray(),
                 [binding.DatabaseProductId]));
+        Assert.Equal(VectorSearchOutcome.Succeeded, search.Outcome);
+        var hits = search.Hits;
         Assert.Equal(2, hits.Count);
         Assert.All(hits, hit =>
         {
@@ -133,24 +136,27 @@ public sealed class BackendIndexingWorkflowTests
             new VectorSearchRequest(
                 activated.CurrentRecord.CorpusId,
                 activated.CurrentRecord.IndexGenerationId,
+                built.Manifest.IndexCompatibilityKey,
                 new float[] { 1, 0, 0 },
                 maximumResults: 2,
                 activated.CurrentRecord.DocumentBindings
                     .Select(VectorSearchBindingSelector.FromBinding)
                     .ToArray(),
                 [new DatabaseProductId("db-not-authorised")]));
-        Assert.Empty(deniedByDatabaseFilter);
+        Assert.Equal(VectorSearchOutcome.Succeeded, deniedByDatabaseFilter.Outcome);
+        Assert.Empty(deniedByDatabaseFilter.Hits);
 
-        await Assert.ThrowsAsync<KeyNotFoundException>(() =>
-            fixture.VectorStore.SearchExactAsync(
-                new VectorSearchRequest(
-                    new CorpusId("other-corpus"),
-                    activated.CurrentRecord.IndexGenerationId,
-                    new float[] { 1, 0, 0 },
-                    maximumResults: 2,
-                    activated.CurrentRecord.DocumentBindings
-                        .Select(VectorSearchBindingSelector.FromBinding)
-                        .ToArray())));
+        var unavailable = await fixture.VectorStore.SearchExactAsync(
+            new VectorSearchRequest(
+                new CorpusId("other-corpus"),
+                activated.CurrentRecord.IndexGenerationId,
+                built.Manifest.IndexCompatibilityKey,
+                new float[] { 1, 0, 0 },
+                maximumResults: 2,
+                activated.CurrentRecord.DocumentBindings
+                    .Select(VectorSearchBindingSelector.FromBinding)
+                    .ToArray()));
+        Assert.Equal(VectorSearchOutcome.GenerationUnavailable, unavailable.Outcome);
 
         var replayedBuild = await service.BuildAsync(request);
         var replayedActivation = await activationService.ActivateAsync(activationRequest);

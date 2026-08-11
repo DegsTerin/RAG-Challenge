@@ -292,6 +292,65 @@ public sealed class QuestionAnsweringServiceTests
         Assert.Empty(context.AnswerEvidenceStore.Records);
     }
 
+    [Theory]
+    [InlineData(RetrievalPolicyOutcome.InvalidIndexData, QueryFailureKind.IndexUnavailable)]
+    [InlineData(RetrievalPolicyOutcome.ContractViolation, QueryFailureKind.IndexUnavailable)]
+    [InlineData(RetrievalPolicyOutcome.GenerationUnavailable, QueryFailureKind.IndexUnavailable)]
+    [InlineData(
+        RetrievalPolicyOutcome.InvalidQueryVector,
+        QueryFailureKind.EmbeddingUnavailable)]
+    [InlineData(
+        RetrievalPolicyOutcome.InvalidConfiguration,
+        QueryFailureKind.ConfigurationInvalid)]
+    [InlineData(
+        RetrievalPolicyOutcome.OperationCancelled,
+        QueryFailureKind.OperationCancelled)]
+    [InlineData(
+        RetrievalPolicyOutcome.UnexpectedFailure,
+        QueryFailureKind.UnexpectedFailure)]
+    public async Task RetrievalIntegrityFailureFailsClosedBeforeModelAndPersistence(
+        RetrievalPolicyOutcome retrievalOutcome,
+        QueryFailureKind expectedFailure)
+    {
+        var context = CreateContext(
+            SupportedQueryLanguage.EnGb,
+            retrievalFailure: retrievalOutcome);
+
+        var result = await context.Service.AskAsync(
+            new QueryRequest(
+                CorpusId,
+                SupportedQueryLanguage.EnGb,
+                "Question",
+                "correlation-retrieval-failure"),
+            At(5));
+
+        Assert.Null(result.Completion);
+        Assert.Equal(expectedFailure, result.Failure!.Kind);
+        Assert.Equal(0, context.LanguageModel.CallCount);
+        Assert.Empty(context.AnswerEvidenceStore.Records);
+    }
+
+    [Fact]
+    public async Task EmbeddingPolicyDescriptorMismatchFailsAsConfigurationBeforeProvider()
+    {
+        var context = CreateContext(
+            SupportedQueryLanguage.EnGb,
+            mismatchedPolicyDescriptor: true);
+
+        var result = await context.Service.AskAsync(
+            new QueryRequest(
+                CorpusId,
+                SupportedQueryLanguage.EnGb,
+                "Question",
+                "correlation-policy-config"),
+            At(5));
+
+        Assert.Equal(QueryFailureKind.ConfigurationInvalid, result.Failure!.Kind);
+        Assert.Equal(0, context.EmbeddingProvider.CallCount);
+        Assert.Equal(0, context.LanguageModel.CallCount);
+        Assert.Empty(context.AnswerEvidenceStore.Records);
+    }
+
     [Fact]
     public void GenerationBindingSelectorExcludesObservationIdentity()
     {
@@ -310,8 +369,10 @@ public sealed class QuestionAnsweringServiceTests
         bool embeddingUnavailable = false,
         bool languageModelUnavailable = false,
         bool answerEvidenceFailure = false,
+        RetrievalPolicyOutcome? retrievalFailure = null,
         DocumentContentLanguage? contentLanguage = null,
-        SourceDeclaredLanguage? sourceDeclaredLanguage = null)
+        SourceDeclaredLanguage? sourceDeclaredLanguage = null,
+        bool mismatchedPolicyDescriptor = false)
     {
         contentLanguage ??= new DocumentContentLanguage(
             evidenceLanguage.ToCanonicalTag());
@@ -324,6 +385,7 @@ public sealed class QuestionAnsweringServiceTests
             new SourceAdapterId("local-pdf"),
             SourceTrustClass.LocalAuthorised);
         var (evidence, renderManifest) = CreatePdfEvidence(binding);
+        var manifest = CreateManifest([binding]);
         var activation = new CorpusActivationRecord(
             CorpusId,
             new ActivationRecordRevision(1),
@@ -344,7 +406,8 @@ public sealed class QuestionAnsweringServiceTests
                 contentLanguage,
                 SourceFreshness.Local,
                 "Synthetic database",
-                sourceDeclaredLanguage: sourceDeclaredLanguage)]);
+                sourceDeclaredLanguage: sourceDeclaredLanguage)],
+            manifest);
         var embeddingDescriptor = new EmbeddingProviderDescriptor(
             "fake",
             "embedding-v1",
@@ -369,6 +432,23 @@ public sealed class QuestionAnsweringServiceTests
                 new CandidateBuildId("candidate-query"),
                 pageNumber: 1)]
             : []);
+        var retrievalPolicyConfiguration =
+            RetrievalPolicyConfiguration.CreateRetrievalV1(
+                mismatchedPolicyDescriptor
+                    ? new EmbeddingProviderDescriptor(
+                        "fake",
+                        "embedding-v1",
+                        "mismatched-revision",
+                        dimensions: 3)
+                    : embeddingDescriptor,
+                manifest.IndexCompatibilityKey);
+        IRetrievalPolicyExecutor retrievalPolicyExecutor = retrievalFailure is null
+            ? new RetrievalV1PolicyExecutor(
+                vectorStore,
+                retrievalPolicyConfiguration)
+            : new FakeRetrievalPolicyExecutor(RetrievalPolicyResult.Failed(
+                retrievalFailure.Value,
+                identity: null));
         var answerEvidenceStore = new FakeAnswerEvidenceStore(answerEvidenceFailure);
         var service = new QuestionAnsweringService(
             CorpusId,
@@ -376,12 +456,12 @@ public sealed class QuestionAnsweringServiceTests
             languageModelDescriptor,
             new FakeActivationReader(snapshot),
             embedding,
-            vectorStore,
+            retrievalPolicyExecutor,
+            retrievalPolicyConfiguration,
             model,
             answerEvidenceStore,
             new FixedAnswerEvidenceRecordIdSource(),
-            NullAnswerEvidenceActivitySink.Instance,
-            minimumScore: 0.25);
+            NullAnswerEvidenceActivitySink.Instance);
         return new TestContext(service, embedding, model, answerEvidenceStore);
     }
 
@@ -394,6 +474,7 @@ public sealed class QuestionAnsweringServiceTests
             binding,
             new ContentObjectId(Hash("official-csv-source")),
             renderManifestId: null);
+        var manifest = CreateManifest([binding]);
         var activation = new CorpusActivationRecord(
             CorpusId,
             new ActivationRecordRevision(1),
@@ -415,7 +496,8 @@ public sealed class QuestionAnsweringServiceTests
                 freshness,
                 "Banco sintético",
                 "https://docs.example.invalid/reference.csv",
-                At(4))]);
+                At(4))],
+            manifest);
         var embeddingDescriptor = new EmbeddingProviderDescriptor(
             "fake",
             "embedding-v1",
@@ -438,6 +520,13 @@ public sealed class QuestionAnsweringServiceTests
                 ["value"] = "preserved",
             });
         var vectorStore = new FakeVectorStore([hitTransform?.Invoke(hit) ?? hit]);
+        var retrievalPolicyConfiguration =
+            RetrievalPolicyConfiguration.CreateRetrievalV1(
+                embeddingDescriptor,
+                manifest.IndexCompatibilityKey);
+        var retrievalPolicyExecutor = new RetrievalV1PolicyExecutor(
+            vectorStore,
+            retrievalPolicyConfiguration);
         var answerEvidenceStore = new FakeAnswerEvidenceStore(fail: false);
         var service = new QuestionAnsweringService(
             CorpusId,
@@ -445,12 +534,12 @@ public sealed class QuestionAnsweringServiceTests
             modelDescriptor,
             new FakeActivationReader(snapshot),
             embedding,
-            vectorStore,
+            retrievalPolicyExecutor,
+            retrievalPolicyConfiguration,
             model,
             answerEvidenceStore,
             new FixedAnswerEvidenceRecordIdSource(),
-            NullAnswerEvidenceActivitySink.Instance,
-            minimumScore: 0.25);
+            NullAnswerEvidenceActivitySink.Instance);
         return new TestContext(service, embedding, model, answerEvidenceStore);
     }
 
@@ -603,6 +692,23 @@ public sealed class QuestionAnsweringServiceTests
         VectorSearchBindingSelector selector) =>
         hit with { BindingSelector = selector };
 
+    private static FinalisedIndexGenerationManifest CreateManifest(
+        IReadOnlyCollection<DocumentBinding> bindings) =>
+        new(
+            manifestSchemaVersion: 1,
+            CorpusId,
+            new CorpusRevision(1),
+            new CatalogueRevision(1),
+            BindingDigestCanonicalizer.CanonicaliseActiveDocumentSet(bindings).Digest,
+            BindingDigestCanonicalizer.CanonicaliseSourceBindingSet(bindings).Digest,
+            new IndexCompatibilityKey(new string('b', 64)),
+            new GenerationSpecDigest(Hash("query-generation-specification")),
+            chunkCount: 1,
+            vectorCount: 1,
+            new LogicalArtifactDigest(Hash("query-logical-artifact")),
+            new GenerationContentDigest(GenerationId.Value["idxgen-".Length..]),
+            GenerationId);
+
     private static readonly CorpusId CorpusId = new("main-corpus");
     private static readonly IndexGenerationId GenerationId = new($"idxgen-{Hash("generation")}");
     private static readonly LogicalArtifactDigest ChunkDigest = new(Hash("chunk"));
@@ -708,12 +814,21 @@ public sealed class QuestionAnsweringServiceTests
         }
     }
 
+    private sealed class FakeRetrievalPolicyExecutor(RetrievalPolicyResult result)
+        : IRetrievalPolicyExecutor
+    {
+        public Task<RetrievalPolicyResult> ExecuteAsync(
+            RetrievalPolicyRequest request,
+            CancellationToken cancellationToken = default) => Task.FromResult(result);
+    }
+
     private sealed class FakeVectorStore(IReadOnlyList<VectorSearchHit> hits)
         : IVectorIndexStore
     {
-        public Task<IReadOnlyList<VectorSearchHit>> SearchExactAsync(
+        public Task<VectorSearchResult> SearchExactAsync(
             VectorSearchRequest request,
-            CancellationToken cancellationToken = default) => Task.FromResult(hits);
+            CancellationToken cancellationToken = default) =>
+            Task.FromResult(VectorSearchResult.Successful(hits));
 
         public Task CreateCandidateAsync(
             CandidateBuildId candidateBuildId,

@@ -39,6 +39,25 @@ public sealed class SqliteQueryActivationReader(SqliteStoreOptions options)
         }
 
         await using var context = options.CreateControlContext();
+        var manifestRow = await context.GenerationManifests.AsNoTracking()
+            .SingleOrDefaultAsync(row =>
+                row.CorpusId == activation.CorpusId.Value &&
+                row.IndexGenerationId == activation.IndexGenerationId.Value,
+                cancellationToken).ConfigureAwait(false);
+        FinalisedIndexGenerationManifest? finalisedGenerationManifest = null;
+
+        if (manifestRow is not null)
+        {
+            try
+            {
+                finalisedGenerationManifest = ControlPlaneMapping.ToDomain(manifestRow);
+            }
+            catch (ArgumentException)
+            {
+                // A malformed persisted manifest is represented as unavailable so retrieval can fail closed.
+            }
+        }
+
         var documentRows = await context.DocumentVersions.AsNoTracking()
             .Where(row => row.CorpusId == corpusId.Value)
             .ToArrayAsync(cancellationToken).ConfigureAwait(false);
@@ -205,7 +224,10 @@ public sealed class SqliteQueryActivationReader(SqliteStoreOptions options)
                 obligationSet));
         }
 
-        return new QueryActivationSnapshot(activation, resolved);
+        return new QueryActivationSnapshot(
+            activation,
+            resolved,
+            finalisedGenerationManifest);
     }
 
     private static SourceFreshness ResolveFreshness(

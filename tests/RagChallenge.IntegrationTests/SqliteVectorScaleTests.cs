@@ -72,14 +72,17 @@ public sealed class SqliteVectorScaleTests
             DocumentFormat.Pdf,
             new SourceAdapterId("local-scale"),
             SourceTrustClass.LocalAuthorised);
-        var hits = await fixture.VectorStore.SearchExactAsync(
+        var search = await fixture.VectorStore.SearchExactAsync(
             new VectorSearchRequest(
                 SqlitePersistenceFixture.CorpusId,
                 manifest.IndexGenerationId,
+                manifest.IndexCompatibilityKey,
                 query,
                 maximumResults: 3,
                 [VectorSearchBindingSelector.FromBinding(binding)]));
 
+        Assert.Equal(VectorSearchOutcome.Succeeded, search.Outcome);
+        var hits = search.Hits;
         Assert.Equal(3, hits.Count);
         Assert.Equal(0, hits[0].ChunkOrdinal);
         Assert.Equal(ChunkCount, await ScalarAsync(

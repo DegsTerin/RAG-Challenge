@@ -138,18 +138,25 @@ public sealed class BackendEndToEndWorkflowTests
         Assert.Equal(StoreMutationOutcome.Applied, activation.Outcome);
 
         var languageModel = new EvidenceCitingLanguageModel(languageModelDescriptor);
+        var retrievalPolicyConfiguration =
+            RetrievalPolicyConfiguration.CreateRetrievalV1(
+                embeddingDescriptor,
+                compatibilityProfile.Key);
+        var retrievalPolicyExecutor = new RetrievalV1PolicyExecutor(
+            fixture.VectorStore,
+            retrievalPolicyConfiguration);
         var answering = new QuestionAnsweringService(
             SqlitePersistenceFixture.CorpusId,
             embeddingDescriptor,
             languageModelDescriptor,
             new SqliteQueryActivationReader(fixture.Options),
             embedding,
-            fixture.VectorStore,
+            retrievalPolicyExecutor,
+            retrievalPolicyConfiguration,
             languageModel,
             new SqliteAnswerEvidenceStore(fixture.Options),
             new SystemAnswerEvidenceRecordIdSource(),
-            NullAnswerEvidenceActivitySink.Instance,
-            minimumScore: 0.25);
+            NullAnswerEvidenceActivitySink.Instance);
         var result = await answering.AskAsync(
             new QueryRequest(
                 SqlitePersistenceFixture.CorpusId,

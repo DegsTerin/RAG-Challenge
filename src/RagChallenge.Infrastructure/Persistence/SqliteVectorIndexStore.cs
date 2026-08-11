@@ -342,7 +342,7 @@ public sealed class SqliteVectorIndexStore(SqliteStoreOptions options)
         await transaction.CommitAsync(cancellationToken).ConfigureAwait(false);
     }
 
-    public async Task<IReadOnlyList<VectorSearchHit>> SearchExactAsync(
+    public async Task<VectorSearchResult> SearchExactAsync(
         VectorSearchRequest request,
         CancellationToken cancellationToken = default)
     {
@@ -350,85 +350,135 @@ public sealed class SqliteVectorIndexStore(SqliteStoreOptions options)
 
         if (request.MaximumResults > MaximumSearchResults)
         {
-            throw new ArgumentOutOfRangeException(
-                nameof(request),
-                request.MaximumResults,
-                $"Exact search must request 1..{MaximumSearchResults} results.");
+            return VectorSearchResult.Failed(VectorSearchOutcome.ContractViolation);
         }
 
-        var eligibleSelectors = SelectEligibleSelectors(request);
-
-        await using var context = options.CreateVectorContext();
-        var build = await context.VectorBuilds.AsNoTracking().SingleOrDefaultAsync(
-            row => row.IndexGenerationId == request.IndexGenerationId.Value &&
-                row.CorpusId == request.CorpusId.Value &&
-                row.Status == "Validated",
-            cancellationToken).ConfigureAwait(false) ??
-            throw new KeyNotFoundException(
-                "The requested corpus generation is not a validated vector build.");
-
-        ValidateVector(
-            request.QueryVector.Span,
-            build.VectorDimensions,
-            nameof(request));
-        var queryNorm = CalculateNorm(request.QueryVector.Span);
-
-        if (queryNorm == 0)
+        try
         {
-            throw new ArgumentException(
-                "An exact-search vector cannot have zero magnitude.",
-                nameof(request));
-        }
+            var eligibleSelectors = SelectEligibleSelectors(request);
 
-        if (eligibleSelectors.Count == 0)
-        {
-            return [];
-        }
+            await using var context = options.CreateVectorContext();
+            var build = await context.VectorBuilds.AsNoTracking().SingleOrDefaultAsync(
+                row => row.IndexGenerationId == request.IndexGenerationId.Value &&
+                    row.CorpusId == request.CorpusId.Value &&
+                    row.Status == "Validated",
+                cancellationToken).ConfigureAwait(false);
 
-        var chunks = await context.VectorChunks.AsNoTracking()
-            .Where(row => row.CandidateBuildId == build.CandidateBuildId)
-            .Where(CreateEligibleChunkPredicate(eligibleSelectors.Keys))
-            .ToArrayAsync(cancellationToken)
-            .ConfigureAwait(false);
-        var scored = new List<VectorSearchHit>();
-
-        foreach (var row in chunks)
-        {
-            if (!eligibleSelectors.TryGetValue(
-                    (row.DocumentId, row.DocumentVersion),
-                    out var bindingSelector))
+            if (build is null ||
+                !string.Equals(
+                    build.IndexCompatibilityKey,
+                    request.ExpectedIndexCompatibilityKey.Value,
+                    StringComparison.Ordinal))
             {
-                throw new InvalidDataException(
-                    "A retrieved vector chunk has no eligible binding selector.");
+                return VectorSearchResult.Failed(
+                    VectorSearchOutcome.GenerationUnavailable);
             }
 
-            var decoded = StoredVectorChunkCodec.Decode(row.ChunkText);
-            var vector = DecodeVector(row.Vector, build.VectorDimensions);
-            var vectorNorm = CalculateNorm(vector);
-            var score = vectorNorm == 0
-                ? 0
-                : CalculateDotProduct(request.QueryVector.Span, vector) /
-                    (queryNorm * vectorNorm);
-            scored.Add(new VectorSearchHit(
-                new CandidateBuildId(row.CandidateBuildId),
-                request.CorpusId,
-                request.IndexGenerationId,
-                bindingSelector,
-                row.ChunkOrdinal,
-                new LogicalArtifactDigest(row.ChunkDigest),
-                decoded.Text,
-                score,
-                decoded.ContentLanguage,
-                decoded.PageNumber,
-                decoded.RecordNumber,
-                decoded.Columns));
-        }
+            try
+            {
+                ValidateVector(
+                    request.QueryVector.Span,
+                    build.VectorDimensions,
+                    nameof(request));
+            }
+            catch (ArgumentException)
+            {
+                return VectorSearchResult.Failed(VectorSearchOutcome.InvalidQueryVector);
+            }
 
-        return scored
-            .OrderByDescending(hit => hit.Score)
-            .ThenBy(hit => hit.ChunkOrdinal)
-            .Take(request.MaximumResults)
-            .ToArray();
+            var queryNorm = CalculateNorm(request.QueryVector.Span);
+
+            if (!double.IsFinite(queryNorm) || queryNorm == 0)
+            {
+                return VectorSearchResult.Failed(VectorSearchOutcome.InvalidQueryVector);
+            }
+
+            if (eligibleSelectors.Count == 0)
+            {
+                return VectorSearchResult.Successful([]);
+            }
+
+            var chunks = await context.VectorChunks.AsNoTracking()
+                .Where(row => row.CandidateBuildId == build.CandidateBuildId)
+                .Where(CreateEligibleChunkPredicate(eligibleSelectors.Keys))
+                .ToArrayAsync(cancellationToken)
+                .ConfigureAwait(false);
+            var scored = new List<VectorSearchHit>();
+
+            foreach (var row in chunks)
+            {
+                if (!eligibleSelectors.TryGetValue(
+                        (row.DocumentId, row.DocumentVersion),
+                        out var bindingSelector))
+                {
+                    throw new InvalidDataException(
+                        "A retrieved vector chunk has no eligible binding selector.");
+                }
+
+                if (row.ChunkOrdinal < 0)
+                {
+                    throw new InvalidDataException(
+                        "A retrieved vector chunk has a negative global ordinal.");
+                }
+
+                var decoded = StoredVectorChunkCodec.Decode(row.ChunkText);
+                var vector = DecodeVector(row.Vector, build.VectorDimensions);
+                ValidateStoredVector(vector);
+                var vectorNorm = CalculateNorm(vector);
+
+                if (!double.IsFinite(vectorNorm))
+                {
+                    throw new InvalidDataException(
+                        "A retrieved vector chunk has a non-finite norm.");
+                }
+
+                var score = vectorNorm == 0
+                    ? 0
+                    : CalculateDotProduct(request.QueryVector.Span, vector) /
+                        (queryNorm * vectorNorm);
+
+                if (!double.IsFinite(score) || score is < -1 or > 1)
+                {
+                    throw new InvalidDataException(
+                        "A retrieved vector chunk produced an invalid cosine score.");
+                }
+
+                scored.Add(new VectorSearchHit(
+                    new CandidateBuildId(row.CandidateBuildId),
+                    request.CorpusId,
+                    request.IndexGenerationId,
+                    bindingSelector,
+                    row.ChunkOrdinal,
+                    new LogicalArtifactDigest(row.ChunkDigest),
+                    decoded.Text,
+                    score,
+                    decoded.ContentLanguage,
+                    decoded.PageNumber,
+                    decoded.RecordNumber,
+                    decoded.Columns));
+            }
+
+            return VectorSearchResult.Successful(scored
+                .OrderByDescending(hit => hit.Score)
+                .ThenBy(hit => hit.ChunkOrdinal)
+                .Take(request.MaximumResults));
+        }
+        catch (OperationCanceledException)
+        {
+            return VectorSearchResult.Failed(VectorSearchOutcome.OperationCancelled);
+        }
+        catch (InvalidDataException)
+        {
+            return VectorSearchResult.Failed(VectorSearchOutcome.InvalidIndexData);
+        }
+        catch (ArgumentException)
+        {
+            return VectorSearchResult.Failed(VectorSearchOutcome.InvalidIndexData);
+        }
+        catch (Exception)
+        {
+            return VectorSearchResult.Failed(VectorSearchOutcome.UnexpectedFailure);
+        }
     }
 
     private static Dictionary<(string DocumentId, long DocumentVersion),
@@ -615,6 +665,18 @@ public sealed class SqliteVectorIndexStore(SqliteStoreOptions options)
                 throw new ArgumentException(
                     "A vector cannot contain NaN or infinity.",
                     parameterName);
+            }
+        }
+    }
+
+    private static void ValidateStoredVector(ReadOnlySpan<float> vector)
+    {
+        foreach (var value in vector)
+        {
+            if (!float.IsFinite(value))
+            {
+                throw new InvalidDataException(
+                    "A stored vector cannot contain NaN or infinity.");
             }
         }
     }

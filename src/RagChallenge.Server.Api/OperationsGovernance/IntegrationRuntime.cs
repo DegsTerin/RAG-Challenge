@@ -261,18 +261,25 @@ internal sealed class SyntheticIntegrationRuntime :
                 new SqliteQueryActivationReader(stores),
                 controlStore,
                 contentStore);
+            var retrievalPolicyConfiguration =
+                RetrievalPolicyConfiguration.CreateRetrievalV1(
+                    EmbeddingDescriptor,
+                    CreateCompatibilityProfile().Key);
+            var retrievalPolicyExecutor = new RetrievalV1PolicyExecutor(
+                vectorStore,
+                retrievalPolicyConfiguration);
             answeringService = new QuestionAnsweringService(
                 CorpusId,
-                 EmbeddingDescriptor,
-                 LanguageModelDescriptor,
-                 new SqliteQueryActivationReader(stores),
-                 queryEmbeddingProvider,
-                 vectorStore,
-                 queryLanguageModel,
-                 new SqliteAnswerEvidenceStore(stores),
-                 new SystemAnswerEvidenceRecordIdSource(),
-                 answerEvidenceActivitySink,
-                 minimumScore: 0.25);
+                EmbeddingDescriptor,
+                LanguageModelDescriptor,
+                new SqliteQueryActivationReader(stores),
+                queryEmbeddingProvider,
+                retrievalPolicyExecutor,
+                retrievalPolicyConfiguration,
+                queryLanguageModel,
+                new SqliteAnswerEvidenceStore(stores),
+                new SystemAnswerEvidenceRecordIdSource(),
+                answerEvidenceActivitySink);
         }
         finally
         {
@@ -507,16 +514,17 @@ internal sealed class SyntheticIntegrationRuntime :
                 "The persisted integration visual-evidence binding is unavailable.");
         }
 
-        var hits = await vectorStore.SearchExactAsync(new VectorSearchRequest(
+        var search = await vectorStore.SearchExactAsync(new VectorSearchRequest(
             activation.CorpusId,
             activation.IndexGenerationId,
+            CreateCompatibilityProfile().Key,
             new float[] { 1, 0, 0 },
             maximumResults: 1,
             activation.DocumentBindings
                 .Select(VectorSearchBindingSelector.FromBinding)
                 .ToArray()), cancellationToken).ConfigureAwait(false);
 
-        if (hits.Count != 1)
+        if (search.Outcome != VectorSearchOutcome.Succeeded || search.Hits.Count != 1)
         {
             throw new InvalidDataException(
                 "The persisted integration index cannot serve its sentinel query.");

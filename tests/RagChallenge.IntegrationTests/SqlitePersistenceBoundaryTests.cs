@@ -619,14 +619,15 @@ public sealed class SqlitePersistenceBoundaryTests
                 new float[] { 1, 0, 0 })]);
         var unvalidatedId = new IndexGenerationId(
             $"idxgen-{SqlitePersistenceFixture.Hash("unvalidated")}");
-        await Assert.ThrowsAsync<KeyNotFoundException>(() =>
-            fixture.VectorStore.SearchExactAsync(
-                new VectorSearchRequest(
-                    SqlitePersistenceFixture.CorpusId,
-                    unvalidatedId,
-                    new float[] { 1, 0, 0 },
-                    maximumResults: 1,
-                    [VectorSearchBindingSelector.FromBinding(binding)])));
+        var unvalidated = await fixture.VectorStore.SearchExactAsync(
+            new VectorSearchRequest(
+                SqlitePersistenceFixture.CorpusId,
+                unvalidatedId,
+                SqlitePersistenceFixture.CompatibilityKey,
+                new float[] { 1, 0, 0 },
+                maximumResults: 1,
+                [VectorSearchBindingSelector.FromBinding(binding)]));
+        Assert.Equal(VectorSearchOutcome.GenerationUnavailable, unvalidated.Outcome);
 
         var activeDigest = BindingDigestCanonicalizer
             .CanonicaliseActiveDocumentSet([binding])
@@ -650,17 +651,30 @@ public sealed class SqlitePersistenceBoundaryTests
             candidate,
             specification,
             SqlitePersistenceFixture.At(3));
-        var hits = await fixture.VectorStore.SearchExactAsync(
+        var search = await fixture.VectorStore.SearchExactAsync(
             new VectorSearchRequest(
                 SqlitePersistenceFixture.CorpusId,
                 manifest.IndexGenerationId,
+                manifest.IndexCompatibilityKey,
                 new float[] { 1, 0, 0 },
                 maximumResults: 1,
                 [VectorSearchBindingSelector.FromBinding(binding)]));
-        var hit = Assert.Single(hits);
+        Assert.Equal(VectorSearchOutcome.Succeeded, search.Outcome);
+        var hit = Assert.Single(search.Hits);
         Assert.Equal(manifest.IndexGenerationId, idempotentReplay.IndexGenerationId);
         Assert.Equal(0, hit.ChunkOrdinal);
         Assert.Equal(1, hit.Score, precision: 12);
+        var compatibilityMismatch = await fixture.VectorStore.SearchExactAsync(
+            new VectorSearchRequest(
+                SqlitePersistenceFixture.CorpusId,
+                manifest.IndexGenerationId,
+                new IndexCompatibilityKey(new string('f', 64)),
+                new float[] { 1, 0, 0 },
+                maximumResults: 1,
+                [VectorSearchBindingSelector.FromBinding(binding)]));
+        Assert.Equal(
+            VectorSearchOutcome.GenerationUnavailable,
+            compatibilityMismatch.Outcome);
     }
 
     [Fact]

@@ -550,11 +550,89 @@ public sealed record VectorSearchHit(
     public DocumentVersionNumber DocumentVersion => BindingSelector.DocumentVersion;
 }
 
+public enum VectorSearchOutcome
+{
+    Succeeded,
+    InvalidQueryVector,
+    GenerationUnavailable,
+    InvalidIndexData,
+    ContractViolation,
+    OperationCancelled,
+    UnexpectedFailure,
+}
+
+public sealed class VectorSearchResult
+{
+    private VectorSearchResult(
+        VectorSearchOutcome outcome,
+        IEnumerable<VectorSearchHit>? hits,
+        string? failureIdentity)
+    {
+        var materialised = hits?.ToArray() ?? [];
+
+        if (!Enum.IsDefined(outcome) ||
+            (outcome == VectorSearchOutcome.Succeeded) != (failureIdentity is null) ||
+            outcome != VectorSearchOutcome.Succeeded && materialised.Length != 0 ||
+            failureIdentity is not null && string.IsNullOrWhiteSpace(failureIdentity))
+        {
+            throw new ArgumentException(
+                "A vector-search result must contain either successful hits or one sanitised failure identity.");
+        }
+
+        Outcome = outcome;
+        Hits = Array.AsReadOnly(materialised);
+        FailureIdentity = failureIdentity;
+    }
+
+    public VectorSearchOutcome Outcome { get; }
+
+    public ReadOnlyCollection<VectorSearchHit> Hits { get; }
+
+    public string? FailureIdentity { get; }
+
+    public static VectorSearchResult Successful(IEnumerable<VectorSearchHit> hits)
+    {
+        ArgumentNullException.ThrowIfNull(hits);
+        return new VectorSearchResult(VectorSearchOutcome.Succeeded, hits, failureIdentity: null);
+    }
+
+    public static VectorSearchResult Failed(VectorSearchOutcome outcome)
+    {
+        if (outcome == VectorSearchOutcome.Succeeded)
+        {
+            throw new ArgumentOutOfRangeException(nameof(outcome));
+        }
+
+        return new VectorSearchResult(
+            outcome,
+            hits: null,
+            $"VECTOR_SEARCH_{ToUpperSnakeCase(outcome.ToString())}");
+    }
+
+    private static string ToUpperSnakeCase(string value)
+    {
+        var result = new System.Text.StringBuilder(value.Length + 8);
+
+        foreach (var character in value)
+        {
+            if (char.IsUpper(character) && result.Length != 0)
+            {
+                result.Append('_');
+            }
+
+            result.Append(char.ToUpperInvariant(character));
+        }
+
+        return result.ToString();
+    }
+}
+
 public sealed class VectorSearchRequest
 {
     public VectorSearchRequest(
         CorpusId corpusId,
         IndexGenerationId indexGenerationId,
+        IndexCompatibilityKey expectedIndexCompatibilityKey,
         ReadOnlyMemory<float> queryVector,
         int maximumResults,
         IReadOnlyCollection<VectorSearchBindingSelector> eligibleSelectors,
@@ -564,6 +642,8 @@ public sealed class VectorSearchRequest
         CorpusId = corpusId ?? throw new ArgumentNullException(nameof(corpusId));
         IndexGenerationId = indexGenerationId ??
             throw new ArgumentNullException(nameof(indexGenerationId));
+        ExpectedIndexCompatibilityKey = expectedIndexCompatibilityKey ??
+            throw new ArgumentNullException(nameof(expectedIndexCompatibilityKey));
 
         if (queryVector.IsEmpty)
         {
@@ -611,6 +691,8 @@ public sealed class VectorSearchRequest
     public CorpusId CorpusId { get; }
 
     public IndexGenerationId IndexGenerationId { get; }
+
+    public IndexCompatibilityKey ExpectedIndexCompatibilityKey { get; }
 
     public ReadOnlyMemory<float> QueryVector { get; }
 
@@ -664,7 +746,7 @@ public interface IVectorIndexStore
         CandidateBuildId candidateBuildId,
         CancellationToken cancellationToken = default);
 
-    Task<IReadOnlyList<VectorSearchHit>> SearchExactAsync(
+    Task<VectorSearchResult> SearchExactAsync(
         VectorSearchRequest request,
         CancellationToken cancellationToken = default);
 }
