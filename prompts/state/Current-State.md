@@ -1387,10 +1387,18 @@ proprietários.
   only tipada e fail-closed e estabelece o desenho governado da baseline de
   retrieval. `retrieval-multi-query-v1-candidate` permanece estacionado. O
   corpus `4.10.27` reconcilia somente essa autoridade arquitetural sob
-  `AUTH-STATE07-RETRIEVAL-DETERMINISM-ADR-RECONCILE-001`; implementação,
-  testes executáveis, dataset, campanha, provider, rede, chamada paga, OpenAPI,
-  schema, migration, Automatic Quality Gate, Human Gate e lifecycle permanecem
-  `NOT_RUN`.
+  `AUTH-STATE07-RETRIEVAL-DETERMINISM-ADR-RECONCILE-001`. Sob autoridade humana
+  posterior e separada, concedida sobre
+  `main@ade89d737975f65c38e88b35758f8c6091e57406`, corpus `4.10.27`, o
+  `DR-2 — Determinism implementation` foi concluído no commit focal
+  `fabb24cad16201070e3b95fffb22467cd55963ab`. O corpus `4.10.28` reconcilia
+  factualmente a porta Application retrieval-only tipada, a configuração fixa
+  integral, as validações finitas e de ordem total e os outcomes fail-closed.
+  A evidência focal registrada — build sem avisos ou erros, 74 testes unitários
+  focais, 8 de integração locais/SQLite, 11 de arquitetura e auditoria de 279
+  arquivos — não constitui `DR-3` ou Automatic Quality Gate. Dataset, campanha,
+  provider, rede, chamada paga, OpenAPI, schema, migration, Human Gate e
+  lifecycle permanecem `NOT_RUN`; MultiQuery continua estacionado.
 - Fechamento sanitizado da chave administrativa de provisionamento: o cleanup
   concluído sob `AUTH-S07-A-PROVIDER-ADMIN-KEY-CLEANUP-002` foi reconciliado
   documentalmente sob
@@ -1427,7 +1435,7 @@ proprietários.
   a política de idioma acrescentou o 21º documento público por incremento
   versionado, e o ADR-0003 acrescentou o 22º.
 - A baseline aprovada no Human Gate de `STATE-00` permanece `3.4.0`.
-- O corpus de instruções vigente possui versão `4.10.27` e 13 arquivos em
+- O corpus de instruções vigente possui versão `4.10.28` e 13 arquivos em
   `prompts/`.
 - Visão, requisitos, arquitetura, RAG, segurança, qualidade, lifecycle,
   roadmap, backlog, estado, histórico e templates estão documentados.
@@ -1618,12 +1626,28 @@ proprietários.
   `AUTH-STATE07-RETRIEVAL-DETERMINISM-ADR-RECONCILE-001` a decisão explícita
   `ADR-0014: ACEITAR.` somente como autoridade arquitetural. A ordenação
   `Score DESC, global ChunkOrdinal ASC` torna-se contrato explícito sem alterar
-  resultados válidos de `retrieval-v1`; a porta tipada, as falhas fail-closed,
-  o scorer e os freezes de design, dataset e `campaign-input` permanecem
-  requisitos futuros não implementados. MultiQuery continua estacionado.
-  Implementação, teste executável, dataset, campanha, provider, rede, chamada
-  paga, OpenAPI, schema, migration, gate, Human Gate e lifecycle permanecem
-  `NOT_RUN`.
+  resultados válidos de `retrieval-v1`. Naquela reconciliação, a porta tipada,
+  as falhas fail-closed, o `retrieval-evaluation-scorer-v1` e os freezes de
+  design, dataset e `campaign-input` permaneciam requisitos futuros não
+  implementados; implementação, teste executável, dataset, campanha, provider,
+  rede, chamada paga, OpenAPI, schema, migration, gate, Human Gate e lifecycle
+  estavam `NOT_RUN`. MultiQuery continuava estacionado.
+- O corpus `4.10.28` reconcilia factualmente o
+  `DR-2 — Determinism implementation`, autorizado separadamente sobre
+  `main@ade89d737975f65c38e88b35758f8c6091e57406` e implementado no commit
+  `fabb24cad16201070e3b95fffb22467cd55963ab`. A porta Application retrieval-
+  only tipada, as identidades fixas de política e geração, a validação de query,
+  vetores, normas, scores finitos em `[-1, 1]`, ordinal global, identidades e
+  ordem `Score DESC, global ChunkOrdinal ASC`, além dos outcomes fail-closed,
+  estão implementados. `retrieval-v1` preserva top-k `8`, mínimo inclusivo
+  `0.25`, máximo de seis evidências, orçamento de 16.000 escalares e score `0`
+  para stored zero-vector. A evidência focal observada foi build sem avisos ou
+  erros, 74 testes unitários focais, 8 de integração locais/SQLite, 11 de
+  arquitetura e auditoria documental aprovada para 279 arquivos. Isso não
+  executa nem aprova `DR-3`.
+  Dataset, `retrieval-evaluation-scorer-v1`, campanha, provider, corpus real,
+  rede, chamada paga, OpenAPI, schema, migration, Human Gate e lifecycle
+  permanecem `NOT_RUN`; MultiQuery continua não canônico e estacionado.
 - O corpus `4.3.0` formaliza a decisão explícita do proprietário de aceitar
   perguntas e respostas em `pt-BR` e `en-GB`: cada consulta declara o idioma,
   a resposta usa o mesmo idioma, textos derivados da fonte permanecem no
@@ -1953,14 +1977,15 @@ autorizada.
 
 O ADR-0014 foi aceito explicitamente mediante `ADR-0014: ACEITAR.` somente
 como autoridade arquitetural e reconciliado documentalmente sob
-`AUTH-STATE07-RETRIEVAL-DETERMINISM-ADR-RECONCILE-001`. `DR-0` e `DR-1` estão
-concluídos. A próxima condição diretamente relacionada é autoridade humana
-separada para `DR-2 — Determinism implementation`, limitada à porta tipada, às
-validações finitas/fail-closed e aos testes focais que não alterem resultados
-válidos de `retrieval-v1`. Essa autoridade não foi concedida; dataset,
-campanha, provider, rede, chamada paga, OpenAPI, schema, migration, Automatic
-Quality Gate, Human Gate e lifecycle permanecem fora do escopo, e
-`retrieval-multi-query-v1-candidate` continua estacionado.
+`AUTH-STATE07-RETRIEVAL-DETERMINISM-ADR-RECONCILE-001`. `DR-0`, `DR-1` e
+`DR-2` estão concluídos. A próxima condição diretamente relacionada é
+autoridade humana separada para
+`DR-3 — Determinism Automatic Quality Gate`, limitada à revisão independente e
+aos checks focais e completos aplicáveis que comprovem o contrato de ordem
+total. `DR-3` não foi autorizado nem executado. Dataset, campanha, provider,
+rede, chamada paga, OpenAPI, schema, migration, Human Gate e lifecycle
+permanecem `NOT_RUN`, e `retrieval-multi-query-v1-candidate` continua
+estacionado.
 
 O ADR-0013 foi aceito explicitamente mediante `ADR-0013: ACEITAR.` somente
 como autoridade arquitetural. Ele seleciona `gpt-5.4-mini-2026-03-17` para o

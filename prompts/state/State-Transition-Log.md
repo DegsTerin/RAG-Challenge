@@ -7180,3 +7180,63 @@ contém somente fatos cronológicos.
   `DR-2 — Determinism implementation`. Dataset, campanha, provider, rede,
   chamada paga, OpenAPI, schema, migration e cada gate posterior exigem
   autoridades independentes; MultiQuery permanece estacionado.
+
+## 2026-08-11 — DR-2 reconciliado factualmente
+
+- Estado anterior e resultante: `STATE-07 TESTING_HOMOLOGATION` permanece
+  ativo; nenhum Automatic Quality Gate, Human Gate ou lifecycle foi executado
+  ou alterado.
+- Autoridade e baseline documental: solicitação explícita do proprietário
+  `Autorizo exclusivamente a reconciliação documental factual de DR-2 —
+  Determinism implementation.`, branch `main`, commit
+  `fabb24cad16201070e3b95fffb22467cd55963ab`, corpus `4.10.27`, working tree
+  inicialmente limpa e OpenAPI v1/v2 protegidas. O runtime preflight desta
+  reconciliação puramente documental foi `NÃO APLICÁVEL`.
+- Autoridade e resultado de implementação: `DR-2 — Determinism implementation`
+  foi autorizado separadamente sobre
+  `main@ade89d737975f65c38e88b35758f8c6091e57406`, corpus `4.10.27`, e
+  concluído no commit focal
+  `fabb24cad16201070e3b95fffb22467cd55963ab`, com 14 paths de código e testes.
+- Fronteira implementada: a porta Application retrieval-only tipada vincula
+  ativação, geração finalizada, `IndexCompatibilityKey`, descritor esperado,
+  política fixa, limites e digests. O mesmo executor é chamado pelo query path
+  antes do language model. Query, vetores armazenados, normas, scores finitos
+  em `[-1, 1]`, ordinal global, identidades, contagem e ordem total são
+  validados; estados inválidos produzem outcomes tipados e fail-closed.
+- Semântica preservada: entradas válidas de `retrieval-v1` mantêm
+  `Score DESC, global ChunkOrdinal ASC`, top-k `8`, mínimo `0.25` inclusivo,
+  máximo de seis evidências e orçamento de 16.000 escalares. Stored zero-vector
+  mantém score `0`; não foi introduzido clamp, epsilon, nova chave de desempate
+  ou alteração da aritmética de cosseno.
+- Evidência focal registrada do turno de implementação: build Debug com zero
+  avisos e zero erros; 74 de 74 testes unitários, 8 de 8 testes de integração
+  locais/SQLite e 11 de 11 testes de arquitetura aprovados; auditoria do
+  repositório aprovada para 279 arquivos não ignorados. Esta reconciliação não
+  reexecutou testes e essa evidência não constitui `DR-3` ou Automatic Quality
+  Gate.
+- Limites preservados: nenhum dataset, `retrieval-evaluation-scorer-v1`,
+  `campaign-input`, campanha, provider real, credencial, rede, chamada paga,
+  corpus real, OpenAPI, schema, migration, dependência, lockfile, nova geração,
+  Automatic Quality Gate, Human Gate, lifecycle, push, publicação, deploy ou
+  release foi executado ou alterado. `retrieval-multi-query-v1-candidate`
+  permanece não canônico e estacionado.
+- Artefatos protegidos: OpenAPI v1 permaneceu no SHA-256
+  `d6a686b94c926914beb28b437f464430a01de6560c2e2d476cf5c36025813e34` e blob
+  `a5fb3602fbab33bda6aa56cc4caaa9fdc37c8160`; OpenAPI v2 permaneceu no
+  SHA-256 `f4dca8db7fb7bd453e580495bb1bb7760812d954344931063e8549ed8f036733` e blob
+  `5ed6a47631653dd0c137b6ea1e979ae2c14bf8a8`.
+- Escopo documental fechado: somente ADR-0014, Current State, este histórico
+  append-only no EOF e Prompt System Change Log foram alterados; nenhum código
+  ou teste foi modificado nesta reconciliação.
+- Verificação documental: `git diff --check` terminou com exit code `0`;
+  `eng/check-repository.ps1` aprovou 279 arquivos não ignorados; o diff conteve
+  somente os quatro documentos autorizados; UTF-8/LF, newline final, espaços
+  finais, links e formato passaram; e o prefixo append-only deste histórico foi
+  preservado byte a byte.
+- Versionamento: corpus elevado por `PATCH` factual de `4.10.27` para
+  `4.10.28`. O histórico preservou byte a byte seu prefixo anterior no SHA-256
+  `7955af11982aefe5d5cc850e6182e3f73c03562fce50ee84a08894eea58260fd`.
+- Próxima condição: `DR-3 — Determinism Automatic Quality Gate` exige
+  autoridade humana separada para revisão independente e checks aplicáveis.
+  Dataset, campanha, provider, cada gate posterior e qualquer reconsideração
+  de MultiQuery permanecem sob autoridades independentes.

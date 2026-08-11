@@ -27,9 +27,22 @@
   - OpenAPI v2 SHA-256
     `f4dca8db7fb7bd453e580495bb1bb7760812d954344931063e8549ed8f036733`,
     Git blob `5ed6a47631653dd0c137b6ea1e979ae2c14bf8a8`
-- Verification status: documentary and static source inspection only; no
-  implementation, executable test, notebook, provider, network, product
-  corpus, scored campaign, Automatic Quality Gate or Human Gate was run
+- Implementation authority: explicit product-owner authorisation on clean
+  `main@ade89d737975f65c38e88b35758f8c6091e57406`, corpus `4.10.27`
+- Implementation status: `DR-2 — Determinism implementation` was completed in
+  focused local commit `fabb24cad16201070e3b95fffb22467cd55963ab`. It
+  materialises the Application-owned typed retrieval port, the fixed
+  `retrieval-v1` and `minimum-score-v1` policy binding, finite-state validation,
+  total-order enforcement and fail-closed query mapping
+- Documentary reconciliation: explicitly authorised by the product owner on
+  clean `main@fabb24cad16201070e3b95fffb22467cd55963ab`, corpus `4.10.27`, and
+  recorded by corpus `4.10.28`
+- Verification status: the implementation turn recorded 74 focused unit tests,
+  8 local/SQLite integration tests and 11 architecture tests passing, together
+  with a successful repository audit of 279 non-ignored files. The protected
+  OpenAPI v1 and v2 identities remained unchanged. This is focused
+  implementation evidence only; `DR-3 — Determinism Automatic Quality Gate`
+  remains `NOT_RUN`
 
 ## Purpose and authority
 
@@ -99,7 +112,8 @@ facts:
    of an exact tie at the `top-k` boundary across multiple documents, changed
    write batches, store reopen and invalid numerical states.
 
-These facts are visible in the current
+These facts describe the preparation baseline. The affected implementation
+files are the
 [indexing service](../../src/RagChallenge.Application/IndexingRetrieval/IndexingServices.cs),
 [generation canonicaliser](../../src/RagChallenge.Domain/IndexingRetrieval/IndexGenerationCanonicalizer.cs),
 [SQLite mapping](../../src/RagChallenge.Infrastructure/Persistence/VectorStoreDbContext.cs),
@@ -117,12 +131,12 @@ revision also contains zero product documents and zero product cases; its 60
 cases are synthetic and unscored. Neither revision can establish product
 retrieval quality or serve as the representative retrieval-only baseline.
 
-The current query service keeps retrieval selection private inside the
-answer-generation use case. Measuring only raw vector-store hits would omit
-eligibility validation, the minimum score, the scalar budget and the final
-evidence limit. Driving the whole answer path would introduce an unnecessary
-language-model call. A typed internal pre-generation boundary is therefore
-required.
+At the preparation baseline, the query service kept retrieval selection
+private inside the answer-generation use case. Measuring only raw vector-store
+hits would omit eligibility validation, the minimum score, the scalar budget
+and the final evidence limit. Driving the whole answer path would introduce an
+unnecessary language-model call. A typed internal pre-generation boundary was
+therefore required.
 
 ## Decision drivers
 
@@ -183,8 +197,8 @@ implemented. They do not change the returned order.
 
 ### Numerical and contract validation
 
-A future implementation increment must validate, without changing the current
-cosine arithmetic for valid values:
+The DR-2 implementation increment was required to validate, without changing
+the current cosine arithmetic for valid values:
 
 - the query vector and its norm before search;
 - every decoded stored vector and its norm;
@@ -234,8 +248,7 @@ public error code or OpenAPI shape is required.
 
 ### Internal retrieval-only port
 
-Application should own one internal port, provisionally named
-`IRetrievalPolicyExecutor`:
+Application owns one internal port named `IRetrievalPolicyExecutor`:
 
 ```text
 ExecuteAsync(RetrievalPolicyRequest, CancellationToken)
@@ -287,24 +300,26 @@ bind the following semantics:
 | Ranking | `Score DESC, global ChunkOrdinal ASC` |
 | Vector search | exact cosine over the eligible validated generation |
 | Vector `top-k` | `8` |
-| Minimum-score policy | selected `minimum-score-v1`; not currently implemented |
+| Minimum-score policy | selected `minimum-score-v1`; materialised by the separately authorised DR-2 implementation |
 | Minimum score | `0.25`, inclusive; observed in the only concrete enabled host composition and established by this decision as normative |
 | Maximum selected evidence | `6` |
 | Maximum selected evidence size | `16,000` Unicode scalar values |
 | Invalid ranking state | typed fail-closed result; never insufficient evidence |
 
-This decision does not claim that the current generic constructor parameter is
-already a versioned `0.25` contract. It establishes that architecture semantic;
-implementation, readiness and evidence remain future work. The policy-manifest
-digest is evaluation evidence. It does not add a public response field under
-this decision. `retrievalPolicyVersion` remains the public and answer-evidence
-identity already carried by the implemented contracts.
+At acceptance, this decision did not claim that the generic constructor
+parameter was already a versioned `0.25` contract. DR-2 subsequently
+materialised that architecture semantic. The policy-manifest digest is
+available to later evaluation evidence; implementing it does not itself
+constitute evaluation evidence or add a public response field.
+`retrievalPolicyVersion` remains the public and answer-evidence identity already
+carried by the implemented contracts.
 
 ## Versioning and compatibility
 
-`retrieval-v1` remains the version for a future increment that documents,
-validates and proves the successful ordering already implemented and rejects
-only states outside the valid contract. A previously admitted invalid
+`retrieval-v1` remains the version for the DR-2 increment, which documents,
+validates and provides focused tests for the successful ordering already
+implemented while rejecting only states outside the valid contract. A
+previously admitted invalid
 generation is blocked, quarantined or rebuilt; it is neither served as a
 successful `retrieval-v1` result nor migrated silently.
 
@@ -1012,10 +1027,9 @@ own later architecture and evaluation decision.
 - A vector-store scoring change requires a successor retrieval policy and an
   explicitly advanced descriptor consumed by `IndexCompatibilityProfile`,
   producing a new `IndexCompatibilityKey` and generation before serving.
-- A future typed-port implementation must reconcile the implemented raw-list
-  signature with the accepted canonical `VectorSearchResult` direction
-  without exposing provider or Infrastructure types to Domain, HTTP or
-  OpenAPI.
+- DR-2 reconciled the former raw-list signature with the accepted canonical
+  `VectorSearchResult` direction without exposing provider or Infrastructure
+  types to Domain, HTTP or OpenAPI.
 - Existing synthetic dataset revisions and historical reports remain
   immutable and retain their original claims.
 
@@ -1050,13 +1064,14 @@ decision:
 8. preserves both protected OpenAPI artefacts and grants no implementation,
    execution, gate, external-action or lifecycle authority.
 
-The preparation commit completed `DR-0`; the owner's decision completed only
-`DR-1`. `DR-2` and every later implementation, evaluation and gate remain
-`NOT_RUN` and require separate explicit authority.
+The preparation commit completed `DR-0`, and the owner's architecture decision
+completed `DR-1`. `DR-2` was subsequently completed under separate authority,
+as recorded below. Every later evaluation and gate remains separately governed.
 
 ## Acceptance negative scope
 
-Acceptance and its documentary reconciliation exclude:
+The acceptance decision and its documentary reconciliation, considered
+independently of the later DR-2 authority, exclude:
 
 - changes to source, tests, manifests, configuration, dependencies or
   lockfiles;
@@ -1067,3 +1082,28 @@ Acceptance and its documentary reconciliation exclude:
 - OpenAPI, schema, migration or public-contract changes;
 - Automatic Quality Gate, Human Gate or lifecycle transition; and
 - push, pull request, publication, deployment or release.
+
+## DR-2 implementation record
+
+The separately authorised `DR-2 — Determinism implementation` was completed in
+focused commit `fabb24cad16201070e3b95fffb22467cd55963ab`, whose predecessor
+is `ade89d737975f65c38e88b35758f8c6091e57406`. The implementation introduced
+the Application-owned typed retrieval boundary, bound the complete fixed policy
+and generation identities, enforced finite numerical states and the total order
+`Score DESC, global ChunkOrdinal ASC`, and mapped invalid retrieval states
+fail-closed before answer generation.
+
+The implementation turn recorded a Debug build with zero warnings and zero
+errors, 74 focused unit tests, 8 local/SQLite integration tests and 11
+architecture tests passing, plus a successful repository audit of 279
+non-ignored files. These results are focused implementation evidence only and
+do not constitute `DR-3` or an Automatic Quality Gate.
+
+DR-2 did not materialise or execute a dataset,
+`retrieval-evaluation-scorer-v1`, retrieval campaign or provider-inclusive
+evaluation; access a product corpus; use credentials,
+network or paid services; change OpenAPI, schema, migrations, dependencies,
+lockfiles or public contracts; unpark
+`retrieval-multi-query-v1-candidate`; or perform an Automatic Quality Gate,
+Human Gate, lifecycle transition, publication, deployment or release. `DR-3`
+and every later evaluation or gate remain separate, unauthorised and `NOT_RUN`.

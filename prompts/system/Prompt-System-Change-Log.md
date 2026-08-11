@@ -2,7 +2,7 @@
 
 ## Versão atual
 
-- Versão: `4.10.27`
+- Versão: `4.10.28`
 - Data: 2026-08-11
 - Status: `STATE-07` ativo; ADR-0011 `accepted`, reconciliado e com a correção
   interna da política de serving implementada; o A0 candidato-específico mantém
@@ -24,10 +24,11 @@
   autoridade ou pendência; o caminho temporário da Admin key de provisionamento
   está fechado, com
   revogação, estado histórico somente Inactive e remoção verificada do target
-  local registradas de forma sanitizada; ADR-0014 `accepted` somente como
-  autoridade arquitetural, com `retrieval-v1` inalterado para entradas válidas
-  e MultiQuery estacionado; homologação de produto, Human Gate e mudança de
-  lifecycle não executados
+  local registradas de forma sanitizada; ADR-0014 `accepted`, com
+  `DR-2 — Determinism implementation` concluído no commit focal
+  `fabb24cad16201070e3b95fffb22467cd55963ab`, `retrieval-v1` inalterado para
+  entradas válidas, MultiQuery estacionado e `DR-3` ainda `NOT_RUN`;
+  homologação de produto, Human Gate e mudança de lifecycle não executados
 - Escopo: 13 arquivos ativos em `prompts/`
 
 A versão do corpus é independente da versão futura do software.
@@ -41,6 +42,53 @@ A versão do corpus é independente da versão futura do software.
 
 Toda alteração atualiza este arquivo e, quando necessário,
 [`../Start-Here.md`](../Start-Here.md).
+
+## 4.10.28 — 2026-08-11
+
+- Reconcilia, sob a autoridade documental explícita concedida pelo
+  proprietário, sobre branch `main`, commit
+  `fabb24cad16201070e3b95fffb22467cd55963ab`, corpus `4.10.27`, working tree
+  inicialmente limpa e OpenAPI v1/v2 protegidas, o
+  `DR-2 — Determinism implementation`, autorizado separadamente sobre
+  `main@ade89d737975f65c38e88b35758f8c6091e57406`.
+- Registra a porta Application retrieval-only tipada, o request e o resultado
+  vinculados à ativação, geração, `IndexCompatibilityKey`, descritor esperado,
+  limites e digests; a validação de query, vetores, normas, scores finitos em
+  `[-1, 1]`, ordinal global, identidades, contagem e ordem total; os outcomes
+  fail-closed; e o uso do mesmo executor pelo query path antes do language
+  model.
+- Preserva `retrieval-v1` para entradas válidas: ordem
+  `Score DESC, global ChunkOrdinal ASC`, top-k `8`, mínimo `0.25` inclusivo,
+  máximo de seis evidências e orçamento de 16.000 escalares. Stored zero-vector
+  mantém score `0`; nenhuma tolerância, clamp, nova chave de desempate ou
+  alteração da aritmética de cosseno foi introduzida.
+- Evidência focal registrada do turno de implementação: build Debug com zero
+  avisos e zero erros; 74 de 74 testes unitários, 8 de 8 testes de integração
+  locais/SQLite e 11 de 11 testes de arquitetura aprovados; auditoria do
+  repositório aprovada para 279 arquivos não ignorados. A reconciliação
+  documental não reexecutou testes e não constitui `DR-3` ou Automatic Quality
+  Gate; o runtime preflight documental foi `NÃO APLICÁVEL`.
+- Limites preservados: nenhum dataset, `retrieval-evaluation-scorer-v1`,
+  `campaign-input`, campanha, provider real, credencial, rede, chamada paga,
+  corpus real, OpenAPI, schema, migration, dependência, lockfile, nova geração,
+  Automatic Quality Gate, Human Gate, lifecycle, push, publicação, deploy ou
+  release foi executado ou alterado. `retrieval-multi-query-v1-candidate`
+  permanece não canônico e estacionado.
+- Artefatos protegidos: OpenAPI v1 permaneceu no SHA-256
+  `d6a686b94c926914beb28b437f464430a01de6560c2e2d476cf5c36025813e34` e blob
+  `a5fb3602fbab33bda6aa56cc4caaa9fdc37c8160`; OpenAPI v2 permaneceu no
+  SHA-256 `f4dca8db7fb7bd453e580495bb1bb7760812d954344931063e8549ed8f036733` e blob
+  `5ed6a47631653dd0c137b6ea1e979ae2c14bf8a8`.
+- Validação documental: `git diff --check` terminou com exit code `0`;
+  `eng/check-repository.ps1` aprovou 279 arquivos não ignorados; somente os
+  quatro documentos autorizados mudaram; UTF-8/LF, newline final, espaços
+  finais, links, formato e o prefixo append-only do histórico passaram.
+- Versionamento: corpus elevado por `PATCH` factual de `4.10.27` para
+  `4.10.28`. O histórico preservou byte a byte seu prefixo anterior no SHA-256
+  `7955af11982aefe5d5cc850e6182e3f73c03562fce50ee84a08894eea58260fd`.
+- Próxima condição: `DR-3 — Determinism Automatic Quality Gate` exige
+  autoridade humana separada; dataset, campanha, provider, cada gate posterior
+  e qualquer reconsideração de MultiQuery permanecem independentes.
 
 ## 4.10.27 — 2026-08-11
 
