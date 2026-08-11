@@ -2,8 +2,8 @@
 
 ## Versão atual
 
-- Versão: `4.10.23`
-- Data: 2026-08-10
+- Versão: `5.0.0`
+- Data: 2026-08-11
 - Status: `STATE-07` ativo; ADR-0011 `accepted`, reconciliado e com a correção
   interna da política de serving implementada; o A0 candidato-específico mantém
   o primeiro documento `BLOCKED/EXCLUDED`, com quatro operações visuais
@@ -15,7 +15,9 @@
   offline e com handlers falsos; a campanha candidata de provider possui uma
   revisão sucessora sintética congelada, com Automatic Quality Gate aprovado
   somente na fronteira local, offline, determinística e com handlers falsos;
-  homologação de produto, Human Gate e mudança de lifecycle não executados
+  homologação de produto, Human Gate e mudança de lifecycle não executados; o
+  roteamento mecânico de tarefas do Codex está autorizado, com decisões
+  exclusivas do proprietário preservadas
 - Escopo: 13 arquivos ativos em `prompts/`
 
 A versão do corpus é independente da versão futura do software.
@@ -29,6 +31,34 @@ A versão do corpus é independente da versão futura do software.
 
 Toda alteração atualiza este arquivo e, quando necessário,
 [`../Start-Here.md`](../Start-Here.md).
+
+## 5.0.0 — 2026-08-11
+
+- Registra a declaração explícita do proprietário `Automatize isso para mim`
+  como `AUTH-GOV-CONVERSATION-ROUTING-AUTOMATION-001`, sobre a baseline limpa
+  `main@85784b2d01f7c493bbf8064f43ebfb4ac2c4c5ef`, corpus `4.10.23`, com
+  OpenAPI v1/v2 protegidas e runtime preflight `NÃO APLICÁVEL`.
+- Autoriza a coordenadora a materializar mecanicamente `CONTINUE_CURRENT`,
+  `START_NEW` e `RETURN_TO_EXISTING` por capacidades nativas do Codex,
+  incluindo payload completo, título sugerido, raciocínio suportado e
+  acompanhamento limitado em background. Modelo, sandbox, ambiente, escopo e
+  autoridade não mudam por inferência.
+- Exige target inequívoco, baseline compatível, deduplicação, prevenção de
+  ciclos e recibo real da ferramenta antes de alegar criação, nomeação, envio,
+  raciocínio ou conclusão. Falha, indisponibilidade ou ambiguidade preservam o
+  fallback copiável sem fabricar sucesso.
+- Mantém obrigatoriamente humanos Human Gate, ADR, lifecycle, nova
+  autorização, aceitação de risco ou custo, credencial/2FA e aprovação de ação
+  externa, destrutiva ou paga. O roteamento não fala nem retransmite decisão
+  em primeira pessoa como o proprietário; Human Gate permanece na conversa
+  atual e outro efeito downstream usa registro factual atribuído. A alternativa
+  de raciocínio documentada é aplicada antes de bloquear. Nenhuma recorrência
+  agendada é criada.
+- A alteração é documental e não modifica código, testes, configuração,
+  Domain, Application, OpenAPI, produto, runtime, gate ou lifecycle. O corpus
+  avança por `MAJOR` de `4.10.23` para `5.0.0` porque substitui o contrato
+  anterior de navegação e seleção exclusivamente manuais por execução nativa
+  permanente, alterando de modo incompatível o ator e a estrutura do handoff.
 
 ## 4.10.23 — 2026-08-10
 

@@ -1,6 +1,6 @@
 # Estado Atual
 
-Este documento é o snapshot factual vigente do workspace em 2026-08-10. Ele
+Este documento é o snapshot factual vigente do workspace em 2026-08-11. Ele
 não concede autoridade. Evolução e decisões no contexto original pertencem ao
 [`State-Transition-Log.md`](State-Transition-Log.md) e aos relatórios
 proprietários.
@@ -1383,7 +1383,7 @@ proprietários.
   a política de idioma acrescentou o 21º documento público por incremento
   versionado, e o ADR-0003 acrescentou o 22º.
 - A baseline aprovada no Human Gate de `STATE-00` permanece `3.4.0`.
-- O corpus de instruções vigente possui versão `4.10.23` e 13 arquivos em
+- O corpus de instruções vigente possui versão `5.0.0` e 13 arquivos em
   `prompts/`.
 - Visão, requisitos, arquitetura, RAG, segurança, qualidade, lifecycle,
   roadmap, backlog, estado, histórico e templates estão documentados.
@@ -1541,6 +1541,18 @@ proprietários.
   avaliação real, qualidade bilíngue, groundedness, citações, insuficiência de
   evidência real, resistência a prompt injection, latência, custo observado,
   OCI, deploy, Human Gate e lifecycle permanecem `NOT_RUN`.
+- O corpus `5.0.0` registra sob
+  `AUTH-GOV-CONVERSATION-ROUTING-AUTOMATION-001`, a partir da baseline limpa
+  `main@85784b2d01f7c493bbf8064f43ebfb4ac2c4c5ef`, a autorização permanente
+  do proprietário para a coordenadora executar mecanicamente os handoffs
+  `CONTINUE_CURRENT`, `START_NEW` e `RETURN_TO_EXISTING` com título, payload,
+  raciocínio suportado e acompanhamento nativo. A entrega exige target
+  inequívoco e recibo real da ferramenta; mantém fallback copiável quando a
+  capacidade falhar ou estiver indisponível. Human Gate, ADR, lifecycle, nova
+  autorização, aceitação de risco ou custo, credencial/2FA e aprovação de ação
+  externa, destrutiva ou paga continuam exclusivas do proprietário. A mudança
+  governa tarefas do Codex, não cria recorrência agendada e não altera produto,
+  runtime, OpenAPI, gate nem lifecycle.
 - O corpus `4.3.0` formaliza a decisão explícita do proprietário de aceitar
   perguntas e respostas em `pt-BR` e `en-GB`: cada consulta declara o idioma,
   a resposta usa o mesmo idioma, textos derivados da fonte permanecem no

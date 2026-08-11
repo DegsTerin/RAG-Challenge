@@ -30,6 +30,10 @@ Um lote está pronto quando:
   isolamento, mensagens e ordem de integração estão definidos.
 - a próxima conversa e cada lane possuem raciocínio do Codex recomendado,
   justificativa e alternativa caso o nível esteja indisponível.
+- quando houver encaminhamento automático, a autoridade mecânica, rota,
+  target, título, payload, capacidade nativa e correspondência de raciocínio
+  estão definidos; o destino é inequívoco e nenhuma decisão exclusiva do
+  proprietário integra a operação.
 - a [`política de idioma`](Language-Policy.md) é aplicável ao lote, sem
   tradução histórica ou idioma de interface inferidos.
 
@@ -52,16 +56,27 @@ Um lote está pronto quando:
   lifecycle, ação humana e roteamento distintos.
 - Atualizações intermediárias acrescentam informação materialmente nova e não
   repetem nem antecipam o handoff.
-- Rota, target, ação e payload são coerentes; texto obrigatório fica completo
-  e sem placeholders imediatamente após a conversa, com rótulo/cercas fora do
+- Rota, target, ação, status de encaminhamento e payload são coerentes. Um
+  status `EXECUTADO` possui recibo real da ferramenta e não duplica o texto já
+  entregue; decisão humana ou fallback mantém o texto completo e sem
+  placeholders imediatamente após o status, com rótulo/cercas fora do
   conteúdo, inclusive para Human Gate de uma linha ou payload com cerca
-  interna. Ausência só é aceita quando nenhuma ação depende de mensagem.
+  interna. Ausência só é aceita após entrega comprovada ou quando nenhuma ação
+  depende de mensagem.
+- O encaminhamento automático não origina Human Gate, ADR, lifecycle,
+  autorização, aceitação de risco ou custo, credencial/2FA nem aprovação de
+  ação externa, destrutiva ou paga; não inventa target, não repete payload e
+  não cria recorrência agendada. Também não retransmite uma decisão humana em
+  primeira pessoa: Human Gate permanece na conversa atual e outro efeito
+  downstream usa somente registro factual atribuído.
 - Runtime preflight foi classificado antes de qualquer inspeção e é aplicado
   somente a mudança ou validação executável; em documentação/read-only não há
   anúncio, enumeração ou encerramento de processo.
 - A classificação paralela, quando aplicável, satisfaz o gate específico
   abaixo; raciocínio usa um valor canônico, justificativa e fallback sem
-  ampliar autoridade ou alegar configuração automática.
+  ampliar autoridade. Aplicação automática do nível só é alegada com
+  ferramenta nativa autorizada e evidência observada; indisponibilidade do
+  primário aplica a alternativa explícita e só bloqueia se ela também falhar.
 - Comunicação e artefatos cumprem a
   [`política de idioma`](Language-Policy.md).
 
@@ -108,8 +123,9 @@ autoridade/configuração próprias.
    `NÃO APLICÁVEL`.
 9. Auditar os resultados de handoff definidos na Definition of Done contra
    Governance e Templates, incluindo unicidade, campos condicionais,
-   comentário intermediário, vocabulário, rota/target/ação, payload copiável,
-   cerca interna, Human Gate, raciocínio e fallback.
+   comentário intermediário, vocabulário, rota/target/ação, status e recibo de
+   encaminhamento, payload copiável, deduplicação, ciclos, Human Gate,
+   decisões exclusivas do proprietário, raciocínio e fallback.
 10. Confirmar que runtime preflight foi classificado antes de qualquer
     inspeção e que a decisão observada corresponde ao tipo de trabalho.
 11. Registrar achados com severidade, impacto, reprodução e recomendação.

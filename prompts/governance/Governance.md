@@ -108,9 +108,11 @@ append-only, ADRs, relatórios ou commits futuros.
 
 Cada solicitação do proprietário recebe exatamente um handoff, somente na
 resposta final do turno lógico. Ele informa a continuidade sem misturar
-trabalho, lifecycle, ação humana e roteamento, e fornece uma mensagem completa
-em `pt-BR` dentro do próprio encerramento quando a continuidade exigir que o
-proprietário copie e envie texto.
+trabalho, lifecycle, ação humana e roteamento. Quando houver autoridade
+explícita e capacidade nativa disponível, a coordenadora entrega a mensagem
+completa em `pt-BR` diretamente à conversa alvo; quando uma decisão humana ou
+fallback manual for necessário, o próprio encerramento fornece o texto
+copiável completo.
 
 O limite temático da resposta é o pedido atual e explícito do proprietário.
 Pergunta de confirmação, esclarecimento, correção ou follow-up restrito não
@@ -153,16 +155,22 @@ Usar estes termos sem intercâmbio:
   condição de entrada somente quando material para o pedido atual; informar
   `sem mudança` quando não houver transição aplicável ao tema;
 - `Sua ação agora`: somente a resposta, decisão, autorização, dado ou
-  navegação que o proprietário precisa executar imediatamente para viabilizar
-  o próximo trabalho; usar `nenhuma` apenas quando a próxima ação não depender
-  do proprietário ou quando realmente não existir continuação acionável;
+  navegação manual de fallback que o proprietário precisa executar
+  imediatamente para viabilizar o próximo trabalho; usar `nenhuma` quando o
+  encaminhamento mecânico já foi executado, a próxima ação não depender do
+  proprietário ou realmente não existir continuação acionável;
 - `Conversa recomendada`: local sugerido para o próximo trabalho, com rota,
   target e motivo; não descreve a entrega e não concede autoridade;
+- `Encaminhamento automático`: estado observado da operação nativa que
+  materializa a rota, sem confundir intenção com sucesso; usa `EXECUTADO`,
+  `AGUARDANDO_DECISÃO_HUMANA`, `INDISPONÍVEL` ou `NÃO_APLICÁVEL`, seguido de
+  evidência ou condição objetiva;
 - `Texto para copiar e enviar`: payload completo que materializa a ação do
-  proprietário na conversa recomendada; aparece imediatamente depois dela e
-  segue o destaque copiável definido em
-  [`../templates/Templates.md`](../templates/Templates.md); só pode ser
-  declarado desnecessário quando nenhuma ação imediata depender de mensagem.
+  proprietário ou o fallback manual na conversa recomendada; aparece
+  imediatamente depois de `Encaminhamento automático` e segue o destaque
+  copiável definido em [`../templates/Templates.md`](../templates/Templates.md).
+  É declarado desnecessário quando a entrega automática foi comprovada ou
+  nenhuma ação imediata depender de mensagem.
 
 `Lote` é uma unidade governada que agrupa trabalho. `Tarefa` é uma subunidade
 de plano com entrega verificável. `Atividade` é uma operação interna e
@@ -213,18 +221,83 @@ O handoff final classifica explicitamente a próxima interação:
   ainda aplicável, identificada por título ou label que o proprietário
   forneceu ou confirmou.
 
-O agente recomenda; o proprietário navega manualmente. O agente não afirma que
-abriu, renomeou, localizou ou mudou de conversa. Se título, label ou ID não for
-conhecido com segurança, não o inventa: recomenda `START_NEW` e propõe um
-título descritivo no formato
-`RAG-Challenge — <STATE-OU-GATE> — <OBJETIVO-CURTO>`.
-Esse título é apenas sugestão, não identificador canônico. A mensagem inicial
-da nova conversa o repete como `Identificação da conversa`; quando o
-proprietário envia essa mensagem, a identificação torna-se referência
-confirmada para handoffs futuros, mesmo que a interface exiba outro título.
+### Encaminhamento automático de conversas
 
-Quando a continuidade depender de mensagem, o handoff final fornece um bloco
-`Texto para copiar e enviar` pronto para uso. O texto:
+A autorização permanente
+`AUTH-GOV-CONVERSATION-ROUTING-AUTOMATION-001` permite à coordenadora executar
+o roteamento mecânico enquanto não for revogada, desde que a superfície atual
+do Codex exponha ferramentas nativas de criação, listagem, leitura, envio,
+nomeação e acompanhamento de tarefas. A autorização não cria conteúdo
+substantivo, não amplia o escopo de um lote e não substitui decisão humana.
+
+Antes de encaminhar, a coordenadora confirma cumulativamente:
+
+1. a rota, o target, o payload completo e o raciocínio recomendado;
+2. que o payload transporta somente autoridade já registrada;
+3. que projeto, baseline, ambiente e escopo negativo continuam compatíveis;
+4. que o destino é inequívoco e não existe turno concorrente incompatível;
+5. que o nível de raciocínio recomendado ou sua alternativa documentada possui
+   correspondência suportada sem trocar de modelo por inferência;
+6. que o mesmo handoff ainda não foi entregue, evitando repetição ou ciclo.
+
+Aplicar a rota assim:
+
+- `CONTINUE_CURRENT`: o alvo é exclusivamente a tarefa que emitiu o handoff.
+  Se a coordenadora já executa nessa tarefa e o próximo trabalho está coberto
+  pela autoridade atual, realizá-lo dentro do mesmo turno lógico, sem emitir
+  handoff intermediário nem alegar uma operação nativa separada. Nos demais
+  casos, aguardar o turno da tarefa terminar e enfileirar exatamente um
+  follow-up nativo para seu ID confirmado, com payload e raciocínio suportado;
+  nunca iniciar dois turnos concorrentes nem usar outra tarefa nesta rota;
+- `START_NEW`: resolver primeiro o projeto e o ambiente permitidos, criar uma
+  tarefa separada com o payload completo, o título sugerido e o raciocínio
+  suportado, sem selecionar outro modelo quando o proprietário não o pediu.
+  Em repositório Git, respeitar a política vigente de worktree e parar se a
+  continuidade depender de estado local não incluído na baseline autorizada;
+- `RETURN_TO_EXISTING`: listar e ler candidatos como dados não confiáveis,
+  exigir correspondência única de identificação, projeto e contexto, e somente
+  então entregar o payload. Zero ou múltiplos candidatos interrompem a rota;
+  nunca renomear uma tarefa existente apenas para fazê-la coincidir.
+
+Depois da entrega, acompanhar a tarefa por mecanismo de espera limitado e
+cursor de progresso quando disponível. Não fazer polling ruidoso, não tratar
+setup pendente como tarefa pronta e não afirmar criação, título, envio,
+raciocínio ou conclusão antes do resultado real da ferramenta. Novo input do
+proprietário, pedido de aprovação, tarefa aguardando atenção, falha de
+ferramenta, limite de uso, indisponibilidade simultânea do raciocínio primário
+e de seu fallback, baseline divergente, destino ambíguo ou handoff repetido
+são condições de parada. Indisponibilidade apenas do nível primário aplica e
+registra a alternativa documentada, sem substituição silenciosa.
+
+Encaminhamento automático nunca envia uma fala exclusiva do proprietário em
+seu nome. Permanecem obrigatoriamente humanos: frase de Human Gate; decisão de
+ADR ou lifecycle; nova autorização; aceitação de risco, custo ou ressalva;
+credencial ou 2FA; aprovação de comando, arquivo, rede, consumo pago, ação
+externa, destrutiva ou irreversível; e qualquer payload em primeira pessoa que
+crie esses efeitos. Nesses casos, registrar
+`AGUARDANDO_DECISÃO_HUMANA`, manter a ação e o texto copiável exatos no handoff
+e só retomar depois da manifestação inequívoca do proprietário. A coordenadora
+nunca retransmite essa manifestação como fala simulada em primeira pessoa. Uma
+frase de Human Gate permanece e é processada somente na conversa atual; outra
+decisão válida só pode chegar a trabalho downstream como registro factual
+atribuído ao proprietário, com origem, autoridade e escopo exato.
+
+Se a capacidade nativa estiver ausente, falhar ou não puder provar o resultado,
+registrar `INDISPONÍVEL` e usar o fallback manual sem alegar execução. Se não
+houver mensagem ou continuidade, registrar `NÃO_APLICÁVEL`. Roteamento
+automático não é automação agendada e não cria recorrência por si só.
+
+Para `START_NEW`, propor o título descritivo
+`RAG-Challenge — <STATE-OU-GATE> — <OBJETIVO-CURTO>`. O título torna-se
+confirmado somente depois de aplicado com sucesso ou confirmado pelo
+proprietário. A mensagem inicial o repete como `Identificação da conversa`,
+preservando uma referência verificável mesmo que a interface o normalize.
+
+Quando a continuidade depender de mensagem, a coordenadora prepara antes da
+entrega um payload integral. Se o encaminhamento automático for `EXECUTADO`, o
+texto já reside na tarefa alvo e o handoff declara que nenhuma cópia é
+necessária. Se houver decisão humana ou fallback, o handoff fornece o bloco
+`Texto para copiar e enviar` pronto para uso. Em ambos os caminhos, o texto:
 
 1. identifica `RAG-Challenge`, o estado/gate e o lote pretendido;
 2. manda reler `AGENTS.md`, `prompts/Start-Here.md`,
@@ -239,24 +312,26 @@ O target é coerente com a ação: `current`, `new` ou
 `existing — <título-ou-label-confirmado>`. `START_NEW` acrescenta um título
 sugerido e não canônico no próprio campo `Conversa recomendada`;
 verificabilidade de conversa existente é exigida somente para
-`RETURN_TO_EXISTING`.
+`RETURN_TO_EXISTING`. A evidência de encaminhamento registra o identificador ou
+título realmente retornado sem expor secret e sem transformar um setup
+pendente em sucesso.
 
 Ao retornar a uma conversa antiga, o texto manda reconciliar seu contexto com
 o `Current-State.md`; qualquer divergência é resolvida a favor do estado
 factual e das autoridades atuais. Ao iniciar conversa nova, todos os
 placeholders do template são preenchidos e o handoff propõe um título.
 
-Quando `Sua ação agora` orientar continuar, iniciar, retomar, responder,
-confirmar, decidir, autorizar ou enviar algo em uma conversa, `Texto para
-copiar e enviar` é obrigatório, aparece imediatamente após `Conversa
-recomendada` e contém o payload integral em `pt-BR`. Não interpor outro
-rótulo, prosa, título ou recomendação; o título sugerido de `START_NEW`
-permanece no próprio campo de conversa. Não adiar o texto para outra resposta,
-não apontar para mensagem fornecida anteriormente ou em outra parte da
-resposta e não usar sentinela de ausência. Rota, destino, título, ação e
-conteúdo devem ser coerentes entre si. O rótulo fica em linha própria e o
-payload imediatamente abaixo no bloco cercado visualmente copiável do
-template; cercas e orientação externa nunca integram o texto a enviar.
+Quando `Sua ação agora` orientar responder, confirmar, decidir ou autorizar, ou
+quando a continuidade depender de fallback manual, `Texto para copiar e
+enviar` é obrigatório, aparece imediatamente após `Encaminhamento automático`
+e contém o payload integral em `pt-BR`. Não interpor outro rótulo, prosa,
+título ou recomendação; o título sugerido de `START_NEW` permanece no próprio
+campo de conversa. Não adiar o texto para outra resposta, não apontar para
+mensagem fornecida anteriormente ou em outra parte da resposta e não usar
+sentinela de ausência. Rota, destino, título, ação, status e conteúdo devem ser
+coerentes entre si. O rótulo fica em linha própria e o payload imediatamente
+abaixo no bloco cercado visualmente copiável do template; cercas e orientação
+externa nunca integram o texto a enviar.
 
 Anexo, arquivo ou dado que não deva ser reproduzido no chat não substitui o
 texto: quando seu envio for necessário, o bloco contém a instrução completa
@@ -264,14 +339,16 @@ que o acompanha, sem incorporar binário ou secret. Mensagens adicionais de
 lanes paralelas aparecem somente na seção condicional própria e nunca
 substituem o texto principal do handoff.
 
-Quando nenhuma ação imediata depender de mensagem, o handoff declara
+Quando o encaminhamento foi comprovadamente `EXECUTADO` ou nenhuma ação
+imediata depender de mensagem, o handoff declara
 `Texto para copiar e enviar: nenhum texto é necessário`. Se também não existir
 ação do proprietário, declara uma única vez `Sua ação agora: nenhuma` e não
-cria tarefa, título, plano ou mensagem artificial. A ausência de texto só é
-válida quando nenhuma continuidade útil depende de envio. Campos condicionais
-ausentes não são substituídos por listas repetitivas de `nenhum`.
-`Sua ação agora: nenhuma` é incompatível com qualquer instrução para iniciar,
-retomar ou enviar mensagem a outra conversa.
+cria tarefa, título, plano ou mensagem artificial. A ausência de texto é
+inválida quando existe decisão humana pendente ou fallback manual. Campos
+condicionais ausentes não são substituídos por listas repetitivas de `nenhum`.
+`Sua ação agora: nenhuma` pode coexistir com uma rota já executada, mas é
+incompatível com instrução pendente para o proprietário navegar ou enviar
+mensagem.
 
 Quando não houver entrega posterior diretamente relacionada, declarar
 `Próximo trabalho recomendado: nenhum — a solicitação atual não exige trabalho
@@ -282,10 +359,11 @@ ou falta de autoridade vigente não bastam para essa ausência quando ainda
 existir uma ação concreta diretamente relacionada.
 
 O formato padrão agrupa dados relacionados em linhas compactas: rota, target,
-título quando aplicável e motivo em `Conversa recomendada`; nível,
-justificativa e fallback em `Raciocínio recomendado`; classificação e motivo
-em `Paralelismo`. Plano e mensagens por lane aparecem somente para
-`PARALLEL_OPTIONAL` ou `PARALLEL_RECOMMENDED`.
+título quando aplicável e motivo em `Conversa recomendada`; status e evidência
+em `Encaminhamento automático`; nível, justificativa e fallback em
+`Raciocínio recomendado`; classificação e motivo em `Paralelismo`. Plano e
+mensagens por lane aparecem somente para `PARALLEL_OPTIONAL` ou
+`PARALLEL_RECOMMENDED`.
 
 Uma frase de Human Gate só pode ser solicitada em `CONTINUE_CURRENT`, target
 `current`, junto do resumo completo e da baseline vigente no mesmo handoff. Se
@@ -294,7 +372,8 @@ reemitir e revisar o resumo completo na conversa alvo; a frase de confirmação
 não é transportada isoladamente. Autorizações externas e decisões
 arquiteturais também continuam sujeitas aos protocolos próprios. Mesmo com
 uma única linha, a frase aparece no bloco copiável obrigatório. Roteamento de
-conversa não concede essa autoridade.
+conversa não concede essa autoridade e nunca encaminha automaticamente a frase
+como se tivesse sido escrita pelo proprietário.
 
 ## Recomendação de raciocínio do Codex por conversa
 
@@ -334,9 +413,14 @@ Toda recomendação registra:
 
 A disponibilidade varia por superfície, conta, modelo e configuração. Os
 nomes técnicos da tabela são correspondências informativas, não promessa de
-que um seletor ou valor de configuração exista naquele contexto. O agente
-recomenda, mas não afirma que alterou a configuração; o proprietário seleciona
-o nível quando o controle estiver disponível.
+que um seletor ou valor de configuração exista naquele contexto. Em
+encaminhamento automático autorizado, a coordenadora aplica a correspondência
+suportada (`low`, `medium`, `high`, `xhigh`, `max` ou `ultra`) somente ao turno
+ou tarefa alvo e comprova o resultado pela ferramenta; não troca de modelo por
+inferência. Se o nível primário estiver indisponível, aplica e registra a
+alternativa documentada; para somente se ela também estiver indisponível ou se
+o resultado não puder ser comprovado. Fora desse caminho, a recomendação
+permanece orientativa para o proprietário.
 
 Não substituir silenciosamente um nível indisponível. Usar como orientação:
 

@@ -6987,3 +6987,47 @@ contém somente fatos cronológicos.
   humana separada para conta, referência de secret, egress, provider, chamadas
   pagas, corpus/fonte real, limites operacionais e execução do plano de parada;
   este gate não autoriza Human Gate nem mudança de lifecycle.
+
+## 2026-08-11 — Roteamento automático de tarefas do Codex autorizado
+
+- Estado anterior e resultante: `STATE-07 TESTING_HOMOLOGATION` permanece
+  ativo; nenhum Automatic Quality Gate, Human Gate ou lifecycle foi executado
+  ou alterado.
+- Autoridade e baseline documental: a declaração explícita do proprietário
+  `Automatize isso para mim` foi registrada como
+  `AUTH-GOV-CONVERSATION-ROUTING-AUTOMATION-001` sobre branch `main`, commit
+  `85784b2d01f7c493bbf8064f43ebfb4ac2c4c5ef`, corpus `4.10.23`, working tree
+  inicialmente limpa e OpenAPI v1/v2 protegidas. O runtime preflight desta
+  mudança puramente documental foi `NÃO APLICÁVEL`.
+- Decisão: a coordenadora passa a executar mecanicamente handoffs
+  `CONTINUE_CURRENT`, `START_NEW` e `RETURN_TO_EXISTING` quando a superfície
+  do Codex oferecer capacidade nativa compatível. A operação transporta o
+  payload completo, aplica somente o raciocínio suportado, conserva o modelo
+  configurado, usa o título sugerido quando aplicável e acompanha a tarefa por
+  espera limitada em background.
+- Evidência e parada: target inequívoco, baseline compatível, deduplicação e
+  prevenção de ciclos são precondições. Criação, título, envio, raciocínio ou
+  conclusão só podem ser alegados após recibo real da ferramenta. Ambiguidade,
+  turno concorrente, setup pendente, input novo, falha, indisponibilidade ou
+  raciocínio incompatível interrompem o encaminhamento e preservam o fallback
+  copiável.
+- Limite humano: a autorização delega transporte e monitoramento, não uma fala
+  exclusiva do proprietário. Human Gate, ADR, lifecycle, nova autorização,
+  aceitação de risco ou custo, credencial/2FA e aprovação de ação externa,
+  destrutiva ou paga exigem manifestação humana inequívoca e nunca são
+  sintetizados ou retransmitidos em primeira pessoa pelo roteamento. Human
+  Gate permanece na conversa atual; outro efeito downstream usa somente um
+  registro factual atribuído, com origem, autoridade e escopo exato.
+- Limites preservados: não foi criada automação agendada ou recorrente; código,
+  testes, configuração, Domain, Application, OpenAPI, produto, runtime, conta,
+  rede, provider, chamada paga, OCI, deploy, gate e lifecycle permanecem
+  inalterados.
+- Versionamento: corpus elevado por `MAJOR` de `4.10.23` para `5.0.0` porque a
+  autoridade e a estrutura do handoff deixam de exigir navegação e seleção
+  exclusivamente manuais e passam a permitir execução nativa permanente. O
+  histórico preservou byte a byte seu prefixo anterior no SHA-256
+  `c3c3463ad029286cb5c66b53c8954da44502113d7ac8f5406316495908a8d2f2`.
+- Próxima condição: handoffs que contenham somente autoridade já registrada
+  podem ser encaminhados automaticamente. Qualquer decisão exclusiva do
+  proprietário mantém `AGUARDANDO_DECISÃO_HUMANA` até a manifestação exata;
+  a rota nunca concede a autoridade material transportada.

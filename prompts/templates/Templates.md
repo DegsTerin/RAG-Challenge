@@ -29,6 +29,7 @@ claras no corpo da resposta. Literais técnicos preservam a grafia canônica.
 - Sua ação agora: ação imediata exata, ou `nenhuma`
 - Conversa recomendada: `<ROUTE> — <TARGET> — <MOTIVO>`; acrescentar
   `Título sugerido: <TÍTULO>` no mesmo campo somente para `START_NEW`
+- Encaminhamento automático: `<STATUS> — <EVIDÊNCIA-OU-CONDIÇÃO>`
 - Texto para copiar e enviar: rótulo em linha própria seguido pelo bloco
   copiável completo em `pt-BR`, ou `nenhum texto é necessário` na mesma linha
 - Raciocínio recomendado: `<NÍVEL> — <JUSTIFICATIVA>. Alternativa:
@@ -62,6 +63,8 @@ depois, se necessário, o resumo.
 - `<ROUTE>`: `CONTINUE_CURRENT`, `START_NEW` ou `RETURN_TO_EXISTING`;
 - `<TARGET>`: `current`, `new` ou
   `existing — <título-ou-label-confirmado>`;
+- `<STATUS>`: `EXECUTADO`, `AGUARDANDO_DECISÃO_HUMANA`, `INDISPONÍVEL` ou
+  `NÃO_APLICÁVEL`;
 - `<NÍVEL>`: `Leve`, `Médio`, `Alto`, `Extra alto`, `Máximo` ou `Ultra`;
 - `<CLASSIFICAÇÃO>`: `SEQUENTIAL_ONLY`, `PARALLEL_OPTIONAL` ou
   `PARALLEL_RECOMMENDED`.
@@ -80,19 +83,20 @@ campos separados de plano ou mensagens com valores artificiais. Aplicar as
 regras de coerência entre ação, rota, campos condicionais e ausência definidas
 em Governance.
 
-Quando Governance exigir `Texto para copiar e enviar`, posicioná-lo
-imediatamente após `Conversa recomendada`, sem conteúdo interposto, e preencher
-todo o payload sem placeholders. A forma de ausência permanece inline somente
-nos casos permitidos por essa autoridade.
+Posicionar `Encaminhamento automático` imediatamente após
+`Conversa recomendada`. Quando Governance exigir `Texto para copiar e enviar`,
+posicioná-lo imediatamente depois do status, sem conteúdo interposto, e
+preencher todo o payload sem placeholders. A forma de ausência permanece
+inline somente nos casos permitidos por essa autoridade.
 
 ### Destaque obrigatório do texto copiável
 
-Quando existir payload, colocar o rótulo `Texto para copiar e enviar:` em uma
-linha própria e, imediatamente abaixo, apresentar o conteúdo integral dentro
-de um bloco cercado Markdown com identificador `text`. O proprietário copia
-somente o conteúdo entre a cerca de abertura e a cerca de fechamento. O
-rótulo, a linha de abertura, a linha de fechamento e qualquer orientação fora
-do bloco não integram a mensagem.
+Quando uma decisão humana ou fallback manual exigir payload, colocar o rótulo
+`Texto para copiar e enviar:` em uma linha própria e, imediatamente abaixo,
+apresentar o conteúdo integral dentro de um bloco cercado Markdown com
+identificador `text`. O proprietário copia somente o conteúdo entre a cerca de
+abertura e a cerca de fechamento. O rótulo, a linha de abertura, a linha de
+fechamento e qualquer orientação fora do bloco não integram a mensagem.
 
 Usar este formato inclusive para payload de uma única linha e para a frase
 canônica de Human Gate:
@@ -112,9 +116,11 @@ mais longa do que qualquer sequência equivalente interna. Assim, blocos de
 código que façam parte da mensagem permanecem copiáveis sem encerrar o bloco
 externo antes da hora.
 
-Quando não existir payload útil, manter somente a forma inline
-`Texto para copiar e enviar: nenhum texto é necessário`; não criar bloco
-vazio nem cercar a sentinela.
+Quando a ferramenta já tiver entregue o payload ou não existir payload útil,
+manter somente a forma inline
+`Texto para copiar e enviar: nenhum texto é necessário`; não duplicar o texto
+enviado, criar bloco vazio nem cercar a sentinela. O status imediatamente
+anterior distingue entrega comprovada de ausência de continuidade.
 
 Quando for necessário anexar arquivo ou fornecer dado que não deva ser
 reproduzido, o bloco contém o texto acompanhante completo, mas não incorpora
@@ -183,12 +189,25 @@ nas linhas compactas do encerramento final.
   - `existing — <título-ou-label-confirmado>`.
 - Título sugerido e não canônico, somente para `START_NEW`:
 - Motivo:
+- Autoridade de automação vigente:
+- Operação nativa pretendida:
+- Status observado: `EXECUTADO` / `AGUARDANDO_DECISÃO_HUMANA` /
+  `INDISPONÍVEL` / `NÃO_APLICÁVEL`
+- Identificador, título e host realmente retornados, quando aplicável:
+- Evidência ou condição de parada:
 - Raciocínio do Codex recomendado: `Leve` / `Médio` / `Alto` /
   `Extra alto` / `Máximo` / `Ultra`
 - Justificativa do raciocínio:
 - Alternativa se indisponível:
-- Instrução de navegação ao proprietário:
+- Raciocínio efetivamente aplicado ou fallback manual:
 - Texto completo para copiar e enviar:
+
+Os três textos abaixo são entradas integrais para a operação nativa de envio.
+Exibi-los no handoff somente quando uma decisão humana ou o fallback manual
+exigir cópia; após entrega automática comprovada, registrar apenas o recibo e
+a forma inline de ausência. Quando `CONTINUE_CURRENT` for absorvido pela mesma
+tarefa dentro do turno lógico, não emitir handoff intermediário nem recibo de
+operação separada; outro target exige `RETURN_TO_EXISTING`.
 
 ### Texto para `CONTINUE_CURRENT`
 
@@ -278,12 +297,19 @@ referência.
 
 Os textos acima transportam somente autoridade já existente ou uma solicitação
 que o proprietário decidiu fazer explicitamente. Eles não substituem Human
-Gate, ADR, autorização de estado ou autorização externa.
+Gate, ADR, autorização de estado ou autorização externa. Nenhum texto que
+declare em primeira pessoa uma decisão, autorização ou aceitação exclusiva do
+proprietário pode ser encaminhado automaticamente, mesmo depois da
+manifestação humana. Human Gate permanece na conversa atual. Outra decisão
+válida destinada a trabalho downstream usa um registro factual atribuído ao
+proprietário, com origem, autoridade e escopo exato, nunca uma voz simulada.
 
 ### Regra especial para Human Gate
 
 - Solicitar a frase de confirmação somente com `CONTINUE_CURRENT`, destino
   `current`, e resumo completo da baseline vigente no mesmo handoff.
+- Registrar `Encaminhamento automático: AGUARDANDO_DECISÃO_HUMANA`; o Codex
+  nunca origina nem envia a frase como se fosse o proprietário.
 - Nesse caso, `Texto para copiar e enviar` contém apenas a frase canônica do
   gate, destacada no bloco copiável mesmo sendo uma única linha.
 - Para `START_NEW` ou `RETURN_TO_EXISTING`, a mensagem solicita releitura e

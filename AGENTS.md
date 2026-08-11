@@ -247,8 +247,9 @@ hand-off states the request result and exact pending work; one next deliverable,
 owner and condition when that deliverable is directly related to the current
 request, or its explicit absence otherwise; lifecycle position and next entry
 condition when relevant; the owner's immediate action; conversation route,
-target and reason; copy-ready text when required; reasoning level,
-justification and fallback; and the parallel-work classification and reason.
+target and reason; automatic-routing status and observed evidence; copy-ready
+text when required; reasoning level, justification and fallback; and the
+parallel-work classification and reason.
 
 Every final hand-off answers the owner's standing question — what the next
 step, task, activity or action is — with exactly one concrete, prioritised and
@@ -285,26 +286,65 @@ invent owner work to populate a required field: when no directly related next
 deliverable exists, state its absence using the canonical template form.
 
 Use only `CONTINUE_CURRENT`, `START_NEW` or `RETURN_TO_EXISTING` as defined by
-Governance. Never claim to open, rename or switch conversations, invent an
-existing target or present a proposed title as confirmed. Every continuation
-message routes through `AGENTS.md`, Start Here, Current State and the relevant
-owner documents, preserving authority and negative scope; conversation history
-is context, not project memory.
+Governance. When the owner has explicitly authorised automatic task routing
+and the active Codex surface exposes native task-management capabilities, the
+coordinator performs the route mechanically instead of asking the owner to
+copy, navigate or select the reasoning level. It continues the same logical
+turn for `CONTINUE_CURRENT` when no human input is required, without emitting
+an intermediate hand-off; otherwise it queues exactly one native follow-up to
+that same confirmed current task after its running turn ends. It creates a
+separate task with the exact prompt, suggested title and supported reasoning
+effort for `START_NEW`, and locates one uniquely confirmed task before
+`RETURN_TO_EXISTING`. It monitors a dispatched task in the background and
+reports creation, naming, delivery or completion only after the corresponding
+tool result succeeds. Another task is never a `CONTINUE_CURRENT` target.
 
-When the owner must continue, start, return, respond, confirm, decide,
-authorise or send something, provide the complete `pt-BR` payload immediately
-after `Conversa recomendada` in the copy-ready fenced form owned by Templates.
-The label and fences remain outside the payload, including for a one-line
-Human Gate phrase; use an unambiguous outer fence when the payload contains a
-fence. Never defer or replace required text with the absence sentinel. Use the
-inline absence form only when no action depends on a message and no useful
-continuity message exists.
+Automatic routing transports only authority already granted. It never writes
+or sends an owner-only act on the owner's behalf, including a Human Gate
+phrase, ADR or lifecycle decision, new authorisation, acceptance of risk or
+cost, credential or 2FA response, or approval of an external, destructive or
+paid action. A standing automation instruction delegates mechanical delivery
+and monitoring only. When an owner-only act is required, the coordinator stops
+and obtains the exact decision in the conversation that contains the required
+current summary. It never retransmits that decision as a simulated first-person
+owner message. A Human Gate remains and is processed only in that current
+conversation; another valid owner decision may reach downstream work only as
+a factual, attributed record with its source, authority and exact scope.
+
+Do not invent an existing target, silently substitute a route, model or
+reasoning effort, or present a proposed title as confirmed before tool success.
+`RETURN_TO_EXISTING` requires one exact task identity; zero or multiple
+candidates stop automation. If the recommended reasoning effort is
+unsupported, apply and record only its documented fallback; stop when the
+fallback is also unsupported or cannot be proven. A tool failure, pending
+worktree, stale baseline, running-turn conflict, repeated hand-off or new user
+input also stops or safely waits according to Governance. When native task
+management is unavailable, unauthorised or unsuccessful, retain the manual
+copy-ready fallback and state the limitation factually. Every
+continuation message routes through `AGENTS.md`, Start Here, Current State and
+the relevant owner documents, preserving authority and negative scope;
+conversation history is context, not project memory.
+
+Record `Encaminhamento automático` immediately after `Conversa recomendada`
+using the status and evidence defined by Governance and Templates. When native
+delivery succeeds, the target task holds the complete `pt-BR` payload and the
+owner does not need a duplicate copy block. When the owner must respond,
+confirm, decide or authorise, or when automatic delivery is unavailable,
+provide the complete `pt-BR` payload in the copy-ready fenced form owned by
+Templates. The label and fences remain outside the payload, including for a
+one-line Human Gate phrase; use an unambiguous outer fence when the payload
+contains a fence. Never use an automatic-success status without observed tool
+evidence, and never replace a required human decision with the absence
+sentinel.
 
 Apply the [language policy](prompts/governance/Language-Policy.md) and retain
 the required spelling of technical literals. Recommend the lowest sufficient
 canonical reasoning level for each conversation or lane, with justification
-and an explicit fallback; it is advisory and never changes configuration,
-authority, scope or lifecycle.
+and an explicit fallback. During authorised automatic routing, apply only the
+matching supported reasoning-effort override and keep the configured model
+unless the owner explicitly selected another one. Outside that case the value
+is advisory. A reasoning recommendation never changes authority, scope,
+lifecycle, sandbox, environment or parallel-work classification.
 
 Request an exact Human Gate phrase only with `CONTINUE_CURRENT` to `current`
 when the complete current-baseline summary is in the same hand-off. A new or
