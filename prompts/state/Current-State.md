@@ -1383,7 +1383,7 @@ proprietários.
   a política de idioma acrescentou o 21º documento público por incremento
   versionado, e o ADR-0003 acrescentou o 22º.
 - A baseline aprovada no Human Gate de `STATE-00` permanece `3.4.0`.
-- O corpus de instruções vigente possui versão `5.1.0` e 13 arquivos em
+- O corpus de instruções vigente possui versão `5.2.0` e 13 arquivos em
   `prompts/`.
 - Visão, requisitos, arquitetura, RAG, segurança, qualidade, lifecycle,
   roadmap, backlog, estado, histórico e templates estão documentados.
@@ -1570,6 +1570,35 @@ proprietários.
   estivesse fazendo manualmente` significa abrir a tarefa para observação do
   processamento nativo; não autoriza nem torna disponível uma macro de mouse,
   teclado, colagem, seletor ou clique na interface do próprio Codex.
+- O corpus `5.2.0` registra sob
+  `AUTH-GOV-CONVERSATION-APPROVAL-CARDS-001`, a partir da baseline limpa
+  `main@95962a360d13bf7b375e018a016cb4cc34ff595a`, a autorização permanente
+  para uma única tarefa coordenadora apresentar decisões humanas por cartões
+  documentais `approval-proposal-v1`. Cada proposta integral é I-JSON tipado e
+  vincula por SHA-256 da serialização JCS um `AUTH-ID`, a baseline limpa,
+  escopos, limites, riscos, rollback, uso único e os templates de decisão. A
+  frase curta é derivada depois do hash a partir do literal
+  `{proposal-sha256}`, inclui `AUTH-ID`, baseline token e digest, e não cria
+  autorreferência. O digest prova integridade, não identidade,
+  compreensão, dispatch, execução, AQG, Human Gate ou lifecycle. Sem
+  proveniência que diferencie input humano direto de input programático, nenhum
+  cartão, inclusive `LOCAL_REVERSIBLE`, concede autoridade. Workers recebem
+  registro factual e a serialização JCS integral para recomputação;
+  transporte, raciocínio, acompanhamento visual e retomada puramente mecânicos
+  passam a ser automáticos. Human Gate, ADR e lifecycle conservam seus
+  protocolos; gasto, credencial/2FA, rede real, ação externa, risco novo e ação
+  destrutiva/irreversível exigem decisões e cartões separados. Dependências de
+  uma mesma operação usam `APPROVAL-SET-ID` sem dispatch parcial, com um
+  `approval-set-use-id` comum ao conjunto e `single-use-id` próprio por cartão.
+  Secrets e códigos 2FA não entram em cartão, digest, chat ou registro. A proposta
+  composta associada à tarefa `019fed28-a526-7f53-a9dc-200a31e461df` e a
+  `AUTH-S07-A-PROVIDER-EGRESS-DOCKER-TOOLCHAIN-ACQUIRE-RETRY-001` está
+  `SUPERSEDED`, sem conceder autoridade; a tarefa permanece bloqueada até novas
+  propostas com `AUTH-ID`s separados para egress real e risco. Nenhuma
+  aquisição foi iniciada. O contrato está documentado, mas nenhum cartão real
+  foi emitido, decidido, encaminhado ou consumido nesta mudança. Produto,
+  runtime, OpenAPI, gates e lifecycle permanecem inalterados; o runtime
+  preflight documental foi `NÃO APLICÁVEL`.
 - O corpus `4.3.0` formaliza a decisão explícita do proprietário de aceitar
   perguntas e respostas em `pt-BR` e `en-GB`: cada consulta declara o idioma,
   a resposta usa o mesmo idioma, textos derivados da fonte permanecem no

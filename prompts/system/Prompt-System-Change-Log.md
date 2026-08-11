@@ -2,7 +2,7 @@
 
 ## Versão atual
 
-- Versão: `5.1.0`
+- Versão: `5.2.0`
 - Data: 2026-08-11
 - Status: `STATE-07` ativo; ADR-0011 `accepted`, reconciliado e com a correção
   interna da política de serving implementada; o A0 candidato-específico mantém
@@ -18,7 +18,8 @@
   homologação de produto, Human Gate e mudança de lifecycle não executados; o
   roteamento mecânico de tarefas do Codex está autorizado, com decisões
   exclusivas do proprietário preservadas e acompanhamento visual permanente
-  dos targets confirmados
+  dos targets confirmados; uma coordenadora única apresenta decisões elegíveis
+  por cartões documentais selados, sem agrupar classes humanas protegidas
 - Escopo: 13 arquivos ativos em `prompts/`
 
 A versão do corpus é independente da versão futura do software.
@@ -32,6 +33,58 @@ A versão do corpus é independente da versão futura do software.
 
 Toda alteração atualiza este arquivo e, quando necessário,
 [`../Start-Here.md`](../Start-Here.md).
+
+## 5.2.0 — 2026-08-11
+
+- Registra a solicitação explícita do proprietário de implementar
+  `Coordenador Único + Cartões de Aprovação` como
+  `AUTH-GOV-CONVERSATION-APPROVAL-CARDS-001`, sobre a baseline limpa
+  `main@95962a360d13bf7b375e018a016cb4cc34ff595a`, corpus `5.1.0`, com 13
+  prompts, OpenAPI v1/v2 nos hashes e blobs protegidos e runtime preflight
+  `NÃO APLICÁVEL`.
+- Estabelece uma única tarefa coordenadora owner-facing. Workers devolvem
+  pedidos de decisão a ela; criação, transporte, raciocínio suportado,
+  monitoramento, acompanhamento visual e retomada sem conteúdo decisório são
+  executados mecanicamente com recibo nativo, sem exigir que o proprietário
+  copie payload longo, navegue ou selecione o nível.
+- Define `approval-proposal-v1` como I-JSON tipado e calcula o SHA-256 completo
+  e minúsculo sobre sua serialização JCS RFC 8785 em UTF-8 sem BOM. O digest
+  vincula `CARD-ID`, classe, `AUTH-ID`, target, baseline limpa, efeito, escopos,
+  limites, riscos, rollback, condições de parada, validade, uso único e os
+  templates de decisão. Cada template contém o literal `{proposal-sha256}`; a
+  frase final com baseline token é derivada somente depois do hash, evitando
+  autorreferência. Rótulos, cercas e indentação ficam fora do digest.
+- Substitui, para decisão elegível, o bloco longo a copiar por uma confirmação
+  curta exata na mesma coordenadora. SHA-256 prova integridade, não identidade,
+  compreensão, assinatura, dispatch, execução, AQG, Human Gate ou lifecycle.
+  Resumo, screenshot, mensagem encaminhada, hash truncado, `sim`, `ok`, silêncio
+  ou emoji não constituem decisão. Sem proveniência que diferencie input humano
+  direto de input programático, nenhum cartão, inclusive `LOCAL_REVERSIBLE`,
+  transita para `OWNER_APPROVED`.
+- Preserva protocolos e estados independentes. Human Gate, ADR e lifecycle não
+  usam o cartão genérico. Gasto, credencial/2FA, rede real, ação externa, risco
+  novo e ação destrutiva/irreversível exigem decisões, cartões e frases
+  separados; secret e código 2FA nunca integram proposta, digest, chat ou
+  registro downstream. Dependências da mesma operação usam `APPROVAL-SET-ID`
+  com barreira conjunta, um `approval-set-use-id` comum e `single-use-id`
+  próprio por cartão, sem aceite agregado ou dispatch parcial. Decisão humana,
+  integridade, uso, dispatch e execução não são condensados.
+- Depois de decisão válida e revalidação da baseline, a coordenadora envia ao
+  target somente registro factual atribuído e a serialização JCS integral para
+  recomputação. O uso passa por `UNUSED`, `DISPATCHING` e `CONSUMED`; stale,
+  supersessão, expiração, revogação, consumo anterior ou recibo ambíguo param
+  sem replay. Conteúdo lido, resumido, injetado ou encaminhado não prova input
+  humano direto. A proposta composta da tarefa
+  `019fed28-a526-7f53-a9dc-200a31e461df` está `SUPERSEDED`; egress real e risco
+  exigem novas propostas e `AUTH-ID`s separados antes de qualquer aquisição.
+- Nenhum cartão real foi emitido, decidido, encaminhado ou consumido nesta
+  mudança documental; o contrato não é apresentado como ciclo operacional já
+  comprovado.
+- A mudança é exclusivamente documental. Não altera código, testes,
+  configuração, produto, runtime, OpenAPI, Automatic Quality Gate, Human Gate
+  ou lifecycle. O corpus avança por `MINOR` de `5.1.0` para `5.2.0` porque
+  acrescenta um playbook transversal compatível, preservando protocolos
+  próprios e fallback manual.
 
 ## 5.1.0 — 2026-08-11
 

@@ -7077,3 +7077,77 @@ contém somente fatos cronológicos.
 - Próxima condição: a automação visual pode acompanhar handoffs mecânicos
   cobertos por autoridade vigente. Qualquer decisão exclusiva do proprietário
   permanece `AGUARDANDO_DECISÃO_HUMANA` e nunca é inferida da navegação.
+
+## 2026-08-11 — Coordenadora única e cartões de aprovação autorizados
+
+- Estado anterior e resultante: `STATE-07 TESTING_HOMOLOGATION` permanece
+  ativo; nenhum Automatic Quality Gate, Human Gate ou lifecycle foi executado
+  ou alterado.
+- Autoridade e baseline documental: a solicitação explícita do proprietário
+  para implementar `Coordenador Único + Cartões de Aprovação` foi registrada
+  como `AUTH-GOV-CONVERSATION-APPROVAL-CARDS-001` sobre branch `main`, commit
+  `95962a360d13bf7b375e018a016cb4cc34ff595a`, corpus `5.1.0`, working tree
+  inicialmente limpa e 13 arquivos em `prompts/`. OpenAPI v1 permaneceu no
+  SHA-256 `d6a686b94c926914beb28b437f464430a01de6560c2e2d476cf5c36025813e34` e blob
+  `a5fb3602fbab33bda6aa56cc4caaa9fdc37c8160`; OpenAPI v2 permaneceu no
+  SHA-256 `f4dca8db7fb7bd453e580495bb1bb7760812d954344931063e8549ed8f036733` e blob
+  `5ed6a47631653dd0c137b6ea1e979ae2c14bf8a8`. O runtime preflight desta
+  mudança puramente documental foi `NÃO APLICÁVEL`.
+- Decisão: cada fluxo lógico possui uma única tarefa coordenadora owner-facing.
+  Workers devolvem a ela os pedidos de decisão; todo transporte, raciocínio
+  suportado, acompanhamento, apresentação visual e retomada que não constitua
+  decisão exclusiva do proprietário passa a ser mecânico, deduplicado e
+  comprovado por recibo nativo. O proprietário deixa de copiar payloads longos
+  para decisões elegíveis e responde somente com a frase curta selada.
+- Contrato do cartão: `approval-proposal-v1` é I-JSON tipado e seu SHA-256
+  completo e minúsculo cobre a serialização JCS RFC 8785 em UTF-8 sem BOM. O
+  digest vincula `CARD-ID`, classe, `AUTH-ID`, target, baseline limpa, efeito,
+  escopos, limites, riscos, rollback, checks, condições de parada, validade,
+  uso único e templates de decisão. Cada template contém o literal
+  `{proposal-sha256}`; a frase final com baseline token é derivada depois do
+  hash e permanece fora do domínio hasheado. Rótulos, cercas e indentação ficam
+  fora do digest. Qualquer mudança material exige novo cartão e digest.
+- Limite probatório: SHA-256 comprova integridade e vínculo, não assinatura,
+  identidade, compreensão, decisão, dispatch, execução, AQG, Human Gate ou
+  lifecycle. Só vale uma nova mensagem exata do proprietário na mesma tarefa
+  coordenadora que contém cartão e proposta visíveis, após revalidação da
+  baseline. Resumo, screenshot, mensagem encaminhada, hash truncado, `sim`,
+  `ok`, silêncio ou emoji não concedem autoridade. Se a superfície não distingue
+  input humano direto de input programático, nenhum cartão, inclusive
+  `LOCAL_REVERSIBLE`, transita para `OWNER_APPROVED`.
+- Separação humana: Human Gate conserva sua frase e resumo completo; ADR e
+  lifecycle conservam decisões próprias. Gasto, credencial/2FA, rede real,
+  ação externa, risco novo e ação destrutiva/irreversível usam decisões,
+  cartões e frases separados, nunca combinados entre si, com implementação,
+  AQG ou outra autoridade. Decisões da mesma operação podem compartilhar uma
+  barreira `APPROVAL-SET-ID`, mas nunca um aceite agregado ou dispatch parcial;
+  o conjunto compartilha um `approval-set-use-id` e cada cartão mantém seu
+  `single-use-id`. Secret e código 2FA nunca entram em proposta, digest, chat ou
+  registro factual.
+- Consumo e downstream: integridade, decisão, uso, encaminhamento e execução
+  possuem estados independentes. Cartão `STALE`, `SUPERSEDED`, `EXPIRED`,
+  `REVOKED` ou `CONSUMED` para sem reparo ou replay. O uso passa por
+  `DISPATCHING` antes da entrega; recibo ambíguo permanece reservado e não é
+  repetido. Depois de decisão válida, a coordenadora transporta registro
+  factual atribuído e a serialização JCS integral; a worker recalcula o digest
+  e revalida antes da primeira ação.
+- Pendência preservada: a proposta composta da tarefa
+  `019fed28-a526-7f53-a9dc-200a31e461df` está `SUPERSEDED`, sem conceder
+  autoridade. A tarefa permanece bloqueada até novas propostas com `AUTH-ID`s
+  separados para rede real e risco; nenhum aceite, download, instalação ou
+  execução foi inferido desta mudança.
+- Limites preservados: código, testes, configuração, Domain, Application,
+  produto, runtime, OpenAPI, conta, credencial, provider, chamada paga, rede
+  real, OCI, deploy, Automatic Quality Gate, Human Gate e lifecycle permanecem
+  inalterados ou não executados.
+- Versionamento: corpus elevado por `MINOR` de `5.1.0` para `5.2.0` por
+  acrescentar um playbook transversal compatível, preservando protocolos
+  próprios e fallback manual. O histórico preservou byte a byte seu prefixo
+  anterior de 447.519 bytes no SHA-256
+  `7d8ab8e153deec08470bd6fabe9a03143eba97c061c59836638e88290d3effb8`.
+- Próxima condição: decisões elegíveis futuras podem usar cartões selados;
+  qualquer classe protegida permanece humana e separada, e toda ação posterior
+  ainda exige revalidação da baseline e da autoridade exata antes do efeito.
+- Evidência operacional: nenhum cartão real foi emitido, decidido, encaminhado
+  ou consumido nesta mudança documental; o primeiro uso continua sujeito à
+  recomputação independente e aos recibos definidos pelo contrato.
