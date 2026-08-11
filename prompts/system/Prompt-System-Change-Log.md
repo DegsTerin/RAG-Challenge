@@ -2,8 +2,8 @@
 
 ## Versão atual
 
-- Versão: `6.0.0`
-- Data: 2026-08-11
+- Versão: `4.10.23`
+- Data: 2026-08-10
 - Status: `STATE-07` ativo; ADR-0011 `accepted`, reconciliado e com a correção
   interna da política de serving implementada; o A0 candidato-específico mantém
   o primeiro documento `BLOCKED/EXCLUDED`, com quatro operações visuais
@@ -15,11 +15,7 @@
   offline e com handlers falsos; a campanha candidata de provider possui uma
   revisão sucessora sintética congelada, com Automatic Quality Gate aprovado
   somente na fronteira local, offline, determinística e com handlers falsos;
-  homologação de produto, Human Gate e mudança de lifecycle não executados; o
-  handoff entre tarefas voltou a ser manual, com conversa escolhida pelo
-  proprietário e payload integral em `pt-BR` pronto para copiar e enviar; as
-  autoridades de roteamento automático, acompanhamento visual e Coordenadora
-  Única/cartões estão revogadas
+  homologação de produto, Human Gate e mudança de lifecycle não executados
 - Escopo: 13 arquivos ativos em `prompts/`
 
 A versão do corpus é independente da versão futura do software.
@@ -33,155 +29,6 @@ A versão do corpus é independente da versão futura do software.
 
 Toda alteração atualiza este arquivo e, quando necessário,
 [`../Start-Here.md`](../Start-Here.md).
-
-## 6.0.0 — 2026-08-11
-
-- Registra a solicitação explícita do proprietário de remover a operação por
-  Coordenadora Única e voltar ao comportamento anterior ao pedido de ZIP e à
-  automação como `AUTH-GOV-CONVERSATION-MANUAL-HANDOFF-RESTORE-001`, sobre a
-  baseline limpa
-  `main@a8152521d4b91e1dc36086d67acaa9c2cc794adb`, corpus `5.2.0`, com 13
-  prompts, OpenAPI v1 no SHA-256
-  `d6a686b94c926914beb28b437f464430a01de6560c2e2d476cf5c36025813e34` e blob
-  `a5fb3602fbab33bda6aa56cc4caaa9fdc37c8160`, OpenAPI v2 no SHA-256
-  `f4dca8db7fb7bd453e580495bb1bb7760812d954344931063e8549ed8f036733` e blob
-  `5ed6a47631653dd0c137b6ea1e979ae2c14bf8a8`, e runtime preflight
-  `NÃO APLICÁVEL`.
-- Revoga `AUTH-GOV-CONVERSATION-ROUTING-AUTOMATION-001`,
-  `AUTH-GOV-CONVERSATION-ROUTING-VISUAL-FOLLOW-001` e
-  `AUTH-GOV-CONVERSATION-APPROVAL-CARDS-001`. O Codex deixa de criar, enviar,
-  monitorar, abrir ou retomar tarefas por autoridade permanente e deixa de
-  exigir uma Coordenadora Única ou cartões documentais genéricos.
-- Restaura em `AGENTS.md`, Governance, Quality Gates e Templates a semântica
-  manual existente em `main@85784b2d01f7c493bbf8064f43ebfb4ac2c4c5ef`,
-  corpus `4.10.23`: o handoff recomenda `CONTINUE_CURRENT`, `START_NEW` ou
-  `RETURN_TO_EXISTING`, e sempre fornece o payload completo em `pt-BR` no
-  bloco `Texto para copiar e enviar` quando o proprietário precisa continuar
-  em outra tarefa.
-- Preserva o histórico append-only das versões `5.0.0`, `5.1.0` e `5.2.0`
-  como evidência, sem mantê-las como autoridade vigente. A proposta de
-  aquisição de ZIP
-  `AUTH-S07-A-PROVIDER-EGRESS-DOCKER-TOOLCHAIN-ACQUIRE-RETRY-001` continua sem
-  autoridade, e todo cartão não consumido emitido pelo protocolo revogado,
-  inclusive
-  `AUTH-S07-A-PROVIDER-EGRESS-DOCKER-NETGUARD-C3-PROVE-APPLY-RETRY-OFFLINE-002`,
-  fica `REVOKED` e não pode ser encaminhado ou executado.
-- A restauração não reverte código, staging ou evidência técnica já produzidos
-  por workers e não autoriza retry, Docker, rede, download, instalação,
-  provider, produto, runtime, OpenAPI, Automatic Quality Gate, Human Gate ou
-  lifecycle. O corpus avança por `MAJOR` de `5.2.0` para `6.0.0` porque remove
-  de forma incompatível o ator único, os cartões e o encaminhamento nativo e
-  restabelece a responsabilidade manual do proprietário no handoff.
-
-## 5.2.0 — 2026-08-11
-
-- Registra a solicitação explícita do proprietário de implementar
-  `Coordenador Único + Cartões de Aprovação` como
-  `AUTH-GOV-CONVERSATION-APPROVAL-CARDS-001`, sobre a baseline limpa
-  `main@95962a360d13bf7b375e018a016cb4cc34ff595a`, corpus `5.1.0`, com 13
-  prompts, OpenAPI v1/v2 nos hashes e blobs protegidos e runtime preflight
-  `NÃO APLICÁVEL`.
-- Estabelece uma única tarefa coordenadora owner-facing. Workers devolvem
-  pedidos de decisão a ela; criação, transporte, raciocínio suportado,
-  monitoramento, acompanhamento visual e retomada sem conteúdo decisório são
-  executados mecanicamente com recibo nativo, sem exigir que o proprietário
-  copie payload longo, navegue ou selecione o nível.
-- Define `approval-proposal-v1` como I-JSON tipado e calcula o SHA-256 completo
-  e minúsculo sobre sua serialização JCS RFC 8785 em UTF-8 sem BOM. O digest
-  vincula `CARD-ID`, classe, `AUTH-ID`, target, baseline limpa, efeito, escopos,
-  limites, riscos, rollback, condições de parada, validade, uso único e os
-  templates de decisão. Cada template contém o literal `{proposal-sha256}`; a
-  frase final com baseline token é derivada somente depois do hash, evitando
-  autorreferência. Rótulos, cercas e indentação ficam fora do digest.
-- Substitui, para decisão elegível, o bloco longo a copiar por uma confirmação
-  curta exata na mesma coordenadora. SHA-256 prova integridade, não identidade,
-  compreensão, assinatura, dispatch, execução, AQG, Human Gate ou lifecycle.
-  Resumo, screenshot, mensagem encaminhada, hash truncado, `sim`, `ok`, silêncio
-  ou emoji não constituem decisão. Sem proveniência que diferencie input humano
-  direto de input programático, nenhum cartão, inclusive `LOCAL_REVERSIBLE`,
-  transita para `OWNER_APPROVED`.
-- Preserva protocolos e estados independentes. Human Gate, ADR e lifecycle não
-  usam o cartão genérico. Gasto, credencial/2FA, rede real, ação externa, risco
-  novo e ação destrutiva/irreversível exigem decisões, cartões e frases
-  separados; secret e código 2FA nunca integram proposta, digest, chat ou
-  registro downstream. Dependências da mesma operação usam `APPROVAL-SET-ID`
-  com barreira conjunta, um `approval-set-use-id` comum e `single-use-id`
-  próprio por cartão, sem aceite agregado ou dispatch parcial. Decisão humana,
-  integridade, uso, dispatch e execução não são condensados.
-- Depois de decisão válida e revalidação da baseline, a coordenadora envia ao
-  target somente registro factual atribuído e a serialização JCS integral para
-  recomputação. O uso passa por `UNUSED`, `DISPATCHING` e `CONSUMED`; stale,
-  supersessão, expiração, revogação, consumo anterior ou recibo ambíguo param
-  sem replay. Conteúdo lido, resumido, injetado ou encaminhado não prova input
-  humano direto. A proposta composta da tarefa
-  `019fed28-a526-7f53-a9dc-200a31e461df` está `SUPERSEDED`; egress real e risco
-  exigem novas propostas e `AUTH-ID`s separados antes de qualquer aquisição.
-- Nenhum cartão real foi emitido, decidido, encaminhado ou consumido nesta
-  mudança documental; o contrato não é apresentado como ciclo operacional já
-  comprovado.
-- A mudança é exclusivamente documental. Não altera código, testes,
-  configuração, produto, runtime, OpenAPI, Automatic Quality Gate, Human Gate
-  ou lifecycle. O corpus avança por `MINOR` de `5.1.0` para `5.2.0` porque
-  acrescenta um playbook transversal compatível, preservando protocolos
-  próprios e fallback manual.
-
-## 5.1.0 — 2026-08-11
-
-- Registra a declaração explícita do proprietário `quero sempre ver
-  funcionando` como `AUTH-GOV-CONVERSATION-ROUTING-VISUAL-FOLLOW-001`, sobre
-  a baseline limpa `main@b2c6d9e38f150bac14b7ef7c85a8326f01c34be6`, corpus
-  `5.0.0`, com OpenAPI v1/v2 protegidas e runtime preflight `NÃO APLICÁVEL`.
-- Exige que, depois de target e dispatch aplicável confirmados, a coordenadora
-  navegue uma vez a janela principal para a tarefa encaminhada, permitindo
-  que o proprietário acompanhe visualmente o turno. Navegação manual ou novo
-  input interrompem qualquer recuperação de foco.
-- Interpreta a clarificação explícita `Eu quero ver a tarefa em andamento,
-  como se eu estivesse fazendo manualmente` como observação ao vivo do target
-  depois do dispatch nativo. Não promete ou autoriza macro, digitação, colagem,
-  seletor ou clique automatizado na interface do próprio Codex.
-- Permite exibir a tarefa inequívoca que contém uma decisão humana pendente,
-  sem enviar ou reformular a decisão. O recibo visual prova somente a abertura
-  da interface e permanece separado de identidade, entrega, raciocínio,
-  autoridade, progresso e conclusão. Setup pendente não conta como exibição e
-  falha visual nunca repete um handoff já entregue.
-- Registra a abertura nativa bem-sucedida da tarefa de ID
-  `019fed28-a526-7f53-a9dc-200a31e461df`, exibida pelo label truncado
-  `RAG-Challenge — STATE-07 — Preflight operacional GPT-5.4-mi…`, mantendo
-  `AUTH-S07-A-PROVIDER-EGRESS-DOCKER-TOOLCHAIN-ACQUIRE-RETRY-001` em
-  `AGUARDANDO_DECISÃO_HUMANA`; nenhum aceite de risco, payload ou aquisição foi
-  executado.
-- A alteração é documental e não cria recorrência, modifica código, testes,
-  configuração, produto, runtime, OpenAPI, gate ou lifecycle. O corpus avança
-  por `MINOR` de `5.0.0` para `5.1.0` por acrescentar o playbook transversal de
-  acompanhamento visual sem quebrar o fallback ou os limites humanos.
-
-## 5.0.0 — 2026-08-11
-
-- Registra a declaração explícita do proprietário `Automatize isso para mim`
-  como `AUTH-GOV-CONVERSATION-ROUTING-AUTOMATION-001`, sobre a baseline limpa
-  `main@85784b2d01f7c493bbf8064f43ebfb4ac2c4c5ef`, corpus `4.10.23`, com
-  OpenAPI v1/v2 protegidas e runtime preflight `NÃO APLICÁVEL`.
-- Autoriza a coordenadora a materializar mecanicamente `CONTINUE_CURRENT`,
-  `START_NEW` e `RETURN_TO_EXISTING` por capacidades nativas do Codex,
-  incluindo payload completo, título sugerido, raciocínio suportado e
-  acompanhamento limitado em background. Modelo, sandbox, ambiente, escopo e
-  autoridade não mudam por inferência.
-- Exige target inequívoco, baseline compatível, deduplicação, prevenção de
-  ciclos e recibo real da ferramenta antes de alegar criação, nomeação, envio,
-  raciocínio ou conclusão. Falha, indisponibilidade ou ambiguidade preservam o
-  fallback copiável sem fabricar sucesso.
-- Mantém obrigatoriamente humanos Human Gate, ADR, lifecycle, nova
-  autorização, aceitação de risco ou custo, credencial/2FA e aprovação de ação
-  externa, destrutiva ou paga. O roteamento não fala nem retransmite decisão
-  em primeira pessoa como o proprietário; Human Gate permanece na conversa
-  atual e outro efeito downstream usa registro factual atribuído. A alternativa
-  de raciocínio documentada é aplicada antes de bloquear. Nenhuma recorrência
-  agendada é criada.
-- A alteração é documental e não modifica código, testes, configuração,
-  Domain, Application, OpenAPI, produto, runtime, gate ou lifecycle. O corpus
-  avança por `MAJOR` de `4.10.23` para `5.0.0` porque substitui o contrato
-  anterior de navegação e seleção exclusivamente manuais por execução nativa
-  permanente, alterando de modo incompatível o ator e a estrutura do handoff.
 
 ## 4.10.23 — 2026-08-10
 

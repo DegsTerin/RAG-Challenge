@@ -1,6 +1,6 @@
 # Estado Atual
 
-Este documento é o snapshot factual vigente do workspace em 2026-08-11. Ele
+Este documento é o snapshot factual vigente do workspace em 2026-08-10. Ele
 não concede autoridade. Evolução e decisões no contexto original pertencem ao
 [`State-Transition-Log.md`](State-Transition-Log.md) e aos relatórios
 proprietários.
@@ -1383,7 +1383,7 @@ proprietários.
   a política de idioma acrescentou o 21º documento público por incremento
   versionado, e o ADR-0003 acrescentou o 22º.
 - A baseline aprovada no Human Gate de `STATE-00` permanece `3.4.0`.
-- O corpus de instruções vigente possui versão `6.0.0` e 13 arquivos em
+- O corpus de instruções vigente possui versão `4.10.23` e 13 arquivos em
   `prompts/`.
 - Visão, requisitos, arquitetura, RAG, segurança, qualidade, lifecycle,
   roadmap, backlog, estado, histórico e templates estão documentados.
@@ -1541,83 +1541,6 @@ proprietários.
   avaliação real, qualidade bilíngue, groundedness, citações, insuficiência de
   evidência real, resistência a prompt injection, latência, custo observado,
   OCI, deploy, Human Gate e lifecycle permanecem `NOT_RUN`.
-- O corpus `5.0.0` registra sob
-  `AUTH-GOV-CONVERSATION-ROUTING-AUTOMATION-001`, a partir da baseline limpa
-  `main@85784b2d01f7c493bbf8064f43ebfb4ac2c4c5ef`, a autorização permanente
-  do proprietário para a coordenadora executar mecanicamente os handoffs
-  `CONTINUE_CURRENT`, `START_NEW` e `RETURN_TO_EXISTING` com título, payload,
-  raciocínio suportado e acompanhamento nativo. A entrega exige target
-  inequívoco e recibo real da ferramenta; mantém fallback copiável quando a
-  capacidade falhar ou estiver indisponível. Human Gate, ADR, lifecycle, nova
-  autorização, aceitação de risco ou custo, credencial/2FA e aprovação de ação
-  externa, destrutiva ou paga continuam exclusivas do proprietário. A mudança
-  governa tarefas do Codex, não cria recorrência agendada e não altera produto,
-  runtime, OpenAPI, gate nem lifecycle.
-- O corpus `5.1.0` registra sob
-  `AUTH-GOV-CONVERSATION-ROUTING-VISUAL-FOLLOW-001`, a partir da baseline limpa
-  `main@b2c6d9e38f150bac14b7ef7c85a8326f01c34be6`, a preferência permanente
-  do proprietário de ver visualmente cada tarefa encaminhada pela automação.
-  Depois de target e operação nativa aplicável confirmados, a janela principal
-  exibe a tarefa uma vez e a deixa visível; mudança manual de tela ou novo input
-  não provoca retomada forçada de foco. A tarefa confirmada pelo ID
-  `019fed28-a526-7f53-a9dc-200a31e461df`, exibida na interface pelo label
-  truncado `RAG-Challenge — STATE-07 — Preflight operacional GPT-5.4-mi…`, foi
-  aberta com sucesso, mas permaneceu `AGUARDANDO_DECISÃO_HUMANA` para
-  `AUTH-S07-A-PROVIDER-EGRESS-DOCKER-TOOLCHAIN-ACQUIRE-RETRY-001`; nenhum
-  aceite de risco, payload ou aquisição foi enviado. Navegação é apresentação,
-  não autoridade, dispatch, progresso, conclusão ou automação agendada. A
-  clarificação posterior `Eu quero ver a tarefa em andamento, como se eu
-  estivesse fazendo manualmente` significa abrir a tarefa para observação do
-  processamento nativo; não autoriza nem torna disponível uma macro de mouse,
-  teclado, colagem, seletor ou clique na interface do próprio Codex.
-- O corpus `5.2.0` registra sob
-  `AUTH-GOV-CONVERSATION-APPROVAL-CARDS-001`, a partir da baseline limpa
-  `main@95962a360d13bf7b375e018a016cb4cc34ff595a`, a autorização permanente
-  para uma única tarefa coordenadora apresentar decisões humanas por cartões
-  documentais `approval-proposal-v1`. Cada proposta integral é I-JSON tipado e
-  vincula por SHA-256 da serialização JCS um `AUTH-ID`, a baseline limpa,
-  escopos, limites, riscos, rollback, uso único e os templates de decisão. A
-  frase curta é derivada depois do hash a partir do literal
-  `{proposal-sha256}`, inclui `AUTH-ID`, baseline token e digest, e não cria
-  autorreferência. O digest prova integridade, não identidade,
-  compreensão, dispatch, execução, AQG, Human Gate ou lifecycle. Sem
-  proveniência que diferencie input humano direto de input programático, nenhum
-  cartão, inclusive `LOCAL_REVERSIBLE`, concede autoridade. Workers recebem
-  registro factual e a serialização JCS integral para recomputação;
-  transporte, raciocínio, acompanhamento visual e retomada puramente mecânicos
-  passam a ser automáticos. Human Gate, ADR e lifecycle conservam seus
-  protocolos; gasto, credencial/2FA, rede real, ação externa, risco novo e ação
-  destrutiva/irreversível exigem decisões e cartões separados. Dependências de
-  uma mesma operação usam `APPROVAL-SET-ID` sem dispatch parcial, com um
-  `approval-set-use-id` comum ao conjunto e `single-use-id` próprio por cartão.
-  Secrets e códigos 2FA não entram em cartão, digest, chat ou registro. A proposta
-  composta associada à tarefa `019fed28-a526-7f53-a9dc-200a31e461df` e a
-  `AUTH-S07-A-PROVIDER-EGRESS-DOCKER-TOOLCHAIN-ACQUIRE-RETRY-001` está
-  `SUPERSEDED`, sem conceder autoridade; a tarefa permanece bloqueada até novas
-  propostas com `AUTH-ID`s separados para egress real e risco. Nenhuma
-  aquisição foi iniciada. O contrato está documentado, mas nenhum cartão real
-  foi emitido, decidido, encaminhado ou consumido nesta mudança. Produto,
-  runtime, OpenAPI, gates e lifecycle permanecem inalterados; o runtime
-  preflight documental foi `NÃO APLICÁVEL`.
-- O corpus `6.0.0` registra sob
-  `AUTH-GOV-CONVERSATION-MANUAL-HANDOFF-RESTORE-001` a solicitação explícita
-  do proprietário de remover a operação por Coordenadora Única, cartões e
-  automação e voltar ao fluxo anterior ao pedido de ZIP e à automação. As
-  autoridades `AUTH-GOV-CONVERSATION-ROUTING-AUTOMATION-001`,
-  `AUTH-GOV-CONVERSATION-ROUTING-VISUAL-FOLLOW-001` e
-  `AUTH-GOV-CONVERSATION-APPROVAL-CARDS-001` estão `REVOKED`; nenhum handoff,
-  monitoramento, navegação visual ou retomada automática pode ser inferido
-  delas. O contrato owner-facing volta a exigir seleção manual da conversa e
-  um payload integral em `pt-BR` no bloco `Texto para copiar e enviar`. A
-  proposta de aquisição de ZIP
-  `AUTH-S07-A-PROVIDER-EGRESS-DOCKER-TOOLCHAIN-ACQUIRE-RETRY-001` permanece sem
-  autoridade e todo cartão não consumido derivado do protocolo revogado,
-  inclusive
-  `AUTH-S07-A-PROVIDER-EGRESS-DOCKER-NETGUARD-C3-PROVE-APPLY-RETRY-OFFLINE-002`,
-  está `REVOKED` e não pode ser encaminhado ou executado. A restauração é
-  documental e não desfaz código, staging ou evidência técnica já produzidos
-  por workers; também não autoriza retry, Docker, rede, download, instalação,
-  produto, runtime, OpenAPI, gate, Human Gate ou lifecycle.
 - O corpus `4.3.0` formaliza a decisão explícita do proprietário de aceitar
   perguntas e respostas em `pt-BR` e `en-GB`: cada consulta declara o idioma,
   a resposta usa o mesmo idioma, textos derivados da fonte permanecem no
