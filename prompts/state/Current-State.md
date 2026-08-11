@@ -1383,7 +1383,7 @@ proprietários.
   a política de idioma acrescentou o 21º documento público por incremento
   versionado, e o ADR-0003 acrescentou o 22º.
 - A baseline aprovada no Human Gate de `STATE-00` permanece `3.4.0`.
-- O corpus de instruções vigente possui versão `5.0.0` e 13 arquivos em
+- O corpus de instruções vigente possui versão `5.1.0` e 13 arquivos em
   `prompts/`.
 - Visão, requisitos, arquitetura, RAG, segurança, qualidade, lifecycle,
   roadmap, backlog, estado, histórico e templates estão documentados.
@@ -1553,6 +1553,23 @@ proprietários.
   externa, destrutiva ou paga continuam exclusivas do proprietário. A mudança
   governa tarefas do Codex, não cria recorrência agendada e não altera produto,
   runtime, OpenAPI, gate nem lifecycle.
+- O corpus `5.1.0` registra sob
+  `AUTH-GOV-CONVERSATION-ROUTING-VISUAL-FOLLOW-001`, a partir da baseline limpa
+  `main@b2c6d9e38f150bac14b7ef7c85a8326f01c34be6`, a preferência permanente
+  do proprietário de ver visualmente cada tarefa encaminhada pela automação.
+  Depois de target e operação nativa aplicável confirmados, a janela principal
+  exibe a tarefa uma vez e a deixa visível; mudança manual de tela ou novo input
+  não provoca retomada forçada de foco. A tarefa confirmada pelo ID
+  `019fed28-a526-7f53-a9dc-200a31e461df`, exibida na interface pelo label
+  truncado `RAG-Challenge — STATE-07 — Preflight operacional GPT-5.4-mi…`, foi
+  aberta com sucesso, mas permaneceu `AGUARDANDO_DECISÃO_HUMANA` para
+  `AUTH-S07-A-PROVIDER-EGRESS-DOCKER-TOOLCHAIN-ACQUIRE-RETRY-001`; nenhum
+  aceite de risco, payload ou aquisição foi enviado. Navegação é apresentação,
+  não autoridade, dispatch, progresso, conclusão ou automação agendada. A
+  clarificação posterior `Eu quero ver a tarefa em andamento, como se eu
+  estivesse fazendo manualmente` significa abrir a tarefa para observação do
+  processamento nativo; não autoriza nem torna disponível uma macro de mouse,
+  teclado, colagem, seletor ou clique na interface do próprio Codex.
 - O corpus `4.3.0` formaliza a decisão explícita do proprietário de aceitar
   perguntas e respostas em `pt-BR` e `en-GB`: cada consulta declara o idioma,
   a resposta usa o mesmo idioma, textos derivados da fonte permanecem no

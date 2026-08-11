@@ -299,6 +299,22 @@ effort for `START_NEW`, and locates one uniquely confirmed task before
 reports creation, naming, delivery or completion only after the corresponding
 tool result succeeds. Another task is never a `CONTINUE_CURRENT` target.
 
+While `AUTH-GOV-CONVERSATION-ROUTING-VISUAL-FOLLOW-001` remains in force, the
+coordinator also presents the confirmed target task in the most recently
+focused main Codex window after a native dispatch succeeds, so the owner can
+watch the turn in progress. If an owner-only decision blocks dispatch, it may
+instead present the uniquely confirmed task that contains that decision,
+without sending the decision. It navigates at most once per routing event and
+does not reclaim focus after the owner navigates elsewhere or supplies new
+input. A navigation receipt is presentation evidence only: it never proves
+identity by itself, delivery, reasoning, authority, progress or completion.
+The visual target must be the same confirmed task identity used by the route;
+a pending setup or provisional client identifier is insufficient. Visual
+failure never repeats a separately proven dispatch. This preference does not
+authorise mouse, keyboard or macro automation of the Codex interface: the
+supported sequence is native dispatch followed by native navigation, so the
+owner sees the target processing rather than simulated typing or clicks.
+
 Automatic routing transports only authority already granted. It never writes
 or sends an owner-only act on the owner's behalf, including a Human Gate
 phrase, ADR or lifecycle decision, new authorisation, acceptance of risk or
@@ -335,7 +351,9 @@ Templates. The label and fences remain outside the payload, including for a
 one-line Human Gate phrase; use an unambiguous outer fence when the payload
 contains a fence. Never use an automatic-success status without observed tool
 evidence, and never replace a required human decision with the absence
-sentinel.
+sentinel. The same evidence line records `acompanhamento visual` as `EXIBIDO`,
+`INDISPONÍVEL` or `NÃO_APLICÁVEL`; visual failure does not erase a separately
+proven dispatch and visual success does not upgrade any other result.
 
 Apply the [language policy](prompts/governance/Language-Policy.md) and retain
 the required spelling of technical literals. Recommend the lowest sufficient

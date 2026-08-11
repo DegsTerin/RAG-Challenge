@@ -29,7 +29,8 @@ claras no corpo da resposta. Literais técnicos preservam a grafia canônica.
 - Sua ação agora: ação imediata exata, ou `nenhuma`
 - Conversa recomendada: `<ROUTE> — <TARGET> — <MOTIVO>`; acrescentar
   `Título sugerido: <TÍTULO>` no mesmo campo somente para `START_NEW`
-- Encaminhamento automático: `<STATUS> — <EVIDÊNCIA-OU-CONDIÇÃO>`
+- Encaminhamento automático: `<STATUS> — <EVIDÊNCIA-OU-CONDIÇÃO>;
+  acompanhamento visual: <VISUAL>`
 - Texto para copiar e enviar: rótulo em linha própria seguido pelo bloco
   copiável completo em `pt-BR`, ou `nenhum texto é necessário` na mesma linha
 - Raciocínio recomendado: `<NÍVEL> — <JUSTIFICATIVA>. Alternativa:
@@ -65,6 +66,7 @@ depois, se necessário, o resumo.
   `existing — <título-ou-label-confirmado>`;
 - `<STATUS>`: `EXECUTADO`, `AGUARDANDO_DECISÃO_HUMANA`, `INDISPONÍVEL` ou
   `NÃO_APLICÁVEL`;
+- `<VISUAL>`: `EXIBIDO`, `INDISPONÍVEL` ou `NÃO_APLICÁVEL`;
 - `<NÍVEL>`: `Leve`, `Médio`, `Alto`, `Extra alto`, `Máximo` ou `Ultra`;
 - `<CLASSIFICAÇÃO>`: `SEQUENTIAL_ONLY`, `PARALLEL_OPTIONAL` ou
   `PARALLEL_RECOMMENDED`.
@@ -87,7 +89,8 @@ Posicionar `Encaminhamento automático` imediatamente após
 `Conversa recomendada`. Quando Governance exigir `Texto para copiar e enviar`,
 posicioná-lo imediatamente depois do status, sem conteúdo interposto, e
 preencher todo o payload sem placeholders. A forma de ausência permanece
-inline somente nos casos permitidos por essa autoridade.
+inline somente nos casos permitidos por essa autoridade. O resultado visual
+integra a mesma linha de evidência e não substitui o recibo da operação nativa.
 
 ### Destaque obrigatório do texto copiável
 
@@ -190,10 +193,13 @@ nas linhas compactas do encerramento final.
 - Título sugerido e não canônico, somente para `START_NEW`:
 - Motivo:
 - Autoridade de automação vigente:
+- Preferência e autoridade de acompanhamento visual vigentes:
 - Operação nativa pretendida:
 - Status observado: `EXECUTADO` / `AGUARDANDO_DECISÃO_HUMANA` /
   `INDISPONÍVEL` / `NÃO_APLICÁVEL`
 - Identificador, título e host realmente retornados, quando aplicável:
+- Resultado da navegação visual: `EXIBIDO` / `INDISPONÍVEL` /
+  `NÃO_APLICÁVEL`
 - Evidência ou condição de parada:
 - Raciocínio do Codex recomendado: `Leve` / `Médio` / `Alto` /
   `Extra alto` / `Máximo` / `Ultra`
@@ -310,6 +316,8 @@ proprietário, com origem, autoridade e escopo exato, nunca uma voz simulada.
   `current`, e resumo completo da baseline vigente no mesmo handoff.
 - Registrar `Encaminhamento automático: AGUARDANDO_DECISÃO_HUMANA`; o Codex
   nunca origina nem envia a frase como se fosse o proprietário.
+- A tarefa confirmada que contém a decisão pode ser exibida visualmente, sem
+  converter navegação em envio, aceite ou recibo do Human Gate.
 - Nesse caso, `Texto para copiar e enviar` contém apenas a frase canônica do
   gate, destacada no bloco copiável mesmo sendo uma única linha.
 - Para `START_NEW` ou `RETURN_TO_EXISTING`, a mensagem solicita releitura e

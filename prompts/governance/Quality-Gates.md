@@ -34,6 +34,9 @@ Um lote está pronto quando:
   target, título, payload, capacidade nativa e correspondência de raciocínio
   estão definidos; o destino é inequívoco e nenhuma decisão exclusiva do
   proprietário integra a operação.
+- quando a preferência de acompanhamento visual estiver vigente, a capacidade
+  de navegação, seu momento e sua condição de parada estão definidos sem
+  transformar apresentação em evidência de envio, autoridade ou conclusão.
 - a [`política de idioma`](Language-Policy.md) é aplicável ao lote, sem
   tradução histórica ou idioma de interface inferidos.
 
@@ -69,6 +72,14 @@ Um lote está pronto quando:
   não cria recorrência agendada. Também não retransmite uma decisão humana em
   primeira pessoa: Human Gate permanece na conversa atual e outro efeito
   downstream usa somente registro factual atribuído.
+- O recibo visual registra `EXIBIDO`, `INDISPONÍVEL` ou `NÃO_APLICÁVEL` na
+  evidência de encaminhamento. A navegação ocorre no máximo uma vez por evento,
+  não recupera foco depois de navegação ou input do proprietário e não serve
+  como recibo de identidade, dispatch, raciocínio, progresso ou conclusão. O
+  target coincide com a identidade confirmada da rota; setup pendente não
+  conta como exibição e falha visual não repete um handoff entregue. Não se
+  alega macro, digitação, seleção ou clique visível quando o dispatch ocorreu
+  pela capacidade nativa.
 - Runtime preflight foi classificado antes de qualquer inspeção e é aplicado
   somente a mudança ou validação executável; em documentação/read-only não há
   anúncio, enumeração ou encerramento de processo.

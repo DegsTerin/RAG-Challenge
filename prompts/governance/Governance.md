@@ -230,6 +230,15 @@ do Codex exponha ferramentas nativas de criação, listagem, leitura, envio,
 nomeação e acompanhamento de tarefas. A autorização não cria conteúdo
 substantivo, não amplia o escopo de um lote e não substitui decisão humana.
 
+A preferência permanente
+`AUTH-GOV-CONVERSATION-ROUTING-VISUAL-FOLLOW-001` exige acompanhamento visual
+dos encaminhamentos automáticos enquanto não for revogada. Depois de confirmar
+inequivocamente o target e obter o recibo nativo aplicável, a coordenadora
+exibe essa tarefa na janela principal do Codex que estiver em foco, deixando o
+turno visível para o proprietário. Se o envio estiver bloqueado por uma decisão
+exclusiva do proprietário, pode exibir a tarefa confirmada que contém a decisão,
+mas não pode enviar, aceitar ou reformular a manifestação humana.
+
 Antes de encaminhar, a coordenadora confirma cumulativamente:
 
 1. a rota, o target, o payload completo e o raciocínio recomendado;
@@ -268,6 +277,25 @@ ferramenta, limite de uso, indisponibilidade simultânea do raciocínio primári
 e de seu fallback, baseline divergente, destino ambíguo ou handoff repetido
 são condições de parada. Indisponibilidade apenas do nível primário aplica e
 registra a alternativa documentada, sem substituição silenciosa.
+
+O acompanhamento visual é uma ação única de apresentação por evento de
+roteamento: ocorre depois da confirmação do target e, quando houver envio,
+depois do recibo de dispatch. A coordenadora não recupera repetidamente o foco
+se o proprietário navegar para outra tela ou fornecer novo input. Navegação
+nativa bem-sucedida prova somente que a interface abriu o target naquele
+instante; não prova entrega, raciocínio aplicado, execução, progresso,
+conclusão ou autoridade material. Falha ou ausência da capacidade visual é
+registrada como `acompanhamento visual: INDISPONÍVEL`, sem apagar um dispatch
+comprovado, repeti-lo ou fabricar execução. A identidade visual deve coincidir
+com o target confirmado da rota; setup pendente ou identificador provisório
+não contam como tarefa pronta para exibição. Quando a rota é absorvida na
+tarefa já visível, registrar `NÃO_APLICÁVEL`; nos demais sucessos, `EXIBIDO`.
+
+O pedido de acompanhar "como se estivesse fazendo manualmente" significa ver
+a tarefa alvo processar na interface depois do dispatch nativo. Não autoriza
+automação de mouse, teclado ou macro sobre a própria interface do Codex, nem
+permite alegar que colagem, seletor ou clique foram exibidos quando a operação
+ocorreu pela ferramenta nativa.
 
 Encaminhamento automático nunca envia uma fala exclusiva do proprietário em
 seu nome. Permanecem obrigatoriamente humanos: frase de Human Gate; decisão de
@@ -360,7 +388,8 @@ existir uma ação concreta diretamente relacionada.
 
 O formato padrão agrupa dados relacionados em linhas compactas: rota, target,
 título quando aplicável e motivo em `Conversa recomendada`; status e evidência
-em `Encaminhamento automático`; nível, justificativa e fallback em
+de entrega mais `acompanhamento visual` em `Encaminhamento automático`; nível,
+justificativa e fallback em
 `Raciocínio recomendado`; classificação e motivo em `Paralelismo`. Plano e
 mensagens por lane aparecem somente para `PARALLEL_OPTIONAL` ou
 `PARALLEL_RECOMMENDED`.

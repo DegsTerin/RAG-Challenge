@@ -2,7 +2,7 @@
 
 ## Versão atual
 
-- Versão: `5.0.0`
+- Versão: `5.1.0`
 - Data: 2026-08-11
 - Status: `STATE-07` ativo; ADR-0011 `accepted`, reconciliado e com a correção
   interna da política de serving implementada; o A0 candidato-específico mantém
@@ -17,7 +17,8 @@
   somente na fronteira local, offline, determinística e com handlers falsos;
   homologação de produto, Human Gate e mudança de lifecycle não executados; o
   roteamento mecânico de tarefas do Codex está autorizado, com decisões
-  exclusivas do proprietário preservadas
+  exclusivas do proprietário preservadas e acompanhamento visual permanente
+  dos targets confirmados
 - Escopo: 13 arquivos ativos em `prompts/`
 
 A versão do corpus é independente da versão futura do software.
@@ -31,6 +32,36 @@ A versão do corpus é independente da versão futura do software.
 
 Toda alteração atualiza este arquivo e, quando necessário,
 [`../Start-Here.md`](../Start-Here.md).
+
+## 5.1.0 — 2026-08-11
+
+- Registra a declaração explícita do proprietário `quero sempre ver
+  funcionando` como `AUTH-GOV-CONVERSATION-ROUTING-VISUAL-FOLLOW-001`, sobre
+  a baseline limpa `main@b2c6d9e38f150bac14b7ef7c85a8326f01c34be6`, corpus
+  `5.0.0`, com OpenAPI v1/v2 protegidas e runtime preflight `NÃO APLICÁVEL`.
+- Exige que, depois de target e dispatch aplicável confirmados, a coordenadora
+  navegue uma vez a janela principal para a tarefa encaminhada, permitindo
+  que o proprietário acompanhe visualmente o turno. Navegação manual ou novo
+  input interrompem qualquer recuperação de foco.
+- Interpreta a clarificação explícita `Eu quero ver a tarefa em andamento,
+  como se eu estivesse fazendo manualmente` como observação ao vivo do target
+  depois do dispatch nativo. Não promete ou autoriza macro, digitação, colagem,
+  seletor ou clique automatizado na interface do próprio Codex.
+- Permite exibir a tarefa inequívoca que contém uma decisão humana pendente,
+  sem enviar ou reformular a decisão. O recibo visual prova somente a abertura
+  da interface e permanece separado de identidade, entrega, raciocínio,
+  autoridade, progresso e conclusão. Setup pendente não conta como exibição e
+  falha visual nunca repete um handoff já entregue.
+- Registra a abertura nativa bem-sucedida da tarefa de ID
+  `019fed28-a526-7f53-a9dc-200a31e461df`, exibida pelo label truncado
+  `RAG-Challenge — STATE-07 — Preflight operacional GPT-5.4-mi…`, mantendo
+  `AUTH-S07-A-PROVIDER-EGRESS-DOCKER-TOOLCHAIN-ACQUIRE-RETRY-001` em
+  `AGUARDANDO_DECISÃO_HUMANA`; nenhum aceite de risco, payload ou aquisição foi
+  executado.
+- A alteração é documental e não cria recorrência, modifica código, testes,
+  configuração, produto, runtime, OpenAPI, gate ou lifecycle. O corpus avança
+  por `MINOR` de `5.0.0` para `5.1.0` por acrescentar o playbook transversal de
+  acompanhamento visual sem quebrar o fallback ou os limites humanos.
 
 ## 5.0.0 — 2026-08-11
 

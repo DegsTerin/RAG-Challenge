@@ -7031,3 +7031,49 @@ contém somente fatos cronológicos.
   podem ser encaminhados automaticamente. Qualquer decisão exclusiva do
   proprietário mantém `AGUARDANDO_DECISÃO_HUMANA` até a manifestação exata;
   a rota nunca concede a autoridade material transportada.
+
+## 2026-08-11 — Acompanhamento visual dos encaminhamentos do Codex autorizado
+
+- Estado anterior e resultante: `STATE-07 TESTING_HOMOLOGATION` permanece
+  ativo; nenhum Automatic Quality Gate, Human Gate ou lifecycle foi executado
+  ou alterado.
+- Autoridade e baseline documental: a declaração explícita do proprietário
+  `quero sempre ver funcionando` foi registrada como
+  `AUTH-GOV-CONVERSATION-ROUTING-VISUAL-FOLLOW-001` sobre branch `main`, commit
+  `b2c6d9e38f150bac14b7ef7c85a8326f01c34be6`, corpus `5.0.0`, working tree
+  inicialmente limpa e OpenAPI v1/v2 protegidas. O runtime preflight desta
+  mudança puramente documental foi `NÃO APLICÁVEL`.
+- Decisão: depois de confirmar inequivocamente o target e obter o recibo de
+  dispatch aplicável, a coordenadora navega uma vez a janela principal do
+  Codex para a tarefa encaminhada, deixando o turno visível ao proprietário.
+  Se houver uma decisão humana pendente, pode exibir a tarefa confirmada que a
+  contém sem enviar, aceitar ou reformular essa decisão.
+- Clarificação de apresentação: a declaração posterior `Eu quero ver a tarefa
+  em andamento, como se eu estivesse fazendo manualmente` exige observação ao
+  vivo do target depois do dispatch nativo. Não autoriza macro, digitação,
+  colagem, seletor ou clique automatizado na interface do próprio Codex.
+- Limite de foco e evidência: navegação manual para outra tela ou novo input do
+  proprietário impedem recuperação forçada de foco. O recibo de navegação
+  prova somente que a interface exibiu o target naquele instante; não prova
+  identidade isoladamente, entrega, raciocínio, autoridade, progresso ou
+  conclusão. Setup pendente não conta como exibição; falha visual é registrada
+  sem apagar ou repetir um dispatch comprovado.
+- Evidência corrente: a tarefa confirmada pelo ID
+  `019fed28-a526-7f53-a9dc-200a31e461df`, exibida na interface pelo label
+  truncado `RAG-Challenge — STATE-07 — Preflight operacional GPT-5.4-mi…`, foi
+  aberta com sucesso na janela principal. Ela permaneceu parada em
+  `AGUARDANDO_DECISÃO_HUMANA` para
+  `AUTH-S07-A-PROVIDER-EGRESS-DOCKER-TOOLCHAIN-ACQUIRE-RETRY-001`; o payload em
+  primeira pessoa que concede aquisição e aceita a ausência de assinatura
+  destacada do ZIP não foi enviado, e nenhuma aquisição foi iniciada.
+- Limites preservados: a preferência visual é orientada a eventos e não cria
+  automação agendada ou recorrente. Código, testes, configuração, Domain,
+  Application, OpenAPI, produto, runtime, conta, rede, provider, chamada paga,
+  OCI, deploy, gate e lifecycle permanecem inalterados.
+- Versionamento: corpus elevado por `MINOR` de `5.0.0` para `5.1.0` pela nova
+  capacidade transversal de acompanhamento visual. O histórico preservou byte
+  a byte seu prefixo anterior no SHA-256
+  `9c486bcd4ed7746931dbebb69483a9afb387200792af18a7ff6bdf16e594c532`.
+- Próxima condição: a automação visual pode acompanhar handoffs mecânicos
+  cobertos por autoridade vigente. Qualquer decisão exclusiva do proprietário
+  permanece `AGUARDANDO_DECISÃO_HUMANA` e nunca é inferida da navegação.
