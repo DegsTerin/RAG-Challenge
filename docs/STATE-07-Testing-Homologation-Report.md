@@ -1023,3 +1023,50 @@ successful `eng/check-repository.ps1` audit of 275 non-ignored files. The diff
 contained only the four authorised documents, the append-only history prefix
 matched its prior SHA-256, and both protected OpenAPI identities remained
 unchanged.
+
+## Operational-preflight and homologation-boundary re-audit
+
+### Authority and protected baseline
+
+This factual reconciliation is authorised by
+`AUTH-STATE07-PREFLIGHT-BOUNDARY-REAUDIT-RECONCILE-001` from clean
+`main@1629df7cac27f48b21f64b1a0f1e440cc1cf7f20`, prompt corpus `4.10.25`.
+Runtime preflight is `NOT_APPLICABLE` because this lot changes and validates
+documentation only.
+
+The protected OpenAPI artefacts remained unchanged at the baseline:
+
+| Artefact | SHA-256 | Git blob | Result |
+| --- | --- | --- | --- |
+| OpenAPI v1 | `d6a686b94c926914beb28b437f464430a01de6560c2e2d476cf5c36025813e34` | `a5fb3602fbab33bda6aa56cc4caaa9fdc37c8160` | preserved byte for byte |
+| OpenAPI v2 | `f4dca8db7fb7bd453e580495bb1bb7760812d954344931063e8549ed8f036733` | `5ed6a47631653dd0c137b6ea1e979ae2c14bf8a8` | preserved byte for byte |
+
+### Reconciled disposition
+
+- The initial operational preflight for
+  `s07-a-provider-gpt54m-candidate-001` finished `BLOCKED`. No real campaign,
+  provider call or `/v1/responses` call was executed.
+- The subsequent Admin-key and local-credential cleanup is closed. Its
+  sanitised record remains the factual authority; this reconciliation did not
+  re-access OpenAI, Credential Manager, billing, the provider or any secret.
+- The later experimental Coordinator/Docker/C3 flow is revoked. It is neither
+  current authority nor a canonical outstanding item.
+- The notice-bearing mechanism was implemented in commit
+  `f682827d1a26b08fa8c450a1fadb3bd0e1fa1700`. That implementation does not
+  retroactively reclassify the earlier candidate-specific A0.
+- Page rendering, derivative-image creation, derivative-image retention and
+  runtime derivative display remain `UNPROVEN` for the PostgreSQL candidate
+  because the notice-bearing Automatic Quality Gate and a new
+  candidate-specific A0 have not run, not because the mechanism remains
+  absent.
+- The notice-bearing Automatic Quality Gate, documentary reconciliation of any
+  future gate result, and a new candidate-specific A0 are separate steps. All
+  three remain `NOT_RUN`.
+
+No code, runtime, behavioural test, Automatic Quality Gate, A0, provider,
+network, browser, credential, billing, Docker, host cleanup, real corpus,
+Human Gate or lifecycle action was authorised or executed by this
+reconciliation.
+
+Documentary validation completed with `git diff --check` exit code `0` and a
+successful `eng/check-repository.ps1` audit of 275 non-ignored files.

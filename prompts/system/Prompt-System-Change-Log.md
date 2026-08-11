@@ -2,7 +2,7 @@
 
 ## Versão atual
 
-- Versão: `4.10.25`
+- Versão: `4.10.26`
 - Data: 2026-08-11
 - Status: `STATE-07` ativo; ADR-0011 `accepted`, reconciliado e com a correção
   interna da política de serving implementada; o A0 candidato-específico mantém
@@ -10,14 +10,19 @@
   `UNPROVEN` e distribuição/publicação externa `DENIED`; ADR-0012 `accepted`,
   reconciliado, com revisão do contrato v2 congelada, schema/migrations e
   comportamento notice-bearing implementados; a verificação focal desse
-  comportamento não substitui seu Automatic Quality Gate, ainda `NOT_RUN`;
+  comportamento não substitui seu Automatic Quality Gate, ainda `NOT_RUN`, e
+  as operações do A0 permanecem `UNPROVEN` por falta desse gate e de um novo
+  A0, não por inexistência do mecanismo;
   ADR-0013 `accepted` e
   reconciliado semanticamente, com compatibilidade do adaptador implementada e
   Automatic Quality Gate específico aprovado somente na fronteira local,
   offline e com handlers falsos; a campanha candidata de provider possui uma
   revisão sucessora sintética congelada, com Automatic Quality Gate aprovado
   somente na fronteira local, offline, determinística e com handlers falsos;
-  o caminho temporário da Admin key de provisionamento está fechado, com
+  o preflight operacional inicial terminou `BLOQUEADO`, sem campanha real; o
+  fluxo experimental Coordinator/Docker/C3 foi revogado e não constitui
+  autoridade ou pendência; o caminho temporário da Admin key de provisionamento
+  está fechado, com
   revogação, estado histórico somente Inactive e remoção verificada do target
   local registradas de forma sanitizada; homologação de produto, Human Gate e
   mudança de lifecycle não executados
@@ -34,6 +39,45 @@ A versão do corpus é independente da versão futura do software.
 
 Toda alteração atualiza este arquivo e, quando necessário,
 [`../Start-Here.md`](../Start-Here.md).
+
+## 4.10.26 — 2026-08-11
+
+- Reconcilia sob
+  `AUTH-STATE07-PREFLIGHT-BOUNDARY-REAUDIT-RECONCILE-001`, sobre branch `main`,
+  commit `1629df7cac27f48b21f64b1a0f1e440cc1cf7f20`, corpus `4.10.25`, working
+  tree inicialmente limpa e OpenAPI v1/v2 protegidas, as reauditorias das
+  tarefas “Preflight operacional GPT-5.4-mini” e “Next Homologation Boundary”.
+- Registra que o preflight operacional inicial terminou `BLOQUEADO`, sem
+  campanha real, provider ou `/v1/responses`, e que o cleanup da Admin key e da
+  credencial local está encerrado.
+- Revoga factualmente o fluxo experimental Coordinator/Docker/C3: ele não
+  constitui autoridade vigente nem pendência canônica.
+- Corrige a causalidade da disposição do A0: o mecanismo notice-bearing foi
+  implementado no commit
+  `f682827d1a26b08fa8c450a1fadb3bd0e1fa1700`, mas não reclassifica
+  retroativamente o A0. As quatro operações visuais permanecem `UNPROVEN`
+  porque o Automatic Quality Gate notice-bearing e um novo A0 não foram
+  executados, não porque o mecanismo continue inexistente.
+- Mantém separados e `NOT_RUN` o Automatic Quality Gate notice-bearing, a
+  eventual reconciliação documental de seu resultado e o novo A0
+  candidato-específico.
+- O runtime preflight foi `NÃO APLICÁVEL`. Nenhum código, runtime, teste
+  comportamental, Automatic Quality Gate, A0, provider, rede, browser,
+  credencial, billing, Docker, cleanup de host, corpus real, Human Gate ou
+  lifecycle foi autorizado ou executado.
+- Artefatos protegidos: OpenAPI v1 permaneceu no SHA-256
+  `d6a686b94c926914beb28b437f464430a01de6560c2e2d476cf5c36025813e34` e blob
+  `a5fb3602fbab33bda6aa56cc4caaa9fdc37c8160`; OpenAPI v2 permaneceu no
+  SHA-256 `f4dca8db7fb7bd453e580495bb1bb7760812d954344931063e8549ed8f036733` e blob
+  `5ed6a47631653dd0c137b6ea1e979ae2c14bf8a8`.
+- Validação documental: `git diff --check` terminou com exit code `0` e
+  `eng/check-repository.ps1` aprovou 275 arquivos não ignorados.
+- Versionamento: corpus elevado por `PATCH` factual de `4.10.25` para
+  `4.10.26`. O histórico preservou byte a byte seu prefixo anterior no SHA-256
+  `d08bf87f6fd28690598623cfe3531ec8d96053cb1229c38e392b9d18ed66fff4`.
+- Próxima condição: o Automatic Quality Gate notice-bearing exige autoridade
+  humana separada; somente seu resultado pode ser reconciliado em lote próprio,
+  e somente depois cabe um novo A0 candidato-específico sob outra autoridade.
 
 ## 4.10.25 — 2026-08-11
 

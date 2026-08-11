@@ -1395,6 +1395,19 @@ proprietários.
   reteve secret, fragmento, fingerprint ou representação mascarada. Não houve
   chamada de provider ou `/v1/responses`, custo novo, alteração de billing,
   limites, allowlist ou projeto, Human Gate ou lifecycle.
+- Reauditoria das fronteiras de preflight e homologação: o preflight operacional
+  inicial de `s07-a-provider-gpt54m-candidate-001` foi finalizado como
+  `BLOQUEADO`, sem campanha real, chamada de provider ou `/v1/responses`. O
+  cleanup posterior da Admin key e de sua credencial local está encerrado. O
+  fluxo experimental posterior de Coordinator/Docker/C3 foi revogado e não
+  constitui autoridade vigente nem pendência canônica. O mecanismo
+  notice-bearing existe desde o commit
+  `f682827d1a26b08fa8c450a1fadb3bd0e1fa1700`, mas não reclassifica
+  retroativamente o A0: as quatro operações visuais permanecem `UNPROVEN`
+  porque o Automatic Quality Gate notice-bearing e um novo A0
+  candidato-específico não foram executados. O gate, sua eventual
+  reconciliação documental e o novo A0 são três etapas separadas e permanecem
+  `NOT_RUN`.
 
 ## Baseline documental
 
@@ -1402,7 +1415,7 @@ proprietários.
   a política de idioma acrescentou o 21º documento público por incremento
   versionado, e o ADR-0003 acrescentou o 22º.
 - A baseline aprovada no Human Gate de `STATE-00` permanece `3.4.0`.
-- O corpus de instruções vigente possui versão `4.10.25` e 13 arquivos em
+- O corpus de instruções vigente possui versão `4.10.26` e 13 arquivos em
   `prompts/`.
 - Visão, requisitos, arquitetura, RAG, segurança, qualidade, lifecycle,
   roadmap, backlog, estado, histórico e templates estão documentados.
@@ -1580,6 +1593,15 @@ proprietários.
   Windows Credential Manager. Nenhum secret é retido. A reconciliação não
   reacessa OpenAI, Credential Manager, provider, billing ou projeto e não
   executa chamada, custo, mudança de configuração, gate ou lifecycle.
+- O corpus `4.10.26` reconcilia sob
+  `AUTH-STATE07-PREFLIGHT-BOUNDARY-REAUDIT-RECONCILE-001` as reauditorias das
+  tarefas “Preflight operacional GPT-5.4-mini” e “Next Homologation Boundary”.
+  O preflight inicial permanece encerrado como `BLOQUEADO`, sem campanha real;
+  o cleanup administrativo e local está encerrado; e o fluxo experimental
+  Coordinator/Docker/C3 está revogado, sem autoridade ou pendência canônica.
+  O mecanismo notice-bearing implementado em `f682827d` não altera o A0
+  histórico. Automatic Quality Gate notice-bearing, eventual reconciliação de
+  seu resultado e novo A0 permanecem separados e `NOT_RUN`.
 - O corpus `4.3.0` formaliza a decisão explícita do proprietário de aceitar
   perguntas e respostas em `pt-BR` e `en-GB`: cada consulta declara o idioma,
   a resposta usa o mesmo idioma, textos derivados da fonte permanecem no
@@ -1845,9 +1867,11 @@ autorizada.
    `f682827d1a26b08fa8c450a1fadb3bd0e1fa1700`, com verificação focal. Essa
    implementação não altera retroativamente o A0: page rendering,
    derivative-image creation/retention e runtime display continuam `UNPROVEN`
-   para o candidato; a distribuição/publicação fora do runtime está `DENIED`
-   pela fronteira interna deliberadamente excluída. Automatic Quality Gate do
-   comportamento e novo A0 continuam sob autoridades separadas.
+   para o candidato porque o Automatic Quality Gate notice-bearing e um novo
+   A0 candidato-específico não foram executados, não porque o mecanismo
+   continue inexistente. A distribuição/publicação fora do runtime está
+   `DENIED` pela fronteira interna deliberadamente excluída. O gate, sua
+   eventual reconciliação e o novo A0 são etapas separadas e `NOT_RUN`.
    Cada documento posterior mantém o mesmo gate
    independente de direitos, proveniência e idioma.
 2. Validar e ativar individualmente novos registros de fonte oficial; a
@@ -1936,10 +1960,13 @@ O A0 candidato-específico de `postgresql-18-reference-a4` foi repetido sob
 `AUTH-S07-A-PRODUCT-A0-002` e manteve a disposição `BLOCKED/EXCLUDED`. A
 concessão oficial já registrada foi mapeada operação por operação: page
 rendering, derivative-image creation, derivative-image retention e runtime
-derivative display permanecem `UNPROVEN` porque o mecanismo de avisos em cada
-PNG não está determinado; a intended source/derivative distribution boundary
-está `DENIED` fora do runtime-display. Dataset, import, render, indexação e
-ativação continuam não autorizados por esse resultado.
+derivative display permanecem `UNPROVEN` porque o Automatic Quality Gate
+notice-bearing e um novo A0 candidato-específico ainda não foram executados,
+não porque o mecanismo de avisos continue inexistente. O mecanismo foi
+implementado no commit `f682827d1a26b08fa8c450a1fadb3bd0e1fa1700`, sem
+reclassificação retroativa do A0. A intended source/derivative distribution
+boundary está `DENIED` fora do runtime-display. Dataset, import, render,
+indexação e ativação continuam não autorizados por esse resultado.
 
 O ADR-0012 foi aceito explicitamente mediante `ADR-0012: ACEITAR.` somente
 como autoridade arquitetural, e sua reconciliação semântica nos seis
@@ -1952,9 +1979,10 @@ commit `98036f3c8c496544f4532d1fe48c981f836a1871`, preservando registros legados
 e falhando fechado. O obligation set, renderer composto, manifest, storage,
 reachability, serving v2 fail-closed e Dashboard notice-bearing foram
 implementados no commit `f682827d1a26b08fa8c450a1fadb3bd0e1fa1700`, com
-evidência focal que não constitui gate. A próxima condição diretamente
-relacionada é a autoridade separada para o Automatic Quality Gate local,
-offline, determinístico e sintético desse comportamento.
+evidência focal que não constitui gate. O Automatic Quality Gate local,
+offline, determinístico e sintético desse comportamento, a eventual
+reconciliação documental de seu resultado e um novo A0 candidato-específico
+exigem autoridades próprias, permanecem separados e estão `NOT_RUN`.
 
 O ADR-0011 foi aceito, sua semântica foi reconciliada e a política interna de
 serving v2 foi corrigida no commit

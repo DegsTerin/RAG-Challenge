@@ -7079,3 +7079,50 @@ contém somente fatos cronológicos.
   `1eea14d98fcd7014d99c070b4c6b1a92c096ef0f8dfec927f96bafda45492a63`.
 - Próxima condição diretamente relacionada: nenhuma; o cleanup administrativo
   e sua reconciliação factual estão encerrados sem gate ou lifecycle.
+
+## 2026-08-11 — Reauditorias das fronteiras de preflight e homologação reconciliadas
+
+- Estado anterior e resultante: `STATE-07 TESTING_HOMOLOGATION` permanece
+  ativo; nenhum Automatic Quality Gate, A0, Human Gate ou lifecycle foi
+  executado ou alterado.
+- Autoridade e baseline documental:
+  `AUTH-STATE07-PREFLIGHT-BOUNDARY-REAUDIT-RECONCILE-001`, branch `main`, commit
+  `1629df7cac27f48b21f64b1a0f1e440cc1cf7f20`, corpus `4.10.25`, working tree
+  inicialmente limpa e OpenAPI v1/v2 protegidas. O runtime preflight desta
+  reconciliação puramente documental foi `NÃO APLICÁVEL`.
+- Reauditorias reconciliadas: “Preflight operacional GPT-5.4-mini” e “Next
+  Homologation Boundary”. O preflight operacional inicial terminou
+  `BLOQUEADO`, sem campanha real, chamada de provider ou `/v1/responses`.
+- Cleanup encerrado: o fechamento da Admin key e da credencial local permanece
+  conforme o registro sanitizado já reconciliado. Este lote não reacessou
+  OpenAI, Credential Manager, provider, billing, projeto ou qualquer secret.
+- Revogação factual: o fluxo experimental Coordinator/Docker/C3 não constitui
+  autoridade vigente nem pendência canônica.
+- Fronteira notice-bearing: o mecanismo foi implementado no commit
+  `f682827d1a26b08fa8c450a1fadb3bd0e1fa1700`, mas não reclassifica
+  retroativamente o A0. Page rendering, derivative-image creation,
+  derivative-image retention e runtime derivative display permanecem
+  `UNPROVEN` porque o Automatic Quality Gate notice-bearing e um novo A0
+  candidato-específico não foram executados, não porque o mecanismo continue
+  inexistente.
+- Separação preservada: o Automatic Quality Gate notice-bearing, a eventual
+  reconciliação documental de seu resultado e o novo A0 candidato-específico
+  permanecem etapas distintas e `NOT_RUN`.
+- Escopo documental fechado: somente o relatório de homologação, Current State,
+  este histórico append-only no EOF e Prompt System Change Log foram alterados.
+  Nenhum código, runtime, teste comportamental, gate, A0, provider, rede,
+  browser, credencial, billing, Docker, cleanup de host, corpus real, Human Gate
+  ou lifecycle foi autorizado ou executado.
+- Artefatos protegidos: OpenAPI v1 permaneceu no SHA-256
+  `d6a686b94c926914beb28b437f464430a01de6560c2e2d476cf5c36025813e34` e blob
+  `a5fb3602fbab33bda6aa56cc4caaa9fdc37c8160`; OpenAPI v2 permaneceu no
+  SHA-256 `f4dca8db7fb7bd453e580495bb1bb7760812d954344931063e8549ed8f036733` e blob
+  `5ed6a47631653dd0c137b6ea1e979ae2c14bf8a8`.
+- Verificação documental: `git diff --check` terminou com exit code `0` e
+  `eng/check-repository.ps1` aprovou 275 arquivos não ignorados.
+- Versionamento: corpus elevado por `PATCH` factual de `4.10.25` para
+  `4.10.26`. O histórico preservou byte a byte seu prefixo anterior no SHA-256
+  `d08bf87f6fd28690598623cfe3531ec8d96053cb1229c38e392b9d18ed66fff4`.
+- Próxima condição: obter autoridade humana separada para o Automatic Quality
+  Gate notice-bearing. Sua eventual reconciliação e um novo A0
+  candidato-específico exigem autoridades posteriores e independentes.
