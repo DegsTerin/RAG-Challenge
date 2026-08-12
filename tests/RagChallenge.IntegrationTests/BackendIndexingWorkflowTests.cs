@@ -146,6 +146,20 @@ public sealed class BackendIndexingWorkflowTests
         Assert.Equal(VectorSearchOutcome.Succeeded, deniedByDatabaseFilter.Outcome);
         Assert.Empty(deniedByDatabaseFilter.Hits);
 
+        var deniedByDocumentFilter = await fixture.VectorStore.SearchExactAsync(
+            new VectorSearchRequest(
+                activated.CurrentRecord.CorpusId,
+                activated.CurrentRecord.IndexGenerationId,
+                built.Manifest.IndexCompatibilityKey,
+                new float[] { 1, 0, 0 },
+                maximumResults: 2,
+                activated.CurrentRecord.DocumentBindings
+                    .Select(VectorSearchBindingSelector.FromBinding)
+                    .ToArray(),
+                documentFilters: [new DocumentId("doc-not-authorised")]));
+        Assert.Equal(VectorSearchOutcome.Succeeded, deniedByDocumentFilter.Outcome);
+        Assert.Empty(deniedByDocumentFilter.Hits);
+
         var unavailable = await fixture.VectorStore.SearchExactAsync(
             new VectorSearchRequest(
                 new CorpusId("other-corpus"),
@@ -236,7 +250,7 @@ public sealed class BackendIndexingWorkflowTests
             ],
             new ChunkingPolicy(),
             embeddingDescriptor,
-            "sqlite-exact-vector-store/1;schema=1;distance=cosine;algorithm=exact-scan;vector=float32");
+            SqliteVectorIndexStore.CompatibilityDescriptor);
 
     private sealed class DeterministicEmbeddingProvider(
         EmbeddingProviderDescriptor descriptor) : IEmbeddingProvider

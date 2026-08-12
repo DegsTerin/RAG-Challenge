@@ -448,7 +448,7 @@ public sealed class ApiV2ContractTests
                 new EvidenceCoverage(1, 1, 1, 1,
                     new Dictionary<string, SourceFreshness>()),
                 new IndexGenerationId($"idxgen-{GenerationDigest}"),
-                "retrieval-v1",
+                QuestionAnsweringService.RetrievalPolicyVersion,
                 "grounded-answer-v1",
                 new LanguageModelDescriptor("fake", "model-v1", "fixture-1"),
                 request.CorrelationId)));

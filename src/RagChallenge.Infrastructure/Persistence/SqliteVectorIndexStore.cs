@@ -14,6 +14,12 @@ namespace RagChallenge.Infrastructure.Persistence;
 public sealed class SqliteVectorIndexStore(SqliteStoreOptions options)
     : IVectorIndexStore
 {
+    public const string CosineNumericalSemantics =
+        "cosine-f32mul-f64acc-boundary-canonical-v1";
+    public const string CompatibilityDescriptor =
+        "sqlite-exact-vector-store/2;schema=1;distance=cosine;algorithm=exact-scan;vector=float32;score=" +
+        CosineNumericalSemantics;
+
     private const int MaximumVectorDimensions = 8192;
     private const long MaximumCandidateChunks = 1_000_000;
     private const int MaximumBatchChunks = 1000;
@@ -386,9 +392,12 @@ public sealed class SqliteVectorIndexStore(SqliteStoreOptions options)
                 return VectorSearchResult.Failed(VectorSearchOutcome.InvalidQueryVector);
             }
 
-            var queryNorm = CalculateNorm(request.QueryVector.Span);
+            if (!TryCalculateNorm(request.QueryVector.Span, out var queryNorm))
+            {
+                return VectorSearchResult.Failed(VectorSearchOutcome.InvalidQueryVector);
+            }
 
-            if (!double.IsFinite(queryNorm) || queryNorm == 0)
+            if (queryNorm == 0)
             {
                 return VectorSearchResult.Failed(VectorSearchOutcome.InvalidQueryVector);
             }
@@ -424,23 +433,38 @@ public sealed class SqliteVectorIndexStore(SqliteStoreOptions options)
                 var decoded = StoredVectorChunkCodec.Decode(row.ChunkText);
                 var vector = DecodeVector(row.Vector, build.VectorDimensions);
                 ValidateStoredVector(vector);
-                var vectorNorm = CalculateNorm(vector);
-
-                if (!double.IsFinite(vectorNorm))
+                if (!TryCalculateNorm(vector, out var vectorNorm))
                 {
                     throw new InvalidDataException(
-                        "A retrieved vector chunk has a non-finite norm.");
+                        "A retrieved vector chunk has a non-finite norm intermediate.");
                 }
 
-                var score = vectorNorm == 0
-                    ? 0
-                    : CalculateDotProduct(request.QueryVector.Span, vector) /
-                        (queryNorm * vectorNorm);
+                double score;
 
-                if (!double.IsFinite(score) || score is < -1 or > 1)
+                if (vectorNorm == 0)
                 {
-                    throw new InvalidDataException(
-                        "A retrieved vector chunk produced an invalid cosine score.");
+                    score = 0d;
+                }
+                else
+                {
+                    if (!TryCalculateDotProduct(
+                            request.QueryVector.Span,
+                            vector,
+                            out var dotProduct))
+                    {
+                        throw new InvalidDataException(
+                            "A retrieved vector chunk has a non-finite dot-product intermediate.");
+                    }
+
+                    var denominator = queryNorm * vectorNorm;
+                    var rawScore = dotProduct / denominator;
+
+                    if (!double.IsFinite(denominator) ||
+                        !TryCanonicaliseCosineBoundary(rawScore, out score))
+                    {
+                        throw new InvalidDataException(
+                            "A retrieved vector chunk produced a non-finite cosine intermediate.");
+                    }
                 }
 
                 scored.Add(new VectorSearchHit(
@@ -728,30 +752,82 @@ public sealed class SqliteVectorIndexStore(SqliteStoreOptions options)
             DecodeVector(row.Vector, dimensions));
     }
 
-    private static double CalculateNorm(ReadOnlySpan<float> vector)
+    // The float local fixes every product at binary32 before serial binary64 accumulation.
+    private static bool TryCalculateNorm(
+        ReadOnlySpan<float> vector,
+        out double norm)
     {
-        double sum = 0;
+        double sum = 0d;
 
         foreach (var value in vector)
         {
-            sum += value * value;
+            float product = value * value;
+
+            if (!float.IsFinite(product))
+            {
+                norm = default;
+                return false;
+            }
+
+            sum += product;
+
+            if (!double.IsFinite(sum))
+            {
+                norm = default;
+                return false;
+            }
         }
 
-        return Math.Sqrt(sum);
+        norm = Math.Sqrt(sum);
+        return double.IsFinite(norm);
     }
 
-    private static double CalculateDotProduct(
+    private static bool TryCalculateDotProduct(
         ReadOnlySpan<float> left,
-        ReadOnlySpan<float> right)
+        ReadOnlySpan<float> right,
+        out double dotProduct)
     {
-        double sum = 0;
+        double sum = 0d;
 
         for (var index = 0; index < left.Length; index++)
         {
-            sum += left[index] * right[index];
+            float product = left[index] * right[index];
+
+            if (!float.IsFinite(product))
+            {
+                dotProduct = default;
+                return false;
+            }
+
+            sum += product;
+
+            if (!double.IsFinite(sum))
+            {
+                dotProduct = default;
+                return false;
+            }
         }
 
-        return sum;
+        dotProduct = sum;
+        return true;
+    }
+
+    internal static bool TryCanonicaliseCosineBoundary(
+        double rawScore,
+        out double score)
+    {
+        if (!double.IsFinite(rawScore))
+        {
+            score = default;
+            return false;
+        }
+
+        score = rawScore > 1d
+            ? 1d
+            : rawScore < -1d
+                ? -1d
+                : rawScore;
+        return true;
     }
 
     private static async Task<SqliteTransaction> BeginImmediateAsync(

@@ -139,10 +139,10 @@ public sealed class BackendEndToEndWorkflowTests
 
         var languageModel = new EvidenceCitingLanguageModel(languageModelDescriptor);
         var retrievalPolicyConfiguration =
-            RetrievalPolicyConfiguration.CreateRetrievalV1(
+            RetrievalPolicyConfiguration.CreateRetrievalV2(
                 embeddingDescriptor,
                 compatibilityProfile.Key);
-        var retrievalPolicyExecutor = new RetrievalV1PolicyExecutor(
+        var retrievalPolicyExecutor = new RetrievalV2PolicyExecutor(
             fixture.VectorStore,
             retrievalPolicyConfiguration);
         var answering = new QuestionAnsweringService(
@@ -170,6 +170,7 @@ public sealed class BackendEndToEndWorkflowTests
         Assert.Equal(QueryOutcome.Answered, completion.Outcome);
         Assert.Equal("Synthetic grounded answer.", completion.Answer);
         Assert.Equal(built.Manifest.IndexGenerationId, completion.IndexGenerationId);
+        Assert.Equal(RetrievalPolicyConfiguration.RetrievalV2, completion.RetrievalPolicyVersion);
         var citation = Assert.Single(completion.Citations);
         Assert.Equal(documentId, citation.DocumentId);
         Assert.Equal(DocumentFormat.Csv, citation.DocumentFormat);
@@ -208,7 +209,7 @@ public sealed class BackendEndToEndWorkflowTests
             ],
             new ChunkingPolicy(),
             embeddingDescriptor,
-            "sqlite-exact-vector-store/1;schema=1;distance=cosine;algorithm=exact-scan;vector=float32");
+            SqliteVectorIndexStore.CompatibilityDescriptor);
 
     private sealed class DeterministicEmbeddingProvider(
         EmbeddingProviderDescriptor descriptor) : IEmbeddingProvider
@@ -219,7 +220,7 @@ public sealed class BackendEndToEndWorkflowTests
         {
             cancellationToken.ThrowIfCancellationRequested();
             var vectors = request.Inputs
-                .Select(_ => (ReadOnlyMemory<float>)new float[] { 1, 0, 0 })
+                .Select(_ => (ReadOnlyMemory<float>)new float[] { 1, 1, 1 })
                 .ToArray();
             return Task.FromResult(new EmbeddingBatchResult(descriptor, vectors));
         }

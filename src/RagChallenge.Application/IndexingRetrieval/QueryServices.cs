@@ -418,7 +418,7 @@ public sealed class ProviderStageUnavailableException : Exception
 
 public sealed class QuestionAnsweringService : IQuestionAnsweringService
 {
-    public const string RetrievalPolicyVersion = RetrievalPolicyConfiguration.RetrievalV1;
+    public const string RetrievalPolicyVersion = RetrievalPolicyConfiguration.RetrievalV2;
     public const string PromptVersion = "grounded-answer-v1";
 
     private const int MaximumQuestionUtf8Bytes = 4096;
@@ -485,7 +485,7 @@ public sealed class QuestionAnsweringService : IQuestionAnsweringService
             return Failure(QueryFailureKind.InvalidInput, request?.CorrelationId);
         }
 
-        if (!retrievalPolicyConfiguration.IsCanonicalRetrievalV1 ||
+        if (!retrievalPolicyConfiguration.IsCanonicalRetrievalV2 ||
             retrievalPolicyConfiguration.ExpectedEmbeddingDescriptor != embeddingDescriptor)
         {
             return Failure(QueryFailureKind.ConfigurationInvalid, request.CorrelationId);

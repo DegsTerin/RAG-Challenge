@@ -1,4 +1,4 @@
-// Purpose: Verifies the retrieval-v1 typed boundary, total ordering, fixed selection policy and fail-closed outcomes without providers, persistence or network access.
+// Purpose: Verifies the retrieval-v2 typed boundary, total ordering, fixed selection policy and fail-closed outcomes without providers, persistence or network access.
 using System.Security.Cryptography;
 using System.Text;
 
@@ -37,13 +37,19 @@ public sealed class RetrievalPolicyExecutorTests
         Assert.Equal(manifest.IndexCompatibilityKey, result.Identity.IndexCompatibilityKey);
         Assert.Equal(manifest.GenerationContentDigest, result.Identity.GenerationManifestDigest);
         Assert.Equal(
+            RetrievalPolicyConfiguration.RetrievalV2,
+            result.Identity.RetrievalPolicyVersion);
+        Assert.Equal(
+            RetrievalPolicyConfiguration.MinimumScoreV1,
+            result.Identity.MinimumScorePolicyVersion);
+        Assert.Equal(
             RetrievalPolicyConfiguration.QueryVectorRepresentation,
             result.Identity.QueryVectorRepresentation);
         Assert.Equal(
             "480376c6bf738a0227f2bbf2b3506b7cde209152c0ba9a9077e5527169eb292e",
             result.Identity.QueryVectorSha256);
         Assert.Equal(
-            "9138976748f5041924d7a2a571492d93c1a202cb10f0753aa1c5cc45d9087492",
+            "8734c8a527b17c53f69922d40c4fdf8df7c01e53f105a1182898f6fe194a4d0c",
             result.Identity.PolicyManifestSha256);
     }
 
@@ -147,7 +153,7 @@ public sealed class RetrievalPolicyExecutorTests
         {
             ExpectedIndexCompatibilityKey = new IndexCompatibilityKey(new string('f', 64)),
         };
-        var executor = new RetrievalV1PolicyExecutor(context.VectorStore, mismatched);
+        var executor = new RetrievalV2PolicyExecutor(context.VectorStore, mismatched);
         var request = CopyRequestWithPolicy(context.Request, mismatched);
 
         var result = await executor.ExecuteAsync(request);
@@ -161,7 +167,7 @@ public sealed class RetrievalPolicyExecutorTests
     {
         var context = CreateContext();
         var invalid = context.Configuration with { MaximumResults = 7 };
-        var executor = new RetrievalV1PolicyExecutor(context.VectorStore, invalid);
+        var executor = new RetrievalV2PolicyExecutor(context.VectorStore, invalid);
 
         var result = await executor.ExecuteAsync(context.Request);
 
@@ -187,7 +193,7 @@ public sealed class RetrievalPolicyExecutorTests
         {
             "retrieval-version" => context.Configuration with
             {
-                RetrievalPolicyVersion = "retrieval-v2",
+                RetrievalPolicyVersion = "retrieval-v3",
             },
             "minimum-score-version" => context.Configuration with
             {
@@ -399,7 +405,7 @@ public sealed class RetrievalPolicyExecutorTests
             "embedding-v1",
             "retrieval-policy-tests",
             dimensions: 3);
-        var configuration = RetrievalPolicyConfiguration.CreateRetrievalV1(
+        var configuration = RetrievalPolicyConfiguration.CreateRetrievalV2(
             descriptor,
             manifest.IndexCompatibilityKey);
         var searchResult = createSearchResult?.Invoke(manifest, queryBindings) ??
@@ -414,7 +420,7 @@ public sealed class RetrievalPolicyExecutorTests
             QueryContractVersion.V1,
             configuration);
         return new TestContext(
-            new RetrievalV1PolicyExecutor(vectorStore, configuration),
+            new RetrievalV2PolicyExecutor(vectorStore, configuration),
             request,
             configuration,
             vectorStore);
@@ -518,7 +524,7 @@ public sealed class RetrievalPolicyExecutorTests
             .ToLowerInvariant();
 
     private sealed record TestContext(
-        RetrievalV1PolicyExecutor Executor,
+        RetrievalV2PolicyExecutor Executor,
         RetrievalPolicyRequest Request,
         RetrievalPolicyConfiguration Configuration,
         FakeVectorStore VectorStore);

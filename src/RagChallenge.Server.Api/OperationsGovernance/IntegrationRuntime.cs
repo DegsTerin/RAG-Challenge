@@ -262,10 +262,10 @@ internal sealed class SyntheticIntegrationRuntime :
                 controlStore,
                 contentStore);
             var retrievalPolicyConfiguration =
-                RetrievalPolicyConfiguration.CreateRetrievalV1(
+                RetrievalPolicyConfiguration.CreateRetrievalV2(
                     EmbeddingDescriptor,
                     CreateCompatibilityProfile().Key);
-            var retrievalPolicyExecutor = new RetrievalV1PolicyExecutor(
+            var retrievalPolicyExecutor = new RetrievalV2PolicyExecutor(
                 vectorStore,
                 retrievalPolicyConfiguration);
             answeringService = new QuestionAnsweringService(
@@ -550,7 +550,7 @@ internal sealed class SyntheticIntegrationRuntime :
             ],
             new ChunkingPolicy(128, 16, 160),
             EmbeddingDescriptor,
-            "sqlite-exact-vector-store/1;schema=1;distance=cosine;algorithm=exact-scan;vector=float32");
+            SqliteVectorIndexStore.CompatibilityDescriptor);
 
     private static void EnsureApplied(StoreMutationResult result, string operation)
     {

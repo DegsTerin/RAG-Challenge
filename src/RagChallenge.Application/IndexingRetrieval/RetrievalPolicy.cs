@@ -1,4 +1,4 @@
-// Purpose: Owns the typed retrieval-v1 policy boundary, deterministic ranking validation and pre-generation evidence selection; vector stores remain replaceable outer adapters.
+// Purpose: Owns the typed retrieval-v2 policy boundary, deterministic ranking validation and pre-generation evidence selection; vector stores remain replaceable outer adapters.
 using System.Buffers.Binary;
 using System.Collections.ObjectModel;
 using System.Globalization;
@@ -41,34 +41,34 @@ public sealed record RetrievalPolicyConfiguration(
     EmbeddingProviderDescriptor ExpectedEmbeddingDescriptor,
     IndexCompatibilityKey ExpectedIndexCompatibilityKey)
 {
-    public const string RetrievalV1 = "retrieval-v1";
+    public const string RetrievalV2 = "retrieval-v2";
     public const string MinimumScoreV1 = "minimum-score-v1";
     public const string QueryVectorRepresentation = "ieee754-binary32-little-endian-v1";
-    public const int RetrievalV1MaximumResults = 8;
-    public const double RetrievalV1MinimumScore = 0.25;
-    public const int RetrievalV1MaximumSelectedEvidence = 6;
-    public const int RetrievalV1MaximumSelectedEvidenceScalars = 16000;
+    public const int RetrievalV2MaximumResults = 8;
+    public const double RetrievalV2MinimumScore = 0.25;
+    public const int RetrievalV2MaximumSelectedEvidence = 6;
+    public const int RetrievalV2MaximumSelectedEvidenceScalars = 16000;
 
-    public static RetrievalPolicyConfiguration CreateRetrievalV1(
+    public static RetrievalPolicyConfiguration CreateRetrievalV2(
         EmbeddingProviderDescriptor expectedEmbeddingDescriptor,
         IndexCompatibilityKey expectedIndexCompatibilityKey) =>
         new(
-            RetrievalV1,
+            RetrievalV2,
             MinimumScoreV1,
-            RetrievalV1MaximumResults,
-            RetrievalV1MinimumScore,
-            RetrievalV1MaximumSelectedEvidence,
-            RetrievalV1MaximumSelectedEvidenceScalars,
+            RetrievalV2MaximumResults,
+            RetrievalV2MinimumScore,
+            RetrievalV2MaximumSelectedEvidence,
+            RetrievalV2MaximumSelectedEvidenceScalars,
             expectedEmbeddingDescriptor,
             expectedIndexCompatibilityKey);
 
-    internal bool IsCanonicalRetrievalV1 =>
-        string.Equals(RetrievalPolicyVersion, RetrievalV1, StringComparison.Ordinal) &&
+    internal bool IsCanonicalRetrievalV2 =>
+        string.Equals(RetrievalPolicyVersion, RetrievalV2, StringComparison.Ordinal) &&
         string.Equals(MinimumScorePolicyVersion, MinimumScoreV1, StringComparison.Ordinal) &&
-        MaximumResults == RetrievalV1MaximumResults &&
-        MinimumScore == RetrievalV1MinimumScore &&
-        MaximumSelectedEvidence == RetrievalV1MaximumSelectedEvidence &&
-        MaximumSelectedEvidenceScalars == RetrievalV1MaximumSelectedEvidenceScalars &&
+        MaximumResults == RetrievalV2MaximumResults &&
+        MinimumScore == RetrievalV2MinimumScore &&
+        MaximumSelectedEvidence == RetrievalV2MaximumSelectedEvidence &&
+        MaximumSelectedEvidenceScalars == RetrievalV2MaximumSelectedEvidenceScalars &&
         ExpectedEmbeddingDescriptor is not null &&
         ExpectedIndexCompatibilityKey is not null;
 }
@@ -297,7 +297,7 @@ public interface IRetrievalPolicyExecutor
         CancellationToken cancellationToken = default);
 }
 
-public sealed class RetrievalV1PolicyExecutor(
+public sealed class RetrievalV2PolicyExecutor(
     IVectorIndexStore vectorStore,
     RetrievalPolicyConfiguration? configuration) : IRetrievalPolicyExecutor
 {
@@ -312,7 +312,7 @@ public sealed class RetrievalV1PolicyExecutor(
         ArgumentNullException.ThrowIfNull(request);
 
         if (configuration is null ||
-            !configuration.IsCanonicalRetrievalV1 ||
+            !configuration.IsCanonicalRetrievalV2 ||
             !MatchesConfiguredPolicy(request.ApplicablePolicy, configuration))
         {
             return RetrievalPolicyResult.Failed(
@@ -545,7 +545,19 @@ public sealed class RetrievalV1PolicyExecutor(
                 return false;
             }
 
-            squaredMagnitude += component * component;
+            float product = component * component;
+
+            if (!float.IsFinite(product))
+            {
+                return false;
+            }
+
+            squaredMagnitude += product;
+
+            if (!double.IsFinite(squaredMagnitude))
+            {
+                return false;
+            }
         }
 
         var magnitude = Math.Sqrt(squaredMagnitude);

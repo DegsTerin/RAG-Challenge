@@ -114,7 +114,9 @@ public sealed class QuestionAnsweringServiceTests
             At(5));
 
         Assert.Equal(QueryOutcome.Answered, result.Completion!.Outcome);
+        Assert.Equal(RetrievalPolicyConfiguration.RetrievalV2, result.Completion.RetrievalPolicyVersion);
         var record = Assert.Single(context.AnswerEvidenceStore.Records);
+        Assert.Equal(RetrievalPolicyConfiguration.RetrievalV2, record.RetrievalPolicyVersion);
         Assert.Equal("correlation-persisted", record.CorrelationId);
         Assert.Single(record.Citations);
         Assert.Single(record.PageImages);
@@ -292,6 +294,27 @@ public sealed class QuestionAnsweringServiceTests
         Assert.Empty(context.AnswerEvidenceStore.Records);
     }
 
+    [Fact]
+    public async Task NegativeChunkOrdinalFailsAsIndexUnavailableBeforeLanguageModel()
+    {
+        var context = CreateOfficialContext(
+            SourceFreshness.Current,
+            hitTransform: hit => hit with { ChunkOrdinal = -1 });
+
+        var result = await context.Service.AskAsync(
+            new QueryRequest(
+                CorpusId,
+                SupportedQueryLanguage.EnGb,
+                "Question",
+                "correlation-negative-ordinal"),
+            At(5));
+
+        Assert.Null(result.Completion);
+        Assert.Equal(QueryFailureKind.IndexUnavailable, result.Failure!.Kind);
+        Assert.Equal(0, context.LanguageModel.CallCount);
+        Assert.Empty(context.AnswerEvidenceStore.Records);
+    }
+
     [Theory]
     [InlineData(RetrievalPolicyOutcome.InvalidIndexData, QueryFailureKind.IndexUnavailable)]
     [InlineData(RetrievalPolicyOutcome.ContractViolation, QueryFailureKind.IndexUnavailable)]
@@ -433,7 +456,7 @@ public sealed class QuestionAnsweringServiceTests
                 pageNumber: 1)]
             : []);
         var retrievalPolicyConfiguration =
-            RetrievalPolicyConfiguration.CreateRetrievalV1(
+            RetrievalPolicyConfiguration.CreateRetrievalV2(
                 mismatchedPolicyDescriptor
                     ? new EmbeddingProviderDescriptor(
                         "fake",
@@ -443,7 +466,7 @@ public sealed class QuestionAnsweringServiceTests
                     : embeddingDescriptor,
                 manifest.IndexCompatibilityKey);
         IRetrievalPolicyExecutor retrievalPolicyExecutor = retrievalFailure is null
-            ? new RetrievalV1PolicyExecutor(
+            ? new RetrievalV2PolicyExecutor(
                 vectorStore,
                 retrievalPolicyConfiguration)
             : new FakeRetrievalPolicyExecutor(RetrievalPolicyResult.Failed(
@@ -521,10 +544,10 @@ public sealed class QuestionAnsweringServiceTests
             });
         var vectorStore = new FakeVectorStore([hitTransform?.Invoke(hit) ?? hit]);
         var retrievalPolicyConfiguration =
-            RetrievalPolicyConfiguration.CreateRetrievalV1(
+            RetrievalPolicyConfiguration.CreateRetrievalV2(
                 embeddingDescriptor,
                 manifest.IndexCompatibilityKey);
-        var retrievalPolicyExecutor = new RetrievalV1PolicyExecutor(
+        var retrievalPolicyExecutor = new RetrievalV2PolicyExecutor(
             vectorStore,
             retrievalPolicyConfiguration);
         var answerEvidenceStore = new FakeAnswerEvidenceStore(fail: false);
