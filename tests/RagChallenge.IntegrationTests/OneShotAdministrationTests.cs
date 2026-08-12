@@ -1454,6 +1454,38 @@ public sealed class OneShotAdministrationTests
     }
 
     [Fact]
+    public async Task ProductionCompositionRejectsIncompleteMaterialisationPortPairs()
+    {
+        using var root = TemporaryAdministrationRoot.Create();
+        var descriptor = new EmbeddingProviderDescriptor(
+            "synthetic-provider",
+            "synthetic-model",
+            "synthetic-revision-1",
+            dimensions: 2);
+        var embedding = new CountingEmbeddingProvider(descriptor);
+        var result = await RunProductionAsync(
+            [
+                "admin",
+                "status",
+                "--operation-id",
+                "incomplete-composition-operation",
+                "--corpus-id",
+                "admin-corpus",
+                "--reason",
+                "prove fail-closed incomplete synthetic composition",
+            ],
+            Configuration(true, root.InputRoot, root.StoreRoot),
+            new StubIdentity("os-sha256:" + new string('a', 64)),
+            new AdministrativeMaterialisationPorts(EmbeddingProvider: embedding));
+
+        AssertCanonicalFailure(
+            result,
+            AdministrationExitCode.ConfigurationOrAuthorityDenied,
+            "CH_ADMIN_CONFIGURATION_INVALID");
+        Assert.Equal(0, embedding.CallCount);
+    }
+
+    [Fact]
     public async Task ComposedBuildIndexUsesGovernedSyntheticDependenciesAndRejectsProfileDrift()
     {
         using var root = TemporaryAdministrationRoot.Create();
@@ -1527,21 +1559,9 @@ public sealed class OneShotAdministrationTests
             embeddingDescriptor,
             SqliteVectorIndexStore.CompatibilityDescriptor);
         var embedding = new CountingEmbeddingProvider(embeddingDescriptor);
-        var ingestion = new DocumentIngestionService(
-            contentStore,
-            [new CsvHelperDocumentParser()],
-            new DeterministicChunkingStrategy());
-        var handler = new BuildIndexAdministrativeCommand(
-            store,
-            contentStore,
-            ingestion,
-            new CorpusIndexingService(embedding, vectorStore, store),
-            compatibility);
-        var executor = new SqliteAdministrativeCommandExecutor(
-            store,
-            buildIndex: handler);
-        var journal = new SqliteAdministrationCommandJournal(options);
-        var lease = new SqliteAdministrationLeaseManager(options);
+        var materialisationPorts = new AdministrativeMaterialisationPorts(
+            EmbeddingProvider: embedding,
+            IndexCompatibilityProfile: compatibility);
         var configuration = Configuration(true, root.InputRoot, root.StoreRoot);
         var identity = new StubIdentity("os-sha256:" + new string('b', 64));
         var rights = CreateTextualRightsPlan(documentId, documentVersion);
@@ -1554,30 +1574,26 @@ public sealed class OneShotAdministrationTests
             "build-composed.json",
             "candidate-admin-composed",
             compatibility.Key.Value);
-        var applied = await RunAsync(
+        var applied = await RunProductionAsync(
             MutationArguments(
                 "build-index",
                 "build-composed-operation",
                 "build-composed.json"),
             configuration,
             identity,
-            lease,
-            executor,
-            journal);
+            materialisationPorts);
         await WriteBuildPlanAsync(
             "build-divergent.json",
             "candidate-admin-divergent",
             new string('f', 64));
-        var rejected = await RunAsync(
+        var rejected = await RunProductionAsync(
             MutationArguments(
                 "build-index",
                 "build-divergent-operation",
                 "build-divergent.json"),
             configuration,
             identity,
-            lease,
-            executor,
-            journal);
+            materialisationPorts);
 
         Assert.Equal((int)AdministrationExitCode.Success, applied.ExitCode);
         Assert.Contains("CH_ADMIN_APPLIED", applied.Output, StringComparison.Ordinal);
@@ -1743,37 +1759,31 @@ public sealed class OneShotAdministrationTests
         Assert.Throws<ArgumentException>(() => new SqliteAdministrativeCommandExecutor(
             store,
             buildIndex: handler));
-        var executor = new SqliteAdministrativeCommandExecutor(
-            store,
-            synchroniseOfficial: handler);
-        var journal = new SqliteAdministrationCommandJournal(options);
-        var lease = new SqliteAdministrationLeaseManager(options);
+        var materialisationPorts = new AdministrativeMaterialisationPorts(
+            resolver,
+            transport);
         var configuration = Configuration(true, root.InputRoot, root.StoreRoot);
         var identity = new StubIdentity("os-sha256:" + new string('c', 64));
         var rights = CreateTextualRightsPlan(documentId, documentVersion);
 
         await WriteSyncPlanAsync("sync-composed.json", registrationRevision: 1);
-        var applied = await RunAsync(
+        var applied = await RunProductionAsync(
             MutationArguments(
                 "synchronise-official",
                 "sync-composed-operation",
                 "sync-composed.json"),
             configuration,
             identity,
-            lease,
-            executor,
-            journal);
+            materialisationPorts);
         await WriteSyncPlanAsync("sync-divergent.json", registrationRevision: 2);
-        var rejected = await RunAsync(
+        var rejected = await RunProductionAsync(
             MutationArguments(
                 "synchronise-official",
                 "sync-divergent-operation",
                 "sync-divergent.json"),
             configuration,
             identity,
-            lease,
-            executor,
-            journal);
+            materialisationPorts);
 
         Assert.Equal((int)AdministrationExitCode.Success, applied.ExitCode);
         Assert.Contains("CH_ADMIN_APPLIED", applied.Output, StringComparison.Ordinal);
@@ -1913,6 +1923,25 @@ public sealed class OneShotAdministrationTests
             output,
             error,
             utcNow ?? (() => Now));
+        return new RunResult(exitCode, output.ToString(), error.ToString());
+    }
+
+    private static async Task<RunResult> RunProductionAsync(
+        string[] arguments,
+        IConfiguration configuration,
+        ILocalOperatingSystemIdentityProvider identity,
+        AdministrativeMaterialisationPorts? materialisationPorts)
+    {
+        using var output = new StringWriter();
+        using var error = new StringWriter();
+        var exitCode = await OneShotAdministrationHost.RunProductionAsync(
+            arguments,
+            configuration,
+            identity,
+            materialisationPorts,
+            output,
+            error,
+            () => Now);
         return new RunResult(exitCode, output.ToString(), error.ToString());
     }
 

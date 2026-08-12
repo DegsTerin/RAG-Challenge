@@ -97,18 +97,46 @@ internal static class OneShotAdministrationHost
             .AddEnvironmentVariables()
             .Build();
 
+        return await RunProductionAsync(
+            args,
+            configuration,
+            new LocalOperatingSystemIdentityProvider(),
+            materialisationPorts: null,
+            Console.Out,
+            Console.Error,
+            () => DateTimeOffset.UtcNow,
+            cancellationToken).ConfigureAwait(false);
+    }
+
+    internal static async Task<int> RunProductionAsync(
+        string[] args,
+        IConfiguration configuration,
+        ILocalOperatingSystemIdentityProvider identityProvider,
+        AdministrativeMaterialisationPorts? materialisationPorts,
+        TextWriter output,
+        TextWriter error,
+        Func<DateTimeOffset> utcNow,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(args);
+        ArgumentNullException.ThrowIfNull(configuration);
+        ArgumentNullException.ThrowIfNull(identityProvider);
+        ArgumentNullException.ThrowIfNull(output);
+        ArgumentNullException.ThrowIfNull(error);
+        ArgumentNullException.ThrowIfNull(utcNow);
+
         if (!configuration.GetValue<bool>(EnabledKey))
         {
             return await RunAsync(
                 args,
                 configuration,
-                new LocalOperatingSystemIdentityProvider(),
+                identityProvider,
                 leaseManager: null,
                 journal: null,
                 executor: null,
-                Console.Out,
-                Console.Error,
-                () => DateTimeOffset.UtcNow,
+                output,
+                error,
+                utcNow,
                 cancellationToken).ConfigureAwait(false);
         }
 
@@ -125,20 +153,23 @@ internal static class OneShotAdministrationHost
             return await RunAsync(
                 args,
                 configuration,
-                new LocalOperatingSystemIdentityProvider(),
+                identityProvider,
                 new SqliteAdministrationLeaseManager(options),
                 new SqliteAdministrationCommandJournal(options),
-                new SqliteAdministrativeCommandExecutor(store),
-                Console.Out,
-                Console.Error,
-                () => DateTimeOffset.UtcNow,
+                AdministrativeMaterialisationComposition.CreateExecutor(
+                    options,
+                    store,
+                    materialisationPorts),
+                output,
+                error,
+                utcNow,
                 cancellationToken).ConfigureAwait(false);
         }
         catch (Exception exception) when (
             exception is ArgumentException or IOException or UnauthorizedAccessException)
         {
             await WriteFailureAsync(
-                Console.Error,
+                error,
                 AdministrationExitCode.ConfigurationOrAuthorityDenied,
                 "CH_ADMIN_CONFIGURATION_INVALID").ConfigureAwait(false);
             return (int)AdministrationExitCode.ConfigurationOrAuthorityDenied;
