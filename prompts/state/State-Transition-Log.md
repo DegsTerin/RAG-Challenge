@@ -7313,3 +7313,70 @@ contém somente fatos cronológicos.
   Qualquer decisão, implementação corretiva, repetição de DR-3, dataset,
   campanha, provider, gate posterior ou reconsideração de MultiQuery permanece
   independente.
+
+## 2026-08-11 — ADR-0015 preparado como proposta de semântica numérica
+
+- Estado anterior e resultante: `STATE-07 TESTING_HOMOLOGATION` permanece
+  ativo. `DR-3 — Determinism Automatic Quality Gate` permanece `REPROVADO`,
+  com `DR3-FIND-001` P1 e `DR3-FIND-002` a `DR3-FIND-004` P2 abertos; nenhum
+  Human Gate ou lifecycle foi executado ou alterado.
+- Autoridade e baseline documental:
+  `AUTH-DR3-NUMERIC-SEMANTICS-PROPOSAL-001`, branch `main`, commit
+  `ce9ba622e7e11214c200482ca50169afb987ee00`, corpus `4.10.29`, working tree
+  inicialmente limpa e OpenAPI v1/v2 protegidas. O runtime preflight desta
+  atividade documental foi `NÃO APLICÁVEL`.
+- Proposta: ADR-0015 foi criado com status `proposed`. A semântica
+  `cosine-f32mul-f64acc-boundary-canonical-v1` e a política `retrieval-v2`
+  foram registradas somente como alternativa recomendada se o proprietário
+  aceitar a proposta sem alterações. Nenhuma decisão arquitetural foi tomada
+  por esta preparação.
+- Semântica recomendada: preservar multiplicação binary32, acumulação serial
+  binary64, operações IEEE 754 ordenadas e todos os scores já internos ao
+  intervalo, inclusive signed zero; canonizar quociente finito acima de `+1`
+  para `+1` e abaixo de `-1` para `-1`; manter qualquer estado não finito
+  fail-closed; e conservar comparação exata e desempate por ordinal, sem
+  epsilon ou bucket.
+- Alternativas preservadas: corredor exato de 1 ULP, condicionado a prova do
+  limite para todo o domínio configurado; e aritmética escalada em binary64,
+  condicionada a requisito ou evidência de robustez para magnitudes finitas
+  extremas. Rejeição vigente e epsilon aproximado foram mantidos como opções
+  não recomendadas com seus impactos explícitos.
+- Compatibilidade proposta: a alternativa recomendada exigiria o descritor
+  `sqlite-exact-vector-store/2;schema=1;distance=cosine;algorithm=exact-scan;vector=float32;score=cosine-f32mul-f64acc-boundary-canonical-v1`,
+  novo `IndexCompatibilityKey`, nova geração e nova baseline de avaliação.
+  Gerações v1 não podem ser relabeladas ou servidas sob a sucessora; OpenAPI,
+  schema e migration permanecem inalterados.
+- Plano corretivo: `DR3-FIND-001` recebe matriz bit a bit de limites,
+  não finitos, zero, compatibilidade, geração e reopen; `DR3-FIND-002` recebe
+  top-k adversarial com score/ordinal e permutações de escrita; `DR3-FIND-003`
+  recebe concorrência de hits elegíveis/inelegíveis em cada filtro antes de
+  score/top-k; e `DR3-FIND-004` recebe ordinal negativo nas fronteiras
+  Application e SQLite task-owned. Cada item possui condição executável de
+  aprovação, mas nenhum teste foi alterado ou executado nesta preparação.
+- Limites preservados: nenhuma alternativa foi aceita ou rejeitada; nenhum
+  código, teste, geração, dataset, `retrieval-evaluation-scorer-v1`, campanha,
+  provider, credencial, rede, chamada paga, corpus real, OpenAPI, schema,
+  migration, dependência, lockfile, MultiQuery, novo Automatic Quality Gate,
+  Human Gate, lifecycle, push, publicação, deploy ou release foi executado ou
+  alterado.
+- Artefatos protegidos: OpenAPI v1 permaneceu no SHA-256
+  `d6a686b94c926914beb28b437f464430a01de6560c2e2d476cf5c36025813e34` e blob
+  `a5fb3602fbab33bda6aa56cc4caaa9fdc37c8160`; OpenAPI v2 permaneceu no
+  SHA-256 `f4dca8db7fb7bd453e580495bb1bb7760812d954344931063e8549ed8f036733` e blob
+  `5ed6a47631653dd0c137b6ea1e979ae2c14bf8a8`.
+- Escopo documental fechado: somente ADR-0015, índice de arquitetura, Current
+  State, este histórico append-only no EOF e Prompt System Change Log foram
+  alterados.
+- Verificação documental: `git diff --check` terminou com exit code `0`;
+  `eng/check-repository.ps1` aprovou 280 arquivos não ignorados; o conjunto de
+  trabalho conteve somente os cinco documentos autorizados; UTF-8/LF, newline
+  final, espaços finais, links, formato e o prefixo append-only deste histórico
+  passaram. Nenhum build, teste executável ou Automatic Quality Gate foi
+  executado.
+- Versionamento: corpus elevado por `PATCH` documental de `4.10.29` para
+  `4.10.30`. O histórico preservou byte a byte seu prefixo anterior no SHA-256
+  `c925e9b81fafac81c2fa65cd587ac739c0556a9a5f827f2589e724009edce908`.
+- Próxima condição: decisão humana explícita sobre ADR-0015. Aceitação,
+  rejeição ou revisão da proposta não é inferida deste registro; eventual
+  implementação, nova geração e reteste independente de DR-3 continuam
+  dependentes de autoridades posteriores e separadas.

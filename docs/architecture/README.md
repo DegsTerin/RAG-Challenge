@@ -83,6 +83,17 @@ inputs and `retrieval-multi-query-v1-candidate` remains parked. Corpus
 implementation, executable test, dataset, campaign, provider, network,
 OpenAPI, schema, migration, gate or lifecycle authority.
 
+ADR-0015 was prepared on 2026-08-11 under
+`AUTH-DR3-NUMERIC-SEMANTICS-PROPOSAL-001` after the failed DR-3 gate exposed
+an admissible cosine boundary result outside `[-1, 1]`. It remains `proposed`.
+`cosine-f32mul-f64acc-boundary-canonical-v1` and `retrieval-v2` are only the
+recommended alternative if the owner later accepts the proposal unchanged.
+The ADR also preserves the exact one-ULP corridor and scaled-binary64
+alternatives, records their compatibility consequences and defines the
+verifiable correction plan for `DR3-FIND-001` to `DR3-FIND-004`. Preparation
+grants no decision, implementation, generation, test, gate or lifecycle
+authority.
+
 The later combined audit failed on `AQG-S02-001`, an internal contradiction
 between observation-inclusive generation identity and observation-only
 freshness rebinding. The owner accepted ADR-0007 explicitly on 2026-08-02. It
@@ -265,6 +276,10 @@ Dashboard -- versioned HTTP --> API
 - [ADR-0014 — Deterministic Retrieval Ranking and Retrieval-Only Baseline](ADR-0014-Deterministic-Retrieval-Ranking-And-Retrieval-Only-Baseline.md)
   (`accepted`; `retrieval-v1` remains unchanged for valid inputs, MultiQuery
   remains parked and implementation/evaluation authority remains separate)
+- [ADR-0015 — Versioned Cosine Numerical Semantics](ADR-0015-Versioned-Cosine-Numerical-Semantics.md)
+  (`proposed`; boundary canonicalisation with
+  `cosine-f32mul-f64acc-boundary-canonical-v1` and `retrieval-v2` is the
+  recommended alternative only; decision and implementation remain separate)
 
 ## STATE-02 design artefacts
 

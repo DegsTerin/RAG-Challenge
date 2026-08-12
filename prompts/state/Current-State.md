@@ -1406,6 +1406,16 @@ proprietários.
   lacunas de prova P2. Dataset, campanha, provider, rede, chamada paga, OpenAPI,
   schema, migration, Human Gate e lifecycle não foram executados ou alterados;
   MultiQuery continua estacionado.
+- ADR-0015: `proposed` sob
+  `AUTH-DR3-NUMERIC-SEMANTICS-PROPOSAL-001` em 2026-08-11 sobre
+  `main@ce9ba622e7e11214c200482ca50169afb987ee00`, corpus `4.10.29`, working
+  tree limpa e OpenAPI v1/v2 protegidas. A proposta recomenda, sem aceitar,
+  `cosine-f32mul-f64acc-boundary-canonical-v1` e `retrieval-v2`, preserva as
+  alternativas de corredor exato de 1 ULP e aritmética escalada em binary64,
+  explicita a nova identidade de compatibilidade/geração e registra o plano
+  verificável de `DR3-FIND-001` a `DR3-FIND-004`. Nenhuma semântica foi
+  selecionada, e nenhuma correção, geração, teste executável ou gate foi
+  autorizado ou executado.
 - Fechamento sanitizado da chave administrativa de provisionamento: o cleanup
   concluído sob `AUTH-S07-A-PROVIDER-ADMIN-KEY-CLEANUP-002` foi reconciliado
   documentalmente sob
@@ -1442,7 +1452,7 @@ proprietários.
   a política de idioma acrescentou o 21º documento público por incremento
   versionado, e o ADR-0003 acrescentou o 22º.
 - A baseline aprovada no Human Gate de `STATE-00` permanece `3.4.0`.
-- O corpus de instruções vigente possui versão `4.10.29` e 13 arquivos em
+- O corpus de instruções vigente possui versão `4.10.30` e 13 arquivos em
   `prompts/`.
 - Visão, requisitos, arquitetura, RAG, segurança, qualidade, lifecycle,
   roadmap, backlog, estado, histórico e templates estão documentados.
@@ -1680,6 +1690,18 @@ proprietários.
   correção foi definida; dataset, scorer, campanha, provider, corpus real,
   rede, chamada paga, OpenAPI, schema, migration, MultiQuery, Human Gate e
   lifecycle não foram executados ou alterados.
+- O corpus `4.10.30` materializa somente a proposta arquitetural ADR-0015 sob
+  `AUTH-DR3-NUMERIC-SEMANTICS-PROPOSAL-001`. A alternativa recomendada, ainda
+  não aceita, preserva multiplicação binary32, acumulação serial binary64 e
+  scores internos bit a bit, mas canoniza quocientes finitos fora do codomínio
+  para `-1` ou `+1`; ela exigiria `retrieval-v2`, descritor de vector store
+  avançado, novo `IndexCompatibilityKey`, nova geração e nova baseline de
+  avaliação. O ADR preserva corredor exato de 1 ULP e aritmética escalada em
+  binary64 como alternativas condicionais e define provas executáveis futuras
+  para os quatro achados. `DR-3` permanece `REPROVADO`; decisão, implementação,
+  reteste, dataset, scorer, campanha, provider, rede, chamada paga, OpenAPI,
+  schema, migration, MultiQuery, Human Gate e lifecycle continuam separados e
+  `NOT_RUN` neste incremento.
 - O corpus `4.3.0` formaliza a decisão explícita do proprietário de aceitar
   perguntas e respostas em `pt-BR` e `en-GB`: cada consulta declara o idioma,
   a resposta usa o mesmo idioma, textos derivados da fonte permanecem no
@@ -2012,14 +2034,16 @@ como autoridade arquitetural e reconciliado documentalmente sob
 `AUTH-STATE07-RETRIEVAL-DETERMINISM-ADR-RECONCILE-001`. `DR-0`, `DR-1` e
 `DR-2` estão concluídos. O `DR-3 — Determinism Automatic Quality Gate` foi
 executado sob autoridade separada e está `REPROVADO`, com `DR3-FIND-001` P1 e
-`DR3-FIND-002` a `DR3-FIND-004` P2 abertos. A próxima condição diretamente
-relacionada é autoridade humana separada para preparar uma decisão versionada
-de semântica numérica e o plano corretivo dos quatro achados, sem alterar a
-aritmética vigente por inferência. A decisão, eventual implementação corretiva
-e qualquer repetição de DR-3 permanecem autoridades independentes. Os gates
-posteriores não foram iniciados; dataset, campanha, provider, rede, chamada
-paga, OpenAPI, schema, migration, Human Gate e lifecycle permanecem `NOT_RUN`,
-e `retrieval-multi-query-v1-candidate` continua estacionado.
+`DR3-FIND-002` a `DR3-FIND-004` P2 abertos. A preparação versionada exigida
+foi materializada no ADR-0015, ainda `proposed`, sob
+`AUTH-DR3-NUMERIC-SEMANTICS-PROPOSAL-001`. A próxima condição diretamente
+relacionada é a decisão humana explícita sobre o ADR-0015; se aceito, uma
+autoridade posterior e separada ainda será necessária para implementar a
+semântica selecionada, avançar compatibilidade/geração e corrigir as quatro
+provas antes de qualquer novo DR-3. Os gates posteriores não foram iniciados;
+dataset, campanha, provider, rede, chamada paga, OpenAPI, schema, migration,
+Human Gate e lifecycle permanecem `NOT_RUN`, e
+`retrieval-multi-query-v1-candidate` continua estacionado.
 
 O ADR-0013 foi aceito explicitamente mediante `ADR-0013: ACEITAR.` somente
 como autoridade arquitetural. Ele seleciona `gpt-5.4-mini-2026-03-17` para o
