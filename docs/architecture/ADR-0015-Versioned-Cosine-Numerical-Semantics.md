@@ -18,7 +18,7 @@
 - Architecture owner: RAG-Challenge
 - Technical owner: `CH-MOD-03 INDEXING_RETRIEVAL`
 
-## Preparation and decision authority
+## Preparation, decision, implementation and reconciliation authority
 
 - Authority: `AUTH-DR3-NUMERIC-SEMANTICS-PROPOSAL-001`
 - Branch: `main`
@@ -27,10 +27,21 @@
 - Decision authority: explicit product-owner decision
   `ADR-0015: ACEITAR.` on clean
   `main@46de807148d5b547f56a0f7265b32428b232100f`, corpus `4.10.30`
+- Implementation authority: `AUTH-DR3-NUMERIC-SEMANTICS-IMPLEMENTATION-001`
+- Implementation baseline: clean
+  `main@9735ff5bc243d9a517b2cceb7ca8bfe16f24b438`, corpus `4.10.31`
+- Implementation commit: `9addb166e82dd04581beee7b4276a74977fe04c5`
+- Reconciliation authority:
+  `AUTH-DR3-NUMERIC-SEMANTICS-IMPLEMENTATION-RECONCILE-001`
+- Reconciliation baseline: clean
+  `main@9addb166e82dd04581beee7b4276a74977fe04c5`, corpus `4.10.31`
 - Lifecycle position: `STATE-07 TESTING_HOMOLOGATION`
 - Gate position: `DR-3 — Determinism Automatic Quality Gate` remains
   `REPROVADO`
-- Runtime preflight: `NOT_APPLICABLE` because this increment is documentary
+- Implementation runtime preflight: applicable; it found zero owned
+  RAG-Challenge process candidates and stopped zero processes
+- Reconciliation runtime preflight: `NOT_APPLICABLE` because this increment is
+  documentary
 - Protected OpenAPI v1 SHA-256:
   `d6a686b94c926914beb28b437f464430a01de6560c2e2d476cf5c36025813e34`
 - Protected OpenAPI v1 Git blob:
@@ -52,6 +63,10 @@ Acceptance selects the numerical semantic, successor retrieval-policy identity
 and compatibility consequences defined below as architecture authority only.
 It does not change `retrieval-v1`, correct code or tests, create a generation,
 dataset, scorer or campaign, execute a gate, or change lifecycle state.
+
+The later implementation authority and commit recorded above implemented the
+selected source-code and test changes. That implementation evidence does not
+amend the decision, activate a product generation or dispose any DR-3 finding.
 
 The accepted
 [ADR-0014](ADR-0014-Deterministic-Retrieval-Ranking-And-Retrieval-Only-Baseline.md)
@@ -293,8 +308,10 @@ OpenAPI document and introduces no public field.
 
 ## Verifiable correction plan
 
-The following work is planned, not authorised or executed by acceptance. Every
-item requires a separately bounded implementation authority.
+Acceptance did not authorise or execute the following work. It was later
+implemented under the separately bounded authority and commit recorded above;
+the requirements and pass conditions remain the correction contract for the
+independent DR-3 retest.
 
 ### `DR3-FIND-001 — P1`
 
@@ -398,20 +415,70 @@ Pass condition: both the replaceable-port contract and the concrete SQLite
 read boundary reject a negative global ordinal deterministically and
 fail-closed.
 
+## Corrective implementation record
+
+Commit `9addb166e82dd04581beee7b4276a74977fe04c5` implements the selected
+semantic and compatibility boundary as follows:
+
+- `RetrievalPolicyConfiguration` and the query/runtime composition now require
+  `retrieval-v2` and `RetrievalV2PolicyExecutor`;
+- `SqliteVectorIndexStore` publishes the exact descriptor
+  `sqlite-exact-vector-store/2;schema=1;distance=cosine;algorithm=exact-scan;vector=float32;score=cosine-f32mul-f64acc-boundary-canonical-v1`;
+- every component product is fixed in a `float` local before serial `double`
+  accumulation in vector-index order; square roots, norm multiplication and
+  division remain ordered binary64 operations;
+- every finite raw quotient above `+1` is canonicalised to exact `+1`, every
+  finite raw quotient below `-1` to exact `-1`, and every in-range bit pattern,
+  including signed zero, is preserved;
+- non-finite components or intermediates, zero query vectors, malformed
+  ordinals and incompatible generation identities remain typed fail-closed;
+- stored zero vectors retain exact positive zero; and
+- candidate/generation and binding filters precede scoring, while the complete
+  `Score DESC, global ChunkOrdinal ASC` order precedes `Take(k)`.
+
+The implementation introduced no epsilon, one-ULP corridor, scaled-binary64
+arithmetic, FMA, reassociation, bucket or tertiary ranking key. The compatibility
+profile now incorporates the `/2` descriptor, so a generation or
+`IndexCompatibilityKey` produced with the `/1` descriptor returns
+`GenerationUnavailable` rather than being relabelled or served.
+
+The corrective evidence maps to the findings as follows:
+
+| Finding | Implemented evidence | Disposition before independent DR-3 retest |
+|---|---|---|
+| `DR3-FIND-001 — P1` | Bit-exact endpoint, adjacent-boundary, signed-zero, interior-score, zero-vector, non-finite, overflow, reopen and `/1` compatibility tests; the synthetic end-to-end `[1f, 1f, 1f]` path completes under `retrieval-v2`. | `CORRECTED_PENDING_GATE_RETEST` |
+| `DR3-FIND-002 — P2` | Nine-chunk adversarial top-k test with two write permutations, equal-score tie cases, same-store replay, reopen and ordered score-bit/identity assertions. | `CORRECTED_PENDING_GATE_RETEST` |
+| `DR3-FIND-003 — P2` | Competing higher-score ineligible chunks cover candidate/generation, eligible-binding, database and document filters before score/top-k, including reopen and selected-evidence assertions. | `CORRECTED_PENDING_GATE_RETEST` |
+| `DR3-FIND-004 — P2` | Application fake returns `ChunkOrdinal = -1` before any language-model call; a task-owned temporary SQLite corruption fixture proves the concrete read boundary returns `InvalidIndexData` without hits or evidence. | `CORRECTED_PENDING_GATE_RETEST` |
+
+The implementation turn recorded a Release build with zero warnings and zero
+errors and a local, offline solution test run with 202 unit, 203 integration and
+11 architecture tests passing: 416 total, with zero failures or skips. Those
+checks are focused implementation evidence, not an Automatic Quality Gate. The
+fixtures are synthetic and the SQLite stores are task-owned and temporary; no
+product generation, dataset, scorer, campaign, provider, credential, network,
+paid call or real corpus was created, activated or used.
+
+This factual reconciliation re-inspected the implementation commit and the
+finding-specific evidence but did not rerun executable validation. `DR-3`
+therefore remains `REPROVADO`, and all four findings remain pending disposition
+by a separately authorised independent corrective retest.
+
 ## Future verification sequence
 
 The correction sequence is strictly ordered:
 
 1. `ADR-0015` owner decision: **completed** by the explicit decision
    `ADR-0015: ACEITAR.`.
-2. Corrective implementation authority: separately authorise the
-   selected semantic, successor identity, generation compatibility and the
-   four bounded test corrections.
-3. Focused implementation evidence: build and run only the authorised local,
-   offline deterministic suites, then reconcile facts under separate
-   documentary authority if requested.
+2. Corrective implementation: **completed** under
+   `AUTH-DR3-NUMERIC-SEMANTICS-IMPLEMENTATION-001` in commit
+   `9addb166e82dd04581beee7b4276a74977fe04c5`.
+3. Focused implementation evidence and factual reconciliation: **completed**
+   with the recorded local/offline validation and
+   `AUTH-DR3-NUMERIC-SEMANTICS-IMPLEMENTATION-RECONCILE-001`.
 4. `DR-3` corrective retest: obtain a new independent Automatic Quality Gate
-   authority and rerun the applicable focused and repository-wide checks.
+   authority, `AUTH-DR3-NUMERIC-SEMANTICS-AQG-RETEST-001`, and rerun the
+   applicable focused and repository-wide checks.
 5. Preserve `DR-3` as `REPROVADO` until that independently authorised retest
    disposes all four findings.
 

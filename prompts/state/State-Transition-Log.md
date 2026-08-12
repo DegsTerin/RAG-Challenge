@@ -7437,3 +7437,98 @@ contém somente fatos cronológicos.
   as quatro correções verificáveis. Essa autoridade não inclui novo DR-3,
   dataset, campanha, provider, rede, OpenAPI, schema, migration, MultiQuery,
   Human Gate ou lifecycle.
+
+## 2026-08-11 — Implementação da semântica numérica reconciliada e pendente de reteste
+
+- Estado anterior e resultante: `STATE-07 TESTING_HOMOLOGATION` permanece
+  ativo. `DR-3 — Determinism Automatic Quality Gate` permanece `REPROVADO`;
+  nenhum Automatic Quality Gate, Human Gate ou lifecycle foi executado ou
+  alterado por esta reconciliação.
+- Autoridade e baseline da implementação:
+  `AUTH-DR3-NUMERIC-SEMANTICS-IMPLEMENTATION-001`, branch `main`, commit inicial
+  `9735ff5bc243d9a517b2cceb7ca8bfe16f24b438`, corpus `4.10.31`, working tree
+  inicialmente limpa e OpenAPI v1/v2 protegidas. O incremento focal foi
+  concluído no commit `9addb166e82dd04581beee7b4276a74977fe04c5`,
+  `fix(retrieval): implement versioned cosine semantics`, com dez arquivos de
+  código/teste alterados, 701 inserções e 98 remoções.
+- Autoridade e baseline desta reconciliação factual:
+  `AUTH-DR3-NUMERIC-SEMANTICS-IMPLEMENTATION-RECONCILE-001`, branch `main`, HEAD
+  `9addb166e82dd04581beee7b4276a74977fe04c5`, corpus `4.10.31`, working tree
+  inicialmente limpa e identidades OpenAPI v1/v2 protegidas. O runtime
+  preflight desta atividade documental foi `NÃO APLICÁVEL`.
+- Semântica implementada: `SqliteVectorIndexStore` fixa cada multiplicação em
+  binary32 por meio de local `float`, acumula serialmente em binary64 na ordem
+  do índice e mantém raiz, produto das normas e divisão como operações binary64
+  ordenadas. Quociente finito acima de `+1` é canonizado para `+1`, abaixo de
+  `-1` para `-1`; bits internos, inclusive signed zero, permanecem inalterados.
+  Estados não finitos, zero query e dados inválidos permanecem fail-closed;
+  stored zero-vector permanece `+0`.
+- Identidades implementadas: `retrieval-v2`, `RetrievalV2PolicyExecutor` e o
+  descritor
+  `sqlite-exact-vector-store/2;schema=1;distance=cosine;algorithm=exact-scan;vector=float32;score=cosine-f32mul-f64acc-boundary-canonical-v1`.
+  O perfil interno produz novo `IndexCompatibilityKey`; geração ou chave `/1`
+  incompatível retorna `GenerationUnavailable`, sem relabel, migração ou
+  serving cruzado.
+- `DR3-FIND-001 — P1`: limites positivos/negativos, valores imediatamente
+  internos/externos, signed zero, scores internos, zero-vector, não finitos,
+  overflow, compatibilidade, finalização e reopen possuem assertions bit a bit.
+  O caso sintético `[1f, 1f, 1f]` termina com score exato `+1` e o fluxo
+  end-to-end responde sob `retrieval-v2`. Disposição:
+  `CORRECTED_PENDING_GATE_RETEST`.
+- `DR3-FIND-002 — P2`: nove chunks disputam top-k `8`; o maior score pertence
+  ao ordinal tardio `8`, o menor ao ordinal inicial `0`, empates exercitam o
+  ordinal, e duas permutações de escrita, replay e reopen comparam ordem,
+  identidades e bits dos scores. O sort total precede `Take(k)` na
+  implementação. Disposição: `CORRECTED_PENDING_GATE_RETEST`.
+- `DR3-FIND-003 — P2`: concorrentes inelegíveis com score maior cobrem
+  geração/candidato, binding elegível, seletor de database e seletor de
+  documento antes de score/top-k; raw hits, evidência selecionada e reopen
+  preservam somente o alvo elegível. Disposição:
+  `CORRECTED_PENDING_GATE_RETEST`.
+- `DR3-FIND-004 — P2`: a fronteira Application rejeita
+  `ChunkOrdinal = -1` como índice indisponível antes de qualquer chamada ao
+  language model, e uma corrupção controlada em SQLite temporária task-owned
+  retorna `InvalidIndexData` sem hits ou evidência. A validação normal de escrita
+  também rejeita ordinal negativo. Disposição:
+  `CORRECTED_PENDING_GATE_RETEST`.
+- Evidência executável do turno de implementação: runtime preflight aplicável
+  encontrou zero processo candidato do RAG-Challenge, encerrou zero e deixou
+  zero; build Release terminou com zero avisos e zero erros; o teste local e
+  offline da solução aprovou 202 testes unitários, 203 de integração e 11 de
+  arquitetura — 416 no total, com zero falhas e zero skips. Esses resultados
+  são evidência focal de implementação, não constituem Automatic Quality Gate
+  e não foram reexecutados nesta reconciliação documental.
+- Limites preservados: não houve epsilon, corredor de 1 ULP, aritmética escalada
+  em binary64, FMA, reassociação, bucket ou semântica alternativa. Nenhuma
+  geração de produto, dataset, scorer, campanha, provider, credencial, rede,
+  chamada paga, corpus real, OpenAPI, schema, migration, MultiQuery, novo
+  Automatic Quality Gate, Human Gate, lifecycle, push, publicação, deploy ou
+  release foi criada, ativada, executada ou alterada. Fixtures foram sintéticas
+  e stores foram temporários task-owned.
+- Disposição do gate: os quatro achados têm correção implementada, mas não estão
+  resolvidos. `DR-3` permanece `REPROVADO` até um reteste independente sob nova
+  autoridade dispor explicitamente cada achado.
+- Artefatos protegidos: OpenAPI v1 permaneceu no SHA-256
+  `d6a686b94c926914beb28b437f464430a01de6560c2e2d476cf5c36025813e34` e blob
+  `a5fb3602fbab33bda6aa56cc4caaa9fdc37c8160`; OpenAPI v2 permaneceu no
+  SHA-256 `f4dca8db7fb7bd453e580495bb1bb7760812d954344931063e8549ed8f036733` e blob
+  `5ed6a47631653dd0c137b6ea1e979ae2c14bf8a8`.
+- Escopo documental fechado: somente ADR-0015, Current State, este histórico
+  append-only no EOF e Prompt System Change Log foram alterados; nenhum código,
+  teste, contrato ou configuração foi modificado nesta reconciliação.
+- Verificação documental: `git diff --check` terminou com exit code `0`;
+  `eng/check-repository.ps1` aprovou 280 arquivos não ignorados; o diff conteve
+  somente os quatro documentos autorizados; UTF-8/LF, newline final, espaços
+  finais, links, formato e prefixo append-only passaram. Build, testes
+  executáveis e Automatic Quality Gate permaneceram `NOT_RUN` nesta
+  reconciliação.
+- Versionamento: corpus elevado por `PATCH` factual de `4.10.31` para
+  `4.10.32`. O histórico preservou byte a byte seu prefixo anterior de 471.585
+  bytes no SHA-256
+  `e5f092d7e942dcffa1954f7ac589a7efe64938c2fb58cbef86eae6efbdf011c5`.
+- Próxima condição: obter autoridade humana separada e independente
+  `AUTH-DR3-NUMERIC-SEMANTICS-AQG-RETEST-001` para repetir integralmente DR-3
+  sobre baseline limpa e dispor `DR3-FIND-001` a `DR3-FIND-004`. A autoridade
+  de reteste não inclui correção adicional, dataset, scorer, campanha,
+  provider, rede, OpenAPI, schema, migration, MultiQuery, Human Gate ou
+  lifecycle.
