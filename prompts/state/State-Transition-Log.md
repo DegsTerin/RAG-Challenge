@@ -7380,3 +7380,60 @@ contém somente fatos cronológicos.
   rejeição ou revisão da proposta não é inferida deste registro; eventual
   implementação, nova geração e reteste independente de DR-3 continuam
   dependentes de autoridades posteriores e separadas.
+
+## 2026-08-11 — ADR-0015 aceito como autoridade arquitetural
+
+- Estado anterior e resultante: `STATE-07 TESTING_HOMOLOGATION` permanece
+  ativo. `DR-3 — Determinism Automatic Quality Gate` permanece `REPROVADO`,
+  com `DR3-FIND-001` P1 e `DR3-FIND-002` a `DR3-FIND-004` P2 abertos; nenhum
+  Human Gate ou lifecycle foi executado ou alterado.
+- Autoridade e baseline documental: decisão humana explícita
+  `ADR-0015: ACEITAR.`, branch `main`, commit
+  `46de807148d5b547f56a0f7265b32428b232100f`, corpus `4.10.30`, working tree
+  inicialmente limpa e OpenAPI v1/v2 protegidas. O runtime preflight desta
+  reconciliação documental foi `NÃO APLICÁVEL`.
+- Decisão arquitetural: ADR-0015 passa de `proposed` para `accepted` e seleciona
+  `cosine-f32mul-f64acc-boundary-canonical-v1` como semântica numérica,
+  `retrieval-v2` como política sucessora e o descritor
+  `sqlite-exact-vector-store/2;schema=1;distance=cosine;algorithm=exact-scan;vector=float32;score=cosine-f32mul-f64acc-boundary-canonical-v1`.
+- Compatibilidade: a decisão exige novo `IndexCompatibilityKey`, nova geração
+  e nova baseline de avaliação antes de servir. Gerações `/1` permanecem
+  históricas sob `retrieval-v1` e não podem ser relabeladas, migradas ou
+  servidas sob a identidade sucessora.
+- Semântica selecionada: multiplicação binary32, acumulação serial binary64 e
+  scores internos com intermediários finitos permanecem bit a bit; quociente
+  finito acima de `+1` é canonizado para `+1`, abaixo de `-1` para `-1`; estado
+  não finito permanece fail-closed; comparação exata e desempate por ordinal
+  permanecem sem epsilon, bucket ou chave terciária.
+- Alternativas não selecionadas: corredor exato de 1 ULP e aritmética escalada
+  em binary64 permanecem rastreáveis com suas condições objetivas. Uma mudança
+  posterior exige ADR sucessor que superseda explicitamente o ADR-0015.
+- Plano corretivo preservado: `DR3-FIND-001` a `DR3-FIND-004` mantêm suas
+  matrizes e condições executáveis futuras. A aceitação não altera código ou
+  testes, não cria geração e não reexecuta DR-3.
+- Limites preservados: nenhuma implementação, geração, dataset,
+  `retrieval-evaluation-scorer-v1`, campanha, provider, credencial, rede,
+  chamada paga, corpus real, OpenAPI, schema, migration, dependência, lockfile,
+  MultiQuery, novo Automatic Quality Gate, Human Gate, lifecycle, push,
+  publicação, deploy ou release foi executado ou alterado.
+- Artefatos protegidos: OpenAPI v1 permaneceu no SHA-256
+  `d6a686b94c926914beb28b437f464430a01de6560c2e2d476cf5c36025813e34` e blob
+  `a5fb3602fbab33bda6aa56cc4caaa9fdc37c8160`; OpenAPI v2 permaneceu no
+  SHA-256 `f4dca8db7fb7bd453e580495bb1bb7760812d954344931063e8549ed8f036733` e blob
+  `5ed6a47631653dd0c137b6ea1e979ae2c14bf8a8`.
+- Escopo documental fechado: somente ADR-0015, índice de arquitetura, Current
+  State, este histórico append-only no EOF e Prompt System Change Log foram
+  alterados.
+- Verificação documental: `git diff --check` terminou com exit code `0`;
+  `eng/check-repository.ps1` aprovou 280 arquivos não ignorados; somente os
+  cinco documentos autorizados mudaram; UTF-8/LF, newline final, espaços
+  finais, links, formato e o prefixo append-only deste histórico passaram.
+  Build, testes executáveis e Automatic Quality Gate permaneceram `NOT_RUN`.
+- Versionamento: corpus elevado por `PATCH` documental de `4.10.30` para
+  `4.10.31`. O histórico preservou byte a byte seu prefixo anterior no SHA-256
+  `cc67d95fca2ef846fa3f7e747e054164c14522b09639ef81a4379b6e893521ef`.
+- Próxima condição: obter autoridade humana separada
+  `AUTH-DR3-NUMERIC-SEMANTICS-IMPLEMENTATION-001` para implementar a decisão e
+  as quatro correções verificáveis. Essa autoridade não inclui novo DR-3,
+  dataset, campanha, provider, rede, OpenAPI, schema, migration, MultiQuery,
+  Human Gate ou lifecycle.

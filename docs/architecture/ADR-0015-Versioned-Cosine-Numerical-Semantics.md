@@ -2,9 +2,13 @@
 
 ## Status
 
-`proposed`
+`accepted`
 
 ## Date
+
+2026-08-11
+
+## Accepted
 
 2026-08-11
 
@@ -14,12 +18,15 @@
 - Architecture owner: RAG-Challenge
 - Technical owner: `CH-MOD-03 INDEXING_RETRIEVAL`
 
-## Preparation authority and baseline
+## Preparation and decision authority
 
 - Authority: `AUTH-DR3-NUMERIC-SEMANTICS-PROPOSAL-001`
 - Branch: `main`
 - Commit: `ce9ba622e7e11214c200482ca50169afb987ee00`
 - Prompt corpus before this proposal: `4.10.29`
+- Decision authority: explicit product-owner decision
+  `ADR-0015: ACEITAR.` on clean
+  `main@46de807148d5b547f56a0f7265b32428b232100f`, corpus `4.10.30`
 - Lifecycle position: `STATE-07 TESTING_HOMOLOGATION`
 - Gate position: `DR-3 — Determinism Automatic Quality Gate` remains
   `REPROVADO`
@@ -35,16 +42,15 @@
 
 ## Purpose and authority boundary
 
-This proposal defines candidate, versioned numerical semantics for exact
+This decision defines versioned numerical semantics for exact
 cosine scoring after `DR3-FIND-001` demonstrated that an admissible identical
 vector pair can produce a finite binary64 result immediately above the closed
 cosine range. It also records a verifiable correction plan for
 `DR3-FIND-001` to `DR3-FIND-004`.
 
-This document is not an accepted decision. In particular, its recommended
-semantic identifier, successor retrieval-policy identifier and compatibility
-consequences are proposals only. Preparation does not select a numerical
-semantic, change `retrieval-v1`, correct code or tests, create a generation,
+Acceptance selects the numerical semantic, successor retrieval-policy identity
+and compatibility consequences defined below as architecture authority only.
+It does not change `retrieval-v1`, correct code or tests, create a generation,
 dataset, scorer or campaign, execute a gate, or change lifecycle state.
 
 The accepted
@@ -100,31 +106,30 @@ prove those behaviours with the adversarial cases required by the gate.
   future executable evidence.
 - Keep OpenAPI v1 and v2 byte-for-byte unchanged.
 
-## Proposed decision if accepted unchanged
+## Decision
 
-If this ADR is accepted unchanged, it will select the recommended numerical
+The owner's explicit decision `ADR-0015: ACEITAR.` selects the numerical
 semantic
 `cosine-f32mul-f64acc-boundary-canonical-v1` and the successor retrieval
 policy `retrieval-v2`.
 
-Both identifiers remain **recommended alternatives only** while this ADR is
-`proposed`. They must not appear as implemented, active, evaluated or accepted
-identities before an explicit owner decision and a separately authorised
-implementation.
+Both identifiers are accepted architecture identities. They must not appear as
+implemented, active, evaluated or serving identities before a separately
+authorised implementation, compatible generation and activation.
 
-The recommended successor vector-store descriptor is:
+The selected successor vector-store descriptor is:
 
 ```text
 sqlite-exact-vector-store/2;schema=1;distance=cosine;algorithm=exact-scan;vector=float32;score=cosine-f32mul-f64acc-boundary-canonical-v1
 ```
 
 The `/2` component advances the concrete scoring compatibility identity. The
-SQLite schema remains `1`; this proposal requires no schema or migration
+SQLite schema remains `1`; this decision requires no schema or migration
 change.
 
-### Candidate algorithm contract
+### Selected algorithm contract
 
-`cosine-f32mul-f64acc-boundary-canonical-v1` would mean exactly:
+`cosine-f32mul-f64acc-boundary-canonical-v1` means exactly:
 
 1. Input dimensions must match and all query and stored components must be
    finite IEEE 754 binary32 values.
@@ -156,10 +161,10 @@ expose neither raw out-of-range values nor a second comparison semantic.
 
 ### Preserved retrieval-policy fields
 
-The recommended proposal changes the scoring semantic and its governed
+This decision changes the scoring semantic and its governed
 identities only. The following accepted fields remain unchanged:
 
-| Field | Proposed `retrieval-v2` value |
+| Field | `retrieval-v2` value |
 |---|---|
 | Ranking | `Score DESC, global ChunkOrdinal ASC` |
 | Vector search | exact cosine over the eligible validated generation |
@@ -176,6 +181,8 @@ identities only. The following accepted fields remain unchanged:
 ## Alternatives
 
 ### Alternative A — exact one-ULP boundary corridor
+
+Not selected. This alternative remains recorded for traceability.
 
 Keep the current arithmetic, but canonicalise only the two immediately
 adjacent binary64 values outside the cosine range:
@@ -194,10 +201,11 @@ authorised dimensions and finite input magnitudes. Selecting it without that
 proof would encode the observed example as a rule rather than establish a
 complete admissible-input semantic.
 
-Objective selection condition: choose this alternative only if a separately
-reviewed numerical argument establishes the one-ULP bound for the complete
-configured input domain, and executable property evidence independently
-confirms the bound at both signs, across dimensions and adversarial magnitudes.
+Future reconsideration condition: a successor ADR may select this alternative
+only if a separately reviewed numerical argument establishes the one-ULP bound
+for the complete configured input domain, and executable property evidence
+independently confirms the bound at both signs, across dimensions and
+adversarial magnitudes.
 
 Compatibility impact: it still changes a valid-input failure into success and
 can alter a valid ranking at the endpoints. It therefore still requires a new
@@ -205,6 +213,8 @@ retrieval-policy version, advanced scoring descriptor, new
 `IndexCompatibilityKey`, new generation and new evaluation baseline.
 
 ### Alternative B — scaled arithmetic in binary64
+
+Not selected. This alternative remains recorded for traceability.
 
 Convert each binary32 component exactly to binary64, scale each non-zero vector
 independently by its maximum absolute component, and then compute dot product,
@@ -219,11 +229,12 @@ scores because component products no longer round in binary32. Those changes
 can alter threshold inclusion and ranking even for inputs that succeed under
 `retrieval-v1`.
 
-Objective selection condition: choose this alternative if a product
-requirement or adversarial evidence establishes that current arithmetic is not
-sufficiently stable beyond the observed boundary excursion, especially across
-extreme finite magnitudes or large dimensions. Before selection, freeze the
-scaling, accumulation, signed-zero, non-finite and boundary rules precisely.
+Future reconsideration condition: a successor ADR may select this alternative
+if a product requirement or adversarial evidence establishes that current
+arithmetic is not sufficiently stable beyond the observed boundary excursion,
+especially across extreme finite magnitudes or large dimensions. Before that
+decision, freeze the scaling, accumulation, signed-zero, non-finite and
+boundary rules precisely.
 
 Compatibility impact: this is the broadest change. It requires a new
 retrieval-policy version, a separately named numerical semantic, advanced
@@ -233,38 +244,37 @@ historical results.
 
 ### Alternative C — keep `retrieval-v1` rejection unchanged
 
-Not recommended by this proposal. It preserves the current identity and
-fail-closed range validation, but leaves an observed admissible input mapped
-to `CH_INDEX_UNAVAILABLE` and therefore does not dispose `DR3-FIND-001`.
+Not selected. It preserves the current identity and fail-closed range
+validation, but leaves an observed admissible input mapped to
+`CH_INDEX_UNAVAILABLE` and therefore does not dispose `DR3-FIND-001`.
 
 ### Alternative D — add an epsilon or approximate tie
 
-Not recommended by this proposal. An epsilon is scale- and policy-dependent,
-can merge distinct scores, can alter ordering away from the mathematical
-boundary and conflicts with ADR-0014's exact comparison contract. A tolerance
-also does not define which score value is persisted, hashed or exposed to
-later policy stages.
+Not selected. An epsilon is scale- and policy-dependent, can merge distinct
+scores, can alter ordering away from the mathematical boundary and conflicts
+with ADR-0014's exact comparison contract. A tolerance also does not define
+which score value is persisted, hashed or exposed to later policy stages.
 
 ### Alternative E — regroup the denominator only
 
-Not recommended by this proposal. Reassociating `queryNorm * vectorNorm`,
-changing evaluation order or special-casing identical vectors can correct one
-reproduction without defining a general numerical contract. Such a change is
-runtime- and optimiser-sensitive unless fully versioned and still leaves
-other boundary cases unspecified.
+Not selected. Reassociating `queryNorm * vectorNorm`, changing evaluation order
+or special-casing identical vectors can correct one reproduction without
+defining a general numerical contract. Such a change is runtime- and
+optimiser-sensitive unless fully versioned and still leaves other boundary
+cases unspecified.
 
 ## Compatibility matrix
 
-| Concern | `retrieval-v1` | Recommended proposal if accepted | One-ULP corridor | Scaled binary64 |
+| Concern | `retrieval-v1` | Selected decision | One-ULP corridor | Scaled binary64 |
 |---|---|---|---|---|
 | Interior score bits | Current bits | Preserved exactly | Preserved exactly | May change |
 | Finite out-of-range score | Invalid | Project any finite value to the nearest endpoint | Project only the adjacent one-ULP value; reject farther values | Determined by separately frozen scaled semantic |
 | Non-finite state | Fail closed | Fail closed | Fail closed | Fail closed |
-| Signed zero | Current behaviour | Preserved for in-range quotient; stored zero is `+0` | Same as recommended | Must be frozen before selection |
+| Signed zero | Current behaviour | Preserved for in-range quotient; stored zero is `+0` | Same as selected decision | Must be frozen before selection |
 | Exact ranking/tie-break | Score, then ordinal | Unchanged | Unchanged | Unchanged after new scores |
 | Threshold/top-k/evidence/budget | Current fixed values | Unchanged | Unchanged | Unchanged unless separately decided |
-| Retrieval identity | `retrieval-v1` | Proposed `retrieval-v2` | New version required | New version required |
-| Store descriptor | `/1`, no score semantic field | Proposed `/2` descriptor with named score semantic | Advanced descriptor required | Advanced descriptor required |
+| Retrieval identity | `retrieval-v1` | `retrieval-v2` | New version required | New version required |
+| Store descriptor | `/1`, no score semantic field | `/2` descriptor with named score semantic | Advanced descriptor required | Advanced descriptor required |
 | Existing generation reusable under successor | Yes only under its current v1 identity | No | No | No |
 | New `IndexCompatibilityKey` and generation | No for unchanged v1 | Required before serving | Required before serving | Required before serving |
 | New evaluation baseline | No | Required | Required | Required, with wider comparison |
@@ -274,18 +284,17 @@ Historical generations, manifests, answer-evidence records and evaluation
 results remain immutable under their original retrieval-policy and
 compatibility identities. Even if stored vector bytes are unchanged, a
 generation built with the `/1` descriptor must not be relabelled or served as
-the `/2` candidate. A future accepted implementation must build and validate a
-new generation and fail closed on cross-version mismatch.
+the `/2` successor. A separately authorised implementation must build and
+validate a new generation and fail closed on cross-version mismatch.
 
 The existing v1/v2 public field `retrievalPolicyVersion` can carry a successor
-string only after acceptance, implementation and activation. This proposal
-changes neither OpenAPI document and introduces no public field.
+string only after implementation and activation. This decision changes neither
+OpenAPI document and introduces no public field.
 
 ## Verifiable correction plan
 
-The following work is planned, not authorised or executed by this proposal.
-Every item requires an accepted numerical decision where applicable and a
-separately bounded implementation authority.
+The following work is planned, not authorised or executed by acceptance. Every
+item requires a separately bounded implementation authority.
 
 ### `DR3-FIND-001 — P1`
 
@@ -393,9 +402,9 @@ fail-closed.
 
 The correction sequence is strictly ordered:
 
-1. `ADR-0015` owner decision: explicitly accept, reject or request revision of
-   this proposal.
-2. Corrective implementation authority: only after acceptance, authorise the
+1. `ADR-0015` owner decision: **completed** by the explicit decision
+   `ADR-0015: ACEITAR.`.
+2. Corrective implementation authority: separately authorise the
    selected semantic, successor identity, generation compatibility and the
    four bounded test corrections.
 3. Focused implementation evidence: build and run only the authorised local,
@@ -413,7 +422,7 @@ separately authorised.
 
 ## Consequences
 
-If accepted unchanged:
+Acceptance establishes that:
 
 - the observed valid-input failure receives an exact and deterministic
   boundary disposition;
@@ -428,7 +437,7 @@ If accepted unchanged:
 - tests gain adversarial evidence for complete sort, pre-filtering and negative
   ordinal rejection; and
 - full-domain numerical robustness remains explicitly unproven because the
-  recommended proposal preserves the current arithmetic and only defines its
+  selected decision preserves the current arithmetic and only defines its
   finite codomain boundary.
 
 ## Security and operations
@@ -439,16 +448,18 @@ If accepted unchanged:
   activation remain atomic and auditable under existing rules.
 - No score tolerance can silently admit or reorder evidence.
 - No public contract, secret, network, provider, database engine, operational
-  store or real corpus is touched by this proposal.
+  store or real corpus is touched by this decision.
 - Runtime and cross-platform reproducibility require the future implementation
   to prohibit FMA, reassociation and unordered parallel reductions for the
   named semantic and to verify exact score bits on every supported runtime
   architecture.
 
-## Objective decision condition
+## Acceptance record
 
-The owner may accept this proposal unchanged only after confirming all of the
-following as one architectural choice:
+The owner's explicit decision `ADR-0015: ACEITAR.` was made on clean
+`main@46de807148d5b547f56a0f7265b32428b232100f`, corpus `4.10.30`, with both
+protected OpenAPI identities unchanged. It confirms the following as one
+architectural choice:
 
 1. any finite raw cosine quotient outside the mathematical codomain is
    projected to the exact nearest endpoint, while every in-range bit pattern is
@@ -461,22 +472,20 @@ following as one architectural choice:
 4. the four-finding correction plan is sufficient for a later independent
    `DR-3` retest.
 
-If the owner requires rejection of large finite boundary excursions, the
-one-ULP alternative must first satisfy its proof condition. If the owner
-requires robust scoring across extreme finite magnitudes, the scaled-binary64
-alternative must be specified and reviewed instead. Acceptance of this ADR
-must never be inferred from this recommendation or from the preparation
-commit.
+Changing to the one-ULP or scaled-binary64 alternative now requires a successor
+ADR that satisfies its recorded objective condition and explicitly supersedes
+this decision.
 
-## Acceptance checks for this proposal
+## Acceptance negative scope
 
-- status remains `proposed`;
-- recommended identifiers are described only as conditional alternatives;
-- all three substantive numerical choices and their compatibility impacts are
-  explicit;
-- `DR3-FIND-001` to `DR3-FIND-004` each have an executable future pass
-  condition;
-- OpenAPI v1 and v2 protected identities remain unchanged;
-- only the ADR, architecture index and minimum factual prompt memory change;
-- repository documentation checks pass; and
-- no implementation, test execution, gate or external action is claimed.
+Acceptance and its documentary reconciliation do not authorise:
+
+- source-code or test changes;
+- implementation or activation of `retrieval-v2` or the selected numerical
+  semantic;
+- generation creation, rebuild, validation, migration or activation;
+- dataset, scorer or campaign creation or execution;
+- provider, credential, network, paid call or product-corpus activity;
+- OpenAPI, schema, migration, dependency, lockfile or MultiQuery changes;
+- Automatic Quality Gate, Human Gate or lifecycle transition; or
+- push, publication, deployment or release.

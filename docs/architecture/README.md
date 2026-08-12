@@ -85,14 +85,15 @@ OpenAPI, schema, migration, gate or lifecycle authority.
 
 ADR-0015 was prepared on 2026-08-11 under
 `AUTH-DR3-NUMERIC-SEMANTICS-PROPOSAL-001` after the failed DR-3 gate exposed
-an admissible cosine boundary result outside `[-1, 1]`. It remains `proposed`.
-`cosine-f32mul-f64acc-boundary-canonical-v1` and `retrieval-v2` are only the
-recommended alternative if the owner later accepts the proposal unchanged.
-The ADR also preserves the exact one-ULP corridor and scaled-binary64
-alternatives, records their compatibility consequences and defines the
-verifiable correction plan for `DR3-FIND-001` to `DR3-FIND-004`. Preparation
-grants no decision, implementation, generation, test, gate or lifecycle
-authority.
+an admissible cosine boundary result outside `[-1, 1]`. The owner explicitly
+accepted it on the same date through `ADR-0015: ACEITAR.` on clean
+`main@46de807148d5b547f56a0f7265b32428b232100f`, corpus `4.10.30`. It selects
+`cosine-f32mul-f64acc-boundary-canonical-v1`, `retrieval-v2` and the `/2`
+vector-store descriptor while preserving the exact one-ULP corridor and
+scaled-binary64 alternatives as non-selected traceability. It also defines the
+verifiable correction plan for `DR3-FIND-001` to `DR3-FIND-004`. Corpus
+`4.10.31` records architecture authority only; implementation, generation,
+tests, gate and lifecycle remain separate.
 
 The later combined audit failed on `AQG-S02-001`, an internal contradiction
 between observation-inclusive generation identity and observation-only
@@ -277,9 +278,10 @@ Dashboard -- versioned HTTP --> API
   (`accepted`; `retrieval-v1` remains unchanged for valid inputs, MultiQuery
   remains parked and implementation/evaluation authority remains separate)
 - [ADR-0015 — Versioned Cosine Numerical Semantics](ADR-0015-Versioned-Cosine-Numerical-Semantics.md)
-  (`proposed`; boundary canonicalisation with
-  `cosine-f32mul-f64acc-boundary-canonical-v1` and `retrieval-v2` is the
-  recommended alternative only; decision and implementation remain separate)
+  (`accepted`; selects boundary canonicalisation with
+  `cosine-f32mul-f64acc-boundary-canonical-v1`, `retrieval-v2` and a new
+  compatibility generation; implementation and corrective retest remain
+  separate)
 
 ## STATE-02 design artefacts
 

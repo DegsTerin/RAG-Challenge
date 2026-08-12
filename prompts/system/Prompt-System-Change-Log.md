@@ -2,7 +2,7 @@
 
 ## Versão atual
 
-- Versão: `4.10.30`
+- Versão: `4.10.31`
 - Data: 2026-08-11
 - Status: `STATE-07` ativo; ADR-0011 `accepted`, reconciliado e com a correção
   interna da política de serving implementada; o A0 candidato-específico mantém
@@ -29,9 +29,10 @@
   `fabb24cad16201070e3b95fffb22467cd55963ab` e MultiQuery estacionado;
   `DR-3 — Determinism Automatic Quality Gate` executado sob autoridade
   separada e `REPROVADO`, com `DR3-FIND-001` P1 e `DR3-FIND-002` a
-  `DR3-FIND-004` P2 abertos; ADR-0015 `proposed`, com semântica
-  `cosine-f32mul-f64acc-boundary-canonical-v1` e `retrieval-v2` somente como
-  alternativa recomendada, decisão/implementação ainda pendentes;
+  `DR3-FIND-004` P2 abertos; ADR-0015 `accepted`, com semântica
+  `cosine-f32mul-f64acc-boundary-canonical-v1`, `retrieval-v2` e compatibilidade
+  sucessora selecionadas somente como autoridade arquitetural, implementação
+  ainda pendente;
   homologação de produto, Human Gate e mudança de lifecycle não executados
 - Escopo: 13 arquivos ativos em `prompts/`
 
@@ -46,6 +47,47 @@ A versão do corpus é independente da versão futura do software.
 
 Toda alteração atualiza este arquivo e, quando necessário,
 [`../Start-Here.md`](../Start-Here.md).
+
+## 4.10.31 — 2026-08-11
+
+- Registra a decisão humana explícita `ADR-0015: ACEITAR.` sobre a baseline
+  limpa `main@46de807148d5b547f56a0f7265b32428b232100f`, corpus `4.10.30`, com
+  OpenAPI v1/v2 protegidas, e altera o status do ADR-0015 de `proposed` para
+  `accepted`.
+- Seleciona como autoridade arquitetural
+  `cosine-f32mul-f64acc-boundary-canonical-v1`, `retrieval-v2` e o descritor
+  `sqlite-exact-vector-store/2;schema=1;distance=cosine;algorithm=exact-scan;vector=float32;score=cosine-f32mul-f64acc-boundary-canonical-v1`.
+  Novo `IndexCompatibilityKey`, nova geração e nova baseline de avaliação são
+  consequências obrigatórias antes de servir.
+- Mantém corredor exato de 1 ULP e aritmética escalada em binary64 como
+  alternativas não selecionadas e rastreáveis. Mudança posterior para uma
+  delas exige ADR sucessor e sua condição objetiva própria.
+- Preserva o plano verificável de `DR3-FIND-001` a `DR3-FIND-004`. A decisão
+  conclui somente o passo arquitetural; implementação corretiva e repetição
+  independente de DR-3 permanecem etapas e autoridades distintas.
+- Limites preservados: nenhum código ou teste foi alterado; nenhuma geração,
+  dataset, scorer, campanha, provider, credencial, rede, chamada paga, corpus
+  real, OpenAPI, schema, migration, dependência, lockfile, MultiQuery,
+  Automatic Quality Gate, Human Gate, lifecycle, push, publicação, deploy ou
+  release foi executado ou alterado. O runtime preflight documental foi
+  `NÃO APLICÁVEL`.
+- Artefatos protegidos: OpenAPI v1 permaneceu no SHA-256
+  `d6a686b94c926914beb28b437f464430a01de6560c2e2d476cf5c36025813e34` e blob
+  `a5fb3602fbab33bda6aa56cc4caaa9fdc37c8160`; OpenAPI v2 permaneceu no
+  SHA-256 `f4dca8db7fb7bd453e580495bb1bb7760812d954344931063e8549ed8f036733` e blob
+  `5ed6a47631653dd0c137b6ea1e979ae2c14bf8a8`.
+- Validação documental: `git diff --check` terminou com exit code `0`;
+  `eng/check-repository.ps1` aprovou 280 arquivos não ignorados; somente os
+  cinco documentos autorizados mudaram; UTF-8/LF, newline final, espaços
+  finais, links, formato e prefixo append-only passaram. Build, testes
+  executáveis e Automatic Quality Gate permaneceram `NOT_RUN`.
+- Versionamento: corpus elevado por `PATCH` documental de `4.10.30` para
+  `4.10.31`. O histórico preserva byte a byte seu prefixo anterior no SHA-256
+  `cc67d95fca2ef846fa3f7e747e054164c14522b09639ef81a4379b6e893521ef`.
+- Próxima condição: obter autoridade humana separada
+  `AUTH-DR3-NUMERIC-SEMANTICS-IMPLEMENTATION-001`. Essa autoridade deve limitar
+  implementação/testes aos quatro achados e à nova identidade de
+  compatibilidade; novo DR-3 continua independente.
 
 ## 4.10.30 — 2026-08-11
 
