@@ -2,14 +2,17 @@
 
 ## Versão atual
 
-- Versão: `4.10.37`
+- Versão: `4.10.38`
 - Data: 2026-08-12
 - Status: `STATE-07` ativo; ADR-0011 `accepted`, reconciliado e com a correção
   interna da política de serving implementada; o A0 candidato-específico
   A0-003 dispõe as quatro operações visuais como `PERMITTED` somente sob o
   mecanismo notice-bearing e preserva distribuição/publicação externa
   `DENIED`; o primeiro documento permanece `ELIGIBLE_CANDIDATE`, sem
-  materialização ou ativação; ADR-0012 `accepted`,
+  materialização ou ativação; os seis valores project-owned do futuro
+  obligation set de `postgresql-18-reference-a4` estão aprovados exatamente,
+  mas nenhuma identidade determinística ou artefato foi criado; ADR-0012
+  `accepted`,
   reconciliado, com revisão do contrato v2 congelada, schema/migrations e
   comportamento notice-bearing implementados; o Automatic Quality Gate
   notice-bearing foi `APROVADO` somente na fronteira local, offline,
@@ -57,6 +60,36 @@ A versão do corpus é independente da versão futura do software.
 
 Toda alteração atualiza este arquivo e, quando necessário,
 [`../Start-Here.md`](../Start-Here.md).
+
+## 4.10.38 — 2026-08-12
+
+- Registra sob
+  `AUTH-S07-A-PRODUCT-ADMIN-NOTICE-BEARING-PROJECT-OWNED-DISPOSITION-RECONCILE-001`,
+  na baseline limpa
+  `main@0de07426f37c4427f419c0523e5342aac476c0f6`, corpus `4.10.37`, a decisão
+  explícita do proprietário sobre os seis valores project-owned de
+  `postgresql-18-reference-a4`.
+- Congela exatamente:
+  `attributionText="Source: The PostgreSQL Global Development Group; document:
+  PostgreSQL 18.4 Documentation; version: 18.4; source reference:
+  https://www.postgresql.org/files/documentation/pdf/18/postgresql-18-A4.pdf"`,
+  `trademarkTreatment=Required`,
+  `trademarkOrNonEndorsementText="Do not imply PostgreSQL project endorsement.
+  No trademark permission is inferred from the documentation licence."`,
+  `changeMarkingText="The composite PNG is a marked derivative, not a claim
+  that its complete canvas is an unmodified publisher page. The source-page
+  region nevertheless remains pixel-identical visual evidence."`,
+  `assessedAt=2026-08-12T04:05:14.0000000+00:00` e
+  `assessorId=assessor:auth-s07-a-product-a0-003`.
+- Distingue esses valores como disposição de controle pertencente ao projeto:
+  os blocos jurídicos da evidência primária permanecem externos a esta
+  redação e não são traduzidos, resumidos, substituídos ou reinterpretados.
+- Não calcula `rightsMappingRevision`, `obligationSetId` ou `canonicalSha256`;
+  não altera o bundle ignorado e não cria obligation set, render manifest,
+  generation manifest, evidence bindings, índice ou ativação.
+- Classifica a mudança como `PATCH` factual. Nenhum teste, build,
+  materialização, renderização, embedding, indexação, AQG, Human Gate,
+  lifecycle, rede, publicação, push ou deploy é autorizado ou executado.
 
 ## 4.10.37 — 2026-08-12
 

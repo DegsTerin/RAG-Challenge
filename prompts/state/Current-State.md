@@ -1487,6 +1487,24 @@ proprietários.
   exclusivamente local, offline, determinística e sintética; nenhuma
   materialização ou ativação de produto, dataset, RB-2, provider, rede, Human
   Gate ou lifecycle ocorreu.
+- Disposição project-owned notice-bearing: o proprietário aprovou exatamente,
+  sob
+  `AUTH-S07-A-PRODUCT-ADMIN-NOTICE-BEARING-PROJECT-OWNED-DISPOSITION-PROPOSAL-001`,
+  os seis valores candidatos de `postgresql-18-reference-a4`:
+  `attributionText="Source: The PostgreSQL Global Development Group; document:
+  PostgreSQL 18.4 Documentation; version: 18.4; source reference:
+  https://www.postgresql.org/files/documentation/pdf/18/postgresql-18-A4.pdf"`,
+  `trademarkTreatment=Required`,
+  `trademarkOrNonEndorsementText="Do not imply PostgreSQL project endorsement.
+  No trademark permission is inferred from the documentation licence."`,
+  `changeMarkingText="The composite PNG is a marked derivative, not a claim
+  that its complete canvas is an unmodified publisher page. The source-page
+  region nevertheless remains pixel-identical visual evidence."`,
+  `assessedAt=2026-08-12T04:05:14.0000000+00:00` e
+  `assessorId=assessor:auth-s07-a-product-a0-003`. Esses valores são disposição
+  de controle pertencente ao projeto, não evidência primária nem conclusão
+  jurídica nova. Nenhuma identidade determinística, obligation set, manifest,
+  geração, ativação ou mutação do bundle foi criada ou autorizada.
 
 ## Baseline documental
 
@@ -1494,7 +1512,7 @@ proprietários.
   a política de idioma acrescentou o 21º documento público por incremento
   versionado, e o ADR-0003 acrescentou o 22º.
 - A baseline aprovada no Human Gate de `STATE-00` permanece `3.4.0`.
-- O corpus de instruções vigente possui versão `4.10.37` e 13 arquivos em
+- O corpus de instruções vigente possui versão `4.10.38` e 13 arquivos em
   `prompts/`.
 - Visão, requisitos, arquitetura, RAG, segurança, qualidade, lifecycle,
   roadmap, backlog, estado, histórico e templates estão documentados.
@@ -1844,6 +1862,15 @@ proprietários.
   v1/v2 e a baseline permaneceram íntegras. A reconciliação não repetiu build,
   testes, gate ou CI e não executou materialização/ativação de produto,
   dataset, RB-2, Human Gate ou lifecycle.
+- O corpus `4.10.38` registra sob
+  `AUTH-S07-A-PRODUCT-ADMIN-NOTICE-BEARING-PROJECT-OWNED-DISPOSITION-RECONCILE-001`
+  somente a disposição project-owned exata dos seis campos necessários ao
+  futuro `DerivativeObligationSetV1` de `postgresql-18-reference-a4`. A
+  decisão preserva separadamente evidência primária e redação de controle,
+  congela a âncora UTC e a identidade estável do assessor e não calcula
+  `rightsMappingRevision`, `obligationSetId` ou `canonicalSha256`. Bundle,
+  materialização, renderização, embeddings, indexação, ativação, AQG, Human
+  Gate e lifecycle permanecem inalterados ou `NOT_RUN`.
 - O corpus `4.3.0` formaliza a decisão explícita do proprietário de aceitar
   perguntas e respostas em `pt-BR` e `en-GB`: cada consulta declara o idioma,
   a resposta usa o mesmo idioma, textos derivados da fonte permanecem no

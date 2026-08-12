@@ -7894,3 +7894,48 @@ contém somente fatos cronológicos.
   oficial e a geração candidata do produto pelos dois comandos agora
   auditados. Este gate não concede essa autoridade; ativação, RB-2, Human Gate
   e lifecycle permanecem separados e não autorizados.
+
+## 2026-08-12 — Disposição project-owned notice-bearing aprovada e reconciliada
+
+- Estado anterior e resultante: `STATE-07 TESTING_HOMOLOGATION` permanece
+  ativo. Nenhum Automatic Quality Gate, Human Gate ou lifecycle foi executado
+  ou alterado.
+- Autoridade e baseline:
+  `AUTH-S07-A-PRODUCT-ADMIN-NOTICE-BEARING-PROJECT-OWNED-DISPOSITION-RECONCILE-001`,
+  branch `main`, HEAD `0de07426f37c4427f419c0523e5342aac476c0f6`, corpus
+  `4.10.37`, working tree inicialmente limpa e identidades OpenAPI v1/v2
+  protegidas. O runtime preflight desta atividade exclusivamente documental
+  foi `NÃO APLICÁVEL`; nenhum processo ou listener foi enumerado ou encerrado.
+- Decisão do proprietário: a proposta read-only sob
+  `AUTH-S07-A-PRODUCT-ADMIN-NOTICE-BEARING-PROJECT-OWNED-DISPOSITION-PROPOSAL-001`
+  foi aprovada com os seis valores exatos abaixo:
+
+  ```json
+  {
+    "attributionText": "Source: The PostgreSQL Global Development Group; document: PostgreSQL 18.4 Documentation; version: 18.4; source reference: https://www.postgresql.org/files/documentation/pdf/18/postgresql-18-A4.pdf",
+    "trademarkTreatment": "Required",
+    "trademarkOrNonEndorsementText": "Do not imply PostgreSQL project endorsement. No trademark permission is inferred from the documentation licence.",
+    "changeMarkingText": "The composite PNG is a marked derivative, not a claim that its complete canvas is an unmodified publisher page. The source-page region nevertheless remains pixel-identical visual evidence.",
+    "assessedAt": "2026-08-12T04:05:14.0000000+00:00",
+    "assessorId": "assessor:auth-s07-a-product-a0-003"
+  }
+  ```
+
+- Proveniência semântica: o pacote é disposição de controle pertencente ao
+  projeto. Não substitui nem altera copyright, permissão ou disclaimers da
+  evidência primária, não concede trademark permission e não constitui nova
+  conclusão jurídica. `trademarkTreatment=Required` exige o texto exato de
+  não endosso; `assessedAt` adota o instante UTC do commit documental A0-003;
+  `assessorId` identifica a avaliação pela autoridade governada sem dado
+  pessoal.
+- Escopo fechado: somente o Document Eligibility Register, Current State,
+  este histórico append-only no EOF e Prompt System Change Log foram
+  alterados. O corpus avança por `PATCH` factual de `4.10.37` para `4.10.38`.
+- Escopo negativo preservado: nenhum secret ou credencial foi lido; nenhuma
+  rede, cálculo de `rightsMappingRevision`, `obligationSetId` ou
+  `canonicalSha256`, alteração do bundle ignorado, teste, build,
+  materialização, renderização, embedding, indexação, ativação, AQG, Human
+  Gate, lifecycle, publicação, push ou deploy foi executado ou autorizado.
+- Integridade append-only: este histórico preserva byte a byte seu prefixo
+  anterior de 502.405 bytes no SHA-256
+  `d2d63b9bdd2847597dfbd02774b0303b7f1273b5cc486c2192133a529dabee93`.

@@ -304,6 +304,45 @@ Transition Log and the Prompt System Change Log. Documentary validation passed
 non-ignored files. Build, executable tests, `eng/ci.ps1` and product behaviour
 remained `NOT_RUN`.
 
+### Approved project-owned derivative-obligation disposition
+
+Under
+`AUTH-S07-A-PRODUCT-ADMIN-NOTICE-BEARING-PROJECT-OWNED-DISPOSITION-PROPOSAL-001`,
+the product owner reviewed a read-only proposal and explicitly approved the
+following exact candidate-specific values. The approval is a project-owned
+control disposition. It is not primary-source wording, a new licence
+interpretation or evidence that an obligation set, render manifest, generation
+or activation exists.
+
+```json
+{
+  "attributionText": "Source: The PostgreSQL Global Development Group; document: PostgreSQL 18.4 Documentation; version: 18.4; source reference: https://www.postgresql.org/files/documentation/pdf/18/postgresql-18-A4.pdf",
+  "trademarkTreatment": "Required",
+  "trademarkOrNonEndorsementText": "Do not imply PostgreSQL project endorsement. No trademark permission is inferred from the documentation licence.",
+  "changeMarkingText": "The composite PNG is a marked derivative, not a claim that its complete canvas is an unmodified publisher page. The source-page region nevertheless remains pixel-identical visual evidence.",
+  "assessedAt": "2026-08-12T04:05:14.0000000+00:00",
+  "assessorId": "assessor:auth-s07-a-product-a0-003"
+}
+```
+
+`attributionText` is the approved project-owned presentation of the separately
+registered publisher, title, version and source reference.
+`trademarkTreatment=Required` requires the accompanying exact
+non-endorsement text and does not grant or imply trademark permission.
+`trademarkOrNonEndorsementText` and `changeMarkingText` preserve the exact
+existing project-owned wording selected by the owner. `assessedAt` adopts the
+UTC-normalised author and committer instant of the A0-003 documentary commit
+as the immutable assessment anchor; `assessorId` identifies that governed
+assessment by authority without introducing a personal identifier.
+
+These values remain only a disposed input until a separately authorised
+runtime operation creates and persistently reads back the corresponding
+`DerivativeObligationSetV1`. This disposition does not calculate or anticipate
+`rightsMappingRevision`, `obligationSetId`, `canonicalSha256`,
+`renderManifestId`, generation-manifest identity or evidence bindings. It does
+not authorise mutation of the ignored materialisation bundle or any product
+operation.
+
 ## Document identity
 
 | Field | Observed value |
