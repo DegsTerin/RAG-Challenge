@@ -6,10 +6,12 @@ using Microsoft.Data.Sqlite;
 using Microsoft.Extensions.Configuration;
 
 using RagChallenge.Application.Administration;
+using RagChallenge.Application.Documents;
 using RagChallenge.Application.IndexingRetrieval;
 using RagChallenge.Application.Persistence;
 using RagChallenge.Domain.CorpusCatalog;
 using RagChallenge.Domain.IndexingRetrieval;
+using RagChallenge.Infrastructure.Documents;
 using RagChallenge.Infrastructure.Persistence;
 using RagChallenge.Server.Api.OperationsGovernance;
 
@@ -1365,6 +1367,7 @@ public sealed class OneShotAdministrationTests
         var options = root.CreateStoreOptions();
         await SqliteStoreProvisioner.ApplyMigrationsAsync(options);
         await File.WriteAllTextAsync(Path.Combine(root.InputRoot, "build.json"), "{}");
+        await File.WriteAllTextAsync(Path.Combine(root.InputRoot, "sync.json"), "{}");
         var store = new SqliteControlPlaneStore(options);
         var journal = new SqliteAdministrationCommandJournal(options);
         var executor = new SqliteAdministrativeCommandExecutor(store);
@@ -1406,6 +1409,17 @@ public sealed class OneShotAdministrationTests
             executor,
             journal,
             () => Now.AddHours(2));
+        var syncUnavailable = await RunAsync(
+            MutationArguments(
+                "synchronise-official",
+                "sync-unavailable-operation",
+                "sync.json"),
+            configuration,
+            identity,
+            lease,
+            executor,
+            journal,
+            () => Now.AddHours(3));
 
         Assert.Equal(0, status.ExitCode);
         Assert.Equal(0, statusReplay.ExitCode);
@@ -1418,18 +1432,411 @@ public sealed class OneShotAdministrationTests
             "CH_ADMIN_CAPABILITY_NOT_COMPOSED",
             unavailableReplay.Error,
             StringComparison.Ordinal);
-        Assert.Single(lease.Acquisitions);
-        Assert.Single(lease.Releases);
         Assert.Equal(
-            2,
+            (int)AdministrationExitCode.DependencyUnavailable,
+            syncUnavailable.ExitCode);
+        Assert.Contains(
+            "CH_ADMIN_CAPABILITY_NOT_COMPOSED",
+            syncUnavailable.Error,
+            StringComparison.Ordinal);
+        Assert.Equal(2, lease.Acquisitions.Count);
+        Assert.Equal(2, lease.Releases.Count);
+        Assert.Equal(
+            3,
             await ScalarAsync(
                 options,
                 "SELECT COUNT(*) FROM administration_command_journal WHERE status = 'Completed';"));
         Assert.Equal(
-            1,
+            2,
             await ScalarAsync(
                 options,
                 "SELECT COUNT(*) FROM administration_command_journal WHERE outcome = 'Unavailable' AND exit_category = 5;"));
+    }
+
+    [Fact]
+    public async Task ComposedBuildIndexUsesGovernedSyntheticDependenciesAndRejectsProfileDrift()
+    {
+        using var root = TemporaryAdministrationRoot.Create();
+        var options = root.CreateStoreOptions();
+        await SqliteStoreProvisioner.ApplyMigrationsAsync(options);
+        var store = new SqliteControlPlaneStore(options);
+        var vectorStore = new SqliteVectorIndexStore(options);
+        var contentStore = new ImmutableContentStore(options);
+        var corpusId = new CorpusId("admin-corpus");
+        var productId = new DatabaseProductId("admin-database");
+        var productRevision = new DatabaseProductRevision(1);
+        var documentId = new DocumentId("admin-build-document");
+        var documentVersion = new DocumentVersionNumber(1);
+        var sourceAdapterId = new SourceAdapterId("synthetic-local-csv");
+        var sourceBytes = System.Text.Encoding.UTF8.GetBytes(
+            "feature,description\nindex,deterministic synthetic materialisation\n");
+        await using var source = new MemoryStream(sourceBytes, writable: false);
+        var content = await contentStore.PutAndVerifyAsync(new BoundedContentInput(
+            source,
+            sourceBytes.Length,
+            ContentMediaType.TextCsv));
+        var category = new DatabaseCategory(
+            new DatabaseCategoryId("admin-category"),
+            "Administration category");
+        var product = new DatabaseProduct(
+            productId,
+            productRevision,
+            "Administration database",
+            CatalogueItemStatus.Active,
+            [category.Id]);
+        var document = new DocumentVersion(
+            documentId,
+            documentVersion,
+            productId,
+            productRevision,
+            DocumentFormat.Csv,
+            DocumentContentLanguage.EnGb,
+            CatalogueItemStatus.Active,
+            content.ContentObjectId,
+            content.ByteLength,
+            ContentMediaType.TextCsv.Value,
+            sourceAdapterId,
+            SourceTrustClass.LocalAuthorised);
+        Assert.Equal(StoreMutationOutcome.Applied, (
+            await store.CommitCatalogueAsync(new CatalogueCommitRequest(
+                new OperationId("admin-build-catalogue"),
+                new CatalogueSnapshot(corpusId, new CatalogueRevision(1),
+                    [category], [product], [document]),
+                ExpectedCurrentRevision: 0,
+                Now))).Outcome);
+        var binding = new DocumentBinding(
+            productId,
+            productRevision,
+            documentId,
+            documentVersion,
+            DocumentFormat.Csv,
+            sourceAdapterId,
+            SourceTrustClass.LocalAuthorised);
+        var chunking = new ChunkingPolicy(
+            targetScalarCount: 64,
+            overlapScalarCount: 8,
+            hardMaximumScalarCount: 96);
+        var embeddingDescriptor = new EmbeddingProviderDescriptor(
+            "synthetic-provider",
+            "synthetic-model",
+            "synthetic-revision-1",
+            dimensions: 2);
+        var compatibility = new IndexCompatibilityProfile(
+            [CsvHelperDocumentParser.CompatibilityDescriptor],
+            chunking,
+            embeddingDescriptor,
+            SqliteVectorIndexStore.CompatibilityDescriptor);
+        var embedding = new CountingEmbeddingProvider(embeddingDescriptor);
+        var ingestion = new DocumentIngestionService(
+            contentStore,
+            [new CsvHelperDocumentParser()],
+            new DeterministicChunkingStrategy());
+        var handler = new BuildIndexAdministrativeCommand(
+            store,
+            contentStore,
+            ingestion,
+            new CorpusIndexingService(embedding, vectorStore, store),
+            compatibility);
+        var executor = new SqliteAdministrativeCommandExecutor(
+            store,
+            buildIndex: handler);
+        var journal = new SqliteAdministrationCommandJournal(options);
+        var lease = new SqliteAdministrationLeaseManager(options);
+        var configuration = Configuration(true, root.InputRoot, root.StoreRoot);
+        var identity = new StubIdentity("os-sha256:" + new string('b', 64));
+        var rights = CreateTextualRightsPlan(documentId, documentVersion);
+        var activeDigest = BindingDigestCanonicalizer
+            .CanonicaliseActiveDocumentSet([binding]).Digest.Value;
+        var sourceDigest = BindingDigestCanonicalizer
+            .CanonicaliseSourceBindingSet([binding]).Digest.Value;
+
+        await WriteBuildPlanAsync(
+            "build-composed.json",
+            "candidate-admin-composed",
+            compatibility.Key.Value);
+        var applied = await RunAsync(
+            MutationArguments(
+                "build-index",
+                "build-composed-operation",
+                "build-composed.json"),
+            configuration,
+            identity,
+            lease,
+            executor,
+            journal);
+        await WriteBuildPlanAsync(
+            "build-divergent.json",
+            "candidate-admin-divergent",
+            new string('f', 64));
+        var rejected = await RunAsync(
+            MutationArguments(
+                "build-index",
+                "build-divergent-operation",
+                "build-divergent.json"),
+            configuration,
+            identity,
+            lease,
+            executor,
+            journal);
+
+        Assert.Equal((int)AdministrationExitCode.Success, applied.ExitCode);
+        Assert.Contains("CH_ADMIN_APPLIED", applied.Output, StringComparison.Ordinal);
+        Assert.DoesNotContain(
+            "CH_ADMIN_CAPABILITY_NOT_COMPOSED",
+            applied.Output + applied.Error,
+            StringComparison.Ordinal);
+        Assert.Equal((int)AdministrationExitCode.Conflict, rejected.ExitCode);
+        Assert.Contains(
+            "CH_ADMIN_VALIDATION_FAILED",
+            rejected.Error,
+            StringComparison.Ordinal);
+        Assert.Equal(1, embedding.CallCount);
+        Assert.Equal(1, await ScalarAsync(
+            options,
+            "SELECT COUNT(*) FROM generation_manifests;"));
+        Assert.Equal(2, await ScalarAsync(
+            options,
+            "SELECT COUNT(*) FROM administration_command_journal WHERE status = 'Completed';"));
+
+        async Task WriteBuildPlanAsync(
+            string fileName,
+            string candidateBuildId,
+            string expectedCompatibilityKey)
+        {
+            var plan = new
+            {
+                candidateBuildId,
+                corpusRevision = 1,
+                catalogueRevision = 1,
+                activeDocumentSetDigest = activeDigest,
+                sourceBindingSetDigest = sourceDigest,
+                expectedIndexCompatibilityKey = expectedCompatibilityKey,
+                maximumEmbeddingBatchUtf8Bytes = 16_384,
+                documents = new[]
+                {
+                    new
+                    {
+                        binding = new
+                        {
+                            databaseProductId = productId.Value,
+                            databaseProductRevision = productRevision.Value,
+                            documentId = documentId.Value,
+                            documentVersion = documentVersion.Value,
+                            documentFormat = DocumentFormat.Csv.ToString(),
+                            sourceAdapterId = sourceAdapterId.Value,
+                            sourceTrustClass = SourceTrustClass.LocalAuthorised.ToString(),
+                            officialSourceRegistrationId = (string?)null,
+                            officialSnapshotId = (string?)null,
+                            sourceObservationId = (string?)null,
+                        },
+                        contentLanguage = DocumentContentLanguage.EnGb.ToCanonicalTag(),
+                        sourceContentObjectId = content.ContentObjectId.Value,
+                        byteLength = content.ByteLength,
+                        mediaType = content.MediaType.Value,
+                        parserPolicy = new
+                        {
+                            maximumByteLength = 4096,
+                            maximumUnits = 32,
+                            maximumTextCharacters = 4096,
+                            maximumFieldsPerRecord = 16,
+                            maximumFieldCharacters = 1024,
+                        },
+                        rights,
+                    },
+                },
+            };
+            await File.WriteAllTextAsync(
+                Path.Combine(root.InputRoot, fileName),
+                JsonSerializer.Serialize(plan, PlanJsonOptions));
+        }
+    }
+
+    [Fact]
+    public async Task ComposedOfficialSynchronisationUsesBoundLeaseAndStopsBeforeTransportOnDrift()
+    {
+        using var root = TemporaryAdministrationRoot.Create();
+        var options = root.CreateStoreOptions();
+        await SqliteStoreProvisioner.ApplyMigrationsAsync(options);
+        var store = new SqliteControlPlaneStore(options);
+        var contentStore = new ImmutableContentStore(options);
+        var corpusId = new CorpusId("admin-corpus");
+        var productId = new DatabaseProductId("admin-database");
+        var productRevision = new DatabaseProductRevision(1);
+        var documentId = new DocumentId("admin-official-document");
+        var documentVersion = new DocumentVersionNumber(1);
+        var registrationId = new OfficialSourceRegistrationId(
+            "synthetic-official-registration");
+        var sourceAdapterId = new SourceAdapterId("synthetic-official-csv");
+        var stagingAdapterId = new SourceAdapterId("synthetic-local-staging");
+        var sourceBytes = System.Text.Encoding.UTF8.GetBytes(
+            "feature,description\nofficial,synthetic source only\n");
+        await using var stagedSource = new MemoryStream(sourceBytes, writable: false);
+        var staged = await contentStore.PutAndVerifyAsync(new BoundedContentInput(
+            stagedSource,
+            sourceBytes.Length,
+            ContentMediaType.TextCsv));
+        var category = new DatabaseCategory(
+            new DatabaseCategoryId("admin-category"),
+            "Administration category");
+        var product = new DatabaseProduct(
+            productId,
+            productRevision,
+            "Administration database",
+            CatalogueItemStatus.Candidate,
+            [category.Id]);
+        var document = new DocumentVersion(
+            documentId,
+            documentVersion,
+            productId,
+            productRevision,
+            DocumentFormat.Csv,
+            DocumentContentLanguage.EnGb,
+            CatalogueItemStatus.Candidate,
+            staged.ContentObjectId,
+            staged.ByteLength,
+            staged.MediaType.Value,
+            stagingAdapterId,
+            SourceTrustClass.LocalAuthorised);
+        Assert.Equal(StoreMutationOutcome.Applied, (
+            await store.CommitCatalogueAsync(new CatalogueCommitRequest(
+                new OperationId("admin-sync-catalogue"),
+                new CatalogueSnapshot(corpusId, new CatalogueRevision(1),
+                    [category], [product], [document]),
+                ExpectedCurrentRevision: 0,
+                Now))).Outcome);
+        var registration = new OfficialSourceRegistration(
+            registrationId,
+            new SourceRegistrationRevision(1),
+            productId,
+            documentId,
+            sourceAdapterId,
+            "https://official.invalid/synthetic.csv",
+            CatalogueItemStatus.Candidate);
+        Assert.Equal(StoreMutationOutcome.Applied, (
+            await store.RegisterOfficialSourceAsync(
+                new OfficialSourceRegistrationCommitRequest(
+                    new OperationId("admin-sync-registration"),
+                    corpusId,
+                    registration,
+                    Now))).Outcome);
+        var transport = new CountingOfficialSourceTransport(new OfficialFetchResult(
+            OfficialFetchStatus.Changed,
+            statusCode: 200,
+            sourceBytes,
+            ContentMediaType.TextCsv.Value,
+            "\"synthetic-v1\"",
+            Now));
+        var ingestion = new DocumentIngestionService(
+            contentStore,
+            [new CsvHelperDocumentParser()],
+            new DeterministicChunkingStrategy());
+        var resolver = new StubOfficialSourceAuthorityResolver(
+            new OfficialSourceAuthority(
+                registration,
+                currentSnapshot: null,
+                observationJournalRevision: 0,
+                activationRevision: 0));
+        var handler = new OfficialSynchronisationAdministrativeCommand(
+            store,
+            resolver,
+            new OfficialSourceSynchronisationService(transport, store, ingestion));
+        Assert.Throws<ArgumentException>(() => new SqliteAdministrativeCommandExecutor(
+            store,
+            buildIndex: handler));
+        var executor = new SqliteAdministrativeCommandExecutor(
+            store,
+            synchroniseOfficial: handler);
+        var journal = new SqliteAdministrationCommandJournal(options);
+        var lease = new SqliteAdministrationLeaseManager(options);
+        var configuration = Configuration(true, root.InputRoot, root.StoreRoot);
+        var identity = new StubIdentity("os-sha256:" + new string('c', 64));
+        var rights = CreateTextualRightsPlan(documentId, documentVersion);
+
+        await WriteSyncPlanAsync("sync-composed.json", registrationRevision: 1);
+        var applied = await RunAsync(
+            MutationArguments(
+                "synchronise-official",
+                "sync-composed-operation",
+                "sync-composed.json"),
+            configuration,
+            identity,
+            lease,
+            executor,
+            journal);
+        await WriteSyncPlanAsync("sync-divergent.json", registrationRevision: 2);
+        var rejected = await RunAsync(
+            MutationArguments(
+                "synchronise-official",
+                "sync-divergent-operation",
+                "sync-divergent.json"),
+            configuration,
+            identity,
+            lease,
+            executor,
+            journal);
+
+        Assert.Equal((int)AdministrationExitCode.Success, applied.ExitCode);
+        Assert.Contains("CH_ADMIN_APPLIED", applied.Output, StringComparison.Ordinal);
+        Assert.Equal((int)AdministrationExitCode.Conflict, rejected.ExitCode);
+        Assert.Contains(
+            "CH_ADMIN_VALIDATION_FAILED",
+            rejected.Error,
+            StringComparison.Ordinal);
+        Assert.Equal(1, transport.CallCount);
+        Assert.Equal(1, await ScalarAsync(
+            options,
+            "SELECT COUNT(*) FROM official_source_snapshots;"));
+        Assert.Equal(1, await ScalarAsync(
+            options,
+            "SELECT COUNT(*) FROM source_observations;"));
+        Assert.Equal(2, await ScalarAsync(
+            options,
+            "SELECT COUNT(*) FROM administration_command_journal WHERE status = 'Completed';"));
+
+        async Task WriteSyncPlanAsync(string fileName, long registrationRevision)
+        {
+            var plan = new
+            {
+                expectedCatalogueRevision = 1,
+                registrationId = registrationId.Value,
+                registrationRevision,
+                expectedCurrentSnapshotId = (string?)null,
+                expectedJournalRevision = 0,
+                expectedActivationRevision = 0,
+                observationId = "synthetic-observation-1",
+                maxAgeSeconds = 86_400,
+                currentEtag = (string?)null,
+                currentLastModified = (DateTimeOffset?)null,
+                document = new
+                {
+                    databaseProductId = productId.Value,
+                    databaseProductRevision = productRevision.Value,
+                    documentId = documentId.Value,
+                    documentVersion = documentVersion.Value,
+                    documentFormat = DocumentFormat.Csv.ToString(),
+                    contentLanguage = DocumentContentLanguage.EnGb.ToCanonicalTag(),
+                    sourceAdapterId = sourceAdapterId.Value,
+                },
+                parserPolicy = new
+                {
+                    maximumByteLength = 4096,
+                    maximumUnits = 32,
+                    maximumTextCharacters = 4096,
+                    maximumFieldsPerRecord = 16,
+                    maximumFieldCharacters = 1024,
+                },
+                chunkingPolicy = new
+                {
+                    targetScalarCount = 64,
+                    overlapScalarCount = 8,
+                    hardMaximumScalarCount = 96,
+                },
+                rights,
+            };
+            await File.WriteAllTextAsync(
+                Path.Combine(root.InputRoot, fileName),
+                JsonSerializer.Serialize(plan, PlanJsonOptions));
+        }
     }
 
     [Fact]
@@ -1466,6 +1873,11 @@ public sealed class OneShotAdministrationTests
             snapshot,
             ExpectedCurrentRevision: 0,
             Now));
+        var observationChildBlocked = await store.CommitCatalogueAsync(new(
+            AdministrativeChildOperationIds.CreateOfficialObservation(owner),
+            snapshot,
+            ExpectedCurrentRevision: 0,
+            Now));
         var owned = await store.CommitCatalogueAsync(new(
             owner,
             snapshot,
@@ -1473,6 +1885,9 @@ public sealed class OneShotAdministrationTests
             Now));
 
         Assert.Equal(StoreMutationOutcome.RetentionConflict, blocked.Outcome);
+        Assert.Equal(
+            StoreMutationOutcome.RetentionConflict,
+            observationChildBlocked.Outcome);
         Assert.Equal(StoreMutationOutcome.Applied, owned.Outcome);
         await lease.ReleaseAsync(corpusId, owner);
     }
@@ -1588,7 +2003,43 @@ public sealed class OneShotAdministrationTests
         _ = await command.ExecuteNonQueryAsync();
     }
 
+    private static RightsPlan CreateTextualRightsPlan(
+        DocumentId documentId,
+        DocumentVersionNumber documentVersion)
+    {
+        HashSet<DocumentRight> permitted =
+        [
+            DocumentRight.SourcePossessionOrDownload,
+            DocumentRight.ParsingAndTextualTransformation,
+            DocumentRight.Indexing,
+            DocumentRight.SourceByteRetention,
+            DocumentRight.QuotationAndCitation,
+            DocumentRight.AttributionNoticeTrademarkAndChangeMarkingRequirements,
+        ];
+        return new RightsPlan(
+            DocumentRightsEligibilityRecordV1.CurrentSchemaVersion,
+            Enum.GetValues<DocumentRight>().Select(right => new RightsDecisionPlan(
+                right.ToString(),
+                (permitted.Contains(right)
+                    ? DocumentRightDecisionState.Permitted
+                    : DocumentRightDecisionState.Denied).ToString(),
+                $"synthetic-rights-{right}")).ToArray(),
+            documentId.Value,
+            documentVersion.Value);
+    }
+
     private sealed record RunResult(int ExitCode, string Output, string Error);
+
+    private sealed record RightsPlan(
+        int RightsSchemaVersion,
+        RightsDecisionPlan[] RightsDecisions,
+        string DocumentId,
+        long DocumentVersion);
+
+    private sealed record RightsDecisionPlan(
+        string Right,
+        string State,
+        string EvidenceReference);
 
     private sealed record CataloguePlan(
         string TargetId,
@@ -1633,6 +2084,62 @@ public sealed class OneShotAdministrationTests
         {
             CallCount++;
             return identifier;
+        }
+    }
+
+    private sealed class StubOfficialSourceAuthorityResolver(
+        OfficialSourceAuthority? authority)
+        : IOfficialSourceAuthorityResolver
+    {
+        public Task<OfficialSourceAuthority?> ResolveAsync(
+            CorpusId corpusId,
+            OfficialSourceRegistrationId registrationId,
+            CancellationToken cancellationToken = default) =>
+            Task.FromResult(
+                authority is not null && authority.Registration.Id == registrationId
+                    ? authority
+                    : null);
+    }
+
+    private sealed class CountingOfficialSourceTransport(OfficialFetchResult result)
+        : IOfficialSourceTransport
+    {
+        internal int CallCount { get; private set; }
+
+        public Task<OfficialFetchResult> FetchAsync(
+            OfficialSourceRegistration registration,
+            OfficialFetchPolicy policy,
+            CancellationToken cancellationToken = default)
+        {
+            CallCount++;
+            return Task.FromResult(result);
+        }
+    }
+
+    private sealed class CountingEmbeddingProvider(
+        EmbeddingProviderDescriptor descriptor)
+        : IEmbeddingProvider
+    {
+        internal int CallCount { get; private set; }
+
+        public Task<EmbeddingBatchResult> EmbedAsync(
+            EmbeddingBatchRequest request,
+            CancellationToken cancellationToken = default)
+        {
+            CallCount++;
+            var vectors = request.Inputs.Select((input, index) =>
+            {
+                var vector = new float[descriptor.Dimensions];
+                vector[0] = input.Length;
+
+                if (vector.Length > 1)
+                {
+                    vector[1] = index + 1;
+                }
+
+                return (ReadOnlyMemory<float>)vector;
+            }).ToArray();
+            return Task.FromResult(new EmbeddingBatchResult(descriptor, vectors));
         }
     }
 

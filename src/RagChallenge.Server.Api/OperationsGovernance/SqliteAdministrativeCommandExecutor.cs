@@ -1,4 +1,4 @@
-// Purpose: Adapts strict one-shot JSON plans to existing catalogue, source-registration and generation activation use cases while unavailable external capabilities stay fail closed.
+// Purpose: Adapts strict one-shot JSON plans to existing administrative use cases while optional materialisation capabilities remain explicitly composed and fail closed.
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
@@ -10,7 +10,7 @@ using RagChallenge.Domain.IndexingRetrieval;
 
 namespace RagChallenge.Server.Api.OperationsGovernance;
 
-internal sealed class SqliteAdministrativeCommandExecutor(IControlPlaneStore store)
+internal sealed class SqliteAdministrativeCommandExecutor
     : IOneShotAdministrativeCommandExecutor
 {
     private static readonly JsonSerializerOptions JsonOptions = new()
@@ -20,8 +20,21 @@ internal sealed class SqliteAdministrativeCommandExecutor(IControlPlaneStore sto
         UnmappedMemberHandling = JsonUnmappedMemberHandling.Disallow,
     };
 
-    private readonly IControlPlaneStore store = store ??
-        throw new ArgumentNullException(nameof(store));
+    private readonly IControlPlaneStore store;
+    private readonly IAdministrativeMaterialisationCommand? synchroniseOfficial;
+    private readonly IAdministrativeMaterialisationCommand? buildIndex;
+
+    internal SqliteAdministrativeCommandExecutor(
+        IControlPlaneStore store,
+        IAdministrativeMaterialisationCommand? synchroniseOfficial = null,
+        IAdministrativeMaterialisationCommand? buildIndex = null)
+    {
+        this.store = store ?? throw new ArgumentNullException(nameof(store));
+        this.synchroniseOfficial = ValidateMaterialisationCommand(
+            synchroniseOfficial,
+            "synchronise-official");
+        this.buildIndex = ValidateMaterialisationCommand(buildIndex, "build-index");
+    }
 
     public AdministrativeCommandIdentifiers DescribeIntent(
         string command,
@@ -46,9 +59,12 @@ internal sealed class SqliteAdministrativeCommandExecutor(IControlPlaneStore sto
             "register-official-source" => DescribeOfficialSourceIntent(input),
             "activate-generation" or "rollback-generation" =>
                 DescribeGenerationIntent(input),
-            "synchronise-official" or "build-index" => new(
-                [$"corpus:{corpusId.Value}"],
-                []),
+            "synchronise-official" => synchroniseOfficial?.DescribeIntent(
+                corpusId,
+                input) ?? DescribeUnavailableMaterialisationIntent(corpusId),
+            "build-index" => buildIndex?.DescribeIntent(
+                corpusId,
+                input) ?? DescribeUnavailableMaterialisationIntent(corpusId),
             "status" => new(
                 [$"corpus:{corpusId.Value}"],
                 []),
@@ -77,14 +93,49 @@ internal sealed class SqliteAdministrativeCommandExecutor(IControlPlaneStore sto
             "activate-generation" => ActivateGenerationAsync(command, cancellationToken),
             "rollback-generation" => RollbackGenerationAsync(command, cancellationToken),
             "status" => ReadStatusAsync(command, cancellationToken),
-            "synchronise-official" or "build-index" => Task.FromResult(
-                new AdministrativeExecutionResult(
-                    AdministrativeExecutionOutcome.Unavailable,
-                    "CH_ADMIN_CAPABILITY_NOT_COMPOSED")),
+            "synchronise-official" => ExecuteMaterialisationAsync(
+                synchroniseOfficial,
+                command,
+                cancellationToken),
+            "build-index" => ExecuteMaterialisationAsync(
+                buildIndex,
+                command,
+                cancellationToken),
             _ => Task.FromResult(new AdministrativeExecutionResult(
                 AdministrativeExecutionOutcome.Rejected,
                 "CH_ADMIN_COMMAND_REJECTED")),
         };
+
+    private static AdministrativeCommandIdentifiers DescribeUnavailableMaterialisationIntent(
+        CorpusId corpusId) =>
+        new([$"corpus:{corpusId.Value}"], []);
+
+    private static IAdministrativeMaterialisationCommand? ValidateMaterialisationCommand(
+        IAdministrativeMaterialisationCommand? materialisationCommand,
+        string expectedCommand)
+    {
+        if (materialisationCommand is not null &&
+            !string.Equals(
+                materialisationCommand.CommandName,
+                expectedCommand,
+                StringComparison.Ordinal))
+        {
+            throw new ArgumentException(
+                "An administrative materialisation command was composed on the wrong route.",
+                nameof(materialisationCommand));
+        }
+
+        return materialisationCommand;
+    }
+
+    private static Task<AdministrativeExecutionResult> ExecuteMaterialisationAsync(
+        IAdministrativeMaterialisationCommand? materialisationCommand,
+        OneShotAdministrativeCommand command,
+        CancellationToken cancellationToken) =>
+        materialisationCommand?.ExecuteAsync(command, cancellationToken) ??
+        Task.FromResult(new AdministrativeExecutionResult(
+            AdministrativeExecutionOutcome.Unavailable,
+            "CH_ADMIN_CAPABILITY_NOT_COMPOSED"));
 
     private async Task<AdministrativeExecutionResult> ExecuteCatalogueAsync(
         OneShotAdministrativeCommand command,

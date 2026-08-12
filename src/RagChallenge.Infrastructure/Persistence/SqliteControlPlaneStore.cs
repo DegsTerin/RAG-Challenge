@@ -624,7 +624,8 @@ public sealed class SqliteControlPlaneStore(SqliteStoreOptions options)
                 request.CorpusId,
                 request.OperationId,
                 request.CommittedAt,
-                cancellationToken).ConfigureAwait(false))
+                cancellationToken,
+                allowOfficialObservationChild: true).ConfigureAwait(false))
         {
             return new StoreMutationResult(StoreMutationOutcome.RetentionConflict, 0);
         }
@@ -757,7 +758,8 @@ public sealed class SqliteControlPlaneStore(SqliteStoreOptions options)
                 request.CorpusId,
                 request.OperationId,
                 request.CommittedAt,
-                cancellationToken).ConfigureAwait(false))
+                cancellationToken,
+                allowOfficialObservationChild: true).ConfigureAwait(false))
         {
             var active = await ReadActiveActivationAsync(
                 context,
@@ -3286,7 +3288,8 @@ public sealed class SqliteControlPlaneStore(SqliteStoreOptions options)
         CorpusId corpusId,
         OperationId operationId,
         DateTimeOffset evaluatedAt,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken,
+        bool allowOfficialObservationChild = false)
     {
         var recoveryLeases = await context.RecoveryLeases.AsNoTracking()
             .Where(row => row.CorpusId == corpusId.Value &&
@@ -3294,14 +3297,45 @@ public sealed class SqliteControlPlaneStore(SqliteStoreOptions options)
             .ToArrayAsync(cancellationToken)
             .ConfigureAwait(false);
         var administrationLeases = await context.AdministrationLeases.AsNoTracking()
-            .Where(row => row.CorpusId == corpusId.Value &&
-                row.OperationId != operationId.Value)
+            .Where(row => row.CorpusId == corpusId.Value)
             .ToArrayAsync(cancellationToken)
             .ConfigureAwait(false);
         return recoveryLeases.Any(row =>
                 ControlPlaneMapping.ParseUtc(row.ExpiresAtUtc) > evaluatedAt) ||
             administrationLeases.Any(row =>
-                ControlPlaneMapping.ParseUtc(row.ExpiresAtUtc) > evaluatedAt);
+                ControlPlaneMapping.ParseUtc(row.ExpiresAtUtc) > evaluatedAt &&
+                !IsAdministrationLeaseOperation(
+                    row.OperationId,
+                    operationId.Value,
+                    allowOfficialObservationChild));
+    }
+
+    private static bool IsAdministrationLeaseOperation(
+        string leaseOwnerOperationId,
+        string requestedOperationId,
+        bool allowOfficialObservationChild)
+    {
+        if (string.Equals(
+                leaseOwnerOperationId,
+                requestedOperationId,
+                StringComparison.Ordinal))
+        {
+            return true;
+        }
+
+        if (!allowOfficialObservationChild)
+        {
+            return false;
+        }
+
+        const string domain =
+            "rag-admin-child-operation-v1\nofficial-observation\n";
+        var bytes = Encoding.UTF8.GetBytes(domain + leaseOwnerOperationId);
+        var digest = Convert.ToHexString(SHA256.HashData(bytes)).ToLowerInvariant();
+        return string.Equals(
+            requestedOperationId,
+            "admin-child-" + digest,
+            StringComparison.Ordinal);
     }
 
     private static void EnsureOperationIdentity(
