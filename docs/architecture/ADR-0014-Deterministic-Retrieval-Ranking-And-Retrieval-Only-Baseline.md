@@ -42,12 +42,22 @@
   independent review and the applicable focused and complete local, offline
   and deterministic checks, with findings to be recorded rather than corrected
   inside the gate
-- DR-3 status: `REPROVADO`; the gate recorded `DR3-FIND-001` as P1 and
+- Initial DR-3 status: `REPROVADO`; the gate recorded `DR3-FIND-001` as P1 and
   `DR3-FIND-002`, `DR3-FIND-003` and `DR3-FIND-004` as P2. The protected
   OpenAPI v1 and v2 identities remained unchanged
 - DR-3 documentary reconciliation: explicitly authorised by the product owner
   on clean `main@272a868c2f2a90eba21ee422ba5a2c34aa2337d5`, corpus `4.10.28`,
   and recorded by corpus `4.10.29`
+- Corrective retest authority:
+  `AUTH-DR3-NUMERIC-SEMANTICS-AQG-RETEST-001`, granted by the product owner on
+  clean `main@bf8a156e7c5eea801f29fb6e7742cac880783bc0`, corpus `4.10.32`
+- DR-3 current status: `APROVADO`; the independent corrective retest disposed
+  `DR3-FIND-001`, `DR3-FIND-002`, `DR3-FIND-003` and `DR3-FIND-004` as
+  `RESOLVED`, with no new P0, P1, P2 or P3 finding
+- Corrective retest reconciliation authority:
+  `AUTH-DR3-NUMERIC-SEMANTICS-AQG-RETEST-RECONCILE-001`, on clean
+  `main@bf8a156e7c5eea801f29fb6e7742cac880783bc0`, corpus `4.10.32`, recorded
+  by corpus `4.10.33`
 
 ## Purpose and authority
 
@@ -1072,8 +1082,9 @@ decision:
 The preparation commit completed `DR-0`, and the owner's architecture decision
 completed `DR-1`. `DR-2` was subsequently completed under separate authority,
 as recorded below. `DR-3` was later executed under its own authority and was
-`REPROVADO`, as recorded below. Every corrective increment, repeat gate and
-later evaluation remains separately governed.
+`REPROVADO`, as recorded below. After the separately governed correction, its
+independent corrective retest was `APROVADO` and resolved all four findings.
+Every later evaluation remains separately governed.
 
 ## Acceptance negative scope
 
@@ -1166,9 +1177,53 @@ call, and did not materialise or execute a dataset,
 schema or migrations; unpark MultiQuery; perform a Human Gate or lifecycle
 transition; or push or publish anything.
 
-Passing general and focused checks does not override the four findings or prove
-the total-order contract. DR-3 therefore remains `REPROVADO`. Correcting the
-findings, selecting any separately versioned numerical semantic and repeating
-DR-3 each require separate product-owner authority. Later ordered gates remain
-unstarted and `retrieval-multi-query-v1-candidate` remains non-canonical and
-parked.
+Passing general and focused checks did not override the four findings or prove
+the total-order contract. At that gate baseline, DR-3 therefore remained
+`REPROVADO`. Correcting the findings, selecting a separately versioned
+numerical semantic and repeating DR-3 each required separate product-owner
+authority. Later ordered gates remained unstarted and
+`retrieval-multi-query-v1-candidate` remained non-canonical and parked.
+
+## DR-3 independent corrective retest record
+
+The product owner separately authorised the local, offline and deterministic
+corrective retest under `AUTH-DR3-NUMERIC-SEMANTICS-AQG-RETEST-001` on clean
+`main@bf8a156e7c5eea801f29fb6e7742cac880783bc0`, corpus `4.10.32`, with both
+protected OpenAPI identities unchanged. The independent review found no
+material static defect in the corrective implementation or its documentary
+reconciliation.
+
+The retest result was `APROVADO`, with no new P0, P1, P2 or P3 finding. It
+disposed the historical findings as follows without rewriting their original
+failure or corrected-pending-retest records:
+
+| Finding | Corrective retest evidence | Final disposition |
+|---|---|---|
+| `DR3-FIND-001 — P1` | Bit-exact endpoints and adjacent values, signed zero, non-finite and overflow states, stored zero-vector, reopen, the `[1f, 1f, 1f]` product path under `retrieval-v2`, and fail-closed `/1` incompatibility all passed. | `RESOLVED` |
+| `DR3-FIND-002 — P2` | The nine-chunk adversary returned ordinals `8, 7, 6, 5, 3, 4, 2, 1`; both write permutations, replay, reopen and three independent process executions preserved the exact ordered identities and score bits before `Take(k)`. | `RESOLVED` |
+| `DR3-FIND-003 — P2` | Candidate/generation, eligible-binding, database and document exclusions all preceded score and `top-k`, including higher-scoring ineligible competitors and reopen. | `RESOLVED` |
+| `DR3-FIND-004 — P2` | The Application boundary rejected ordinal `-1` before any language-model call, and task-owned SQLite corruption returned `InvalidIndexData` without hits or selected evidence. | `RESOLVED` |
+
+The retest recorded a Release build with zero warnings and zero errors; 75
+focused Application/query tests; 12 focused SQLite, end-to-end and indexing
+tests; and two additional cold-process repetitions of the 10-test SQLite
+matrix, all passing. The complete solution passed 202 unit, 203 integration
+and 11 architecture tests: 416 in total, with zero failures or skips. The
+canonical offline CI repeated those suites, passed 45 Dashboard tests, lint,
+type checking, the web build and the repository audit of 280 non-ignored
+files, and recorded 95.53% line coverage and 68.47% branch coverage. The
+recorded tool versions were .NET SDK `10.0.302`, Node `24.19.0`, npm `11.17.0`
+and PowerShell `7.6.4`.
+
+Runtime preflight and postflight were applicable to the executable retest.
+They found zero RAG-Challenge-owned process or listener, stopped zero and left
+zero. The retest began and ended on the same clean baseline, altered no tracked
+file and used only synthetic fixtures and task-owned temporary stores. It did
+not create or activate a product generation, dataset, scorer or campaign; use
+a provider, credential, network, paid call or real corpus; change OpenAPI,
+schema, migration or MultiQuery; perform a Human Gate or lifecycle transition;
+or push, publish or deploy anything. Its evidence is limited to the local
+Windows x64, offline and synthetic boundary.
+
+This record closes `DR-3` only. `RB-1 — Evaluation design freeze` and every
+later ordered gate remain separately governed and `NOT_RUN`.

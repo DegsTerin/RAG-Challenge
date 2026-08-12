@@ -7532,3 +7532,84 @@ contém somente fatos cronológicos.
   de reteste não inclui correção adicional, dataset, scorer, campanha,
   provider, rede, OpenAPI, schema, migration, MultiQuery, Human Gate ou
   lifecycle.
+
+## 2026-08-11 — Reteste corretivo independente de DR-3 aprovado e reconciliado
+
+- Estado anterior e resultante: `STATE-07 TESTING_HOMOLOGATION` permanece
+  ativo; nenhum Human Gate ou lifecycle foi executado ou alterado. A reprovação
+  inicial de DR-3 e as disposições intermediárias
+  `CORRECTED_PENDING_GATE_RETEST` permanecem como evidência histórica.
+- Autoridade e baseline do reteste:
+  `AUTH-DR3-NUMERIC-SEMANTICS-AQG-RETEST-001`, branch `main`, commit
+  `bf8a156e7c5eea801f29fb6e7742cac880783bc0`, corpus `4.10.32`, working tree
+  inicialmente limpa e OpenAPI v1/v2 protegidas.
+- Autoridade e baseline desta reconciliação factual:
+  `AUTH-DR3-NUMERIC-SEMANTICS-AQG-RETEST-RECONCILE-001`, branch `main`, HEAD
+  `bf8a156e7c5eea801f29fb6e7742cac880783bc0`, corpus `4.10.32`, working tree
+  inicialmente limpa e identidades OpenAPI v1/v2 protegidas. O runtime
+  preflight desta atividade exclusivamente documental foi `NÃO APLICÁVEL`.
+- Fonte factual e resultado: o hand-off único do revisor independente registra
+  o reteste corretivo local, offline e determinístico como `APROVADO`, sem novo
+  achado P0, P1, P2 ou P3. `DR3-FIND-001`, `DR3-FIND-002`, `DR3-FIND-003` e
+  `DR3-FIND-004` estão `RESOLVED`.
+- `DR3-FIND-001 — P1`: limites exatos positivos/negativos, valores adjacentes,
+  signed zero, não finitos, overflow, stored zero-vector, reopen, o fluxo
+  `[1f, 1f, 1f]` sob `retrieval-v2` e a incompatibilidade fail-closed com
+  descritor/chave `/1` passaram. Disposição final: `RESOLVED`.
+- `DR3-FIND-002 — P2`: o adversário de nove chunks produziu a ordem
+  `8, 7, 6, 5, 3, 4, 2, 1`; duas permutações de escrita, replay, reopen e três
+  execuções independentes preservaram ordem, identidades e bits antes de
+  `Take(k)`. Disposição final: `RESOLVED`.
+- `DR3-FIND-003 — P2`: geração/candidato, binding elegível, seletor de database
+  e seletor de documento filtraram concorrentes inelegíveis de score superior
+  antes de score/top-k, inclusive após reopen. Disposição final: `RESOLVED`.
+- `DR3-FIND-004 — P2`: a fronteira Application rejeitou `ChunkOrdinal = -1`
+  antes de qualquer chamada ao language model; a corrupção controlada na
+  SQLite temporária task-owned retornou `InvalidIndexData`, sem hit ou evidência
+  selecionada. Disposição final: `RESOLVED`.
+- Evidência focal do reteste: build Release com zero avisos e zero erros; 75
+  testes Application/query; 12 testes SQLite, end-to-end e indexing; e duas
+  repetições frias adicionais de 10 testes da matriz SQLite, todas aprovadas.
+  As três execuções independentes da matriz registraram `10,136 s`, `7,539 s`
+  e `7,284 s`.
+- Evidência integral do reteste: a solução aprovou 202 testes unitários, 203 de
+  integração e 11 de arquitetura — 416 no total, sem falha ou skip. O entry
+  point canônico `eng/ci.ps1 -Offline` passou integralmente, incluindo mais 45
+  testes do Dashboard, lint, typecheck, build web, cobertura de 95,53% das
+  linhas e 68,47% dos branches e auditoria de 280 arquivos não ignorados. As
+  versões registradas foram .NET SDK `10.0.302`, Node `24.19.0`, npm `11.17.0`
+  e PowerShell `7.6.4`.
+- Runtime do reteste: preflight e postflight encontraram zero processo ou
+  listener pertencente ao RAG-Challenge, encerraram zero e deixaram zero. O
+  gate começou e terminou na mesma baseline limpa e não alterou arquivo
+  rastreado.
+- Limite da evidência e escopo negativo: Windows x64 local, offline,
+  determinístico e sintético, com fixtures e stores temporários task-owned.
+  Nenhuma geração de produto, dataset, scorer, campanha, provider, credencial,
+  rede, chamada paga, corpus real, OpenAPI, schema, migration, dependência,
+  lockfile, MultiQuery, Human Gate, lifecycle, push, publicação, deploy ou
+  release foi criada, ativada, executada ou alterada.
+- Artefatos protegidos: OpenAPI v1 permaneceu no SHA-256
+  `d6a686b94c926914beb28b437f464430a01de6560c2e2d476cf5c36025813e34` e blob
+  `a5fb3602fbab33bda6aa56cc4caaa9fdc37c8160`; OpenAPI v2 permaneceu no
+  SHA-256 `f4dca8db7fb7bd453e580495bb1bb7760812d954344931063e8549ed8f036733` e blob
+  `5ed6a47631653dd0c137b6ea1e979ae2c14bf8a8`.
+- Escopo documental fechado: somente ADR-0014, ADR-0015, Current State, este
+  histórico append-only no EOF e Prompt System Change Log foram alterados;
+  nenhum código, teste, contrato ou configuração foi modificado nesta
+  reconciliação.
+- Verificação documental: `git diff --check` e
+  `eng/check-repository.ps1` passaram; somente os cinco documentos autorizados
+  mudaram; UTF-8/LF, newline final, espaços finais, links, formato e prefixo
+  append-only passaram. Build, testes executáveis e Automatic Quality Gate
+  permaneceram `NOT_RUN` nesta reconciliação.
+- Versionamento: corpus elevado por `PATCH` factual de `4.10.32` para
+  `4.10.33`. Este histórico preservou byte a byte seu prefixo anterior de
+  478.019 bytes no SHA-256
+  `8ec2d5dd7b4778966e5087f880a70055405173db986714c97349ce5f40099643`.
+- Próxima condição: obter autoridade humana separada para
+  `RB-1 — Evaluation design freeze`, limitado a um contrato de desenho
+  imutável, não materializado e não pontuado, com zero documento/caso de
+  produto, qrel, vetor de consulta, geração ou resultado. Dataset de produto,
+  scorer executado, campanha, provider, rede, OpenAPI, MultiQuery, Human Gate
+  e lifecycle permanecem posteriores e independentes.

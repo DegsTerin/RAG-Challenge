@@ -1405,7 +1405,11 @@ proprietários.
   offline completa passaram, mas não superam o defeito numérico P1 nem as três
   lacunas de prova P2. Dataset, campanha, provider, rede, chamada paga, OpenAPI,
   schema, migration, Human Gate e lifecycle não foram executados ou alterados;
-  MultiQuery continua estacionado.
+  MultiQuery continua estacionado. Após a correção versionada e sua
+  reconciliação, o reteste corretivo independente autorizado por
+  `AUTH-DR3-NUMERIC-SEMANTICS-AQG-RETEST-001` foi `APROVADO` sobre
+  `main@bf8a156e7c5eea801f29fb6e7742cac880783bc0`, corpus `4.10.32`, sem novo
+  achado P0, P1, P2 ou P3; `DR3-FIND-001` a `DR3-FIND-004` estão `RESOLVED`.
 - ADR-0015: `accepted` pela decisão humana explícita `ADR-0015: ACEITAR.` em
   2026-08-11 sobre `main@46de807148d5b547f56a0f7265b32428b232100f`, corpus
   `4.10.30`, working tree limpa e OpenAPI v1/v2 protegidas. A decisão seleciona
@@ -1416,9 +1420,11 @@ proprietários.
   `AUTH-DR3-NUMERIC-SEMANTICS-IMPLEMENTATION-001`, o commit
   `9addb166e82dd04581beee7b4276a74977fe04c5` implementou a semântica, a política,
   a compatibilidade fail-closed e as quatro correções de prova. A implementação
-  não criou nem ativou geração de produto e não repetiu o gate: `DR-3` continua
-  `REPROVADO`, com os quatro achados
-  `CORRECTED_PENDING_GATE_RETEST`.
+  não criou nem ativou geração de produto e, naquele incremento, não repetiu o
+  gate: `DR-3` continuou `REPROVADO`, com os quatro achados
+  `CORRECTED_PENDING_GATE_RETEST`. O reteste independente posterior foi
+  `APROVADO` e dispôs os quatro achados como `RESOLVED`, preservando a evidência
+  histórica anterior.
 - Fechamento sanitizado da chave administrativa de provisionamento: o cleanup
   concluído sob `AUTH-S07-A-PROVIDER-ADMIN-KEY-CLEANUP-002` foi reconciliado
   documentalmente sob
@@ -1455,7 +1461,7 @@ proprietários.
   a política de idioma acrescentou o 21º documento público por incremento
   versionado, e o ADR-0003 acrescentou o 22º.
 - A baseline aprovada no Human Gate de `STATE-00` permanece `3.4.0`.
-- O corpus de instruções vigente possui versão `4.10.32` e 13 arquivos em
+- O corpus de instruções vigente possui versão `4.10.33` e 13 arquivos em
   `prompts/`.
 - Visão, requisitos, arquitetura, RAG, segurança, qualidade, lifecycle,
   roadmap, backlog, estado, histórico e templates estão documentados.
@@ -1740,6 +1746,21 @@ proprietários.
   scorer, campanha, provider, credencial, rede, chamada paga, corpus real,
   OpenAPI, schema, migration, MultiQuery, Human Gate ou lifecycle foi criada,
   ativada, executada ou alterada.
+- O corpus `4.10.33` reconcilia sob
+  `AUTH-DR3-NUMERIC-SEMANTICS-AQG-RETEST-RECONCILE-001` o hand-off aprovado do
+  reteste corretivo independente executado sob
+  `AUTH-DR3-NUMERIC-SEMANTICS-AQG-RETEST-001` na baseline limpa
+  `main@bf8a156e7c5eea801f29fb6e7742cac880783bc0`, corpus `4.10.32`. `DR-3`
+  está `APROVADO`, `DR3-FIND-001` a `DR3-FIND-004` estão `RESOLVED` e nenhum
+  novo achado P0, P1, P2 ou P3 foi identificado. Build Release, testes focais,
+  três execuções independentes da matriz SQLite, os 416 testes da solução e a
+  CI offline completa passaram; a CI registrou mais 45 testes do Dashboard,
+  95,53% de cobertura de linhas, 68,47% de branches e auditoria de 280 arquivos.
+  A evidência permanece local, offline, sintética e Windows x64. Nenhum arquivo
+  rastreado foi alterado pelo reteste; geração de produto, dataset, scorer,
+  campanha, provider, rede, chamada paga, corpus real, OpenAPI, schema,
+  migration, MultiQuery, Human Gate e lifecycle não foram criados, ativados,
+  executados ou alterados.
 - O corpus `4.3.0` formaliza a decisão explícita do proprietário de aceitar
   perguntas e respostas em `pt-BR` e `en-GB`: cada consulta declara o idioma,
   a resposta usa o mesmo idioma, textos derivados da fonte permanecem no
@@ -2071,17 +2092,19 @@ O ADR-0014 foi aceito explicitamente mediante `ADR-0014: ACEITAR.` somente
 como autoridade arquitetural e reconciliado documentalmente sob
 `AUTH-STATE07-RETRIEVAL-DETERMINISM-ADR-RECONCILE-001`. `DR-0`, `DR-1` e
 `DR-2` estão concluídos. O `DR-3 — Determinism Automatic Quality Gate` foi
-executado sob autoridade separada e permanece `REPROVADO`. A preparação, a
-aceitação do ADR-0015, a implementação corretiva no commit
-`9addb166e82dd04581beee7b4276a74977fe04c5` e sua reconciliação factual estão
-concluídas; `DR3-FIND-001` P1 e `DR3-FIND-002` a `DR3-FIND-004` P2 permanecem
-`CORRECTED_PENDING_GATE_RETEST`, não resolvidos. A próxima condição diretamente
-relacionada é obter a autoridade humana separada e independente
-`AUTH-DR3-NUMERIC-SEMANTICS-AQG-RETEST-001` para repetir integralmente o
-`DR-3` sobre baseline limpa e dispor explicitamente os quatro achados. Dataset,
-campanha, provider, rede, chamada paga, OpenAPI, schema, migration, MultiQuery,
-Human Gate e lifecycle permanecem fora dessa autoridade, e
-`retrieval-multi-query-v1-candidate` continua estacionado.
+inicialmente `REPROVADO`; a preparação e a aceitação do ADR-0015, a
+implementação corretiva no commit
+`9addb166e82dd04581beee7b4276a74977fe04c5` e sua reconciliação factual foram
+concluídas. O reteste corretivo independente posterior, autorizado por
+`AUTH-DR3-NUMERIC-SEMANTICS-AQG-RETEST-001`, foi `APROVADO`; `DR3-FIND-001` a
+`DR3-FIND-004` estão `RESOLVED`, sem novo achado P0, P1, P2 ou P3. A próxima
+condição diretamente relacionada na ordem do ADR-0014 é obter autoridade
+humana separada para `RB-1 — Evaluation design freeze`, limitado a um contrato
+de desenho imutável, não materializado e não pontuado, com zero documento ou
+caso de produto, qrel, vetor de consulta, geração ou resultado. Dataset de
+produto, scorer executado, campanha, provider, rede, chamada paga, OpenAPI,
+schema, migration, MultiQuery, Human Gate e lifecycle permanecem fora dessa
+condição, e `retrieval-multi-query-v1-candidate` continua estacionado.
 
 O ADR-0013 foi aceito explicitamente mediante `ADR-0013: ACEITAR.` somente
 como autoridade arquitetural. Ele seleciona `gpt-5.4-mini-2026-03-17` para o

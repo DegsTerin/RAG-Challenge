@@ -35,9 +35,15 @@
   `AUTH-DR3-NUMERIC-SEMANTICS-IMPLEMENTATION-RECONCILE-001`
 - Reconciliation baseline: clean
   `main@9addb166e82dd04581beee7b4276a74977fe04c5`, corpus `4.10.31`
+- Corrective retest authority:
+  `AUTH-DR3-NUMERIC-SEMANTICS-AQG-RETEST-001`
+- Corrective retest baseline: clean
+  `main@bf8a156e7c5eea801f29fb6e7742cac880783bc0`, corpus `4.10.32`
+- Corrective retest reconciliation authority:
+  `AUTH-DR3-NUMERIC-SEMANTICS-AQG-RETEST-RECONCILE-001`
 - Lifecycle position: `STATE-07 TESTING_HOMOLOGATION`
-- Gate position: `DR-3 — Determinism Automatic Quality Gate` remains
-  `REPROVADO`
+- Gate position: `DR-3 — Determinism Automatic Quality Gate` is `APROVADO`;
+  `DR3-FIND-001` to `DR3-FIND-004` are `RESOLVED`
 - Implementation runtime preflight: applicable; it found zero owned
   RAG-Challenge process candidates and stopped zero processes
 - Reconciliation runtime preflight: `NOT_APPLICABLE` because this increment is
@@ -65,8 +71,9 @@ It does not change `retrieval-v1`, correct code or tests, create a generation,
 dataset, scorer or campaign, execute a gate, or change lifecycle state.
 
 The later implementation authority and commit recorded above implemented the
-selected source-code and test changes. That implementation evidence does not
-amend the decision, activate a product generation or dispose any DR-3 finding.
+selected source-code and test changes. That implementation evidence did not
+amend the decision, activate a product generation or dispose any DR-3 finding;
+the subsequent independent corrective retest disposed the four findings.
 
 The accepted
 [ADR-0014](ADR-0014-Deterministic-Retrieval-Ranking-And-Retrieval-Only-Baseline.md)
@@ -459,10 +466,52 @@ fixtures are synthetic and the SQLite stores are task-owned and temporary; no
 product generation, dataset, scorer, campaign, provider, credential, network,
 paid call or real corpus was created, activated or used.
 
-This factual reconciliation re-inspected the implementation commit and the
-finding-specific evidence but did not rerun executable validation. `DR-3`
-therefore remains `REPROVADO`, and all four findings remain pending disposition
-by a separately authorised independent corrective retest.
+The implementation factual reconciliation re-inspected the implementation
+commit and the finding-specific evidence but did not rerun executable
+validation. At that point `DR-3` therefore remained `REPROVADO`, and all four
+findings remained pending disposition by a separately authorised independent
+corrective retest.
+
+## Independent corrective retest record
+
+The product owner authorised the independent corrective retest under
+`AUTH-DR3-NUMERIC-SEMANTICS-AQG-RETEST-001` on clean
+`main@bf8a156e7c5eea801f29fb6e7742cac880783bc0`, corpus `4.10.32`. Both
+protected OpenAPI identities matched before and after the retest. The static
+review found no material defect in the implementation of
+`cosine-f32mul-f64acc-boundary-canonical-v1`, `retrieval-v2`, the `/2`
+descriptor or the fail-closed compatibility boundary.
+
+The retest was `APROVADO`, with no new P0, P1, P2 or P3 finding, and disposed
+`DR3-FIND-001` to `DR3-FIND-004` as `RESOLVED`. The decisive evidence was:
+
+- bit-exact endpoints, adjacent values, signed zero, non-finite and overflow
+  states, stored zero-vector, reopen, the `[1f, 1f, 1f]` product path and
+  fail-closed `/1` compatibility;
+- the nine-chunk adversarial order `8, 7, 6, 5, 3, 4, 2, 1`, two write
+  permutations, replay, reopen and three independent process executions;
+- competing higher-scoring ineligible chunks excluded at the
+  candidate/generation, eligible-binding, database and document boundaries
+  before scoring and `top-k`; and
+- negative ordinal rejection at both the Application and task-owned SQLite
+  boundaries, without a language-model call, hit or selected evidence.
+
+The retest recorded a warning-free and error-free Release build; 75 focused
+Application/query tests; 12 focused SQLite, end-to-end and indexing tests; two
+additional cold-process repetitions of the 10-test SQLite matrix; and the
+complete solution with 202 unit, 203 integration and 11 architecture tests,
+all passing without failure or skip. The canonical offline CI also passed 45
+Dashboard tests, lint, type checking, the web build and the repository audit
+of 280 non-ignored files, with 95.53% line coverage and 68.47% branch
+coverage. Runtime preflight and postflight found and stopped zero owned
+processes or listeners.
+
+The retest used only local, offline, synthetic fixtures and task-owned
+temporary stores on Windows x64 and changed no tracked file. It created or
+activated no product generation, dataset, scorer or campaign; used no
+provider, credential, network, paid call or real corpus; changed no OpenAPI,
+schema, migration or MultiQuery; and performed no Human Gate, lifecycle,
+push, publication or deployment action.
 
 ## Future verification sequence
 
@@ -476,11 +525,11 @@ The correction sequence is strictly ordered:
 3. Focused implementation evidence and factual reconciliation: **completed**
    with the recorded local/offline validation and
    `AUTH-DR3-NUMERIC-SEMANTICS-IMPLEMENTATION-RECONCILE-001`.
-4. `DR-3` corrective retest: obtain a new independent Automatic Quality Gate
-   authority, `AUTH-DR3-NUMERIC-SEMANTICS-AQG-RETEST-001`, and rerun the
-   applicable focused and repository-wide checks.
-5. Preserve `DR-3` as `REPROVADO` until that independently authorised retest
-   disposes all four findings.
+4. `DR-3` corrective retest: **completed** under
+   `AUTH-DR3-NUMERIC-SEMANTICS-AQG-RETEST-001`; the applicable focused and
+   repository-wide checks passed.
+5. Finding disposition: **completed**; `DR-3` is `APROVADO` and
+   `DR3-FIND-001` to `DR3-FIND-004` are `RESOLVED`.
 
 No step grants authority to the next. Dataset, scorer, campaign, provider,
 network, paid calls, product corpus, OpenAPI, schema, migration, MultiQuery,
