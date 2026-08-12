@@ -2,18 +2,18 @@
 
 ## Versão atual
 
-- Versão: `4.10.35`
+- Versão: `4.10.36`
 - Data: 2026-08-12
 - Status: `STATE-07` ativo; ADR-0011 `accepted`, reconciliado e com a correção
-  interna da política de serving implementada; o A0 candidato-específico mantém
-  o primeiro documento `BLOCKED/EXCLUDED`, com quatro operações visuais
-  `UNPROVEN` e distribuição/publicação externa `DENIED`; ADR-0012 `accepted`,
+  interna da política de serving implementada; o A0 candidato-específico
+  A0-003 dispõe as quatro operações visuais como `PERMITTED` somente sob o
+  mecanismo notice-bearing e preserva distribuição/publicação externa
+  `DENIED`; o primeiro documento permanece `ELIGIBLE_CANDIDATE`, sem
+  materialização ou ativação; ADR-0012 `accepted`,
   reconciliado, com revisão do contrato v2 congelada, schema/migrations e
   comportamento notice-bearing implementados; o Automatic Quality Gate
   notice-bearing foi `APROVADO` somente na fronteira local, offline,
-  determinística e sintética, sem achado P0, P1, P2 ou P3; as operações do A0
-  permanecem `UNPROVEN` até um novo A0 candidato-específico, não por
-  inexistência ou falta de gate do mecanismo;
+  determinística e sintética, sem achado P0, P1, P2 ou P3;
   ADR-0013 `accepted` e
   reconciliado semanticamente, com compatibilidade do adaptador implementada e
   Automatic Quality Gate específico aprovado somente na fronteira local,
@@ -53,6 +53,55 @@ A versão do corpus é independente da versão futura do software.
 
 Toda alteração atualiza este arquivo e, quando necessário,
 [`../Start-Here.md`](../Start-Here.md).
+
+## 4.10.36 — 2026-08-12
+
+- Executa sob `AUTH-S07-A-PRODUCT-A0-003`, na baseline limpa
+  `main@f5bea053e12b189c472559142107331ad3b2e9d9`, corpus `4.10.35`, o novo A0
+  candidato-específico de `postgresql-18-reference-a4`, somente como avaliação
+  documental, local, offline e sequencial da evidência oficial já registrada.
+- Reconfirma o candidato ignorado como arquivo regular, sem reparse point, com
+  15.771.040 bytes e SHA-256
+  `cea7b845568095eb56dee1b51bfa145c6c6637bc4377c986019971577efefae4`.
+- A concessão registrada cobre uso, cópia, modificação e distribuição e exige
+  copyright notice, permission paragraph e dois disclaimers completos em todas
+  as cópias. O A0 não aceita apresentação apenas contextual: aplica somente o
+  `pdf-page-png-notice-v1` aprovado, que inclui os blocos completos dentro de
+  cada PNG e os apresenta também no contexto acessível.
+- Page rendering, derivative-image creation, derivative-image retention e
+  `RuntimeDerivativeImageDisplay` tornam-se `PERMITTED` exclusivamente sob as
+  condições fail-closed do perfil, obligation set, mapping, manifest, storage,
+  reachability, backup/restore, ativação e serving `200`/`304`. O perfil legado
+  permanece inelegível para este candidato.
+- `SourceAndDerivativeByteDistributionOrPublication` permanece `DENIED` fora
+  da fronteira same-origin de runtime-display: download, hosting público ou
+  estático, CORS permissivo, CDN, exportação, bundles, Git/Git LFS e
+  republicação continuam excluídos.
+- Disposição: o candidato deixa de estar `BLOCKED/EXCLUDED` por essas cinco
+  decisões e permanece `ELIGIBLE_CANDIDATE`; não está materializado, indexado,
+  ativo ou `READY_FOR_PRODUCT_ACTIVATION`. Qualquer drift, conflito, texto
+  incompleto, mismatch ou ampliação de fronteira volta a falhar fechado.
+- Runtime preflight foi `NÃO APLICÁVEL`. Nenhum import, parse, render,
+  obligation set, manifest, dataset, qrel, vetor, geração, indexação, ativação,
+  teste executável, `eng/ci.ps1`, RB-2, provider, rede, Human Gate, lifecycle,
+  push, publicação ou deploy foi executado.
+- Artefatos protegidos: OpenAPI v1 permaneceu no SHA-256
+  `d6a686b94c926914beb28b437f464430a01de6560c2e2d476cf5c36025813e34` e blob
+  `a5fb3602fbab33bda6aa56cc4caaa9fdc37c8160`; OpenAPI v2 permaneceu no
+  SHA-256 `f4dca8db7fb7bd453e580495bb1bb7760812d954344931063e8549ed8f036733` e blob
+  `5ed6a47631653dd0c137b6ea1e979ae2c14bf8a8`.
+- Verificação documental: `git diff --check` terminou com exit code `0` e
+  `eng/check-repository.ps1` aprovou 308 arquivos não ignorados; somente os
+  quatro documentos autorizados mudaram e o prefixo append-only permaneceu
+  preservado. Build, testes executáveis e `eng/ci.ps1` permaneceram `NOT_RUN`.
+- Versionamento: corpus elevado por `PATCH` factual de `4.10.35` para
+  `4.10.36`. O histórico preserva byte a byte seu prefixo anterior de 492.561
+  bytes no SHA-256
+  `a2a75e74e6ca9044071235e41a404d2c23517d5adec79a984c0694d1c6955530`.
+- Próxima condição: obter autoridade humana separada para
+  `RB-2 — Dataset materialisation readiness`; este A0 satisfaz somente a
+  disposição documental de direitos e não cria corpus de produto, geração
+  ativa, pooling, adjudicação, qrels, matrizes, denominador ou tier.
 
 ## 4.10.35 — 2026-08-12
 

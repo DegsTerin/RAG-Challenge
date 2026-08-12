@@ -1336,9 +1336,10 @@ proprietários.
   evidência de ADR-0004/ADR-0008; sua reconciliação semântica nos proprietários
   documentais nomeados foi aplicada no corpus `4.10.10`. A correção interna do
   serving foi implementada no commit
-  `b9c3e5f3a72c2dd7762c256198452ae2c217b2d2`; o A0 candidato-específico
-  posterior preservou o PostgreSQL `BLOCKED/EXCLUDED`, sem comportamento com
-  dado de produto.
+  `b9c3e5f3a72c2dd7762c256198452ae2c217b2d2`; A0-003 posteriormente tornou as
+  quatro operações visuais `PERMITTED` somente sob o mecanismo notice-bearing
+  e preservou distribuição externa `DENIED`, sem comportamento com dado de
+  produto.
 - ADR-0012: `accepted` pela decisão humana explícita
   `ADR-0012: ACEITAR.` em 2026-08-09. A decisão estabelece a imagem composta
   autocontida e as mudanças necessárias de schema, migration e contrato v2.
@@ -1350,8 +1351,9 @@ proprietários.
   `f682827d1a26b08fa8c450a1fadb3bd0e1fa1700`. Seu Automatic Quality Gate
   próprio foi `APROVADO` sob
   `AUTH-S07-A-NOTICE-BEARING-PROFILE-AQG-RETEST-001` somente na fronteira
-  local, offline, determinística e sintética, sem achado P0, P1, P2 ou P3. O
-  PostgreSQL não foi reclassificado.
+  local, offline, determinística e sintética, sem achado P0, P1, P2 ou P3.
+  O A0-003 posterior removeu o bloqueio de direitos sem renderizar, materializar
+  ou ativar o PostgreSQL.
 - ADR-0013: `accepted` pela decisão humana explícita
   `ADR-0013: ACEITAR.` em 2026-08-10 sobre
   `main@f03162bad0fc166a597739b22e55fbc46ec59535`, corpus `4.10.17`. A decisão
@@ -1469,8 +1471,9 @@ proprietários.
   retroativamente o A0: o Automatic Quality Gate notice-bearing foi
   `APROVADO` na fronteira local, offline, determinística e sintética e seu
   resultado foi reconciliado no corpus `4.10.35`, sem achado P0, P1, P2 ou P3.
-  As quatro operações visuais permanecem `UNPROVEN` porque um novo A0
-  candidato-específico ainda não foi executado.
+  O A0-003 dispõe as quatro operações visuais como `PERMITTED` somente sob o
+  perfil notice-bearing e mantém distribuição/publicação externa `DENIED`; o
+  candidato permanece `ELIGIBLE_CANDIDATE`, sem materialização ou ativação.
 
 ## Baseline documental
 
@@ -1478,7 +1481,7 @@ proprietários.
   a política de idioma acrescentou o 21º documento público por incremento
   versionado, e o ADR-0003 acrescentou o 22º.
 - A baseline aprovada no Human Gate de `STATE-00` permanece `3.4.0`.
-- O corpus de instruções vigente possui versão `4.10.35` e 13 arquivos em
+- O corpus de instruções vigente possui versão `4.10.36` e 13 arquivos em
   `prompts/`.
 - Visão, requisitos, arquitetura, RAG, segurança, qualidade, lifecycle,
   roadmap, backlog, estado, histórico e templates estão documentados.
@@ -1804,6 +1807,18 @@ proprietários.
   documental passou `git diff --check` e a auditoria de 308 arquivos, sem
   repetir build, testes ou gate; não executa novo A0, dado de produto, RB-2,
   provider, rede, Human Gate ou lifecycle.
+- O corpus `4.10.36` registra sob `AUTH-S07-A-PRODUCT-A0-003` o novo A0
+  candidato-específico de `postgresql-18-reference-a4`. A identidade local
+  conferiu em 15.771.040 bytes e SHA-256
+  `cea7b845568095eb56dee1b51bfa145c6c6637bc4377c986019971577efefae4`. Page
+  rendering, derivative-image creation, derivative-image retention e
+  `RuntimeDerivativeImageDisplay` são `PERMITTED` somente pelo perfil
+  `pdf-page-png-notice-v1`, com avisos completos dentro de cada PNG e todas as
+  ligações fail-closed; a distribuição/publicação externa continua `DENIED`.
+  O candidato deixa o bloqueio de direitos e permanece `ELIGIBLE_CANDIDATE`,
+  mas nenhum artefato de produto, RB-2, Human Gate ou lifecycle foi executado.
+  A reconciliação documental passou `git diff --check` e a auditoria de 308
+  arquivos, sem executar build, testes ou `eng/ci.ps1`.
 - O corpus `4.3.0` formaliza a decisão explícita do proprietário de aceitar
   perguntas e respostas em `pt-BR` e `en-GB`: cada consulta declara o idioma,
   a resposta usa o mesmo idioma, textos derivados da fonte permanecem no
@@ -2061,23 +2076,17 @@ autorizada.
 
 ## Evidências e decisões futuras pendentes
 
-1. O A0 candidato-específico de `postgresql-18-reference-a4` foi disposto como
-   `BLOCKED/EXCLUDED`: identidade, proveniência e idiomas conferiram; a
-   concessão ampla foi mapeada sob ADR-0011. O mecanismo para transportar
-   copyright, permission notice e dois disclaimers em cada PNG foi determinado
-   pelo ADR-0012 e implementado localmente no commit
-   `f682827d1a26b08fa8c450a1fadb3bd0e1fa1700`, com verificação focal. Essa
-   implementação não altera retroativamente o A0: page rendering,
-   derivative-image creation/retention e runtime display continuam `UNPROVEN`
-   para o candidato porque um novo A0 candidato-específico ainda não foi
-   executado, não porque o mecanismo continue inexistente ou sem gate. O
-   Automatic Quality Gate notice-bearing foi `APROVADO` somente na fronteira
-   local, offline, determinística e sintética, sem achado P0, P1, P2 ou P3, e
-   seu resultado foi reconciliado no corpus `4.10.35`. A
-   distribuição/publicação fora do runtime está `DENIED` pela fronteira
-   interna deliberadamente excluída. O novo A0 permanece separado e `NOT_RUN`.
-   Cada documento posterior mantém o mesmo gate
-   independente de direitos, proveniência e idioma.
+1. O A0-003 de `postgresql-18-reference-a4` confirmou identidade, proveniência,
+   idiomas e a concessão já registrada sob ADR-0011. O mecanismo ADR-0012,
+   implementado em `f682827d1a26b08fa8c450a1fadb3bd0e1fa1700` e aprovado no
+   gate notice-bearing, carrega copyright notice, permission paragraph e os
+   dois disclaimers completos dentro de cada PNG. Page rendering,
+   derivative-image creation/retention e runtime display são `PERMITTED`
+   somente sob esse perfil e suas condições fail-closed; distribuição externa
+   permanece `DENIED`. O candidato deixa de estar `BLOCKED/EXCLUDED` por
+   direitos e permanece `ELIGIBLE_CANDIDATE`, sem render, dataset, indexação ou
+   ativação. Cada documento posterior mantém seu próprio gate independente de
+   direitos, proveniência e idioma.
 2. Validar e ativar individualmente novos registros de fonte oficial; a
    aceitação arquitetural não autoriza URL, rede, download ou crawling.
 3. `S07-A` A1-A5 e seu Automatic Quality Gate foram concluídos e aprovados na
@@ -2183,20 +2192,17 @@ homologação de produto nem prepara Human Gate: qualquer continuação deve nom
 e autorizar separadamente a fronteira ainda `NOT_RUN`, sem inferir avanço de
 lifecycle.
 
-O A0 candidato-específico de `postgresql-18-reference-a4` foi repetido sob
-`AUTH-S07-A-PRODUCT-A0-002` e manteve a disposição `BLOCKED/EXCLUDED`. A
-concessão oficial já registrada foi mapeada operação por operação: page
-rendering, derivative-image creation, derivative-image retention e runtime
-derivative display permanecem `UNPROVEN` porque um novo A0 candidato-específico
-ainda não foi executado, não porque o mecanismo de avisos continue inexistente
-ou sem gate. O Automatic Quality Gate notice-bearing foi `APROVADO` sob
-`AUTH-S07-A-NOTICE-BEARING-PROFILE-AQG-RETEST-001` somente na fronteira local,
-offline, determinística e sintética, sem achado P0, P1, P2 ou P3. O mecanismo
-foi
-implementado no commit `f682827d1a26b08fa8c450a1fadb3bd0e1fa1700`, sem
-reclassificação retroativa do A0. A intended source/derivative distribution
-boundary está `DENIED` fora do runtime-display. Dataset, import, render,
-indexação e ativação continuam não autorizados por esse resultado.
+O A0 candidato-específico de `postgresql-18-reference-a4` foi novamente
+executado sob `AUTH-S07-A-PRODUCT-A0-003` após o gate notice-bearing aprovado.
+A concessão oficial registrada foi aplicada operação por operação sem inferir
+suficiência de apresentação apenas contextual. Page rendering,
+derivative-image creation, derivative-image retention e runtime derivative
+display são `PERMITTED` somente pelo `pdf-page-png-notice-v1`, com avisos
+completos dentro de cada PNG e ligações fail-closed. A intended
+source/derivative distribution boundary permanece `DENIED` fora do
+runtime-display. O candidato deixa o bloqueio de direitos e permanece
+`ELIGIBLE_CANDIDATE`; dataset, import, render, indexação e ativação continuam
+não executados e não autorizados por esse resultado.
 
 O ADR-0012 foi aceito explicitamente mediante `ADR-0012: ACEITAR.` somente
 como autoridade arquitetural, e sua reconciliação semântica nos seis
@@ -2211,15 +2217,16 @@ reachability, serving v2 fail-closed e Dashboard notice-bearing foram
 implementados no commit `f682827d1a26b08fa8c450a1fadb3bd0e1fa1700`, com
 evidência focal que não constitui gate. O Automatic Quality Gate local,
 offline, determinístico e sintético desse comportamento foi posteriormente
-`APROVADO` e reconciliado no corpus `4.10.35`. Um novo A0 candidato-específico
-exige autoridade própria, permanece separado e está `NOT_RUN`.
+`APROVADO` e reconciliado no corpus `4.10.35`. O A0-003 posterior aplicou esse
+mecanismo ao candidato somente como disposição documental de direitos.
 
 O ADR-0011 foi aceito, sua semântica foi reconciliada e a política interna de
 serving v2 foi corrigida no commit
-`b9c3e5f3a72c2dd7762c256198452ae2c217b2d2`. A verificação agora ocorre antes
-de `200` ou `304`, sem alteração do contrato público. O A0 posterior confirmou
-que o candidato PostgreSQL continua `BLOCKED/EXCLUDED`: quatro operações
-visuais estão `UNPROVEN` e a distribuição/publicação externa está `DENIED`.
+`b9c3e5f3a72c2dd7762c256198452ae2c217b2d2`. A verificação ocorre antes de
+`200` ou `304`, sem alteração do contrato público. O A0-003 dispõe as quatro
+operações visuais como `PERMITTED` somente sob o perfil notice-bearing e
+preserva distribuição/publicação externa `DENIED`; o candidato permanece
+`ELIGIBLE_CANDIDATE`, não materializado ou ativo.
 
 O segundo refinamento arquitetural da ordem registrada em Lifecycle está
 implementado até integração v2, restart, cold backup/restore confinado e

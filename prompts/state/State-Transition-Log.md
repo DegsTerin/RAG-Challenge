@@ -7750,3 +7750,71 @@ contém somente fatos cronológicos.
   display com o mecanismo aprovado. O resultado do gate não predetermina a
   disposição desse A0; RB-2, Human Gate e lifecycle permanecem independentes
   e não autorizados.
+
+## 2026-08-12 — A0-003 remove bloqueio de direitos do candidato PostgreSQL
+
+- Estado anterior e resultante: `STATE-07 TESTING_HOMOLOGATION` permanece
+  ativo. Nenhum Automatic Quality Gate, Human Gate ou lifecycle foi executado
+  ou alterado nesta atividade.
+- Autoridade e baseline: `AUTH-S07-A-PRODUCT-A0-003`, branch `main`, commit
+  `f5bea053e12b189c472559142107331ad3b2e9d9`, corpus `4.10.35`, working tree
+  inicialmente limpa e OpenAPI v1/v2 protegidas. O runtime preflight desta
+  atividade documental foi `NÃO APLICÁVEL`; nenhum processo ou listener foi
+  enumerado ou encerrado.
+- Identidade revalidada: o candidato ignorado
+  `postgresql-18-reference-a4` permaneceu arquivo regular, sem reparse point,
+  com 15.771.040 bytes e SHA-256
+  `cea7b845568095eb56dee1b51bfa145c6c6637bc4377c986019971577efefae4`.
+- Evidência e limite de inferência: somente a PostgreSQL Licence e o notice já
+  registrados, ADR-0011, ADR-0012 e o gate notice-bearing aprovado foram
+  usados. A concessão cobre uso, cópia, modificação e distribuição e exige
+  copyright notice, permission paragraph e dois disclaimers completos em todas
+  as cópias. Nenhuma suficiência apenas contextual foi inferida.
+- Page rendering: `PERMITTED` somente por `pdf-page-png-notice-v1`, com source
+  pixels intactos, avisos completos dentro do PNG, change marking e falha
+  fechada em ausência, mismatch, truncation ou limite. O perfil legado é
+  inelegível para este candidato.
+- Derivative-image creation: `PERMITTED` somente com
+  `DerivativeObligationSetV1` exato, imutável e vinculado por identidade/digest
+  a source, mapping revision, manifest e composite bytes.
+- Derivative-image retention: `PERMITTED` somente no content store governado,
+  com lineage, retention, reachability e backup/cold restore verificados; Git,
+  Git LFS, intake e browser cache não são autoridades.
+- `RuntimeDerivativeImageDisplay`: `PERMITTED` somente para o PNG ativo e
+  citation-bound na rota same-origin, com revalidação de direitos, mapping,
+  obligation, manifest, hash, tamanho e dimensões antes de `200` ou `304` e
+  apresentação acessível do conteúdo completo.
+- `SourceAndDerivativeByteDistributionOrPublication`: permanece `DENIED` fora
+  da fronteira runtime-display. Download, public/static hosting, CORS
+  permissivo, CDN, bulk export, bundles, Git/Git LFS e republicação continuam
+  excluídos por política de produto, não por proibição atribuída ao publisher.
+- Disposição: o candidato deixa de estar `BLOCKED/EXCLUDED` por essas cinco
+  decisões e permanece `ELIGIBLE_CANDIDATE`. Não está materializado, indexado,
+  ativo ou `READY_FOR_PRODUCT_ACTIVATION`; qualquer drift, conflito, texto
+  incompleto, mismatch ou ampliação de fronteira volta a falhar fechado.
+- Escopo negativo: nenhum import, parse, render, obligation set, manifest,
+  dataset, qrel, vetor, geração, indexação, ativação, query, teste executável,
+  `eng/ci.ps1`, RB-2, provider, rede, Human Gate, lifecycle, push, publicação
+  ou deploy foi criado, executado ou alterado.
+- Artefatos protegidos: OpenAPI v1 permaneceu no SHA-256
+  `d6a686b94c926914beb28b437f464430a01de6560c2e2d476cf5c36025813e34` e blob
+  `a5fb3602fbab33bda6aa56cc4caaa9fdc37c8160`; OpenAPI v2 permaneceu no
+  SHA-256 `f4dca8db7fb7bd453e580495bb1bb7760812d954344931063e8549ed8f036733` e blob
+  `5ed6a47631653dd0c137b6ea1e979ae2c14bf8a8`.
+- Escopo documental fechado: somente o Document Eligibility Register, Current
+  State, este histórico append-only no EOF e Prompt System Change Log foram
+  alterados; nenhum código, contrato, schema ou configuração foi modificado.
+- Verificação documental: `git diff --check` terminou com exit code `0` e
+  `eng/check-repository.ps1` aprovou 308 arquivos não ignorados; o diff conteve
+  somente os quatro documentos autorizados, UTF-8/LF, newline final, espaços
+  finais, links, formato e prefixo append-only passaram. Build, testes
+  executáveis e `eng/ci.ps1` permaneceram `NOT_RUN`.
+- Versionamento: corpus elevado por `PATCH` factual de `4.10.35` para
+  `4.10.36`. Este histórico preservou byte a byte seu prefixo anterior de
+  492.561 bytes no SHA-256
+  `a2a75e74e6ca9044071235e41a404d2c23517d5adec79a984c0694d1c6955530`.
+- Próxima condição: obter autoridade humana separada para
+  `RB-2 — Dataset materialisation readiness`. O A0 satisfaz somente a
+  disposição de direitos; corpus de produto autorizado, geração ativa
+  validada, pooling/adjudicação não pontuados, qrels, matrizes, denominador e
+  tier permanecem requisitos independentes e não materializados.
