@@ -1,4 +1,5 @@
 // Purpose: Proves the accepted one-shot command allowlist, fail-closed host separation, bounded local input, lease ownership, idempotent catalogue commit and absence of HTTP administration.
+using System.Diagnostics;
 using System.Text.Json;
 
 using Microsoft.AspNetCore.Routing;
@@ -1454,35 +1455,74 @@ public sealed class OneShotAdministrationTests
     }
 
     [Fact]
-    public async Task ProductionCompositionRejectsIncompleteMaterialisationPortPairs()
+    public void ProductionCompositionRejectsIncompleteMaterialisationPortPairs()
     {
         using var root = TemporaryAdministrationRoot.Create();
+        var options = root.CreateStoreOptions();
+        var store = new SqliteControlPlaneStore(options);
         var descriptor = new EmbeddingProviderDescriptor(
             "synthetic-provider",
             "synthetic-model",
             "synthetic-revision-1",
             dimensions: 2);
         var embedding = new CountingEmbeddingProvider(descriptor);
-        var result = await RunProductionAsync(
-            [
-                "admin",
-                "status",
-                "--operation-id",
-                "incomplete-composition-operation",
-                "--corpus-id",
-                "admin-corpus",
-                "--reason",
-                "prove fail-closed incomplete synthetic composition",
-            ],
-            Configuration(true, root.InputRoot, root.StoreRoot),
-            new StubIdentity("os-sha256:" + new string('a', 64)),
-            new AdministrativeMaterialisationPorts(EmbeddingProvider: embedding));
+        Assert.Throws<ArgumentException>(() =>
+            AdministrativeMaterialisationComposition.CreateExecutor(
+                options,
+                store,
+                new AdministrativeMaterialisationPorts(EmbeddingProvider: embedding)));
+        Assert.Throws<ArgumentException>(() =>
+            AdministrativeMaterialisationComposition.CreateExecutor(
+                options,
+                store,
+                new AdministrativeMaterialisationPorts(
+                    OfficialSourceTransport: new CountingOfficialSourceTransport(
+                        new OfficialFetchResult(
+                            OfficialFetchStatus.Changed,
+                            statusCode: 200,
+                            SyntheticAdministrativeMaterialisationProfile.SourceBytes,
+                            ContentMediaType.TextCsv.Value,
+                            "\"synthetic-v1\"",
+                            Now)))));
+        Assert.Equal(0, embedding.CallCount);
+    }
+
+    [Fact]
+    public async Task ProgramPathLeavesMaterialisationUnavailableWithoutExplicitProfile()
+    {
+        using var root = TemporaryAdministrationRoot.Create();
+        var options = root.CreateStoreOptions();
+        await SqliteStoreProvisioner.ApplyMigrationsAsync(options);
+        await File.WriteAllTextAsync(Path.Combine(root.InputRoot, "build.json"), "{}");
+
+        var result = await RunProgramAsync(
+            MutationArguments(
+                "build-index",
+                "build-program-unavailable-operation",
+                "build.json"),
+            root,
+            materialisationProfile: null);
+
+        AssertCanonicalFailure(
+            result,
+            AdministrationExitCode.DependencyUnavailable,
+            "CH_ADMIN_CAPABILITY_NOT_COMPOSED");
+    }
+
+    [Fact]
+    public async Task ProgramPathRejectsSyntheticProfileOutsideIntegrationEnvironment()
+    {
+        using var root = TemporaryAdministrationRoot.Create();
+
+        var result = await RunProgramAsync(
+            StatusArguments("profile-environment-mismatch-operation"),
+            root,
+            environment: "Production");
 
         AssertCanonicalFailure(
             result,
             AdministrationExitCode.ConfigurationOrAuthorityDenied,
             "CH_ADMIN_CONFIGURATION_INVALID");
-        Assert.Equal(0, embedding.CallCount);
     }
 
     [Fact]
@@ -1544,26 +1584,8 @@ public sealed class OneShotAdministrationTests
             DocumentFormat.Csv,
             sourceAdapterId,
             SourceTrustClass.LocalAuthorised);
-        var chunking = new ChunkingPolicy(
-            targetScalarCount: 64,
-            overlapScalarCount: 8,
-            hardMaximumScalarCount: 96);
-        var embeddingDescriptor = new EmbeddingProviderDescriptor(
-            "synthetic-provider",
-            "synthetic-model",
-            "synthetic-revision-1",
-            dimensions: 2);
-        var compatibility = new IndexCompatibilityProfile(
-            [CsvHelperDocumentParser.CompatibilityDescriptor],
-            chunking,
-            embeddingDescriptor,
-            SqliteVectorIndexStore.CompatibilityDescriptor);
-        var embedding = new CountingEmbeddingProvider(embeddingDescriptor);
-        var materialisationPorts = new AdministrativeMaterialisationPorts(
-            EmbeddingProvider: embedding,
-            IndexCompatibilityProfile: compatibility);
-        var configuration = Configuration(true, root.InputRoot, root.StoreRoot);
-        var identity = new StubIdentity("os-sha256:" + new string('b', 64));
+        var compatibility =
+            SyntheticAdministrativeMaterialisationProfile.CompatibilityProfile;
         var rights = CreateTextualRightsPlan(documentId, documentVersion);
         var activeDigest = BindingDigestCanonicalizer
             .CanonicaliseActiveDocumentSet([binding]).Digest.Value;
@@ -1574,26 +1596,28 @@ public sealed class OneShotAdministrationTests
             "build-composed.json",
             "candidate-admin-composed",
             compatibility.Key.Value);
-        var applied = await RunProductionAsync(
+        var applied = await RunProgramAsync(
             MutationArguments(
                 "build-index",
                 "build-composed-operation",
                 "build-composed.json"),
-            configuration,
-            identity,
-            materialisationPorts);
+            root);
+        var replay = await RunProgramAsync(
+            MutationArguments(
+                "build-index",
+                "build-composed-operation",
+                "build-composed.json"),
+            root);
         await WriteBuildPlanAsync(
             "build-divergent.json",
             "candidate-admin-divergent",
             new string('f', 64));
-        var rejected = await RunProductionAsync(
+        var rejected = await RunProgramAsync(
             MutationArguments(
                 "build-index",
                 "build-divergent-operation",
                 "build-divergent.json"),
-            configuration,
-            identity,
-            materialisationPorts);
+            root);
 
         Assert.Equal((int)AdministrationExitCode.Success, applied.ExitCode);
         Assert.Contains("CH_ADMIN_APPLIED", applied.Output, StringComparison.Ordinal);
@@ -1601,12 +1625,13 @@ public sealed class OneShotAdministrationTests
             "CH_ADMIN_CAPABILITY_NOT_COMPOSED",
             applied.Output + applied.Error,
             StringComparison.Ordinal);
+        Assert.Equal((int)AdministrationExitCode.Success, replay.ExitCode);
+        Assert.Contains("AlreadyApplied", replay.Output, StringComparison.Ordinal);
         Assert.Equal((int)AdministrationExitCode.Conflict, rejected.ExitCode);
         Assert.Contains(
             "CH_ADMIN_VALIDATION_FAILED",
             rejected.Error,
             StringComparison.Ordinal);
-        Assert.Equal(1, embedding.CallCount);
         Assert.Equal(1, await ScalarAsync(
             options,
             "SELECT COUNT(*) FROM generation_manifests;"));
@@ -1684,8 +1709,7 @@ public sealed class OneShotAdministrationTests
             "synthetic-official-registration");
         var sourceAdapterId = new SourceAdapterId("synthetic-official-csv");
         var stagingAdapterId = new SourceAdapterId("synthetic-local-staging");
-        var sourceBytes = System.Text.Encoding.UTF8.GetBytes(
-            "feature,description\nofficial,synthetic source only\n");
+        var sourceBytes = SyntheticAdministrativeMaterialisationProfile.SourceBytes;
         await using var stagedSource = new MemoryStream(sourceBytes, writable: false);
         var staged = await contentStore.PutAndVerifyAsync(new BoundedContentInput(
             stagedSource,
@@ -1720,14 +1744,8 @@ public sealed class OneShotAdministrationTests
                     [category], [product], [document]),
                 ExpectedCurrentRevision: 0,
                 Now))).Outcome);
-        var registration = new OfficialSourceRegistration(
-            registrationId,
-            new SourceRegistrationRevision(1),
-            productId,
-            documentId,
-            sourceAdapterId,
-            "https://official.invalid/synthetic.csv",
-            CatalogueItemStatus.Candidate);
+        var registration =
+            SyntheticAdministrativeMaterialisationProfile.Registration;
         Assert.Equal(StoreMutationOutcome.Applied, (
             await store.RegisterOfficialSourceAsync(
                 new OfficialSourceRegistrationCommitRequest(
@@ -1735,55 +1753,22 @@ public sealed class OneShotAdministrationTests
                     corpusId,
                     registration,
                     Now))).Outcome);
-        var transport = new CountingOfficialSourceTransport(new OfficialFetchResult(
-            OfficialFetchStatus.Changed,
-            statusCode: 200,
-            sourceBytes,
-            ContentMediaType.TextCsv.Value,
-            "\"synthetic-v1\"",
-            Now));
-        var ingestion = new DocumentIngestionService(
-            contentStore,
-            [new CsvHelperDocumentParser()],
-            new DeterministicChunkingStrategy());
-        var resolver = new StubOfficialSourceAuthorityResolver(
-            new OfficialSourceAuthority(
-                registration,
-                currentSnapshot: null,
-                observationJournalRevision: 0,
-                activationRevision: 0));
-        var handler = new OfficialSynchronisationAdministrativeCommand(
-            store,
-            resolver,
-            new OfficialSourceSynchronisationService(transport, store, ingestion));
-        Assert.Throws<ArgumentException>(() => new SqliteAdministrativeCommandExecutor(
-            store,
-            buildIndex: handler));
-        var materialisationPorts = new AdministrativeMaterialisationPorts(
-            resolver,
-            transport);
-        var configuration = Configuration(true, root.InputRoot, root.StoreRoot);
-        var identity = new StubIdentity("os-sha256:" + new string('c', 64));
         var rights = CreateTextualRightsPlan(documentId, documentVersion);
 
         await WriteSyncPlanAsync("sync-composed.json", registrationRevision: 1);
-        var applied = await RunProductionAsync(
+        var applied = await RunProgramAsync(
             MutationArguments(
                 "synchronise-official",
                 "sync-composed-operation",
                 "sync-composed.json"),
-            configuration,
-            identity,
-            materialisationPorts);
+            root);
         await WriteSyncPlanAsync("sync-divergent.json", registrationRevision: 2);
-        var rejected = await RunProductionAsync(
+        var rejected = await RunProgramAsync(
             MutationArguments(
                 "synchronise-official",
                 "sync-divergent-operation",
                 "sync-divergent.json"),
-            configuration,
-            identity,
-            materialisationPorts);
+            root);
 
         Assert.Equal((int)AdministrationExitCode.Success, applied.ExitCode);
         Assert.Contains("CH_ADMIN_APPLIED", applied.Output, StringComparison.Ordinal);
@@ -1792,7 +1777,6 @@ public sealed class OneShotAdministrationTests
             "CH_ADMIN_VALIDATION_FAILED",
             rejected.Error,
             StringComparison.Ordinal);
-        Assert.Equal(1, transport.CallCount);
         Assert.Equal(1, await ScalarAsync(
             options,
             "SELECT COUNT(*) FROM official_source_snapshots;"));
@@ -1926,23 +1910,81 @@ public sealed class OneShotAdministrationTests
         return new RunResult(exitCode, output.ToString(), error.ToString());
     }
 
-    private static async Task<RunResult> RunProductionAsync(
+    private static async Task<RunResult> RunProgramAsync(
         string[] arguments,
-        IConfiguration configuration,
-        ILocalOperatingSystemIdentityProvider identity,
-        AdministrativeMaterialisationPorts? materialisationPorts)
+        TemporaryAdministrationRoot root,
+        string? materialisationProfile =
+            SyntheticAdministrativeMaterialisationProfile.ProfileName,
+        string environment = SyntheticAdministrativeMaterialisationProfile.EnvironmentName)
     {
-        using var output = new StringWriter();
-        using var error = new StringWriter();
-        var exitCode = await OneShotAdministrationHost.RunProductionAsync(
-            arguments,
-            configuration,
-            identity,
-            materialisationPorts,
-            output,
-            error,
-            () => Now);
-        return new RunResult(exitCode, output.ToString(), error.ToString());
+        var executablePath = Path.Combine(
+            AppContext.BaseDirectory,
+            "RagChallenge.Server.Api.exe");
+
+        if (!File.Exists(executablePath))
+        {
+            throw new FileNotFoundException(
+                "The administrative Program host was not copied to the test output.",
+                executablePath);
+        }
+
+        var startInfo = new ProcessStartInfo
+        {
+            FileName = executablePath,
+            WorkingDirectory = AppContext.BaseDirectory,
+            RedirectStandardOutput = true,
+            RedirectStandardError = true,
+            UseShellExecute = false,
+            CreateNoWindow = true,
+        };
+
+        foreach (var argument in arguments)
+        {
+            startInfo.ArgumentList.Add(argument);
+        }
+
+        startInfo.Environment["DOTNET_ENVIRONMENT"] = environment;
+        startInfo.Environment["ASPNETCORE_ENVIRONMENT"] = environment;
+        startInfo.Environment["RagChallenge__Administration__Enabled"] = "true";
+        startInfo.Environment["RagChallenge__Administration__StoreRoot"] = root.StoreRoot;
+        startInfo.Environment["RagChallenge__Administration__InputRoot"] = root.InputRoot;
+        startInfo.Environment.Remove(
+            "RagChallenge:Administration:MaterialisationProfile");
+
+        if (materialisationProfile is null)
+        {
+            startInfo.Environment.Remove(
+                "RagChallenge__Administration__MaterialisationProfile");
+        }
+        else
+        {
+            startInfo.Environment[
+                "RagChallenge__Administration__MaterialisationProfile"] =
+                materialisationProfile;
+        }
+
+        using var process = Process.Start(startInfo) ??
+            throw new InvalidOperationException(
+                "The administrative Program host could not be started.");
+        var output = process.StandardOutput.ReadToEndAsync();
+        var error = process.StandardError.ReadToEndAsync();
+        using var timeout = new CancellationTokenSource(TimeSpan.FromSeconds(30));
+
+        try
+        {
+            await process.WaitForExitAsync(timeout.Token);
+        }
+        catch (OperationCanceledException)
+        {
+            process.Kill(entireProcessTree: true);
+            throw new TimeoutException(
+                "The administrative Program host did not finish within the test bound.");
+        }
+
+        return new RunResult(
+            process.ExitCode,
+            await output,
+            await error);
     }
 
     private static void AssertCanonicalFailure(
@@ -2114,20 +2156,6 @@ public sealed class OneShotAdministrationTests
             CallCount++;
             return identifier;
         }
-    }
-
-    private sealed class StubOfficialSourceAuthorityResolver(
-        OfficialSourceAuthority? authority)
-        : IOfficialSourceAuthorityResolver
-    {
-        public Task<OfficialSourceAuthority?> ResolveAsync(
-            CorpusId corpusId,
-            OfficialSourceRegistrationId registrationId,
-            CancellationToken cancellationToken = default) =>
-            Task.FromResult(
-                authority is not null && authority.Registration.Id == registrationId
-                    ? authority
-                    : null);
     }
 
     private sealed class CountingOfficialSourceTransport(OfficialFetchResult result)

@@ -101,7 +101,6 @@ internal static class OneShotAdministrationHost
             args,
             configuration,
             new LocalOperatingSystemIdentityProvider(),
-            materialisationPorts: null,
             Console.Out,
             Console.Error,
             () => DateTimeOffset.UtcNow,
@@ -112,7 +111,6 @@ internal static class OneShotAdministrationHost
         string[] args,
         IConfiguration configuration,
         ILocalOperatingSystemIdentityProvider identityProvider,
-        AdministrativeMaterialisationPorts? materialisationPorts,
         TextWriter output,
         TextWriter error,
         Func<DateTimeOffset> utcNow,
@@ -150,6 +148,8 @@ internal static class OneShotAdministrationHost
                 Path.Combine(storeRoot, "vectors.db"),
                 Path.Combine(storeRoot, "content"));
             var store = new SqliteControlPlaneStore(options);
+            var materialisationPorts =
+                SyntheticAdministrativeMaterialisationProfile.Resolve(configuration);
             return await RunAsync(
                 args,
                 configuration,
