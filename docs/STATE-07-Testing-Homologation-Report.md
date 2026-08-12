@@ -1140,3 +1140,58 @@ publication, release or deployment was authorised or executed.
 `RB-1` therefore closes only the evaluation design freeze. `RB-2 — Dataset
 materialisation readiness` remains `NOT_RUN` and requires separate human
 authority together with its own prerequisites and stop conditions.
+
+## Notice-bearing behaviour Automatic Quality Gate retest
+
+### Authority and protected baseline
+
+The product owner authorised one complete retest under
+`AUTH-S07-A-NOTICE-BEARING-PROFILE-AQG-RETEST-001` from clean
+`main@8327f5070d0646a845da821a92a2286203aef797`, prompt corpus `4.10.34`.
+The gate was restricted to local, offline, deterministic and synthetic
+behaviour for `DerivativeObligationSetV1`, `pdf-page-png-notice-v1`, source
+pixel preservation, manifest and persistence bindings, reachability,
+activation, fail-closed v2 serving including `304`, legacy/v1 compatibility
+and accessible Dashboard presentation.
+
+The directed preflight found no RAG-Challenge-owned process or listener and
+stopped nothing. The protected OpenAPI artefacts matched their frozen
+identities before execution:
+
+| Artefact | SHA-256 | Git blob | Result |
+| --- | --- | --- | --- |
+| OpenAPI v1 | `d6a686b94c926914beb28b437f464430a01de6560c2e2d476cf5c36025813e34` | `a5fb3602fbab33bda6aa56cc4caaa9fdc37c8160` | preserved byte for byte |
+| OpenAPI v2 | `f4dca8db7fb7bd453e580495bb1bb7760812d954344931063e8549ed8f036733` | `5ed6a47631653dd0c137b6ea1e979ae2c14bf8a8` | preserved byte for byte |
+
+### Approved evidence and boundary
+
+The repository audit passed for 308 non-ignored files. The focused Release
+build completed with no warning or error. Two obligation-set unit tests, ten
+notice-bearing integration tests and one v2 transport architecture test
+passed without failure or skip. The Dashboard passed all 45 tests, lint,
+typecheck and its production build.
+
+The canonical `eng/ci.ps1 -Offline` entry point then passed completely. It
+approved 202 unit tests, 203 integration tests and 11 architecture tests,
+without failure or skip, and repeated all 45 Dashboard tests, lint, typecheck,
+production build and the repository audit. Merged coverage was 95.53% of lines
+and 68.47% of branches. The final `git diff --check` returned exit code `0`.
+
+The gate began and ended at the same HEAD with a clean tracked tree. The
+pre-CI barrier and postflight found no RAG-Challenge-owned process; no process
+was stopped. The protected OpenAPI identities remained unchanged.
+
+The Automatic Quality Gate result is `APPROVED`, with no P0, P1, P2 or P3
+finding. Approval is limited to the local Windows, offline, deterministic and
+synthetic boundary. It does not reclassify the earlier candidate-specific A0
+or authorise a product corpus, product data, `RB-2`, provider or network use,
+Human Gate, lifecycle transition, publication or deployment. The four visual
+operations remain `UNPROVEN` for `postgresql-18-reference-a4` until a
+separately authorised candidate-specific A0 evaluates the approved mechanism.
+
+This factual reconciliation changed only this report, Current State, the
+append-only State Transition Log and the Prompt System Change Log. Runtime
+preflight was `NOT_APPLICABLE`. Documentary validation passed
+`git diff --check` with exit code `0` and `eng/check-repository.ps1` with 308
+non-ignored files. Build, executable tests, `eng/ci.ps1` and the Automatic
+Quality Gate were not repeated during reconciliation.

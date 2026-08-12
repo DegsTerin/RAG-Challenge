@@ -7688,3 +7688,65 @@ contém somente fatos cronológicos.
   denominador exato e tier declarado. RB-2, RB-3, RB-4, RB-5, scorer executado,
   campanha, provider, rede, OpenAPI, MultiQuery, Human Gate e lifecycle
   permanecem independentes, `NOT_RUN` e não autorizados.
+
+## 2026-08-12 — Automatic Quality Gate notice-bearing aprovado e reconciliado
+
+- Estado anterior e resultante: `STATE-07 TESTING_HOMOLOGATION` permanece
+  ativo. Nenhum Human Gate ou lifecycle foi executado ou alterado.
+- Autoridade e baseline do reteste:
+  `AUTH-S07-A-NOTICE-BEARING-PROFILE-AQG-RETEST-001`, branch `main`, commit
+  `8327f5070d0646a845da821a92a2286203aef797`, corpus `4.10.34`, working tree
+  inicialmente limpa e OpenAPI v1/v2 protegidas.
+- Autoridade e baseline desta reconciliação factual:
+  `AUTH-S07-A-NOTICE-BEARING-PROFILE-AQG-RECONCILE-001`, branch `main`, HEAD
+  `8327f5070d0646a845da821a92a2286203aef797`, corpus `4.10.34`, working tree
+  inicialmente limpa e identidades OpenAPI v1/v2 protegidas. O runtime
+  preflight desta atividade exclusivamente documental foi `NÃO APLICÁVEL`;
+  nenhum processo ou listener foi enumerado ou encerrado.
+- Resultado: o Automatic Quality Gate de `DerivativeObligationSetV1`,
+  `pdf-page-png-notice-v1`, preservação pixel a pixel, manifest, persistence,
+  reachability, ativação, serving v2 fail-closed incluindo `304`,
+  compatibilidade legada/v1 e Dashboard acessível está `APROVADO`, sem achado
+  P0, P1, P2 ou P3.
+- Evidência focal: `eng/check-repository.ps1` aprovou 308 arquivos não
+  ignorados; o build Release terminou com zero aviso e zero erro; dois testes
+  unitários, dez de integração, um de arquitetura e 45 do Dashboard passaram,
+  assim como lint, typecheck e build web.
+- Evidência integral: `eng/ci.ps1 -Offline` aprovou 202 testes unitários, 203
+  de integração e 11 de arquitetura, sem falha ou skip, e repetiu os 45 testes
+  do Dashboard, lint, typecheck, build web e auditoria dos 308 arquivos. A
+  cobertura combinada foi 95,53% de linhas e 68,47% de branches.
+- Runtime do reteste: o preflight dirigido encontrou zero processo e zero
+  listener pertencente ao RAG-Challenge e encerrou zero. A barreira pré-CI e o
+  postflight encontraram zero processo do projeto. O gate começou e terminou
+  no mesmo HEAD, com árvore rastreada limpa.
+- Limite da aprovação e escopo negativo: Windows local, offline, determinístico
+  e sintético. O resultado não reclassifica o A0 anterior e não autoriza novo
+  A0, corpus ou dado de produto, RB-2, provider, rede, Human Gate, lifecycle,
+  push, publicação ou deploy. As quatro operações visuais permanecem
+  `UNPROVEN` até avaliação candidato-específica separadamente autorizada.
+- Artefatos protegidos: OpenAPI v1 permaneceu no SHA-256
+  `d6a686b94c926914beb28b437f464430a01de6560c2e2d476cf5c36025813e34` e blob
+  `a5fb3602fbab33bda6aa56cc4caaa9fdc37c8160`; OpenAPI v2 permaneceu no
+  SHA-256 `f4dca8db7fb7bd453e580495bb1bb7760812d954344931063e8549ed8f036733` e blob
+  `5ed6a47631653dd0c137b6ea1e979ae2c14bf8a8`.
+- Escopo documental fechado: somente relatório STATE-07, Current State, este
+  histórico append-only no EOF e Prompt System Change Log foram alterados;
+  nenhum código, teste, contrato ou configuração foi modificado nesta
+  reconciliação.
+- Verificação documental: `git diff --check` terminou com exit code `0` e
+  `eng/check-repository.ps1` aprovou 308 arquivos não ignorados; o diff conteve
+  somente os quatro documentos autorizados, UTF-8/LF, newline final, espaços
+  finais, links, formato e prefixo append-only passaram. Build, testes
+  executáveis, `eng/ci.ps1` e Automatic Quality Gate não foram repetidos nesta
+  reconciliação.
+- Versionamento: corpus elevado por `PATCH` factual de `4.10.34` para
+  `4.10.35`. Este histórico preservou byte a byte seu prefixo anterior de
+  488.490 bytes no SHA-256
+  `e667ef60f9e6f05e916fa80114efdaeeb05e5e5ec4030bb2bffeaf49e8e9cd2f`.
+- Próxima condição diretamente relacionada: obter autoridade humana separada
+  para um novo A0 candidato-específico que reavalie page rendering,
+  derivative-image creation, derivative-image retention e runtime derivative
+  display com o mecanismo aprovado. O resultado do gate não predetermina a
+  disposição desse A0; RB-2, Human Gate e lifecycle permanecem independentes
+  e não autorizados.

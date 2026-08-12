@@ -2,17 +2,18 @@
 
 ## Versão atual
 
-- Versão: `4.10.34`
+- Versão: `4.10.35`
 - Data: 2026-08-12
 - Status: `STATE-07` ativo; ADR-0011 `accepted`, reconciliado e com a correção
   interna da política de serving implementada; o A0 candidato-específico mantém
   o primeiro documento `BLOCKED/EXCLUDED`, com quatro operações visuais
   `UNPROVEN` e distribuição/publicação externa `DENIED`; ADR-0012 `accepted`,
   reconciliado, com revisão do contrato v2 congelada, schema/migrations e
-  comportamento notice-bearing implementados; a verificação focal desse
-  comportamento não substitui seu Automatic Quality Gate, ainda `NOT_RUN`, e
-  as operações do A0 permanecem `UNPROVEN` por falta desse gate e de um novo
-  A0, não por inexistência do mecanismo;
+  comportamento notice-bearing implementados; o Automatic Quality Gate
+  notice-bearing foi `APROVADO` somente na fronteira local, offline,
+  determinística e sintética, sem achado P0, P1, P2 ou P3; as operações do A0
+  permanecem `UNPROVEN` até um novo A0 candidato-específico, não por
+  inexistência ou falta de gate do mecanismo;
   ADR-0013 `accepted` e
   reconciliado semanticamente, com compatibilidade do adaptador implementada e
   Automatic Quality Gate específico aprovado somente na fronteira local,
@@ -52,6 +53,53 @@ A versão do corpus é independente da versão futura do software.
 
 Toda alteração atualiza este arquivo e, quando necessário,
 [`../Start-Here.md`](../Start-Here.md).
+
+## 4.10.35 — 2026-08-12
+
+- Reconcilia sob
+  `AUTH-S07-A-NOTICE-BEARING-PROFILE-AQG-RECONCILE-001`, na baseline limpa
+  `main@8327f5070d0646a845da821a92a2286203aef797`, corpus `4.10.34`, o resultado
+  `APROVADO` do reteste integral executado sob
+  `AUTH-S07-A-NOTICE-BEARING-PROFILE-AQG-RETEST-001`.
+- Registra o Automatic Quality Gate de `DerivativeObligationSetV1`,
+  `pdf-page-png-notice-v1`, preservação pixel a pixel, manifest, persistence,
+  reachability, ativação, serving v2 fail-closed incluindo `304`,
+  compatibilidade legada/v1 e Dashboard acessível como `APROVADO`, sem achado
+  P0, P1, P2 ou P3.
+- Evidência focal: auditoria de 308 arquivos; build Release com zero aviso e
+  zero erro; dois testes unitários, dez de integração e um de arquitetura;
+  45 testes do Dashboard, lint, typecheck e build web, todos aprovados.
+- Evidência integral: `eng/ci.ps1 -Offline` aprovou 202 testes unitários, 203
+  de integração, 11 de arquitetura e 45 do Dashboard, além de lint, typecheck,
+  build web, 95,53% de cobertura de linhas, 68,47% de branches e nova auditoria
+  dos 308 arquivos não ignorados.
+- Runtime do reteste: preflight encontrou zero processo e zero listener
+  pertencente ao RAG-Challenge; a barreira pré-CI e o postflight encontraram
+  zero processo pertencente ao projeto. Nenhum processo foi encerrado. O gate
+  começou e terminou no mesmo HEAD e com árvore limpa.
+- Limite: a aprovação vale somente para Windows local, offline, determinístico
+  e sintético. Nenhum novo A0, dado/corpus de produto, RB-2, provider, rede,
+  Human Gate, lifecycle, commit de produto, push, publicação ou deploy foi
+  criado, executado ou alterado pelo reteste.
+- Artefatos protegidos: OpenAPI v1 permaneceu no SHA-256
+  `d6a686b94c926914beb28b437f464430a01de6560c2e2d476cf5c36025813e34` e blob
+  `a5fb3602fbab33bda6aa56cc4caaa9fdc37c8160`; OpenAPI v2 permaneceu no
+  SHA-256 `f4dca8db7fb7bd453e580495bb1bb7760812d954344931063e8549ed8f036733` e blob
+  `5ed6a47631653dd0c137b6ea1e979ae2c14bf8a8`.
+- Verificação documental: `git diff --check` terminou com exit code `0` e
+  `eng/check-repository.ps1` aprovou 308 arquivos não ignorados; o diff conteve
+  somente os quatro documentos autorizados e o prefixo append-only permaneceu
+  byte a byte preservado. Build, testes executáveis, `eng/ci.ps1` e Automatic
+  Quality Gate não foram repetidos nesta reconciliação.
+- Versionamento: corpus elevado por `PATCH` factual de `4.10.34` para
+  `4.10.35`. O histórico preserva byte a byte seu prefixo anterior de 488.490
+  bytes no SHA-256
+  `e667ef60f9e6f05e916fa80114efdaeeb05e5e5ec4030bb2bffeaf49e8e9cd2f`.
+- Próxima condição diretamente relacionada: obter autoridade humana separada
+  para um novo A0 candidato-específico que reavalie as quatro operações visuais
+  com o mecanismo aprovado. O resultado não predetermina a disposição desse
+  A0; RB-2, dados de produto, Human Gate e lifecycle permanecem independentes
+  e não autorizados.
 
 ## 4.10.34 — 2026-08-12
 

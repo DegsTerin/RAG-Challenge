@@ -1347,9 +1347,11 @@ proprietários.
   corpus `4.10.16`. Schema e migrations foram implementados no commit
   `98036f3c8c496544f4532d1fe48c981f836a1871`; o comportamento notice-bearing
   foi implementado no commit
-  `f682827d1a26b08fa8c450a1fadb3bd0e1fa1700` e possui verificação focal, mas
-  seu Automatic Quality Gate próprio permanece `NOT_RUN`. O PostgreSQL não foi
-  reclassificado.
+  `f682827d1a26b08fa8c450a1fadb3bd0e1fa1700`. Seu Automatic Quality Gate
+  próprio foi `APROVADO` sob
+  `AUTH-S07-A-NOTICE-BEARING-PROFILE-AQG-RETEST-001` somente na fronteira
+  local, offline, determinística e sintética, sem achado P0, P1, P2 ou P3. O
+  PostgreSQL não foi reclassificado.
 - ADR-0013: `accepted` pela decisão humana explícita
   `ADR-0013: ACEITAR.` em 2026-08-10 sobre
   `main@f03162bad0fc166a597739b22e55fbc46ec59535`, corpus `4.10.17`. A decisão
@@ -1464,11 +1466,11 @@ proprietários.
   constitui autoridade vigente nem pendência canônica. O mecanismo
   notice-bearing existe desde o commit
   `f682827d1a26b08fa8c450a1fadb3bd0e1fa1700`, mas não reclassifica
-  retroativamente o A0: as quatro operações visuais permanecem `UNPROVEN`
-  porque o Automatic Quality Gate notice-bearing e um novo A0
-  candidato-específico não foram executados. O gate, sua eventual
-  reconciliação documental e o novo A0 são três etapas separadas e permanecem
-  `NOT_RUN`.
+  retroativamente o A0: o Automatic Quality Gate notice-bearing foi
+  `APROVADO` na fronteira local, offline, determinística e sintética e seu
+  resultado foi reconciliado no corpus `4.10.35`, sem achado P0, P1, P2 ou P3.
+  As quatro operações visuais permanecem `UNPROVEN` porque um novo A0
+  candidato-específico ainda não foi executado.
 
 ## Baseline documental
 
@@ -1476,7 +1478,7 @@ proprietários.
   a política de idioma acrescentou o 21º documento público por incremento
   versionado, e o ADR-0003 acrescentou o 22º.
 - A baseline aprovada no Human Gate de `STATE-00` permanece `3.4.0`.
-- O corpus de instruções vigente possui versão `4.10.34` e 13 arquivos em
+- O corpus de instruções vigente possui versão `4.10.35` e 13 arquivos em
   `prompts/`.
 - Visão, requisitos, arquitetura, RAG, segurança, qualidade, lifecycle,
   roadmap, backlog, estado, histórico e templates estão documentados.
@@ -1788,6 +1790,20 @@ proprietários.
   observada, scorer, campanha, provider, rede, MultiQuery, Automatic Quality
   Gate, Human Gate ou lifecycle foi criado, executado ou alterado. `RB-2`
   permanece `NOT_RUN` e não autorizado.
+- O corpus `4.10.35` reconcilia sob
+  `AUTH-S07-A-NOTICE-BEARING-PROFILE-AQG-RECONCILE-001` o resultado
+  `APROVADO` de
+  `AUTH-S07-A-NOTICE-BEARING-PROFILE-AQG-RETEST-001`. A auditoria de 308
+  arquivos, o build Release, dois testes unitários, dez de integração, um de
+  arquitetura, 45 do Dashboard, lint, typecheck e build web passaram. A CI
+  offline integral aprovou 202 testes unitários, 203 de integração, 11 de
+  arquitetura e 45 do Dashboard, com 95,53% de linhas e 68,47% de branches. O
+  preflight encontrou zero processo e zero listener do projeto; o gate começou
+  e terminou na mesma baseline limpa, sem achado P0, P1, P2 ou P3. A aprovação
+  é somente local, offline, determinística e sintética. A reconciliação
+  documental passou `git diff --check` e a auditoria de 308 arquivos, sem
+  repetir build, testes ou gate; não executa novo A0, dado de produto, RB-2,
+  provider, rede, Human Gate ou lifecycle.
 - O corpus `4.3.0` formaliza a decisão explícita do proprietário de aceitar
   perguntas e respostas em `pt-BR` e `en-GB`: cada consulta declara o idioma,
   a resposta usa o mesmo idioma, textos derivados da fonte permanecem no
@@ -2053,11 +2069,13 @@ autorizada.
    `f682827d1a26b08fa8c450a1fadb3bd0e1fa1700`, com verificação focal. Essa
    implementação não altera retroativamente o A0: page rendering,
    derivative-image creation/retention e runtime display continuam `UNPROVEN`
-   para o candidato porque o Automatic Quality Gate notice-bearing e um novo
-   A0 candidato-específico não foram executados, não porque o mecanismo
-   continue inexistente. A distribuição/publicação fora do runtime está
-   `DENIED` pela fronteira interna deliberadamente excluída. O gate, sua
-   eventual reconciliação e o novo A0 são etapas separadas e `NOT_RUN`.
+   para o candidato porque um novo A0 candidato-específico ainda não foi
+   executado, não porque o mecanismo continue inexistente ou sem gate. O
+   Automatic Quality Gate notice-bearing foi `APROVADO` somente na fronteira
+   local, offline, determinística e sintética, sem achado P0, P1, P2 ou P3, e
+   seu resultado foi reconciliado no corpus `4.10.35`. A
+   distribuição/publicação fora do runtime está `DENIED` pela fronteira
+   interna deliberadamente excluída. O novo A0 permanece separado e `NOT_RUN`.
    Cada documento posterior mantém o mesmo gate
    independente de direitos, proveniência e idioma.
 2. Validar e ativar individualmente novos registros de fonte oficial; a
@@ -2169,9 +2187,12 @@ O A0 candidato-específico de `postgresql-18-reference-a4` foi repetido sob
 `AUTH-S07-A-PRODUCT-A0-002` e manteve a disposição `BLOCKED/EXCLUDED`. A
 concessão oficial já registrada foi mapeada operação por operação: page
 rendering, derivative-image creation, derivative-image retention e runtime
-derivative display permanecem `UNPROVEN` porque o Automatic Quality Gate
-notice-bearing e um novo A0 candidato-específico ainda não foram executados,
-não porque o mecanismo de avisos continue inexistente. O mecanismo foi
+derivative display permanecem `UNPROVEN` porque um novo A0 candidato-específico
+ainda não foi executado, não porque o mecanismo de avisos continue inexistente
+ou sem gate. O Automatic Quality Gate notice-bearing foi `APROVADO` sob
+`AUTH-S07-A-NOTICE-BEARING-PROFILE-AQG-RETEST-001` somente na fronteira local,
+offline, determinística e sintética, sem achado P0, P1, P2 ou P3. O mecanismo
+foi
 implementado no commit `f682827d1a26b08fa8c450a1fadb3bd0e1fa1700`, sem
 reclassificação retroativa do A0. A intended source/derivative distribution
 boundary está `DENIED` fora do runtime-display. Dataset, import, render,
@@ -2189,9 +2210,9 @@ e falhando fechado. O obligation set, renderer composto, manifest, storage,
 reachability, serving v2 fail-closed e Dashboard notice-bearing foram
 implementados no commit `f682827d1a26b08fa8c450a1fadb3bd0e1fa1700`, com
 evidência focal que não constitui gate. O Automatic Quality Gate local,
-offline, determinístico e sintético desse comportamento, a eventual
-reconciliação documental de seu resultado e um novo A0 candidato-específico
-exigem autoridades próprias, permanecem separados e estão `NOT_RUN`.
+offline, determinístico e sintético desse comportamento foi posteriormente
+`APROVADO` e reconciliado no corpus `4.10.35`. Um novo A0 candidato-específico
+exige autoridade própria, permanece separado e está `NOT_RUN`.
 
 O ADR-0011 foi aceito, sua semântica foi reconciliada e a política interna de
 serving v2 foi corrigida no commit
