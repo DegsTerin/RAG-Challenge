@@ -7613,3 +7613,78 @@ contém somente fatos cronológicos.
   produto, qrel, vetor de consulta, geração ou resultado. Dataset de produto,
   scorer executado, campanha, provider, rede, OpenAPI, MultiQuery, Human Gate
   e lifecycle permanecem posteriores e independentes.
+
+## 2026-08-12 — RB-1 evaluation design freeze concluído documentalmente
+
+- Estado anterior e resultante: `STATE-07 TESTING_HOMOLOGATION` permanece
+  ativo. Nenhum Human Gate ou lifecycle foi executado ou alterado.
+- Autoridade e baseline: `AUTH-RB1-EVALUATION-DESIGN-FREEZE-001`, branch
+  `main`, HEAD `45cbcf2624262572abf8180498ac63709a9130e4`, corpus `4.10.33` e working
+  tree inicialmente limpa. O runtime preflight desta atividade exclusivamente
+  documental foi `NÃO APLICÁVEL`; nenhum processo ou listener foi enumerado ou
+  encerrado.
+- Artefatos protegidos antes da primeira escrita: OpenAPI v1 permaneceu no
+  SHA-256 `d6a686b94c926914beb28b437f464430a01de6560c2e2d476cf5c36025813e34` e blob
+  `a5fb3602fbab33bda6aa56cc4caaa9fdc37c8160`; OpenAPI v2 permaneceu no
+  SHA-256 `f4dca8db7fb7bd453e580495bb1bb7760812d954344931063e8549ed8f036733` e blob
+  `5ed6a47631653dd0c137b6ea1e979ae2c14bf8a8`.
+- Resultado: `RB-1 — Evaluation design freeze` está concluído somente como
+  freeze documental. A revisão imutável
+  `retrieval-v2-evaluation-design-v1`, em estado
+  `frozen-unmaterialised-unscored`, contém exatamente 28 artefatos normativos
+  em `docs/evaluation/retrieval-v2-evaluation-design-v1/`: oito instâncias de
+  desenho e 20 schemas JSON Draft 2020-12. O contrato-raiz vincula os outros 27
+  artefatos por path ordinal, tipo e SHA-256 e possui self-digest
+  `0e8d928aee055211773d83eb33f2d54485033c81cfad15dd95b0fdd551f8ed08`.
+- Identidades congeladas: `retrieval-v2@frozen-query-vector`, `retrieval-v2`,
+  `cosine-f32mul-f64acc-boundary-canonical-v1`, descritor integral
+  `sqlite-exact-vector-store/2;schema=1;distance=cosine;algorithm=exact-scan;vector=float32;score=cosine-f32mul-f64acc-boundary-canonical-v1`,
+  `retrieval-evaluation-scorer-v1`,
+  `retrieval-result-canonicalisation-v1`,
+  `retrieval-question-normalisation-v1`, `Score DESC, global ChunkOrdinal ASC`,
+  top-k `8`, mínimo `0.25` inclusivo, máximo de seis evidências e budget
+  agregado de 16.000 escalares. Um vetor futuro por caso permanece exclusivo
+  de RB-3; MultiQuery continua `parked-non-canonical`.
+- Matrizes e ausência de materialização: 38 cellIds contratuais únicos e 10
+  eligibility cellIds únicos foram congelados somente como condições e
+  assertions. Os contadores de documento/caso de produto, qrel, vetor de
+  consulta, geração, run pontuado e resultado observado permanecem todos em
+  zero. Nenhum documento, caso, pergunta, qrel, vetor, geração, resultado ou
+  métrica observada foi materializado.
+- Conteúdo governado: normalização de perguntas, canonicalização bit a bit,
+  fórmulas, denominadores, thresholds, diagnósticos, quotas, rubric,
+  versionamento, retenção, paths futuros, sequência de gates, stop conditions e
+  escopo negativo foram congelados. Os schemas futuros não materializam suas
+  instâncias nem concedem autoridade para os gates correspondentes.
+- Validação estática: os 28 JSON fizeram parse; `JsonSchema.Net 7.0.0.0`
+  validou os 20 schemas contra o metaschema Draft 2020-12 local e as oito
+  instâncias contra seus schemas aplicáveis. Objetos fechados, ausência de
+  `examples`/`default`, inventário de 27 companions, digests, dois recálculos
+  idênticos do self-digest, cardinalidade/identidade das matrizes e os sete
+  contadores zero passaram. O namespace histórico
+  `docs/evaluation/rag-eval-catalogue-v1` permaneceu inalterado.
+- Escopo documental fechado: foram criados somente os 28 caminhos novos e
+  alterados somente ADR-0014, relatório STATE-07, Current State, este histórico
+  por acréscimo no EOF e Prompt System Change Log. Nenhum código, teste,
+  OpenAPI, contrato público, schema de produto, migration, dependência,
+  lockfile ou revisão sintética histórica foi alterado.
+- Limite de execução: build, testes executáveis, `eng/ci.ps1`, scorer,
+  campanha, provider, credencial, rede, chamada paga, Automatic Quality Gate,
+  Human Gate, lifecycle, push, publicação, release e deploy permaneceram
+  `NOT_RUN`.
+- Verificação documental: `git diff --check` e
+  `eng/check-repository.ps1` passaram; o diff contém exatamente os 33 paths
+  autorizados; UTF-8/LF, newline final, espaços finais, links, formato,
+  inventário, digests e prefixo append-only passaram; OpenAPI v1/v2
+  permaneceram byte a byte protegidas.
+- Versionamento: corpus elevado por `PATCH` factual de `4.10.33` para
+  `4.10.34`. Este histórico preservou byte a byte seu prefixo anterior de
+  483.419 bytes no SHA-256
+  `aa0ff7a6829b9f4df704569471bc58df806aa5d69bf3d483a8ce797e31887740`.
+- Próxima condição: obter autoridade humana separada para
+  `RB-2 — Dataset materialisation readiness`, condicionada a corpus de produto
+  autorizado, direitos verificados, geração ativa validada, pooling e
+  adjudicação não pontuados completos, qrels, matrizes requeridas completas,
+  denominador exato e tier declarado. RB-2, RB-3, RB-4, RB-5, scorer executado,
+  campanha, provider, rede, OpenAPI, MultiQuery, Human Gate e lifecycle
+  permanecem independentes, `NOT_RUN` e não autorizados.

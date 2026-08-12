@@ -1,6 +1,6 @@
 # Estado Atual
 
-Este documento é o snapshot factual vigente do workspace em 2026-08-11. Ele
+Este documento é o snapshot factual vigente do workspace em 2026-08-12. Ele
 não concede autoridade. Evolução e decisões no contexto original pertencem ao
 [`State-Transition-Log.md`](State-Transition-Log.md) e aos relatórios
 proprietários.
@@ -1410,6 +1410,21 @@ proprietários.
   `AUTH-DR3-NUMERIC-SEMANTICS-AQG-RETEST-001` foi `APROVADO` sobre
   `main@bf8a156e7c5eea801f29fb6e7742cac880783bc0`, corpus `4.10.32`, sem novo
   achado P0, P1, P2 ou P3; `DR3-FIND-001` a `DR3-FIND-004` estão `RESOLVED`.
+- `RB-1 — Evaluation design freeze`: concluído documentalmente sob
+  `AUTH-RB1-EVALUATION-DESIGN-FREEZE-001` sobre a baseline limpa
+  `main@45cbcf2624262572abf8180498ac63709a9130e4`, corpus `4.10.33`, com as
+  quatro identidades protegidas de OpenAPI preservadas. A revisão imutável
+  `retrieval-v2-evaluation-design-v1` está
+  `frozen-unmaterialised-unscored` em 28 artefatos normativos — oito instâncias
+  de desenho e 20 schemas Draft 2020-12 — vinculados por inventário fechado e
+  SHA-256. O contrato-raiz possui self-digest
+  `0e8d928aee055211773d83eb33f2d54485033c81cfad15dd95b0fdd551f8ed08`,
+  38 células contratuais e 10 células de elegibilidade somente definidas e os
+  sete contadores de materialização em zero. Nenhum documento/caso de produto,
+  pergunta, qrel, vetor, geração, resultado ou pontuação foi criado. Build,
+  testes executáveis, scorer, campanha, Automatic Quality Gate, Human Gate,
+  lifecycle e ação externa permaneceram `NOT_RUN`. `RB-2` continua sem
+  autorização.
 - ADR-0015: `accepted` pela decisão humana explícita `ADR-0015: ACEITAR.` em
   2026-08-11 sobre `main@46de807148d5b547f56a0f7265b32428b232100f`, corpus
   `4.10.30`, working tree limpa e OpenAPI v1/v2 protegidas. A decisão seleciona
@@ -1461,7 +1476,7 @@ proprietários.
   a política de idioma acrescentou o 21º documento público por incremento
   versionado, e o ADR-0003 acrescentou o 22º.
 - A baseline aprovada no Human Gate de `STATE-00` permanece `3.4.0`.
-- O corpus de instruções vigente possui versão `4.10.33` e 13 arquivos em
+- O corpus de instruções vigente possui versão `4.10.34` e 13 arquivos em
   `prompts/`.
 - Visão, requisitos, arquitetura, RAG, segurança, qualidade, lifecycle,
   roadmap, backlog, estado, histórico e templates estão documentados.
@@ -1761,6 +1776,18 @@ proprietários.
   campanha, provider, rede, chamada paga, corpus real, OpenAPI, schema,
   migration, MultiQuery, Human Gate e lifecycle não foram criados, ativados,
   executados ou alterados.
+- O corpus `4.10.34` registra sob
+  `AUTH-RB1-EVALUATION-DESIGN-FREEZE-001` a conclusão exclusivamente documental
+  de `RB-1 — Evaluation design freeze`. A revisão imutável
+  `retrieval-v2-evaluation-design-v1` congela o desenho não materializado e não
+  pontuado em 28 artefatos normativos, com oito instâncias, 20 schemas Draft
+  2020-12, 27 companions vinculados por SHA-256, self-digest determinístico,
+  fórmulas, thresholds, quotas, matrizes, versionamento, retenção, gates, stop
+  conditions e escopo negativo. Os sete contadores permanecem em zero. Nenhum
+  dado/caso de produto, pergunta, qrel, vetor, geração, resultado, métrica
+  observada, scorer, campanha, provider, rede, MultiQuery, Automatic Quality
+  Gate, Human Gate ou lifecycle foi criado, executado ou alterado. `RB-2`
+  permanece `NOT_RUN` e não autorizado.
 - O corpus `4.3.0` formaliza a decisão explícita do proprietário de aceitar
   perguntas e respostas em `pt-BR` e `en-GB`: cada consulta declara o idioma,
   a resposta usa o mesmo idioma, textos derivados da fonte permanecem no
@@ -2097,14 +2124,19 @@ implementação corretiva no commit
 `9addb166e82dd04581beee7b4276a74977fe04c5` e sua reconciliação factual foram
 concluídas. O reteste corretivo independente posterior, autorizado por
 `AUTH-DR3-NUMERIC-SEMANTICS-AQG-RETEST-001`, foi `APROVADO`; `DR3-FIND-001` a
-`DR3-FIND-004` estão `RESOLVED`, sem novo achado P0, P1, P2 ou P3. A próxima
-condição diretamente relacionada na ordem do ADR-0014 é obter autoridade
-humana separada para `RB-1 — Evaluation design freeze`, limitado a um contrato
-de desenho imutável, não materializado e não pontuado, com zero documento ou
-caso de produto, qrel, vetor de consulta, geração ou resultado. Dataset de
-produto, scorer executado, campanha, provider, rede, chamada paga, OpenAPI,
-schema, migration, MultiQuery, Human Gate e lifecycle permanecem fora dessa
-condição, e `retrieval-multi-query-v1-candidate` continua estacionado.
+`DR3-FIND-004` estão `RESOLVED`, sem novo achado P0, P1, P2 ou P3. `RB-1 —
+Evaluation design freeze` também está concluído sob
+`AUTH-RB1-EVALUATION-DESIGN-FREEZE-001`, exclusivamente como revisão de desenho
+imutável, não materializada e não pontuada. A próxima condição diretamente
+relacionada na ordem do ADR-0014 é obter autoridade humana separada para
+`RB-2 — Dataset materialisation readiness`, condicionada a corpus de produto
+autorizado com direitos verificados, geração ativa validada, pooling não
+pontuado e adjudicação completos, qrels, matrizes requeridas completas,
+denominador exato congelado e tier declarado. `RB-2` permanece `NOT_RUN` e não
+autorizado. Scorer executado, inputs congelados de campanha, campanha,
+provider, rede, chamada paga, OpenAPI, schema de produto, migration,
+MultiQuery, Human Gate e lifecycle permanecem fora dessa condição, e
+`retrieval-multi-query-v1-candidate` continua estacionado.
 
 O ADR-0013 foi aceito explicitamente mediante `ADR-0013: ACEITAR.` somente
 como autoridade arquitetural. Ele seleciona `gpt-5.4-mini-2026-03-17` para o

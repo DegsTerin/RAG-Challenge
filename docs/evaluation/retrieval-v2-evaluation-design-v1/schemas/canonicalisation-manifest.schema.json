@@ -1,0 +1,40 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "canonicalisation-manifest.schema.json",
+  "title": "Retrieval result canonicalisation design manifest",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["$schema", "schemaVersion", "artifactType", "evaluationDesignContractRevision", "status", "authorityId", "createdDate", "canonicalisationId", "domainAsciiEscaped", "fieldFrame", "typeTags", "textPolicy", "vectorPolicy", "scorePolicy", "signedZeroPolicy", "digestAlgorithm", "passageTextPolicy", "recordSchemas", "bindings", "filterPolicy", "rankedFieldNamePolicy", "reproducibilityPlan", "materialisedDigestCount"],
+  "properties": {
+    "$schema": { "type": "string", "minLength": 1 },
+    "schemaVersion": { "const": 1 },
+    "artifactType": { "const": "CanonicalisationManifest" },
+    "evaluationDesignContractRevision": { "const": "retrieval-v2-evaluation-design-v1" },
+    "status": { "const": "frozen-unmaterialised-unscored" },
+    "authorityId": { "const": "AUTH-RB1-EVALUATION-DESIGN-FREEZE-001" },
+    "createdDate": { "type": "string", "format": "date" },
+    "canonicalisationId": { "const": "retrieval-result-canonicalisation-v1" },
+    "domainAsciiEscaped": { "const": "RAG-CHALLENGE\\0retrieval-result-canonicalisation-v1\\0" },
+    "fieldFrame": { "const": "uint32_le(UTF-8 field-name length) + UTF-8 field name + uint8(typeTag) + uint64_le(payload length) + payload" },
+    "typeTags": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["text", "enum", "uint32", "uint64", "bytes", "float32Sequence", "float64"],
+      "properties": {
+        "text": { "const": "0x01" }, "enum": { "const": "0x02" }, "uint32": { "const": "0x03" }, "uint64": { "const": "0x04" }, "bytes": { "const": "0x05" }, "float32Sequence": { "const": "0x06" }, "float64": { "const": "0x07" }
+      }
+    },
+    "textPolicy": { "const": "case-sensitive UTF-8 with no locale conversion or implicit normalisation" },
+    "vectorPolicy": { "const": "original order; IEEE 754 float32 bits; little-endian" },
+    "scorePolicy": { "const": "IEEE 754 float64 bits; little-endian" },
+    "signedZeroPolicy": { "const": "+0 and -0 tie for ranking and remain distinct in the digest" },
+    "digestAlgorithm": { "const": "SHA-256 over the complete framed stream" },
+    "passageTextPolicy": { "const": "absolutely excluded" },
+    "recordSchemas": { "const": ["ordered-raw-result", "ordered-selected-evidence"] },
+    "bindings": { "type": "array", "minItems": 15, "uniqueItems": true, "items": { "type": "string", "minLength": 1 } },
+    "filterPolicy": { "const": "filters are ordinally sorted sets digested with the same framing" },
+    "rankedFieldNamePolicy": { "const": "field names repeat by rank with an eight-digit decimal index" },
+    "reproducibilityPlan": { "const": "two consecutive same-process executions plus one cold-start execution, RB-4 only" },
+    "materialisedDigestCount": { "const": 0 }
+  }
+}

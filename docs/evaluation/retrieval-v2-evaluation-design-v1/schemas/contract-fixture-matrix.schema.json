@@ -1,0 +1,38 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "contract-fixture-matrix.schema.json",
+  "title": "Retrieval contract fixture matrix design",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["$schema", "schemaVersion", "artifactType", "evaluationDesignContractRevision", "status", "authorityId", "createdDate", "requiredCellCount", "materialisedCellCount", "observedResultCount", "cells"],
+  "properties": {
+    "$schema": { "type": "string", "minLength": 1 },
+    "schemaVersion": { "const": 1 },
+    "artifactType": { "const": "ContractFixtureMatrixDesign" },
+    "evaluationDesignContractRevision": { "const": "retrieval-v2-evaluation-design-v1" },
+    "status": { "const": "frozen-unmaterialised-unscored" },
+    "authorityId": { "const": "AUTH-RB1-EVALUATION-DESIGN-FREEZE-001" },
+    "createdDate": { "type": "string", "format": "date" },
+    "requiredCellCount": { "const": 38 },
+    "materialisedCellCount": { "const": 0 },
+    "observedResultCount": { "const": 0 },
+    "cells": {
+      "type": "array",
+      "minItems": 38,
+      "maxItems": 38,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["cellId", "concern", "conditionId", "expectedTypedOutcome", "exactAssertions"],
+        "properties": {
+          "cellId": { "type": "string", "pattern": "^CF-[0-9]{3}$" },
+          "concern": { "type": "string", "minLength": 1 },
+          "conditionId": { "type": "string", "minLength": 1 },
+          "expectedTypedOutcome": { "type": "string", "minLength": 1 },
+          "expectedReason": { "type": "string", "minLength": 1 },
+          "exactAssertions": { "type": "array", "minItems": 1, "items": { "type": "string", "minLength": 1 } }
+        }
+      }
+    }
+  }
+}

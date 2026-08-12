@@ -1,0 +1,28 @@
+{
+  "$schema": "schemas/sampling-plan.schema.json",
+  "schemaVersion": 1,
+  "artifactType": "SamplingPlan",
+  "evaluationDesignContractRevision": "retrieval-v2-evaluation-design-v1",
+  "status": "frozen-unmaterialised-unscored",
+  "authorityId": "AUTH-RB1-EVALUATION-DESIGN-FREEZE-001",
+  "createdDate": "2026-08-12",
+  "questionLanguages": ["pt-BR", "en-GB"],
+  "negativeSubtypes": ["NoEvidenceInEligibleCorpus", "EvidenceOnlyOutsideEligibleProjection"],
+  "sourceStratumDefinition": ["SourceTrustClass", "SourceAdapterId", "OfficialSourceRegistrationIdOrLocalSentinel"],
+  "quotaRules": [
+    { "quotaId": "positive-total", "definition": "N_positive >= 200." },
+    { "quotaId": "negative-total", "definition": "N_negative >= max(50, ceiling(0.25 * N_positive))." },
+    { "quotaId": "negative-subtype", "definition": "Each negative subtype has at least 25 cases." },
+    { "quotaId": "negative-question-language", "definition": "Each supported questionLanguage, pt-BR and en-GB, has at least 25 negative cases." },
+    { "quotaId": "database-question-language", "definition": "Each active database by questionLanguage has at least 2 positive cases and 1 negative case." },
+    { "quotaId": "document-question-language", "definition": "Each active document by questionLanguage has at least 1 positive case." },
+    { "quotaId": "question-content-language-row", "definition": "Each questionLanguage crossed with each exact contentLanguage has at least 25 positive cases." },
+    { "quotaId": "document-format", "definition": "Each active document format has at least 25 positive cases." },
+    { "quotaId": "source-stratum", "definition": "Each source stratum has at least 25 positive cases." }
+  ],
+  "primaryCountingRule": "A case may satisfy different quota families but counts once by its primary assignment within each family; additional qrel associations do not duplicate the count.",
+  "comparativePilotBoundary": "Meeting the frozen base quotas permits only COMPARATIVE_PILOT.",
+  "representativeClaimBoundary": "Representative product homologation additionally requires at least 30 positive cases per active database and per source stratum, with both questionLanguages represented.",
+  "underpoweredRule": "Every mandatory stratum below 30 is UNDERPOWERED and blocks a representative claim even if aggregate metrics pass; there is no catalogue ceiling.",
+  "materialisedCaseCount": 0
+}

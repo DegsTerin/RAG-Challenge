@@ -1,0 +1,34 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "question-normalisation-manifest.schema.json",
+  "title": "Question normalisation design manifest",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["$schema", "schemaVersion", "artifactType", "evaluationDesignContractRevision", "status", "authorityId", "createdDate", "questionNormalisationId", "inputContract", "trimCodePoints", "unicodeNormalisation", "preservedProperties", "rejectedControls", "allowedControls", "normalisedUtf8ByteLength", "materialisationGate", "encoding", "digestAlgorithm", "materialisedQuestionCount"],
+  "properties": {
+    "$schema": { "type": "string", "minLength": 1 },
+    "schemaVersion": { "const": 1 },
+    "artifactType": { "const": "QuestionNormalisationManifest" },
+    "evaluationDesignContractRevision": { "const": "retrieval-v2-evaluation-design-v1" },
+    "status": { "const": "frozen-unmaterialised-unscored" },
+    "authorityId": { "const": "AUTH-RB1-EVALUATION-DESIGN-FREEZE-001" },
+    "createdDate": { "type": "string", "format": "date" },
+    "questionNormalisationId": { "const": "retrieval-question-normalisation-v1" },
+    "inputContract": { "const": "valid Unicode scalar sequence with no isolated surrogate" },
+    "trimCodePoints": { "type": "array", "minItems": 11, "maxItems": 11, "uniqueItems": true, "items": { "type": "string", "pattern": "^U\\+[0-9A-F]{4}(\\.\\.U\\+[0-9A-F]{4})?$" } },
+    "unicodeNormalisation": { "const": "NFC" },
+    "preservedProperties": { "const": ["internal-whitespace", "line-endings", "case", "punctuation", "language"] },
+    "rejectedControls": { "const": ["U+0000..U+001F except U+0009, U+000A and U+000D", "U+007F..U+009F except U+0085 only when trimmed at an edge"] },
+    "allowedControls": { "const": ["U+0009", "U+000A", "U+000D"] },
+    "normalisedUtf8ByteLength": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["minimum", "maximum"],
+      "properties": { "minimum": { "const": 1 }, "maximum": { "const": 4096 } }
+    },
+    "materialisationGate": { "const": "RB-2" },
+    "encoding": { "const": "UTF-8 without BOM" },
+    "digestAlgorithm": { "const": "SHA-256" },
+    "materialisedQuestionCount": { "const": 0 }
+  }
+}

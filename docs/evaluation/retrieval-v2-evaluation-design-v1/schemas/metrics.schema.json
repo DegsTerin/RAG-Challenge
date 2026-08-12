@@ -1,0 +1,26 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "metrics.schema.json",
+  "title": "Future retrieval evaluation metrics",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["$schema", "schemaVersion", "artifactType", "evaluationDesignContractRevision", "status", "authorityId", "createdDate", "campaignId", "datasetRevision", "retrievalPolicyVersion", "indexGenerationId", "environmentIdentity", "queryContractVersion", "eligibilityPolicyId", "metrics", "diagnostics", "failureCounts", "coverageClassification", "underpoweredStrata", "mixedIdentityPolicy"],
+  "properties": {
+    "$schema": { "type": "string", "minLength": 1 }, "schemaVersion": { "const": 1 }, "artifactType": { "const": "Metrics" }, "evaluationDesignContractRevision": { "const": "retrieval-v2-evaluation-design-v1" }, "status": { "type": "string", "minLength": 1 }, "authorityId": { "type": "string", "minLength": 1 }, "createdDate": { "type": "string", "format": "date" }, "campaignId": { "$ref": "#/$defs/id" }, "datasetRevision": { "$ref": "#/$defs/id" }, "retrievalPolicyVersion": { "const": "retrieval-v2" }, "indexGenerationId": { "$ref": "#/$defs/id" }, "environmentIdentity": { "$ref": "#/$defs/id" }, "queryContractVersion": { "$ref": "#/$defs/id" }, "eligibilityPolicyId": { "$ref": "#/$defs/id" }, "metrics": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/metric" } }, "diagnostics": { "type": "array", "items": { "$ref": "#/$defs/diagnostic" } }, "failureCounts": { "type": "object", "additionalProperties": false, "patternProperties": { "^.+$": { "type": "integer", "minimum": 0 } } }, "coverageClassification": { "enum": ["COMPARATIVE_PILOT", "REPRESENTATIVE_HOMOLOGATION", "NOT_EVALUABLE"] }, "underpoweredStrata": { "type": "array", "uniqueItems": true, "items": { "$ref": "#/$defs/id" } }, "mixedIdentityPolicy": { "const": "mixing revisions, policies, generations, environments, QueryContractVersion or eligibilityPolicyId is forbidden" }
+  },
+  "$defs": {
+    "id": { "type": "string", "minLength": 1 },
+    "metric": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["metricId", "scope", "numerator", "denominator", "value", "threshold", "disposition"],
+      "properties": { "metricId": { "$ref": "#/$defs/id" }, "scope": { "$ref": "#/$defs/id" }, "numerator": { "type": "integer", "minimum": 0 }, "denominator": { "type": "integer", "minimum": 0 }, "value": { "oneOf": [{ "type": "number" }, { "const": "NOT_EVALUABLE" }] }, "threshold": { "oneOf": [{ "type": "number" }, { "const": "diagnostic-only" }] }, "disposition": { "enum": ["PASS", "FAIL", "NOT_EVALUABLE", "DIAGNOSTIC"] } }
+    },
+    "diagnostic": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["diagnosticId", "scope", "value"],
+      "properties": { "diagnosticId": { "$ref": "#/$defs/id" }, "scope": { "$ref": "#/$defs/id" }, "value": { "oneOf": [{ "type": "number" }, { "type": "integer" }, { "type": "string", "minLength": 1 }] } }
+    }
+  }
+}

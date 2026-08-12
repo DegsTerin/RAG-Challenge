@@ -1,0 +1,12 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "campaign-input-freeze-manifest.schema.json",
+  "title": "Future retrieval campaign input freeze manifest",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["$schema", "schemaVersion", "artifactType", "evaluationDesignContractRevision", "status", "authorityId", "createdDate", "campaignId", "artifactDigests", "priorObservedResultCount", "immutability", "successorRequirement"],
+  "properties": {
+    "$schema": { "type": "string", "minLength": 1 }, "schemaVersion": { "const": 1 }, "artifactType": { "const": "CampaignInputFreezeManifest" }, "evaluationDesignContractRevision": { "const": "retrieval-v2-evaluation-design-v1" }, "status": { "type": "string", "minLength": 1 }, "authorityId": { "type": "string", "minLength": 1 }, "createdDate": { "type": "string", "format": "date" }, "campaignId": { "type": "string", "minLength": 1 }, "artifactDigests": { "type": "object", "additionalProperties": false, "patternProperties": { "^.+$": { "$ref": "#/$defs/sha256" } }, "minProperties": 1 }, "priorObservedResultCount": { "const": 0 }, "immutability": { "const": "frozen campaign inputs are immutable" }, "successorRequirement": { "const": "any input or digest change requires a successor campaign input freeze" }
+  },
+  "$defs": { "sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" } }
+}

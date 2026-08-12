@@ -1,0 +1,15 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "run-manifest.schema.json",
+  "title": "Future retrieval-only run manifest",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["$schema", "schemaVersion", "artifactType", "evaluationDesignContractRevision", "status", "authorityId", "createdDate", "runId", "campaignId", "frozenInputDigests", "startedUtc", "finishedUtc", "repetition", "sanitisedCommand", "environmentIdentity", "outcome", "caseCounts", "failureCounts", "evidencePaths", "providerCallCount", "answerLlmCallCount"],
+  "properties": {
+    "$schema": { "type": "string", "minLength": 1 }, "schemaVersion": { "const": 1 }, "artifactType": { "const": "RunManifest" }, "evaluationDesignContractRevision": { "const": "retrieval-v2-evaluation-design-v1" }, "status": { "type": "string", "minLength": 1 }, "authorityId": { "type": "string", "minLength": 1 }, "createdDate": { "type": "string", "format": "date" }, "runId": { "$ref": "#/$defs/id" }, "campaignId": { "$ref": "#/$defs/id" }, "frozenInputDigests": { "type": "object", "additionalProperties": false, "patternProperties": { "^.+$": { "$ref": "#/$defs/sha256" } }, "minProperties": 1 }, "startedUtc": { "type": "string", "format": "date-time" }, "finishedUtc": { "type": "string", "format": "date-time" }, "repetition": { "type": "integer", "minimum": 1 }, "sanitisedCommand": { "$ref": "#/$defs/id" }, "environmentIdentity": { "$ref": "#/$defs/id" }, "outcome": { "$ref": "#/$defs/id" }, "caseCounts": { "$ref": "#/$defs/countMap" }, "failureCounts": { "$ref": "#/$defs/countMap" }, "evidencePaths": { "type": "array", "minItems": 1, "items": { "type": "string", "minLength": 1 } }, "providerCallCount": { "const": 0 }, "answerLlmCallCount": { "const": 0 }
+  },
+  "$defs": {
+    "id": { "type": "string", "minLength": 1 }, "sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+    "countMap": { "type": "object", "additionalProperties": false, "patternProperties": { "^.+$": { "type": "integer", "minimum": 0 } }, "minProperties": 1 }
+  }
+}

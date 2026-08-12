@@ -1,0 +1,37 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "sampling-plan.schema.json",
+  "title": "Retrieval evaluation sampling plan",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["$schema", "schemaVersion", "artifactType", "evaluationDesignContractRevision", "status", "authorityId", "createdDate", "questionLanguages", "negativeSubtypes", "sourceStratumDefinition", "quotaRules", "primaryCountingRule", "comparativePilotBoundary", "representativeClaimBoundary", "underpoweredRule", "materialisedCaseCount"],
+  "properties": {
+    "$schema": { "type": "string", "minLength": 1 },
+    "schemaVersion": { "const": 1 },
+    "artifactType": { "const": "SamplingPlan" },
+    "evaluationDesignContractRevision": { "const": "retrieval-v2-evaluation-design-v1" },
+    "status": { "const": "frozen-unmaterialised-unscored" },
+    "authorityId": { "const": "AUTH-RB1-EVALUATION-DESIGN-FREEZE-001" },
+    "createdDate": { "type": "string", "format": "date" },
+    "questionLanguages": { "const": ["pt-BR", "en-GB"] },
+    "negativeSubtypes": { "const": ["NoEvidenceInEligibleCorpus", "EvidenceOnlyOutsideEligibleProjection"] },
+    "sourceStratumDefinition": { "const": ["SourceTrustClass", "SourceAdapterId", "OfficialSourceRegistrationIdOrLocalSentinel"] },
+    "quotaRules": { "type": "array", "minItems": 9, "items": { "$ref": "#/$defs/rule" } },
+    "primaryCountingRule": { "type": "string", "minLength": 1 },
+    "comparativePilotBoundary": { "type": "string", "minLength": 1 },
+    "representativeClaimBoundary": { "type": "string", "minLength": 1 },
+    "underpoweredRule": { "type": "string", "minLength": 1 },
+    "materialisedCaseCount": { "const": 0 }
+  },
+  "$defs": {
+    "rule": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["quotaId", "definition"],
+      "properties": {
+        "quotaId": { "type": "string", "minLength": 1 },
+        "definition": { "type": "string", "minLength": 1 }
+      }
+    }
+  }
+}

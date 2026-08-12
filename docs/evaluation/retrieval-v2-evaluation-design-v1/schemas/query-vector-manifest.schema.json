@@ -1,0 +1,20 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "query-vector-manifest.schema.json",
+  "title": "Future frozen query vector manifest",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["$schema", "schemaVersion", "artifactType", "evaluationDesignContractRevision", "status", "authorityId", "createdDate", "campaignId", "vectors", "inlineVectorPolicy"],
+  "properties": {
+    "$schema": { "type": "string", "minLength": 1 }, "schemaVersion": { "const": 1 }, "artifactType": { "const": "QueryVectorManifest" }, "evaluationDesignContractRevision": { "const": "retrieval-v2-evaluation-design-v1" }, "status": { "type": "string", "minLength": 1 }, "authorityId": { "type": "string", "minLength": 1 }, "createdDate": { "type": "string", "format": "date" }, "campaignId": { "$ref": "#/$defs/id" }, "vectors": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/vector" } }, "inlineVectorPolicy": { "const": "vector values are forbidden in tracked evidence" }
+  },
+  "$defs": {
+    "id": { "type": "string", "minLength": 1 }, "sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+    "vector": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["caseId", "providerId", "modelId", "modelRevision", "dimensions", "normalisedQuestionSha256", "vectorObjectRef", "byteLength", "encoding", "vectorSha256"],
+      "properties": { "caseId": { "$ref": "#/$defs/id" }, "providerId": { "$ref": "#/$defs/id" }, "modelId": { "$ref": "#/$defs/id" }, "modelRevision": { "$ref": "#/$defs/id" }, "dimensions": { "type": "integer", "minimum": 1 }, "normalisedQuestionSha256": { "$ref": "#/$defs/sha256" }, "vectorObjectRef": { "$ref": "#/$defs/id" }, "byteLength": { "type": "integer", "minimum": 4 }, "encoding": { "const": "IEEE 754 float32 little-endian" }, "vectorSha256": { "$ref": "#/$defs/sha256" } }
+    }
+  }
+}

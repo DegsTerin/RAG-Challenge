@@ -1,0 +1,20 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "campaign-input-manifest.schema.json",
+  "title": "Future retrieval campaign input manifest",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["$schema", "schemaVersion", "artifactType", "evaluationDesignContractRevision", "status", "authorityId", "createdDate", "campaignId", "datasetRevision", "datasetDigest", "intendedCaseSetDigest", "intendedCaseCount", "retrievalPolicyDigest", "minimumScorePolicyDigest", "queryVectorManifestDigest", "environment", "repetitions", "commands", "networkPolicyId", "taskOwnedPaths"],
+  "properties": {
+    "$schema": { "type": "string", "minLength": 1 }, "schemaVersion": { "const": 1 }, "artifactType": { "const": "CampaignInputManifest" }, "evaluationDesignContractRevision": { "const": "retrieval-v2-evaluation-design-v1" }, "status": { "type": "string", "minLength": 1 }, "authorityId": { "type": "string", "minLength": 1 }, "createdDate": { "type": "string", "format": "date" }, "campaignId": { "$ref": "#/$defs/id" }, "datasetRevision": { "$ref": "#/$defs/id" }, "datasetDigest": { "$ref": "#/$defs/sha256" }, "intendedCaseSetDigest": { "$ref": "#/$defs/sha256" }, "intendedCaseCount": { "type": "integer", "minimum": 1 }, "retrievalPolicyDigest": { "$ref": "#/$defs/sha256" }, "minimumScorePolicyDigest": { "$ref": "#/$defs/sha256" }, "queryVectorManifestDigest": { "$ref": "#/$defs/sha256" }, "environment": { "$ref": "#/$defs/environment" }, "repetitions": { "type": "integer", "minimum": 3 }, "commands": { "type": "array", "minItems": 1, "items": { "type": "string", "minLength": 1 } }, "networkPolicyId": { "$ref": "#/$defs/id" }, "taskOwnedPaths": { "type": "array", "minItems": 1, "uniqueItems": true, "items": { "type": "string", "minLength": 1 } }
+  },
+  "$defs": {
+    "id": { "type": "string", "minLength": 1 }, "sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+    "environment": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["environmentId", "runtime", "operatingSystem", "architecture", "hostnamePolicy"],
+      "properties": { "environmentId": { "$ref": "#/$defs/id" }, "runtime": { "$ref": "#/$defs/id" }, "operatingSystem": { "$ref": "#/$defs/id" }, "architecture": { "$ref": "#/$defs/id" }, "hostnamePolicy": { "const": "real hostname forbidden; use <host>" } }
+    }
+  }
+}

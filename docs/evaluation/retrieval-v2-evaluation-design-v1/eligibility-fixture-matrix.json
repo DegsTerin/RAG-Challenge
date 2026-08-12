@@ -1,0 +1,25 @@
+{
+  "$schema": "schemas/eligibility-fixture-matrix.schema.json",
+  "schemaVersion": 1,
+  "artifactType": "EligibilityFixtureMatrixDesign",
+  "evaluationDesignContractRevision": "retrieval-v2-evaluation-design-v1",
+  "status": "frozen-unmaterialised-unscored",
+  "authorityId": "AUTH-RB1-EVALUATION-DESIGN-FREEZE-001",
+  "createdDate": "2026-08-12",
+  "requiredCellCount": 10,
+  "materialisedCellCount": 0,
+  "observedResultCount": 0,
+  "expectedLeakageCaseRate": 0,
+  "cells": [
+    { "cellId": "EF-001", "boundary": "corpus", "questionLanguage": "pt-BR", "higherScoringIneligibleDisposition": "absent-from-raw-hits-and-selected-evidence", "lowerScoringEligibleDisposition": "available-in-exact-order", "exactAssertions": ["Corpus-ineligible competitors never enter retrieval results.", "Eligible competitors retain the frozen total order."] },
+    { "cellId": "EF-002", "boundary": "corpus", "questionLanguage": "en-GB", "higherScoringIneligibleDisposition": "absent-from-raw-hits-and-selected-evidence", "lowerScoringEligibleDisposition": "available-in-exact-order", "exactAssertions": ["Corpus-ineligible competitors never enter retrieval results.", "Eligible competitors retain the frozen total order."] },
+    { "cellId": "EF-003", "boundary": "generation-candidate", "questionLanguage": "pt-BR", "higherScoringIneligibleDisposition": "absent-from-raw-hits-and-selected-evidence", "lowerScoringEligibleDisposition": "available-in-exact-order", "exactAssertions": ["Generation-ineligible candidates never enter retrieval results.", "Eligible candidates retain the frozen total order."] },
+    { "cellId": "EF-004", "boundary": "generation-candidate", "questionLanguage": "en-GB", "higherScoringIneligibleDisposition": "absent-from-raw-hits-and-selected-evidence", "lowerScoringEligibleDisposition": "available-in-exact-order", "exactAssertions": ["Generation-ineligible candidates never enter retrieval results.", "Eligible candidates retain the frozen total order."] },
+    { "cellId": "EF-005", "boundary": "eligible-binding-set", "questionLanguage": "pt-BR", "higherScoringIneligibleDisposition": "absent-from-raw-hits-and-selected-evidence", "lowerScoringEligibleDisposition": "available-in-exact-order", "exactAssertions": ["Items outside the eligible binding set never enter retrieval results.", "Bound eligible items retain the frozen total order."] },
+    { "cellId": "EF-006", "boundary": "eligible-binding-set", "questionLanguage": "en-GB", "higherScoringIneligibleDisposition": "absent-from-raw-hits-and-selected-evidence", "lowerScoringEligibleDisposition": "available-in-exact-order", "exactAssertions": ["Items outside the eligible binding set never enter retrieval results.", "Bound eligible items retain the frozen total order."] },
+    { "cellId": "EF-007", "boundary": "database", "questionLanguage": "pt-BR", "higherScoringIneligibleDisposition": "absent-from-raw-hits-and-selected-evidence", "lowerScoringEligibleDisposition": "available-in-exact-order", "exactAssertions": ["Database-ineligible items never enter retrieval results.", "Database-eligible items retain the frozen total order."] },
+    { "cellId": "EF-008", "boundary": "database", "questionLanguage": "en-GB", "higherScoringIneligibleDisposition": "absent-from-raw-hits-and-selected-evidence", "lowerScoringEligibleDisposition": "available-in-exact-order", "exactAssertions": ["Database-ineligible items never enter retrieval results.", "Database-eligible items retain the frozen total order."] },
+    { "cellId": "EF-009", "boundary": "document", "questionLanguage": "pt-BR", "higherScoringIneligibleDisposition": "absent-from-raw-hits-and-selected-evidence", "lowerScoringEligibleDisposition": "available-in-exact-order", "exactAssertions": ["Document-ineligible items never enter retrieval results.", "Document-eligible items retain the frozen total order."] },
+    { "cellId": "EF-010", "boundary": "document", "questionLanguage": "en-GB", "higherScoringIneligibleDisposition": "absent-from-raw-hits-and-selected-evidence", "lowerScoringEligibleDisposition": "available-in-exact-order", "exactAssertions": ["Document-ineligible items never enter retrieval results.", "Document-eligible items retain the frozen total order."] }
+  ]
+}

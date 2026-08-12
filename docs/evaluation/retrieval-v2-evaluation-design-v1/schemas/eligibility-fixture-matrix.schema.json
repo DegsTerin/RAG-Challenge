@@ -1,0 +1,39 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "eligibility-fixture-matrix.schema.json",
+  "title": "Eligibility leakage fixture matrix design",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["$schema", "schemaVersion", "artifactType", "evaluationDesignContractRevision", "status", "authorityId", "createdDate", "requiredCellCount", "materialisedCellCount", "observedResultCount", "expectedLeakageCaseRate", "cells"],
+  "properties": {
+    "$schema": { "type": "string", "minLength": 1 },
+    "schemaVersion": { "const": 1 },
+    "artifactType": { "const": "EligibilityFixtureMatrixDesign" },
+    "evaluationDesignContractRevision": { "const": "retrieval-v2-evaluation-design-v1" },
+    "status": { "const": "frozen-unmaterialised-unscored" },
+    "authorityId": { "const": "AUTH-RB1-EVALUATION-DESIGN-FREEZE-001" },
+    "createdDate": { "type": "string", "format": "date" },
+    "requiredCellCount": { "const": 10 },
+    "materialisedCellCount": { "const": 0 },
+    "observedResultCount": { "const": 0 },
+    "expectedLeakageCaseRate": { "const": 0 },
+    "cells": {
+      "type": "array",
+      "minItems": 10,
+      "maxItems": 10,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["cellId", "boundary", "questionLanguage", "higherScoringIneligibleDisposition", "lowerScoringEligibleDisposition", "exactAssertions"],
+        "properties": {
+          "cellId": { "type": "string", "pattern": "^EF-[0-9]{3}$" },
+          "boundary": { "enum": ["corpus", "generation-candidate", "eligible-binding-set", "database", "document"] },
+          "questionLanguage": { "enum": ["pt-BR", "en-GB"] },
+          "higherScoringIneligibleDisposition": { "const": "absent-from-raw-hits-and-selected-evidence" },
+          "lowerScoringEligibleDisposition": { "const": "available-in-exact-order" },
+          "exactAssertions": { "type": "array", "minItems": 1, "items": { "type": "string", "minLength": 1 } }
+        }
+      }
+    }
+  }
+}

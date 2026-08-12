@@ -1,0 +1,12 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "materialisation-freeze-manifest.schema.json",
+  "title": "Future dataset materialisation freeze manifest",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["$schema", "schemaVersion", "artifactType", "evaluationDesignContractRevision", "status", "authorityId", "createdDate", "datasetRevision", "evaluationDesignContractDigest", "artifactDigests", "intendedCaseCount", "intendedCaseSetDigest", "observedResultCount", "requestedTier", "contractMatrixComplete", "eligibilityMatrixComplete", "catalogueRevision", "corpusId", "activationRevision", "indexGenerationId", "indexCompatibilityKey", "generationManifestDigest", "retentionPolicyId"],
+  "properties": {
+    "$schema": { "type": "string", "minLength": 1 }, "schemaVersion": { "const": 1 }, "artifactType": { "const": "MaterialisationFreezeManifest" }, "evaluationDesignContractRevision": { "const": "retrieval-v2-evaluation-design-v1" }, "status": { "type": "string", "minLength": 1 }, "authorityId": { "type": "string", "minLength": 1 }, "createdDate": { "type": "string", "format": "date" }, "datasetRevision": { "$ref": "#/$defs/id" }, "evaluationDesignContractDigest": { "$ref": "#/$defs/sha256" }, "artifactDigests": { "type": "object", "additionalProperties": false, "patternProperties": { "^.+$": { "$ref": "#/$defs/sha256" } }, "minProperties": 1 }, "intendedCaseCount": { "type": "integer", "minimum": 1 }, "intendedCaseSetDigest": { "$ref": "#/$defs/sha256" }, "observedResultCount": { "const": 0 }, "requestedTier": { "enum": ["COMPARATIVE_PILOT", "REPRESENTATIVE_HOMOLOGATION"] }, "contractMatrixComplete": { "const": true }, "eligibilityMatrixComplete": { "const": true }, "catalogueRevision": { "$ref": "#/$defs/id" }, "corpusId": { "$ref": "#/$defs/id" }, "activationRevision": { "$ref": "#/$defs/id" }, "indexGenerationId": { "$ref": "#/$defs/id" }, "indexCompatibilityKey": { "$ref": "#/$defs/id" }, "generationManifestDigest": { "$ref": "#/$defs/sha256" }, "retentionPolicyId": { "const": "evaluation-input-reference-retention-v1" }
+  },
+  "$defs": { "id": { "type": "string", "minLength": 1 }, "sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" } }
+}

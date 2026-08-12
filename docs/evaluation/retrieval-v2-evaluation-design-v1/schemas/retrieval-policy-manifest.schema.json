@@ -1,0 +1,11 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "retrieval-policy-manifest.schema.json",
+  "title": "Future frozen retrieval policy manifest",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["$schema", "schemaVersion", "artifactType", "evaluationDesignContractRevision", "status", "authorityId", "createdDate", "retrievalBoundaryId", "retrievalPolicyVersion", "numericalSemanticsId", "vectorStoreDescriptor", "ranking", "vectorTopK", "minimumScorePolicy", "minimumScore", "minimumScoreInclusive", "maximumSelectedEvidence", "maximumSelectedEvidenceScalars", "queryVectorCountPerBaselineCase", "multiQueryStatus"],
+  "properties": {
+    "$schema": { "type": "string", "minLength": 1 }, "schemaVersion": { "const": 1 }, "artifactType": { "const": "RetrievalPolicyManifest" }, "evaluationDesignContractRevision": { "const": "retrieval-v2-evaluation-design-v1" }, "status": { "type": "string", "minLength": 1 }, "authorityId": { "type": "string", "minLength": 1 }, "createdDate": { "type": "string", "format": "date" }, "retrievalBoundaryId": { "const": "retrieval-v2@frozen-query-vector" }, "retrievalPolicyVersion": { "const": "retrieval-v2" }, "numericalSemanticsId": { "const": "cosine-f32mul-f64acc-boundary-canonical-v1" }, "vectorStoreDescriptor": { "const": "sqlite-exact-vector-store/2;schema=1;distance=cosine;algorithm=exact-scan;vector=float32;score=cosine-f32mul-f64acc-boundary-canonical-v1" }, "ranking": { "const": "Score DESC, global ChunkOrdinal ASC" }, "vectorTopK": { "const": 8 }, "minimumScorePolicy": { "const": "minimum-score-v1" }, "minimumScore": { "const": 0.25 }, "minimumScoreInclusive": { "const": true }, "maximumSelectedEvidence": { "const": 6 }, "maximumSelectedEvidenceScalars": { "const": 16000 }, "queryVectorCountPerBaselineCase": { "const": 1 }, "multiQueryStatus": { "const": "parked-non-canonical" }
+  }
+}

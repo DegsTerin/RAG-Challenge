@@ -1,0 +1,33 @@
+{
+  "$schema": "schemas/question-normalisation-manifest.schema.json",
+  "schemaVersion": 1,
+  "artifactType": "QuestionNormalisationManifest",
+  "evaluationDesignContractRevision": "retrieval-v2-evaluation-design-v1",
+  "status": "frozen-unmaterialised-unscored",
+  "authorityId": "AUTH-RB1-EVALUATION-DESIGN-FREEZE-001",
+  "createdDate": "2026-08-12",
+  "questionNormalisationId": "retrieval-question-normalisation-v1",
+  "inputContract": "valid Unicode scalar sequence with no isolated surrogate",
+  "trimCodePoints": [
+    "U+0009..U+000D",
+    "U+0020",
+    "U+0085",
+    "U+00A0",
+    "U+1680",
+    "U+2000..U+200A",
+    "U+2028",
+    "U+2029",
+    "U+202F",
+    "U+205F",
+    "U+3000"
+  ],
+  "unicodeNormalisation": "NFC",
+  "preservedProperties": ["internal-whitespace", "line-endings", "case", "punctuation", "language"],
+  "rejectedControls": ["U+0000..U+001F except U+0009, U+000A and U+000D", "U+007F..U+009F except U+0085 only when trimmed at an edge"],
+  "allowedControls": ["U+0009", "U+000A", "U+000D"],
+  "normalisedUtf8ByteLength": { "minimum": 1, "maximum": 4096 },
+  "materialisationGate": "RB-2",
+  "encoding": "UTF-8 without BOM",
+  "digestAlgorithm": "SHA-256",
+  "materialisedQuestionCount": 0
+}

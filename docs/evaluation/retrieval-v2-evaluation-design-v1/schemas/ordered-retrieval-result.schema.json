@@ -1,0 +1,26 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "ordered-retrieval-result.schema.json",
+  "title": "Future ordered retrieval result",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["$schema", "schemaVersion", "artifactType", "evaluationDesignContractRevision", "status", "authorityId", "createdDate", "caseId", "datasetRevision", "campaignId", "runId", "retrievalBoundaryId", "retrievalPolicyVersion", "numericalSemanticsId", "vectorStoreDescriptor", "questionNormalisationId", "queryVectorSha256", "catalogueRevision", "corpusId", "activationRevision", "sourceBindingSetDigest", "activationBindingSetDigest", "indexGenerationId", "indexCompatibilityKey", "queryContractVersion", "eligibilityPolicyId", "typedOutcome", "rawHitCount", "rawHits", "selectedEvidenceCount", "selectedEvidence"],
+  "properties": {
+    "$schema": { "type": "string", "minLength": 1 }, "schemaVersion": { "const": 1 }, "artifactType": { "const": "OrderedRetrievalResult" }, "evaluationDesignContractRevision": { "const": "retrieval-v2-evaluation-design-v1" }, "status": { "type": "string", "minLength": 1 }, "authorityId": { "type": "string", "minLength": 1 }, "createdDate": { "type": "string", "format": "date" }, "caseId": { "$ref": "#/$defs/id" }, "datasetRevision": { "$ref": "#/$defs/id" }, "campaignId": { "$ref": "#/$defs/id" }, "runId": { "$ref": "#/$defs/id" }, "retrievalBoundaryId": { "const": "retrieval-v2@frozen-query-vector" }, "retrievalPolicyVersion": { "const": "retrieval-v2" }, "numericalSemanticsId": { "const": "cosine-f32mul-f64acc-boundary-canonical-v1" }, "vectorStoreDescriptor": { "const": "sqlite-exact-vector-store/2;schema=1;distance=cosine;algorithm=exact-scan;vector=float32;score=cosine-f32mul-f64acc-boundary-canonical-v1" }, "questionNormalisationId": { "const": "retrieval-question-normalisation-v1" }, "queryVectorSha256": { "$ref": "#/$defs/sha256" }, "catalogueRevision": { "$ref": "#/$defs/id" }, "corpusId": { "$ref": "#/$defs/id" }, "activationRevision": { "$ref": "#/$defs/id" }, "sourceBindingSetDigest": { "$ref": "#/$defs/sha256" }, "activationBindingSetDigest": { "$ref": "#/$defs/sha256" }, "indexGenerationId": { "$ref": "#/$defs/id" }, "indexCompatibilityKey": { "$ref": "#/$defs/id" }, "queryContractVersion": { "$ref": "#/$defs/id" }, "eligibilityPolicyId": { "$ref": "#/$defs/id" }, "typedOutcome": { "$ref": "#/$defs/id" }, "typedReason": { "$ref": "#/$defs/id" }, "rawHitCount": { "type": "integer", "minimum": 0 }, "rawHits": { "type": "array", "items": { "$ref": "#/$defs/hit" } }, "selectedEvidenceCount": { "type": "integer", "minimum": 0, "maximum": 6 }, "selectedEvidence": { "type": "array", "maxItems": 6, "items": { "$ref": "#/$defs/selected" } }
+  },
+  "$defs": {
+    "id": { "type": "string", "minLength": 1 }, "sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+    "hit": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["rank", "databaseProductId", "databaseProductRevision", "documentId", "documentVersion", "contentLanguage", "sourceAdapterId", "sourceTrustClass", "officialSourceRegistrationIdOrLocalSentinel", "globalChunkOrdinal", "chunkDigest", "exactSourceLocationDigest", "scoreBits"],
+      "properties": { "rank": { "type": "integer", "minimum": 1, "maximum": 8 }, "databaseProductId": { "$ref": "#/$defs/id" }, "databaseProductRevision": { "$ref": "#/$defs/id" }, "documentId": { "$ref": "#/$defs/id" }, "documentVersion": { "$ref": "#/$defs/id" }, "contentLanguage": { "$ref": "#/$defs/id" }, "sourceAdapterId": { "$ref": "#/$defs/id" }, "sourceTrustClass": { "enum": ["LocalAuthorised", "OfficialExternal"] }, "officialSourceRegistrationIdOrLocalSentinel": { "$ref": "#/$defs/id" }, "officialSnapshotId": { "$ref": "#/$defs/id" }, "globalChunkOrdinal": { "type": "integer", "minimum": 0 }, "chunkDigest": { "$ref": "#/$defs/sha256" }, "exactSourceLocationDigest": { "$ref": "#/$defs/sha256" }, "scoreBits": { "type": "string", "pattern": "^[0-9a-f]{16}$" } }
+    },
+    "selected": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["rank", "databaseProductId", "databaseProductRevision", "documentId", "documentVersion", "contentLanguage", "sourceAdapterId", "sourceTrustClass", "officialSourceRegistrationIdOrLocalSentinel", "globalChunkOrdinal", "chunkDigest", "exactSourceLocationDigest", "scoreBits", "scalarCount"],
+      "properties": { "rank": { "type": "integer", "minimum": 1, "maximum": 6 }, "databaseProductId": { "$ref": "#/$defs/id" }, "databaseProductRevision": { "$ref": "#/$defs/id" }, "documentId": { "$ref": "#/$defs/id" }, "documentVersion": { "$ref": "#/$defs/id" }, "contentLanguage": { "$ref": "#/$defs/id" }, "sourceAdapterId": { "$ref": "#/$defs/id" }, "sourceTrustClass": { "enum": ["LocalAuthorised", "OfficialExternal"] }, "officialSourceRegistrationIdOrLocalSentinel": { "$ref": "#/$defs/id" }, "officialSnapshotId": { "$ref": "#/$defs/id" }, "globalChunkOrdinal": { "type": "integer", "minimum": 0 }, "chunkDigest": { "$ref": "#/$defs/sha256" }, "exactSourceLocationDigest": { "$ref": "#/$defs/sha256" }, "scoreBits": { "type": "string", "pattern": "^[0-9a-f]{16}$" }, "scalarCount": { "type": "integer", "minimum": 1, "maximum": 16000 } }
+    }
+  }
+}

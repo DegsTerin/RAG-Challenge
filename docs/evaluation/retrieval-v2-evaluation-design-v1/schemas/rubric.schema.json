@@ -1,0 +1,39 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "rubric.schema.json",
+  "title": "Retrieval relevance and eligibility rubric",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["$schema", "schemaVersion", "artifactType", "evaluationDesignContractRevision", "status", "authorityId", "createdDate", "relevanceGrades", "eligibilityDispositions", "ineligibleReturnDisposition", "positiveEvidenceAssociationRules", "locationGroupingRule", "semanticGroupingRule", "negativeSubtypes", "reviewPolicy", "campaignBlockingRule", "authoringPolicy", "materialisedJudgementCount"],
+  "properties": {
+    "$schema": { "type": "string", "minLength": 1 },
+    "schemaVersion": { "const": 1 },
+    "artifactType": { "const": "RetrievalEvaluationRubric" },
+    "evaluationDesignContractRevision": { "const": "retrieval-v2-evaluation-design-v1" },
+    "status": { "const": "frozen-unmaterialised-unscored" },
+    "authorityId": { "const": "AUTH-RB1-EVALUATION-DESIGN-FREEZE-001" },
+    "createdDate": { "type": "string", "format": "date" },
+    "relevanceGrades": { "type": "array", "minItems": 3, "maxItems": 3, "items": { "$ref": "#/$defs/grade" } },
+    "eligibilityDispositions": { "const": ["Eligible", "Ineligible"] },
+    "ineligibleReturnDisposition": { "const": "leakage and hard failure independent of relevance grade" },
+    "positiveEvidenceAssociationRules": { "type": "array", "minItems": 2, "items": { "type": "string", "minLength": 1 } },
+    "locationGroupingRule": { "type": "string", "minLength": 1 },
+    "semanticGroupingRule": { "type": "string", "minLength": 1 },
+    "negativeSubtypes": { "const": ["NoEvidenceInEligibleCorpus", "EvidenceOnlyOutsideEligibleProjection"] },
+    "reviewPolicy": { "const": "two independent reviewers blinded to rank; both decisions and immutable adjudication retained" },
+    "campaignBlockingRule": { "const": "any unjudged item in final top five blocks the campaign" },
+    "authoringPolicy": { "const": "source-first authoring and unscored pooling before RB-2" },
+    "materialisedJudgementCount": { "const": 0 }
+  },
+  "$defs": {
+    "grade": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["grade", "definition"],
+      "properties": {
+        "grade": { "type": "integer", "minimum": 0, "maximum": 2 },
+        "definition": { "type": "string", "minLength": 1 }
+      }
+    }
+  }
+}

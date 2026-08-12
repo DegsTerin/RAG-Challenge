@@ -1,0 +1,283 @@
+{
+  "$schema": "schemas/contract-fixture-matrix.schema.json",
+  "schemaVersion": 1,
+  "artifactType": "ContractFixtureMatrixDesign",
+  "evaluationDesignContractRevision": "retrieval-v2-evaluation-design-v1",
+  "status": "frozen-unmaterialised-unscored",
+  "authorityId": "AUTH-RB1-EVALUATION-DESIGN-FREEZE-001",
+  "createdDate": "2026-08-12",
+  "requiredCellCount": 38,
+  "materialisedCellCount": 0,
+  "observedResultCount": 0,
+  "cells": [
+    {
+      "cellId": "CF-001",
+      "concern": "Valid successful retrieval with selected evidence",
+      "conditionId": "valid-success-with-selected-evidence",
+      "expectedTypedOutcome": "Succeeded",
+      "exactAssertions": ["At least one raw hit is returned.", "At least one eligible item is selected under the frozen policy."]
+    },
+    {
+      "cellId": "CF-002",
+      "concern": "No raw vector hits",
+      "conditionId": "no-raw-hits",
+      "expectedTypedOutcome": "NoSelectedEvidenceUnderPolicy",
+      "expectedReason": "NoRawHits",
+      "exactAssertions": ["Raw hit count is zero.", "Selected evidence count is zero."]
+    },
+    {
+      "cellId": "CF-003",
+      "concern": "All raw hits are below the inclusive minimum score",
+      "conditionId": "below-minimum-score",
+      "expectedTypedOutcome": "NoSelectedEvidenceUnderPolicy",
+      "expectedReason": "BelowMinimumScore",
+      "exactAssertions": ["Every raw score is strictly below 0.25.", "Selected evidence count is zero."]
+    },
+    {
+      "cellId": "CF-004",
+      "concern": "Scalar budget excludes every otherwise selectable item",
+      "conditionId": "scalar-budget-excluded-all",
+      "expectedTypedOutcome": "NoSelectedEvidenceUnderPolicy",
+      "expectedReason": "ScalarBudgetExcludedAll",
+      "exactAssertions": ["Every eligible score is at least 0.25.", "The 16000-scalar aggregate budget excludes all selected evidence."]
+    },
+    {
+      "cellId": "CF-005",
+      "concern": "Query dimension is incompatible with the generation",
+      "conditionId": "query-dimension-mismatch",
+      "expectedTypedOutcome": "InvalidQueryVector",
+      "exactAssertions": ["Failure occurs before ranking.", "No result sequence is emitted."]
+    },
+    {
+      "cellId": "CF-006",
+      "concern": "Query contains a non-finite component",
+      "conditionId": "query-non-finite-component",
+      "expectedTypedOutcome": "InvalidQueryVector",
+      "exactAssertions": ["NaN and infinity are rejected.", "No result sequence is emitted."]
+    },
+    {
+      "cellId": "CF-007",
+      "concern": "Query has zero magnitude",
+      "conditionId": "query-zero-magnitude",
+      "expectedTypedOutcome": "InvalidQueryVector",
+      "exactAssertions": ["Zero query magnitude is rejected.", "No cosine quotient is produced."]
+    },
+    {
+      "cellId": "CF-008",
+      "concern": "Stored vector contains a non-finite component",
+      "conditionId": "stored-non-finite-component",
+      "expectedTypedOutcome": "InvalidIndexData",
+      "exactAssertions": ["The invalid stored component is fail-closed.", "No scored result is emitted."]
+    },
+    {
+      "cellId": "CF-009",
+      "concern": "Stored vector norm is non-finite",
+      "conditionId": "stored-norm-non-finite",
+      "expectedTypedOutcome": "InvalidIndexData",
+      "exactAssertions": ["The invalid stored norm is fail-closed.", "No scored result is emitted."]
+    },
+    {
+      "cellId": "CF-010",
+      "concern": "Numeric intermediate is non-finite",
+      "conditionId": "numeric-intermediate-non-finite",
+      "expectedTypedOutcome": "InvalidIndexData",
+      "exactAssertions": ["Any non-finite dot-product or norm intermediate is rejected.", "No scored result is emitted."]
+    },
+    {
+      "cellId": "CF-011",
+      "concern": "Cosine quotient is non-finite",
+      "conditionId": "cosine-quotient-non-finite",
+      "expectedTypedOutcome": "InvalidIndexData",
+      "exactAssertions": ["The non-finite quotient is rejected before canonicalisation.", "No scored result is emitted."]
+    },
+    {
+      "cellId": "CF-012",
+      "concern": "Positive cosine boundary canonicalises to exact positive one",
+      "conditionId": "positive-boundary-canonical-one",
+      "expectedTypedOutcome": "Succeeded",
+      "exactAssertions": ["The finite internal quotient at the positive boundary is canonicalised to exact +1.", "The returned float64 score bits equal 0x3ff0000000000000."]
+    },
+    {
+      "cellId": "CF-013",
+      "concern": "Negative cosine boundary canonicalises to exact negative one",
+      "conditionId": "negative-boundary-canonical-minus-one",
+      "expectedTypedOutcome": "Succeeded",
+      "exactAssertions": ["The finite internal quotient at the negative boundary is canonicalised to exact -1.", "The returned float64 score bits equal 0xbff0000000000000."]
+    },
+    {
+      "cellId": "CF-014",
+      "concern": "First representable internal value below positive one is preserved",
+      "conditionId": "positive-first-inner-representable",
+      "expectedTypedOutcome": "Succeeded",
+      "exactAssertions": ["The finite value immediately inside +1 is not clamped.", "Its float64 score bits are preserved exactly."]
+    },
+    {
+      "cellId": "CF-015",
+      "concern": "First representable external value above positive one canonicalises",
+      "conditionId": "positive-first-outer-representable",
+      "expectedTypedOutcome": "Succeeded",
+      "exactAssertions": ["The finite value immediately outside +1 is canonicalised to +1.", "The returned float64 score bits equal 0x3ff0000000000000."]
+    },
+    {
+      "cellId": "CF-016",
+      "concern": "First representable internal value above negative one is preserved",
+      "conditionId": "negative-first-inner-representable",
+      "expectedTypedOutcome": "Succeeded",
+      "exactAssertions": ["The finite value immediately inside -1 is not clamped.", "Its float64 score bits are preserved exactly."]
+    },
+    {
+      "cellId": "CF-017",
+      "concern": "First representable external value below negative one canonicalises",
+      "conditionId": "negative-first-outer-representable",
+      "expectedTypedOutcome": "Succeeded",
+      "exactAssertions": ["The finite value immediately outside -1 is canonicalised to -1.", "The returned float64 score bits equal 0xbff0000000000000."]
+    },
+    {
+      "cellId": "CF-018",
+      "concern": "Constructible internal positive zero is preserved",
+      "conditionId": "positive-zero-preserved",
+      "expectedTypedOutcome": "Succeeded",
+      "exactAssertions": ["The returned score remains +0.", "Its float64 score bits equal 0x0000000000000000."]
+    },
+    {
+      "cellId": "CF-019",
+      "concern": "Constructible internal negative zero remains digest-distinct",
+      "conditionId": "negative-zero-preserved",
+      "expectedTypedOutcome": "Succeeded",
+      "exactAssertions": ["The returned score remains -0.", "Its float64 score bits equal 0x8000000000000000 and differ from +0 in the digest."]
+    },
+    {
+      "cellId": "CF-020",
+      "concern": "Stored zero vector produces exact positive zero score",
+      "conditionId": "stored-zero-vector-positive-zero",
+      "expectedTypedOutcome": "Succeeded",
+      "exactAssertions": ["A valid stored zero vector produces exact +0 under the accepted numerical semantics.", "The returned float64 score bits equal 0x0000000000000000."]
+    },
+    {
+      "cellId": "CF-021",
+      "concern": "Requested generation is absent",
+      "conditionId": "generation-absent",
+      "expectedTypedOutcome": "GenerationUnavailable",
+      "exactAssertions": ["No fallback generation is selected.", "No result sequence is emitted."]
+    },
+    {
+      "cellId": "CF-022",
+      "concern": "Requested generation is not validated",
+      "conditionId": "generation-not-validated",
+      "expectedTypedOutcome": "GenerationUnavailable",
+      "exactAssertions": ["The unvalidated generation is not queried.", "No result sequence is emitted."]
+    },
+    {
+      "cellId": "CF-023",
+      "concern": "Retrieval v1 and retrieval v2 descriptor or compatibility key mismatch",
+      "conditionId": "retrieval-version-descriptor-key-mismatch",
+      "expectedTypedOutcome": "GenerationUnavailable",
+      "exactAssertions": ["No compatibility fallback is allowed.", "The /2 descriptor and retrieval-v2 compatibility identity remain mandatory."]
+    },
+    {
+      "cellId": "CF-024",
+      "concern": "Duplicate global chunk ordinal",
+      "conditionId": "duplicate-global-chunk-ordinal",
+      "expectedTypedOutcome": "InvalidIndexData",
+      "exactAssertions": ["Duplicate ordinals fail closed.", "No ambiguous total order is emitted."]
+    },
+    {
+      "cellId": "CF-025",
+      "concern": "Negative global chunk ordinal",
+      "conditionId": "negative-global-chunk-ordinal",
+      "expectedTypedOutcome": "InvalidIndexData",
+      "exactAssertions": ["Negative ordinals fail closed.", "No result sequence is emitted."]
+    },
+    {
+      "cellId": "CF-026",
+      "concern": "Returned hit identity is incompatible with the bound generation",
+      "conditionId": "hit-identity-mismatch",
+      "expectedTypedOutcome": "InvalidIndexData",
+      "exactAssertions": ["Every hit identity must resolve within the frozen eligible binding set.", "An incompatible hit is never selected."]
+    },
+    {
+      "cellId": "CF-027",
+      "concern": "Declared and actual result counts differ",
+      "conditionId": "result-count-mismatch",
+      "expectedTypedOutcome": "ContractViolation",
+      "exactAssertions": ["Raw and selected counts exactly match their sequences.", "Count mismatch fails the entire result."]
+    },
+    {
+      "cellId": "CF-028",
+      "concern": "Composite result ordering is incompatible",
+      "conditionId": "composite-order-mismatch",
+      "expectedTypedOutcome": "ContractViolation",
+      "exactAssertions": ["Results are ordered by Score DESC then global ChunkOrdinal ASC.", "Any incompatible order fails the entire result."]
+    },
+    {
+      "cellId": "CF-029",
+      "concern": "Required retrieval configuration is absent",
+      "conditionId": "required-configuration-absent",
+      "expectedTypedOutcome": "InvalidConfiguration",
+      "exactAssertions": ["No implicit configuration value is substituted.", "No retrieval is attempted."]
+    },
+    {
+      "cellId": "CF-030",
+      "concern": "Frozen versions, limits, or descriptor are internally inconsistent",
+      "conditionId": "configuration-identity-inconsistent",
+      "expectedTypedOutcome": "InvalidConfiguration",
+      "exactAssertions": ["All frozen identities and limits must agree before retrieval.", "No retrieval is attempted."]
+    },
+    {
+      "cellId": "CF-031",
+      "concern": "Operation cancellation",
+      "conditionId": "operation-cancelled",
+      "expectedTypedOutcome": "OperationCancelled",
+      "exactAssertions": ["Cancellation remains distinguishable from failure.", "No partial result is accepted."]
+    },
+    {
+      "cellId": "CF-032",
+      "concern": "Injected unclassified failure",
+      "conditionId": "unexpected-injected-failure",
+      "expectedTypedOutcome": "UnexpectedFailure",
+      "exactAssertions": ["The failure is sanitised and typed.", "No partial result is accepted."]
+    },
+    {
+      "cellId": "CF-033",
+      "concern": "Nine adversarial candidates exercise top-k eight and total ordering",
+      "conditionId": "nine-candidate-top-eight-total-order",
+      "expectedTypedOutcome": "Succeeded",
+      "exactAssertions": ["Exactly the first eight candidates under the frozen total order are raw hits.", "Ties are resolved globally by ChunkOrdinal ASC."]
+    },
+    {
+      "cellId": "CF-034",
+      "concern": "Write permutations, replay, and reopen retain one canonical digest",
+      "conditionId": "permutation-replay-reopen-digest-stability",
+      "expectedTypedOutcome": "Succeeded",
+      "exactAssertions": ["All planned storage permutations produce the same ordered result digest.", "Replay and reopen produce the same ordered result digest."]
+    },
+    {
+      "cellId": "CF-035",
+      "concern": "Adapter returns a NaN score",
+      "conditionId": "returned-score-nan",
+      "expectedTypedOutcome": "InvalidIndexData",
+      "exactAssertions": ["A returned NaN score violates the Application contract.", "No canonical result is emitted."]
+    },
+    {
+      "cellId": "CF-036",
+      "concern": "Adapter returns an infinite score",
+      "conditionId": "returned-score-infinite",
+      "expectedTypedOutcome": "InvalidIndexData",
+      "exactAssertions": ["A returned infinite score violates the Application contract.", "No canonical result is emitted."]
+    },
+    {
+      "cellId": "CF-037",
+      "concern": "Adapter returns a score above positive one",
+      "conditionId": "returned-score-above-positive-one",
+      "expectedTypedOutcome": "InvalidIndexData",
+      "exactAssertions": ["An adapter-returned score above +1 is not canonicalised by Application.", "The contract violation fails closed."]
+    },
+    {
+      "cellId": "CF-038",
+      "concern": "Adapter returns a score below negative one",
+      "conditionId": "returned-score-below-negative-one",
+      "expectedTypedOutcome": "InvalidIndexData",
+      "exactAssertions": ["An adapter-returned score below -1 is not canonicalised by Application.", "The contract violation fails closed."]
+    }
+  ]
+}

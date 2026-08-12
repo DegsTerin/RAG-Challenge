@@ -1,0 +1,41 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "dataset-manifest.schema.json",
+  "title": "Future retrieval evaluation dataset manifest",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["$schema", "schemaVersion", "artifactType", "evaluationDesignContractRevision", "status", "authorityId", "createdDate", "datasetId", "datasetRevision", "repositoryCommit", "promptCorpusVersion", "artifactDigests", "intendedCaseCount", "intendedCaseSetDigest", "catalogueRevision", "corpusId", "activationRevision", "indexGenerationId", "indexCompatibilityKey", "generationManifestDigest", "sourceBindingSetDigest", "activationBindingSetDigest", "poolSystems", "poolDepths", "poolDigest", "retentionPolicyId", "runtimeAndReleaseAbsence"],
+  "properties": {
+    "$schema": { "type": "string", "minLength": 1 },
+    "schemaVersion": { "const": 1 },
+    "artifactType": { "const": "DatasetManifest" },
+    "evaluationDesignContractRevision": { "const": "retrieval-v2-evaluation-design-v1" },
+    "status": { "type": "string", "minLength": 1 },
+    "authorityId": { "type": "string", "minLength": 1 },
+    "createdDate": { "type": "string", "format": "date" },
+    "datasetId": { "const": "rag-eval-catalogue-v1" },
+    "datasetRevision": { "$ref": "#/$defs/id" },
+    "repositoryCommit": { "type": "string", "pattern": "^[0-9a-f]{40}$" },
+    "promptCorpusVersion": { "$ref": "#/$defs/id" },
+    "artifactDigests": { "type": "object", "additionalProperties": false, "patternProperties": { "^.+$": { "$ref": "#/$defs/sha256" } }, "minProperties": 1 },
+    "intendedCaseCount": { "type": "integer", "minimum": 1 },
+    "intendedCaseSetDigest": { "$ref": "#/$defs/sha256" },
+    "catalogueRevision": { "$ref": "#/$defs/id" },
+    "corpusId": { "$ref": "#/$defs/id" },
+    "activationRevision": { "$ref": "#/$defs/id" },
+    "indexGenerationId": { "$ref": "#/$defs/id" },
+    "indexCompatibilityKey": { "$ref": "#/$defs/id" },
+    "generationManifestDigest": { "$ref": "#/$defs/sha256" },
+    "sourceBindingSetDigest": { "$ref": "#/$defs/sha256" },
+    "activationBindingSetDigest": { "$ref": "#/$defs/sha256" },
+    "poolSystems": { "type": "array", "minItems": 1, "uniqueItems": true, "items": { "$ref": "#/$defs/id" } },
+    "poolDepths": { "type": "array", "minItems": 1, "uniqueItems": true, "items": { "type": "integer", "minimum": 1 } },
+    "poolDigest": { "$ref": "#/$defs/sha256" },
+    "retentionPolicyId": { "const": "evaluation-input-reference-retention-v1" },
+    "runtimeAndReleaseAbsence": { "const": "dataset materialisation grants no runtime, release, campaign, scoring, provider or lifecycle authority" }
+  },
+  "$defs": {
+    "id": { "type": "string", "minLength": 1 },
+    "sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" }
+  }
+}

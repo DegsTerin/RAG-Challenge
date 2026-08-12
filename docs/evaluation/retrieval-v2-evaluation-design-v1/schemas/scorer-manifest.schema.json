@@ -1,0 +1,47 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "scorer-manifest.schema.json",
+  "title": "Retrieval evaluation scorer design manifest",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["$schema", "schemaVersion", "artifactType", "evaluationDesignContractRevision", "status", "authorityId", "createdDate", "scorerId", "formulae", "thresholds", "diagnosticsWithoutThreshold", "denominatorRules", "failureDispositions", "contractFixtureDenominatorPolicy", "observedMetricCount"],
+  "properties": {
+    "$schema": { "type": "string", "minLength": 1 },
+    "schemaVersion": { "const": 1 },
+    "artifactType": { "const": "ScorerManifest" },
+    "evaluationDesignContractRevision": { "const": "retrieval-v2-evaluation-design-v1" },
+    "status": { "const": "frozen-unmaterialised-unscored" },
+    "authorityId": { "const": "AUTH-RB1-EVALUATION-DESIGN-FREEZE-001" },
+    "createdDate": { "type": "string", "format": "date" },
+    "scorerId": { "const": "retrieval-evaluation-scorer-v1" },
+    "formulae": { "type": "array", "minItems": 20, "items": { "$ref": "#/$defs/formula" } },
+    "thresholds": { "type": "array", "minItems": 12, "items": { "$ref": "#/$defs/threshold" } },
+    "diagnosticsWithoutThreshold": { "type": "array", "minItems": 10, "uniqueItems": true, "items": { "type": "string", "minLength": 1 } },
+    "denominatorRules": { "type": "array", "minItems": 2, "items": { "type": "string", "minLength": 1 } },
+    "failureDispositions": { "type": "array", "minItems": 2, "items": { "type": "string", "minLength": 1 } },
+    "contractFixtureDenominatorPolicy": { "const": "contract fixtures are excluded from quality denominators" },
+    "observedMetricCount": { "const": 0 }
+  },
+  "$defs": {
+    "formula": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["metricId", "definition"],
+      "properties": {
+        "metricId": { "type": "string", "minLength": 1 },
+        "definition": { "type": "string", "minLength": 1 }
+      }
+    },
+    "threshold": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["metricId", "scope", "operator", "value"],
+      "properties": {
+        "metricId": { "type": "string", "minLength": 1 },
+        "scope": { "type": "string", "minLength": 1 },
+        "operator": { "enum": ["equal", "greater-than-or-equal"] },
+        "value": { "type": "number", "minimum": 0, "maximum": 1 }
+      }
+    }
+  }
+}

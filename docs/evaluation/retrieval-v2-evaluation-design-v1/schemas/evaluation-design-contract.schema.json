@@ -1,0 +1,188 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "evaluation-design-contract.schema.json",
+  "title": "Retrieval v2 evaluation design contract",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "$schema",
+    "schemaVersion",
+    "artifactType",
+    "evaluationDesignContractRevision",
+    "status",
+    "authorityId",
+    "createdDate",
+    "contractSha256",
+    "baseline",
+    "identities",
+    "materialisationCounters",
+    "companionInventory",
+    "formulaCatalogue",
+    "quotaPolicy",
+    "versioningPolicy",
+    "retentionPolicy",
+    "gateSequence",
+    "stopConditions",
+    "negativeScope"
+  ],
+  "properties": {
+    "$schema": { "type": "string", "minLength": 1 },
+    "schemaVersion": { "const": 1 },
+    "artifactType": { "const": "EvaluationDesignContract" },
+    "evaluationDesignContractRevision": { "const": "retrieval-v2-evaluation-design-v1" },
+    "status": { "const": "frozen-unmaterialised-unscored" },
+    "authorityId": { "const": "AUTH-RB1-EVALUATION-DESIGN-FREEZE-001" },
+    "createdDate": { "type": "string", "format": "date" },
+    "contractSha256": { "$ref": "#/$defs/sha256" },
+    "baseline": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["branch", "commit", "treeState", "promptCorpusVersion", "openApiV1", "openApiV2"],
+      "properties": {
+        "branch": { "const": "main" },
+        "commit": { "const": "45cbcf2624262572abf8180498ac63709a9130e4" },
+        "treeState": { "const": "clean" },
+        "promptCorpusVersion": { "const": "4.10.33" },
+        "openApiV1": { "$ref": "#/$defs/protectedIdentity" },
+        "openApiV2": { "$ref": "#/$defs/protectedIdentity" }
+      }
+    },
+    "identities": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["gateId", "retrievalBoundaryId", "retrievalPolicyVersion", "numericalSemanticsId", "vectorStoreDescriptor", "scorerId", "canonicalisationId", "questionNormalisationId", "ranking", "vectorTopK", "minimumScorePolicy", "minimumScore", "minimumScoreInclusive", "maximumSelectedEvidence", "maximumSelectedEvidenceScalars", "queryVectorCountPerBaselineCase", "queryVectorMaterialisationGate", "multiQueryStatus"],
+      "properties": {
+        "gateId": { "const": "RB-1" },
+        "retrievalBoundaryId": { "const": "retrieval-v2@frozen-query-vector" },
+        "retrievalPolicyVersion": { "const": "retrieval-v2" },
+        "numericalSemanticsId": { "const": "cosine-f32mul-f64acc-boundary-canonical-v1" },
+        "vectorStoreDescriptor": { "const": "sqlite-exact-vector-store/2;schema=1;distance=cosine;algorithm=exact-scan;vector=float32;score=cosine-f32mul-f64acc-boundary-canonical-v1" },
+        "scorerId": { "const": "retrieval-evaluation-scorer-v1" },
+        "canonicalisationId": { "const": "retrieval-result-canonicalisation-v1" },
+        "questionNormalisationId": { "const": "retrieval-question-normalisation-v1" },
+        "ranking": { "const": "Score DESC, global ChunkOrdinal ASC" },
+        "vectorTopK": { "const": 8 },
+        "minimumScorePolicy": { "const": "minimum-score-v1" },
+        "minimumScore": { "const": 0.25 },
+        "minimumScoreInclusive": { "const": true },
+        "maximumSelectedEvidence": { "const": 6 },
+        "maximumSelectedEvidenceScalars": { "const": 16000 },
+        "queryVectorCountPerBaselineCase": { "const": 1 },
+        "queryVectorMaterialisationGate": { "const": "RB-3" },
+        "multiQueryStatus": { "const": "parked-non-canonical" }
+      }
+    },
+    "materialisationCounters": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["productDocumentCount", "productCaseCount", "qrelCount", "queryVectorCount", "indexGenerationCount", "scoredRunCount", "observedResultCount"],
+      "properties": {
+        "productDocumentCount": { "const": 0 },
+        "productCaseCount": { "const": 0 },
+        "qrelCount": { "const": 0 },
+        "queryVectorCount": { "const": 0 },
+        "indexGenerationCount": { "const": 0 },
+        "scoredRunCount": { "const": 0 },
+        "observedResultCount": { "const": 0 }
+      }
+    },
+    "companionInventory": {
+      "type": "array",
+      "minItems": 27,
+      "maxItems": 27,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["path", "artifactType", "sha256"],
+        "properties": {
+          "path": { "type": "string", "minLength": 1 },
+          "artifactType": { "type": "string", "minLength": 1 },
+          "sha256": { "$ref": "#/$defs/sha256" }
+        }
+      }
+    },
+    "formulaCatalogue": {
+      "type": "array",
+      "minItems": 20,
+      "items": { "$ref": "#/$defs/namedDefinition" }
+    },
+    "quotaPolicy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["quotaPolicyId", "rules", "comparativePilotBoundary", "representativeClaimBoundary", "catalogueCeiling"],
+      "properties": {
+        "quotaPolicyId": { "const": "retrieval-evaluation-quota-policy-v1" },
+        "rules": { "type": "array", "minItems": 9, "items": { "$ref": "#/$defs/namedDefinition" } },
+        "comparativePilotBoundary": { "type": "string", "minLength": 1 },
+        "representativeClaimBoundary": { "type": "string", "minLength": 1 },
+        "catalogueCeiling": { "const": "none" }
+      }
+    },
+    "versioningPolicy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["immutability", "successorRequirement"],
+      "properties": {
+        "immutability": { "const": "frozen revision is never altered" },
+        "successorRequirement": { "const": "any later change requires a new evaluationDesignContractRevision" }
+      }
+    },
+    "retentionPolicy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["designRetentionPolicyId", "inputReferenceRetentionPolicyId", "futurePaths", "trackedEvidenceBoundary"],
+      "properties": {
+        "designRetentionPolicyId": { "const": "evaluation-design-git-permanent-v1" },
+        "inputReferenceRetentionPolicyId": { "const": "evaluation-input-reference-retention-v1" },
+        "futurePaths": { "type": "array", "minItems": 4, "maxItems": 4, "items": { "$ref": "#/$defs/gatePath" } },
+        "trackedEvidenceBoundary": { "type": "array", "minItems": 1, "items": { "type": "string", "minLength": 1 } }
+      }
+    },
+    "gateSequence": {
+      "type": "array",
+      "minItems": 10,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["gateId", "disposition"],
+        "properties": {
+          "gateId": { "type": "string", "minLength": 1 },
+          "disposition": { "type": "string", "minLength": 1 }
+        }
+      }
+    },
+    "stopConditions": { "type": "array", "minItems": 10, "items": { "type": "string", "minLength": 1 } },
+    "negativeScope": { "type": "array", "minItems": 10, "items": { "type": "string", "minLength": 1 } }
+  },
+  "$defs": {
+    "sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+    "protectedIdentity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["sha256", "gitBlob"],
+      "properties": {
+        "sha256": { "$ref": "#/$defs/sha256" },
+        "gitBlob": { "type": "string", "pattern": "^[0-9a-f]{40}$" }
+      }
+    },
+    "namedDefinition": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "definition"],
+      "properties": {
+        "id": { "type": "string", "minLength": 1 },
+        "definition": { "type": "string", "minLength": 1 }
+      }
+    },
+    "gatePath": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["gateId", "path", "status"],
+      "properties": {
+        "gateId": { "type": "string", "minLength": 1 },
+        "path": { "type": "string", "minLength": 1 },
+        "status": { "const": "not-materialised-not-authorised" }
+      }
+    }
+  }
+}

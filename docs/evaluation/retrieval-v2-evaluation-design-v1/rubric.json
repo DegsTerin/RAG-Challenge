@@ -1,0 +1,24 @@
+{
+  "$schema": "schemas/rubric.schema.json",
+  "schemaVersion": 1,
+  "artifactType": "RetrievalEvaluationRubric",
+  "evaluationDesignContractRevision": "retrieval-v2-evaluation-design-v1",
+  "status": "frozen-unmaterialised-unscored",
+  "authorityId": "AUTH-RB1-EVALUATION-DESIGN-FREEZE-001",
+  "createdDate": "2026-08-12",
+  "relevanceGrades": [
+    { "grade": 2, "definition": "Direct evidence sufficient for the requiredFact." },
+    { "grade": 1, "definition": "Useful context that is insufficient on its own." },
+    { "grade": 0, "definition": "Not relevant." }
+  ],
+  "eligibilityDispositions": ["Eligible", "Ineligible"],
+  "ineligibleReturnDisposition": "leakage and hard failure independent of relevance grade",
+  "positiveEvidenceAssociationRules": ["Create one PositiveEvidenceAssociation for every supported requiredFact.", "A grade-2 association also requires relevantLocationGroupId."],
+  "locationGroupingRule": "Equivalent or overlapping locations share a relevantLocationGroupId; independent locations do not.",
+  "semanticGroupingRule": "semanticCaseGroupId is diagnostic and never replaces the canonical per-case macro.",
+  "negativeSubtypes": ["NoEvidenceInEligibleCorpus", "EvidenceOnlyOutsideEligibleProjection"],
+  "reviewPolicy": "two independent reviewers blinded to rank; both decisions and immutable adjudication retained",
+  "campaignBlockingRule": "any unjudged item in final top five blocks the campaign",
+  "authoringPolicy": "source-first authoring and unscored pooling before RB-2",
+  "materialisedJudgementCount": 0
+}

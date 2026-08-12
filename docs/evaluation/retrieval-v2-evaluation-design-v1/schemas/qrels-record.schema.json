@@ -1,0 +1,43 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "qrels-record.schema.json",
+  "title": "Future retrieval evaluation qrels record",
+  "oneOf": [
+    { "$ref": "#/$defs/judgementArtifact" },
+    { "$ref": "#/$defs/associationArtifact" }
+  ],
+  "$defs": {
+    "id": { "type": "string", "minLength": 1 },
+    "sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+    "commonProperties": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["$schema", "schemaVersion", "artifactType", "evaluationDesignContractRevision", "status", "authorityId", "createdDate"],
+      "properties": {
+        "$schema": { "type": "string", "minLength": 1 }, "schemaVersion": { "const": 1 }, "artifactType": { "type": "string", "minLength": 1 }, "evaluationDesignContractRevision": { "const": "retrieval-v2-evaluation-design-v1" }, "status": { "type": "string", "minLength": 1 }, "authorityId": { "type": "string", "minLength": 1 }, "createdDate": { "type": "string", "format": "date" }
+      }
+    },
+    "judgementArtifact": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["$schema", "schemaVersion", "artifactType", "evaluationDesignContractRevision", "status", "authorityId", "createdDate", "judgementRecordId", "datasetRevision", "caseId", "catalogueRevision", "corpusId", "activationRevision", "sourceBindingSetDigest", "activationBindingSetDigest", "indexGenerationId", "indexCompatibilityKey", "databaseProductId", "databaseProductRevision", "documentId", "documentVersion", "documentFormat", "contentLanguage", "sourceAdapterId", "sourceTrustClass", "officialSourceRegistrationIdOrLocalSentinel", "globalChunkOrdinal", "chunkDigest", "exactSourceLocation", "relevanceGrade", "eligibilityDisposition", "reviewerOneDecision", "reviewerTwoDecision", "adjudicationDecision"],
+      "properties": {
+        "$schema": { "type": "string", "minLength": 1 }, "schemaVersion": { "const": 1 }, "artifactType": { "const": "JudgementRecord" }, "evaluationDesignContractRevision": { "const": "retrieval-v2-evaluation-design-v1" }, "status": { "type": "string", "minLength": 1 }, "authorityId": { "type": "string", "minLength": 1 }, "createdDate": { "type": "string", "format": "date" }, "judgementRecordId": { "$ref": "#/$defs/id" }, "datasetRevision": { "$ref": "#/$defs/id" }, "caseId": { "$ref": "#/$defs/id" }, "catalogueRevision": { "$ref": "#/$defs/id" }, "corpusId": { "$ref": "#/$defs/id" }, "activationRevision": { "$ref": "#/$defs/id" }, "sourceBindingSetDigest": { "$ref": "#/$defs/sha256" }, "activationBindingSetDigest": { "$ref": "#/$defs/sha256" }, "indexGenerationId": { "$ref": "#/$defs/id" }, "indexCompatibilityKey": { "$ref": "#/$defs/id" }, "databaseProductId": { "$ref": "#/$defs/id" }, "databaseProductRevision": { "$ref": "#/$defs/id" }, "documentId": { "$ref": "#/$defs/id" }, "documentVersion": { "$ref": "#/$defs/id" }, "documentFormat": { "enum": ["PDF", "CSV"] }, "contentLanguage": { "$ref": "#/$defs/id" }, "sourceAdapterId": { "$ref": "#/$defs/id" }, "sourceTrustClass": { "enum": ["LocalAuthorised", "OfficialExternal"] }, "officialSourceRegistrationIdOrLocalSentinel": { "$ref": "#/$defs/id" }, "officialSnapshotId": { "$ref": "#/$defs/id" }, "globalChunkOrdinal": { "type": "integer", "minimum": 0 }, "chunkDigest": { "$ref": "#/$defs/sha256" }, "exactSourceLocation": { "$ref": "#/$defs/id" }, "relevanceGrade": { "type": "integer", "minimum": 0, "maximum": 2 }, "eligibilityDisposition": { "enum": ["Eligible", "Ineligible"] }, "reviewerOneDecision": { "$ref": "#/$defs/id" }, "reviewerTwoDecision": { "$ref": "#/$defs/id" }, "adjudicationDecision": { "$ref": "#/$defs/id" }
+      },
+      "allOf": [
+        { "if": { "properties": { "sourceTrustClass": { "const": "OfficialExternal" } }, "required": ["sourceTrustClass"] }, "then": { "required": ["officialSnapshotId"] } }
+      ]
+    },
+    "associationArtifact": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["$schema", "schemaVersion", "artifactType", "evaluationDesignContractRevision", "status", "authorityId", "createdDate", "judgementRecordId", "requiredFactId", "relevanceGrade"],
+      "properties": {
+        "$schema": { "type": "string", "minLength": 1 }, "schemaVersion": { "const": 1 }, "artifactType": { "const": "PositiveEvidenceAssociation" }, "evaluationDesignContractRevision": { "const": "retrieval-v2-evaluation-design-v1" }, "status": { "type": "string", "minLength": 1 }, "authorityId": { "type": "string", "minLength": 1 }, "createdDate": { "type": "string", "format": "date" }, "judgementRecordId": { "$ref": "#/$defs/id" }, "requiredFactId": { "$ref": "#/$defs/id" }, "relevanceGrade": { "type": "integer", "minimum": 1, "maximum": 2 }, "relevantLocationGroupId": { "$ref": "#/$defs/id" }
+      },
+      "allOf": [
+        { "if": { "properties": { "relevanceGrade": { "const": 2 } }, "required": ["relevanceGrade"] }, "then": { "required": ["relevantLocationGroupId"] } }
+      ]
+    }
+  }
+}

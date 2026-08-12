@@ -1,0 +1,36 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "case-inventory.schema.json",
+  "title": "Future retrieval evaluation case inventory",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["$schema", "schemaVersion", "artifactType", "evaluationDesignContractRevision", "status", "authorityId", "createdDate", "datasetRevision", "cases", "questionStoragePolicy"],
+  "properties": {
+    "$schema": { "type": "string", "minLength": 1 },
+    "schemaVersion": { "const": 1 },
+    "artifactType": { "const": "CaseInventory" },
+    "evaluationDesignContractRevision": { "const": "retrieval-v2-evaluation-design-v1" },
+    "status": { "type": "string", "minLength": 1 },
+    "authorityId": { "type": "string", "minLength": 1 },
+    "createdDate": { "type": "string", "format": "date" },
+    "datasetRevision": { "$ref": "#/$defs/id" },
+    "cases": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/case" } },
+    "questionStoragePolicy": { "const": "full question remains in ignored storage and never in the tracked copy" }
+  },
+  "$defs": {
+    "id": { "type": "string", "minLength": 1 },
+    "sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+    "case": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["caseId", "caseType", "semanticCaseGroupId", "primaryDatabaseProductId", "primaryDocumentId", "primarySourceStratum", "primaryDocumentFormat", "questionLanguage", "contentLanguage", "requiredFactIds", "eligibleSelectors", "queryContractVersion", "eligibilityPolicyId", "normalisedQuestionObjectRef", "normalisedQuestionByteLength", "normalisedQuestionSha256"],
+      "properties": {
+        "caseId": { "$ref": "#/$defs/id" }, "caseType": { "enum": ["Positive", "Negative"] }, "negativeSubtype": { "enum": ["NoEvidenceInEligibleCorpus", "EvidenceOnlyOutsideEligibleProjection"] }, "semanticCaseGroupId": { "$ref": "#/$defs/id" }, "primaryDatabaseProductId": { "$ref": "#/$defs/id" }, "primaryDocumentId": { "$ref": "#/$defs/id" }, "primarySourceStratum": { "$ref": "#/$defs/id" }, "primaryDocumentFormat": { "enum": ["PDF", "CSV"] }, "questionLanguage": { "enum": ["pt-BR", "en-GB"] }, "contentLanguage": { "$ref": "#/$defs/id" }, "requiredFactIds": { "type": "array", "items": { "$ref": "#/$defs/id" } }, "eligibleSelectors": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/id" } }, "queryContractVersion": { "$ref": "#/$defs/id" }, "eligibilityPolicyId": { "$ref": "#/$defs/id" }, "normalisedQuestionObjectRef": { "$ref": "#/$defs/id" }, "normalisedQuestionByteLength": { "type": "integer", "minimum": 1, "maximum": 4096 }, "normalisedQuestionSha256": { "$ref": "#/$defs/sha256" }
+      },
+      "allOf": [
+        { "if": { "properties": { "caseType": { "const": "Negative" } }, "required": ["caseType"] }, "then": { "required": ["negativeSubtype"] } },
+        { "if": { "properties": { "caseType": { "const": "Positive" } }, "required": ["caseType"] }, "then": { "properties": { "requiredFactIds": { "minItems": 1 } } } }
+      ]
+    }
+  }
+}

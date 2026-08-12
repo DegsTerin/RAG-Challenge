@@ -1070,3 +1070,73 @@ reconciliation.
 
 Documentary validation completed with `git diff --check` exit code `0` and a
 successful `eng/check-repository.ps1` audit of 275 non-ignored files.
+
+## Retrieval v2 evaluation design freeze
+
+### Authority and protected baseline
+
+The product owner authorised the documentary, local, offline and sequential
+`RB-1 — Evaluation design freeze` under
+`AUTH-RB1-EVALUATION-DESIGN-FREEZE-001` from clean
+`main@45cbcf2624262572abf8180498ac63709a9130e4`, prompt corpus `4.10.33`.
+Runtime preflight was `NOT_APPLICABLE`; no process or listener was enumerated or
+stopped.
+
+The protected OpenAPI artefacts were reconfirmed before the first write:
+
+| Artefact | SHA-256 | Git blob | Result |
+| --- | --- | --- | --- |
+| OpenAPI v1 | `d6a686b94c926914beb28b437f464430a01de6560c2e2d476cf5c36025813e34` | `a5fb3602fbab33bda6aa56cc4caaa9fdc37c8160` | preserved byte for byte |
+| OpenAPI v2 | `f4dca8db7fb7bd453e580495bb1bb7760812d954344931063e8549ed8f036733` | `5ed6a47631653dd0c137b6ea1e979ae2c14bf8a8` | preserved byte for byte |
+
+### Frozen design result
+
+The immutable, unmaterialised and unscored revision
+`retrieval-v2-evaluation-design-v1` is frozen with 28 normative JSON artefacts:
+eight design instances and twenty Draft 2020-12 schemas. The root
+[`evaluation-design-contract.json`](evaluation/retrieval-v2-evaluation-design-v1/evaluation-design-contract.json)
+binds the other 27 artefacts by ordinal path, artefact type and exact SHA-256.
+Its zero-substitution self-digest is
+`0e8d928aee055211773d83eb33f2d54485033c81cfad15dd95b0fdd551f8ed08`.
+
+The contract freezes `retrieval-v2@frozen-query-vector`,
+`cosine-f32mul-f64acc-boundary-canonical-v1`, the exact `/2` vector-store
+descriptor, `Score DESC, global ChunkOrdinal ASC`, top-k `8`, inclusive minimum
+score `0.25`, at most `6` selected items, the `16000`-scalar aggregate budget,
+exactly one future query vector per baseline case in `RB-3`, and MultiQuery as
+`parked-non-canonical`. It also freezes question normalisation,
+canonicalisation, scorer formulae and thresholds, sampling quotas, rubric,
+retention, future task-owned paths, gate order, stop conditions and negative
+scope.
+
+The contract matrix contains 38 unique required cell definitions and the
+eligibility matrix contains 10 unique required boundary/language definitions.
+They contain conditions and assertions only. All seven materialisation
+counters are zero: product documents, product cases, qrels, query vectors,
+index generations, scored runs and observed results. No product question,
+passage, qrel, vector, generation, result or calculated metric was created.
+
+### Static validation and limits
+
+All 28 JSON files parsed. `JsonSchema.Net 7.0.0.0`, already installed locally,
+validated all twenty schemas against the Draft 2020-12 metaschema and all eight
+instances against their applicable local schemas. The closed-object rule, the
+absence of `examples` and `default`, the complete 27-companion inventory and
+digests, two identical self-digest computations, unique matrix identifiers and
+zero counters passed. The historical
+`docs/evaluation/rag-eval-catalogue-v1` namespace remained unchanged.
+
+Documentary hygiene also passed `git diff --check` with exit code `0` and
+`eng/check-repository.ps1` with an audit of 308 non-ignored files. The closed
+diff contained exactly the 33 authorised paths and preserved the append-only
+history prefix byte for byte.
+
+Build, executable tests, `eng/ci.ps1`, an executable scorer, campaign,
+Automatic Quality Gate and runtime validation remained `NOT_RUN`. No provider,
+credential, network, paid call, product corpus, product dataset, qrel, query
+vector, generation, MultiQuery, Human Gate, lifecycle action, push,
+publication, release or deployment was authorised or executed.
+
+`RB-1` therefore closes only the evaluation design freeze. `RB-2 — Dataset
+materialisation readiness` remains `NOT_RUN` and requires separate human
+authority together with its own prerequisites and stop conditions.

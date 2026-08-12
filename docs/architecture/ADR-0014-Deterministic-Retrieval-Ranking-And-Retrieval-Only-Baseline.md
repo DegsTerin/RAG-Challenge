@@ -1227,3 +1227,52 @@ Windows x64, offline and synthetic boundary.
 
 This record closes `DR-3` only. `RB-1 — Evaluation design freeze` and every
 later ordered gate remain separately governed and `NOT_RUN`.
+
+## RB-1 evaluation design freeze record
+
+The product owner separately authorised the documentary, local, offline and
+sequential freeze under `AUTH-RB1-EVALUATION-DESIGN-FREEZE-001` on clean
+`main@45cbcf2624262572abf8180498ac63709a9130e4`, corpus `4.10.33`. The
+protected OpenAPI identities were reconfirmed before writing: v1 remained at
+SHA-256
+`d6a686b94c926914beb28b437f464430a01de6560c2e2d476cf5c36025813e34`
+and Git blob `a5fb3602fbab33bda6aa56cc4caaa9fdc37c8160`; v2 remained at SHA-256
+`f4dca8db7fb7bd453e580495bb1bb7760812d954344931063e8549ed8f036733`
+and Git blob `5ed6a47631653dd0c137b6ea1e979ae2c14bf8a8`.
+
+`RB-1 — Evaluation design freeze` is complete. The immutable design revision
+`retrieval-v2-evaluation-design-v1` is frozen with status
+`frozen-unmaterialised-unscored` under the fixed
+`retrieval-v2@frozen-query-vector` boundary. Its root contract is
+[`evaluation-design-contract.json`](../evaluation/retrieval-v2-evaluation-design-v1/evaluation-design-contract.json),
+with self-digest
+`0e8d928aee055211773d83eb33f2d54485033c81cfad15dd95b0fdd551f8ed08`.
+It binds seven companion design instances and twenty Draft 2020-12 schemas by
+ordinal path, artefact type and exact SHA-256. The revision also freezes the
+accepted numerical semantics and `/2` vector-store descriptor, total ordering,
+top-k and selection limits, question normalisation, canonicalisation, scorer
+formulae and thresholds, sampling quotas, rubric, retention, future paths,
+gate sequence, stop conditions and negative scope.
+
+The freeze contains 38 required contract-cell definitions and 10 required
+eligibility-cell definitions. They are specifications only: materialised cell
+count and observed-result count remain zero. Product document, product case,
+qrel, query vector, index generation, scored run and observed-result counters
+are each exactly zero. The future-artifact schemas define the closed evidence
+shape for later separately authorised gates, but no future instance was created.
+
+Static validation parsed all 28 JSON artefacts, validated the twenty schemas
+against the locally installed Draft 2020-12 metaschema and the eight design
+instances against their local schemas, verified closed objects, the absence of
+`examples` and `default`, all companion digests, two identical contract
+self-digest computations, matrix cardinality and zero materialisation. No
+historical synthetic evaluation revision was changed. Runtime preflight was
+`NOT_APPLICABLE` because this increment changed and validated documentation
+only.
+
+This record is not a product dataset, executed scorer, retrieval campaign,
+observed metric, Automatic Quality Gate, Human Gate or homologation result. It
+does not authorise `RB-2`, a product corpus, qrels, questions, vectors,
+generation, provider, network, MultiQuery, lifecycle progression or any
+external action. Every later ordered gate remains separately governed and
+`NOT_RUN`.
