@@ -1474,6 +1474,19 @@ proprietários.
   O A0-003 dispõe as quatro operações visuais como `PERMITTED` somente sob o
   perfil notice-bearing e mantém distribuição/publicação externa `DENIED`; o
   candidato permanece `ELIGIBLE_CANDIDATE`, sem materialização ou ativação.
+- Composição administrativa de produto: o reteste integral autorizado sob
+  `AUTH-S07-A-PRODUCT-ADMIN-COMPOSITION-AQG-RETEST-001`, sobre
+  `main@e63f061d0bce4e48cd3b32294c20e29727cd7156`, corpus `4.10.36` e árvore
+  limpa, foi `APROVADO` sem achado P0, P1, P2 ou P3. A inspeção seguiu o
+  caminho efetivamente chamado por `Program`; a seleção por seis nomes
+  totalmente qualificados executou exatamente 6/6 testes, com fail-on-zero, e
+  `eng/ci.ps1 -Offline` foi executado exatamente uma vez somente depois desse
+  resultado positivo. A CI aprovou 202 testes unitários, 208 de integração,
+  11 de arquitetura e 45 do Dashboard, com 95,58% de linhas e 68,07% de
+  branches, build sem aviso ou erro e auditoria de 311 arquivos. A aprovação é
+  exclusivamente local, offline, determinística e sintética; nenhuma
+  materialização ou ativação de produto, dataset, RB-2, provider, rede, Human
+  Gate ou lifecycle ocorreu.
 
 ## Baseline documental
 
@@ -1481,7 +1494,7 @@ proprietários.
   a política de idioma acrescentou o 21º documento público por incremento
   versionado, e o ADR-0003 acrescentou o 22º.
 - A baseline aprovada no Human Gate de `STATE-00` permanece `3.4.0`.
-- O corpus de instruções vigente possui versão `4.10.36` e 13 arquivos em
+- O corpus de instruções vigente possui versão `4.10.37` e 13 arquivos em
   `prompts/`.
 - Visão, requisitos, arquitetura, RAG, segurança, qualidade, lifecycle,
   roadmap, backlog, estado, histórico e templates estão documentados.
@@ -1819,6 +1832,18 @@ proprietários.
   mas nenhum artefato de produto, RB-2, Human Gate ou lifecycle foi executado.
   A reconciliação documental passou `git diff --check` e a auditoria de 308
   arquivos, sem executar build, testes ou `eng/ci.ps1`.
+- O corpus `4.10.37` reconcilia sob
+  `AUTH-S07-A-PRODUCT-ADMIN-COMPOSITION-AQG-RETEST-RECONCILE-001` o resultado
+  `APROVADO` do reteste de composição administrativa executado sob
+  `AUTH-S07-A-PRODUCT-ADMIN-COMPOSITION-AQG-RETEST-001`. A seleção por nomes
+  totalmente qualificados executou exatamente 6/6 testes com fail-on-zero; a
+  única execução posterior de `eng/ci.ps1 -Offline` aprovou 202 testes
+  unitários, 208 de integração, 11 de arquitetura e 45 do Dashboard, cobertura
+  de 95,58% de linhas e 68,07% de branches, build sem aviso ou erro e auditoria
+  de 311 arquivos. Nenhum achado P0, P1, P2 ou P3 foi identificado; OpenAPI
+  v1/v2 e a baseline permaneceram íntegras. A reconciliação não repetiu build,
+  testes, gate ou CI e não executou materialização/ativação de produto,
+  dataset, RB-2, Human Gate ou lifecycle.
 - O corpus `4.3.0` formaliza a decisão explícita do proprietário de aceitar
   perguntas e respostas em `pt-BR` e `en-GB`: cada consulta declara o idioma,
   a resposta usa o mesmo idioma, textos derivados da fonte permanecem no

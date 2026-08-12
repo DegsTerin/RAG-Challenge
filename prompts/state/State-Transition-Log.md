@@ -7818,3 +7818,79 @@ contém somente fatos cronológicos.
   disposição de direitos; corpus de produto autorizado, geração ativa
   validada, pooling/adjudicação não pontuados, qrels, matrizes, denominador e
   tier permanecem requisitos independentes e não materializados.
+
+## 2026-08-12 — Reteste da composição administrativa de produto aprovado e reconciliado
+
+- Estado anterior e resultante: `STATE-07 TESTING_HOMOLOGATION` permanece
+  ativo. Nenhum Human Gate ou lifecycle foi executado ou alterado.
+- Autoridade e baseline do reteste:
+  `AUTH-S07-A-PRODUCT-ADMIN-COMPOSITION-AQG-RETEST-001`, branch `main`, commit
+  `e63f061d0bce4e48cd3b32294c20e29727cd7156`, corpus `4.10.36`, working tree
+  inicialmente limpa e OpenAPI v1/v2 protegidas.
+- Autoridade e baseline desta reconciliação factual:
+  `AUTH-S07-A-PRODUCT-ADMIN-COMPOSITION-AQG-RETEST-RECONCILE-001`, branch
+  `main`, HEAD `e63f061d0bce4e48cd3b32294c20e29727cd7156`, corpus `4.10.36`, working
+  tree inicialmente limpa e identidades OpenAPI v1/v2 protegidas. O runtime
+  preflight desta atividade exclusivamente documental foi `NÃO APLICÁVEL`;
+  nenhum processo ou listener foi enumerado ou encerrado.
+- Escopo auditado: composição local, offline, determinística e exclusivamente
+  sintética dos comandos one-shot `synchronise-official` e `build-index` pelo
+  caminho efetivamente chamado por `Program`, incluindo ausência e divergência
+  fail-closed, direitos, parsing PDF/CSV, chunking determinístico, content
+  store verificado, transporte e embedding falsos fornecidos somente por
+  ports, `IndexCompatibilityKey`, geração candidata, lease, journal e replay.
+- Inspeção estática: `Program` encaminha administração a
+  `OneShotAdministrationHost.RunProductionAsync`; o host resolve somente o
+  perfil sintético explícito no ambiente `Integration` e chama
+  `AdministrativeMaterialisationComposition.CreateExecutor`. Capacidade
+  ausente, par de ports incompleto ou drift de perfil falha fechado, sem
+  seleção implícita de transporte ou provider real.
+- Seleção focal: a forma anterior do filtro do auditor selecionou zero testes
+  e não foi aceita como evidência. O reteste usou seis nomes totalmente
+  qualificados, contador TRX explícito e fail-on-zero; executou exatamente
+  6/6 testes, todos aprovados, sem falha, skip ou caso não executado. Os casos
+  cobriram pares incompletos, ausência de perfil, ambiente divergente,
+  composição de indexação e drift de compatibilidade, sincronização oficial e
+  drift de autoridade, além do lease dedicado. Os casos de `Program`
+  iniciaram o host de produção copiado pelos testes.
+- Evidência integral: somente depois do resultado focal positivo,
+  `eng/ci.ps1 -Offline` foi executado exatamente uma vez e terminou com exit
+  code `0`. O build Release teve zero aviso e zero erro; passaram 202 testes
+  unitários, 208 de integração, 11 de arquitetura e 45 do Dashboard, sem falha
+  ou skip. A cobertura combinada foi 95,58% de linhas e 68,07% de branches;
+  lint, typecheck, build web e auditoria de 311 arquivos também passaram.
+- Incidentes de localização read-only: duas tentativas preliminares usaram
+  paths presumidos incorretos para ADRs e OpenAPI. O inventário rastreado
+  resolveu os paths canônicos antes da confirmação da baseline e dos checks do
+  gate. Não houve escrita, execução de produto, repetição da seleção focal ou
+  segunda CI; esses eventos não são achados de produto.
+- Resultado: o Automatic Quality Gate está `APROVADO`, sem achado P0, P1, P2
+  ou P3, exclusivamente na fronteira Windows local, offline, determinística e
+  sintética. Stores temporários task-owned e outputs ignorados de teste não
+  constituem materialização de produto.
+- Escopo negativo preservado: nenhuma materialização ou ativação de produto,
+  dataset, RB-2, provider, rede, Human Gate, lifecycle, push, publicação ou
+  deploy foi criado, executado ou alterado.
+- Artefatos protegidos: OpenAPI v1 permaneceu no SHA-256
+  `d6a686b94c926914beb28b437f464430a01de6560c2e2d476cf5c36025813e34` e blob
+  `a5fb3602fbab33bda6aa56cc4caaa9fdc37c8160`; OpenAPI v2 permaneceu no
+  SHA-256 `f4dca8db7fb7bd453e580495bb1bb7760812d954344931063e8549ed8f036733` e blob
+  `5ed6a47631653dd0c137b6ea1e979ae2c14bf8a8`.
+- Escopo documental fechado: somente relatório STATE-07, Current State, este
+  histórico append-only no EOF e Prompt System Change Log foram alterados;
+  nenhum código, teste, contrato, configuração ou OpenAPI foi modificado.
+- Verificação documental: `git diff --check` terminou com exit code `0` e
+  `eng/check-repository.ps1` aprovou 311 arquivos não ignorados; o diff conteve
+  somente os quatro documentos autorizados, UTF-8/LF, newline final, espaços
+  finais, links, formato e prefixo append-only passaram. Build, testes
+  executáveis, `eng/ci.ps1` e Automatic Quality Gate não foram repetidos nesta
+  reconciliação.
+- Versionamento: corpus elevado por `PATCH` factual de `4.10.36` para
+  `4.10.37`. Este histórico preservou byte a byte seu prefixo anterior de
+  497.149 bytes no SHA-256
+  `682626fe33eeef5e1df9ea8313e45c578712aeeb34fc66ca1f7450c8195b8fd7`.
+- Próxima condição diretamente relacionada: obter autoridade humana separada
+  e delimitada para materializar, sem ativação implícita, a sincronização
+  oficial e a geração candidata do produto pelos dois comandos agora
+  auditados. Este gate não concede essa autoridade; ativação, RB-2, Human Gate
+  e lifecycle permanecem separados e não autorizados.

@@ -2,7 +2,7 @@
 
 ## Versão atual
 
-- Versão: `4.10.36`
+- Versão: `4.10.37`
 - Data: 2026-08-12
 - Status: `STATE-07` ativo; ADR-0011 `accepted`, reconciliado e com a correção
   interna da política de serving implementada; o A0 candidato-específico
@@ -14,6 +14,10 @@
   comportamento notice-bearing implementados; o Automatic Quality Gate
   notice-bearing foi `APROVADO` somente na fronteira local, offline,
   determinística e sintética, sem achado P0, P1, P2 ou P3;
+  o reteste da composição administrativa de `synchronise-official` e
+  `build-index` pelo caminho de `Program` também foi `APROVADO`, sem achado,
+  somente na fronteira local, offline, determinística e sintética, sem
+  materialização ou ativação de produto;
   ADR-0013 `accepted` e
   reconciliado semanticamente, com compatibilidade do adaptador implementada e
   Automatic Quality Gate específico aprovado somente na fronteira local,
@@ -53,6 +57,59 @@ A versão do corpus é independente da versão futura do software.
 
 Toda alteração atualiza este arquivo e, quando necessário,
 [`../Start-Here.md`](../Start-Here.md).
+
+## 4.10.37 — 2026-08-12
+
+- Reconcilia sob
+  `AUTH-S07-A-PRODUCT-ADMIN-COMPOSITION-AQG-RETEST-RECONCILE-001`, na baseline
+  limpa `main@e63f061d0bce4e48cd3b32294c20e29727cd7156`, corpus `4.10.36`, o
+  resultado `APROVADO` do reteste integral executado sob
+  `AUTH-S07-A-PRODUCT-ADMIN-COMPOSITION-AQG-RETEST-001`.
+- Registra a inspeção do caminho efetivamente chamado por `Program` para a
+  composição one-shot de `synchronise-official` e `build-index`: ausência,
+  pares incompletos e drift de perfil falham fechado; direitos, parsing,
+  chunking, content store, transporte e embedding falsos por ports,
+  `IndexCompatibilityKey`, geração candidata, lease, journal e replay
+  permaneceram vinculados.
+- A seleção focal por seis nomes totalmente qualificados usou contador TRX e
+  fail-on-zero, executou exatamente 6/6 testes e aprovou todos, sem falha, skip
+  ou caso não executado. A seleção anterior de zero testes não foi aceita como
+  evidência e não foi tratada como sucesso do gate.
+- Somente após o resultado focal positivo, `eng/ci.ps1 -Offline` foi executado
+  exatamente uma vez. Passaram 202 testes unitários, 208 de integração, 11 de
+  arquitetura e 45 do Dashboard; build Release com zero aviso e zero erro,
+  lint, typecheck, build web, cobertura de 95,58% de linhas e 68,07% de
+  branches e auditoria de 311 arquivos também foram aprovados.
+- O runtime preflight dirigido do reteste encontrou zero processo e zero
+  listener do projeto e nada encerrou. O gate começou e terminou no mesmo HEAD
+  e com árvore limpa, sem achado P0, P1, P2 ou P3.
+- Duas tentativas preliminares read-only usaram paths presumidos incorretos
+  para ADRs e OpenAPI; o inventário rastreado resolveu os paths canônicos antes
+  da confirmação da baseline e dos checks. Não houve escrita, execução de
+  produto ou repetição da seleção focal/CI, e os eventos não são achados de
+  produto.
+- Limite: a aprovação vale somente para Windows local, offline, determinístico
+  e sintético. Nenhuma materialização ou ativação de produto, dataset, RB-2,
+  provider, rede, Human Gate, lifecycle, push, publicação ou deploy foi
+  criado, executado ou alterado.
+- Artefatos protegidos: OpenAPI v1 permaneceu no SHA-256
+  `d6a686b94c926914beb28b437f464430a01de6560c2e2d476cf5c36025813e34` e blob
+  `a5fb3602fbab33bda6aa56cc4caaa9fdc37c8160`; OpenAPI v2 permaneceu no
+  SHA-256 `f4dca8db7fb7bd453e580495bb1bb7760812d954344931063e8549ed8f036733` e blob
+  `5ed6a47631653dd0c137b6ea1e979ae2c14bf8a8`.
+- Verificação documental: `git diff --check` terminou com exit code `0` e
+  `eng/check-repository.ps1` aprovou 311 arquivos não ignorados; somente os
+  quatro documentos autorizados mudaram e o prefixo append-only permaneceu
+  preservado. Build, testes executáveis, `eng/ci.ps1` e Automatic Quality Gate
+  não foram repetidos nesta reconciliação.
+- Versionamento: corpus elevado por `PATCH` factual de `4.10.36` para
+  `4.10.37`. O histórico preserva byte a byte seu prefixo anterior de 497.149
+  bytes no SHA-256
+  `682626fe33eeef5e1df9ea8313e45c578712aeeb34fc66ca1f7450c8195b8fd7`.
+- Próxima condição diretamente relacionada: obter autoridade humana separada
+  e delimitada para materializar, sem ativação implícita, a sincronização
+  oficial e a geração candidata do produto. Ativação, RB-2, Human Gate e
+  lifecycle permanecem independentes e não autorizados.
 
 ## 4.10.36 — 2026-08-12
 

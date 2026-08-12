@@ -1195,3 +1195,75 @@ preflight was `NOT_APPLICABLE`. Documentary validation passed
 `git diff --check` with exit code `0` and `eng/check-repository.ps1` with 308
 non-ignored files. Build, executable tests, `eng/ci.ps1` and the Automatic
 Quality Gate were not repeated during reconciliation.
+
+## Administrative product-composition Automatic Quality Gate retest
+
+### Authority, baseline and scope
+
+The product owner authorised one complete retest under
+`AUTH-S07-A-PRODUCT-ADMIN-COMPOSITION-AQG-RETEST-001` from clean
+`main@e63f061d0bce4e48cd3b32294c20e29727cd7156`, prompt corpus `4.10.36`.
+The gate was restricted to the local, offline, deterministic and exclusively
+synthetic composition of the one-shot `synchronise-official` and `build-index`
+administrative commands. This factual reconciliation is separately authorised
+under `AUTH-S07-A-PRODUCT-ADMIN-COMPOSITION-AQG-RETEST-RECONCILE-001` from the
+same clean baseline.
+
+The directed runtime preflight found no RAG-Challenge-owned process or task
+listener and stopped nothing. Static inspection followed the path actually
+called by `Program`: `OneShotAdministrationHost.RunProductionAsync`, explicit
+profile resolution, `AdministrativeMaterialisationComposition.CreateExecutor`
+and the two composed command implementations. It confirmed fail-closed
+behaviour for absent capabilities, incomplete port pairs and profile drift;
+rights eligibility, strict plan parsing, PDF/CSV parser selection,
+deterministic chunking, verified immutable content, fake transport and
+embedding implementations supplied only through ports, exact
+`IndexCompatibilityKey`, candidate generation, lease ownership, durable
+journal completion and exact replay.
+
+The earlier auditor-side filter form had selected zero tests and was not
+accepted as evidence even though the test runner returned success. This retest
+used six unambiguous fully qualified names and an explicit fail-on-zero TRX
+counter check. Exactly six tests ran, all six passed, and none failed, skipped
+or remained unexecuted. The selected cases proved incomplete-pair rejection,
+absence without an explicit profile, rejection outside the Integration
+environment, composed index construction and compatibility drift, composed
+official synchronisation and authority drift, and the dedicated lease
+boundary. The exercised `Program` cases launched the copied production host,
+not a direct substitute executor.
+
+Only after that positive selection and result, `eng/ci.ps1 -Offline` ran
+exactly once and returned exit code `0`. The Release build completed with zero
+warnings and zero errors. The complete suite passed 202 unit tests, 208
+integration tests, 11 architecture tests and 45 Dashboard tests, with no
+failure or skip. Merged .NET coverage was 95.58% of lines and 68.07% of
+branches; lint, typecheck, the Dashboard production build and the repository
+audit of 311 non-ignored files also passed.
+
+Two preliminary read-only location commands used incorrect assumed paths for
+the ADR and OpenAPI files. Tracked-file discovery resolved the canonical paths
+before the baseline and gate checks; these commands did not change the
+workspace, execute product behaviour or repeat the focal selection or CI, and
+they are not product findings.
+
+The gate began and ended at the authorised HEAD with a clean working tree.
+The protected OpenAPI artefacts retained their exact identities:
+
+| Artefact | SHA-256 | Git blob | Result |
+| --- | --- | --- | --- |
+| OpenAPI v1 | `d6a686b94c926914beb28b437f464430a01de6560c2e2d476cf5c36025813e34` | `a5fb3602fbab33bda6aa56cc4caaa9fdc37c8160` | preserved byte for byte |
+| OpenAPI v2 | `f4dca8db7fb7bd453e580495bb1bb7760812d954344931063e8549ed8f036733` | `5ed6a47631653dd0c137b6ea1e979ae2c14bf8a8` | preserved byte for byte |
+
+The Automatic Quality Gate result is `APPROVED`, with no P0, P1, P2 or P3
+finding. Approval is limited to the local Windows, offline, deterministic and
+synthetic boundary. Test-owned temporary stores and ignored build outputs are
+not product materialisation. No product import, rendering, index generation or
+activation, dataset, `RB-2`, provider, network, Human Gate, lifecycle action,
+push, publication or deployment was authorised or executed.
+
+This factual reconciliation changed only this report, Current State, the
+append-only State Transition Log and the Prompt System Change Log. Runtime
+preflight was `NOT_APPLICABLE`. Documentary validation passed
+`git diff --check` with exit code `0` and `eng/check-repository.ps1` with 311
+non-ignored files. Build, executable tests, `eng/ci.ps1` and the Automatic
+Quality Gate were not repeated during reconciliation.
