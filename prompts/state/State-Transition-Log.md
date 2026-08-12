@@ -7240,3 +7240,76 @@ contém somente fatos cronológicos.
   autoridade humana separada para revisão independente e checks aplicáveis.
   Dataset, campanha, provider, cada gate posterior e qualquer reconsideração
   de MultiQuery permanecem sob autoridades independentes.
+
+## 2026-08-11 — DR-3 reconciliado factualmente como reprovado
+
+- Estado anterior e resultante: `STATE-07 TESTING_HOMOLOGATION` permanece
+  ativo. `DR-3 — Determinism Automatic Quality Gate` foi `REPROVADO`; nenhum
+  Human Gate ou lifecycle foi executado ou alterado.
+- Autoridade e baseline documental: solicitação explícita do proprietário
+  `Autorizo exclusivamente a reconciliação documental factual de DR-3 —
+  Determinism Automatic Quality Gate.`, branch `main`, commit
+  `272a868c2f2a90eba21ee422ba5a2c34aa2337d5`, corpus `4.10.28`, working tree
+  inicialmente limpa e OpenAPI v1/v2 protegidas. O runtime preflight desta
+  reconciliação puramente documental foi `NÃO APLICÁVEL`.
+- Fonte factual e resultado: o hand-off único do gate, executado sob autoridade
+  humana separada na mesma baseline, registra `DR-3` como `REPROVADO`, com um
+  P1 e três P2. Os achados foram registrados e não corrigidos dentro do gate.
+- `DR3-FIND-001 — P1`: vetores admissíveis idênticos `[1f, 1f, 1f]`
+  produzem score `1.0000000000000002`. A validação atual converte o resultado
+  em `InvalidIndexData` e, no query path, `CH_INDEX_UNAVAILABLE`, mudando uma
+  entrada admissível de sucesso para falha. Nenhum epsilon, clamp, alteração de
+  aritmética ou nova semântica numérica foi introduzido.
+- `DR3-FIND-002 — P2`: o teste de determinismo não prova adversarialmente o
+  sort completo antes de `Take(k)`; todos os scores são iguais e uma enumeração
+  já ordenada por ordinal pode mascarar regressão.
+- `DR3-FIND-003 — P2`: o teste do backend indexing workflow não prova os
+  filtros antes de score/top-k quando hits elegíveis e inelegíveis concorrem.
+- `DR3-FIND-004 — P2`: a suíte cobre ordinal global duplicado, mas não contém
+  regressão executável para `ChunkOrdinal < 0`.
+- Semântica observada: a implementação aplica os filtros e depois
+  `OrderByDescending(Score)`, `ThenBy(ChunkOrdinal)` e `Take(k)`. Os três P2
+  são lacunas de prova, não defeitos comportamentais observados; o P1 é um
+  defeito comportamental observado para entrada admissível.
+- Evidência executada no gate: build Release com zero avisos e zero erros;
+  74/74 testes unitários focais, 35/35 de integração focais e 11/11 de
+  arquitetura; 3/3 execuções independentes do caso de empate/reopen; CI
+  offline completa com 201 testes unitários, 197 de integração, 11 de
+  arquitetura e 45 do Dashboard; cobertura de 95,53% de linhas e 68,34% de
+  branches; e auditoria de 279 arquivos não ignorados. As versões registradas
+  foram .NET SDK `10.0.302`, Node `24.19.0`, npm `11.17.0` e PowerShell
+  `7.6.4`. Esta reconciliação não reexecutou esses checks; seus resultados
+  aprovados não superam os quatro achados.
+- Runtime do gate: o preflight e o postflight foram aplicáveis à validação
+  executável, encontraram zero processo candidato do RAG-Challenge, encerraram
+  zero e deixaram zero remanescente. O gate começou e terminou na mesma
+  baseline limpa, sem alterar arquivos rastreados, dataset, contrato ou
+  configuração; somente outputs ignorados dos checks foram materializados.
+- Limitações e escopo negativo: nem o gate nem esta reconciliação provaram
+  produto, dataset, `retrieval-evaluation-scorer-v1`, campanha, provider ou
+  corpus real. Esta reconciliação não corrigiu código ou testes, não definiu
+  semântica numérica e não executou dataset, scorer, campanha, provider,
+  credencial, rede, chamada paga, OpenAPI, schema, migration, dependência,
+  lockfile, MultiQuery, novo Automatic Quality Gate, Human Gate, lifecycle,
+  push, publicação, deploy ou release.
+- Artefatos protegidos: OpenAPI v1 permaneceu no SHA-256
+  `d6a686b94c926914beb28b437f464430a01de6560c2e2d476cf5c36025813e34` e blob
+  `a5fb3602fbab33bda6aa56cc4caaa9fdc37c8160`; OpenAPI v2 permaneceu no
+  SHA-256 `f4dca8db7fb7bd453e580495bb1bb7760812d954344931063e8549ed8f036733` e blob
+  `5ed6a47631653dd0c137b6ea1e979ae2c14bf8a8`.
+- Escopo documental fechado: somente ADR-0014, Current State, este histórico
+  append-only no EOF e Prompt System Change Log foram alterados; nenhum código
+  ou teste foi modificado nesta reconciliação.
+- Verificação documental: `git diff --check` terminou com exit code `0`;
+  `eng/check-repository.ps1` aprovou 279 arquivos não ignorados; o diff conteve
+  somente os quatro documentos autorizados; UTF-8/LF, newline final, espaços
+  finais, links e formato passaram; e o prefixo append-only deste histórico foi
+  preservado byte a byte.
+- Versionamento: corpus elevado por `PATCH` factual de `4.10.28` para
+  `4.10.29`. O histórico preservou byte a byte seu prefixo anterior no SHA-256
+  `6972e5b4c245c0ed7e6c83b5bad51a1a1aa15d846859380c27f9014c7a041d9f`.
+- Próxima condição: obter autoridade humana separada para preparar a decisão
+  versionada de semântica numérica e o plano corretivo dos quatro achados.
+  Qualquer decisão, implementação corretiva, repetição de DR-3, dataset,
+  campanha, provider, gate posterior ou reconsideração de MultiQuery permanece
+  independente.

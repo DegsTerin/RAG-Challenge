@@ -34,15 +34,20 @@
   materialises the Application-owned typed retrieval port, the fixed
   `retrieval-v1` and `minimum-score-v1` policy binding, finite-state validation,
   total-order enforcement and fail-closed query mapping
-- Documentary reconciliation: explicitly authorised by the product owner on
-  clean `main@fabb24cad16201070e3b95fffb22467cd55963ab`, corpus `4.10.27`, and
-  recorded by corpus `4.10.28`
-- Verification status: the implementation turn recorded 74 focused unit tests,
-  8 local/SQLite integration tests and 11 architecture tests passing, together
-  with a successful repository audit of 279 non-ignored files. The protected
-  OpenAPI v1 and v2 identities remained unchanged. This is focused
-  implementation evidence only; `DR-3 — Determinism Automatic Quality Gate`
-  remains `NOT_RUN`
+- DR-2 documentary reconciliation: explicitly authorised by the product owner
+  on clean `main@fabb24cad16201070e3b95fffb22467cd55963ab`, corpus `4.10.27`,
+  and recorded by corpus `4.10.28`
+- DR-3 authority: explicit product-owner authorisation on clean
+  `main@272a868c2f2a90eba21ee422ba5a2c34aa2337d5`, corpus `4.10.28`, for an
+  independent review and the applicable focused and complete local, offline
+  and deterministic checks, with findings to be recorded rather than corrected
+  inside the gate
+- DR-3 status: `REPROVADO`; the gate recorded `DR3-FIND-001` as P1 and
+  `DR3-FIND-002`, `DR3-FIND-003` and `DR3-FIND-004` as P2. The protected
+  OpenAPI v1 and v2 identities remained unchanged
+- DR-3 documentary reconciliation: explicitly authorised by the product owner
+  on clean `main@272a868c2f2a90eba21ee422ba5a2c34aa2337d5`, corpus `4.10.28`,
+  and recorded by corpus `4.10.29`
 
 ## Purpose and authority
 
@@ -1066,7 +1071,9 @@ decision:
 
 The preparation commit completed `DR-0`, and the owner's architecture decision
 completed `DR-1`. `DR-2` was subsequently completed under separate authority,
-as recorded below. Every later evaluation and gate remains separately governed.
+as recorded below. `DR-3` was later executed under its own authority and was
+`REPROVADO`, as recorded below. Every corrective increment, repeat gate and
+later evaluation remains separately governed.
 
 ## Acceptance negative scope
 
@@ -1105,5 +1112,63 @@ evaluation; access a product corpus; use credentials,
 network or paid services; change OpenAPI, schema, migrations, dependencies,
 lockfiles or public contracts; unpark
 `retrieval-multi-query-v1-candidate`; or perform an Automatic Quality Gate,
-Human Gate, lifecycle transition, publication, deployment or release. `DR-3`
-and every later evaluation or gate remain separate, unauthorised and `NOT_RUN`.
+Human Gate, lifecycle transition, publication, deployment or release. At DR-2
+completion, `DR-3` and every later evaluation or gate remained separate,
+unauthorised and `NOT_RUN`.
+
+## DR-3 Automatic Quality Gate record
+
+The product owner separately authorised `DR-3 — Determinism Automatic Quality
+Gate` on clean
+`main@272a868c2f2a90eba21ee422ba5a2c34aa2337d5`, corpus `4.10.28`, with the
+protected OpenAPI v1 and v2 identities unchanged. The independent gate was
+local, offline and deterministic. Its result was `REPROVADO`, with one P1 and
+three P2 findings:
+
+- `DR3-FIND-001 — P1`: otherwise admissible identical vectors
+  `[1f, 1f, 1f]` produce the finite score `1.0000000000000002`. The current
+  validation converts that result to `InvalidIndexData` and therefore to
+  `CH_INDEX_UNAVAILABLE`, changing an admissible input from success to failure.
+  This is the condition for which this decision requires the increment to stop
+  without adding an epsilon, clamp or arithmetic change under the existing
+  policy identity.
+- `DR3-FIND-002 — P2`: the determinism test does not prove adversarially that
+  the complete sort occurs before `Take(k)`. Its scores are all equal and an
+  enumeration already ordered by ordinal could mask a regression.
+- `DR3-FIND-003 — P2`: the backend indexing workflow test does not prove that
+  eligibility filters precede scoring and `top-k` when eligible and ineligible
+  hits compete.
+- `DR3-FIND-004 — P2`: the executable regression suite covers duplicate global
+  ordinals but does not cover `ChunkOrdinal < 0`.
+
+The review observed that the implementation applies the required filters and
+then `OrderByDescending(Score)`, `ThenBy(ChunkOrdinal)` and `Take(k)`. The three
+P2 findings are proof gaps rather than observed behavioural defects. The P1 is
+an observed valid-input behavioural defect. No finding was corrected and no
+numerical semantic was selected or changed inside DR-3.
+
+The gate recorded a Release build with zero warnings and zero errors; 74 of 74
+focused unit tests, 35 of 35 focused integration tests and 11 of 11 architecture
+tests passing; and three of three independent tie/reopen executions passing.
+The complete offline CI recorded 201 unit tests, 197 integration tests, 11
+architecture tests and 45 Dashboard tests passing, with 95.53% line coverage,
+68.34% branch coverage and a successful audit of 279 non-ignored files. The
+recorded tool versions were .NET SDK `10.0.302`, Node `24.19.0`, npm `11.17.0`
+and PowerShell `7.6.4`.
+
+Runtime preflight and postflight were applicable to the executable gate. They
+found zero RAG-Challenge process candidates, stopped zero processes and left
+zero candidates. The gate began and ended on the same clean baseline and did
+not change a tracked file, dataset, contract or configuration; only ignored
+check outputs were materialised. It used no network, real provider or paid
+call, and did not materialise or execute a dataset,
+`retrieval-evaluation-scorer-v1`, campaign or product corpus; change OpenAPI,
+schema or migrations; unpark MultiQuery; perform a Human Gate or lifecycle
+transition; or push or publish anything.
+
+Passing general and focused checks does not override the four findings or prove
+the total-order contract. DR-3 therefore remains `REPROVADO`. Correcting the
+findings, selecting any separately versioned numerical semantic and repeating
+DR-3 each require separate product-owner authority. Later ordered gates remain
+unstarted and `retrieval-multi-query-v1-candidate` remains non-canonical and
+parked.

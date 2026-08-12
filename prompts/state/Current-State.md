@@ -1396,9 +1396,16 @@ proprietários.
   integral, as validações finitas e de ordem total e os outcomes fail-closed.
   A evidência focal registrada — build sem avisos ou erros, 74 testes unitários
   focais, 8 de integração locais/SQLite, 11 de arquitetura e auditoria de 279
-  arquivos — não constitui `DR-3` ou Automatic Quality Gate. Dataset, campanha,
-  provider, rede, chamada paga, OpenAPI, schema, migration, Human Gate e
-  lifecycle permanecem `NOT_RUN`; MultiQuery continua estacionado.
+  arquivos — não constituía `DR-3` ou Automatic Quality Gate. Posteriormente,
+  sob autoridade humana separada sobre
+  `main@272a868c2f2a90eba21ee422ba5a2c34aa2337d5`, corpus `4.10.28`, o
+  `DR-3 — Determinism Automatic Quality Gate` foi executado localmente, offline
+  e de forma determinística e terminou `REPROVADO`, com `DR3-FIND-001` P1 e
+  `DR3-FIND-002`, `DR3-FIND-003` e `DR3-FIND-004` P2. Os checks focais e a CI
+  offline completa passaram, mas não superam o defeito numérico P1 nem as três
+  lacunas de prova P2. Dataset, campanha, provider, rede, chamada paga, OpenAPI,
+  schema, migration, Human Gate e lifecycle não foram executados ou alterados;
+  MultiQuery continua estacionado.
 - Fechamento sanitizado da chave administrativa de provisionamento: o cleanup
   concluído sob `AUTH-S07-A-PROVIDER-ADMIN-KEY-CLEANUP-002` foi reconciliado
   documentalmente sob
@@ -1435,7 +1442,7 @@ proprietários.
   a política de idioma acrescentou o 21º documento público por incremento
   versionado, e o ADR-0003 acrescentou o 22º.
 - A baseline aprovada no Human Gate de `STATE-00` permanece `3.4.0`.
-- O corpus de instruções vigente possui versão `4.10.28` e 13 arquivos em
+- O corpus de instruções vigente possui versão `4.10.29` e 13 arquivos em
   `prompts/`.
 - Visão, requisitos, arquitetura, RAG, segurança, qualidade, lifecycle,
   roadmap, backlog, estado, histórico e templates estão documentados.
@@ -1648,6 +1655,31 @@ proprietários.
   Dataset, `retrieval-evaluation-scorer-v1`, campanha, provider, corpus real,
   rede, chamada paga, OpenAPI, schema, migration, Human Gate e lifecycle
   permanecem `NOT_RUN`; MultiQuery continua não canônico e estacionado.
+- O corpus `4.10.29` reconcilia factualmente o
+  `DR-3 — Determinism Automatic Quality Gate`, executado sob autoridade humana
+  separada sobre `main@272a868c2f2a90eba21ee422ba5a2c34aa2337d5`, corpus
+  `4.10.28`, e encerrado `REPROVADO`. `DR3-FIND-001` P1 registra que vetores
+  admissíveis idênticos `[1f, 1f, 1f]` produzem score
+  `1.0000000000000002`, convertido em `InvalidIndexData` e
+  `CH_INDEX_UNAVAILABLE`. `DR3-FIND-002` P2 registra que o teste de
+  determinismo não prova adversarialmente o sort completo antes de `Take(k)`;
+  `DR3-FIND-003` P2 registra ausência de prova dos filtros antes de score/top-k
+  com hits elegíveis e inelegíveis concorrentes; e `DR3-FIND-004` P2 registra
+  ausência de regressão executável para `ChunkOrdinal < 0`. A implementação
+  observada aplica filtros e depois `OrderByDescending(Score)`,
+  `ThenBy(ChunkOrdinal)` e `Take(k)`; os três P2 são lacunas de prova, não
+  defeitos comportamentais observados.
+  O gate registrou build Release sem avisos ou erros; 74/74 testes unitários
+  focais, 35/35 de integração focais e 11/11 de arquitetura; 3/3 execuções
+  independentes do caso de empate/reopen; e CI offline completa com 201 testes
+  unitários, 197 de integração, 11 de arquitetura e 45 do Dashboard, cobertura
+  de 95,53% de linhas e 68,34% de branches e auditoria de 279 arquivos. Esses
+  checks aprovados não superam os quatro achados. Nenhum arquivo rastreado,
+  dataset, contrato ou configuração foi alterado pelo gate; somente outputs
+  ignorados dos checks foram materializados. Nenhuma semântica numérica ou
+  correção foi definida; dataset, scorer, campanha, provider, corpus real,
+  rede, chamada paga, OpenAPI, schema, migration, MultiQuery, Human Gate e
+  lifecycle não foram executados ou alterados.
 - O corpus `4.3.0` formaliza a decisão explícita do proprietário de aceitar
   perguntas e respostas em `pt-BR` e `en-GB`: cada consulta declara o idioma,
   a resposta usa o mesmo idioma, textos derivados da fonte permanecem no
@@ -1978,14 +2010,16 @@ autorizada.
 O ADR-0014 foi aceito explicitamente mediante `ADR-0014: ACEITAR.` somente
 como autoridade arquitetural e reconciliado documentalmente sob
 `AUTH-STATE07-RETRIEVAL-DETERMINISM-ADR-RECONCILE-001`. `DR-0`, `DR-1` e
-`DR-2` estão concluídos. A próxima condição diretamente relacionada é
-autoridade humana separada para
-`DR-3 — Determinism Automatic Quality Gate`, limitada à revisão independente e
-aos checks focais e completos aplicáveis que comprovem o contrato de ordem
-total. `DR-3` não foi autorizado nem executado. Dataset, campanha, provider,
-rede, chamada paga, OpenAPI, schema, migration, Human Gate e lifecycle
-permanecem `NOT_RUN`, e `retrieval-multi-query-v1-candidate` continua
-estacionado.
+`DR-2` estão concluídos. O `DR-3 — Determinism Automatic Quality Gate` foi
+executado sob autoridade separada e está `REPROVADO`, com `DR3-FIND-001` P1 e
+`DR3-FIND-002` a `DR3-FIND-004` P2 abertos. A próxima condição diretamente
+relacionada é autoridade humana separada para preparar uma decisão versionada
+de semântica numérica e o plano corretivo dos quatro achados, sem alterar a
+aritmética vigente por inferência. A decisão, eventual implementação corretiva
+e qualquer repetição de DR-3 permanecem autoridades independentes. Os gates
+posteriores não foram iniciados; dataset, campanha, provider, rede, chamada
+paga, OpenAPI, schema, migration, Human Gate e lifecycle permanecem `NOT_RUN`,
+e `retrieval-multi-query-v1-candidate` continua estacionado.
 
 O ADR-0013 foi aceito explicitamente mediante `ADR-0013: ACEITAR.` somente
 como autoridade arquitetural. Ele seleciona `gpt-5.4-mini-2026-03-17` para o

@@ -2,7 +2,7 @@
 
 ## Versão atual
 
-- Versão: `4.10.28`
+- Versão: `4.10.29`
 - Data: 2026-08-11
 - Status: `STATE-07` ativo; ADR-0011 `accepted`, reconciliado e com a correção
   interna da política de serving implementada; o A0 candidato-específico mantém
@@ -26,8 +26,10 @@
   revogação, estado histórico somente Inactive e remoção verificada do target
   local registradas de forma sanitizada; ADR-0014 `accepted`, com
   `DR-2 — Determinism implementation` concluído no commit focal
-  `fabb24cad16201070e3b95fffb22467cd55963ab`, `retrieval-v1` inalterado para
-  entradas válidas, MultiQuery estacionado e `DR-3` ainda `NOT_RUN`;
+  `fabb24cad16201070e3b95fffb22467cd55963ab` e MultiQuery estacionado;
+  `DR-3 — Determinism Automatic Quality Gate` executado sob autoridade
+  separada e `REPROVADO`, com `DR3-FIND-001` P1 e `DR3-FIND-002` a
+  `DR3-FIND-004` P2 abertos;
   homologação de produto, Human Gate e mudança de lifecycle não executados
 - Escopo: 13 arquivos ativos em `prompts/`
 
@@ -42,6 +44,66 @@ A versão do corpus é independente da versão futura do software.
 
 Toda alteração atualiza este arquivo e, quando necessário,
 [`../Start-Here.md`](../Start-Here.md).
+
+## 4.10.29 — 2026-08-11
+
+- Reconcilia, sob a autoridade documental explícita concedida pelo
+  proprietário, sobre branch `main`, commit
+  `272a868c2f2a90eba21ee422ba5a2c34aa2337d5`, corpus `4.10.28`, working tree
+  inicialmente limpa e OpenAPI v1/v2 protegidas, o resultado factual de
+  `DR-3 — Determinism Automatic Quality Gate`.
+- Registra `DR-3` como `REPROVADO`, com um P1 e três P2:
+  `DR3-FIND-001` P1 observa que vetores admissíveis idênticos
+  `[1f, 1f, 1f]` produzem score `1.0000000000000002`, convertido em
+  `InvalidIndexData`/`CH_INDEX_UNAVAILABLE`; `DR3-FIND-002` P2 registra que o
+  teste de determinismo não prova adversarialmente o sort completo antes de
+  `Take(k)`; `DR3-FIND-003` P2 registra ausência de prova dos filtros antes de
+  score/top-k com hits elegíveis e inelegíveis concorrentes; e
+  `DR3-FIND-004` P2 registra ausência de regressão executável para
+  `ChunkOrdinal < 0`.
+- A revisão observou que a implementação aplica os filtros e depois
+  `OrderByDescending(Score)`, `ThenBy(ChunkOrdinal)` e `Take(k)`. Os três P2
+  são lacunas de prova, não defeitos comportamentais observados. O P1 é um
+  defeito comportamental de entrada admissível. Nenhum achado foi corrigido e
+  nenhuma semântica numérica foi definida ou alterada dentro do gate.
+- Evidência executada no gate: build Release com zero avisos e zero erros;
+  74/74 testes unitários focais, 35/35 de integração focais e 11/11 de
+  arquitetura; 3/3 execuções independentes do caso de empate/reopen; CI
+  offline completa com 201 testes unitários, 197 de integração, 11 de
+  arquitetura e 45 do Dashboard; cobertura de 95,53% de linhas e 68,34% de
+  branches; e auditoria de 279 arquivos não ignorados. As versões registradas
+  foram .NET SDK `10.0.302`, Node `24.19.0`, npm `11.17.0` e PowerShell
+  `7.6.4`. Os checks aprovados não superam os quatro achados.
+- O runtime preflight e o postflight do gate executável foram aplicáveis:
+  encontraram zero processo candidato do RAG-Challenge, encerraram zero e
+  deixaram zero remanescente. O gate começou e terminou na mesma baseline
+  limpa, não alterou arquivo rastreado, dataset, contrato ou configuração e
+  materializou somente outputs ignorados dos checks. Esta reconciliação
+  puramente documental não reexecutou os checks do gate; seu runtime preflight
+  foi `NÃO APLICÁVEL`.
+- Limites preservados: nenhum código ou teste foi corrigido; nenhuma semântica
+  numérica, dataset, `retrieval-evaluation-scorer-v1`, campanha, provider,
+  credencial, rede, chamada paga, corpus real, OpenAPI, schema, migration,
+  dependência, lockfile, MultiQuery, novo Automatic Quality Gate, Human Gate,
+  lifecycle, push, publicação, deploy ou release foi executado ou alterado por
+  esta reconciliação. Os gates posteriores não foram iniciados.
+- Artefatos protegidos: OpenAPI v1 permaneceu no SHA-256
+  `d6a686b94c926914beb28b437f464430a01de6560c2e2d476cf5c36025813e34` e blob
+  `a5fb3602fbab33bda6aa56cc4caaa9fdc37c8160`; OpenAPI v2 permaneceu no
+  SHA-256 `f4dca8db7fb7bd453e580495bb1bb7760812d954344931063e8549ed8f036733` e blob
+  `5ed6a47631653dd0c137b6ea1e979ae2c14bf8a8`.
+- Validação documental: `git diff --check` terminou com exit code `0`;
+  `eng/check-repository.ps1` aprovou 279 arquivos não ignorados; somente os
+  quatro documentos autorizados mudaram; UTF-8/LF, newline final, espaços
+  finais, links, formato e o prefixo append-only do histórico passaram.
+- Versionamento: corpus elevado por `PATCH` factual de `4.10.28` para
+  `4.10.29`. O histórico preservou byte a byte seu prefixo anterior no SHA-256
+  `6972e5b4c245c0ed7e6c83b5bad51a1a1aa15d846859380c27f9014c7a041d9f`.
+- Próxima condição: obter autoridade humana separada para preparar a decisão
+  versionada de semântica numérica e o plano corretivo dos quatro achados.
+  Qualquer decisão, implementação corretiva, repetição de DR-3, dataset,
+  campanha, provider, gate posterior ou reconsideração de MultiQuery permanece
+  independente.
 
 ## 4.10.28 — 2026-08-11
 
