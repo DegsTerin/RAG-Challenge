@@ -22,17 +22,22 @@ internal sealed class SqliteAdministrativeCommandExecutor
 
     private readonly IControlPlaneStore store;
     private readonly IAdministrativeMaterialisationCommand? synchroniseOfficial;
+    private readonly IAdministrativeMaterialisationCommand? renderDocument;
     private readonly IAdministrativeMaterialisationCommand? buildIndex;
 
     internal SqliteAdministrativeCommandExecutor(
         IControlPlaneStore store,
         IAdministrativeMaterialisationCommand? synchroniseOfficial = null,
+        IAdministrativeMaterialisationCommand? renderDocument = null,
         IAdministrativeMaterialisationCommand? buildIndex = null)
     {
         this.store = store ?? throw new ArgumentNullException(nameof(store));
         this.synchroniseOfficial = ValidateMaterialisationCommand(
             synchroniseOfficial,
             "synchronise-official");
+        this.renderDocument = ValidateMaterialisationCommand(
+            renderDocument,
+            "render-document");
         this.buildIndex = ValidateMaterialisationCommand(buildIndex, "build-index");
     }
 
@@ -60,6 +65,9 @@ internal sealed class SqliteAdministrativeCommandExecutor
             "activate-generation" or "rollback-generation" =>
                 DescribeGenerationIntent(input),
             "synchronise-official" => synchroniseOfficial?.DescribeIntent(
+                corpusId,
+                input) ?? DescribeUnavailableMaterialisationIntent(corpusId),
+            "render-document" => renderDocument?.DescribeIntent(
                 corpusId,
                 input) ?? DescribeUnavailableMaterialisationIntent(corpusId),
             "build-index" => buildIndex?.DescribeIntent(
@@ -95,6 +103,10 @@ internal sealed class SqliteAdministrativeCommandExecutor
             "status" => ReadStatusAsync(command, cancellationToken),
             "synchronise-official" => ExecuteMaterialisationAsync(
                 synchroniseOfficial,
+                command,
+                cancellationToken),
+            "render-document" => ExecuteMaterialisationAsync(
+                renderDocument,
                 command,
                 cancellationToken),
             "build-index" => ExecuteMaterialisationAsync(

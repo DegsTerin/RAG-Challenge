@@ -25,6 +25,7 @@ public static class AdministrativeCommands
         "remove-document",
         "register-official-source",
         "synchronise-official",
+        "render-document",
         "build-index",
         "activate-generation",
         "rollback-generation",

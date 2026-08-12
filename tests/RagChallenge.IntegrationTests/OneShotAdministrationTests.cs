@@ -214,6 +214,7 @@ public sealed class OneShotAdministrationTests
             "register-official-source",
             "remove-database",
             "remove-document",
+            "render-document",
             "rollback-generation",
             "status",
             "synchronise-official",
@@ -295,6 +296,35 @@ public sealed class OneShotAdministrationTests
                 routed.AuditContext.Reason);
             Assert.Matches("^[0-9a-f]{64}$", executor.Commands[0].InputSha256!);
         }
+    }
+
+    [Fact]
+    public async Task SuccessfulOneShotOutputPreservesSanitisedResultPayload()
+    {
+        using var root = TemporaryAdministrationRoot.Create();
+        await File.WriteAllTextAsync(Path.Combine(root.InputRoot, "render.json"), "{}");
+        var payload = JsonSerializer.SerializeToElement(new
+        {
+            renderManifestId = "rendermanifest-" + new string('a', 64),
+        });
+        var executor = new RecordingExecutor { ResultPayload = payload };
+
+        var result = await RunAsync(
+            MutationArguments(
+                "render-document",
+                "render-result-payload-operation",
+                "render.json"),
+            Configuration(true, root.InputRoot, root.StoreRoot),
+            new StubIdentity("os-sha256:" + new string('b', 64)),
+            new RecordingLeaseManager(),
+            executor);
+        using var output = JsonDocument.Parse(result.Output);
+
+        Assert.Equal((int)AdministrationExitCode.Success, result.ExitCode);
+        Assert.Equal(
+            payload.GetProperty("renderManifestId").GetString(),
+            output.RootElement.GetProperty("resultPayload")
+                .GetProperty("renderManifestId").GetString());
     }
 
     [Fact]
@@ -1484,6 +1514,12 @@ public sealed class OneShotAdministrationTests
                             ContentMediaType.TextCsv.Value,
                             "\"synthetic-v1\"",
                             Now)))));
+        Assert.Throws<ArgumentException>(() =>
+            AdministrativeMaterialisationComposition.CreateExecutor(
+                options,
+                store,
+                new AdministrativeMaterialisationPorts(
+                    RenderManifestStore: store)));
         Assert.Equal(0, embedding.CallCount);
     }
 
@@ -1569,7 +1605,14 @@ public sealed class OneShotAdministrationTests
             {
                 credentialReads++;
                 throw new InvalidOperationException("A credential must stay lazy.");
-            });
+            },
+            options => new SqliteControlPlaneStore(options),
+            () => new IsolatedPdfRendererProcess(new RendererWorkerLaunch(
+                "synthetic-renderer.exe",
+                [],
+                "win-x64")),
+            () => new PngPageImageValidator(),
+            () => new NoticeBearingPageImageCompositor());
         var ports = ProductAdministrativeMaterialisationProfile.Resolve(
             ProductProfileConfiguration(),
             root.CreateStoreOptions(),
@@ -1578,6 +1621,11 @@ public sealed class OneShotAdministrationTests
         Assert.Same(authority, ports.OfficialSourceAuthorityResolver);
         Assert.Same(transport, ports.OfficialSourceTransport);
         Assert.NotNull(ports.EmbeddingProvider);
+        Assert.NotNull(ports.RenderManifestStore);
+        Assert.NotNull(ports.PdfPageRenderer);
+        Assert.NotNull(ports.PngPageImageValidator);
+        Assert.NotNull(ports.NoticeBearingCompositor);
+        Assert.Same(ports.NoticeBearingCompositor, ports.NoticeBearingValidator);
         Assert.Same(
             ProductAdministrativeMaterialisationProfile.CompatibilityProfile,
             ports.IndexCompatibilityProfile);
@@ -1607,6 +1655,8 @@ public sealed class OneShotAdministrationTests
     [Theory]
     [InlineData("RagChallenge:Administration:ProductMaterialisation:Enabled", "false")]
     [InlineData("RagChallenge:Administration:ProductMaterialisation:OfficialSource:Enabled", "false")]
+    [InlineData("RagChallenge:Administration:ProductMaterialisation:Rendering:Enabled", "false")]
+    [InlineData("RagChallenge:Administration:ProductMaterialisation:Rendering:ProfileId", "pdf-page-png-v1")]
     [InlineData("RagChallenge:Administration:ProductMaterialisation:Embedding:Dimensions", "3072")]
     [InlineData("RagChallenge:Administration:ProductMaterialisation:Embedding:ModelRevision", "drifted")]
     [InlineData("RagChallenge:Administration:ProductMaterialisation:Embedding:CredentialEnvironmentVariable", "invalid-secret-reference")]
@@ -2162,6 +2212,10 @@ public sealed class OneShotAdministrationTests
             startInfo.Environment[
                 "RagChallenge__Administration__ProductMaterialisation__OfficialSource__Enabled"] = "true";
             startInfo.Environment[
+                "RagChallenge__Administration__ProductMaterialisation__Rendering__Enabled"] = "true";
+            startInfo.Environment[
+                "RagChallenge__Administration__ProductMaterialisation__Rendering__ProfileId"] = "pdf-page-png-notice-v1";
+            startInfo.Environment[
                 "RagChallenge__Administration__ProductMaterialisation__Embedding__Enabled"] = "true";
             startInfo.Environment[
                 "RagChallenge__Administration__ProductMaterialisation__Embedding__ProviderId"] = "openai";
@@ -2210,6 +2264,8 @@ public sealed class OneShotAdministrationTests
         {
             ["RagChallenge:Administration:ProductMaterialisation:Enabled"] = "true",
             ["RagChallenge:Administration:ProductMaterialisation:OfficialSource:Enabled"] = "true",
+            ["RagChallenge:Administration:ProductMaterialisation:Rendering:Enabled"] = "true",
+            ["RagChallenge:Administration:ProductMaterialisation:Rendering:ProfileId"] = "pdf-page-png-notice-v1",
             ["RagChallenge:Administration:ProductMaterialisation:Embedding:Enabled"] = "true",
             ["RagChallenge:Administration:ProductMaterialisation:Embedding:ProviderId"] = "openai",
             ["RagChallenge:Administration:ProductMaterialisation:Embedding:ModelId"] = "text-embedding-3-small",
@@ -2609,6 +2665,8 @@ public sealed class OneShotAdministrationTests
 
         internal Exception? ExecuteFailure { get; set; }
 
+        internal JsonElement? ResultPayload { get; set; }
+
         public AdministrativeCommandIdentifiers DescribeIntent(
             string command,
             CorpusId corpusId,
@@ -2629,7 +2687,8 @@ public sealed class OneShotAdministrationTests
             return Task.FromResult(new AdministrativeExecutionResult(
                 AdministrativeExecutionOutcome.Applied,
                 "CH_ADMIN_APPLIED",
-                ResultRevision: 1));
+                ResultRevision: 1,
+                ResultPayload: ResultPayload));
         }
     }
 

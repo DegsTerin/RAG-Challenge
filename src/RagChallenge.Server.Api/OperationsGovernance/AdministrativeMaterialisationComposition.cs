@@ -11,7 +11,12 @@ internal sealed record AdministrativeMaterialisationPorts(
     IOfficialSourceAuthorityResolver? OfficialSourceAuthorityResolver = null,
     IOfficialSourceTransport? OfficialSourceTransport = null,
     IEmbeddingProvider? EmbeddingProvider = null,
-    IndexCompatibilityProfile? IndexCompatibilityProfile = null);
+    IndexCompatibilityProfile? IndexCompatibilityProfile = null,
+    IDocumentRenderManifestStore? RenderManifestStore = null,
+    IPdfPageRenderer? PdfPageRenderer = null,
+    IPngPageImageValidator? PngPageImageValidator = null,
+    INoticeBearingPageImageCompositor? NoticeBearingCompositor = null,
+    INoticeBearingPageImageValidator? NoticeBearingValidator = null);
 
 internal static class AdministrativeMaterialisationComposition
 {
@@ -36,8 +41,11 @@ internal static class AdministrativeMaterialisationComposition
             ports.EmbeddingProvider,
             ports.IndexCompatibilityProfile,
             "Index construction requires both embedding and compatibility ports.");
+        EnsureCompleteRenderComposition(ports);
 
-        if (ports.OfficialSourceTransport is null && ports.EmbeddingProvider is null)
+        if (ports.OfficialSourceTransport is null &&
+            ports.EmbeddingProvider is null &&
+            ports.RenderManifestStore is null)
         {
             return new SqliteAdministrativeCommandExecutor(controlPlaneStore);
         }
@@ -62,6 +70,22 @@ internal static class AdministrativeMaterialisationComposition
         }
 
         IAdministrativeMaterialisationCommand? buildIndex = null;
+        IAdministrativeMaterialisationCommand? renderDocument = null;
+        AdministrativeActivationPlanProjector? activationPlanProjector = null;
+
+        if (ports.RenderManifestStore is not null)
+        {
+            var renderService = new DocumentRenderCandidateService(
+                contentStore,
+                ports.PdfPageRenderer!,
+                ports.PngPageImageValidator!,
+                ports.RenderManifestStore,
+                ports.NoticeBearingCompositor!,
+                ports.NoticeBearingValidator!);
+            renderDocument = new RenderDocumentAdministrativeCommand(renderService);
+            activationPlanProjector = new AdministrativeActivationPlanProjector(
+                ports.RenderManifestStore);
+        }
 
         if (ports.EmbeddingProvider is not null)
         {
@@ -75,13 +99,37 @@ internal static class AdministrativeMaterialisationComposition
                     ports.EmbeddingProvider,
                     new SqliteVectorIndexStore(options),
                     controlPlaneStore),
-                ports.IndexCompatibilityProfile!);
+                ports.IndexCompatibilityProfile!,
+                activationPlanProjector,
+                requireActivationPlanProjection: activationPlanProjector is not null);
         }
 
         return new SqliteAdministrativeCommandExecutor(
             controlPlaneStore,
             synchroniseOfficial,
+            renderDocument,
             buildIndex);
+    }
+
+    private static void EnsureCompleteRenderComposition(
+        AdministrativeMaterialisationPorts ports)
+    {
+        var components = new object?[]
+        {
+            ports.RenderManifestStore,
+            ports.PdfPageRenderer,
+            ports.PngPageImageValidator,
+            ports.NoticeBearingCompositor,
+            ports.NoticeBearingValidator,
+        };
+        var present = components.Count(component => component is not null);
+
+        if (present != 0 && present != components.Length)
+        {
+            throw new ArgumentException(
+                "Notice-bearing rendering requires the complete renderer, validator, compositor, and manifest-store composition.",
+                nameof(ports));
+        }
     }
 
     private static void EnsureCompatibilityMatchesSelectedRuntime(

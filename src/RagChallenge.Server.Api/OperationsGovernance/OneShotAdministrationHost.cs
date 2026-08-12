@@ -43,7 +43,8 @@ internal sealed record AdministrativeExecutionResult(
     AdministrativeExecutionOutcome Outcome,
     string ResultCode,
     long? ResultRevision = null,
-    bool JournalCompletionRecorded = false);
+    bool JournalCompletionRecorded = false,
+    JsonElement? ResultPayload = null);
 
 internal sealed record AdministrativeCommandIdentifiers(
     IReadOnlyCollection<string> SourceIdentifiers,
@@ -969,6 +970,7 @@ internal static class OneShotAdministrationHost
             operationId = command.OperationId.Value,
             corpusId = command.CorpusId.Value,
             resultRevision = result.ResultRevision,
+            resultPayload = result.ResultPayload,
         }));
 
     private static Task WriteFailureAsync(

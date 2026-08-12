@@ -5,12 +5,16 @@ using System.Globalization;
 using System.Runtime.InteropServices;
 using System.Security.Cryptography;
 using System.Text;
+using System.Text.Json;
 
+using RagChallenge.Application.Administration;
 using RagChallenge.Application.Documents;
 using RagChallenge.Application.Persistence;
 using RagChallenge.Domain.CorpusCatalog;
+using RagChallenge.Domain.IndexingRetrieval;
 using RagChallenge.Infrastructure.Documents;
 using RagChallenge.Infrastructure.Persistence;
+using RagChallenge.Server.Api.OperationsGovernance;
 
 using SkiaSharp;
 
@@ -303,6 +307,194 @@ public sealed class PdfRenderingIntegrationTests
             page.ImageContentObjectId,
             new ExpectedHashAndLength(page.ImageContentObjectId, page.ByteLength));
         Assert.Equal(page.ByteLength, preserved.ByteLength);
+    }
+
+    [Fact]
+    public async Task AdministrativeRenderPersistsBeforeProjectingExactActivationPlan()
+    {
+        await using var fixture = await SqlitePersistenceFixture.CreateAsync();
+        var pdf = CreatePdf(new PageSpec(600, 300));
+        var document = await CommitPdfCatalogueAsync(fixture, pdf);
+        var rights = new DocumentRightsEligibilityRecordV1(
+            document.Id,
+            document.Version,
+            Enum.GetValues<DocumentRight>().Select(right => new DocumentRightDecision(
+                right,
+                DocumentRightDecisionState.Permitted,
+                new DocumentRightsEvidenceReference($"rights-admin-{right}"))));
+        var obligationSet = DerivativeObligationSetV1.Create(
+            rights,
+            document.ContentObjectId,
+            rights.Decisions.Select(decision => decision.EvidenceReference),
+            DocumentContentLanguage.EnGb,
+            "Synthetic Documentation Group",
+            "Synthetic Database Reference",
+            "1.0",
+            "synthetic-source-reference-v1",
+            "Synthetic Documentation Group attribution.",
+            "Copyright 2026 Synthetic Documentation Group.",
+            "Permission is granted for this project-owned synthetic fixture.",
+            ["Synthetic fixture disclaimer."],
+            DerivativeTrademarkTreatment.NotApplicable,
+            "NotApplicable: this synthetic fixture contains no third-party trademark.",
+            "Rendered derivative of the synthetic source; source pixels remain unchanged.",
+            new DateTimeOffset(2026, 8, 10, 12, 0, 0, TimeSpan.Zero),
+            "assessor-synthetic-v1");
+        var policy = Policy(maximumPages: 1, maximumPixels: 5_000_000);
+        var compositor = new NoticeBearingPageImageCompositor();
+        var service = new DocumentRenderCandidateService(
+            fixture.ContentStore,
+            CreateWorkerRenderer(),
+            new PngPageImageValidator(),
+            fixture.ControlStore,
+            compositor,
+            compositor);
+        var input = JsonSerializer.SerializeToElement(new
+        {
+            documentId = document.Id.Value,
+            documentVersion = document.Version.Value,
+            sourceContentObjectId = document.ContentObjectId.Value,
+            sourceByteLength = document.ByteLength,
+            generatedAt = new DateTimeOffset(2026, 8, 10, 12, 30, 0, TimeSpan.Zero),
+            rights = new
+            {
+                rightsSchemaVersion = rights.SchemaVersion,
+                rightsDecisions = rights.Decisions.Select(decision => new
+                {
+                    right = decision.Right.ToString(),
+                    state = decision.State.ToString(),
+                    evidenceReference = decision.EvidenceReference.Value,
+                }),
+                documentId = document.Id.Value,
+                documentVersion = document.Version.Value,
+            },
+            renderPolicy = new
+            {
+                maximumSourceByteLength = policy.MaximumSourceByteLength,
+                maximumPageCount = policy.MaximumPageCount,
+                maximumTotalPixels = policy.MaximumTotalPixels,
+                maximumPageOutputByteLength = policy.MaximumPageOutputByteLength,
+                maximumTotalOutputByteLength = policy.MaximumTotalOutputByteLength,
+                maximumWorkerMemoryBytes = policy.MaximumWorkerMemoryBytes,
+                maximumWorkerCpuMilliseconds = (long)policy.MaximumWorkerCpuTime.TotalMilliseconds,
+                workerTimeoutMilliseconds = (long)policy.WorkerTimeout.TotalMilliseconds,
+            },
+            obligationSet = new
+            {
+                schemaVersion = obligationSet.SchemaVersion,
+                expectedObligationSetId = obligationSet.ObligationSetId.Value,
+                expectedCanonicalSha256 = obligationSet.CanonicalSha256.Value,
+                expectedRightsMappingRevision = obligationSet.RightsMappingRevision.Value,
+                orderedEvidenceReferences = obligationSet.OrderedEvidenceReferences.Select(item => item.Value),
+                contentLanguage = obligationSet.ContentLanguage.ToCanonicalTag(),
+                authoritativePublisherOrAuthor = obligationSet.AuthoritativePublisherOrAuthor,
+                documentTitle = obligationSet.DocumentTitle,
+                documentVersionLabel = obligationSet.DocumentVersionLabel,
+                sourceReference = obligationSet.SourceReference,
+                attributionText = obligationSet.AttributionText,
+                copyrightNotice = obligationSet.CopyrightNotice,
+                permissionNotice = obligationSet.PermissionNotice,
+                orderedDisclaimers = obligationSet.OrderedDisclaimers,
+                trademarkTreatment = obligationSet.TrademarkTreatment.ToString(),
+                trademarkOrNonEndorsementText = obligationSet.TrademarkOrNonEndorsementText,
+                changeMarkingText = obligationSet.ChangeMarkingText,
+                assessedAt = obligationSet.AssessedAt,
+                assessorId = obligationSet.AssessorId,
+            },
+        });
+        var operationId = new OperationId("admin-notice-render");
+        var command = new OneShotAdministrativeCommand(
+            "render-document",
+            SqlitePersistenceFixture.CorpusId,
+            operationId,
+            new AdministrativeAuditContext(
+                operationId,
+                "os-sha256:" + new string('a', 64),
+                "render-document",
+                "Render a bounded synthetic notice-bearing fixture.",
+                new DateTimeOffset(2026, 8, 10, 12, 30, 0, TimeSpan.Zero)),
+            input,
+            InputSha256: null,
+            JournalIntentDigest: "synthetic-intent");
+
+        var rendered = await new RenderDocumentAdministrativeCommand(service)
+            .ExecuteAsync(command);
+        var renderManifestId = new RenderManifestId(
+            rendered.ResultPayload!.Value.GetProperty("renderManifestId").GetString()!);
+        var binding = new DocumentBinding(
+            new DatabaseProductId("synthetic-product"),
+            new DatabaseProductRevision(1),
+            document.Id,
+            document.Version,
+            DocumentFormat.Pdf,
+            new SourceAdapterId("synthetic-local-pdf"),
+            SourceTrustClass.LocalAuthorised);
+        var evidence = new DocumentRenderManifestProjectionPayload
+        {
+            DocumentId = document.Id.Value,
+            DocumentVersion = document.Version.Value,
+            RenderManifestId = renderManifestId.Value,
+        };
+        var projector = new AdministrativeActivationPlanProjector(fixture.ControlStore);
+        var projection = await projector.ValidateAsync(
+            SqlitePersistenceFixture.CorpusId,
+            [new ActivationProjectionDocument(binding, document.ContentObjectId, rights)],
+            new ActivationPlanProjectionPayload
+            {
+                ExpectedCurrentRevision = 0,
+                PreviousGenerationRetentionDays = 14,
+                DocumentRenderManifests = [evidence],
+            },
+            CancellationToken.None);
+        var contentDigest = new string('b', 64);
+        var manifest = new FinalisedIndexGenerationManifest(
+            1,
+            SqlitePersistenceFixture.CorpusId,
+            new CorpusRevision(1),
+            new CatalogueRevision(1),
+            new ActiveDocumentSetDigest(new string('c', 64)),
+            new SourceBindingSetDigest(new string('d', 64)),
+            new IndexCompatibilityKey(new string('e', 64)),
+            new GenerationSpecDigest(new string('f', 64)),
+            1,
+            1,
+            new LogicalArtifactDigest(new string('1', 64)),
+            new GenerationContentDigest(contentDigest),
+            new IndexGenerationId("idxgen-" + contentDigest));
+        var projected = AdministrativeActivationPlanProjector.Project(manifest, projection);
+        var projectedPlan = projected.GetProperty("activationPlan");
+        var describedIntent = new SqliteAdministrativeCommandExecutor(fixture.ControlStore)
+            .DescribeIntent(
+                "activate-generation",
+                SqlitePersistenceFixture.CorpusId,
+                projectedPlan);
+
+        Assert.Equal(AdministrativeExecutionOutcome.Applied, rendered.Outcome);
+        Assert.Contains(
+            $"generation:{manifest.IndexGenerationId.Value}",
+            describedIntent.TargetIdentifiers);
+        Assert.Equal(
+            renderManifestId.Value,
+            projectedPlan
+                .GetProperty("evidenceBindings")[0]
+                .GetProperty("renderManifestId").GetString());
+
+        var invalidEvidence = new DocumentRenderManifestProjectionPayload
+        {
+            DocumentId = document.Id.Value,
+            DocumentVersion = document.Version.Value,
+            RenderManifestId = "rendermanifest-" + new string('0', 64),
+        };
+        await Assert.ThrowsAsync<InvalidDataException>(() => projector.ValidateAsync(
+            SqlitePersistenceFixture.CorpusId,
+            [new ActivationProjectionDocument(binding, document.ContentObjectId, rights)],
+            new ActivationPlanProjectionPayload
+            {
+                ExpectedCurrentRevision = 0,
+                PreviousGenerationRetentionDays = 14,
+                DocumentRenderManifests = [invalidEvidence],
+            },
+            CancellationToken.None));
     }
 
     [Fact]

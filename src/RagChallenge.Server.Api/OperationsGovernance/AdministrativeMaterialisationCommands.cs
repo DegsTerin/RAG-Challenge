@@ -1,4 +1,4 @@
-// Purpose: Composes the two materialisation administration commands from explicit trusted dependencies while preserving plan validation, rights gates, immutable content, deterministic indexing, and fail-closed outcomes.
+// Purpose: Composes the three materialisation administration commands from explicit trusted dependencies while preserving plan validation, rights gates, immutable content, deterministic indexing, and fail-closed outcomes.
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
@@ -323,7 +323,9 @@ internal sealed class BuildIndexAdministrativeCommand(
     IDocumentContentStore contentStore,
     DocumentIngestionService ingestionService,
     CorpusIndexingService indexingService,
-    IndexCompatibilityProfile compatibilityProfile)
+    IndexCompatibilityProfile compatibilityProfile,
+    AdministrativeActivationPlanProjector? activationPlanProjector = null,
+    bool requireActivationPlanProjection = false)
     : IAdministrativeMaterialisationCommand
 {
     public string CommandName => "build-index";
@@ -338,6 +340,9 @@ internal sealed class BuildIndexAdministrativeCommand(
         throw new ArgumentNullException(nameof(indexingService));
     private readonly IndexCompatibilityProfile compatibilityProfile = compatibilityProfile ??
         throw new ArgumentNullException(nameof(compatibilityProfile));
+    private readonly AdministrativeActivationPlanProjector? activationPlanProjector =
+        activationPlanProjector;
+    private readonly bool requireActivationPlanProjection = requireActivationPlanProjection;
 
     public AdministrativeCommandIdentifiers DescribeIntent(
         CorpusId corpusId,
@@ -362,7 +367,9 @@ internal sealed class BuildIndexAdministrativeCommand(
                 payload.ExpectedIndexCompatibilityKey,
                 compatibilityProfile.Key.Value,
                 StringComparison.Ordinal) ||
-            payload.MaximumEmbeddingBatchUtf8Bytes is <= 0 or > 4 * 1024 * 1024)
+            payload.MaximumEmbeddingBatchUtf8Bytes is <= 0 or > 4 * 1024 * 1024 ||
+            (requireActivationPlanProjection &&
+             (activationPlanProjector is null || payload.ActivationPlan is null)))
         {
             return Rejected("CH_ADMIN_VALIDATION_FAILED");
         }
@@ -377,9 +384,32 @@ internal sealed class BuildIndexAdministrativeCommand(
         }
 
         var documents = new List<IndexDocumentInput>(payload.Documents.Length);
+        ValidatedActivationProjection? validatedProjection = null;
 
         try
         {
+            var projectionDocuments = payload.Documents.Select(document =>
+            {
+                var binding = document.Binding.ToDomain();
+                return new ActivationProjectionDocument(
+                    binding,
+                    new ContentObjectId(document.SourceContentObjectId),
+                    document.Rights.ToDomain());
+            }).ToArray();
+            if (payload.ActivationPlan is not null)
+            {
+                if (activationPlanProjector is null)
+                {
+                    return Rejected("CH_ADMIN_VALIDATION_FAILED");
+                }
+
+                validatedProjection = await activationPlanProjector.ValidateAsync(
+                    command.CorpusId,
+                    projectionDocuments,
+                    payload.ActivationPlan,
+                    cancellationToken).ConfigureAwait(false);
+            }
+
             foreach (var document in payload.Documents)
             {
                 var binding = document.Binding.ToDomain();
@@ -457,16 +487,23 @@ internal sealed class BuildIndexAdministrativeCommand(
                     command.AuditContext.RequestedAt,
                     payload.MaximumEmbeddingBatchUtf8Bytes),
                 cancellationToken).ConfigureAwait(false);
+            var resultPayload = validatedProjection is null
+                ? (JsonElement?)null
+                : AdministrativeActivationPlanProjector.Project(
+                    result.Manifest,
+                    validatedProjection);
             return result.CommitResult.Outcome switch
             {
                 StoreMutationOutcome.Applied => new AdministrativeExecutionResult(
                     AdministrativeExecutionOutcome.Applied,
                     "CH_ADMIN_APPLIED",
-                    result.CommitResult.CurrentRevision),
+                    result.CommitResult.CurrentRevision,
+                    ResultPayload: resultPayload),
                 StoreMutationOutcome.AlreadyApplied => new AdministrativeExecutionResult(
                     AdministrativeExecutionOutcome.AlreadyApplied,
                     "CH_ADMIN_APPLIED",
-                    result.CommitResult.CurrentRevision),
+                    result.CommitResult.CurrentRevision,
+                    ResultPayload: resultPayload),
                 _ => Rejected(
                     AdministrativeMaterialisationJson.MapStoreFailure(
                         result.CommitResult.Outcome),
@@ -474,6 +511,13 @@ internal sealed class BuildIndexAdministrativeCommand(
             };
         }
         catch (DocumentParseException)
+        {
+            return Rejected("CH_ADMIN_VALIDATION_FAILED");
+        }
+        catch (Exception exception) when (
+            payload.ActivationPlan is not null &&
+            validatedProjection is null &&
+            exception is InvalidDataException or ArgumentException or OverflowException)
         {
             return Rejected("CH_ADMIN_VALIDATION_FAILED");
         }
@@ -604,6 +648,8 @@ internal sealed class BuildIndexAdministrativeCommand(
         public int MaximumEmbeddingBatchUtf8Bytes { get; init; }
 
         public required BuildDocumentPayload[] Documents { get; init; }
+
+        public ActivationPlanProjectionPayload? ActivationPlan { get; init; }
     }
 
     private sealed class BuildDocumentPayload
