@@ -149,7 +149,9 @@ internal static class OneShotAdministrationHost
                 Path.Combine(storeRoot, "content"));
             var store = new SqliteControlPlaneStore(options);
             var materialisationPorts =
-                SyntheticAdministrativeMaterialisationProfile.Resolve(configuration);
+                AdministrativeMaterialisationProfileResolver.Resolve(
+                    configuration,
+                    options);
             return await RunAsync(
                 args,
                 configuration,

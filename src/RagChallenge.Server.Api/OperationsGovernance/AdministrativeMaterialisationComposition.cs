@@ -65,6 +65,8 @@ internal static class AdministrativeMaterialisationComposition
 
         if (ports.EmbeddingProvider is not null)
         {
+            EnsureCompatibilityMatchesSelectedRuntime(
+                ports.IndexCompatibilityProfile!);
             buildIndex = new BuildIndexAdministrativeCommand(
                 controlPlaneStore,
                 contentStore,
@@ -80,6 +82,27 @@ internal static class AdministrativeMaterialisationComposition
             controlPlaneStore,
             synchroniseOfficial,
             buildIndex);
+    }
+
+    private static void EnsureCompatibilityMatchesSelectedRuntime(
+        IndexCompatibilityProfile profile)
+    {
+        var selectedParsers = new[]
+        {
+            PdfPigDocumentParser.CompatibilityDescriptor,
+            CsvHelperDocumentParser.CompatibilityDescriptor,
+        }.Order(StringComparer.Ordinal);
+
+        if (!profile.ParserDescriptors.SequenceEqual(selectedParsers) ||
+            !string.Equals(
+                profile.VectorStoreDescriptor,
+                SqliteVectorIndexStore.CompatibilityDescriptor,
+                StringComparison.Ordinal))
+        {
+            throw new ArgumentException(
+                "The index compatibility profile does not describe the selected parser and vector-store runtime.",
+                nameof(profile));
+        }
     }
 
     private static void EnsureCompletePair<TLeft, TRight>(

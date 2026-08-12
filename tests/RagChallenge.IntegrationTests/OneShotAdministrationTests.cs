@@ -1526,6 +1526,108 @@ public sealed class OneShotAdministrationTests
     }
 
     [Fact]
+    public async Task ProgramPathReachesExplicitProductProfileWithoutReadingCredentialOrExternalAccess()
+    {
+        using var root = TemporaryAdministrationRoot.Create();
+        await SqliteStoreProvisioner.ApplyMigrationsAsync(root.CreateStoreOptions());
+
+        var result = await RunProgramAsync(
+            StatusArguments("product-profile-status-operation"),
+            root,
+            ProductAdministrativeMaterialisationProfile.ProfileName,
+            environment: "Production",
+            enableProductProfile: true);
+
+        Assert.Equal((int)AdministrationExitCode.Success, result.ExitCode);
+        Assert.Contains("CH_ADMIN_STATUS_EMPTY", result.Output, StringComparison.Ordinal);
+        Assert.DoesNotContain("CH_ADMIN_CONFIGURATION_INVALID", result.Error, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void ProductProfileIsTypedFrozenAndLeavesCredentialReferenceLazy()
+    {
+        using var root = TemporaryAdministrationRoot.Create();
+        var credentialReads = 0;
+        var authority = new NullOfficialSourceAuthorityResolver();
+        var transport = new CountingOfficialSourceTransport(new OfficialFetchResult(
+            OfficialFetchStatus.NotModified,
+            statusCode: 304,
+            content: null,
+            mediaType: null,
+            etag: null,
+            lastModified: null));
+        var handler = new RejectingHttpMessageHandler();
+        var dependencies = new ProductAdministrativeMaterialisationDependencies(
+            _ => authority,
+            () => transport,
+            () => new HttpClient(handler, disposeHandler: false)
+            {
+                BaseAddress = new Uri("https://api.openai.com/", UriKind.Absolute),
+                Timeout = TimeSpan.FromSeconds(25),
+            },
+            _ =>
+            {
+                credentialReads++;
+                throw new InvalidOperationException("A credential must stay lazy.");
+            });
+        var ports = ProductAdministrativeMaterialisationProfile.Resolve(
+            ProductProfileConfiguration(),
+            root.CreateStoreOptions(),
+            dependencies);
+
+        Assert.Same(authority, ports.OfficialSourceAuthorityResolver);
+        Assert.Same(transport, ports.OfficialSourceTransport);
+        Assert.NotNull(ports.EmbeddingProvider);
+        Assert.Same(
+            ProductAdministrativeMaterialisationProfile.CompatibilityProfile,
+            ports.IndexCompatibilityProfile);
+        Assert.Equal(
+            ProductAdministrativeMaterialisationProfile.ExpectedCompatibilityKey,
+            ports.IndexCompatibilityProfile!.Key.Value);
+        Assert.Equal(0, credentialReads);
+        Assert.Equal(0, transport.CallCount);
+        Assert.Equal(0, handler.CallCount);
+        Assert.Equal(
+            [
+                CsvHelperDocumentParser.CompatibilityDescriptor,
+                PdfPigDocumentParser.CompatibilityDescriptor,
+            ],
+            ports.IndexCompatibilityProfile.ParserDescriptors);
+        Assert.Equal(
+            ChunkingPolicy.DefaultTargetScalarCount,
+            ports.IndexCompatibilityProfile.ChunkingPolicy.TargetScalarCount);
+        Assert.Equal(
+            ProductAdministrativeMaterialisationProfile.EmbeddingDescriptor,
+            ports.IndexCompatibilityProfile.EmbeddingDescriptor);
+        Assert.Equal(
+            SqliteVectorIndexStore.CompatibilityDescriptor,
+            ports.IndexCompatibilityProfile.VectorStoreDescriptor);
+    }
+
+    [Theory]
+    [InlineData("RagChallenge:Administration:ProductMaterialisation:Enabled", "false")]
+    [InlineData("RagChallenge:Administration:ProductMaterialisation:OfficialSource:Enabled", "false")]
+    [InlineData("RagChallenge:Administration:ProductMaterialisation:Embedding:Dimensions", "3072")]
+    [InlineData("RagChallenge:Administration:ProductMaterialisation:Embedding:ModelRevision", "drifted")]
+    [InlineData("RagChallenge:Administration:ProductMaterialisation:Embedding:CredentialEnvironmentVariable", "invalid-secret-reference")]
+    public void ProductProfileRejectsDisabledIncompleteOrDriftedConfiguration(
+        string key,
+        string value)
+    {
+        using var root = TemporaryAdministrationRoot.Create();
+        var values = ProductProfileValues();
+        values[key] = value;
+        var configuration = new ConfigurationBuilder()
+            .AddInMemoryCollection(values)
+            .Build();
+
+        Assert.Throws<ArgumentException>(() =>
+            ProductAdministrativeMaterialisationProfile.Resolve(
+                configuration,
+                root.CreateStoreOptions()));
+    }
+
+    [Fact]
     public async Task ComposedBuildIndexUsesGovernedSyntheticDependenciesAndRejectsProfileDrift()
     {
         using var root = TemporaryAdministrationRoot.Create();
@@ -1834,6 +1936,95 @@ public sealed class OneShotAdministrationTests
     }
 
     [Fact]
+    public async Task PersistentOfficialAuthorityResolverReadsCompleteControlAuthority()
+    {
+        using var root = TemporaryAdministrationRoot.Create();
+        var options = root.CreateStoreOptions();
+        await SqliteStoreProvisioner.ApplyMigrationsAsync(options);
+        var resolver = new SqliteOfficialSourceAuthorityResolver(options);
+        var corpusId = new CorpusId("product-authority-corpus");
+        var registrationId = new OfficialSourceRegistrationId(
+            "postgresql-18-reference-a4-official");
+
+        Assert.Null(await resolver.ResolveAsync(corpusId, registrationId));
+        var seed = await SeedOfficialAuthorityAsync(options, includeObservation: true);
+        var authority = await resolver.ResolveAsync(seed.CorpusId, seed.Registration.Id);
+
+        Assert.NotNull(authority);
+        Assert.Equal(seed.Registration.Id, authority.Registration.Id);
+        Assert.Equal(seed.Registration.Revision, authority.Registration.Revision);
+        Assert.Equal(
+            seed.Registration.CanonicalHttpsUrl,
+            authority.Registration.CanonicalHttpsUrl);
+        Assert.Equal(seed.Snapshot.Id, authority.CurrentSnapshot!.Id);
+        Assert.Equal(seed.Snapshot.ContentObjectId, authority.CurrentSnapshot.ContentObjectId);
+        Assert.Equal(1, authority.ObservationJournalRevision);
+        Assert.Equal(0, authority.ActivationRevision);
+    }
+
+    [Fact]
+    public async Task PersistentOfficialAuthorityResolverRejectsIncompleteSnapshotJournal()
+    {
+        using var root = TemporaryAdministrationRoot.Create();
+        var options = root.CreateStoreOptions();
+        await SqliteStoreProvisioner.ApplyMigrationsAsync(options);
+        var seed = await SeedOfficialAuthorityAsync(options, includeObservation: false);
+        var resolver = new SqliteOfficialSourceAuthorityResolver(options);
+
+        await Assert.ThrowsAsync<InvalidDataException>(() =>
+            resolver.ResolveAsync(seed.CorpusId, seed.Registration.Id));
+    }
+
+    [Fact]
+    public async Task PersistentOfficialAuthorityResolverRejectsJournalHeadDrift()
+    {
+        using var root = TemporaryAdministrationRoot.Create();
+        var options = root.CreateStoreOptions();
+        await SqliteStoreProvisioner.ApplyMigrationsAsync(options);
+        var seed = await SeedOfficialAuthorityAsync(options, includeObservation: true);
+        await ExecuteSqlAsync(
+            options,
+            $"""
+            UPDATE observation_journal_heads
+            SET journal_revision = 2, row_revision = 2
+            WHERE corpus_id = '{seed.CorpusId.Value}';
+            """);
+        var resolver = new SqliteOfficialSourceAuthorityResolver(options);
+
+        await Assert.ThrowsAsync<InvalidDataException>(() =>
+            resolver.ResolveAsync(seed.CorpusId, seed.Registration.Id));
+    }
+
+    [Fact]
+    public async Task PersistentOfficialAuthorityResolverRejectsRegistrationRevisionDrift()
+    {
+        using var root = TemporaryAdministrationRoot.Create();
+        var options = root.CreateStoreOptions();
+        await SqliteStoreProvisioner.ApplyMigrationsAsync(options);
+        var seed = await SeedOfficialAuthorityAsync(options, includeObservation: true);
+        var store = new SqliteControlPlaneStore(options);
+        var drifted = new OfficialSourceRegistration(
+            seed.Registration.Id,
+            new SourceRegistrationRevision(2),
+            seed.Registration.DatabaseProductId,
+            seed.Registration.DocumentId,
+            seed.Registration.SourceAdapterId,
+            "https://www.postgresql.org/files/documentation/pdf/18/postgresql-18-A4.pdf?revision=2",
+            CatalogueItemStatus.Candidate);
+        var registrationResult = await store.RegisterOfficialSourceAsync(
+            new OfficialSourceRegistrationCommitRequest(
+                new OperationId("product-authority-registration-v2"),
+                seed.CorpusId,
+                drifted,
+                Now));
+        var resolver = new SqliteOfficialSourceAuthorityResolver(options);
+
+        Assert.Equal(StoreMutationOutcome.Applied, registrationResult.Outcome);
+        await Assert.ThrowsAsync<InvalidDataException>(() =>
+            resolver.ResolveAsync(seed.CorpusId, seed.Registration.Id));
+    }
+
+    [Fact]
     public async Task DedicatedLeaseBlocksOtherMutationsAndAllowsItsOwner()
     {
         using var root = TemporaryAdministrationRoot.Create();
@@ -1915,7 +2106,8 @@ public sealed class OneShotAdministrationTests
         TemporaryAdministrationRoot root,
         string? materialisationProfile =
             SyntheticAdministrativeMaterialisationProfile.ProfileName,
-        string environment = SyntheticAdministrativeMaterialisationProfile.EnvironmentName)
+        string environment = SyntheticAdministrativeMaterialisationProfile.EnvironmentName,
+        bool enableProductProfile = false)
     {
         var executablePath = Path.Combine(
             AppContext.BaseDirectory,
@@ -1963,6 +2155,27 @@ public sealed class OneShotAdministrationTests
                 materialisationProfile;
         }
 
+        if (enableProductProfile)
+        {
+            startInfo.Environment[
+                "RagChallenge__Administration__ProductMaterialisation__Enabled"] = "true";
+            startInfo.Environment[
+                "RagChallenge__Administration__ProductMaterialisation__OfficialSource__Enabled"] = "true";
+            startInfo.Environment[
+                "RagChallenge__Administration__ProductMaterialisation__Embedding__Enabled"] = "true";
+            startInfo.Environment[
+                "RagChallenge__Administration__ProductMaterialisation__Embedding__ProviderId"] = "openai";
+            startInfo.Environment[
+                "RagChallenge__Administration__ProductMaterialisation__Embedding__ModelId"] = "text-embedding-3-small";
+            startInfo.Environment[
+                "RagChallenge__Administration__ProductMaterialisation__Embedding__ModelRevision"] = "text-embedding-3-small";
+            startInfo.Environment[
+                "RagChallenge__Administration__ProductMaterialisation__Embedding__Dimensions"] = "1536";
+            startInfo.Environment[
+                "RagChallenge__Administration__ProductMaterialisation__Embedding__CredentialEnvironmentVariable"] = "RAG_CHALLENGE_TEST_UNSET_CREDENTIAL";
+            startInfo.Environment.Remove("RAG_CHALLENGE_TEST_UNSET_CREDENTIAL");
+        }
+
         using var process = Process.Start(startInfo) ??
             throw new InvalidOperationException(
                 "The administrative Program host could not be started.");
@@ -1985,6 +2198,125 @@ public sealed class OneShotAdministrationTests
             process.ExitCode,
             await output,
             await error);
+    }
+
+    private static IConfiguration ProductProfileConfiguration() =>
+        new ConfigurationBuilder()
+            .AddInMemoryCollection(ProductProfileValues())
+            .Build();
+
+    private static Dictionary<string, string?> ProductProfileValues() =>
+        new(StringComparer.Ordinal)
+        {
+            ["RagChallenge:Administration:ProductMaterialisation:Enabled"] = "true",
+            ["RagChallenge:Administration:ProductMaterialisation:OfficialSource:Enabled"] = "true",
+            ["RagChallenge:Administration:ProductMaterialisation:Embedding:Enabled"] = "true",
+            ["RagChallenge:Administration:ProductMaterialisation:Embedding:ProviderId"] = "openai",
+            ["RagChallenge:Administration:ProductMaterialisation:Embedding:ModelId"] = "text-embedding-3-small",
+            ["RagChallenge:Administration:ProductMaterialisation:Embedding:ModelRevision"] = "text-embedding-3-small",
+            ["RagChallenge:Administration:ProductMaterialisation:Embedding:Dimensions"] = "1536",
+            ["RagChallenge:Administration:ProductMaterialisation:Embedding:CredentialEnvironmentVariable"] = "RAG_CHALLENGE_TEST_UNSET_CREDENTIAL",
+        };
+
+    private static async Task<OfficialAuthoritySeed> SeedOfficialAuthorityAsync(
+        SqliteStoreOptions options,
+        bool includeObservation)
+    {
+        var corpusId = new CorpusId("product-authority-corpus");
+        var productId = new DatabaseProductId("postgresql-18");
+        var productRevision = new DatabaseProductRevision(1);
+        var documentId = new DocumentId("postgresql-18-reference-a4");
+        var documentVersion = new DocumentVersionNumber(1);
+        var contentObjectId = new ContentObjectId(
+            "cea7b845568095eb56dee1b51bfa145c6c6637bc4377c986019971577efefae4");
+        var category = new DatabaseCategory(
+            new DatabaseCategoryId("relational-database"),
+            "Relational database");
+        var product = new DatabaseProduct(
+            productId,
+            productRevision,
+            "PostgreSQL 18",
+            CatalogueItemStatus.Candidate,
+            [category.Id]);
+        var document = new DocumentVersion(
+            documentId,
+            documentVersion,
+            productId,
+            productRevision,
+            DocumentFormat.Pdf,
+            new DocumentContentLanguage("en"),
+            CatalogueItemStatus.Candidate,
+            contentObjectId,
+            15_771_040,
+            ContentMediaType.ApplicationPdf.Value,
+            new SourceAdapterId("local-product-intake-pdf-v1"),
+            SourceTrustClass.LocalAuthorised,
+            sourceDeclaredLanguage: new SourceDeclaredLanguage("en"));
+        var store = new SqliteControlPlaneStore(options);
+        var catalogueResult = await store.CommitCatalogueAsync(new CatalogueCommitRequest(
+            new OperationId("product-authority-catalogue-v1"),
+            new CatalogueSnapshot(
+                corpusId,
+                new CatalogueRevision(1),
+                [category],
+                [product],
+                [document]),
+            ExpectedCurrentRevision: 0,
+            Now));
+        var registration = new OfficialSourceRegistration(
+            new OfficialSourceRegistrationId("postgresql-18-reference-a4-official"),
+            new SourceRegistrationRevision(1),
+            productId,
+            documentId,
+            new SourceAdapterId("postgresql-official-pdf-v1"),
+            "https://www.postgresql.org/files/documentation/pdf/18/postgresql-18-A4.pdf",
+            CatalogueItemStatus.Candidate);
+        var registrationResult = await store.RegisterOfficialSourceAsync(
+            new OfficialSourceRegistrationCommitRequest(
+                new OperationId("product-authority-registration-v1"),
+                corpusId,
+                registration,
+                Now));
+        var snapshot = new OfficialSourceSnapshot(
+            new OfficialSnapshotId("snapshot-" + contentObjectId.Value),
+            registration.Id,
+            contentObjectId,
+            15_771_040,
+            ContentMediaType.ApplicationPdf.Value,
+            Now);
+        var snapshotResult = await store.CommitOfficialSourceAsync(
+            new OfficialSourceCommitRequest(
+                new OperationId("product-authority-snapshot-v1"),
+                corpusId,
+                registration,
+                snapshot,
+                Now));
+
+        Assert.Equal(StoreMutationOutcome.Applied, catalogueResult.Outcome);
+        Assert.Equal(StoreMutationOutcome.Applied, registrationResult.Outcome);
+        Assert.Equal(StoreMutationOutcome.Applied, snapshotResult.Outcome);
+
+        if (includeObservation)
+        {
+            var observation = new OfficialSourceObservation(
+                new OfficialObservationId("postgresql-18-reference-a4-observation-v1"),
+                registration.Id,
+                snapshot.Id,
+                new ObservationJournalRevision(1),
+                OfficialObservationState.Current,
+                Now,
+                TimeSpan.FromDays(7));
+            var observationResult = await store.AppendObservationAsync(
+                new ObservationCommitRequest(
+                    new OperationId("product-authority-observation-v1"),
+                    corpusId,
+                    observation,
+                    ExpectedJournalRevision: 0,
+                    Now));
+            Assert.Equal(StoreMutationOutcome.Applied, observationResult.Outcome);
+        }
+
+        return new OfficialAuthoritySeed(corpusId, registration, snapshot);
     }
 
     private static void AssertCanonicalFailure(
@@ -2146,6 +2478,11 @@ public sealed class OneShotAdministrationTests
         string? OfficialSourceRegistrationId,
         string? OfficialSnapshotId);
 
+    private sealed record OfficialAuthoritySeed(
+        CorpusId CorpusId,
+        OfficialSourceRegistration Registration,
+        OfficialSourceSnapshot Snapshot);
+
     private sealed class StubIdentity(string? identifier)
         : ILocalOperatingSystemIdentityProvider
     {
@@ -2170,6 +2507,29 @@ public sealed class OneShotAdministrationTests
         {
             CallCount++;
             return Task.FromResult(result);
+        }
+    }
+
+    private sealed class NullOfficialSourceAuthorityResolver
+        : IOfficialSourceAuthorityResolver
+    {
+        public Task<OfficialSourceAuthority?> ResolveAsync(
+            CorpusId corpusId,
+            OfficialSourceRegistrationId registrationId,
+            CancellationToken cancellationToken = default) =>
+            Task.FromResult<OfficialSourceAuthority?>(null);
+    }
+
+    private sealed class RejectingHttpMessageHandler : HttpMessageHandler
+    {
+        internal int CallCount { get; private set; }
+
+        protected override Task<HttpResponseMessage> SendAsync(
+            HttpRequestMessage request,
+            CancellationToken cancellationToken)
+        {
+            CallCount++;
+            throw new InvalidOperationException("No external HTTP call is allowed in this test.");
         }
     }
 

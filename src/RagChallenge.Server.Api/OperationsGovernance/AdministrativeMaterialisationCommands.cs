@@ -26,48 +26,6 @@ internal interface IAdministrativeMaterialisationCommand
         CancellationToken cancellationToken = default);
 }
 
-internal interface IOfficialSourceAuthorityResolver
-{
-    Task<OfficialSourceAuthority?> ResolveAsync(
-        CorpusId corpusId,
-        OfficialSourceRegistrationId registrationId,
-        CancellationToken cancellationToken = default);
-}
-
-internal sealed record OfficialSourceAuthority
-{
-    internal OfficialSourceAuthority(
-        OfficialSourceRegistration registration,
-        OfficialSourceSnapshot? currentSnapshot,
-        long observationJournalRevision,
-        long activationRevision)
-    {
-        Registration = registration ?? throw new ArgumentNullException(nameof(registration));
-
-        if (currentSnapshot is not null &&
-            currentSnapshot.RegistrationId != registration.Id)
-        {
-            throw new ArgumentException(
-                "The resolved snapshot must belong to the resolved registration.",
-                nameof(currentSnapshot));
-        }
-
-        ArgumentOutOfRangeException.ThrowIfNegative(observationJournalRevision);
-        ArgumentOutOfRangeException.ThrowIfNegative(activationRevision);
-        CurrentSnapshot = currentSnapshot;
-        ObservationJournalRevision = observationJournalRevision;
-        ActivationRevision = activationRevision;
-    }
-
-    internal OfficialSourceRegistration Registration { get; }
-
-    internal OfficialSourceSnapshot? CurrentSnapshot { get; }
-
-    internal long ObservationJournalRevision { get; }
-
-    internal long ActivationRevision { get; }
-}
-
 internal sealed class OfficialSynchronisationAdministrativeCommand(
     IControlPlaneStore controlPlaneStore,
     IOfficialSourceAuthorityResolver authorityResolver,

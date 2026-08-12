@@ -89,6 +89,48 @@ public interface IOfficialSourceTransport
         CancellationToken cancellationToken = default);
 }
 
+public interface IOfficialSourceAuthorityResolver
+{
+    Task<OfficialSourceAuthority?> ResolveAsync(
+        CorpusId corpusId,
+        OfficialSourceRegistrationId registrationId,
+        CancellationToken cancellationToken = default);
+}
+
+public sealed record OfficialSourceAuthority
+{
+    public OfficialSourceAuthority(
+        OfficialSourceRegistration registration,
+        OfficialSourceSnapshot? currentSnapshot,
+        long observationJournalRevision,
+        long activationRevision)
+    {
+        Registration = registration ?? throw new ArgumentNullException(nameof(registration));
+
+        if (currentSnapshot is not null &&
+            currentSnapshot.RegistrationId != registration.Id)
+        {
+            throw new ArgumentException(
+                "The resolved snapshot must belong to the resolved registration.",
+                nameof(currentSnapshot));
+        }
+
+        ArgumentOutOfRangeException.ThrowIfNegative(observationJournalRevision);
+        ArgumentOutOfRangeException.ThrowIfNegative(activationRevision);
+        CurrentSnapshot = currentSnapshot;
+        ObservationJournalRevision = observationJournalRevision;
+        ActivationRevision = activationRevision;
+    }
+
+    public OfficialSourceRegistration Registration { get; }
+
+    public OfficialSourceSnapshot? CurrentSnapshot { get; }
+
+    public long ObservationJournalRevision { get; }
+
+    public long ActivationRevision { get; }
+}
+
 public enum OfficialSynchronisationOutcome
 {
     UnchangedObservationCreated,
