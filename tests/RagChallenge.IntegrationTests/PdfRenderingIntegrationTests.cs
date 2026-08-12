@@ -547,6 +547,69 @@ public sealed class PdfRenderingIntegrationTests
     }
 
     [Fact]
+    public void NoticeBearingCompositorDeterministicallySupportsTheExactNoticeGlyphExtension()
+    {
+        var policy = Policy(maximumPages: 1, maximumPixels: 5_000_000);
+        var rendered = PdfToImagePdfPageRenderer.Render(
+            CreatePdf(new PageSpec(600, 300)),
+            policy,
+            RuntimeInformation.RuntimeIdentifier);
+        var page = Assert.Single(rendered.Pages);
+        var validation = new PngPageImageValidator().Validate(page, policy);
+        var documentId = new DocumentId("document-exact-notice-glyphs");
+        var documentVersion = new DocumentVersionNumber(1);
+        var rights = new DocumentRightsEligibilityRecordV1(
+            documentId,
+            documentVersion,
+            Enum.GetValues<DocumentRight>().Select(right => new DocumentRightDecision(
+                right,
+                DocumentRightDecisionState.Permitted,
+                new DocumentRightsEvidenceReference($"rights-exact-glyph-{right}"))));
+        var obligationSet = DerivativeObligationSetV1.Create(
+            rights,
+            new ContentObjectId(new string('b', 64)),
+            rights.Decisions.Select(decision => decision.EvidenceReference),
+            DocumentContentLanguage.EnGb,
+            "Synthetic Publisher © 2026",
+            "Synthetic Reference – Revision",
+            "1.0",
+            "synthetic-source-v1",
+            "Synthetic “quoted” attribution.",
+            "Copyright © 2026 Synthetic Publisher.",
+            "Synthetic permission notice.",
+            ["Synthetic disclaimer on an “AS-IS” basis."],
+            DerivativeTrademarkTreatment.NotApplicable,
+            "NotApplicable: no trademark applies.",
+            "Rendered synthetic derivative – source pixels unchanged.",
+            new DateTimeOffset(2026, 8, 12, 12, 0, 0, TimeSpan.Zero),
+            "assessor-synthetic-v1");
+        var firstCompositor = new NoticeBearingPageImageCompositor();
+        var secondCompositor = new NoticeBearingPageImageCompositor();
+
+        var first = firstCompositor.Compose(
+            page,
+            validation,
+            rendered.RendererDescriptor,
+            obligationSet,
+            policy);
+        var repeat = secondCompositor.Compose(
+            page,
+            validation,
+            rendered.RendererDescriptor,
+            obligationSet,
+            policy);
+        var verified = firstCompositor.Validate(page, validation, first, policy);
+
+        Assert.Equal(firstCompositor.FontAssetSha256, secondCompositor.FontAssetSha256);
+        Assert.Matches("^[0-9a-f]{64}$", firstCompositor.FontAssetSha256);
+        Assert.Equal(first.RendererDescriptor, repeat.RendererDescriptor);
+        Assert.Equal(first.PngBytes.ToArray(), repeat.PngBytes.ToArray());
+        Assert.Equal(first.SourceRegionWidthPixels, verified.SourceRegionWidthPixels);
+        Assert.Equal(first.SourceRegionHeightPixels, verified.SourceRegionHeightPixels);
+        Assert.Equal(first.NoticeRegionHeightPixels, verified.NoticeRegionHeightPixels);
+    }
+
+    [Fact]
     public async Task WorkerBoundaryFailsClosedForCancellationCrashAndTruncatedFrames()
     {
         var policy = Policy(maximumPages: 1);
