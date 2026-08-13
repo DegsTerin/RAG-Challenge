@@ -205,15 +205,23 @@ public static class PdfRenderWorker
                 input,
                 request,
                 cancellationToken).ConfigureAwait(false);
-            var result = PdfToImagePdfPageRenderer.Render(
+            await PdfToImagePdfPageRenderer.RenderToAsync(
                 source,
                 request.Policy,
                 RuntimeInformation.RuntimeIdentifier,
-                cancellationToken);
-            await PdfRenderWorkerProtocol.WriteSuccessAsync(
-                output,
-                result,
-                request.Policy,
+                (descriptor, pageCount, token) =>
+                    PdfRenderWorkerProtocol.WriteSuccessHeaderAsync(
+                        output,
+                        descriptor,
+                        pageCount,
+                        token),
+                (page, totalBytes, token) =>
+                    PdfRenderWorkerProtocol.WritePageAsync(
+                        output,
+                        page,
+                        totalBytes,
+                        request.Policy,
+                        token),
                 cancellationToken).ConfigureAwait(false);
             return 0;
         }
@@ -358,10 +366,10 @@ internal static class PdfRenderWorkerProtocol
         return source;
     }
 
-    internal static async Task WriteSuccessAsync(
+    internal static async Task WriteSuccessHeaderAsync(
         Stream output,
-        PdfRenderResult result,
-        PdfRenderPolicy policy,
+        RendererDescriptor rendererDescriptor,
+        int sourcePageCount,
         CancellationToken cancellationToken)
     {
         using var header = new MemoryStream();
@@ -369,38 +377,41 @@ internal static class PdfRenderWorkerProtocol
         {
             writer.Write(ResponseMagic);
             writer.Write(0);
-            WriteBoundedString(writer, result.RendererDescriptor.Value);
-            writer.Write(result.SourcePageCount);
+            WriteBoundedString(writer, rendererDescriptor.Value);
+            writer.Write(sourcePageCount);
         }
 
         await output.WriteAsync(header.GetBuffer().AsMemory(0, checked((int)header.Length)), cancellationToken)
             .ConfigureAwait(false);
-        long totalBytes = 0;
+        await output.FlushAsync(cancellationToken).ConfigureAwait(false);
+    }
 
-        foreach (var page in result.Pages)
+    internal static async Task WritePageAsync(
+        Stream output,
+        RenderedPdfPageCandidate page,
+        long totalBytes,
+        PdfRenderPolicy policy,
+        CancellationToken cancellationToken)
+    {
+        var bytes = page.PngBytes;
+
+        if (bytes.Length > policy.MaximumPageOutputByteLength ||
+            totalBytes > policy.MaximumTotalOutputByteLength)
         {
-            var bytes = page.PngBytes;
-            totalBytes = checked(totalBytes + bytes.Length);
-
-            if (bytes.Length > policy.MaximumPageOutputByteLength ||
-                totalBytes > policy.MaximumTotalOutputByteLength)
-            {
-                throw new PdfRenderException(PdfRenderFailureKind.LimitExceeded);
-            }
-
-            var pageHeader = new byte[4 + 8 + 8 + 8];
-            BinaryPrimitives.WriteInt32LittleEndian(pageHeader, page.PageNumber);
-            BinaryPrimitives.WriteInt64LittleEndian(
-                pageHeader.AsSpan(4),
-                BitConverter.DoubleToInt64Bits(page.SourceWidthPoints));
-            BinaryPrimitives.WriteInt64LittleEndian(
-                pageHeader.AsSpan(12),
-                BitConverter.DoubleToInt64Bits(page.SourceHeightPoints));
-            BinaryPrimitives.WriteInt64LittleEndian(pageHeader.AsSpan(20), bytes.Length);
-            await output.WriteAsync(pageHeader, cancellationToken).ConfigureAwait(false);
-            await output.WriteAsync(bytes, cancellationToken).ConfigureAwait(false);
+            throw new PdfRenderException(PdfRenderFailureKind.LimitExceeded);
         }
 
+        var pageHeader = new byte[4 + 8 + 8 + 8];
+        BinaryPrimitives.WriteInt32LittleEndian(pageHeader, page.PageNumber);
+        BinaryPrimitives.WriteInt64LittleEndian(
+            pageHeader.AsSpan(4),
+            BitConverter.DoubleToInt64Bits(page.SourceWidthPoints));
+        BinaryPrimitives.WriteInt64LittleEndian(
+            pageHeader.AsSpan(12),
+            BitConverter.DoubleToInt64Bits(page.SourceHeightPoints));
+        BinaryPrimitives.WriteInt64LittleEndian(pageHeader.AsSpan(20), bytes.Length);
+        await output.WriteAsync(pageHeader, cancellationToken).ConfigureAwait(false);
+        await output.WriteAsync(bytes, cancellationToken).ConfigureAwait(false);
         await output.FlushAsync(cancellationToken).ConfigureAwait(false);
     }
 

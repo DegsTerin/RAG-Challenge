@@ -56,6 +56,53 @@ public sealed class PdfRenderingIntegrationTests
     }
 
     [Fact]
+    public async Task StreamingRendererEmitsTheSameOrderedFramesWithoutACompleteBufferedResult()
+    {
+        var policy = Policy(maximumPages: 3, maximumPixels: 300_000);
+        var pdf = CreatePdf(
+            new PageSpec(72, 36),
+            new PageSpec(36, 72),
+            new PageSpec(72, 36, Rotation: 90));
+        var buffered = PdfToImagePdfPageRenderer.Render(
+            pdf,
+            policy,
+            RuntimeInformation.RuntimeIdentifier);
+        RendererDescriptor? streamedDescriptor = null;
+        var streamedPageCount = 0;
+        var streamed = new List<(int PageNumber, string Sha256, long TotalBytes)>();
+
+        await PdfToImagePdfPageRenderer.RenderToAsync(
+            pdf,
+            policy,
+            RuntimeInformation.RuntimeIdentifier,
+            (descriptor, pageCount, _) =>
+            {
+                streamedDescriptor = descriptor;
+                streamedPageCount = pageCount;
+                return Task.CompletedTask;
+            },
+            (page, totalBytes, _) =>
+            {
+                streamed.Add((
+                    page.PageNumber,
+                    Convert.ToHexString(SHA256.HashData(page.PngBytes.Span))
+                        .ToLowerInvariant(),
+                    totalBytes));
+                return Task.CompletedTask;
+            });
+
+        Assert.Equal(buffered.RendererDescriptor, streamedDescriptor);
+        Assert.Equal(buffered.SourcePageCount, streamedPageCount);
+        Assert.Equal(
+            buffered.Pages.Select((page, index) => (
+                page.PageNumber,
+                Convert.ToHexString(SHA256.HashData(page.PngBytes.Span))
+                    .ToLowerInvariant(),
+                buffered.Pages.Take(index + 1).Sum(item => (long)item.PngBytes.Length))),
+            streamed);
+    }
+
+    [Fact]
     public void RendererAccepts4096AndRejects4097BeforeRasterisation()
     {
         var policy = Policy(maximumPages: 1, maximumPixels: 100_000);
