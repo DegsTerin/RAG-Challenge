@@ -67,10 +67,10 @@ internal static class SyntheticAdministrativeMaterialisationProfile
         }
 
         return new AdministrativeMaterialisationPorts(
-            new SyntheticOfficialSourceAuthorityResolver(),
-            new SyntheticOfficialSourceTransport(),
-            new DeterministicEmbeddingProvider(),
-            CompatibilityProfile);
+            OfficialSourceAuthorityResolver: new SyntheticOfficialSourceAuthorityResolver(),
+            OfficialSourceTransport: new SyntheticOfficialSourceTransport(),
+            EmbeddingProvider: new DeterministicEmbeddingProvider(),
+            IndexCompatibilityProfile: CompatibilityProfile);
     }
 
     private static bool IsIntegrationEnvironment(IConfiguration configuration)

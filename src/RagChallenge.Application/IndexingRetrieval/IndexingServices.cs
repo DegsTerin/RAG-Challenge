@@ -182,7 +182,7 @@ public sealed class CorpusIndexingService(
     IVectorIndexStore vectorStore,
     IControlPlaneStore controlPlaneStore)
 {
-    private const int MaximumEmbeddingBatchInputs = 256;
+    private const int MaximumEmbeddingBatchInputs = 64;
     private const int MaximumVectorWriteBatch = 500;
 
     private readonly IEmbeddingProvider embeddingProvider = embeddingProvider ??
@@ -294,7 +294,9 @@ public sealed class CorpusIndexingService(
     {
         var vectors = new List<ReadOnlyMemory<float>>(flattened.Length);
 
-        foreach (var batch in flattened.Chunk(MaximumEmbeddingBatchInputs))
+        foreach (var batch in CreateEmbeddingBatches(
+                     flattened,
+                     request.MaximumEmbeddingBatchUtf8Bytes))
         {
             var embeddingRequest = new EmbeddingBatchRequest(
                 request.ExpectedEmbeddingDescriptor,
@@ -308,6 +310,40 @@ public sealed class CorpusIndexingService(
         }
 
         return vectors.ToArray();
+    }
+
+    private static IEnumerable<
+        (IndexDocumentInput Document, DocumentBinding Binding, DocumentChunk Chunk)[]>
+        CreateEmbeddingBatches(
+            (IndexDocumentInput Document, DocumentBinding Binding, DocumentChunk Chunk)[] items,
+            int maximumUtf8Bytes)
+    {
+        var batch = new List<
+            (IndexDocumentInput Document, DocumentBinding Binding, DocumentChunk Chunk)>(
+                MaximumEmbeddingBatchInputs);
+        long batchBytes = 0;
+
+        foreach (var item in items)
+        {
+            var itemBytes = Encoding.UTF8.GetByteCount(item.Chunk.Text);
+
+            if (batch.Count != 0 &&
+                (batch.Count == MaximumEmbeddingBatchInputs ||
+                 batchBytes + itemBytes > maximumUtf8Bytes))
+            {
+                yield return batch.ToArray();
+                batch.Clear();
+                batchBytes = 0;
+            }
+
+            batch.Add(item);
+            batchBytes += itemBytes;
+        }
+
+        if (batch.Count != 0)
+        {
+            yield return batch.ToArray();
+        }
     }
 
     private static void ValidateEmbeddingResult(

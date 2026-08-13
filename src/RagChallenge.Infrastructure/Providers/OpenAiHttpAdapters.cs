@@ -463,13 +463,22 @@ public sealed class OpenAiHttpLanguageModel : ILanguageModel
                 throw new JsonException("The response model or output is unexpected.");
             }
 
-            var outputItems = outputElement.EnumerateArray().ToArray();
+            var outputItems = outputElement.EnumerateArray()
+                .Select(item => new
+                {
+                    Element = item,
+                    Type = OpenAiHttpEmbeddingProvider.ReadRequiredString(item, "type"),
+                })
+                .ToArray();
+            var messageItems = outputItems
+                .Where(item => item.Type == "message")
+                .ToArray();
 
-            if (outputItems.Length != 1 ||
-                OpenAiHttpEmbeddingProvider.ReadRequiredString(outputItems[0], "type") != "message" ||
-                OpenAiHttpEmbeddingProvider.ReadRequiredString(outputItems[0], "role") != "assistant" ||
-                OpenAiHttpEmbeddingProvider.ReadRequiredString(outputItems[0], "status") != "completed" ||
-                !outputItems[0].TryGetProperty("content", out var contentElement) ||
+            if (outputItems.Any(item => item.Type is not ("reasoning" or "message")) ||
+                messageItems.Length != 1 ||
+                OpenAiHttpEmbeddingProvider.ReadRequiredString(messageItems[0].Element, "role") != "assistant" ||
+                OpenAiHttpEmbeddingProvider.ReadRequiredString(messageItems[0].Element, "status") != "completed" ||
+                !messageItems[0].Element.TryGetProperty("content", out var contentElement) ||
                 contentElement.ValueKind != JsonValueKind.Array)
             {
                 throw new JsonException("The structured response output is invalid.");

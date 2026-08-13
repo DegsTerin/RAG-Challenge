@@ -84,6 +84,8 @@ internal static class OneShotAdministrationHost
     private const string EnabledKey = "RagChallenge:Administration:Enabled";
     private const string StoreRootKey = "RagChallenge:Administration:StoreRoot";
     private const string InputRootKey = "RagChallenge:Administration:InputRoot";
+    private const string ApplyMigrationsKey =
+        "RagChallenge:Administration:ApplyMigrations";
 
     internal static bool IsAdministrationMode(string[] args) =>
         args.Length > 0 && string.Equals(args[0], "admin", StringComparison.Ordinal);
@@ -148,6 +150,12 @@ internal static class OneShotAdministrationHost
                 Path.Combine(storeRoot, "control.db"),
                 Path.Combine(storeRoot, "vectors.db"),
                 Path.Combine(storeRoot, "content"));
+            if (configuration.GetValue<bool>(ApplyMigrationsKey))
+            {
+                await SqliteStoreProvisioner.ApplyMigrationsAsync(
+                    options,
+                    cancellationToken).ConfigureAwait(false);
+            }
             var store = new SqliteControlPlaneStore(options);
             var materialisationPorts =
                 AdministrativeMaterialisationProfileResolver.Resolve(

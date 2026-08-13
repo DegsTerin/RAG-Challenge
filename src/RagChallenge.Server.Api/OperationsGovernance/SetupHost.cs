@@ -15,16 +15,24 @@ internal static class SetupHost
         Action<IServiceCollection>? configureServices = null)
     {
         var builder = WebApplication.CreateBuilder(args);
+        var productOptions = ProductQueryRuntimeOptions.Resolve(builder.Configuration);
 
-        if (builder.Configuration.GetValue<bool>("RagChallenge:Setup:AllowExternalServices"))
+        var allowExternalServices = builder.Configuration.GetValue<bool>(
+            "RagChallenge:Setup:AllowExternalServices");
+        if (allowExternalServices != (productOptions is not null))
         {
             throw new InvalidOperationException(
-                "External services must remain disabled during project setup.");
+                "External services must be enabled exactly for the explicit product runtime.");
         }
 
         var integrationOptions = IntegrationRuntimeOptions.Resolve(
             builder.Configuration,
             builder.Environment);
+        if (integrationOptions is not null && productOptions is not null)
+        {
+            throw new InvalidOperationException(
+                "Product and synthetic integration runtimes cannot be enabled together.");
+        }
 
         builder.Services.AddSingleton(
             new SetupCompositionBoundary(
@@ -85,7 +93,7 @@ internal static class SetupHost
         });
         builder.Services.AddSingleton<QueryConcurrencyGate>();
         builder.Services.AddSingleton<VisualEvidenceConcurrencyGate>();
-        if (integrationOptions is null)
+        if (integrationOptions is null && productOptions is null)
         {
             builder.Services.AddSingleton<IVisualEvidenceReader, DisabledVisualEvidenceReader>();
             builder.Services.AddSingleton<IQuestionAnsweringService,
@@ -93,7 +101,7 @@ internal static class SetupHost
             builder.Services.AddSingleton<IQueryReadinessProbe,
                 DisabledQueryReadinessProbe>();
         }
-        else
+        else if (integrationOptions is not null)
         {
             builder.Services.AddSingleton(integrationOptions);
             builder.Services.AddSingleton(services => new SyntheticIntegrationRuntime(
@@ -107,12 +115,26 @@ internal static class SetupHost
             builder.Services.AddSingleton<IVisualEvidenceReader>(services =>
                 services.GetRequiredService<SyntheticIntegrationRuntime>());
         }
+        else
+        {
+            builder.Services.AddSingleton(productOptions!);
+            builder.Services.AddSingleton(services => new ProductQueryRuntime(
+                services.GetRequiredService<ProductQueryRuntimeOptions>(),
+                new SanitisedAnswerEvidenceActivitySink(
+                    services.GetRequiredService<ILogger<SanitisedAnswerEvidenceActivitySink>>())));
+            builder.Services.AddSingleton<IQuestionAnsweringService>(services =>
+                services.GetRequiredService<ProductQueryRuntime>());
+            builder.Services.AddSingleton<IQueryReadinessProbe>(services =>
+                services.GetRequiredService<ProductQueryRuntime>());
+            builder.Services.AddSingleton<IVisualEvidenceReader>(services =>
+                services.GetRequiredService<ProductQueryRuntime>());
+        }
         configureServices?.Invoke(builder.Services);
 
         var app = builder.Build();
 
         app.UseExceptionHandler();
-        if (integrationOptions is not null)
+        if (integrationOptions is not null || productOptions is not null)
         {
             app.UseDefaultFiles();
             app.UseStaticFiles();
@@ -124,7 +146,7 @@ internal static class SetupHost
         V2Endpoints.QueryEndpoints.MapQueryV2(app);
         V2Endpoints.VisualEvidenceEndpoints.MapVisualEvidenceV2(app);
 
-        if (integrationOptions is not null)
+        if (integrationOptions is not null || productOptions is not null)
         {
             app.MapFallbackToFile("index.html");
         }

@@ -156,14 +156,14 @@ public sealed class SetupHostArtefactTests
     }
 
     [Fact]
-    public void SetupHostFailsClosedWhenExternalServicesAreEnabled()
+    public void SetupHostFailsClosedWhenExternalServicesLackProductRuntime()
     {
         var exception = Assert.Throws<InvalidOperationException>(
             () => SetupHost.Build(
                 ["--RagChallenge:Setup:AllowExternalServices=true"]));
 
         Assert.Equal(
-            "External services must remain disabled during project setup.",
+            "External services must be enabled exactly for the explicit product runtime.",
             exception.Message);
     }
 
@@ -275,6 +275,36 @@ public sealed class SetupHostArtefactTests
 
         Assert.DoesNotContain("\"Fault", committedConfiguration, StringComparison.OrdinalIgnoreCase);
         Assert.DoesNotContain("\"Failure", committedConfiguration, StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
+    public void OracleOnlyProductScriptsAreCommittedBoundedAndMigrationAware()
+    {
+        var engRoot = Path.Combine(FindRepositoryRoot(), "eng");
+        var generator = File.ReadAllText(Path.Combine(
+            engRoot,
+            "New-Oracle19ProductPlans.ps1"));
+        var launcher = File.ReadAllText(Path.Combine(
+            engRoot,
+            "Start-Oracle19Product.ps1"));
+
+        Assert.Contains(
+            "tests/RagChallenge.UnitTests/TestData/initial-catalogue-v1.json",
+            generator.Replace('\\', '/'),
+            StringComparison.Ordinal);
+        Assert.Contains("'oracle-database'", generator, StringComparison.Ordinal);
+        Assert.Contains("status = 'Candidate'", generator, StringComparison.Ordinal);
+        Assert.Contains("status = 'Active'", generator, StringComparison.Ordinal);
+        Assert.Contains("catalogueRevision = 53", generator, StringComparison.Ordinal);
+        Assert.Contains(
+            "$env:RagChallenge__Product__ApplyMigrations = 'true'",
+            launcher,
+            StringComparison.Ordinal);
+        Assert.Contains(
+            "$env:RagChallenge__Product__CredentialEnvironmentVariable = $credentialName",
+            launcher,
+            StringComparison.Ordinal);
+        Assert.DoesNotContain("sk-", generator + launcher, StringComparison.OrdinalIgnoreCase);
     }
 
     [Fact]

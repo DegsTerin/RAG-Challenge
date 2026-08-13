@@ -211,6 +211,7 @@ public sealed class OneShotAdministrationTests
             "build-index",
             "deactivate-database",
             "deactivate-document",
+            "import-local",
             "register-official-source",
             "remove-database",
             "remove-document",
@@ -236,6 +237,239 @@ public sealed class OneShotAdministrationTests
             .ToArray();
         Assert.DoesNotContain(routes, route =>
             route.Contains("admin", StringComparison.OrdinalIgnoreCase));
+    }
+
+    [Fact]
+    public async Task LocalImportPublishesOnlyTheExpectedBoundedFile()
+    {
+        using var root = TemporaryAdministrationRoot.Create();
+        var options = root.CreateStoreOptions();
+        await SqliteStoreProvisioner.ApplyMigrationsAsync(options);
+        var bytes = "%PDF-1.5\nsynthetic local import\n%%EOF\n"u8.ToArray();
+        var sourcePath = Path.Combine(root.InputRoot, "oracle-19c.pdf");
+        await File.WriteAllBytesAsync(sourcePath, bytes);
+        var sha256 = Convert.ToHexString(
+            System.Security.Cryptography.SHA256.HashData(bytes)).ToLowerInvariant();
+        await File.WriteAllTextAsync(
+            Path.Combine(root.InputRoot, "import.json"),
+            JsonSerializer.Serialize(new
+            {
+                relativePath = "oracle-19c.pdf",
+                maximumByteLength = 1024,
+                mediaType = "application/pdf",
+                expectedSha256 = sha256,
+            }));
+        var ports = new AdministrativeMaterialisationPorts(
+            LocalInputRoot: root.InputRoot);
+        var executor = AdministrativeMaterialisationComposition.CreateExecutor(
+            options,
+            new SqliteControlPlaneStore(options),
+            ports);
+
+        var result = await RunAsync(
+            MutationArguments("import-local", "local-import-v1", "import.json"),
+            Configuration(true, root.InputRoot, root.StoreRoot),
+            new StubIdentity("os-sha256:" + new string('a', 64)),
+            new RecordingLeaseManager(),
+            executor);
+
+        Assert.Equal((int)AdministrationExitCode.Success, result.ExitCode);
+        using var output = JsonDocument.Parse(result.Output);
+        var payload = output.RootElement.GetProperty("resultPayload");
+        Assert.Equal(sha256, payload.GetProperty("contentObjectId").GetString());
+        Assert.Equal(bytes.Length, payload.GetProperty("byteLength").GetInt64());
+        Assert.Equal("application/pdf", payload.GetProperty("mediaType").GetString());
+        Assert.True(File.Exists(Path.Combine(
+            options.ContentStoreRoot,
+            "objects",
+            sha256[..2],
+            $"{sha256}.bin")));
+    }
+
+    [Fact]
+    public async Task LocalImportRejectsTraversalBeforeContentPublication()
+    {
+        using var root = TemporaryAdministrationRoot.Create();
+        var options = root.CreateStoreOptions();
+        var bytes = "%PDF-1.5\nexternal synthetic source\n%%EOF\n"u8.ToArray();
+        var outsidePath = Path.Combine(root.Root, "outside.pdf");
+        await File.WriteAllBytesAsync(outsidePath, bytes);
+
+        var result = await RunLocalImportAsync(
+            root,
+            options,
+            "local-import-traversal",
+            new
+            {
+                relativePath = "../outside.pdf",
+                maximumByteLength = 1024,
+                mediaType = "application/pdf",
+                expectedSha256 = Sha256(bytes),
+            });
+
+        AssertCanonicalFailure(
+            result,
+            AdministrationExitCode.InvalidInput,
+            "CH_ADMIN_INPUT_REJECTED");
+        Assert.Equal(bytes, await File.ReadAllBytesAsync(outsidePath));
+        AssertNoContentResidue(options);
+    }
+
+    [Theory]
+    [InlineData("hash")]
+    [InlineData("size")]
+    public async Task LocalImportRejectsHashAndByteLimitDriftWithoutResidue(
+        string divergence)
+    {
+        using var root = TemporaryAdministrationRoot.Create();
+        var options = root.CreateStoreOptions();
+        var bytes = "%PDF-1.5\nidentity drift\n%%EOF\n"u8.ToArray();
+        await File.WriteAllBytesAsync(
+            Path.Combine(root.InputRoot, "oracle-19c.pdf"),
+            bytes);
+        var result = await RunLocalImportAsync(
+            root,
+            options,
+            $"local-import-{divergence}",
+            new
+            {
+                relativePath = "oracle-19c.pdf",
+                maximumByteLength = divergence == "size" ? bytes.Length - 1 : bytes.Length,
+                mediaType = "application/pdf",
+                expectedSha256 = divergence == "hash"
+                    ? new string('a', 64)
+                    : Sha256(bytes),
+            });
+
+        AssertCanonicalFailure(
+            result,
+            AdministrationExitCode.InvalidInput,
+            "CH_ADMIN_INPUT_REJECTED");
+        AssertNoContentResidue(options);
+    }
+
+    [Theory]
+    [InlineData("oracle-19c.pdf", "application/octet-stream")]
+    [InlineData("oracle-19c.csv", "application/pdf")]
+    public async Task LocalImportRejectsUnsupportedOrMismatchedMediaType(
+        string fileName,
+        string mediaType)
+    {
+        using var root = TemporaryAdministrationRoot.Create();
+        var options = root.CreateStoreOptions();
+        var bytes = "synthetic media type drift"u8.ToArray();
+        await File.WriteAllBytesAsync(Path.Combine(root.InputRoot, fileName), bytes);
+
+        var result = await RunLocalImportAsync(
+            root,
+            options,
+            $"local-import-media-{Path.GetExtension(fileName)[1..]}",
+            new
+            {
+                relativePath = fileName,
+                maximumByteLength = bytes.Length,
+                mediaType,
+                expectedSha256 = Sha256(bytes),
+            });
+
+        AssertCanonicalFailure(
+            result,
+            AdministrationExitCode.InvalidInput,
+            "CH_ADMIN_INPUT_REJECTED");
+        AssertNoContentResidue(options);
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task LocalImportRejectsFileAndDirectoryReparsePoints(bool markDirectory)
+    {
+        using var root = TemporaryAdministrationRoot.Create();
+        var options = root.CreateStoreOptions();
+        var relativeDirectory = "linked-source";
+        var directory = Path.Combine(root.InputRoot, relativeDirectory);
+        Directory.CreateDirectory(directory);
+        var sourcePath = Path.Combine(directory, "oracle-19c.pdf");
+        var bytes = "%PDF-1.5\nreparse boundary\n%%EOF\n"u8.ToArray();
+        await File.WriteAllBytesAsync(sourcePath, bytes);
+        var markedPath = markDirectory ? directory : sourcePath;
+
+        FileAttributes ReadAttributes(string path)
+        {
+            var attributes = File.GetAttributes(path);
+            return string.Equals(
+                    Path.GetFullPath(path),
+                    Path.GetFullPath(markedPath),
+                    OperatingSystem.IsWindows()
+                        ? StringComparison.OrdinalIgnoreCase
+                        : StringComparison.Ordinal)
+                ? attributes | FileAttributes.ReparsePoint
+                : attributes;
+        }
+
+        var result = await RunLocalImportAsync(
+            root,
+            options,
+            markDirectory
+                ? "local-import-directory-reparse"
+                : "local-import-file-reparse",
+            new
+            {
+                relativePath = $"{relativeDirectory}/oracle-19c.pdf",
+                maximumByteLength = bytes.Length,
+                mediaType = "application/pdf",
+                expectedSha256 = Sha256(bytes),
+            },
+            ReadAttributes);
+
+        AssertCanonicalFailure(
+            result,
+            AdministrationExitCode.InvalidInput,
+            "CH_ADMIN_INPUT_REJECTED");
+        Assert.Equal(bytes, await File.ReadAllBytesAsync(sourcePath));
+        AssertNoContentResidue(options);
+    }
+
+    [Fact]
+    public async Task LocalImportRejectsAnActualFileReparsePointWhenSupported()
+    {
+        using var root = TemporaryAdministrationRoot.Create();
+        var options = root.CreateStoreOptions();
+        var bytes = "%PDF-1.5\nactual reparse boundary\n%%EOF\n"u8.ToArray();
+        var outsidePath = Path.Combine(root.Root, "outside-reparse.pdf");
+        var linkedPath = Path.Combine(root.InputRoot, "oracle-19c.pdf");
+        await File.WriteAllBytesAsync(outsidePath, bytes);
+
+        try
+        {
+            _ = File.CreateSymbolicLink(linkedPath, outsidePath);
+        }
+        catch (Exception exception) when (
+            exception is UnauthorizedAccessException or IOException or
+                PlatformNotSupportedException)
+        {
+            // The deterministic attribute seam above still covers both reparse branches.
+            return;
+        }
+
+        var result = await RunLocalImportAsync(
+            root,
+            options,
+            "local-import-actual-reparse",
+            new
+            {
+                relativePath = "oracle-19c.pdf",
+                maximumByteLength = bytes.Length,
+                mediaType = "application/pdf",
+                expectedSha256 = Sha256(bytes),
+            });
+
+        AssertCanonicalFailure(
+            result,
+            AdministrationExitCode.InvalidInput,
+            "CH_ADMIN_INPUT_REJECTED");
+        Assert.Equal(bytes, await File.ReadAllBytesAsync(outsidePath));
+        AssertNoContentResidue(options);
     }
 
     [Fact]
@@ -2150,6 +2384,47 @@ public sealed class OneShotAdministrationTests
             utcNow ?? (() => Now));
         return new RunResult(exitCode, output.ToString(), error.ToString());
     }
+
+    private static async Task<RunResult> RunLocalImportAsync(
+        TemporaryAdministrationRoot root,
+        SqliteStoreOptions options,
+        string operationId,
+        object plan,
+        Func<string, FileAttributes>? readAttributes = null)
+    {
+        await File.WriteAllTextAsync(
+            Path.Combine(root.InputRoot, "import.json"),
+            JsonSerializer.Serialize(plan));
+        var import = new ImportLocalAdministrativeCommand(
+            new ImmutableContentStore(options),
+            root.InputRoot,
+            readAttributes);
+        var executor = new SqliteAdministrativeCommandExecutor(
+            new SqliteControlPlaneStore(options),
+            importLocal: import);
+        return await RunAsync(
+            MutationArguments("import-local", operationId, "import.json"),
+            Configuration(true, root.InputRoot, root.StoreRoot),
+            new StubIdentity("os-sha256:" + new string('a', 64)),
+            new RecordingLeaseManager(),
+            executor);
+    }
+
+    private static void AssertNoContentResidue(SqliteStoreOptions options)
+    {
+        Assert.Empty(Directory.EnumerateFiles(
+            Path.Combine(options.ContentStoreRoot, "objects"),
+            "*",
+            SearchOption.AllDirectories));
+        Assert.Empty(Directory.EnumerateFiles(
+            Path.Combine(options.ContentStoreRoot, "quarantine"),
+            "*",
+            SearchOption.AllDirectories));
+    }
+
+    private static string Sha256(ReadOnlySpan<byte> bytes) =>
+        Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(bytes))
+            .ToLowerInvariant();
 
     private static async Task<RunResult> RunProgramAsync(
         string[] arguments,

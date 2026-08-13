@@ -1090,7 +1090,9 @@ public sealed class ControlPlaneDbContext(DbContextOptions<ControlPlaneDbContext
                 table.HasCheckConstraint("ck_answer_evidence_citation_product_revision", "product_revision > 0");
                 table.HasCheckConstraint("ck_answer_evidence_citation_document_version", "document_version > 0");
                 table.HasCheckConstraint("ck_answer_evidence_citation_format", "document_format IN ('Pdf', 'Csv')");
-                table.HasCheckConstraint("ck_answer_evidence_citation_language", "content_language IN ('pt-BR', 'en-GB')");
+                table.HasCheckConstraint(
+                    "ck_answer_evidence_citation_language",
+                    Bcp47Shape("content_language"));
                 table.HasCheckConstraint("ck_answer_evidence_citation_trust", TrustClass("source_trust_class"));
                 table.HasCheckConstraint("ck_answer_evidence_citation_source", Sha256("source_content_sha256"));
                 table.HasCheckConstraint(
