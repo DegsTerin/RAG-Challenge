@@ -247,6 +247,16 @@ public sealed class SqliteControlPlaneStore(SqliteStoreOptions options)
                 currentRevision);
         }
 
+        if (!await HasExactOfficialDocumentSourceBindingsAsync(
+                context,
+                request.Snapshot,
+                cancellationToken).ConfigureAwait(false))
+        {
+            return new StoreMutationResult(
+                StoreMutationOutcome.ValidationFailed,
+                currentRevision);
+        }
+
         var corpus = await context.Corpora.SingleOrDefaultAsync(
             row => row.CorpusId == corpusId,
             cancellationToken).ConfigureAwait(false);
@@ -315,6 +325,69 @@ public sealed class SqliteControlPlaneStore(SqliteStoreOptions options)
         return new StoreMutationResult(
             StoreMutationOutcome.Applied,
             request.Snapshot.Revision.Value);
+    }
+
+    private static async Task<bool> HasExactOfficialDocumentSourceBindingsAsync(
+        ControlPlaneDbContext context,
+        CatalogueSnapshot catalogue,
+        CancellationToken cancellationToken)
+    {
+        foreach (var document in catalogue.DocumentVersions.Where(candidate =>
+                     candidate.SourceTrustClass == SourceTrustClass.OfficialExternal))
+        {
+            if (document.OfficialSourceRegistrationId is null ||
+                document.OfficialSnapshotId is null)
+            {
+                return false;
+            }
+
+            var snapshot = await context.OfficialSourceSnapshots.AsNoTracking()
+                .SingleOrDefaultAsync(
+                    row => row.CorpusId == catalogue.CorpusId.Value &&
+                        row.SnapshotId == document.OfficialSnapshotId.Value,
+                    cancellationToken).ConfigureAwait(false);
+
+            if (snapshot is null ||
+                !string.Equals(
+                    snapshot.RegistrationId,
+                    document.OfficialSourceRegistrationId.Value,
+                    StringComparison.Ordinal) ||
+                !string.Equals(
+                    snapshot.ContentSha256,
+                    document.ContentObjectId.Value,
+                    StringComparison.Ordinal) ||
+                snapshot.ByteLength != document.ByteLength ||
+                !string.Equals(snapshot.MediaType, document.MediaType, StringComparison.Ordinal))
+            {
+                return false;
+            }
+
+            var registration = await context.OfficialSourceRegistrations.AsNoTracking()
+                .SingleOrDefaultAsync(
+                    row => row.CorpusId == catalogue.CorpusId.Value &&
+                        row.RegistrationId == snapshot.RegistrationId &&
+                        row.RegistrationRevision == snapshot.RegistrationRevision,
+                    cancellationToken).ConfigureAwait(false);
+
+            if (registration is null ||
+                !string.Equals(
+                    registration.ProductId,
+                    document.DatabaseProductId.Value,
+                    StringComparison.Ordinal) ||
+                !string.Equals(
+                    registration.DocumentId,
+                    document.Id.Value,
+                    StringComparison.Ordinal) ||
+                !string.Equals(
+                    registration.SourceAdapterId,
+                    document.SourceAdapterId.Value,
+                    StringComparison.Ordinal))
+            {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     public async Task<CatalogueSnapshot?> ReadCurrentCatalogueAsync(

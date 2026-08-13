@@ -1447,6 +1447,37 @@ public sealed class OneShotAdministrationTests
                 [Product("Active")],
                 [versionOneActive])))
             .ExitCode);
+        var officialRegistration = new OfficialSourceRegistration(
+            new OfficialSourceRegistrationId("official-registration"),
+            new SourceRegistrationRevision(1),
+            new DatabaseProductId("database"),
+            new DocumentId("document"),
+            new SourceAdapterId("official-pdf"),
+            "https://example.invalid/document.pdf",
+            CatalogueItemStatus.Candidate);
+        Assert.Equal(
+            StoreMutationOutcome.Applied,
+            (await store.RegisterOfficialSourceAsync(
+                new OfficialSourceRegistrationCommitRequest(
+                    new OperationId("replacement-official-registration"),
+                    new CorpusId("admin-corpus"),
+                    officialRegistration,
+                    Now))).Outcome);
+        Assert.Equal(
+            StoreMutationOutcome.Applied,
+            (await store.CommitOfficialSourceAsync(
+                new OfficialSourceCommitRequest(
+                    new OperationId("replacement-official-snapshot"),
+                    new CorpusId("admin-corpus"),
+                    officialRegistration,
+                    new OfficialSourceSnapshot(
+                        new OfficialSnapshotId($"snapshot-{new string('c', 64)}"),
+                        officialRegistration.Id,
+                        new ContentObjectId(new string('b', 64)),
+                        128,
+                        "application/pdf",
+                        Now),
+                    Now))).Outcome);
         Assert.Equal(0, (await ExecuteAsync(
             "version-document",
             "replacement-04-version-document",

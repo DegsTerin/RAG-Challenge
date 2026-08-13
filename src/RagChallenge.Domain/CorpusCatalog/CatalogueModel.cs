@@ -212,10 +212,10 @@ public sealed class DocumentVersion
                 nameof(registrationId));
         }
 
-        if (status == CatalogueItemStatus.Active && snapshotId is null)
+        if (snapshotId is null)
         {
             throw new ArgumentException(
-                "An active official document requires an immutable source snapshot identity.",
+                "An official document requires an immutable source snapshot identity.",
                 nameof(snapshotId));
         }
     }

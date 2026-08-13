@@ -23,7 +23,7 @@ namespace RagChallenge.IntegrationTests;
 public sealed class ProductQueryRuntimeTests
 {
     [Fact]
-    public void PostgreSqlAuthorityAcceptsOnlyTheExactOfficialDocumentProfile()
+    public void PostgreSqlAuthorityAcceptsOnlyTheExactLocalAuthorisedDocumentProfile()
     {
         var valid = ProductRuntimeFixture.CreatePostgreSqlAuthority();
         ProductQueryRuntime.ValidatePostgreSql18Authority(
@@ -31,7 +31,9 @@ public sealed class ProductQueryRuntimeTests
             valid.Activation,
             ProductRuntimeFixture.PostgreSqlRightsReference);
         var staleCatalogueRevision = ProductRuntimeFixture.CreatePostgreSqlAuthority(
-            catalogueRevision: 6);
+            catalogueRevision: 4);
+        var officialSubstitution = ProductRuntimeFixture.CreatePostgreSqlAuthority(
+            officialDocument: true);
 
         Assert.Throws<InvalidDataException>(() =>
             ProductQueryRuntime.ValidatePostgreSql18Authority(
@@ -42,6 +44,11 @@ public sealed class ProductQueryRuntimeTests
             ProductQueryRuntime.ValidatePostgreSql18Authority(
                 staleCatalogueRevision.Catalogue,
                 staleCatalogueRevision.Activation,
+                ProductRuntimeFixture.PostgreSqlRightsReference));
+        Assert.Throws<InvalidDataException>(() =>
+            ProductQueryRuntime.ValidatePostgreSql18Authority(
+                officialSubstitution.Catalogue,
+                officialSubstitution.Activation,
                 ProductRuntimeFixture.PostgreSqlRightsReference));
         Assert.Throws<InvalidDataException>(() =>
             ProductQueryRuntime.ValidateConfiguredAuthority(
@@ -312,7 +319,9 @@ public sealed class ProductQueryRuntimeTests
         internal static DocumentRightsEvidenceReference PostgreSqlRightsReference { get; } =
             new("auth-s07-a-product-a0-003");
 
-        internal static ProductAuthority CreatePostgreSqlAuthority(long catalogueRevision = 5)
+        internal static ProductAuthority CreatePostgreSqlAuthority(
+            long catalogueRevision = 3,
+            bool officialDocument = false)
         {
             var category = new DatabaseCategory(
                 new DatabaseCategoryId("relational-database"),
@@ -326,23 +335,9 @@ public sealed class ProductQueryRuntimeTests
                 "postgresql-18-reference-a4-official");
             var snapshotId = new OfficialSnapshotId(
                 "snapshot-cea7b845568095eb56dee1b51bfa145c6c6637bc4377c986019971577efefae4");
-            var localDocument = new DocumentVersion(
+            var document = new DocumentVersion(
                 documentId,
                 new DocumentVersionNumber(1),
-                productId,
-                productRevision,
-                DocumentFormat.Pdf,
-                new DocumentContentLanguage("en"),
-                CatalogueItemStatus.Deactivated,
-                contentObjectId,
-                15_771_040,
-                "application/pdf",
-                new SourceAdapterId("local-authorised-pdf-v1"),
-                SourceTrustClass.LocalAuthorised,
-                sourceDeclaredLanguage: new SourceDeclaredLanguage("en"));
-            var officialDocument = new DocumentVersion(
-                documentId,
-                new DocumentVersionNumber(2),
                 productId,
                 productRevision,
                 DocumentFormat.Pdf,
@@ -351,11 +346,15 @@ public sealed class ProductQueryRuntimeTests
                 contentObjectId,
                 15_771_040,
                 "application/pdf",
-                new SourceAdapterId("postgresql-official-pdf-v1"),
-                SourceTrustClass.OfficialExternal,
-                registrationId,
-                snapshotId,
-                new SourceDeclaredLanguage("en"));
+                new SourceAdapterId(officialDocument
+                    ? "postgresql-official-pdf-v1"
+                    : "local-authorised-pdf-v1"),
+                officialDocument
+                    ? SourceTrustClass.OfficialExternal
+                    : SourceTrustClass.LocalAuthorised,
+                officialDocument ? registrationId : null,
+                officialDocument ? snapshotId : null,
+                sourceDeclaredLanguage: new SourceDeclaredLanguage("en"));
             var catalogue = new CatalogueSnapshot(
                 ProductQueryRuntime.CorpusId,
                 new CatalogueRevision(catalogueRevision),
@@ -366,21 +365,24 @@ public sealed class ProductQueryRuntimeTests
                     "PostgreSQL 18",
                     CatalogueItemStatus.Active,
                     [category.Id])],
-                [localDocument, officialDocument]);
+                [document]);
             var binding = new DocumentBinding(
                 productId,
                 productRevision,
-                officialDocument.Id,
-                officialDocument.Version,
-                officialDocument.Format,
-                officialDocument.SourceAdapterId,
-                officialDocument.SourceTrustClass,
-                registrationId,
-                snapshotId,
-                new OfficialObservationId("postgresql-18-reference-a4-observation-v1"));
+                document.Id,
+                document.Version,
+                document.Format,
+                document.SourceAdapterId,
+                document.SourceTrustClass,
+                officialDocument ? registrationId : null,
+                officialDocument ? snapshotId : null,
+                officialDocument
+                    ? new OfficialObservationId(
+                        "postgresql-18-reference-a4-observation-v1")
+                    : null);
             var rights = new DocumentRightsEligibilityRecordV1(
-                officialDocument.Id,
-                officialDocument.Version,
+                document.Id,
+                document.Version,
                 Enum.GetValues<DocumentRight>().Select(right => new DocumentRightDecision(
                     right,
                     right == DocumentRight.SourceAndDerivativeByteDistributionOrPublication

@@ -132,7 +132,7 @@ internal sealed class ProductQueryRuntime :
     private const string ExpectedOracleDocumentContentObjectId =
         "6a10b7840c42a1dd6ea9b69337532ed3f903d17af24f144c2a104b925f6533d2";
     private const long ExpectedOracleDocumentByteLength = 9_322_921;
-    private const long ExpectedPostgreSqlCatalogueRevision = 5;
+    private const long ExpectedPostgreSqlCatalogueRevision = 3;
     private const string ExpectedPostgreSqlCatalogueFingerprint =
         "8b8b801908c6957339c73b29e25a80f915204019d705285373ab6f2bd4b577c1";
     private const string ExpectedPostgreSqlDocumentId = "postgresql-18-reference-a4";
@@ -535,9 +535,6 @@ internal sealed class ProductQueryRuntime :
         var activeDocuments = catalogue.DocumentVersions
             .Where(document => document.Status == CatalogueItemStatus.Active)
             .ToArray();
-        var deactivatedDocuments = catalogue.DocumentVersions
-            .Where(document => document.Status == CatalogueItemStatus.Deactivated)
-            .ToArray();
         if (catalogue.CorpusId != CorpusId || activation.CorpusId != CorpusId ||
             catalogue.Revision.Value != ExpectedPostgreSqlCatalogueRevision ||
             catalogue.DatabaseCategories.Count != 1 ||
@@ -550,11 +547,9 @@ internal sealed class ProductQueryRuntime :
             postgresql is null ||
             !string.Equals(postgresql.DisplayName, "PostgreSQL 18", StringComparison.Ordinal) ||
             postgresql.Status != CatalogueItemStatus.Active ||
-            catalogue.DocumentVersions.Count != 2 ||
+            catalogue.DocumentVersions.Count != 1 ||
             activeDocuments.Length != 1 ||
-            deactivatedDocuments.Length != 1 ||
-            !MatchesExpectedPostgreSqlDocument(activeDocuments[0], officialVersion: true) ||
-            !MatchesExpectedPostgreSqlDocument(deactivatedDocuments[0], officialVersion: false) ||
+            !MatchesExpectedPostgreSqlDocument(activeDocuments[0]) ||
             activation.CatalogueRevision != catalogue.Revision ||
             !activation.HasCompleteEvidenceBindings ||
             activation.DocumentBindings.Count != activeDocuments.Length ||
@@ -570,8 +565,7 @@ internal sealed class ProductQueryRuntime :
                     document.OfficialSourceRegistrationId ==
                         binding.OfficialSourceRegistrationId &&
                     document.OfficialSnapshotId == binding.OfficialSnapshotId) ||
-                binding.SourceObservationId != new OfficialObservationId(
-                    "postgresql-18-reference-a4-observation-v1")) ||
+                binding.SourceObservationId is not null) ||
             HasInvalidActivationEvidence(
                 activation,
                 activeDocuments,
@@ -613,11 +607,9 @@ internal sealed class ProductQueryRuntime :
         document.OfficialSourceRegistrationId is null &&
         document.OfficialSnapshotId is null;
 
-    private static bool MatchesExpectedPostgreSqlDocument(
-        DocumentVersion document,
-        bool officialVersion) =>
+    private static bool MatchesExpectedPostgreSqlDocument(DocumentVersion document) =>
         document.Id.Value == ExpectedPostgreSqlDocumentId &&
-        document.Version.Value == (officialVersion ? 2 : 1) &&
+        document.Version.Value == 1 &&
         document.DatabaseProductId == PostgreSqlDatabaseId &&
         document.DatabaseProductRevision.Value == 1 &&
         document.Format == DocumentFormat.Pdf &&
@@ -626,18 +618,10 @@ internal sealed class ProductQueryRuntime :
         document.ContentObjectId.Value == ExpectedPostgreSqlDocumentContentObjectId &&
         document.ByteLength == ExpectedPostgreSqlDocumentByteLength &&
         string.Equals(document.MediaType, "application/pdf", StringComparison.Ordinal) &&
-        document.SourceAdapterId == new SourceAdapterId(
-            officialVersion ? "postgresql-official-pdf-v1" : "local-authorised-pdf-v1") &&
-        document.SourceTrustClass == (officialVersion
-            ? SourceTrustClass.OfficialExternal
-            : SourceTrustClass.LocalAuthorised) &&
-        (officialVersion
-            ? document.OfficialSourceRegistrationId == new OfficialSourceRegistrationId(
-                "postgresql-18-reference-a4-official") &&
-              document.OfficialSnapshotId == new OfficialSnapshotId(
-                "snapshot-cea7b845568095eb56dee1b51bfa145c6c6637bc4377c986019971577efefae4")
-            : document.OfficialSourceRegistrationId is null &&
-              document.OfficialSnapshotId is null);
+        document.SourceAdapterId == new SourceAdapterId("local-authorised-pdf-v1") &&
+        document.SourceTrustClass == SourceTrustClass.LocalAuthorised &&
+        document.OfficialSourceRegistrationId is null &&
+        document.OfficialSnapshotId is null;
 
     private static string CalculateCatalogueFingerprint(CatalogueSnapshot catalogue)
     {

@@ -6,6 +6,7 @@ using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Migrations;
 
+using RagChallenge.Application.Administration;
 using RagChallenge.Application.IndexingRetrieval;
 using RagChallenge.Application.Persistence;
 using RagChallenge.Domain.CorpusCatalog;
@@ -16,6 +17,122 @@ namespace RagChallenge.IntegrationTests;
 
 public sealed class SqlitePersistenceBoundaryTests
 {
+    [Theory]
+    [InlineData(OfficialDocumentBindingMismatch.MissingSource)]
+    [InlineData(OfficialDocumentBindingMismatch.Registration)]
+    [InlineData(OfficialDocumentBindingMismatch.ContentObject)]
+    [InlineData(OfficialDocumentBindingMismatch.ByteLength)]
+    [InlineData(OfficialDocumentBindingMismatch.MediaType)]
+    [InlineData(OfficialDocumentBindingMismatch.SourceAdapter)]
+    public async Task CatalogueCommitRejectsAnUnboundOfficialDocumentBeforePersistence(
+        OfficialDocumentBindingMismatch mismatch)
+    {
+        await using var fixture = await SqlitePersistenceFixture.CreateAsync();
+        var (initialCatalogue, _) = await fixture.CommitLocalCatalogueAsync(
+            status: CatalogueItemStatus.Candidate);
+        var local = Assert.Single(initialCatalogue.DocumentVersions);
+        var registration = new OfficialSourceRegistration(
+            new OfficialSourceRegistrationId("fixture-official-registration"),
+            new SourceRegistrationRevision(1),
+            local.DatabaseProductId,
+            local.Id,
+            new SourceAdapterId("fixture-official-pdf"),
+            "https://example.invalid/fixture.pdf",
+            CatalogueItemStatus.Candidate);
+        var snapshot = new OfficialSourceSnapshot(
+            new OfficialSnapshotId("fixture-official-snapshot"),
+            registration.Id,
+            local.ContentObjectId,
+            local.ByteLength,
+            local.MediaType,
+            SqlitePersistenceFixture.At(2));
+
+        if (mismatch != OfficialDocumentBindingMismatch.MissingSource)
+        {
+            Assert.Equal(
+                StoreMutationOutcome.Applied,
+                (await fixture.ControlStore.RegisterOfficialSourceAsync(
+                    new OfficialSourceRegistrationCommitRequest(
+                        new OperationId("fixture-official-registration-operation"),
+                        initialCatalogue.CorpusId,
+                        registration,
+                        SqlitePersistenceFixture.At(2)))).Outcome);
+            Assert.Equal(
+                StoreMutationOutcome.Applied,
+                (await fixture.ControlStore.CommitOfficialSourceAsync(
+                    new OfficialSourceCommitRequest(
+                        new OperationId("fixture-official-snapshot-operation"),
+                        initialCatalogue.CorpusId,
+                        registration,
+                        snapshot,
+                        SqlitePersistenceFixture.At(2)))).Outcome);
+        }
+
+        var operationsBefore = await fixture.ScalarAsync(
+            "SELECT COUNT(*) FROM admin_operations;");
+        var official = new DocumentVersion(
+            local.Id,
+            new DocumentVersionNumber(2),
+            local.DatabaseProductId,
+            local.DatabaseProductRevision,
+            local.Format,
+            local.ContentLanguage,
+            CatalogueItemStatus.Candidate,
+            mismatch == OfficialDocumentBindingMismatch.ContentObject
+                ? new ContentObjectId(new string('f', 64))
+                : local.ContentObjectId,
+            mismatch == OfficialDocumentBindingMismatch.ByteLength
+                ? local.ByteLength + 1
+                : local.ByteLength,
+            mismatch == OfficialDocumentBindingMismatch.MediaType
+                ? "application/octet-stream"
+                : local.MediaType,
+            mismatch == OfficialDocumentBindingMismatch.SourceAdapter
+                ? new SourceAdapterId("fixture-other-official-pdf")
+                : registration.SourceAdapterId,
+            SourceTrustClass.OfficialExternal,
+            mismatch == OfficialDocumentBindingMismatch.Registration
+                ? new OfficialSourceRegistrationId("fixture-other-registration")
+                : registration.Id,
+            snapshot.Id,
+            local.SourceDeclaredLanguage);
+        var proposed = new CatalogueSnapshot(
+            initialCatalogue.CorpusId,
+            new CatalogueRevision(2),
+            initialCatalogue.DatabaseCategories,
+            initialCatalogue.DatabaseProducts,
+            [local, official]);
+
+        var rejectedOperationId = new OperationId(
+            $"rejected-official-{mismatch}".ToLowerInvariant());
+        var result = await fixture.ControlStore.CommitCatalogueAsync(
+            new CatalogueCommitRequest(
+                rejectedOperationId,
+                proposed,
+                ExpectedCurrentRevision: 1,
+                SqlitePersistenceFixture.At(3),
+                JournalCompletion: new AdministrationJournalCompletion(
+                    rejectedOperationId,
+                    new string('a', 64),
+                    AdministrationJournalResultOutcome.Applied,
+                    "CH_ADMIN_APPLIED",
+                    exitCategory: 0,
+                    resultRevision: 2)));
+
+        Assert.Equal(StoreMutationOutcome.ValidationFailed, result.Outcome);
+        Assert.Equal(1, result.CurrentRevision);
+        Assert.Equal(operationsBefore, await fixture.ScalarAsync(
+            "SELECT COUNT(*) FROM admin_operations;"));
+        Assert.Equal(0, await fixture.ScalarAsync(
+            "SELECT COUNT(*) FROM administration_command_journal;"));
+        var persisted = await fixture.ControlStore.ReadCurrentCatalogueAsync(
+            initialCatalogue.CorpusId);
+        Assert.NotNull(persisted);
+        Assert.Equal(1, persisted.Revision.Value);
+        Assert.Equal(SourceTrustClass.LocalAuthorised,
+            Assert.Single(persisted.DocumentVersions).SourceTrustClass);
+    }
+
     [Fact]
     public async Task MigrationsCreateValidStoresWithAuthorityOnlyInControlDatabase()
     {
@@ -1344,6 +1461,16 @@ public sealed class SqlitePersistenceBoundaryTests
         DocumentFormat,
         SourceAdapter,
         SourceTrustAndIdentity,
+    }
+
+    public enum OfficialDocumentBindingMismatch
+    {
+        MissingSource,
+        Registration,
+        ContentObject,
+        ByteLength,
+        MediaType,
+        SourceAdapter,
     }
 
     private sealed class CountingNonSeekableStream(int length) : Stream

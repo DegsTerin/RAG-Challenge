@@ -230,7 +230,7 @@ public sealed class CatalogueModelTests
                 new DatabaseProductRevision(1),
                 DocumentFormat.Csv,
                 DocumentContentLanguage.PtBr,
-                CatalogueItemStatus.Active,
+                CatalogueItemStatus.Candidate,
                 new ContentObjectId(new string('a', 64)),
                 100,
                 "text/csv",
