@@ -154,7 +154,7 @@ public sealed class PdfToImagePdfPageRenderer
         }
 
         var pageSizes = discoveredPageSizes
-            .Select(size => (size.Width, size.Height))
+            .Select(size => (Width: (double)size.Width, Height: (double)size.Height))
             .ToArray();
         long totalPixels = 0;
 
