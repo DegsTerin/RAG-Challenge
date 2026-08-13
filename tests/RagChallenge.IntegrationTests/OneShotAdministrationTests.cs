@@ -1362,6 +1362,141 @@ public sealed class OneShotAdministrationTests
     }
 
     [Fact]
+    public async Task DocumentVersionReplacementIsAtomicAtFifthCatalogueRevision()
+    {
+        using var root = TemporaryAdministrationRoot.Create();
+        var options = root.CreateStoreOptions();
+        await SqliteStoreProvisioner.ApplyMigrationsAsync(options);
+        var store = new SqliteControlPlaneStore(options);
+        var lease = new SqliteAdministrationLeaseManager(options);
+        var journal = new SqliteAdministrationCommandJournal(options);
+        var executor = new SqliteAdministrativeCommandExecutor(store);
+        var configuration = Configuration(true, root.InputRoot, root.StoreRoot);
+        var identity = new StubIdentity("os-sha256:" + new string('1', 64));
+        var categories = new[] { new CategoryPlan("category", "Category") };
+
+        async Task<RunResult> ExecuteAsync(
+            string command,
+            string operationId,
+            CataloguePlan plan)
+        {
+            var fileName = $"{operationId}.json";
+            await File.WriteAllTextAsync(
+                Path.Combine(root.InputRoot, fileName),
+                JsonSerializer.Serialize(plan, PlanJsonOptions));
+            return await RunAsync(
+                MutationArguments(command, operationId, fileName),
+                configuration,
+                identity,
+                lease,
+                executor,
+                journal);
+        }
+
+        DatabaseProductPlan Product(string status) =>
+            new("database", 1, "Database", status, ["category"]);
+        DocumentPlan Document(long version, string status, char digestCharacter) =>
+            new(
+                "document",
+                version,
+                "database",
+                1,
+                "Pdf",
+                "en-GB",
+                status,
+                new string(digestCharacter, 64),
+                128,
+                "application/pdf",
+                version == 1 ? "local-pdf" : "official-pdf",
+                version == 1 ? "LocalAuthorised" : "OfficialExternal",
+                version == 1 ? null : "official-registration",
+                version == 1 ? null : $"snapshot-{new string('c', 64)}");
+
+        var versionOneCandidate = Document(1, "Candidate", 'a');
+        var versionOneActive = versionOneCandidate with { Status = "Active" };
+        var versionOneDeactivated = versionOneCandidate with { Status = "Deactivated" };
+        var versionTwoCandidate = Document(2, "Candidate", 'b');
+        var versionTwoActive = versionTwoCandidate with { Status = "Active" };
+
+        Assert.Equal(0, (await ExecuteAsync(
+            "add-database",
+            "replacement-01-add-database",
+            new("database", null, 0, 1, categories, [Product("Candidate")], [])))
+            .ExitCode);
+        Assert.Equal(0, (await ExecuteAsync(
+            "add-document",
+            "replacement-02-add-document",
+            new(
+                "document",
+                1,
+                1,
+                2,
+                categories,
+                [Product("Candidate")],
+                [versionOneCandidate])))
+            .ExitCode);
+        Assert.Equal(0, (await ExecuteAsync(
+            "activate-database",
+            "replacement-03-activate-database",
+            new(
+                "database",
+                null,
+                2,
+                3,
+                categories,
+                [Product("Active")],
+                [versionOneActive])))
+            .ExitCode);
+        Assert.Equal(0, (await ExecuteAsync(
+            "version-document",
+            "replacement-04-version-document",
+            new(
+                "document",
+                2,
+                3,
+                4,
+                categories,
+                [Product("Active")],
+                [versionOneActive, versionTwoCandidate])))
+            .ExitCode);
+        var collateralReplacement = versionOneDeactivated with { ByteLength = 129 };
+        var collateralRejection = await ExecuteAsync(
+            "activate-document",
+            "replacement-05-reject-collateral",
+            new(
+                "document",
+                2,
+                4,
+                5,
+                categories,
+                [Product("Active")],
+                [collateralReplacement, versionTwoActive]));
+        Assert.Equal((int)AdministrationExitCode.InvalidInput, collateralRejection.ExitCode);
+
+        Assert.Equal(0, (await ExecuteAsync(
+            "activate-document",
+            "replacement-05-activate-official",
+            new(
+                "document",
+                2,
+                4,
+                5,
+                categories,
+                [Product("Active")],
+                [versionOneDeactivated, versionTwoActive])))
+            .ExitCode);
+
+        var current = await store.ReadCurrentCatalogueAsync(new CorpusId("admin-corpus"));
+        Assert.NotNull(current);
+        Assert.Equal(5, current.Revision.Value);
+        Assert.Equal(CatalogueItemStatus.Active, Assert.Single(current.DatabaseProducts).Status);
+        Assert.Collection(
+            current.DocumentVersions.OrderBy(document => document.Version.Value),
+            document => Assert.Equal(CatalogueItemStatus.Deactivated, document.Status),
+            document => Assert.Equal(CatalogueItemStatus.Active, document.Status));
+    }
+
+    [Fact]
     public async Task OfficialRegistrationReplayIsExactAndAttemptTimeIndependent()
     {
         using var root = TemporaryAdministrationRoot.Create();

@@ -1031,11 +1031,10 @@ internal sealed class SqliteAdministrativeCommandExecutor
                     ExistingDocumentVersionsUnchanged(before, after):
                     return;
                 case "activate-document":
-                    EnsureDocumentStatus(
+                    EnsureDocumentActivation(
                         before,
                         after,
-                        targetVersion,
-                        CatalogueItemStatus.Active);
+                        targetVersion);
                     return;
                 case "deactivate-document":
                     EnsureDocumentStatus(
@@ -1110,6 +1109,74 @@ internal sealed class SqliteAdministrativeCommandExecutor
             }
 
             CatalogueLifecycle.EnsureTransition(previous.Status, proposed.Status);
+        }
+
+        private static void EnsureDocumentActivation(
+            DocumentVersion[] before,
+            DocumentVersion[] after,
+            DocumentVersionNumber targetVersion)
+        {
+            if (before.Length != after.Length)
+            {
+                throw new InvalidDataException(
+                    "A document activation cannot add or remove versions.");
+            }
+
+            var previousTarget = before.SingleOrDefault(document =>
+                document.Version == targetVersion) ??
+                throw new InvalidDataException(
+                    "A document activation cannot create its target version.");
+            var proposedTarget = after.SingleOrDefault(document =>
+                document.Version == targetVersion) ??
+                throw new InvalidDataException(
+                    "A document activation must preserve its target version.");
+
+            if (proposedTarget.Status != CatalogueItemStatus.Active ||
+                !DocumentEquivalentExceptStatus(previousTarget, proposedTarget))
+            {
+                throw new InvalidDataException(
+                    "The activated document version changed an unauthorised field.");
+            }
+
+            CatalogueLifecycle.EnsureTransition(
+                previousTarget.Status,
+                proposedTarget.Status);
+
+            var replacementCount = 0;
+
+            foreach (var previous in before.Where(document =>
+                         document.Version != targetVersion))
+            {
+                var proposed = after.SingleOrDefault(document =>
+                    document.Version == previous.Version) ??
+                    throw new InvalidDataException(
+                        "A document activation must preserve every existing version.");
+
+                if (string.Equals(
+                        DocumentProjection(previous),
+                        DocumentProjection(proposed),
+                        StringComparison.Ordinal))
+                {
+                    continue;
+                }
+
+                if (previous.Status != CatalogueItemStatus.Active ||
+                    proposed.Status != CatalogueItemStatus.Deactivated ||
+                    !DocumentEquivalentExceptStatus(previous, proposed))
+                {
+                    throw new InvalidDataException(
+                        "A document activation may only deactivate one prior active version of the same document.");
+                }
+
+                CatalogueLifecycle.EnsureTransition(previous.Status, proposed.Status);
+                replacementCount++;
+            }
+
+            if (replacementCount > 1)
+            {
+                throw new InvalidDataException(
+                    "A document activation cannot replace more than one active version.");
+            }
         }
 
         private static void EnsureDatabaseDocumentRebinding(

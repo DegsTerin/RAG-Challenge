@@ -30,12 +30,19 @@ public sealed class ProductQueryRuntimeTests
             valid.Catalogue,
             valid.Activation,
             ProductRuntimeFixture.PostgreSqlRightsReference);
+        var staleCatalogueRevision = ProductRuntimeFixture.CreatePostgreSqlAuthority(
+            catalogueRevision: 6);
 
         Assert.Throws<InvalidDataException>(() =>
             ProductQueryRuntime.ValidatePostgreSql18Authority(
                 valid.Catalogue,
                 valid.Activation,
                 ProductRuntimeFixture.ApprovedRightsReference));
+        Assert.Throws<InvalidDataException>(() =>
+            ProductQueryRuntime.ValidatePostgreSql18Authority(
+                staleCatalogueRevision.Catalogue,
+                staleCatalogueRevision.Activation,
+                ProductRuntimeFixture.PostgreSqlRightsReference));
         Assert.Throws<InvalidDataException>(() =>
             ProductQueryRuntime.ValidateConfiguredAuthority(
                 valid.Catalogue,
@@ -305,7 +312,7 @@ public sealed class ProductQueryRuntimeTests
         internal static DocumentRightsEvidenceReference PostgreSqlRightsReference { get; } =
             new("auth-s07-a-product-a0-003");
 
-        internal static ProductAuthority CreatePostgreSqlAuthority()
+        internal static ProductAuthority CreatePostgreSqlAuthority(long catalogueRevision = 5)
         {
             var category = new DatabaseCategory(
                 new DatabaseCategoryId("relational-database"),
@@ -351,7 +358,7 @@ public sealed class ProductQueryRuntimeTests
                 new SourceDeclaredLanguage("en"));
             var catalogue = new CatalogueSnapshot(
                 ProductQueryRuntime.CorpusId,
-                new CatalogueRevision(5),
+                new CatalogueRevision(catalogueRevision),
                 [category],
                 [new DatabaseProduct(
                     productId,
