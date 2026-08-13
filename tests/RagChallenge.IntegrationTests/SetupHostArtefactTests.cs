@@ -278,7 +278,7 @@ public sealed class SetupHostArtefactTests
     }
 
     [Fact]
-    public void OracleOnlyProductScriptsAreCommittedBoundedAndMigrationAware()
+    public void ProductScriptsAreCommittedBoundedAndMigrationAware()
     {
         var engRoot = Path.Combine(FindRepositoryRoot(), "eng");
         var generator = File.ReadAllText(Path.Combine(
@@ -287,6 +287,9 @@ public sealed class SetupHostArtefactTests
         var launcher = File.ReadAllText(Path.Combine(
             engRoot,
             "Start-Oracle19Product.ps1"));
+        var postgreSqlLauncher = File.ReadAllText(Path.Combine(
+            engRoot,
+            "Start-PostgreSql18Product.ps1"));
 
         Assert.Contains(
             "tests/RagChallenge.UnitTests/TestData/initial-catalogue-v1.json",
@@ -313,6 +316,10 @@ public sealed class SetupHostArtefactTests
             launcher,
             StringComparison.Ordinal);
         Assert.Contains(
+            "$env:RagChallenge__Product__CatalogueProfile = 'oracle-database-19c'",
+            launcher,
+            StringComparison.Ordinal);
+        Assert.Contains(
             "$env:RagChallenge__Product__ApprovedRightsEvidenceReference =",
             launcher,
             StringComparison.Ordinal);
@@ -320,7 +327,26 @@ public sealed class SetupHostArtefactTests
             "$env:RagChallenge__Product__CredentialEnvironmentVariable = $credentialName",
             launcher,
             StringComparison.Ordinal);
-        Assert.DoesNotContain("sk-", generator + launcher, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains(
+            "artifacts-local/state-07/product-materialisation/postgresql-18-reference-a4/product-store",
+            postgreSqlLauncher.Replace('\\', '/'),
+            StringComparison.Ordinal);
+        Assert.Contains(
+            "$env:RagChallenge__Product__CatalogueProfile = 'postgresql-18.4'",
+            postgreSqlLauncher,
+            StringComparison.Ordinal);
+        Assert.Contains(
+            "$approvedRightsEvidenceReference = 'auth-s07-a-product-a0-003'",
+            postgreSqlLauncher,
+            StringComparison.Ordinal);
+        Assert.DoesNotContain(
+            "corpus/oracle-database",
+            postgreSqlLauncher.Replace('\\', '/'),
+            StringComparison.OrdinalIgnoreCase);
+        Assert.DoesNotContain(
+            "sk-",
+            generator + launcher + postgreSqlLauncher,
+            StringComparison.OrdinalIgnoreCase);
     }
 
     [Fact]

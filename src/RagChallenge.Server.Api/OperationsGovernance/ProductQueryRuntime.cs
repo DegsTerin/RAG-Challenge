@@ -16,8 +16,15 @@ using RagChallenge.Server.Api.Contracts.V1;
 
 namespace RagChallenge.Server.Api.OperationsGovernance;
 
+internal enum ProductCatalogueProfile
+{
+    OracleDatabase19c,
+    PostgreSql18,
+}
+
 internal sealed record ProductQueryRuntimeOptions(
     SqliteStoreOptions Stores,
+    ProductCatalogueProfile CatalogueProfile,
     DocumentRightsEvidenceReference ApprovedRightsEvidenceReference,
     string CredentialEnvironmentVariable,
     bool ApplyMigrations)
@@ -25,6 +32,7 @@ internal sealed record ProductQueryRuntimeOptions(
     internal const string EnabledKey = "RagChallenge:Product:Enabled";
     internal const string ApplyMigrationsKey = "RagChallenge:Product:ApplyMigrations";
     internal const string StoreRootKey = "RagChallenge:Product:StoreRoot";
+    internal const string CatalogueProfileKey = "RagChallenge:Product:CatalogueProfile";
     internal const string CredentialKey =
         "RagChallenge:Product:CredentialEnvironmentVariable";
     internal const string ApprovedRightsEvidenceKey =
@@ -54,6 +62,7 @@ internal sealed record ProductQueryRuntimeOptions(
             throw new InvalidOperationException("The product store root is unavailable.");
         }
 
+        var catalogueProfile = ParseCatalogueProfile(configuration[CatalogueProfileKey]);
         var approvedRightsEvidenceReference =
             ParseApprovedRightsEvidenceReference(configuration[ApprovedRightsEvidenceKey]);
         var credential = OpaqueEnvironmentCredentialReference.Parse(
@@ -69,10 +78,20 @@ internal sealed record ProductQueryRuntimeOptions(
                 Path.Combine(storeRoot, "control.db"),
                 Path.Combine(storeRoot, "vectors.db"),
                 Path.Combine(storeRoot, "content")),
+            catalogueProfile,
             approvedRightsEvidenceReference,
             credential.EnvironmentVariableName,
             configuration.GetValue<bool>(ApplyMigrationsKey));
     }
+
+    internal static ProductCatalogueProfile ParseCatalogueProfile(string? value) =>
+        value switch
+        {
+            "oracle-database-19c" => ProductCatalogueProfile.OracleDatabase19c,
+            "postgresql-18.4" => ProductCatalogueProfile.PostgreSql18,
+            _ => throw new InvalidOperationException(
+                "The product catalogue profile must be an exact supported identifier."),
+        };
 
     internal static DocumentRightsEvidenceReference ParseApprovedRightsEvidenceReference(
         string? value)
@@ -80,7 +99,7 @@ internal sealed record ProductQueryRuntimeOptions(
         if (string.IsNullOrWhiteSpace(value))
         {
             throw new InvalidOperationException(
-                "An approved Oracle rights evidence reference is required.");
+                "An approved product rights evidence reference is required.");
         }
 
         var reference = new DocumentRightsEvidenceReference(value);
@@ -90,7 +109,7 @@ internal sealed record ProductQueryRuntimeOptions(
                 StringComparison.Ordinal))
         {
             throw new InvalidOperationException(
-                "The configured Oracle rights evidence reference is not approved.");
+                "The configured product rights evidence reference is not approved.");
         }
 
         return reference;
@@ -104,14 +123,22 @@ internal sealed class ProductQueryRuntime :
     IDisposable
 {
     internal static readonly CorpusId CorpusId = new("rag-challenge-product");
-    internal const string ConfigurationRevision = "oracle-19c-product-v1";
-    private const long ExpectedCatalogueRevision = 53;
-    private const string ExpectedCatalogueFingerprint =
+    internal const string OracleConfigurationRevision = "oracle-19c-product-v1";
+    internal const string PostgreSqlConfigurationRevision = "postgresql-18.4-product-v1";
+    private const long ExpectedOracleCatalogueRevision = 53;
+    private const string ExpectedOracleCatalogueFingerprint =
         "d6b38c65bbe991eebb2b1f6ae67979512caef1246f1bd1c46e7d2b6e4e281000";
-    private const string ExpectedDocumentId = "oracle-database-19c-concepts";
-    private const string ExpectedDocumentContentObjectId =
+    private const string ExpectedOracleDocumentId = "oracle-database-19c-concepts";
+    private const string ExpectedOracleDocumentContentObjectId =
         "6a10b7840c42a1dd6ea9b69337532ed3f903d17af24f144c2a104b925f6533d2";
-    private const long ExpectedDocumentByteLength = 9_322_921;
+    private const long ExpectedOracleDocumentByteLength = 9_322_921;
+    private const long ExpectedPostgreSqlCatalogueRevision = 5;
+    private const string ExpectedPostgreSqlCatalogueFingerprint =
+        "8b8b801908c6957339c73b29e25a80f915204019d705285373ab6f2bd4b577c1";
+    private const string ExpectedPostgreSqlDocumentId = "postgresql-18-reference-a4";
+    private const string ExpectedPostgreSqlDocumentContentObjectId =
+        "cea7b845568095eb56dee1b51bfa145c6c6637bc4377c986019971577efefae4";
+    private const long ExpectedPostgreSqlDocumentByteLength = 15_771_040;
 
     private static readonly LanguageModelDescriptor LanguageModelDescriptor = new(
         "openai",
@@ -125,6 +152,20 @@ internal sealed class ProductQueryRuntime :
     private readonly SemaphoreSlim initialisationGate = new(1, 1);
     private QuestionAnsweringService? answeringService;
     private VerifiedPageImageEvidenceReader? visualEvidenceReader;
+
+    private string ConfigurationRevision => options.CatalogueProfile switch
+    {
+        ProductCatalogueProfile.OracleDatabase19c => OracleConfigurationRevision,
+        ProductCatalogueProfile.PostgreSql18 => PostgreSqlConfigurationRevision,
+        _ => throw new InvalidOperationException("The product catalogue profile is unsupported."),
+    };
+
+    private DatabaseProductId ActiveDatabaseProductId => options.CatalogueProfile switch
+    {
+        ProductCatalogueProfile.OracleDatabase19c => OracleDatabaseId,
+        ProductCatalogueProfile.PostgreSql18 => PostgreSqlDatabaseId,
+        _ => throw new InvalidOperationException("The product catalogue profile is unsupported."),
+    };
 
     internal ProductQueryRuntime(
         ProductQueryRuntimeOptions options,
@@ -314,10 +355,11 @@ internal sealed class ProductQueryRuntime :
             CorpusId,
             cancellationToken).ConfigureAwait(false) ??
             throw new InvalidDataException("The product activation record is unavailable.");
-        ValidateOracleOnlyAuthority(
+        ValidateConfiguredAuthority(
             catalogue,
             activation,
-            options.ApprovedRightsEvidenceReference);
+            options.ApprovedRightsEvidenceReference,
+            options.CatalogueProfile);
         EnsureCredentialAvailable();
     }
 
@@ -335,10 +377,11 @@ internal sealed class ProductQueryRuntime :
             CorpusId,
             cancellationToken).ConfigureAwait(false) ??
             throw new InvalidDataException("The product activation record is unavailable.");
-        ValidateOracleOnlyAuthority(
+        ValidateConfiguredAuthority(
             catalogue,
             activation,
-            options.ApprovedRightsEvidenceReference);
+            options.ApprovedRightsEvidenceReference,
+            options.CatalogueProfile);
         EnsureCredentialAvailable();
 
         var contentStore = new ImmutableContentStore(stores);
@@ -364,9 +407,10 @@ internal sealed class ProductQueryRuntime :
             snapshot.EvidenceBindings.Count == 0 ||
             snapshot.EvidenceBindings.Any(binding =>
                 !binding.IsEligible ||
-                binding.Binding.DatabaseProductId != OracleDatabaseId))
+                binding.Binding.DatabaseProductId != ActiveDatabaseProductId))
         {
-            throw new InvalidDataException("The product query snapshot is not Oracle-only.");
+            throw new InvalidDataException(
+                "The product query snapshot does not match the configured catalogue profile.");
         }
 
         var sentinel = new float[
@@ -391,6 +435,32 @@ internal sealed class ProductQueryRuntime :
         return snapshot;
     }
 
+    internal static void ValidateConfiguredAuthority(
+        CatalogueSnapshot catalogue,
+        CorpusActivationRecord activation,
+        DocumentRightsEvidenceReference approvedRightsEvidenceReference,
+        ProductCatalogueProfile catalogueProfile)
+    {
+        switch (catalogueProfile)
+        {
+            case ProductCatalogueProfile.OracleDatabase19c:
+                ValidateOracleOnlyAuthority(
+                    catalogue,
+                    activation,
+                    approvedRightsEvidenceReference);
+                return;
+            case ProductCatalogueProfile.PostgreSql18:
+                ValidatePostgreSql18Authority(
+                    catalogue,
+                    activation,
+                    approvedRightsEvidenceReference);
+                return;
+            default:
+                throw new InvalidOperationException(
+                    "The product catalogue profile is unsupported.");
+        }
+    }
+
     internal static void ValidateOracleOnlyAuthority(
         CatalogueSnapshot catalogue,
         CorpusActivationRecord activation,
@@ -406,13 +476,13 @@ internal sealed class ProductQueryRuntime :
             .Where(document => document.Status == CatalogueItemStatus.Active)
             .ToArray();
         if (catalogue.CorpusId != CorpusId || activation.CorpusId != CorpusId ||
-            catalogue.Revision.Value != ExpectedCatalogueRevision ||
+            catalogue.Revision.Value != ExpectedOracleCatalogueRevision ||
             catalogue.DatabaseCategories.Count != 9 ||
             catalogue.DatabaseProducts.Count != 51 ||
             catalogue.DatabaseProducts.Sum(product => product.CategoryIds.Count) != 54 ||
             !string.Equals(
                 CalculateCatalogueFingerprint(catalogue),
-                ExpectedCatalogueFingerprint,
+                ExpectedOracleCatalogueFingerprint,
                 StringComparison.Ordinal) ||
             oracle is null ||
             !string.Equals(oracle.DisplayName, "Oracle Database", StringComparison.Ordinal) ||
@@ -424,7 +494,7 @@ internal sealed class ProductQueryRuntime :
                 product.Status == CatalogueItemStatus.Candidate) != 50 ||
             catalogue.DocumentVersions.Count != 1 ||
             activeDocuments.Length != 1 ||
-            !MatchesExpectedDocument(activeDocuments[0]) ||
+            !MatchesExpectedOracleDocument(activeDocuments[0]) ||
             activation.CatalogueRevision != catalogue.Revision ||
             !activation.HasCompleteEvidenceBindings ||
             activation.DocumentBindings.Count != activeDocuments.Length ||
@@ -436,38 +506,138 @@ internal sealed class ProductQueryRuntime :
                     document.DatabaseProductRevision == binding.DatabaseProductRevision &&
                     document.Format == binding.DocumentFormat &&
                     document.SourceAdapterId == binding.SourceAdapterId &&
-                    document.SourceTrustClass == binding.SourceTrustClass)) ||
-            activation.EvidenceBindings.Any(evidence =>
-                !activeDocuments.Any(document =>
-                    document.Id == evidence.DocumentBinding.DocumentId &&
-                    document.Version == evidence.DocumentBinding.DocumentVersion &&
-                    document.ContentObjectId == evidence.SourceContentObjectId) ||
-                !DocumentRightsEligibilityPolicy.Evaluate(
-                    evidence.Rights,
-                    DocumentRightsEligibilityGate.PdfVisualEvidenceServing).IsEligible ||
-                evidence.Rights.Decisions.Any(decision =>
-                    decision.EvidenceReference != approvedRightsEvidenceReference)))
+                    document.SourceTrustClass == binding.SourceTrustClass &&
+                    document.OfficialSourceRegistrationId ==
+                        binding.OfficialSourceRegistrationId &&
+                    document.OfficialSnapshotId == binding.OfficialSnapshotId) ||
+                binding.SourceObservationId is not null) ||
+            HasInvalidActivationEvidence(
+                activation,
+                activeDocuments,
+                approvedRightsEvidenceReference))
         {
             throw new InvalidDataException(
                 "The configured product store is not the Oracle-only catalogue profile.");
         }
     }
 
-    private static bool MatchesExpectedDocument(DocumentVersion document) =>
-        document.Id.Value == ExpectedDocumentId &&
+    internal static void ValidatePostgreSql18Authority(
+        CatalogueSnapshot catalogue,
+        CorpusActivationRecord activation,
+        DocumentRightsEvidenceReference approvedRightsEvidenceReference)
+    {
+        ArgumentNullException.ThrowIfNull(catalogue);
+        ArgumentNullException.ThrowIfNull(activation);
+        ArgumentNullException.ThrowIfNull(approvedRightsEvidenceReference);
+
+        var postgresql = catalogue.DatabaseProducts.SingleOrDefault(product =>
+            product.Id == PostgreSqlDatabaseId);
+        var activeDocuments = catalogue.DocumentVersions
+            .Where(document => document.Status == CatalogueItemStatus.Active)
+            .ToArray();
+        var deactivatedDocuments = catalogue.DocumentVersions
+            .Where(document => document.Status == CatalogueItemStatus.Deactivated)
+            .ToArray();
+        if (catalogue.CorpusId != CorpusId || activation.CorpusId != CorpusId ||
+            catalogue.Revision.Value != ExpectedPostgreSqlCatalogueRevision ||
+            catalogue.DatabaseCategories.Count != 1 ||
+            catalogue.DatabaseProducts.Count != 1 ||
+            catalogue.DatabaseProducts.Sum(product => product.CategoryIds.Count) != 1 ||
+            !string.Equals(
+                CalculateCatalogueFingerprint(catalogue),
+                ExpectedPostgreSqlCatalogueFingerprint,
+                StringComparison.Ordinal) ||
+            postgresql is null ||
+            !string.Equals(postgresql.DisplayName, "PostgreSQL 18", StringComparison.Ordinal) ||
+            postgresql.Status != CatalogueItemStatus.Active ||
+            catalogue.DocumentVersions.Count != 2 ||
+            activeDocuments.Length != 1 ||
+            deactivatedDocuments.Length != 1 ||
+            !MatchesExpectedPostgreSqlDocument(activeDocuments[0], officialVersion: true) ||
+            !MatchesExpectedPostgreSqlDocument(deactivatedDocuments[0], officialVersion: false) ||
+            activation.CatalogueRevision != catalogue.Revision ||
+            !activation.HasCompleteEvidenceBindings ||
+            activation.DocumentBindings.Count != activeDocuments.Length ||
+            activation.DocumentBindings.Any(binding =>
+                binding.DatabaseProductId != PostgreSqlDatabaseId ||
+                !activeDocuments.Any(document =>
+                    document.Id == binding.DocumentId &&
+                    document.Version == binding.DocumentVersion &&
+                    document.DatabaseProductRevision == binding.DatabaseProductRevision &&
+                    document.Format == binding.DocumentFormat &&
+                    document.SourceAdapterId == binding.SourceAdapterId &&
+                    document.SourceTrustClass == binding.SourceTrustClass &&
+                    document.OfficialSourceRegistrationId ==
+                        binding.OfficialSourceRegistrationId &&
+                    document.OfficialSnapshotId == binding.OfficialSnapshotId) ||
+                binding.SourceObservationId != new OfficialObservationId(
+                    "postgresql-18-reference-a4-observation-v1")) ||
+            HasInvalidActivationEvidence(
+                activation,
+                activeDocuments,
+                approvedRightsEvidenceReference))
+        {
+            throw new InvalidDataException(
+                "The configured product store is not the PostgreSQL 18.4 catalogue profile.");
+        }
+    }
+
+    private static bool HasInvalidActivationEvidence(
+        CorpusActivationRecord activation,
+        IReadOnlyCollection<DocumentVersion> activeDocuments,
+        DocumentRightsEvidenceReference approvedRightsEvidenceReference) =>
+        activation.EvidenceBindings.Any(evidence =>
+            !activeDocuments.Any(document =>
+                document.Id == evidence.DocumentBinding.DocumentId &&
+                document.Version == evidence.DocumentBinding.DocumentVersion &&
+                document.ContentObjectId == evidence.SourceContentObjectId) ||
+            !DocumentRightsEligibilityPolicy.Evaluate(
+                evidence.Rights,
+                DocumentRightsEligibilityGate.PdfVisualEvidenceServing).IsEligible ||
+            evidence.Rights.Decisions.Any(decision =>
+                decision.EvidenceReference != approvedRightsEvidenceReference));
+
+    private static bool MatchesExpectedOracleDocument(DocumentVersion document) =>
+        document.Id.Value == ExpectedOracleDocumentId &&
         document.Version.Value == 1 &&
         document.DatabaseProductId == OracleDatabaseId &&
         document.DatabaseProductRevision.Value == 1 &&
         document.Format == DocumentFormat.Pdf &&
         document.ContentLanguage == new DocumentContentLanguage("en") &&
         document.SourceDeclaredLanguage == new SourceDeclaredLanguage("en") &&
-        document.ContentObjectId.Value == ExpectedDocumentContentObjectId &&
-        document.ByteLength == ExpectedDocumentByteLength &&
+        document.ContentObjectId.Value == ExpectedOracleDocumentContentObjectId &&
+        document.ByteLength == ExpectedOracleDocumentByteLength &&
         string.Equals(document.MediaType, "application/pdf", StringComparison.Ordinal) &&
         document.SourceAdapterId == new SourceAdapterId("local-authorised-pdf-v1") &&
         document.SourceTrustClass == SourceTrustClass.LocalAuthorised &&
         document.OfficialSourceRegistrationId is null &&
         document.OfficialSnapshotId is null;
+
+    private static bool MatchesExpectedPostgreSqlDocument(
+        DocumentVersion document,
+        bool officialVersion) =>
+        document.Id.Value == ExpectedPostgreSqlDocumentId &&
+        document.Version.Value == (officialVersion ? 2 : 1) &&
+        document.DatabaseProductId == PostgreSqlDatabaseId &&
+        document.DatabaseProductRevision.Value == 1 &&
+        document.Format == DocumentFormat.Pdf &&
+        document.ContentLanguage == new DocumentContentLanguage("en") &&
+        document.SourceDeclaredLanguage == new SourceDeclaredLanguage("en") &&
+        document.ContentObjectId.Value == ExpectedPostgreSqlDocumentContentObjectId &&
+        document.ByteLength == ExpectedPostgreSqlDocumentByteLength &&
+        string.Equals(document.MediaType, "application/pdf", StringComparison.Ordinal) &&
+        document.SourceAdapterId == new SourceAdapterId(
+            officialVersion ? "postgresql-official-pdf-v1" : "local-authorised-pdf-v1") &&
+        document.SourceTrustClass == (officialVersion
+            ? SourceTrustClass.OfficialExternal
+            : SourceTrustClass.LocalAuthorised) &&
+        (officialVersion
+            ? document.OfficialSourceRegistrationId == new OfficialSourceRegistrationId(
+                "postgresql-18-reference-a4-official") &&
+              document.OfficialSnapshotId == new OfficialSnapshotId(
+                "snapshot-cea7b845568095eb56dee1b51bfa145c6c6637bc4377c986019971577efefae4")
+            : document.OfficialSourceRegistrationId is null &&
+              document.OfficialSnapshotId is null);
 
     private static string CalculateCatalogueFingerprint(CatalogueSnapshot catalogue)
     {
@@ -538,6 +708,7 @@ internal sealed class ProductQueryRuntime :
             UnauthorizedAccessException or SqliteException or ProviderStageUnavailableException;
 
     private static readonly DatabaseProductId OracleDatabaseId = new("oracle-database");
+    private static readonly DatabaseProductId PostgreSqlDatabaseId = new("postgresql-18");
 
     public void Dispose()
     {

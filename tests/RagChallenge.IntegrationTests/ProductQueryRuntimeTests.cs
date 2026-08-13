@@ -23,6 +23,28 @@ namespace RagChallenge.IntegrationTests;
 public sealed class ProductQueryRuntimeTests
 {
     [Fact]
+    public void PostgreSqlAuthorityAcceptsOnlyTheExactOfficialDocumentProfile()
+    {
+        var valid = ProductRuntimeFixture.CreatePostgreSqlAuthority();
+        ProductQueryRuntime.ValidatePostgreSql18Authority(
+            valid.Catalogue,
+            valid.Activation,
+            ProductRuntimeFixture.PostgreSqlRightsReference);
+
+        Assert.Throws<InvalidDataException>(() =>
+            ProductQueryRuntime.ValidatePostgreSql18Authority(
+                valid.Catalogue,
+                valid.Activation,
+                ProductRuntimeFixture.ApprovedRightsReference));
+        Assert.Throws<InvalidDataException>(() =>
+            ProductQueryRuntime.ValidateConfiguredAuthority(
+                valid.Catalogue,
+                valid.Activation,
+                ProductRuntimeFixture.PostgreSqlRightsReference,
+                ProductCatalogueProfile.OracleDatabase19c));
+    }
+
+    [Fact]
     public void OracleOnlyAuthorityAcceptsOnlyTheExactCatalogueAndDocumentProfile()
     {
         var valid = ProductRuntimeFixture.CreateAuthority();
@@ -126,6 +148,7 @@ public sealed class ProductQueryRuntimeTests
             {
                 [ProductQueryRuntimeOptions.EnabledKey] = "true",
                 [ProductQueryRuntimeOptions.StoreRootKey] = root,
+                [ProductQueryRuntimeOptions.CatalogueProfileKey] = "oracle-database-19c",
                 [ProductQueryRuntimeOptions.CredentialKey] = "MISSING_PRODUCT_TEST_KEY",
             };
             var missing = new ConfigurationBuilder()
@@ -142,7 +165,7 @@ public sealed class ProductQueryRuntimeTests
             var supersededError = Assert.Throws<InvalidOperationException>(() =>
                 ProductQueryRuntimeOptions.Resolve(superseded));
 
-            Assert.Contains("approved Oracle rights", missingError.Message, StringComparison.Ordinal);
+            Assert.Contains("approved product rights", missingError.Message, StringComparison.Ordinal);
             Assert.Contains("not approved", supersededError.Message, StringComparison.Ordinal);
         }
         finally
@@ -171,6 +194,7 @@ public sealed class ProductQueryRuntimeTests
                 $"--{ProductQueryRuntimeOptions.EnabledKey}", "true",
                 $"--{ProductQueryRuntimeOptions.ApplyMigrationsKey}", "true",
                 $"--{ProductQueryRuntimeOptions.StoreRootKey}", root,
+                $"--{ProductQueryRuntimeOptions.CatalogueProfileKey}", "oracle-database-19c",
                 $"--{ProductQueryRuntimeOptions.ApprovedRightsEvidenceKey}",
                 ProductRuntimeFixture.ApprovedRightsReference.Value,
                 $"--{ProductQueryRuntimeOptions.CredentialKey}", credentialName,
@@ -235,6 +259,7 @@ public sealed class ProductQueryRuntimeTests
             await ProductRuntimeFixture.SeedInvalidButOtherwiseQueryableStoreAsync(options);
             using var runtime = new ProductQueryRuntime(new ProductQueryRuntimeOptions(
                 options,
+                ProductCatalogueProfile.OracleDatabase19c,
                 ProductRuntimeFixture.ApprovedRightsReference,
                 credentialName,
                 ApplyMigrations: false));
@@ -276,6 +301,103 @@ public sealed class ProductQueryRuntimeTests
 
         internal static DocumentRightsEvidenceReference ApprovedRightsReference { get; } =
             new("approved-oracle-rights-evidence");
+
+        internal static DocumentRightsEvidenceReference PostgreSqlRightsReference { get; } =
+            new("auth-s07-a-product-a0-003");
+
+        internal static ProductAuthority CreatePostgreSqlAuthority()
+        {
+            var category = new DatabaseCategory(
+                new DatabaseCategoryId("relational-database"),
+                "Relational database");
+            var productId = new DatabaseProductId("postgresql-18");
+            var productRevision = new DatabaseProductRevision(1);
+            var documentId = new DocumentId("postgresql-18-reference-a4");
+            var contentObjectId = new ContentObjectId(
+                "cea7b845568095eb56dee1b51bfa145c6c6637bc4377c986019971577efefae4");
+            var registrationId = new OfficialSourceRegistrationId(
+                "postgresql-18-reference-a4-official");
+            var snapshotId = new OfficialSnapshotId(
+                "snapshot-cea7b845568095eb56dee1b51bfa145c6c6637bc4377c986019971577efefae4");
+            var localDocument = new DocumentVersion(
+                documentId,
+                new DocumentVersionNumber(1),
+                productId,
+                productRevision,
+                DocumentFormat.Pdf,
+                new DocumentContentLanguage("en"),
+                CatalogueItemStatus.Deactivated,
+                contentObjectId,
+                15_771_040,
+                "application/pdf",
+                new SourceAdapterId("local-authorised-pdf-v1"),
+                SourceTrustClass.LocalAuthorised,
+                sourceDeclaredLanguage: new SourceDeclaredLanguage("en"));
+            var officialDocument = new DocumentVersion(
+                documentId,
+                new DocumentVersionNumber(2),
+                productId,
+                productRevision,
+                DocumentFormat.Pdf,
+                new DocumentContentLanguage("en"),
+                CatalogueItemStatus.Active,
+                contentObjectId,
+                15_771_040,
+                "application/pdf",
+                new SourceAdapterId("postgresql-official-pdf-v1"),
+                SourceTrustClass.OfficialExternal,
+                registrationId,
+                snapshotId,
+                new SourceDeclaredLanguage("en"));
+            var catalogue = new CatalogueSnapshot(
+                ProductQueryRuntime.CorpusId,
+                new CatalogueRevision(5),
+                [category],
+                [new DatabaseProduct(
+                    productId,
+                    productRevision,
+                    "PostgreSQL 18",
+                    CatalogueItemStatus.Active,
+                    [category.Id])],
+                [localDocument, officialDocument]);
+            var binding = new DocumentBinding(
+                productId,
+                productRevision,
+                officialDocument.Id,
+                officialDocument.Version,
+                officialDocument.Format,
+                officialDocument.SourceAdapterId,
+                officialDocument.SourceTrustClass,
+                registrationId,
+                snapshotId,
+                new OfficialObservationId("postgresql-18-reference-a4-observation-v1"));
+            var rights = new DocumentRightsEligibilityRecordV1(
+                officialDocument.Id,
+                officialDocument.Version,
+                Enum.GetValues<DocumentRight>().Select(right => new DocumentRightDecision(
+                    right,
+                    right == DocumentRight.SourceAndDerivativeByteDistributionOrPublication
+                        ? DocumentRightDecisionState.Denied
+                        : DocumentRightDecisionState.Permitted,
+                    PostgreSqlRightsReference)));
+            var evidence = new DocumentActivationEvidenceBinding(
+                binding,
+                contentObjectId,
+                rights,
+                new RenderManifestId($"rendermanifest-{Hash("postgresql-18.4-render")}"));
+            var activation = new CorpusActivationRecord(
+                ProductQueryRuntime.CorpusId,
+                new ActivationRecordRevision(1),
+                previousRecordRevision: null,
+                new IndexGenerationId($"idxgen-{Hash("postgresql-18.4-generation")}"),
+                catalogue.Revision,
+                new ActivationBindingSetDigest(Hash("postgresql-18.4-activation")),
+                [binding],
+                ObservedAt,
+                ObservedAt,
+                [evidence]);
+            return new ProductAuthority(catalogue, activation, binding, evidence);
+        }
 
         internal static ProductAuthority CreateAuthority(
             CatalogueItemStatus oracleStatus = CatalogueItemStatus.Active,
