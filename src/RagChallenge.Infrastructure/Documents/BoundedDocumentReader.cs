@@ -33,8 +33,10 @@ internal static class BoundedDocumentReader
         {
             while (true)
             {
+                var remaining = maximumByteLength - bufferStream.Length;
+                var requested = (int)Math.Min(BufferSize, remaining + 1);
                 var read = await content
-                    .ReadAsync(buffer.AsMemory(0, BufferSize), cancellationToken)
+                    .ReadAsync(buffer.AsMemory(0, requested), cancellationToken)
                     .ConfigureAwait(false);
 
                 if (read == 0)
@@ -56,7 +58,7 @@ internal static class BoundedDocumentReader
             if (bufferStream.Length == 0)
             {
                 throw new DocumentParseException(
-                    DocumentParseFailureKind.MalformedContent);
+                    DocumentParseFailureKind.NoExtractableText);
             }
 
             return bufferStream.ToArray();

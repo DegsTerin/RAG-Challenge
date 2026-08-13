@@ -294,6 +294,35 @@ public enum ContentObjectWriteOutcome
     AlreadyExisted,
 }
 
+public enum ContentInputFailureKind
+{
+    Empty,
+    LimitExceeded,
+    IdentityMismatch,
+}
+
+public sealed class ContentInputException : Exception
+{
+    public ContentInputException(ContentInputFailureKind failureKind)
+        : base(ToSanitisedMessage(failureKind))
+    {
+        FailureKind = failureKind;
+    }
+
+    public ContentInputFailureKind FailureKind { get; }
+
+    private static string ToSanitisedMessage(ContentInputFailureKind failureKind) =>
+        failureKind switch
+        {
+            ContentInputFailureKind.Empty => "The content input is empty.",
+            ContentInputFailureKind.LimitExceeded =>
+                "The content input exceeded its authorised byte limit.",
+            ContentInputFailureKind.IdentityMismatch =>
+                "The content input did not match its expected identity.",
+            _ => "The content input could not be accepted.",
+        };
+}
+
 public enum ContentVerificationOutcome
 {
     Verified,

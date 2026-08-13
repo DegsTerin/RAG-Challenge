@@ -12,7 +12,7 @@ internal static class SyntheticParserFixtureFactory
             pageMarkers.Any(marker => marker.Any(character => character is < 'A' or > 'Z')))
         {
             throw new ArgumentException(
-                "PDF fixture markers must contain uppercase ASCII letters.",
+                "PDF fixture markers must be empty or contain uppercase ASCII letters.",
                 nameof(pageMarkers));
         }
 

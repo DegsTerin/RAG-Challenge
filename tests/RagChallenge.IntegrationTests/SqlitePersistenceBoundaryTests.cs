@@ -479,13 +479,15 @@ public sealed class SqlitePersistenceBoundaryTests
         }
 
         await using var mismatchStream = new MemoryStream(bytes, writable: false);
-        await Assert.ThrowsAsync<InvalidDataException>(
+        var mismatch = await Assert.ThrowsAsync<InvalidDataException>(
             () => fixture.ContentStore.PutAndVerifyAsync(
                 new BoundedContentInput(
                     mismatchStream,
                     bytes.Length,
                     new ContentMediaType("text/plain"),
                     new ContentObjectId(new string('0', 64)))));
+        var mismatchFailure = Assert.IsType<ContentInputException>(mismatch.InnerException);
+        Assert.Equal(ContentInputFailureKind.IdentityMismatch, mismatchFailure.FailureKind);
         Assert.Empty(Directory.EnumerateFiles(
             Path.Combine(fixture.Options.ContentStoreRoot, "quarantine")));
 
@@ -538,6 +540,50 @@ public sealed class SqlitePersistenceBoundaryTests
                     absoluteLimitStream,
                     512L * 1024 * 1024 + 1,
                     ContentMediaType.ApplicationOctetStream)));
+        Assert.Empty(Directory.EnumerateFiles(
+            Path.Combine(fixture.Options.ContentStoreRoot, "quarantine")));
+    }
+
+    [Fact]
+    public async Task ImmutableContentDoesNotOverconsumeANonSeekableInput()
+    {
+        await using var fixture = await SqlitePersistenceFixture.CreateAsync();
+        await using var stream = new CountingNonSeekableStream(100);
+
+        var failure = await Assert.ThrowsAsync<InvalidDataException>(
+            () => fixture.ContentStore.PutAndVerifyAsync(
+                new BoundedContentInput(
+                    stream,
+                    maximumByteLength: 7,
+                    ContentMediaType.ApplicationOctetStream)));
+
+        var inputFailure = Assert.IsType<ContentInputException>(failure.InnerException);
+        Assert.Equal(ContentInputFailureKind.LimitExceeded, inputFailure.FailureKind);
+        Assert.Equal(8, stream.BytesRead);
+        Assert.InRange(stream.LargestReadRequest, 1, 8);
+        Assert.Empty(Directory.EnumerateFiles(
+            Path.Combine(fixture.Options.ContentStoreRoot, "quarantine")));
+    }
+
+    [Fact]
+    public async Task ImmutableContentReportsEmptyInputWithoutPublishingIt()
+    {
+        await using var fixture = await SqlitePersistenceFixture.CreateAsync();
+        await using var stream = new MemoryStream();
+
+        var failure = await Assert.ThrowsAsync<InvalidDataException>(
+            () => fixture.ContentStore.PutAndVerifyAsync(
+                new BoundedContentInput(
+                    stream,
+                    maximumByteLength: 7,
+                    ContentMediaType.ApplicationOctetStream)));
+
+        var inputFailure = Assert.IsType<ContentInputException>(failure.InnerException);
+        Assert.Equal(ContentInputFailureKind.Empty, inputFailure.FailureKind);
+        Assert.Empty(Directory.EnumerateFiles(
+            Path.Combine(fixture.Options.ContentStoreRoot, "objects"),
+            "*.bin",
+            SearchOption.AllDirectories));
         Assert.Empty(Directory.EnumerateFiles(
             Path.Combine(fixture.Options.ContentStoreRoot, "quarantine")));
     }
@@ -1298,5 +1344,61 @@ public sealed class SqlitePersistenceBoundaryTests
         DocumentFormat,
         SourceAdapter,
         SourceTrustAndIdentity,
+    }
+
+    private sealed class CountingNonSeekableStream(int length) : Stream
+    {
+        private int remaining = length;
+
+        internal int BytesRead { get; private set; }
+
+        internal int LargestReadRequest { get; private set; }
+
+        public override bool CanRead => true;
+
+        public override bool CanSeek => false;
+
+        public override bool CanWrite => false;
+
+        public override long Length => throw new NotSupportedException();
+
+        public override long Position
+        {
+            get => throw new NotSupportedException();
+            set => throw new NotSupportedException();
+        }
+
+        public override void Flush()
+        {
+        }
+
+        public override int Read(byte[] buffer, int offset, int count) =>
+            ReadCore(buffer.AsSpan(offset, count));
+
+        public override ValueTask<int> ReadAsync(
+            Memory<byte> buffer,
+            CancellationToken cancellationToken = default)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            return ValueTask.FromResult(ReadCore(buffer.Span));
+        }
+
+        public override long Seek(long offset, SeekOrigin origin) =>
+            throw new NotSupportedException();
+
+        public override void SetLength(long value) => throw new NotSupportedException();
+
+        public override void Write(byte[] buffer, int offset, int count) =>
+            throw new NotSupportedException();
+
+        private int ReadCore(Span<byte> buffer)
+        {
+            LargestReadRequest = Math.Max(LargestReadRequest, buffer.Length);
+            var read = Math.Min(buffer.Length, remaining);
+            buffer[..read].Fill((byte)'x');
+            remaining -= read;
+            BytesRead += read;
+            return read;
+        }
     }
 }

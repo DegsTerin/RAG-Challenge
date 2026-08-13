@@ -73,6 +73,26 @@ public sealed class ParserAdapterRuntimeGateTests
             Assert.Contains("SECONDPAGE", result.Units[1].Text, StringComparison.Ordinal);
         }
 
+        await using (var stream = new MemoryStream(
+            SyntheticParserFixtureFactory.CreatePdf("", "SECONDPAGE"),
+            writable: false))
+        {
+            var result = await parser.ParseAsync(stream, PdfPolicy);
+            var page = Assert.Single(result.Units);
+            Assert.Equal(0, page.Ordinal);
+            Assert.Equal(2, page.PageNumber);
+            Assert.Contains("SECONDPAGE", page.Text, StringComparison.Ordinal);
+        }
+
+        await using (var stream = new MemoryStream(
+            SyntheticParserFixtureFactory.CreatePdf(""),
+            writable: false))
+        {
+            var failure = await Assert.ThrowsAsync<DocumentParseException>(
+                () => parser.ParseAsync(stream, PdfPolicy));
+            Assert.Equal(DocumentParseFailureKind.NoExtractableText, failure.FailureKind);
+        }
+
         var truncated = SyntheticParserFixtureFactory.CreatePdf("TRUNCATED")[..^8];
         await using (var stream = new MemoryStream(truncated, writable: false))
         {
@@ -117,6 +137,51 @@ public sealed class ParserAdapterRuntimeGateTests
         }
 
         await using (var stream = new MemoryStream(
+            "name,value\r\n,\r\nBanco,stable\r\n"u8.ToArray(),
+            writable: false))
+        {
+            var result = await parser.ParseAsync(stream, CsvPolicy);
+            var row = Assert.Single(result.Units);
+            Assert.Equal(0, row.Ordinal);
+            Assert.Equal(2, row.RecordNumber);
+            Assert.Equal("stable", row.Columns["value"]);
+        }
+
+        await using (var stream = new MemoryStream(
+            "name,description\r\nBanco,\"line one\r\nline two\"\r\n"u8.ToArray(),
+            writable: false))
+        {
+            var result = await parser.ParseAsync(stream, CsvPolicy);
+            Assert.Equal(
+                "line one\r\nline two",
+                Assert.Single(result.Units).Columns["description"]);
+        }
+
+        foreach (var emptyDocument in new[]
+        {
+            Array.Empty<byte>(),
+            "\uFEFF"u8.ToArray(),
+            "name,value\r\n"u8.ToArray(),
+            "name,value\r\n,\r\n"u8.ToArray(),
+            "name,value\r\n  ,\t\r\n"u8.ToArray(),
+        })
+        {
+            await using var stream = new MemoryStream(emptyDocument, writable: false);
+            var failure = await Assert.ThrowsAsync<DocumentParseException>(
+                () => parser.ParseAsync(stream, CsvPolicy));
+            Assert.Equal(DocumentParseFailureKind.NoExtractableText, failure.FailureKind);
+        }
+
+        await using (var stream = new MemoryStream(
+            [.. "name,value\r\nBanco,"u8, 0xff, (byte)'\r', (byte)'\n'],
+            writable: false))
+        {
+            var failure = await Assert.ThrowsAsync<DocumentParseException>(
+                () => parser.ParseAsync(stream, CsvPolicy));
+            Assert.Equal(DocumentParseFailureKind.MalformedContent, failure.FailureKind);
+        }
+
+        await using (var stream = new MemoryStream(
             SyntheticParserFixtureFactory.CsvMalformedQuote,
             writable: false))
         {
@@ -132,6 +197,16 @@ public sealed class ParserAdapterRuntimeGateTests
                 () => parser.ParseAsync(stream, CsvPolicy));
             Assert.Equal(DocumentParseFailureKind.LimitExceeded, failure.FailureKind);
             Assert.Equal(0, stream.ReadAttempts);
+        }
+
+        await using (var stream = new CountingNonSeekableStream(100))
+        {
+            var policy = new ParserPolicy(32, 8, 32_768, 8, 4_096);
+            var failure = await Assert.ThrowsAsync<DocumentParseException>(
+                () => parser.ParseAsync(stream, policy));
+            Assert.Equal(DocumentParseFailureKind.LimitExceeded, failure.FailureKind);
+            Assert.Equal(33, stream.BytesRead);
+            Assert.InRange(stream.LargestReadRequest, 1, 33);
         }
 
         AssertOnlyExpectedAssemblies(
@@ -191,5 +266,61 @@ public sealed class ParserAdapterRuntimeGateTests
 
         public override void Write(byte[] buffer, int offset, int count) =>
             throw new NotSupportedException();
+    }
+
+    private sealed class CountingNonSeekableStream(int length) : Stream
+    {
+        private int remaining = length;
+
+        public int BytesRead { get; private set; }
+
+        public int LargestReadRequest { get; private set; }
+
+        public override bool CanRead => true;
+
+        public override bool CanSeek => false;
+
+        public override bool CanWrite => false;
+
+        public override long Length => throw new NotSupportedException();
+
+        public override long Position
+        {
+            get => throw new NotSupportedException();
+            set => throw new NotSupportedException();
+        }
+
+        public override void Flush()
+        {
+        }
+
+        public override int Read(byte[] buffer, int offset, int count) =>
+            ReadCore(buffer.AsSpan(offset, count));
+
+        public override ValueTask<int> ReadAsync(
+            Memory<byte> buffer,
+            CancellationToken cancellationToken = default)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            return ValueTask.FromResult(ReadCore(buffer.Span));
+        }
+
+        public override long Seek(long offset, SeekOrigin origin) =>
+            throw new NotSupportedException();
+
+        public override void SetLength(long value) => throw new NotSupportedException();
+
+        public override void Write(byte[] buffer, int offset, int count) =>
+            throw new NotSupportedException();
+
+        private int ReadCore(Span<byte> buffer)
+        {
+            LargestReadRequest = Math.Max(LargestReadRequest, buffer.Length);
+            var read = Math.Min(buffer.Length, remaining);
+            buffer[..read].Fill((byte)'x');
+            remaining -= read;
+            BytesRead += read;
+            return read;
+        }
     }
 }

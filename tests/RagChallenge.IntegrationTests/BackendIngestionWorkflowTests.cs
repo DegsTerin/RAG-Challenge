@@ -284,6 +284,77 @@ public sealed class BackendIngestionWorkflowTests
             SearchOption.AllDirectories));
     }
 
+    [Fact]
+    public async Task EmptyIngestionFailsCanonicallyWithoutPublishingContent()
+    {
+        await using var fixture = await SqlitePersistenceFixture.CreateAsync();
+        var ingestion = CreateIngestionService(fixture);
+        var context = new DocumentChunkingContext(
+            SqlitePersistenceFixture.CorpusId,
+            new DatabaseProductId("db-empty-ingestion"),
+            new DatabaseProductRevision(1),
+            new DocumentId("doc-empty-ingestion"),
+            new DocumentVersionNumber(1),
+            DocumentFormat.Csv,
+            DocumentContentLanguage.EnGb,
+            new SourceAdapterId("local-empty-ingestion"),
+            SourceTrustClass.LocalAuthorised);
+
+        var failure = await Assert.ThrowsAsync<DocumentParseException>(
+            () => IngestAsync(ingestion, [], context));
+
+        Assert.Equal(DocumentParseFailureKind.NoExtractableText, failure.FailureKind);
+        Assert.Empty(Directory.EnumerateFiles(
+            Path.Combine(fixture.Options.ContentStoreRoot, "objects"),
+            "*.bin",
+            SearchOption.AllDirectories));
+        Assert.Empty(Directory.EnumerateFiles(
+            Path.Combine(fixture.Options.ContentStoreRoot, "quarantine"),
+            "*",
+            SearchOption.TopDirectoryOnly));
+    }
+
+    [Fact]
+    public async Task DuplicateBytesReuseContentWithoutErasingDocumentIdentity()
+    {
+        await using var fixture = await SqlitePersistenceFixture.CreateAsync();
+        var ingestion = CreateIngestionService(fixture);
+        var firstContext = new DocumentChunkingContext(
+            SqlitePersistenceFixture.CorpusId,
+            new DatabaseProductId("db-shared-content"),
+            new DatabaseProductRevision(1),
+            new DocumentId("doc-shared-content-a"),
+            new DocumentVersionNumber(1),
+            DocumentFormat.Csv,
+            DocumentContentLanguage.EnGb,
+            new SourceAdapterId("local-shared-content"),
+            SourceTrustClass.LocalAuthorised);
+        var secondContext = firstContext with
+        {
+            DocumentId = new DocumentId("doc-shared-content-b"),
+        };
+        var bytes = SyntheticParserFixtureFactory.CsvValidQuotedUtf8;
+
+        var first = await IngestAsync(ingestion, bytes, firstContext);
+        var duplicate = await IngestAsync(ingestion, bytes, secondContext);
+        var replay = await IngestAsync(ingestion, bytes, secondContext);
+
+        Assert.Equal(ContentObjectWriteOutcome.Published, first.Content.WriteOutcome);
+        Assert.Equal(ContentObjectWriteOutcome.AlreadyExisted, duplicate.Content.WriteOutcome);
+        Assert.Equal(ContentObjectWriteOutcome.AlreadyExisted, replay.Content.WriteOutcome);
+        Assert.Equal(first.Content.ContentObjectId, duplicate.Content.ContentObjectId);
+        Assert.NotEqual(
+            Assert.Single(first.Chunks).Digest,
+            Assert.Single(duplicate.Chunks).Digest);
+        Assert.Equal(
+            duplicate.Chunks.Select(chunk => chunk.Digest),
+            replay.Chunks.Select(chunk => chunk.Digest));
+        Assert.Single(Directory.EnumerateFiles(
+            Path.Combine(fixture.Options.ContentStoreRoot, "objects"),
+            "*.bin",
+            SearchOption.AllDirectories));
+    }
+
     private static DocumentIngestionService CreateIngestionService(
         SqlitePersistenceFixture fixture) =>
         new(

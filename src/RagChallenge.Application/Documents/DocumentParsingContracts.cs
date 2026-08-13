@@ -165,12 +165,29 @@ public sealed class ParsedDocumentArtifact
                 nameof(units));
         }
 
-        if (materialisedUnits.Select(unit => unit.Ordinal).Distinct().Count() !=
-            materialisedUnits.Length)
+        long previousLocation = 0;
+
+        for (var index = 0; index < materialisedUnits.Length; index++)
         {
-            throw new ArgumentException(
-                "Parsed unit ordinals must be unique.",
-                nameof(units));
+            var unit = materialisedUnits[index];
+
+            if (unit is null || unit.Ordinal != index)
+            {
+                throw new ArgumentException(
+                    "Parsed unit ordinals must be ordered and contiguous from zero.",
+                    nameof(units));
+            }
+
+            var location = ValidateLocation(format, unit, units);
+
+            if (location <= previousLocation)
+            {
+                throw new ArgumentException(
+                    "Parsed unit locations must be strictly increasing.",
+                    nameof(units));
+            }
+
+            previousLocation = location;
         }
 
         Format = format;
@@ -186,6 +203,39 @@ public sealed class ParsedDocumentArtifact
     public ReadOnlyCollection<ParsedDocumentUnit> Units { get; }
 
     public ReadOnlyCollection<string> Warnings { get; }
+
+    private static long ValidateLocation(
+        DocumentFormat format,
+        ParsedDocumentUnit unit,
+        IEnumerable<ParsedDocumentUnit> units)
+    {
+        if (format == DocumentFormat.Pdf)
+        {
+            if (unit.PageNumber is null ||
+                unit.RecordNumber is not null ||
+                unit.Columns.Count != 0)
+            {
+                throw new ArgumentException(
+                    "PDF units require only a physical page location.",
+                    nameof(units));
+            }
+
+            return unit.PageNumber.Value;
+        }
+
+        if (unit.PageNumber is not null ||
+            unit.RecordNumber is null ||
+            unit.Columns.Count == 0 ||
+            unit.Columns.Any(column =>
+                string.IsNullOrWhiteSpace(column.Key) || column.Value is null))
+        {
+            throw new ArgumentException(
+                "CSV units require a record location and valid column metadata.",
+                nameof(units));
+        }
+
+        return unit.RecordNumber.Value;
+    }
 }
 
 public interface IDocumentParser

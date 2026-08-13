@@ -77,8 +77,10 @@ public sealed class ImmutableContentStore : IDocumentContentStore
                 {
                     while (true)
                     {
+                        var remaining = input.MaximumByteLength - byteLength;
+                        var requested = (int)Math.Min(BufferSize, remaining + 1);
                         var read = await input.Content
-                            .ReadAsync(buffer.AsMemory(0, BufferSize), cancellationToken)
+                            .ReadAsync(buffer.AsMemory(0, requested), cancellationToken)
                             .ConfigureAwait(false);
 
                         if (read == 0)
@@ -90,8 +92,8 @@ public sealed class ImmutableContentStore : IDocumentContentStore
 
                         if (byteLength > input.MaximumByteLength)
                         {
-                            throw new InvalidDataException(
-                                "Content exceeded its authorised byte limit.");
+                            throw CreateContentInputFailure(
+                                ContentInputFailureKind.LimitExceeded);
                         }
 
                         hash.AppendData(buffer, 0, read);
@@ -107,7 +109,7 @@ public sealed class ImmutableContentStore : IDocumentContentStore
 
                 if (byteLength == 0)
                 {
-                    throw new InvalidDataException("An immutable content object cannot be empty.");
+                    throw CreateContentInputFailure(ContentInputFailureKind.Empty);
                 }
 
                 await target.FlushAsync(cancellationToken).ConfigureAwait(false);
@@ -120,8 +122,7 @@ public sealed class ImmutableContentStore : IDocumentContentStore
             if (input.ExpectedContentObjectId is not null &&
                 input.ExpectedContentObjectId != contentObjectId)
             {
-                throw new InvalidDataException(
-                    "Content did not match its expected SHA-256 identity.");
+                throw CreateContentInputFailure(ContentInputFailureKind.IdentityMismatch);
             }
 
             var destination = ResolveObjectPath(contentObjectId, createDirectory: true);
@@ -722,6 +723,13 @@ public sealed class ImmutableContentStore : IDocumentContentStore
             StoragePathSafety.EnsureExistingPathIsNotReparsePoint(path, nameof(path));
             File.Delete(path);
         }
+    }
+
+    private static InvalidDataException CreateContentInputFailure(
+        ContentInputFailureKind failureKind)
+    {
+        var failure = new ContentInputException(failureKind);
+        return new InvalidDataException(failure.Message, failure);
     }
 
     private static async Task EnsureCleanupPlanMatchesAsync(

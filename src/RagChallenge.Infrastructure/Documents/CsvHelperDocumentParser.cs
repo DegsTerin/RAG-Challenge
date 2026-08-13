@@ -30,12 +30,14 @@ public sealed class CsvHelperDocumentParser : IDocumentParser
         var bytes = await BoundedDocumentReader
             .ReadAsync(content, policy.MaximumByteLength, cancellationToken)
             .ConfigureAwait(false);
+        cancellationToken.ThrowIfCancellationRequested();
 
         string text;
 
         try
         {
             text = StrictUtf8.GetString(bytes);
+            cancellationToken.ThrowIfCancellationRequested();
         }
         catch (DecoderFallbackException)
         {
@@ -47,8 +49,8 @@ public sealed class CsvHelperDocumentParser : IDocumentParser
             text = text[1..];
         }
 
-        ValidateCharacters(text);
-        var shape = ValidateShape(text, policy);
+        ValidateCharacters(text, cancellationToken);
+        var shape = ValidateShape(text, policy, cancellationToken);
 
         try
         {
@@ -57,6 +59,7 @@ public sealed class CsvHelperDocumentParser : IDocumentParser
             {
                 Delimiter = ",",
                 HasHeaderRecord = true,
+                IgnoreBlankLines = false,
             };
             using var csv = new CsvReader(textReader, configuration);
 
@@ -80,12 +83,14 @@ public sealed class CsvHelperDocumentParser : IDocumentParser
 
             var units = new List<ParsedDocumentUnit>();
             var totalCharacters = 0;
+            var recordNumber = 0L;
 
             while (csv.Read())
             {
                 cancellationToken.ThrowIfCancellationRequested();
+                recordNumber++;
 
-                if (units.Count >= policy.MaximumUnits)
+                if (recordNumber > policy.MaximumUnits)
                 {
                     throw new DocumentParseException(
                         DocumentParseFailureKind.LimitExceeded);
@@ -106,21 +111,27 @@ public sealed class CsvHelperDocumentParser : IDocumentParser
                     columns.Add(headers[index], value);
                 }
 
+                if (columns.Values.All(string.IsNullOrWhiteSpace))
+                {
+                    continue;
+                }
+
                 var rowText = string.Join(
                     " | ",
                     columns.Select(column => $"{column.Key}: {column.Value}"));
-                totalCharacters = checked(totalCharacters + rowText.Length);
 
-                if (totalCharacters > policy.MaximumTextCharacters)
+                if (rowText.Length > policy.MaximumTextCharacters - totalCharacters)
                 {
                     throw new DocumentParseException(
                         DocumentParseFailureKind.LimitExceeded);
                 }
 
+                totalCharacters += rowText.Length;
+
                 units.Add(new ParsedDocumentUnit(
                     units.Count,
                     rowText,
-                    recordNumber: units.Count + 1L,
+                    recordNumber: recordNumber,
                     columns: columns));
             }
 
@@ -149,24 +160,38 @@ public sealed class CsvHelperDocumentParser : IDocumentParser
         }
     }
 
-    private static void ValidateCharacters(string text)
+    private static void ValidateCharacters(
+        string text,
+        CancellationToken cancellationToken)
     {
         if (string.IsNullOrEmpty(text))
         {
-            throw new DocumentParseException(DocumentParseFailureKind.MalformedContent);
+            throw new DocumentParseException(DocumentParseFailureKind.NoExtractableText);
         }
 
-        foreach (var character in text)
+        for (var index = 0; index < text.Length; index++)
         {
+            if ((index & 0xfff) == 0)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+            }
+
+            var character = text[index];
+
             if (character == '\0' ||
                 (char.IsControl(character) && character is not '\r' and not '\n' and not '\t'))
             {
                 throw new DocumentParseException(DocumentParseFailureKind.MalformedContent);
             }
         }
+
+        cancellationToken.ThrowIfCancellationRequested();
     }
 
-    private static CsvShape ValidateShape(string text, ParserPolicy policy)
+    private static CsvShape ValidateShape(
+        string text,
+        ParserPolicy policy,
+        CancellationToken cancellationToken)
     {
         var fieldCount = 1;
         int? expectedFieldCount = null;
@@ -178,6 +203,11 @@ public sealed class CsvHelperDocumentParser : IDocumentParser
 
         for (var index = 0; index < text.Length; index++)
         {
+            if ((index & 0xfff) == 0)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+            }
+
             var character = text[index];
 
             if (inQuotes)
@@ -257,6 +287,8 @@ public sealed class CsvHelperDocumentParser : IDocumentParser
         {
             throw new DocumentParseException(DocumentParseFailureKind.MalformedContent);
         }
+
+        cancellationToken.ThrowIfCancellationRequested();
 
         if (!atFieldStart || quoteClosed || fieldCount > 1)
         {

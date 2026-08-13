@@ -30,6 +30,13 @@ public sealed class DeterministicChunkingStrategyTests
         Assert.Equal(
             "paragraph-window-v1;target-scalars=3200;overlap-scalars=480;hard-max-scalars=4000;boundaries=section,paragraph,sentence,word,scalar;separator=lf-paragraph-v1;normalisation=nfc-lf-horizontal-space-control-space-v1;unit=pdf-page-or-csv-record",
             policy.CompatibilityDescriptor);
+        Assert.Equal("rag-chunk-v3", ChunkingPolicy.DigestSchema);
+    }
+
+    [Fact]
+    public void PolicyRejectsAnOverlapThatCannotGuaranteeForwardProgress()
+    {
+        Assert.Throws<ArgumentOutOfRangeException>(() => new ChunkingPolicy(32, 16, 40));
     }
 
     [Fact]
@@ -107,6 +114,8 @@ public sealed class DeterministicChunkingStrategyTests
             csvContext,
             new ChunkingPolicy(32, 8, 40));
 
+        Assert.Contains(chunks, chunk => chunk.RecordNumber == 1);
+        Assert.Contains(chunks, chunk => chunk.RecordNumber == 2);
         Assert.All(chunks.Where(chunk => chunk.RecordNumber == 1), chunk =>
         {
             Assert.Equal("one", chunk.Columns["id"]);
@@ -117,6 +126,41 @@ public sealed class DeterministicChunkingStrategyTests
             Assert.Equal("two", chunk.Columns["id"]);
             Assert.DoesNotContain("RECORD-ONE", chunk.Text, StringComparison.Ordinal);
         });
+    }
+
+    [Fact]
+    public void CsvColumnMetadataHasCanonicalChunkIdentity()
+    {
+        var csvContext = Context with
+        {
+            DocumentFormat = DocumentFormat.Csv,
+            SourceAdapterId = new SourceAdapterId("synthetic-csv"),
+        };
+        var first = CsvArtifact(new Dictionary<string, string>
+        {
+            ["id"] = "one",
+            ["name"] = "Alpha",
+        });
+        var reordered = CsvArtifact(new Dictionary<string, string>
+        {
+            ["name"] = "Alpha",
+            ["id"] = "one",
+        });
+        var changed = CsvArtifact(new Dictionary<string, string>
+        {
+            ["id"] = "one",
+            ["name"] = "Beta",
+        });
+        var strategy = new DeterministicChunkingStrategy();
+        var policy = new ChunkingPolicy(64, 8, 80);
+
+        var firstChunk = Assert.Single(strategy.Chunk(first, csvContext, policy));
+        var reorderedChunk = Assert.Single(strategy.Chunk(reordered, csvContext, policy));
+        var changedChunk = Assert.Single(strategy.Chunk(changed, csvContext, policy));
+
+        Assert.Equal(firstChunk.Digest, reorderedChunk.Digest);
+        Assert.NotEqual(firstChunk.Digest, changedChunk.Digest);
+        Assert.Equal("Alpha", firstChunk.Columns["name"]);
     }
 
     [Fact]
@@ -131,7 +175,7 @@ public sealed class DeterministicChunkingStrategyTests
         Assert.Equal("Café\n\nAlpha Beta Gamma", first.Text);
         Assert.Equal(first.Digest, replay.Digest);
         Assert.Equal(
-            "faf250d07f0b7e47bb9517ccf838e1253ca6e5c4a1760964d80c8a0e165c9bc3",
+            "dddcd1ebadb868296aecd16835556de81250b0955770ad908c67835d92ce578b",
             first.Digest.Value);
     }
 
@@ -163,6 +207,13 @@ public sealed class DeterministicChunkingStrategyTests
 
     private static ParsedDocumentArtifact Artifact(params ParsedDocumentUnit[] units) =>
         new(DocumentFormat.Pdf, "synthetic-pdf/1", units);
+
+    private static ParsedDocumentArtifact CsvArtifact(
+        IReadOnlyDictionary<string, string> columns) =>
+        new(
+            DocumentFormat.Csv,
+            "synthetic-csv/1",
+            [new ParsedDocumentUnit(0, "stable text", recordNumber: 1, columns: columns)]);
 
     private static ParsedDocumentUnit Page(int ordinal, string text, int pageNumber) =>
         new(ordinal, text, pageNumber: pageNumber);

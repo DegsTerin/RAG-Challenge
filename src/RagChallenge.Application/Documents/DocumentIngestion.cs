@@ -1,4 +1,5 @@
 // Purpose: Orchestrates immutable content persistence, verified reopen, parser selection and deterministic chunking without owning parser or storage implementations.
+using System.Buffers.Binary;
 using System.Collections.ObjectModel;
 using System.Security.Cryptography;
 using System.Text;
@@ -18,6 +19,7 @@ public sealed record ChunkingPolicy
     public const string SeparatorPolicy = "lf-paragraph-v1";
     public const string NormalisationVersion =
         "nfc-lf-horizontal-space-control-space-v1";
+    public const string DigestSchema = "rag-chunk-v3";
 
     public ChunkingPolicy(
         int targetScalarCount = DefaultTargetScalarCount,
@@ -29,7 +31,9 @@ public sealed record ChunkingPolicy
             throw new ArgumentOutOfRangeException(nameof(targetScalarCount));
         }
 
-        if (overlapScalarCount < 0 || overlapScalarCount >= targetScalarCount)
+        if (overlapScalarCount < 0 ||
+            overlapScalarCount >= targetScalarCount ||
+            (long)overlapScalarCount * 2 >= targetScalarCount)
         {
             throw new ArgumentOutOfRangeException(nameof(overlapScalarCount));
         }
@@ -89,6 +93,28 @@ public sealed class DocumentChunk
         ArgumentNullException.ThrowIfNull(digest);
         ArgumentException.ThrowIfNullOrWhiteSpace(text);
         ArgumentNullException.ThrowIfNull(columns);
+
+        if (pageNumber is <= 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(pageNumber));
+        }
+
+        if (recordNumber is <= 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(recordNumber));
+        }
+
+        if ((pageNumber is null) == (recordNumber is null) ||
+            (pageNumber is not null && columns.Count != 0) ||
+            (recordNumber is not null && columns.Count == 0) ||
+            columns.Any(column =>
+                string.IsNullOrWhiteSpace(column.Key) || column.Value is null))
+        {
+            throw new ArgumentException(
+                "Chunk location and column metadata must describe one PDF page or CSV record.",
+                nameof(columns));
+        }
+
         Ordinal = ordinal;
         Digest = digest;
         Text = text;
@@ -368,7 +394,7 @@ public sealed class DeterministicChunkingStrategy : IChunkingStrategy
     {
         var material = string.Join(
             '\n',
-            "rag-chunk-v2",
+            ChunkingPolicy.DigestSchema,
             policy.CompatibilityDescriptor,
             context.CorpusId.Value,
             context.DatabaseProductId.Value,
@@ -382,9 +408,33 @@ public sealed class DeterministicChunkingStrategy : IChunkingStrategy
             ordinal.ToString(System.Globalization.CultureInfo.InvariantCulture),
             unit.PageNumber?.ToString(System.Globalization.CultureInfo.InvariantCulture) ?? "",
             unit.RecordNumber?.ToString(System.Globalization.CultureInfo.InvariantCulture) ?? "",
+            HashColumns(unit.Columns),
             text);
         return Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(material)))
             .ToLowerInvariant();
+    }
+
+    private static string HashColumns(IReadOnlyDictionary<string, string> columns)
+    {
+        using var hash = IncrementalHash.CreateHash(HashAlgorithmName.SHA256);
+        AppendLengthPrefixed(hash, "rag-chunk-columns-v1");
+
+        foreach (var column in columns.OrderBy(column => column.Key, StringComparer.Ordinal))
+        {
+            AppendLengthPrefixed(hash, column.Key);
+            AppendLengthPrefixed(hash, column.Value);
+        }
+
+        return Convert.ToHexString(hash.GetHashAndReset()).ToLowerInvariant();
+    }
+
+    private static void AppendLengthPrefixed(IncrementalHash hash, string value)
+    {
+        var bytes = Encoding.UTF8.GetBytes(value);
+        Span<byte> length = stackalloc byte[sizeof(int)];
+        BinaryPrimitives.WriteInt32BigEndian(length, bytes.Length);
+        hash.AppendData(length);
+        hash.AppendData(bytes);
     }
 
     private enum ChunkBoundaryKind
@@ -487,13 +537,33 @@ public sealed class DocumentIngestionService
             throw new DocumentParseException(DocumentParseFailureKind.UnsupportedFormat);
         }
 
-        var content = await contentStore.PutAndVerifyAsync(
-            new BoundedContentInput(
-                request.Content,
-                request.MaximumByteLength,
-                request.MediaType,
-                request.ExpectedContentObjectId),
-            cancellationToken).ConfigureAwait(false);
+        ContentObjectDescriptor content;
+
+        try
+        {
+            content = await contentStore.PutAndVerifyAsync(
+                new BoundedContentInput(
+                    request.Content,
+                    request.MaximumByteLength,
+                    request.MediaType,
+                    request.ExpectedContentObjectId),
+                cancellationToken).ConfigureAwait(false);
+        }
+        catch (InvalidDataException exception)
+        {
+            if (exception.InnerException is not ContentInputException inputFailure ||
+                inputFailure.FailureKind is not (
+                    ContentInputFailureKind.Empty or ContentInputFailureKind.LimitExceeded))
+            {
+                throw;
+            }
+
+            throw new DocumentParseException(
+                inputFailure.FailureKind == ContentInputFailureKind.Empty
+                    ? DocumentParseFailureKind.NoExtractableText
+                    : DocumentParseFailureKind.LimitExceeded);
+        }
+
         await using var verified = await contentStore
             .OpenVerifiedAsync(
                 content.ContentObjectId,

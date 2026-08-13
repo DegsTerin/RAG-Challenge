@@ -27,16 +27,24 @@ public sealed class PdfPigDocumentParser : IDocumentParser
         var bytes = await BoundedDocumentReader
             .ReadAsync(content, policy.MaximumByteLength, cancellationToken)
             .ConfigureAwait(false);
+        cancellationToken.ThrowIfCancellationRequested();
 
         ValidateEnvelope(bytes);
+        cancellationToken.ThrowIfCancellationRequested();
 
         try
         {
             using var stream = new MemoryStream(bytes, writable: false);
             using var document = PdfDocument.Open(stream);
+            cancellationToken.ThrowIfCancellationRequested();
 
-            if (document.NumberOfPages is <= 0 ||
-                document.NumberOfPages > policy.MaximumUnits)
+            if (document.NumberOfPages <= 0)
+            {
+                throw new DocumentParseException(
+                    DocumentParseFailureKind.NoExtractableText);
+            }
+
+            if (document.NumberOfPages > policy.MaximumUnits)
             {
                 throw new DocumentParseException(
                     DocumentParseFailureKind.LimitExceeded);
@@ -49,19 +57,20 @@ public sealed class PdfPigDocumentParser : IDocumentParser
             {
                 cancellationToken.ThrowIfCancellationRequested();
                 var text = NormaliseText(document.GetPage(pageNumber).Text);
+                cancellationToken.ThrowIfCancellationRequested();
 
                 if (string.IsNullOrWhiteSpace(text))
                 {
                     continue;
                 }
 
-                totalCharacters = checked(totalCharacters + text.Length);
-
-                if (totalCharacters > policy.MaximumTextCharacters)
+                if (text.Length > policy.MaximumTextCharacters - totalCharacters)
                 {
                     throw new DocumentParseException(
                         DocumentParseFailureKind.LimitExceeded);
                 }
+
+                totalCharacters += text.Length;
 
                 units.Add(new ParsedDocumentUnit(
                     units.Count,
@@ -74,6 +83,8 @@ public sealed class PdfPigDocumentParser : IDocumentParser
                 throw new DocumentParseException(
                     DocumentParseFailureKind.NoExtractableText);
             }
+
+            cancellationToken.ThrowIfCancellationRequested();
 
             return new ParsedDocumentArtifact(
                 DocumentFormat.Pdf,
