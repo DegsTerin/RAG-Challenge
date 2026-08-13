@@ -21,17 +21,20 @@ internal sealed class SqliteAdministrativeCommandExecutor
     };
 
     private readonly IControlPlaneStore store;
+    private readonly IAdministrativeMaterialisationCommand? importLocal;
     private readonly IAdministrativeMaterialisationCommand? synchroniseOfficial;
     private readonly IAdministrativeMaterialisationCommand? renderDocument;
     private readonly IAdministrativeMaterialisationCommand? buildIndex;
 
     internal SqliteAdministrativeCommandExecutor(
         IControlPlaneStore store,
+        IAdministrativeMaterialisationCommand? importLocal = null,
         IAdministrativeMaterialisationCommand? synchroniseOfficial = null,
         IAdministrativeMaterialisationCommand? renderDocument = null,
         IAdministrativeMaterialisationCommand? buildIndex = null)
     {
         this.store = store ?? throw new ArgumentNullException(nameof(store));
+        this.importLocal = ValidateMaterialisationCommand(importLocal, "import-local");
         this.synchroniseOfficial = ValidateMaterialisationCommand(
             synchroniseOfficial,
             "synchronise-official");
@@ -62,6 +65,9 @@ internal sealed class SqliteAdministrativeCommandExecutor
             "deactivate-document" or
             "remove-document" => DescribeCatalogueIntent(input),
             "register-official-source" => DescribeOfficialSourceIntent(input),
+            "import-local" => importLocal?.DescribeIntent(
+                corpusId,
+                input) ?? DescribeUnavailableMaterialisationIntent(corpusId),
             "activate-generation" or "rollback-generation" =>
                 DescribeGenerationIntent(input),
             "synchronise-official" => synchroniseOfficial?.DescribeIntent(
@@ -98,6 +104,10 @@ internal sealed class SqliteAdministrativeCommandExecutor
             "remove-document" => ExecuteCatalogueAsync(command, cancellationToken),
             "register-official-source" =>
                 RegisterOfficialSourceAsync(command, cancellationToken),
+            "import-local" => ExecuteMaterialisationAsync(
+                importLocal,
+                command,
+                cancellationToken),
             "activate-generation" => ActivateGenerationAsync(command, cancellationToken),
             "rollback-generation" => RollbackGenerationAsync(command, cancellationToken),
             "status" => ReadStatusAsync(command, cancellationToken),

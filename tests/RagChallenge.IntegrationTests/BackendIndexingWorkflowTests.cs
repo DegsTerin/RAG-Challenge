@@ -13,6 +13,63 @@ namespace RagChallenge.IntegrationTests;
 public sealed class BackendIndexingWorkflowTests
 {
     [Fact]
+    public async Task EmbeddingBatchesRespectBothInputCountAndUtf8ByteLimits()
+    {
+        await using var fixture = await SqlitePersistenceFixture.CreateAsync();
+        var (_, binding) = await fixture.CommitLocalCatalogueAsync();
+        var descriptor = new EmbeddingProviderDescriptor(
+            "fake",
+            "bounded-v1",
+            "fixture-1",
+            dimensions: 3);
+        var chunks = Enumerable.Range(0, 70)
+            .Select(index => new DocumentChunk(
+                index,
+                new LogicalArtifactDigest(SqlitePersistenceFixture.Hash($"bounded:{index}")),
+                $"chunk-{index:D3}-value",
+                pageNumber: index + 1,
+                recordNumber: null,
+                new Dictionary<string, string>()))
+            .ToArray();
+        var compatibilityProfile = CreateCompatibilityProfile(descriptor);
+        var bindings = new[] { binding };
+        var provider = new RecordingEmbeddingProvider(descriptor);
+        var service = new CorpusIndexingService(
+            provider,
+            fixture.VectorStore,
+            fixture.ControlStore);
+        var specification = new IndexGenerationSpecification(
+            1,
+            SqlitePersistenceFixture.CorpusId,
+            new CorpusRevision(1),
+            new CatalogueRevision(1),
+            BindingDigestCanonicalizer.CanonicaliseActiveDocumentSet(bindings).Digest,
+            BindingDigestCanonicalizer.CanonicaliseSourceBindingSet(bindings).Digest,
+            compatibilityProfile.Key);
+
+        var result = await service.BuildAsync(new CorpusIndexingRequest(
+            new CandidateBuildId("candidate-bounded-embedding-batches"),
+            specification,
+            [new IndexDocumentInput(
+                binding,
+                DocumentContentLanguage.EnGb,
+                chunks,
+                PdfPigDocumentParser.CompatibilityDescriptor,
+                compatibilityProfile.ChunkingPolicy)],
+            descriptor,
+            compatibilityProfile,
+            Audit("generation-bounded-embedding-batches", "index-generation", 2),
+            SqlitePersistenceFixture.At(3),
+            MaximumEmbeddingBatchUtf8Bytes: 128));
+
+        Assert.Equal(70, result.Manifest.ChunkCount);
+        Assert.True(provider.BatchSizes.Count > 1);
+        Assert.All(provider.BatchSizes, size => Assert.InRange(size, 1, 64));
+        Assert.All(provider.BatchUtf8Bytes, size => Assert.InRange(size, 1, 128));
+        Assert.Equal(70, provider.BatchSizes.Sum());
+    }
+
+    [Fact]
     public async Task CandidateBuildActivatesOnlyAfterValidationAndReplaysIdempotently()
     {
         await using var fixture = await SqlitePersistenceFixture.CreateAsync();
@@ -264,6 +321,26 @@ public sealed class BackendIndexingWorkflowTests
                 (ReadOnlyMemory<float>)(input.StartsWith("first", StringComparison.Ordinal)
                     ? new float[] { 1, 0, 0 }
                     : new float[] { 0, 1, 0 })).ToArray();
+            return Task.FromResult(new EmbeddingBatchResult(descriptor, vectors));
+        }
+    }
+
+    private sealed class RecordingEmbeddingProvider(
+        EmbeddingProviderDescriptor descriptor) : IEmbeddingProvider
+    {
+        internal List<int> BatchSizes { get; } = [];
+
+        internal List<int> BatchUtf8Bytes { get; } = [];
+
+        public Task<EmbeddingBatchResult> EmbedAsync(
+            EmbeddingBatchRequest request,
+            CancellationToken cancellationToken = default)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            BatchSizes.Add(request.Inputs.Count);
+            BatchUtf8Bytes.Add(request.Inputs.Sum(System.Text.Encoding.UTF8.GetByteCount));
+            var vectors = request.Inputs.Select(_ =>
+                (ReadOnlyMemory<float>)new float[] { 1, 0, 0 }).ToArray();
             return Task.FromResult(new EmbeddingBatchResult(descriptor, vectors));
         }
     }

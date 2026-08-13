@@ -23,6 +23,7 @@ public static class AdministrativeCommands
         "activate-document",
         "deactivate-document",
         "remove-document",
+        "import-local",
         "register-official-source",
         "synchronise-official",
         "render-document",

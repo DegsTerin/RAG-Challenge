@@ -8,6 +8,7 @@ using RagChallenge.Infrastructure.Persistence;
 namespace RagChallenge.Server.Api.OperationsGovernance;
 
 internal sealed record AdministrativeMaterialisationPorts(
+    string? LocalInputRoot = null,
     IOfficialSourceAuthorityResolver? OfficialSourceAuthorityResolver = null,
     IOfficialSourceTransport? OfficialSourceTransport = null,
     IEmbeddingProvider? EmbeddingProvider = null,
@@ -43,7 +44,8 @@ internal static class AdministrativeMaterialisationComposition
             "Index construction requires both embedding and compatibility ports.");
         EnsureCompleteRenderComposition(ports);
 
-        if (ports.OfficialSourceTransport is null &&
+        if (ports.LocalInputRoot is null &&
+            ports.OfficialSourceTransport is null &&
             ports.EmbeddingProvider is null &&
             ports.RenderManifestStore is null)
         {
@@ -55,6 +57,13 @@ internal static class AdministrativeMaterialisationComposition
             contentStore,
             [new PdfPigDocumentParser(), new CsvHelperDocumentParser()],
             new DeterministicChunkingStrategy());
+
+        IAdministrativeMaterialisationCommand? importLocal =
+            string.IsNullOrWhiteSpace(ports.LocalInputRoot)
+                ? null
+                : new ImportLocalAdministrativeCommand(
+                    contentStore,
+                    ports.LocalInputRoot);
 
         IAdministrativeMaterialisationCommand? synchroniseOfficial = null;
 
@@ -106,6 +115,7 @@ internal static class AdministrativeMaterialisationComposition
 
         return new SqliteAdministrativeCommandExecutor(
             controlPlaneStore,
+            importLocal,
             synchroniseOfficial,
             renderDocument,
             buildIndex);

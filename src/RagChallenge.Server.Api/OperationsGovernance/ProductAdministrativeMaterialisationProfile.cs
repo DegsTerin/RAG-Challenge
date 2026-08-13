@@ -105,15 +105,16 @@ internal static class ProductAdministrativeMaterialisationProfile
                 "The product notice compositor factory returned no compositor.",
                 nameof(dependencies));
         return new AdministrativeMaterialisationPorts(
-            authorityResolver,
-            officialTransport,
-            embeddingProvider,
-            CompatibilityProfile,
-            renderManifestStore,
-            pdfRenderer,
-            pngValidator,
-            noticeCompositor,
-            noticeCompositor);
+            LocalInputRoot: configuration["RagChallenge:Administration:InputRoot"],
+            OfficialSourceAuthorityResolver: authorityResolver,
+            OfficialSourceTransport: officialTransport,
+            EmbeddingProvider: embeddingProvider,
+            IndexCompatibilityProfile: CompatibilityProfile,
+            RenderManifestStore: renderManifestStore,
+            PdfPageRenderer: pdfRenderer,
+            PngPageImageValidator: pngValidator,
+            NoticeBearingCompositor: noticeCompositor,
+            NoticeBearingValidator: noticeCompositor);
     }
 }
 

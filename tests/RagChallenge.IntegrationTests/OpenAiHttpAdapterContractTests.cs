@@ -110,6 +110,43 @@ public sealed class OpenAiHttpAdapterContractTests
         Assert.Equal(1, handler.CallCount);
     }
 
+    [Fact]
+    public async Task ResponseAdapterIgnoresReasoningMetadataAndMapsTheSingleMessage()
+    {
+        var structured = JsonSerializer.Serialize(new
+        {
+            answerLanguage = "en-GB",
+            answer = "Grounded answer.",
+            citedChunkIds = new List<string> { "chunk-allowed" },
+        });
+        var response = JsonSerializer.Serialize(new
+        {
+            model = MvpLanguageModel,
+            status = "completed",
+            output = new object[]
+            {
+                new { type = "reasoning", id = "reasoning-synthetic" },
+                new
+                {
+                    type = "message",
+                    role = "assistant",
+                    status = "completed",
+                    content = new[] { new { type = "output_text", text = structured } },
+                },
+            },
+        });
+        using var client = CreateClient(new RecordingHandler(response));
+        var adapter = new OpenAiHttpLanguageModel(
+            client,
+            Credential,
+            CreateLanguageModelOptions());
+
+        var result = await adapter.GenerateAsync(CreateGenerationRequest());
+
+        Assert.Equal("Grounded answer.", result.Answer);
+        Assert.Equal("chunk-allowed", Assert.Single(result.CitedChunkIds));
+    }
+
     [Theory]
     [InlineData("{\"model\":\"text-embedding-3-small\"}")]
     [InlineData("{\"model\":\"unexpected-model\",\"data\":[{\"index\":0,\"embedding\":[1,0,0]},{\"index\":1,\"embedding\":[0,1,0]}]}")]
@@ -220,6 +257,9 @@ public sealed class OpenAiHttpAdapterContractTests
         """)]
     [InlineData("""
         {"model":"gpt-5.4-mini-2026-03-17","status":"completed","output":[{"type":"message","role":"assistant","status":"completed","content":[{"type":"refusal","refusal":"synthetic refusal"}]}]}
+        """)]
+    [InlineData("""
+        {"model":"gpt-5.4-mini-2026-03-17","status":"completed","output":[{"type":"function_call"},{"type":"message","role":"assistant","status":"completed","content":[{"type":"output_text","text":"{}"}]}]}
         """)]
     [InlineData("""
         {"model":"gpt-5.4-mini-2026-03-17","status":"incomplete","output":[]}
