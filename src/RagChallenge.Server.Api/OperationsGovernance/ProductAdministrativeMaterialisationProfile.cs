@@ -19,7 +19,7 @@ internal static class ProductAdministrativeMaterialisationProfile
     internal const string ConfigurationSection =
         "RagChallenge:Administration:ProductMaterialisation";
     internal const string ExpectedCompatibilityKey =
-        "d0890e6a252b37a84451bebc0814b897e0e146e3a7ec397a51f6475a25f45ddb";
+        "d63b93fb7e7a91e3dd60c7bc61b3a802c1b0f0acdee7fdaf985dbccf8db78b81";
     internal const string AcceptedEmbeddingProviderId = "openai";
     internal const string AcceptedEmbeddingModelId = "text-embedding-3-small";
     internal const string AcceptedEmbeddingModelRevision = "text-embedding-3-small";

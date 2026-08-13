@@ -56,7 +56,8 @@ public sealed record ChunkingPolicy
             $"boundaries={BoundaryPolicy}",
             $"separator={SeparatorPolicy}",
             $"normalisation={NormalisationVersion}",
-            "unit=pdf-page-or-csv-record");
+            "unit=pdf-page-or-csv-record",
+            $"digest-schema={DigestSchema}");
     }
 
     public int TargetScalarCount { get; }

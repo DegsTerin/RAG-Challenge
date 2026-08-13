@@ -117,6 +117,9 @@ public sealed class ParserAdapterRuntimeGateTests
     {
         var parser = new CsvHelperDocumentParser();
         var before = LoadedAssemblyNames();
+        Assert.Equal(
+            "csvhelper/33.1.0;encoding=utf-8-strict;delimiter=comma;header=required;quote=double;escape=double-double;newline=crlf-lf-cr;formula=literal;shape=strict-v1;empty-record=skip-preserve-location-v1",
+            CsvHelperDocumentParser.CompatibilityDescriptor);
 
         await using (var stream = new MemoryStream(
             SyntheticParserFixtureFactory.CsvValidQuotedUtf8,

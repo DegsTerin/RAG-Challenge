@@ -28,9 +28,13 @@ public sealed class DeterministicChunkingStrategyTests
         Assert.Equal(480, policy.OverlapScalarCount);
         Assert.Equal(4_000, policy.HardMaximumScalarCount);
         Assert.Equal(
-            "paragraph-window-v1;target-scalars=3200;overlap-scalars=480;hard-max-scalars=4000;boundaries=section,paragraph,sentence,word,scalar;separator=lf-paragraph-v1;normalisation=nfc-lf-horizontal-space-control-space-v1;unit=pdf-page-or-csv-record",
+            "paragraph-window-v1;target-scalars=3200;overlap-scalars=480;hard-max-scalars=4000;boundaries=section,paragraph,sentence,word,scalar;separator=lf-paragraph-v1;normalisation=nfc-lf-horizontal-space-control-space-v1;unit=pdf-page-or-csv-record;digest-schema=rag-chunk-v3",
             policy.CompatibilityDescriptor);
         Assert.Equal("rag-chunk-v3", ChunkingPolicy.DigestSchema);
+        Assert.Contains(
+            $"digest-schema={ChunkingPolicy.DigestSchema}",
+            policy.CompatibilityDescriptor,
+            StringComparison.Ordinal);
     }
 
     [Fact]
@@ -175,7 +179,7 @@ public sealed class DeterministicChunkingStrategyTests
         Assert.Equal("Café\n\nAlpha Beta Gamma", first.Text);
         Assert.Equal(first.Digest, replay.Digest);
         Assert.Equal(
-            "dddcd1ebadb868296aecd16835556de81250b0955770ad908c67835d92ce578b",
+            "79b0674e60d48c96e7e03abcd452d94d43958405c783d47e49f46e2bac542f54",
             first.Digest.Value);
     }
 
