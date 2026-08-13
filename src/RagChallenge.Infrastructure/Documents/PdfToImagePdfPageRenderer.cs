@@ -2,6 +2,7 @@
 using PDFtoImage;
 
 using RagChallenge.Application.Documents;
+using RagChallenge.Domain.CorpusCatalog;
 
 using SkiaSharp;
 
