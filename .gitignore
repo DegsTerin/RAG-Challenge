@@ -1,7 +1,7 @@
 # Local source and governance input materials excluded from version control.
 /reference-materials/
 /corpus/oracle-database/19c/database-concepts.pdf
-/corpus/postgresql-18-A4.pdf
+/corpus/postgresql/18.4/postgresql-18-A4.pdf
 
 # .NET build and test output.
 **/bin/
