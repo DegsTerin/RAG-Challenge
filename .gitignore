@@ -1,5 +1,6 @@
 # Local source and governance input materials excluded from version control.
 /reference-materials/
+/corpus/oracle-database/19c/database-concepts.pdf
 
 # .NET build and test output.
 **/bin/
