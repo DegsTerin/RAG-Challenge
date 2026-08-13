@@ -5,6 +5,7 @@ using System.Text;
 using Microsoft.Data.Sqlite;
 using Microsoft.Extensions.Configuration;
 
+using RagChallenge.Application.Documents;
 using RagChallenge.Application.IndexingRetrieval;
 using RagChallenge.Application.Persistence;
 using RagChallenge.Domain.CorpusCatalog;
@@ -17,6 +18,7 @@ namespace RagChallenge.Server.Api.OperationsGovernance;
 
 internal sealed record ProductQueryRuntimeOptions(
     SqliteStoreOptions Stores,
+    DocumentRightsEvidenceReference ApprovedRightsEvidenceReference,
     string CredentialEnvironmentVariable,
     bool ApplyMigrations)
 {
@@ -25,6 +27,10 @@ internal sealed record ProductQueryRuntimeOptions(
     internal const string StoreRootKey = "RagChallenge:Product:StoreRoot";
     internal const string CredentialKey =
         "RagChallenge:Product:CredentialEnvironmentVariable";
+    internal const string ApprovedRightsEvidenceKey =
+        "RagChallenge:Product:ApprovedRightsEvidenceReference";
+    internal const string SupersededUnverifiedRightsEvidenceReference =
+        "owner-oracle19-public-source-approval-2026-08-12";
 
     internal static ProductQueryRuntimeOptions? Resolve(IConfiguration configuration)
     {
@@ -48,6 +54,8 @@ internal sealed record ProductQueryRuntimeOptions(
             throw new InvalidOperationException("The product store root is unavailable.");
         }
 
+        var approvedRightsEvidenceReference =
+            ParseApprovedRightsEvidenceReference(configuration[ApprovedRightsEvidenceKey]);
         var credential = OpaqueEnvironmentCredentialReference.Parse(
             configuration[CredentialKey] ?? string.Empty);
         if (string.IsNullOrWhiteSpace(
@@ -61,8 +69,31 @@ internal sealed record ProductQueryRuntimeOptions(
                 Path.Combine(storeRoot, "control.db"),
                 Path.Combine(storeRoot, "vectors.db"),
                 Path.Combine(storeRoot, "content")),
+            approvedRightsEvidenceReference,
             credential.EnvironmentVariableName,
             configuration.GetValue<bool>(ApplyMigrationsKey));
+    }
+
+    internal static DocumentRightsEvidenceReference ParseApprovedRightsEvidenceReference(
+        string? value)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+        {
+            throw new InvalidOperationException(
+                "An approved Oracle rights evidence reference is required.");
+        }
+
+        var reference = new DocumentRightsEvidenceReference(value);
+        if (string.Equals(
+                reference.Value,
+                SupersededUnverifiedRightsEvidenceReference,
+                StringComparison.Ordinal))
+        {
+            throw new InvalidOperationException(
+                "The configured Oracle rights evidence reference is not approved.");
+        }
+
+        return reference;
     }
 }
 
@@ -274,7 +305,6 @@ internal sealed class ProductQueryRuntime :
 
     private async Task ValidateCurrentAuthorityAsync(CancellationToken cancellationToken)
     {
-        EnsureCredentialAvailable();
         var controlStore = new SqliteControlPlaneStore(options.Stores);
         var catalogue = await controlStore.ReadCurrentCatalogueAsync(
             CorpusId,
@@ -284,14 +314,17 @@ internal sealed class ProductQueryRuntime :
             CorpusId,
             cancellationToken).ConfigureAwait(false) ??
             throw new InvalidDataException("The product activation record is unavailable.");
-        ValidateOracleOnlyAuthority(catalogue, activation);
+        ValidateOracleOnlyAuthority(
+            catalogue,
+            activation,
+            options.ApprovedRightsEvidenceReference);
+        EnsureCredentialAvailable();
     }
 
     private async Task<QueryActivationSnapshot> VerifyPersistedStateAsync(
         DateTimeOffset observedAt,
         CancellationToken cancellationToken)
     {
-        EnsureCredentialAvailable();
         var stores = options.Stores;
         var controlStore = new SqliteControlPlaneStore(stores);
         var catalogue = await controlStore.ReadCurrentCatalogueAsync(
@@ -302,7 +335,11 @@ internal sealed class ProductQueryRuntime :
             CorpusId,
             cancellationToken).ConfigureAwait(false) ??
             throw new InvalidDataException("The product activation record is unavailable.");
-        ValidateOracleOnlyAuthority(catalogue, activation);
+        ValidateOracleOnlyAuthority(
+            catalogue,
+            activation,
+            options.ApprovedRightsEvidenceReference);
+        EnsureCredentialAvailable();
 
         var contentStore = new ImmutableContentStore(stores);
         foreach (var evidence in activation.EvidenceBindings)
@@ -356,10 +393,12 @@ internal sealed class ProductQueryRuntime :
 
     internal static void ValidateOracleOnlyAuthority(
         CatalogueSnapshot catalogue,
-        CorpusActivationRecord activation)
+        CorpusActivationRecord activation,
+        DocumentRightsEvidenceReference approvedRightsEvidenceReference)
     {
         ArgumentNullException.ThrowIfNull(catalogue);
         ArgumentNullException.ThrowIfNull(activation);
+        ArgumentNullException.ThrowIfNull(approvedRightsEvidenceReference);
 
         var oracle = catalogue.DatabaseProducts.SingleOrDefault(product =>
             product.Id == OracleDatabaseId);
@@ -402,7 +441,12 @@ internal sealed class ProductQueryRuntime :
                 !activeDocuments.Any(document =>
                     document.Id == evidence.DocumentBinding.DocumentId &&
                     document.Version == evidence.DocumentBinding.DocumentVersion &&
-                    document.ContentObjectId == evidence.SourceContentObjectId)))
+                    document.ContentObjectId == evidence.SourceContentObjectId) ||
+                !DocumentRightsEligibilityPolicy.Evaluate(
+                    evidence.Rights,
+                    DocumentRightsEligibilityGate.PdfVisualEvidenceServing).IsEligible ||
+                evidence.Rights.Decisions.Any(decision =>
+                    decision.EvidenceReference != approvedRightsEvidenceReference)))
         {
             throw new InvalidDataException(
                 "The configured product store is not the Oracle-only catalogue profile.");

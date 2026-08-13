@@ -2,10 +2,20 @@
 [CmdletBinding()]
 param(
     [ValidateRange(1024, 65535)]
-    [int] $Port = 5189
+    [int] $Port = 5189,
+
+    [string] $ApprovedRightsEvidenceReference = ''
 )
 
 $ErrorActionPreference = 'Stop'
+$supersededUnverifiedRightsEvidenceReference =
+    'owner-oracle19-public-source-approval-2026-08-12'
+if ([string]::IsNullOrWhiteSpace($ApprovedRightsEvidenceReference) -or
+    $ApprovedRightsEvidenceReference -notmatch '^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$' -or
+    $ApprovedRightsEvidenceReference -ceq $supersededUnverifiedRightsEvidenceReference) {
+    throw 'An exact approved Oracle rights evidence reference is required before product startup.'
+}
+
 $repositoryRoot = Split-Path -Parent $PSScriptRoot
 $serverDll = Join-Path $repositoryRoot 'src/RagChallenge.Server.Api/bin/Release/net10.0/RagChallenge.Server.Api.dll'
 $dashboardRoot = Join-Path $repositoryRoot 'src/RagChallenge.Dashboard.Web/dist'
@@ -37,6 +47,8 @@ $env:RagChallenge__Setup__AllowExternalServices = 'true'
 $env:RagChallenge__Product__Enabled = 'true'
 $env:RagChallenge__Product__ApplyMigrations = 'true'
 $env:RagChallenge__Product__StoreRoot = [System.IO.Path]::GetFullPath($storeRoot)
+$env:RagChallenge__Product__ApprovedRightsEvidenceReference =
+    $ApprovedRightsEvidenceReference
 $env:RagChallenge__Product__CredentialEnvironmentVariable = $credentialName
 
 try {

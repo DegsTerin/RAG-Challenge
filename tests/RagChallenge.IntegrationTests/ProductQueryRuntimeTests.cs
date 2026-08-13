@@ -6,6 +6,7 @@ using System.Text.Json;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Data.Sqlite;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
 using RagChallenge.Application.Administration;
@@ -25,7 +26,10 @@ public sealed class ProductQueryRuntimeTests
     public void OracleOnlyAuthorityAcceptsOnlyTheExactCatalogueAndDocumentProfile()
     {
         var valid = ProductRuntimeFixture.CreateAuthority();
-        ProductQueryRuntime.ValidateOracleOnlyAuthority(valid.Catalogue, valid.Activation);
+        ProductQueryRuntime.ValidateOracleOnlyAuthority(
+            valid.Catalogue,
+            valid.Activation,
+            ProductRuntimeFixture.ApprovedRightsReference);
 
         var oracleCandidate = ProductRuntimeFixture.CreateAuthority(
             oracleStatus: CatalogueItemStatus.Candidate);
@@ -47,47 +51,104 @@ public sealed class ProductQueryRuntimeTests
             byteLength: 9_322_920);
         var substitutedFormat = ProductRuntimeFixture.CreateAuthority(
             documentFormat: DocumentFormat.Csv);
+        var unapprovedRights = ProductRuntimeFixture.CreateAuthority(
+            rightsEvidenceReference: "unapproved-oracle-rights-evidence");
 
         Assert.Throws<InvalidDataException>(() =>
             ProductQueryRuntime.ValidateOracleOnlyAuthority(
                 oracleCandidate.Catalogue,
-                oracleCandidate.Activation));
+                oracleCandidate.Activation,
+                ProductRuntimeFixture.ApprovedRightsReference));
         Assert.Throws<InvalidDataException>(() =>
             ProductQueryRuntime.ValidateOracleOnlyAuthority(
                 otherDeactivated.Catalogue,
-                otherDeactivated.Activation));
+                otherDeactivated.Activation,
+                ProductRuntimeFixture.ApprovedRightsReference));
         Assert.Throws<InvalidDataException>(() =>
             ProductQueryRuntime.ValidateOracleOnlyAuthority(
                 revisionDrift.Catalogue,
-                revisionDrift.Activation));
+                revisionDrift.Activation,
+                ProductRuntimeFixture.ApprovedRightsReference));
         Assert.Throws<InvalidDataException>(() =>
             ProductQueryRuntime.ValidateOracleOnlyAuthority(
                 catalogueRevisionDrift.Catalogue,
-                catalogueRevisionDrift.Activation));
+                catalogueRevisionDrift.Activation,
+                ProductRuntimeFixture.ApprovedRightsReference));
         Assert.Throws<InvalidDataException>(() =>
             ProductQueryRuntime.ValidateOracleOnlyAuthority(
                 missingProduct.Catalogue,
-                missingProduct.Activation));
+                missingProduct.Activation,
+                ProductRuntimeFixture.ApprovedRightsReference));
         Assert.Throws<InvalidDataException>(() =>
             ProductQueryRuntime.ValidateOracleOnlyAuthority(
                 substitutedProduct.Catalogue,
-                substitutedProduct.Activation));
+                substitutedProduct.Activation,
+                ProductRuntimeFixture.ApprovedRightsReference));
         Assert.Throws<InvalidDataException>(() =>
             ProductQueryRuntime.ValidateOracleOnlyAuthority(
                 substitutedDocument.Catalogue,
-                substitutedDocument.Activation));
+                substitutedDocument.Activation,
+                ProductRuntimeFixture.ApprovedRightsReference));
         Assert.Throws<InvalidDataException>(() =>
             ProductQueryRuntime.ValidateOracleOnlyAuthority(
                 substitutedContent.Catalogue,
-                substitutedContent.Activation));
+                substitutedContent.Activation,
+                ProductRuntimeFixture.ApprovedRightsReference));
         Assert.Throws<InvalidDataException>(() =>
             ProductQueryRuntime.ValidateOracleOnlyAuthority(
                 substitutedLength.Catalogue,
-                substitutedLength.Activation));
+                substitutedLength.Activation,
+                ProductRuntimeFixture.ApprovedRightsReference));
         Assert.Throws<InvalidDataException>(() =>
             ProductQueryRuntime.ValidateOracleOnlyAuthority(
                 substitutedFormat.Catalogue,
-                substitutedFormat.Activation));
+                substitutedFormat.Activation,
+                ProductRuntimeFixture.ApprovedRightsReference));
+        Assert.Throws<InvalidDataException>(() =>
+            ProductQueryRuntime.ValidateOracleOnlyAuthority(
+                unapprovedRights.Catalogue,
+                unapprovedRights.Activation,
+                ProductRuntimeFixture.ApprovedRightsReference));
+    }
+
+    [Fact]
+    public void ProductOptionsRejectUnapprovedRightsBeforeCredentialLookup()
+    {
+        var root = Path.Combine(
+            Path.GetTempPath(),
+            "rag-challenge-product-options-tests",
+            Guid.NewGuid().ToString("N"));
+        Directory.CreateDirectory(root);
+
+        try
+        {
+            var settings = new Dictionary<string, string?>
+            {
+                [ProductQueryRuntimeOptions.EnabledKey] = "true",
+                [ProductQueryRuntimeOptions.StoreRootKey] = root,
+                [ProductQueryRuntimeOptions.CredentialKey] = "MISSING_PRODUCT_TEST_KEY",
+            };
+            var missing = new ConfigurationBuilder()
+                .AddInMemoryCollection(settings)
+                .Build();
+            var missingError = Assert.Throws<InvalidOperationException>(() =>
+                ProductQueryRuntimeOptions.Resolve(missing));
+
+            settings[ProductQueryRuntimeOptions.ApprovedRightsEvidenceKey] =
+                ProductQueryRuntimeOptions.SupersededUnverifiedRightsEvidenceReference;
+            var superseded = new ConfigurationBuilder()
+                .AddInMemoryCollection(settings)
+                .Build();
+            var supersededError = Assert.Throws<InvalidOperationException>(() =>
+                ProductQueryRuntimeOptions.Resolve(superseded));
+
+            Assert.Contains("approved Oracle rights", missingError.Message, StringComparison.Ordinal);
+            Assert.Contains("not approved", supersededError.Message, StringComparison.Ordinal);
+        }
+        finally
+        {
+            Directory.Delete(root, recursive: true);
+        }
     }
 
     [Fact]
@@ -110,6 +171,8 @@ public sealed class ProductQueryRuntimeTests
                 $"--{ProductQueryRuntimeOptions.EnabledKey}", "true",
                 $"--{ProductQueryRuntimeOptions.ApplyMigrationsKey}", "true",
                 $"--{ProductQueryRuntimeOptions.StoreRootKey}", root,
+                $"--{ProductQueryRuntimeOptions.ApprovedRightsEvidenceKey}",
+                ProductRuntimeFixture.ApprovedRightsReference.Value,
                 $"--{ProductQueryRuntimeOptions.CredentialKey}", credentialName,
                 "--RagChallenge:Setup:AllowExternalServices", "true",
             ]);
@@ -172,6 +235,7 @@ public sealed class ProductQueryRuntimeTests
             await ProductRuntimeFixture.SeedInvalidButOtherwiseQueryableStoreAsync(options);
             using var runtime = new ProductQueryRuntime(new ProductQueryRuntimeOptions(
                 options,
+                ProductRuntimeFixture.ApprovedRightsReference,
                 credentialName,
                 ApplyMigrations: false));
 
@@ -210,6 +274,9 @@ public sealed class ProductQueryRuntimeTests
         internal static DateTimeOffset ObservedAt { get; } =
             new(2026, 8, 13, 12, 0, 0, TimeSpan.Zero);
 
+        internal static DocumentRightsEvidenceReference ApprovedRightsReference { get; } =
+            new("approved-oracle-rights-evidence");
+
         internal static ProductAuthority CreateAuthority(
             CatalogueItemStatus oracleStatus = CatalogueItemStatus.Active,
             CatalogueItemStatus otherStatus = CatalogueItemStatus.Candidate,
@@ -220,7 +287,8 @@ public sealed class ProductQueryRuntimeTests
             string documentId = "oracle-database-19c-concepts",
             ContentObjectId? contentObjectId = null,
             DocumentFormat documentFormat = DocumentFormat.Pdf,
-            long byteLength = 9_322_921)
+            long byteLength = 9_322_921,
+            string rightsEvidenceReference = "approved-oracle-rights-evidence")
         {
             var categoriesAndProducts = ReadCanonicalCatalogue(
                 oracleStatus,
@@ -267,7 +335,7 @@ public sealed class ProductQueryRuntimeTests
                 Enum.GetValues<DocumentRight>().Select(right => new DocumentRightDecision(
                     right,
                     DocumentRightDecisionState.Permitted,
-                    new DocumentRightsEvidenceReference($"product-test-{right}"))));
+                    new DocumentRightsEvidenceReference(rightsEvidenceReference))));
             var evidence = new DocumentActivationEvidenceBinding(
                 binding,
                 document.ContentObjectId,

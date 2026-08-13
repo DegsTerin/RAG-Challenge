@@ -294,10 +294,26 @@ public sealed class SetupHostArtefactTests
             StringComparison.Ordinal);
         Assert.Contains("'oracle-database'", generator, StringComparison.Ordinal);
         Assert.Contains("status = 'Candidate'", generator, StringComparison.Ordinal);
-        Assert.Contains("status = 'Active'", generator, StringComparison.Ordinal);
-        Assert.Contains("catalogueRevision = 53", generator, StringComparison.Ordinal);
+        Assert.DoesNotContain("status = 'Active'", generator, StringComparison.Ordinal);
+        Assert.DoesNotContain(
+            "owner-oracle19-public-source-approval-2026-08-12",
+            generator,
+            StringComparison.Ordinal);
+        Assert.DoesNotContain("render-oracle-document.json", generator, StringComparison.Ordinal);
+        Assert.DoesNotContain("build-oracle-index.json", generator, StringComparison.Ordinal);
+        Assert.Contains(
+            "$ApprovedRightsEvidenceReference -ceq $supersededUnverifiedRightsEvidenceReference",
+            launcher,
+            StringComparison.Ordinal);
+        Assert.True(
+            launcher.IndexOf("$ApprovedRightsEvidenceReference -ceq", StringComparison.Ordinal) <
+            launcher.IndexOf("Get-Content -LiteralPath $environmentFile", StringComparison.Ordinal));
         Assert.Contains(
             "$env:RagChallenge__Product__ApplyMigrations = 'true'",
+            launcher,
+            StringComparison.Ordinal);
+        Assert.Contains(
+            "$env:RagChallenge__Product__ApprovedRightsEvidenceReference =",
             launcher,
             StringComparison.Ordinal);
         Assert.Contains(
