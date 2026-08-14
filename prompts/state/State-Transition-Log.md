@@ -8103,3 +8103,64 @@ contém somente fatos cronológicos.
   constitui homologação de produção.
 - Versionamento: corpus elevado por `PATCH` factual de `4.10.40` para
   `4.10.41`, sem alterar OpenAPI, código ou lifecycle.
+
+## 2026-08-14 — Freezes RB-2 e RB-3 concluídos e reconciliados sem pontuação
+
+- Estado anterior e resultante: `STATE-07 TESTING_HOMOLOGATION` permanece
+  ativo. Nenhum Automatic Quality Gate, Human Gate ou lifecycle foi executado
+  ou alterado.
+- Autoridade e baseline desta reconciliação factual:
+  `AUTH-S07-RB3-CAMPAIGN-INPUT-FREEZE-001`, branch `main`, HEAD
+  `0dbc415bad6532842aa6c4d1bb45ecd915bf5022`, corpus `4.10.41`, árvore
+  rastreada inicialmente limpa e OpenAPI v1/v2 protegidas. O runtime preflight
+  desta atividade exclusivamente documental foi `NÃO APLICÁVEL`; nenhum
+  processo ou listener foi enumerado ou encerrado.
+- RB-2 congelado: a revisão
+  `rag-eval-catalogue-v1-postgresql-18-rb2-20260814-001`, concluída sob
+  `AUTH-S07-RB2-REVIEW-ADJUDICATION-FREEZE-PACKAGE-001`, possui
+  materialisation-freeze manifest SHA-256
+  `daede1db869f7daf784fa2f3fc3b55e037cf4f3bb59a22f94e2026175858bfe4`,
+  status `frozen-unscored-rb2-complete` e denominador exato de 252 casos
+  únicos: 200 positivos, 52 negativos, 126 perguntas `pt-BR` e 126 `en-GB`.
+  Review, adjudicação, qrels, matrizes contratuais/de elegibilidade, quotas,
+  identidades de catálogo, ativação e geração estão vinculados. O
+  `observedResultCount` é zero.
+- Tier de RB-2: `REPRESENTATIVE_HOMOLOGATION` qualifica somente a suficiência
+  e reportabilidade do denominador congelado não pontuado. Não é resultado de
+  métrica, Automatic Quality Gate, Human Gate ou homologação de produto.
+- RB-3 congelado: a campanha
+  `rag-eval-catalogue-v1-postgresql-18-rb3-20260814-001`, concluída sob
+  `AUTH-S07-RB3-CAMPAIGN-INPUT-FREEZE-001`, possui campaign-input-freeze
+  manifest SHA-256
+  `ac7b5763bc9e571b6365449b340c8256790c5fe57ba79142b592b854cf25303c`,
+  status `frozen-unscored-rb3-complete` e exatamente um vetor original por
+  caso. Os 252 vetores possuem 1.536 componentes `float32` little-endian,
+  6.144 bytes cada e SHA-256 individual vinculado.
+- Evidência retida: o receipt registra materialização de embeddings concluída
+  uma única vez, sem retry, e as três identidades de árvore dos stores
+  protegidos idênticas antes e depois. Scorer, campanha Responses, `RB-4` e
+  Human Gate possuem contadores zero.
+- Escopo negativo preservado nesta reconciliação: nenhum provider, credencial,
+  rede, scorer, consulta, RB-4, build, teste de produto, deploy, publicação,
+  push, billing, Human Gate ou mudança de lifecycle foi executado. OpenAPI,
+  código, schemas, corpus de produto, geração ativa, runtime, stores e
+  artefatos locais ignorados permaneceram inalterados.
+- Escopo documental fechado: somente ADR-0014, relatório factual de STATE-07,
+  Current State, este histórico por acréscimo no EOF e Prompt System Change
+  Log foram alterados. O corpus avança por `PATCH` factual de `4.10.41` para
+  `4.10.42`.
+- Verificação documental: os manifests e inventários RB-2/RB-3 completos
+  fizeram parse; os dois hashes de freeze, todos os artefatos referenciados,
+  os 252 IDs de caso, os 252 IDs/arquivos de vetor, comprimentos e digests
+  conferiram sem erro. `git diff --check` passou e
+  `eng/check-repository.ps1` aprovou 341 arquivos não ignorados. O diff fechado
+  contém somente os cinco documentos canônicos autorizados; OpenAPI v1/v2
+  permaneceram byte a byte protegidas. Build, testes de produto e validação
+  executável permaneceram `NOT_RUN`.
+- Integridade append-only: este histórico preserva byte a byte seu prefixo
+  anterior de 516.099 bytes no SHA-256
+  `dc12cf5e0e8c328ac004b46db5b7f76aed28bf2a43a4165336c02d2c1a44f2ec`.
+- Próxima condição diretamente relacionada: obter autoridade humana separada
+  e delimitada para `RB-4 — Retrieval-only campaign` sobre os inputs
+  congelados, com todos os 252 casos e repetições, sem answer-LLM. Esta
+  reconciliação não concede essa autoridade.

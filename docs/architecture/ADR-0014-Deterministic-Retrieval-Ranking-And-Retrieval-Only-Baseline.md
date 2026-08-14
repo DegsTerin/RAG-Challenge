@@ -58,6 +58,15 @@
   `AUTH-DR3-NUMERIC-SEMANTICS-AQG-RETEST-RECONCILE-001`, on clean
   `main@bf8a156e7c5eea801f29fb6e7742cac880783bc0`, corpus `4.10.32`, recorded
   by corpus `4.10.33`
+- RB-2 current status: `COMPLETE`, frozen and unscored under
+  `AUTH-S07-RB2-REVIEW-ADJUDICATION-FREEZE-PACKAGE-001` on
+  `main@0dbc415bad6532842aa6c4d1bb45ecd915bf5022`, corpus `4.10.41`; the
+  materialisation-freeze manifest SHA-256 is
+  `daede1db869f7daf784fa2f3fc3b55e037cf4f3bb59a22f94e2026175858bfe4`
+- RB-3 current status: `COMPLETE`, frozen and unscored under
+  `AUTH-S07-RB3-CAMPAIGN-INPUT-FREEZE-001` on the same baseline; the
+  campaign-input-freeze manifest SHA-256 is
+  `ac7b5763bc9e571b6365449b340c8256790c5fe57ba79142b592b854cf25303c`
 
 ## Purpose and authority
 
@@ -1276,3 +1285,40 @@ does not authorise `RB-2`, a product corpus, qrels, questions, vectors,
 generation, provider, network, MultiQuery, lifecycle progression or any
 external action. Every later ordered gate remains separately governed and
 `NOT_RUN`.
+
+## RB-2 dataset and RB-3 campaign-input freeze record
+
+The product dataset revision
+`rag-eval-catalogue-v1-postgresql-18-rb2-20260814-001` is frozen and unscored
+under `AUTH-S07-RB2-REVIEW-ADJUDICATION-FREEZE-PACKAGE-001`. Its
+`materialisation-freeze-manifest.json` has SHA-256
+`daede1db869f7daf784fa2f3fc3b55e037cf4f3bb59a22f94e2026175858bfe4` and
+binds the accepted design revision, repository
+`main@0dbc415bad6532842aa6c4d1bb45ecd915bf5022`, prompt corpus `4.10.41`,
+catalogue revision `3`, activation revision `1`, the validated active
+PostgreSQL generation and the complete intended denominator of 252 unique
+cases. The denominator contains 200 positive and 52 negative cases, divided
+equally between 126 `pt-BR` and 126 `en-GB` questions. Review, adjudication,
+qrels, the contract and eligibility matrices, quotas and the intended case
+set are frozen. The declared representative-homologation tier qualifies the
+unscored denominator only; it is not a measured result or a product
+homologation decision. `observedResultCount` is zero.
+
+The policy-specific campaign
+`rag-eval-catalogue-v1-postgresql-18-rb3-20260814-001` is frozen and unscored
+under `AUTH-S07-RB3-CAMPAIGN-INPUT-FREEZE-001`. Its
+`campaign-input-freeze-manifest.json` has SHA-256
+`ac7b5763bc9e571b6365449b340c8256790c5fe57ba79142b592b854cf25303c` and
+binds the RB-2 freeze, `retrieval-v2`, `minimum-score-v1`, the exact intended
+case set and one original-question vector for each of the 252 cases. Every
+vector has 1,536 `float32` little-endian components and a separately bound
+SHA-256. The retained receipt records one completed embedding-input
+materialisation, no retry, and identical protected-store tree identities
+before and after it.
+
+Both freezes remain inputs, not results. Scorer execution, response-campaign
+execution, `RB-4`, product query, Automatic Quality Gate, Human Gate and
+lifecycle counters remain zero. No score, ordered retrieval result, metric or
+homologation conclusion exists. `RB-4 — Retrieval-only campaign` remains
+separately governed, unauthorised and `NOT_RUN`; MultiQuery remains
+`parked-non-canonical`.

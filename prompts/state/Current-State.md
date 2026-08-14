@@ -1429,6 +1429,27 @@ proprietários.
   testes executáveis, scorer, campanha, Automatic Quality Gate, Human Gate,
   lifecycle e ação externa permaneceram `NOT_RUN`. `RB-2` continua sem
   autorização.
+- `RB-2 — Dataset materialisation readiness` e `RB-3 — Campaign-input freeze`:
+  concluídos posteriormente sobre a baseline rastreada limpa
+  `main@0dbc415bad6532842aa6c4d1bb45ecd915bf5022`, corpus `4.10.41`, sem
+  resultado pontuado. A revisão RB-2
+  `rag-eval-catalogue-v1-postgresql-18-rb2-20260814-001` está
+  `frozen-unscored-rb2-complete`, vinculada ao materialisation-freeze manifest
+  SHA-256 `daede1db869f7daf784fa2f3fc3b55e037cf4f3bb59a22f94e2026175858bfe4`,
+  com 252 casos únicos: 200 positivos, 52 negativos e divisão de 126 perguntas
+  `pt-BR`/126 `en-GB`. O tier `REPRESENTATIVE_HOMOLOGATION` qualifica somente
+  o denominador congelado não pontuado; não é homologação de produto. O
+  campaign-input freeze RB-3
+  `rag-eval-catalogue-v1-postgresql-18-rb3-20260814-001` está
+  `frozen-unscored-rb3-complete`, vinculado ao SHA-256
+  `ac7b5763bc9e571b6365449b340c8256790c5fe57ba79142b592b854cf25303c`,
+  com exatamente um vetor original por caso, 252 vetores de 1.536 componentes
+  `float32` little-endian e 6.144 bytes cada. O receipt registra uma
+  materialização de embeddings concluída sem retry e stores protegidos
+  idênticos antes/depois. Contadores de resultado, scorer, campanha Responses,
+  `RB-4` e Human Gate permanecem em zero. Nenhuma consulta de produto, score,
+  métrica observada, Automatic Quality Gate, Human Gate ou lifecycle foi
+  executado ou inferido; `RB-4` permanece `NOT_RUN` e não autorizado.
 - ADR-0015: `accepted` pela decisão humana explícita `ADR-0015: ACEITAR.` em
   2026-08-11 sobre `main@46de807148d5b547f56a0f7265b32428b232100f`, corpus
   `4.10.30`, working tree limpa e OpenAPI v1/v2 protegidas. A decisão seleciona
@@ -1512,7 +1533,7 @@ proprietários.
   a política de idioma acrescentou o 21º documento público por incremento
   versionado, e o ADR-0003 acrescentou o 22º.
 - A baseline aprovada no Human Gate de `STATE-00` permanece `3.4.0`.
-- O corpus de instruções vigente possui versão `4.10.41` e 13 arquivos em
+- O corpus de instruções vigente possui versão `4.10.42` e 13 arquivos em
   `prompts/`.
 - Visão, requisitos, arquitetura, RAG, segurança, qualidade, lifecycle,
   roadmap, backlog, estado, histórico e templates estão documentados.
@@ -1898,6 +1919,16 @@ proprietários.
   permaneceu sem cartão, serviços, total mensal e projeção em `USD 0.00`. A implantação é
   evidência pública de homologação em `STATE-07`; não substitui ADR-0005, não
   satisfaz sozinha o requisito OCI e não autoriza `STATE-08`.
+- O corpus `4.10.42` reconcilia factualmente os freezes RB-2 e RB-3 já
+  concluídos sobre `main@0dbc415bad6532842aa6c4d1bb45ecd915bf5022`, corpus
+  `4.10.41`. Registra a revisão RB-2 de 252 casos e seu
+  materialisation-freeze manifest SHA-256
+  `daede1db869f7daf784fa2f3fc3b55e037cf4f3bb59a22f94e2026175858bfe4`,
+  além do campaign-input freeze RB-3 SHA-256
+  `ac7b5763bc9e571b6365449b340c8256790c5fe57ba79142b592b854cf25303c`
+  com 252 vetores. Preserva zero resultado, scorer, campanha Responses,
+  `RB-4` e Human Gate; a qualificação do denominador não é homologação de
+  produto e não muda lifecycle.
 - O corpus `4.3.0` formaliza a decisão explícita do proprietário de aceitar
   perguntas e respostas em `pt-BR` e `en-GB`: cada consulta declara o idioma,
   a resposta usa o mesmo idioma, textos derivados da fonte permanecem no
@@ -2195,12 +2226,13 @@ autorizada.
    confinada, sem representar armazenamento ou recuperação operacional.
 7. Verificar capacidade, entitlement, IAM, restore, custo e cobrança reais da
    tenancy OCI; as fontes públicas ainda divergem sobre a franquia gratuita.
-8. A revisão sucessora sintética de `rag-eval-catalogue-v1` materializa a
-   matriz `pt-BR`/`en-GB`, prompt, schema, configuração, limites, agenda e
-   orçamento da candidata sem pontuação. Antes de qualquer execução real, a
-   revisão pontuada ainda deve congelar o corpus de produto autorizado, a
-   rubrica e os thresholds, acrescentar estratos por tag documental exata e
-   nunca contar `en` como `en-GB`.
+8. A revisão RB-2 de produto e o campaign-input RB-3 estão congelados e não
+   pontuados, com 252 casos/vetores, denominador completo e tags documentais
+   exatas preservadas. A classificação `REPRESENTATIVE_HOMOLOGATION` pertence
+   somente à suficiência do denominador; nenhum scorer, resultado, métrica ou
+   decisão de homologação existe. `RB-4 — Retrieval-only campaign` permanece
+   `NOT_RUN` e depende de autoridade humana separada, sem reaproveitar como
+   resultado a preparação sintética histórica da campanha de provider.
 9. `S03-CORR-01` concluiu o primeiro item da ordem de dependência.
    `S04-CORR-04-A` concluiu descritores verificados do content store e
    `S04-CORR-04-B` concluiu contratos/gates de direitos;
@@ -2235,16 +2267,19 @@ concluídas. O reteste corretivo independente posterior, autorizado por
 `DR3-FIND-004` estão `RESOLVED`, sem novo achado P0, P1, P2 ou P3. `RB-1 —
 Evaluation design freeze` também está concluído sob
 `AUTH-RB1-EVALUATION-DESIGN-FREEZE-001`, exclusivamente como revisão de desenho
-imutável, não materializada e não pontuada. A próxima condição diretamente
-relacionada na ordem do ADR-0014 é obter autoridade humana separada para
-`RB-2 — Dataset materialisation readiness`, condicionada a corpus de produto
-autorizado com direitos verificados, geração ativa validada, pooling não
-pontuado e adjudicação completos, qrels, matrizes requeridas completas,
-denominador exato congelado e tier declarado. `RB-2` permanece `NOT_RUN` e não
-autorizado. Scorer executado, inputs congelados de campanha, campanha,
-provider, rede, chamada paga, OpenAPI, schema de produto, migration,
-MultiQuery, Human Gate e lifecycle permanecem fora dessa condição, e
-`retrieval-multi-query-v1-candidate` continua estacionado.
+imutável, não materializada e não pontuada. `RB-2 — Dataset materialisation
+readiness` foi concluído e congelado sem pontuação sob
+`AUTH-S07-RB2-REVIEW-ADJUDICATION-FREEZE-PACKAGE-001`; `RB-3 — Campaign-input
+freeze` foi concluído e congelado sem pontuação sob
+`AUTH-S07-RB3-CAMPAIGN-INPUT-FREEZE-001`, com 252 vetores vinculados ao mesmo
+denominador de 252 casos. A próxima condição diretamente relacionada na ordem
+do ADR-0014 é obter autoridade humana separada para `RB-4 — Retrieval-only
+campaign`, limitada aos inputs já congelados e a todos os casos/repetições,
+sem answer-LLM. `RB-4` permanece `NOT_RUN` e não autorizado. Scorer, campanha,
+consulta de produto, novo acesso a provider ou rede, chamada paga, OpenAPI,
+schema de produto, migration, MultiQuery, Human Gate e lifecycle permanecem
+fora desta reconciliação, e `retrieval-multi-query-v1-candidate` continua
+estacionado.
 
 O ADR-0013 foi aceito explicitamente mediante `ADR-0013: ACEITAR.` somente
 como autoridade arquitetural. Ele seleciona `gpt-5.4-mini-2026-03-17` para o

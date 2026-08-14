@@ -1441,3 +1441,71 @@ The deployed service remains a STATE-07 public homologation boundary. Render
 Free can spin down when idle and stores runtime answer evidence only on its
 ephemeral filesystem. The deployment does not change ADR-0005, complete the
 Challenge's OCI requirement, approve a Human Gate or enter `STATE-08`.
+
+## Retrieval v2 RB-2 and RB-3 freezes
+
+### Authority and frozen identities
+
+The RB-2 dataset revision
+`rag-eval-catalogue-v1-postgresql-18-rb2-20260814-001` was completed under
+`AUTH-S07-RB2-REVIEW-ADJUDICATION-FREEZE-PACKAGE-001` against
+`main@0dbc415bad6532842aa6c4d1bb45ecd915bf5022`, prompt corpus `4.10.41`.
+Its materialisation-freeze manifest has SHA-256
+`daede1db869f7daf784fa2f3fc3b55e037cf4f3bb59a22f94e2026175858bfe4`.
+The RB-3 campaign-input freeze was completed under
+`AUTH-S07-RB3-CAMPAIGN-INPUT-FREEZE-001` on the same tracked baseline. Its
+campaign-input-freeze manifest has SHA-256
+`ac7b5763bc9e571b6365449b340c8256790c5fe57ba79142b592b854cf25303c`.
+
+The protected OpenAPI identities remained unchanged:
+
+| Artefact | SHA-256 | Git blob | Result |
+| --- | --- | --- | --- |
+| OpenAPI v1 | `d6a686b94c926914beb28b437f464430a01de6560c2e2d476cf5c36025813e34` | `a5fb3602fbab33bda6aa56cc4caaa9fdc37c8160` | preserved byte for byte |
+| OpenAPI v2 | `f4dca8db7fb7bd453e580495bb1bb7760812d954344931063e8549ed8f036733` | `5ed6a47631653dd0c137b6ea1e979ae2c14bf8a8` | preserved byte for byte |
+
+### RB-2 frozen dataset
+
+The frozen denominator contains exactly 252 unique cases: 200 positive and 52
+negative, with 126 questions in `pt-BR` and 126 in `en-GB`. The negative set
+contains 26 `NoEvidenceInEligibleCorpus` and 26
+`EvidenceOnlyOutsideEligibleProjection` cases. The materialisation freeze
+binds the complete review and adjudication records, qrels, case inventory,
+required contract and eligibility matrices, quotas, exact intended case-set
+digest, catalogue revision `3`, activation revision `1` and active generation
+`idxgen-ec39244b021c90fceea1b3a628fe793a99f74650cad451f16ffbcd414af636f6`.
+
+The declared `REPRESENTATIVE_HOMOLOGATION` tier applies only to denominator
+reportability. The dataset is `frozen-unscored-rb2-complete`, has no
+underpowered mandatory database or source stratum in its frozen assessment,
+and has `observedResultCount=0`. These facts do not constitute a scored
+campaign, metric pass or product homologation decision.
+
+### RB-3 frozen campaign inputs
+
+The policy-specific freeze binds `retrieval-v2`, `minimum-score-v1`, the same
+252-case denominator and exactly one original-question vector per case. All
+252 vector objects are present, unique and bound by SHA-256; each contains
+1,536 IEEE-754 `float32` little-endian components and is 6,144 bytes. The
+retained receipt records one completed embedding-input materialisation with no
+retry and identical protected-store tree identities before and after the
+operation.
+
+No scorer, response campaign, `RB-4`, product query or Human Gate was executed.
+No ordered retrieval result, score or observed metric exists. The freezes do
+not change lifecycle state, unpark MultiQuery or authorise the separately
+governed `RB-4 — Retrieval-only campaign`.
+
+### Documentary reconciliation verification
+
+Read-only validation parsed the complete RB-2 case inventory and RB-3 query-
+vector manifest, recalculated both freeze-manifest hashes and every artefact
+digest referenced by them, and found zero mismatch. The 252 case IDs and 252
+vector case IDs form the same unique set; all vector files have the bound
+6,144-byte length and SHA-256. `git diff --check` passed, and
+`eng/check-repository.ps1` audited 341 non-ignored files successfully. The
+closed diff contains only the five canonical documents named by this
+reconciliation. The previous 516,099-byte State Transition Log prefix and both
+protected OpenAPI artefacts remained byte-for-byte unchanged. No build,
+product test, runtime preflight, provider call, scorer, query or `RB-4` was
+executed by this reconciliation.

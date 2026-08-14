@@ -2,7 +2,7 @@
 
 ## Versão atual
 
-- Versão: `4.10.41`
+- Versão: `4.10.42`
 - Data: 2026-08-14
 - Status: `STATE-07` ativo; ADR-0011 `accepted`, reconciliado e com a correção
   interna da política de serving implementada; o A0 candidato-específico
@@ -48,7 +48,12 @@
   freeze` concluído documentalmente com a revisão imutável
   `retrieval-v2-evaluation-design-v1` em estado
   `frozen-unmaterialised-unscored`, 28 artefatos normativos e sete contadores
-  de materialização em zero; `RB-2` permanece `NOT_RUN` e não autorizado;
+  de materialização em zero; `RB-2` e `RB-3` foram posteriormente concluídos
+  e congelados sem pontuação sobre a baseline `main@0dbc415`, com 252 casos e
+  252 vetores vinculados pelos manifests SHA-256
+  `daede1db869f7daf784fa2f3fc3b55e037cf4f3bb59a22f94e2026175858bfe4` e
+  `ac7b5763bc9e571b6365449b340c8256790c5fe57ba79142b592b854cf25303c`;
+  `RB-4` permanece `NOT_RUN` e não autorizado;
   homologação de produto, Human Gate e mudança de lifecycle não executados
 - Escopo: 13 arquivos ativos em `prompts/`
 
@@ -63,6 +68,33 @@ A versão do corpus é independente da versão futura do software.
 
 Toda alteração atualiza este arquivo e, quando necessário,
 [`../Start-Here.md`](../Start-Here.md).
+
+## 4.10.42 — 2026-08-14
+
+- Reconcilia factualmente `RB-2 — Dataset materialisation readiness` e
+  `RB-3 — Campaign-input freeze` já concluídos sobre a baseline rastreada
+  limpa `main@0dbc415bad6532842aa6c4d1bb45ecd915bf5022`, corpus `4.10.41`.
+- Registra a revisão RB-2
+  `rag-eval-catalogue-v1-postgresql-18-rb2-20260814-001`, congelada e não
+  pontuada, com 252 casos, 200 positivos, 52 negativos, 126 perguntas
+  `pt-BR`, 126 `en-GB` e materialisation-freeze manifest SHA-256
+  `daede1db869f7daf784fa2f3fc3b55e037cf4f3bb59a22f94e2026175858bfe4`.
+- Registra o campaign-input freeze RB-3
+  `rag-eval-catalogue-v1-postgresql-18-rb3-20260814-001`, congelado e não
+  pontuado, com exatamente um vetor por caso, 252 vetores de 1.536 componentes
+  e campaign-input-freeze manifest SHA-256
+  `ac7b5763bc9e571b6365449b340c8256790c5fe57ba79142b592b854cf25303c`.
+- Preserva a qualificação `REPRESENTATIVE_HOMOLOGATION` como propriedade do
+  denominador não pontuado, não como resultado, gate ou homologação de produto.
+  Scorer, resultados, campanha Responses, consulta de produto, `RB-4`, Human
+  Gate e lifecycle permanecem `NOT_RUN` ou inalterados.
+- Registra a validação read-only dos dois freezes, dos artefatos vinculados,
+  dos 252 casos/vetores e do prefixo append-only; `git diff --check` e a
+  auditoria documental de 341 arquivos passaram. Build e testes de produto
+  permaneceram `NOT_RUN`.
+- Classifica a mudança como `PATCH` factual. Não altera OpenAPI, código,
+  schemas, corpus de produto, geração ativa, runtime, stores, provider,
+  billing, deploy ou publicação.
 
 ## 4.10.41 — 2026-08-14
 
