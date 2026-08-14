@@ -8044,3 +8044,62 @@ contém somente fatos cronológicos.
   posteriores.
 - Versionamento: corpus elevado por `PATCH` factual de `4.10.39` para
   `4.10.40`, sem alterar autoridade, OpenAPI ou lifecycle.
+
+## 2026-08-14 — Imagem privada publicada e serviço Render Free implantado
+
+- Estado anterior e resultante: `STATE-07 TESTING_HOMOLOGATION` permanece
+  ativo. Nenhum Automatic Quality Gate, Human Gate ou avanço para `STATE-08`
+  foi executado.
+- Autoridades externas: o proprietário autorizou separadamente a publicação
+  privada única da imagem no GHCR, a remoção posterior da credencial local e a
+  implantação única de um Render Web Service Free. A autoridade exigiu digest
+  imutável, uma instância, zero disco persistente, zero banco Render,
+  autoscaling desligado, nenhum recurso pago, nenhuma alteração de billing e
+  auto-deploy desativado.
+- Publicação privada: a imagem foi publicada como
+  `ghcr.io/degsterin/rag-challenge@sha256:536e431126470a51370bf9aeb4c769ff1d75313c67643c3922cf0fd2e2688c08`.
+  O pacote GHCR permaneceu `Private`, com budget observado `USD 0` e stop usage
+  habilitado. A credencial GHCR local foi removida após a verificação.
+- Preflight Render: a baseline era
+  `main@bf26d0703b421ffcdc48facf6d6d21ba1669e2a3`, corpus `4.10.40` e árvore
+  rastreada limpa. Os hashes do package manifest e context manifest eram,
+  respectivamente,
+  `d46af8e33605dd8395d6207a1587cc36b44b57cd0b0f5618caf5e6e944b19778` e
+  `83c48eb8bebb52bb6bee3e8a52837826437c02b6166c20190bd1bc065fe3d8ed`.
+  Nenhum processo ou listener RAG-Challenge-owned conflitante foi encontrado.
+- Serviço criado: `rag-challenge`, ID `srv-d9v9gju417fc73cf69i0`, no workspace
+  Hobby, plano `Free`, região Frankfurt, uma instância, autoscaling `Off`, zero
+  disco persistente e zero banco Render. O formulário confirmou todos os
+  tipos pagos desmarcados, health path `/api/v1/health/ready`, nenhum Docker
+  command override, secret file ou pre-deploy command. A fonte por digest
+  imutável não expõe automatic deployment configurável.
+- Segurança de credenciais: o proprietário inseriu diretamente na interface
+  segura do Render a credential GHCR com `read:packages` e o valor de
+  `OPENAI_API_KEY`. Nenhum valor foi lido, exibido, registrado ou incorporado
+  ao repositório, à imagem ou às evidências.
+- Deploy e validação: `dep-d9v9gke417fc73cf6br0` terminou
+  `Deploy succeeded | Live` em 46,8 segundos. A URL pública é
+  <https://rag-challenge-ac09.onrender.com>. `GET /api/v1/health/live` retornou
+  HTTP `200` e `Live`; `GET /api/v1/health/ready` retornou HTTP `200`, `Ready`,
+  um banco ativo, um documento elegível, zero degradado, revisão
+  `postgresql-18.4-product-v1` e geração
+  `idxgen-ec39244b021c90fceea1b3a628fe793a99f74650cad451f16ffbcd414af636f6`.
+- Custo e escopo negativo: a leitura final de billing mostrou nenhum cartão,
+  serviços `USD 0.00`, total mensal `USD 0.00` e projeção `USD 0.00`. Nenhuma
+  consulta de produto, Responses, embedding, alteração de billing, recurso
+  pago, segundo deploy, banco, disco, autoscaling ou automatic deployment foi
+  executado.
+- Pacote documental: o proprietário autorizou README detalhado, imagem e GIF
+  sanitizados sem alterar o serviço. A captura Render possui 58.894 bytes e
+  SHA-256
+  `703bdcec24a9b4dce33edd4182d2cbeff35ba5fb406f978db9ccd83d7187056c`;
+  o GIF de quatro quadros possui 155.188 bytes e SHA-256
+  `9fd244cb859d99da420ce5540ac0bba56cc254ea17db24ae772898705dc662b4`.
+  Os ativos não contêm segredo, conteúdo documental, prompts, respostas,
+  chunks ou vetores.
+- Limite arquitetural: a implantação é evidência pública de homologação em
+  `STATE-07`, com filesystem efêmero e cold start possível após inatividade.
+  Ela não substitui ADR-0005, não satisfaz sozinha o requisito OCI e não
+  constitui homologação de produção.
+- Versionamento: corpus elevado por `PATCH` factual de `4.10.40` para
+  `4.10.41`, sem alterar OpenAPI, código ou lifecycle.

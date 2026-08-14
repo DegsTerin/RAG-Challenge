@@ -2,16 +2,17 @@
 
 ## Versão atual
 
-- Versão: `4.10.40`
+- Versão: `4.10.41`
 - Data: 2026-08-14
 - Status: `STATE-07` ativo; ADR-0011 `accepted`, reconciliado e com a correção
   interna da política de serving implementada; o A0 candidato-específico
   A0-003 dispõe as quatro operações visuais como `PERMITTED` somente sob o
   mecanismo notice-bearing e preserva distribuição/publicação externa
   `DENIED`; o primeiro documento foi materializado como `LocalAuthorised` em
-  uma geração text-first validada e ativada na revisão `1`, com pacote privado
-  Render Hobby/Free preparado e verificado somente localmente, sem publicação
-  ou serviço externo; o obligation set determinístico de
+  uma geração text-first validada e ativada na revisão `1`, com imagem privada
+  publicada no GHCR e serviço Render Hobby/Free implantado uma vez, `Live` e
+  `Ready`, sem consulta de produto, Responses ou embeddings; o obligation set
+  determinístico de
   `postgresql-18-reference-a4` está vinculado ao perfil visual sob demanda;
   ADR-0012
   `accepted`,
@@ -62,6 +63,29 @@ A versão do corpus é independente da versão futura do software.
 
 Toda alteração atualiza este arquivo e, quando necessário,
 [`../Start-Here.md`](../Start-Here.md).
+
+## 4.10.41 — 2026-08-14
+
+- Reconcilia a publicação privada da imagem Render Free no GHCR pelo digest
+  `sha256:536e431126470a51370bf9aeb4c769ff1d75313c67643c3922cf0fd2e2688c08`.
+- Registra a implantação única do Web Service `rag-challenge` no plano Free,
+  com uma instância, autoscaling desligado, zero disco persistente, zero banco
+  Render e fonte imutável sem automatic deployment configurado.
+- Registra `Deploy succeeded | Live`, liveness e readiness públicos em HTTP
+  `200`, a geração PostgreSQL 18.4 ativa, um banco ativo, um documento elegível
+  e zero documento degradado.
+- Registra billing sanitizado sem cartão, serviços, total mensal e projeção em
+  `USD 0.00`; nenhuma mudança de billing ou recurso pago foi executada.
+- Acrescenta ao README, ao guia Render e ao relatório STATE-07 a URL pública,
+  os limites do ambiente efêmero e duas evidências visuais sanitizadas. Nenhuma
+  credencial, conteúdo documental, prompt, resposta, chunk ou vetor integra os
+  ativos.
+- Preserva consulta de produto, Responses, embeddings e provider como
+  `NOT_RUN` durante a implantação e a documentação. A mudança não substitui
+  ADR-0005, não satisfaz sozinha o requisito OCI, não decide Human Gate e não
+  autoriza `STATE-08`.
+- Classifica a mudança como `PATCH` factual. Não altera OpenAPI, código,
+  serviço Render, billing, secrets ou lifecycle.
 
 ## 4.10.40 — 2026-08-14
 

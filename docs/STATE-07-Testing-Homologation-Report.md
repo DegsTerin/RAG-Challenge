@@ -1317,7 +1317,7 @@ network, rendering, embeddings, Responses, product query and
 preflight is read-only and its sanitised result is reported outside the single
 tracked commit.
 
-## PostgreSQL activation and local Render Free package
+## PostgreSQL activation and Render Free deployment
 
 ### Persisted activation reconciliation
 
@@ -1378,6 +1378,66 @@ not a product correction.
 Render Free deliberately loses answer-evidence writes on restart, redeploy or
 idle spin-down and is therefore a public demonstration boundary rather than
 durable production persistence. The package does not replace accepted
-ADR-0005 or the Challenge's recorded OCI requirement. Final target selection,
-private image publication, registry access, provider secret configuration and
-service creation remain separate external actions.
+ADR-0005 or the Challenge's recorded OCI requirement. At that preparation
+boundary, private image publication, registry access, provider secret
+configuration and service creation still required separate external
+authorities; their later execution is recorded below.
+
+### Private publication and one-shot Render deployment
+
+Later on 2026-08-14, the owner separately authorised the private publication
+and the creation of exactly one Render Web Service Free. The local image was
+published privately to GHCR as
+`ghcr.io/degsterin/rag-challenge@sha256:536e431126470a51370bf9aeb4c769ff1d75313c67643c3922cf0fd2e2688c08`.
+The GHCR package remained `Private`, its observed package budget was `USD 0`
+with stop-usage enabled, and the local GHCR credential was removed after
+verification.
+
+The deployment started from clean
+`main@bf26d0703b421ffcdc48facf6d6d21ba1669e2a3`, prompt corpus `4.10.40`.
+The package-manifest SHA-256 was
+`d46af8e33605dd8395d6207a1587cc36b44b57cd0b0f5618caf5e6e944b19778`,
+and the context-manifest SHA-256 was
+`83c48eb8bebb52bb6bee3e8a52837826437c02b6166c20190bd1bc065fe3d8ed`.
+No RAG-Challenge-owned runtime process or listener conflicted with the action.
+
+The Render workspace remained on Hobby with no payment card. The created
+resource was service `rag-challenge`, ID `srv-d9v9gju417fc73cf69i0`, using the
+exact private-image digest. The form was verified before creation with the
+Free instance selected and every paid instance unselected. The service has one
+instance, autoscaling `Off`, zero persistent disks and zero Render databases.
+The immutable digest source exposes no automatic-deployment control. No
+project, secret file, Docker command override or pre-deploy command was added.
+The provider credential was entered by the owner directly into the Render
+secret interface and was never read or displayed by the executor.
+
+Deployment `dep-d9v9gke417fc73cf6br0` completed as
+`Deploy succeeded | Live` in 46.8 seconds. The public service URL is
+<https://rag-challenge-ac09.onrender.com>. The bounded verification performed
+only these calls:
+
+- `GET /api/v1/health/live`: HTTP `200`, `status=Live`; and
+- `GET /api/v1/health/ready`: HTTP `200`, `status=Ready`, active database
+  count `1`, eligible document count `1`, degraded document count `0`, active
+  generation
+  `idxgen-ec39244b021c90fceea1b3a628fe793a99f74650cad451f16ffbcd414af636f6`
+  and configuration revision `postgresql-18.4-product-v1`.
+
+No product query, Responses request, embedding request, billing mutation,
+automatic deployment, extra Render resource or follow-up deployment was
+executed. The final read-only billing view showed services `USD 0.00`, total
+month-to-date `USD 0.00`, projected total `USD 0.00` and no card on file. The
+tracked Git tree remained clean on the deployment baseline.
+
+The documentary package adds two sanitised assets. The Render screenshot is
+58,894 bytes with SHA-256
+`703bdcec24a9b4dce33edd4182d2cbeff35ba5fb406f978db9ccd83d7187056c`.
+The four-frame animated verification is 155,188 bytes with SHA-256
+`9fd244cb859d99da420ce5540ac0bba56cc254ea17db24ae772898705dc662b4`.
+Neither asset contains credentials, document content, prompts, answers,
+chunks or vectors.
+
+The deployed service remains a STATE-07 public homologation boundary. Render
+Free can spin down when idle and stores runtime answer evidence only on its
+ephemeral filesystem. The deployment does not change ADR-0005, complete the
+Challenge's OCI requirement, approve a Human Gate or enter `STATE-08`.

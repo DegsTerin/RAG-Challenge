@@ -8,12 +8,48 @@ em linguagem natural, com respostas fundamentadas e referências às fontes.
 > text-first
 > `idxgen-ec39244b021c90fceea1b3a628fe793a99f74650cad451f16ffbcd414af636f6`
 > ativada na revisão `1`, com 3.282 chunks, 3.282 vetores e
-> `renderManifestId=null`. O pacote privado candidato para Render Hobby com
-> instância Free foi preparado e validado localmente, inclusive em contêiner
-> Linux x64 e após restart. Nenhuma imagem foi publicada e nenhum serviço
-> Render, OCI ou GitHub foi criado ou alterado. Uma consulta real de produto
-> por `/v1/responses`, o deploy público e a homologação de produção ainda não
-> foram executados.
+> `renderManifestId=null`. A imagem privada foi publicada no GitHub Container
+> Registry e implantada uma vez em um Render Web Service Free. Os endpoints
+> públicos de health e readiness confirmam o serviço `Live`, a geração ativa e
+> o catálogo PostgreSQL 18.4. Nenhuma consulta de produto, chamada Responses ou
+> nova solicitação de embedding foi executada durante a implantação. Isso é
+> evidência de homologação em `STATE-07`, não homologação de produção nem
+> substituição automática do alvo OCI aceito.
+
+## Demonstração online
+
+[Abrir o RAG-Challenge no Render](https://rag-challenge-ac09.onrender.com).
+A instância Free pode adormecer após inatividade; a primeira abertura pode
+levar 50 segundos ou mais.
+
+![Verificação animada e sanitizada da implantação Render Free](docs/assets/render/rag-challenge-deployment.gif)
+
+| Verificação | Resultado observado em 2026-08-14 |
+|---|---|
+| Plano e recursos | Render Hobby, Web Service `Free`, uma instância, autoscaling desligado, zero disco persistente e zero banco Render |
+| Imagem privada | `ghcr.io/degsterin/rag-challenge@sha256:536e431126470a51370bf9aeb4c769ff1d75313c67643c3922cf0fd2e2688c08` |
+| Liveness | [`GET /api/v1/health/live`](https://rag-challenge-ac09.onrender.com/api/v1/health/live) retornou HTTP `200` e `Live` |
+| Readiness | [`GET /api/v1/health/ready`](https://rag-challenge-ac09.onrender.com/api/v1/health/ready) retornou HTTP `200` e `Ready` |
+| Produto carregado | um banco ativo, um documento elegível, zero documento degradado e revisão `postgresql-18.4-product-v1` |
+| Geração ativa | `idxgen-ec39244b021c90fceea1b3a628fe793a99f74650cad451f16ffbcd414af636f6` |
+| Custo Render observado | serviços, total mensal e projeção em `USD 0.00`; nenhum cartão cadastrado |
+| Limite da evidência | nenhuma pergunta de produto nem chamada Responses ou embedding foi executada durante a verificação pública |
+
+![Render Web Service Free com digest imutável e deploy Live](docs/assets/render/rag-challenge-render-live.png)
+
+Os dois endpoints acima são a forma segura de verificar disponibilidade sem
+executar uma pergunta nem consumir o provider. Em PowerShell:
+
+```powershell
+Invoke-RestMethod https://rag-challenge-ac09.onrender.com/api/v1/health/live
+Invoke-RestMethod https://rag-challenge-ac09.onrender.com/api/v1/health/ready
+```
+
+O filesystem da instância Free é efêmero. O store ativado é restaurado de um
+seed privado e verificado em cada boot; evidências de resposta criadas depois
+do arranque são descartadas em restart, redeploy ou spin-down. A chave do
+provider permanece somente como secret do Render e o seu uso possui cobrança
+independente da hospedagem.
 
 ## Problema
 
@@ -178,20 +214,22 @@ ELF AArch64. O binário ARM64 não é executado no Windows e nenhuma operação 
 é realizada. O plano e as limitações estão em
 [`STATE-06-OCI-Readiness-And-Rehearsal.md`](docs/STATE-06-OCI-Readiness-And-Rehearsal.md).
 
-O candidato alternativo para Render Hobby/Free prepara uma imagem privada com
-o snapshot PostgreSQL ativado e restaura um store efêmero verificado em cada
-boot. Ele não publica o PDF, o store ou a imagem e não cria serviço externo:
+O pacote Render Hobby/Free prepara uma imagem privada com o snapshot PostgreSQL
+ativado e restaura um store efêmero verificado em cada boot. O PDF e o store
+permanecem fora do Git público; a imagem que contém o seed permanece privada no
+GHCR:
 
 ```powershell
 ./eng/Build-RenderFreePackage.ps1
 ./eng/Test-RenderFreePackage.ps1
 ```
 
-O procedimento, as limitações de persistência e a barreira de custo estão em
-[`deploy/render-free/README.md`](deploy/render-free/README.md). Esse candidato
-não substitui silenciosamente o requisito OCI registrado pelos materiais do
-Challenge; a seleção final de Render exige reconciliação própria antes do
-deploy.
+O procedimento, as limitações de persistência, a publicação privada e a
+evidência da implantação estão em
+[`deploy/render-free/README.md`](deploy/render-free/README.md). A implantação
+Render é uma demonstração pública em homologação. Ela não substitui
+silenciosamente o requisito OCI registrado pelos materiais do Challenge; a
+seleção final do alvo de produção exige reconciliação arquitetural própria.
 
 O código poderá ser hospedado em um repositório público no GitHub. GitHub
 Pages, sozinho, hospeda apenas conteúdo estático e não executa o backend RAG
@@ -219,7 +257,7 @@ decisão explícita e adapter compatível.
 ```text
 .
 ├── .github/workflows/  # definição de CI, sem deploy
-├── deploy/render-free/ # pacote privado local, sem publicação
+├── deploy/render-free/ # pacote privado e fronteira Render Free
 ├── eng/                # checks reproduzíveis do setup
 ├── src/
 │   ├── RagChallenge.Domain/
@@ -244,12 +282,13 @@ decisão explícita e adapter compatível.
 Domain e Application contêm os modelos e casos de uso; Infrastructure contém
 migrations SQLite, stores persistentes, parsers PDF/CSV, adapters de provider e
 transporte governado. A API preserva health e consulta v1 e também implementa o
-fluxo v2 local, incluindo referências de página, serving PNG same-origin
-fail-closed e o perfil notice-bearing; o Dashboard consome os dois contratos e
-apresenta as obrigações acessíveis junto da imagem. A evidência executável
-permanece local e sintética; o AQG notice-bearing, corpus/provider real e
-homologação de produto continuam separados. Administração permanece one-shot
-fora de HTTP, e nenhum provider ou acervo real está configurado.
+fluxo v2, incluindo referências de página, serving PNG same-origin fail-closed
+e o perfil notice-bearing; o Dashboard consome os dois contratos e apresenta
+as obrigações acessíveis junto da imagem. O serviço Render reabre o produto
+PostgreSQL 18.4 materializado e confirma sua geração ativa por readiness. A
+consulta pública com provider, a homologação integral do produto e o alvo OCI
+de produção continuam separados. A administração permanece one-shot fora de
+HTTP.
 
 ## Governança
 

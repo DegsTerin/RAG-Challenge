@@ -1512,7 +1512,7 @@ proprietários.
   a política de idioma acrescentou o 21º documento público por incremento
   versionado, e o ADR-0003 acrescentou o 22º.
 - A baseline aprovada no Human Gate de `STATE-00` permanece `3.4.0`.
-- O corpus de instruções vigente possui versão `4.10.40` e 13 arquivos em
+- O corpus de instruções vigente possui versão `4.10.41` e 13 arquivos em
   `prompts/`.
 - Visão, requisitos, arquitetura, RAG, segurança, qualidade, lifecycle,
   roadmap, backlog, estado, histórico e templates estão documentados.
@@ -1886,15 +1886,18 @@ proprietários.
   `renderManifestId=null`. A execução posterior e única de
   `activate-generation` aplicou a revisão ativa `1`; consulta e Responses não
   foram executados.
-- O corpus `4.10.40` reconcilia a ativação PostgreSQL já persistida e registra
-  a preparação local do candidato Render Hobby/Free. O pacote usa uma imagem
-  privada com seed imutável, copia e verifica o store em filesystem efêmero a
-  cada boot, fixa `plan: free`, uma instância, nenhum disco ou banco Render e
-  auto-deploy desligado. Build, readiness loopback, imagem Linux x64, Dashboard
-  HTTP 200 e restart preservando a geração ativa passaram localmente. Nenhuma
-  imagem foi publicada, nenhum serviço Render foi criado e nenhuma credencial
-  real ou provider foi usado. O candidato não substitui ADR-0005 nem satisfaz
-  sozinho o requisito OCI sem reconciliação posterior.
+- O corpus `4.10.41` preserva a reconciliação da ativação PostgreSQL e registra
+  a publicação privada e a implantação única do candidato Render Hobby/Free.
+  A imagem privada GHCR está fixada pelo digest
+  `sha256:536e431126470a51370bf9aeb4c769ff1d75313c67643c3922cf0fd2e2688c08`.
+  O serviço `rag-challenge` usa plano `Free`, uma instância, autoscaling
+  desligado, zero disco persistente e zero banco Render. O deploy único está
+  `Live`; liveness e readiness públicos retornaram HTTP 200, com a geração
+  PostgreSQL esperada, um banco ativo, um documento elegível e zero degradado.
+  Nenhuma consulta nem chamada Responses ou embedding foi executada. Billing
+  permaneceu sem cartão, serviços, total mensal e projeção em `USD 0.00`. A implantação é
+  evidência pública de homologação em `STATE-07`; não substitui ADR-0005, não
+  satisfaz sozinha o requisito OCI e não autoriza `STATE-08`.
 - O corpus `4.3.0` formaliza a decisão explícita do proprietário de aceitar
   perguntas e respostas em `pt-BR` e `en-GB`: cada consulta declara o idioma,
   a resposta usa o mesmo idioma, textos derivados da fonte permanecem no
