@@ -122,7 +122,8 @@ internal sealed class SqlitePersistenceFixture : IAsyncDisposable
     internal async Task<FinalisedIndexGenerationManifest> CommitGenerationAsync(
         DocumentBinding binding,
         string seed,
-        long chunkCount = 1)
+        long chunkCount = 1,
+        long catalogueRevision = 1)
     {
         var bindings = new[] { binding };
         var candidateId = new CandidateBuildId($"candidate-{seed}");
@@ -151,7 +152,7 @@ internal sealed class SqlitePersistenceFixture : IAsyncDisposable
             manifestSchemaVersion: 1,
             CorpusId,
             new CorpusRevision(1),
-            new CatalogueRevision(1),
+            new CatalogueRevision(catalogueRevision),
             BindingDigestCanonicalizer.CanonicaliseActiveDocumentSet(bindings).Digest,
             BindingDigestCanonicalizer.CanonicaliseSourceBindingSet(bindings).Digest,
             CompatibilityKey);

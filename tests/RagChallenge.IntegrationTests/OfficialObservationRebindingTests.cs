@@ -429,19 +429,32 @@ public sealed class OfficialObservationRebindingTests
             "text/csv",
             new SourceAdapterId("local-fallback"),
             SourceTrustClass.LocalAuthorised);
-        var catalogue = new CatalogueSnapshot(
+        var bootstrapDocument = new DocumentVersion(
+            officialDocumentId,
+            new DocumentVersionNumber(2),
+            productId,
+            productRevision,
+            DocumentFormat.Csv,
+            DocumentContentLanguage.EnGb,
+            CatalogueItemStatus.Candidate,
+            localContent.ContentObjectId,
+            localContent.ByteLength,
+            "text/csv",
+            new SourceAdapterId("local-official-bootstrap"),
+            SourceTrustClass.LocalAuthorised);
+        var bootstrapCatalogue = new CatalogueSnapshot(
             SqlitePersistenceFixture.CorpusId,
             new CatalogueRevision(1),
             [category],
             [product],
-            [officialDocument, localDocument]);
-        var catalogueCommit = await fixture.ControlStore.CommitCatalogueAsync(
+            [bootstrapDocument, localDocument]);
+        var bootstrapCommit = await fixture.ControlStore.CommitCatalogueAsync(
             new CatalogueCommitRequest(
-                new OperationId("catalogue-observation-rebind"),
-                catalogue,
+                new OperationId("catalogue-observation-rebind-bootstrap"),
+                bootstrapCatalogue,
                 ExpectedCurrentRevision: 0,
                 SqlitePersistenceFixture.At(1)));
-        Assert.Equal(StoreMutationOutcome.Applied, catalogueCommit.Outcome);
+        Assert.Equal(StoreMutationOutcome.Applied, bootstrapCommit.Outcome);
 
         var registration = new OfficialSourceRegistration(
             registrationId,
@@ -466,6 +479,20 @@ public sealed class OfficialObservationRebindingTests
                 snapshot,
                 SqlitePersistenceFixture.At(1)));
         Assert.Equal(StoreMutationOutcome.Applied, sourceCommit.Outcome);
+
+        var catalogue = new CatalogueSnapshot(
+            SqlitePersistenceFixture.CorpusId,
+            new CatalogueRevision(2),
+            [category],
+            [product],
+            [officialDocument, localDocument]);
+        var catalogueCommit = await fixture.ControlStore.CommitCatalogueAsync(
+            new CatalogueCommitRequest(
+                new OperationId("catalogue-observation-rebind"),
+                catalogue,
+                ExpectedCurrentRevision: 1,
+                SqlitePersistenceFixture.At(1)));
+        Assert.Equal(StoreMutationOutcome.Applied, catalogueCommit.Outcome);
 
         var initialObservation = new OfficialSourceObservation(
             new OfficialObservationId("observation-initial"),
@@ -575,7 +602,7 @@ public sealed class OfficialObservationRebindingTests
             manifestSchemaVersion: 1,
             SqlitePersistenceFixture.CorpusId,
             new CorpusRevision(1),
-            new CatalogueRevision(1),
+            new CatalogueRevision(2),
             BindingDigestCanonicalizer.CanonicaliseActiveDocumentSet(bindings).Digest,
             BindingDigestCanonicalizer.CanonicaliseSourceBindingSet(bindings).Digest,
             SqlitePersistenceFixture.CompatibilityKey);

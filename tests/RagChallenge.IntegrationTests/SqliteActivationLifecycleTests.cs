@@ -758,17 +758,30 @@ public sealed class SqliteActivationLifecycleTests
             SourceTrustClass.OfficialExternal,
             registrationId,
             snapshotId);
-        var catalogue = new CatalogueSnapshot(
+        var bootstrapDocument = new DocumentVersion(
+            documentId,
+            new DocumentVersionNumber(2),
+            productId,
+            productRevision,
+            DocumentFormat.Pdf,
+            DocumentContentLanguage.EnGb,
+            CatalogueItemStatus.Active,
+            contentResult.ContentObjectId,
+            contentResult.ByteLength,
+            "application/pdf",
+            new SourceAdapterId("local-official-bootstrap"),
+            SourceTrustClass.LocalAuthorised);
+        var bootstrapCatalogue = new CatalogueSnapshot(
             SqlitePersistenceFixture.CorpusId,
             new CatalogueRevision(1),
             [category],
             [product],
-            [document]);
+            [bootstrapDocument]);
         Assert.Equal(StoreMutationOutcome.Applied, (
             await fixture.ControlStore.CommitCatalogueAsync(
                 new CatalogueCommitRequest(
-                    new OperationId("catalogue-official"),
-                    catalogue,
+                    new OperationId("catalogue-official-bootstrap"),
+                    bootstrapCatalogue,
                     ExpectedCurrentRevision: 0,
                     SqlitePersistenceFixture.At(1)))).Outcome);
         var registration = new OfficialSourceRegistration(
@@ -795,6 +808,20 @@ public sealed class SqliteActivationLifecycleTests
                     snapshot,
                     SqlitePersistenceFixture.At(1)))).Outcome);
 
+        var catalogue = new CatalogueSnapshot(
+            SqlitePersistenceFixture.CorpusId,
+            new CatalogueRevision(2),
+            [category],
+            [product],
+            [document]);
+        Assert.Equal(StoreMutationOutcome.Applied, (
+            await fixture.ControlStore.CommitCatalogueAsync(
+                new CatalogueCommitRequest(
+                    new OperationId("catalogue-official"),
+                    catalogue,
+                    ExpectedCurrentRevision: 1,
+                    SqlitePersistenceFixture.At(1)))).Outcome);
+
         var missingBinding = CreateOfficialBinding(
             productId,
             productRevision,
@@ -804,7 +831,10 @@ public sealed class SqliteActivationLifecycleTests
             registrationId,
             snapshotId,
             new OfficialObservationId("observation-missing"));
-        var manifest = await fixture.CommitGenerationAsync(missingBinding, "official");
+        var manifest = await fixture.CommitGenerationAsync(
+            missingBinding,
+            "official",
+            catalogueRevision: 2);
         var missingObservationRecord = ActivationRecordFactory.CreateInitial(
             manifest,
             [await fixture.CreateActivationEvidenceAsync(missingBinding)],
