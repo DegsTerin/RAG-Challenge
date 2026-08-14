@@ -12,7 +12,9 @@ public sealed class VerifiedPageImageEvidenceReader(
     CorpusId configuredCorpusId,
     IQueryActivationReader activationReader,
     IControlPlaneStore controlPlaneStore,
-    IDocumentContentStore contentStore) : IVisualEvidenceReader
+    IDocumentContentStore contentStore,
+    IAnswerEvidenceVisualAuthorityReader? answerEvidenceVisualAuthorityReader = null)
+    : IVisualEvidenceReader
 {
     public const long MaximumByteLength = 64L * 1024 * 1024;
 
@@ -25,6 +27,8 @@ public sealed class VerifiedPageImageEvidenceReader(
         throw new ArgumentNullException(nameof(controlPlaneStore));
     private readonly IDocumentContentStore contentStore = contentStore ??
         throw new ArgumentNullException(nameof(contentStore));
+    private readonly IAnswerEvidenceVisualAuthorityReader? answerEvidenceVisualAuthorityReader =
+        answerEvidenceVisualAuthorityReader;
 
     public async Task<VisualEvidenceReadResult> ReadAsync(
         VisualEvidenceSelector selector,
@@ -58,19 +62,68 @@ public sealed class VerifiedPageImageEvidenceReader(
                     binding.RenderManifest?.RenderManifestId == selector.RenderManifestId)
                 .ToArray();
 
-            if (matchingBindings.Length != 1)
+            QueryEvidenceBinding matchingBinding;
+            DocumentRenderManifest manifest;
+            DerivativeObligationSetV1? obligationSet;
+            if (matchingBindings.Length == 1)
             {
-                return VisualEvidenceReadResult.NotAvailable();
+                matchingBinding = matchingBindings[0];
+                manifest = matchingBinding.RenderManifest!;
+                obligationSet = matchingBinding.DerivativeObligationSet;
             }
+            else
+            {
+                if (matchingBindings.Length != 0 ||
+                    answerEvidenceVisualAuthorityReader is null ||
+                    controlPlaneStore is not IDocumentRenderManifestStore renderManifestStore)
+                {
+                    return VisualEvidenceReadResult.NotAvailable();
+                }
 
-            var matchingBinding = matchingBindings[0];
-            var manifest = matchingBinding.RenderManifest!;
+                manifest = await renderManifestStore.ReadAsync(
+                    configuredCorpusId,
+                    selector.RenderManifestId,
+                    cancellationToken).ConfigureAwait(false) ??
+                    throw new InvalidDataException(
+                        "The answer-bound render manifest is unavailable.");
+                var textBindings = snapshot.EvidenceBindings.Where(binding =>
+                    binding.Binding.DocumentFormat == DocumentFormat.Pdf &&
+                    binding.Binding.DocumentId == manifest.DocumentId &&
+                    binding.Binding.DocumentVersion == manifest.DocumentVersion &&
+                    binding.EvidenceBinding.SourceContentObjectId ==
+                        manifest.SourceContentObjectId &&
+                    binding.EvidenceBinding.RenderManifestId is null).ToArray();
+                if (manifest.IsComplete || manifest.OrderedPageImages.Count is <= 0 or > 5 ||
+                    textBindings.Length != 1 ||
+                    !await answerEvidenceVisualAuthorityReader.IsAuthorisedAsync(
+                        configuredCorpusId,
+                        snapshot.ActivationRecord.RecordRevision,
+                        snapshot.ActivationRecord.IndexGenerationId,
+                        manifest.DocumentId,
+                        manifest.DocumentVersion,
+                        manifest.SourceContentObjectId,
+                        manifest.RenderManifestId,
+                        selector.PageNumber,
+                        selector.ImageContentObjectId,
+                        observedAt,
+                        cancellationToken).ConfigureAwait(false))
+                {
+                    return VisualEvidenceReadResult.NotAvailable();
+                }
+
+                matchingBinding = textBindings[0];
+                obligationSet = manifest.ObligationSetId is null
+                    ? null
+                    : await renderManifestStore.ReadObligationSetAsync(
+                        configuredCorpusId,
+                        manifest.ObligationSetId,
+                        cancellationToken).ConfigureAwait(false);
+            }
             var servingRights = DocumentRightsEligibilityPolicy.Evaluate(
                 matchingBinding.EvidenceBinding.Rights,
                 DocumentRightsEligibilityGate.PdfVisualEvidenceServing);
             var noticeBearing = manifest.RenderProfileId.Value ==
                 RenderProfileId.PdfPagePngNoticeV1;
-            var obligationSet = matchingBinding.DerivativeObligationSet;
 
             if (!servingRights.IsEligible ||
                 noticeBearing &&

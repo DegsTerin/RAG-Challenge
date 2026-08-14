@@ -31,7 +31,7 @@ public sealed class SqliteQueryActivationReader(SqliteStoreOptions options)
             activation.EvidenceBindings.Any(evidence =>
                 !DocumentRightsEligibilityPolicy.Evaluate(
                     evidence.Rights,
-                    evidence.DocumentBinding.DocumentFormat == DocumentFormat.Pdf
+                    evidence.RenderManifestId is not null
                         ? DocumentRightsEligibilityGate.PdfVisualEvidence
                         : DocumentRightsEligibilityGate.TextualEvidence).IsEligible))
         {
@@ -106,10 +106,10 @@ public sealed class SqliteQueryActivationReader(SqliteStoreOptions options)
                     "An active evidence binding differs from its exact document source metadata.");
             }
 
-            if (binding.DocumentFormat == DocumentFormat.Pdf)
+            if (evidence.RenderManifestId is not null)
             {
                 var renderManifest = renderManifestRows.SingleOrDefault(row =>
-                    row.RenderManifestId == evidence.RenderManifestId!.Value);
+                    row.RenderManifestId == evidence.RenderManifestId.Value);
 
                 if (renderManifest is null ||
                     renderManifest.DocumentId != binding.DocumentId.Value ||
@@ -129,6 +129,11 @@ public sealed class SqliteQueryActivationReader(SqliteStoreOptions options)
                     cancellationToken).ConfigureAwait(false) ??
                     throw new InvalidDataException(
                         "An active PDF evidence binding has no readable final render manifest.");
+            if (hydratedRenderManifest is not null && !hydratedRenderManifest.IsComplete)
+            {
+                throw new InvalidDataException(
+                    "An activation-bound PDF render manifest must cover every source page.");
+            }
             var obligationSet = hydratedRenderManifest?.ObligationSetId is null
                 ? null
                 : await controlStore.ReadObligationSetAsync(

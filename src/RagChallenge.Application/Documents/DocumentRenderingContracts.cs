@@ -259,6 +259,15 @@ public interface IPdfPageRenderer
         CancellationToken cancellationToken = default);
 }
 
+public interface ISelectivePdfPageRenderer : IPdfPageRenderer
+{
+    Task<PdfRenderResult> RenderSelectionAsync(
+        VerifiedContentObject source,
+        PdfRenderPolicy policy,
+        IReadOnlyCollection<int> pageNumbers,
+        CancellationToken cancellationToken = default);
+}
+
 public sealed record PngPageImageValidation(
     int PageNumber,
     int WidthPixels,

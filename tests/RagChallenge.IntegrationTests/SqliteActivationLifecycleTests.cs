@@ -16,6 +16,41 @@ namespace RagChallenge.IntegrationTests;
 public sealed class SqliteActivationLifecycleTests
 {
     [Fact]
+    public async Task TextOnlyPdfActivationPersistsWithoutARenderManifest()
+    {
+        await using var fixture = await SqlitePersistenceFixture.CreateAsync();
+        var (_, binding) = await fixture.CommitLocalCatalogueAsync();
+        var generation = await fixture.CommitGenerationAsync(binding, "text-only-pdf");
+        var rendered = await fixture.CreateActivationEvidenceAsync(binding);
+        var textOnly = new DocumentActivationEvidenceBinding(
+            binding,
+            rendered.SourceContentObjectId,
+            rendered.Rights,
+            renderManifestId: null);
+
+        var proposed = ActivationRecordFactory.CreateInitial(
+            generation,
+            [textOnly],
+            SqlitePersistenceFixture.At(3));
+        var activated = await ActivateAsync(
+            fixture,
+            "activate-text-only-pdf",
+            ActivationMutationKind.Initial,
+            expectedRevision: 0,
+            proposed,
+            SqlitePersistenceFixture.At(3));
+        var snapshot = await new SqliteQueryActivationReader(fixture.Options).ReadAsync(
+            SqlitePersistenceFixture.CorpusId,
+            SqlitePersistenceFixture.At(4));
+
+        Assert.Equal(StoreMutationOutcome.Applied, activated.Outcome);
+        var evidence = Assert.Single(snapshot!.EvidenceBindings);
+        Assert.Null(evidence.EvidenceBinding.RenderManifestId);
+        Assert.Null(evidence.RenderManifest);
+        Assert.True(evidence.IsEligible);
+    }
+
+    [Fact]
     public async Task VisualReaderRevalidatesActiveSqliteAuthorityAndImmutableContent()
     {
         await using var fixture = await SqlitePersistenceFixture.CreateAsync();

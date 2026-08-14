@@ -46,7 +46,8 @@ public sealed class DocumentRenderCandidateRequest
         DocumentRightsEligibilityRecordV1 rights,
         PdfRenderPolicy policy,
         DateTimeOffset generatedAt,
-        DerivativeObligationSetV1? obligationSet = null)
+        DerivativeObligationSetV1? obligationSet = null,
+        IEnumerable<int>? pageNumbers = null)
     {
         ArgumentNullException.ThrowIfNull(corpusId);
         ArgumentNullException.ThrowIfNull(documentId);
@@ -81,6 +82,17 @@ public sealed class DocumentRenderCandidateRequest
                 nameof(generatedAt));
         }
 
+        var selectedPages = pageNumbers?.Order().ToArray();
+        if (selectedPages is not null &&
+            (obligationSet is null || selectedPages.Length == 0 ||
+             selectedPages.Any(pageNumber => pageNumber <= 0) ||
+             selectedPages.Distinct().Count() != selectedPages.Length))
+        {
+            throw new ArgumentException(
+                "An on-demand render requires a non-empty unique positive page selection and its exact obligation set.",
+                nameof(pageNumbers));
+        }
+
         CorpusId = corpusId;
         DocumentId = documentId;
         DocumentVersion = documentVersion;
@@ -90,6 +102,9 @@ public sealed class DocumentRenderCandidateRequest
         Policy = policy;
         GeneratedAt = generatedAt;
         ObligationSet = obligationSet;
+        PageNumbers = selectedPages is null
+            ? null
+            : Array.AsReadOnly(selectedPages);
     }
 
     public CorpusId CorpusId { get; }
@@ -109,6 +124,8 @@ public sealed class DocumentRenderCandidateRequest
     public DateTimeOffset GeneratedAt { get; }
 
     public DerivativeObligationSetV1? ObligationSet { get; }
+
+    public IReadOnlyCollection<int>? PageNumbers { get; }
 }
 
 public sealed record DocumentRenderCandidateResult(
@@ -180,10 +197,18 @@ public sealed class DocumentRenderCandidateService
                     request.SourceContentObjectId,
                     request.SourceByteLength),
                 cancellationToken).ConfigureAwait(false);
-            rendered = await renderer.RenderAsync(
-                source,
-                request.Policy,
-                cancellationToken).ConfigureAwait(false);
+            rendered = request.PageNumbers is null
+                ? await renderer.RenderAsync(
+                    source,
+                    request.Policy,
+                    cancellationToken).ConfigureAwait(false)
+                : renderer is ISelectivePdfPageRenderer selectiveRenderer
+                    ? await selectiveRenderer.RenderSelectionAsync(
+                        source,
+                        request.Policy,
+                        request.PageNumbers,
+                        cancellationToken).ConfigureAwait(false)
+                    : throw new PdfRenderException(PdfRenderFailureKind.RendererUnavailable);
         }
         catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
         {
@@ -206,10 +231,11 @@ public sealed class DocumentRenderCandidateService
         }
 
         var sourceDescriptor = renderer.Describe(request.Policy);
-        var validatedPages = ValidateCompleteRendererOutput(
+        var validatedPages = ValidateRendererOutput(
             rendered,
             sourceDescriptor,
-            request.Policy);
+            request.Policy,
+            request.PageNumbers);
         var pageBindings = new List<DocumentPageImage>(validatedPages.Count);
         var expectedDescriptor = request.ObligationSet is null
             ? sourceDescriptor
@@ -350,15 +376,25 @@ public sealed class DocumentRenderCandidateService
                 expectedDescriptor,
                 pageBindings,
                 request.GeneratedAt)
-            : DocumentRenderManifest.CreateNoticeBearing(
-                request.DocumentId,
-                request.DocumentVersion,
-                request.SourceContentObjectId,
-                rendered.SourcePageCount,
-                expectedDescriptor,
-                request.ObligationSet,
-                pageBindings,
-                request.GeneratedAt);
+            : request.PageNumbers is null
+                ? DocumentRenderManifest.CreateNoticeBearing(
+                    request.DocumentId,
+                    request.DocumentVersion,
+                    request.SourceContentObjectId,
+                    rendered.SourcePageCount,
+                    expectedDescriptor,
+                    request.ObligationSet,
+                    pageBindings,
+                    request.GeneratedAt)
+                : DocumentRenderManifest.CreateNoticeBearingSelection(
+                    request.DocumentId,
+                    request.DocumentVersion,
+                    request.SourceContentObjectId,
+                    rendered.SourcePageCount,
+                    expectedDescriptor,
+                    request.ObligationSet,
+                    pageBindings,
+                    request.GeneratedAt);
         var commit = await manifestStore.CommitAsync(
             new RenderManifestCommitRequest(request.CorpusId, manifest, request.ObligationSet),
             cancellationToken).ConfigureAwait(false);
@@ -385,14 +421,16 @@ public sealed class DocumentRenderCandidateService
         return new DocumentRenderCandidateResult(commit.Outcome, readback);
     }
 
-    private ReadOnlyCollection<ValidatedPage> ValidateCompleteRendererOutput(
+    private ReadOnlyCollection<ValidatedPage> ValidateRendererOutput(
         PdfRenderResult rendered,
         RendererDescriptor expectedDescriptor,
-        PdfRenderPolicy policy)
+        PdfRenderPolicy policy,
+        IReadOnlyCollection<int>? selectedPageNumbers)
     {
+        var expectedPages = selectedPageNumbers?.Order().ToArray();
         if (rendered.RendererDescriptor != expectedDescriptor ||
             rendered.SourcePageCount > policy.MaximumPageCount ||
-            rendered.Pages.Count != rendered.SourcePageCount)
+            rendered.Pages.Count != (expectedPages?.Length ?? rendered.SourcePageCount))
         {
             throw new DocumentRenderCandidateException(
                 DocumentRenderCandidateFailureKind.IncompleteRendererOutput);
@@ -406,7 +444,8 @@ public sealed class DocumentRenderCandidateService
         {
             var candidate = rendered.Pages[index];
 
-            if (candidate.PageNumber != index + 1)
+            if (candidate.PageNumber != (expectedPages?[index] ?? index + 1) ||
+                candidate.PageNumber > rendered.SourcePageCount)
             {
                 throw new DocumentRenderCandidateException(
                     DocumentRenderCandidateFailureKind.IncompleteRendererOutput);

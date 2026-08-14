@@ -168,11 +168,11 @@ public sealed class AnswerEvidenceCitationBindingV1
         if (documentFormat == DocumentFormat.Pdf)
         {
             if (pageStart is null || pageEnd is null || pageStart <= 0 ||
-                pageEnd < pageStart || renderManifestId is null ||
+                pageEnd < pageStart ||
                 recordStart is not null || recordEnd is not null || canonicalColumns.Length != 0)
             {
                 throw new ArgumentException(
-                    "A PDF citation requires a positive page range and render manifest, and prohibits CSV locations.");
+                    "A PDF citation requires a positive page range, may name visual evidence, and prohibits CSV locations.");
             }
         }
         else if (pageStart is not null || pageEnd is not null || renderManifestId is not null ||
@@ -621,6 +621,22 @@ public sealed class AnswerEvidenceRecordV1
         foreach (var citation in citations.Where(citation =>
                      citation.DocumentFormat == DocumentFormat.Pdf))
         {
+            if (citation.RenderManifestId is null)
+            {
+                if (pages.Any(page =>
+                        page.DocumentId == citation.DocumentId &&
+                        page.DocumentVersion == citation.DocumentVersion &&
+                        page.PageNumber >= citation.PageStart &&
+                        page.PageNumber <= citation.PageEnd))
+                {
+                    throw new ArgumentException(
+                        "A textual PDF citation cannot carry page-image bindings.",
+                        nameof(pages));
+                }
+
+                continue;
+            }
+
             for (var pageNumber = citation.PageStart!.Value;
                  pageNumber <= citation.PageEnd!.Value;
                  pageNumber++)

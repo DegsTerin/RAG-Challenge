@@ -48,7 +48,7 @@ public sealed class ActivationRecordPolicyTests
     }
 
     [Fact]
-    public void EvidenceBindingRequiresExactRightsRevisionAndFormatSpecificManifest()
+    public void EvidenceBindingAllowsTextOnlyPdfAndRejectsCsvRenderManifest()
     {
         var pdf = TestModelFactory.LocalBinding();
         var csv = new DocumentBinding(
@@ -73,11 +73,12 @@ public sealed class ActivationRecordPolicyTests
             source,
             rightsForAnotherDocument,
             new RenderManifestId($"rendermanifest-{new string('2', 64)}")));
-        Assert.Throws<ArgumentException>(() => new DocumentActivationEvidenceBinding(
+        var textOnlyPdf = new DocumentActivationEvidenceBinding(
             pdf,
             source,
             TestModelFactory.Evidence(pdf).Rights,
-            renderManifestId: null));
+            renderManifestId: null);
+        Assert.Null(textOnlyPdf.RenderManifestId);
         Assert.Throws<ArgumentException>(() => new DocumentActivationEvidenceBinding(
             csv,
             source,

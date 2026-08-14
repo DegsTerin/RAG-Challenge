@@ -1,5 +1,6 @@
 // Purpose: Reopens an explicitly configured product store and composes real OpenAI query providers without bootstrapping synthetic data or mutating catalogue and activation state.
 using System.Security.Cryptography;
+using System.Runtime.InteropServices;
 using System.Text;
 
 using Microsoft.Data.Sqlite;
@@ -10,6 +11,7 @@ using RagChallenge.Application.IndexingRetrieval;
 using RagChallenge.Application.Persistence;
 using RagChallenge.Domain.CorpusCatalog;
 using RagChallenge.Domain.IndexingRetrieval;
+using RagChallenge.Infrastructure.Documents;
 using RagChallenge.Infrastructure.Persistence;
 using RagChallenge.Infrastructure.Providers;
 using RagChallenge.Server.Api.Contracts.V1;
@@ -320,11 +322,35 @@ internal sealed class ProductQueryRuntime :
             var retrievalPolicyExecutor = new RetrievalV2PolicyExecutor(
                 vectorStore,
                 retrievalPolicyConfiguration);
+            var noticeCompositor = new NoticeBearingPageImageCompositor();
+            var renderCandidateService = new DocumentRenderCandidateService(
+                contentStore,
+                CreateProductPdfRenderer(),
+                new PngPageImageValidator(),
+                controlStore,
+                noticeCompositor,
+                noticeCompositor);
+            var visualMaterializer = new OnDemandVisualEvidenceMaterializer(
+                CorpusId,
+                controlStore,
+                controlStore,
+                renderCandidateService,
+                new PdfRenderPolicy(
+                    maximumSourceByteLength: 32L * 1024 * 1024,
+                    maximumPageCount: 5000,
+                    maximumTotalPixels: 25_000_000,
+                    maximumPageOutputByteLength: 64L * 1024 * 1024,
+                    maximumTotalOutputByteLength: 320L * 1024 * 1024,
+                    maximumWorkerMemoryBytes: 2L * 1024 * 1024 * 1024,
+                    maximumWorkerCpuTime: TimeSpan.FromMinutes(2),
+                    workerTimeout: TimeSpan.FromMinutes(3)));
+            var answerEvidenceStore = new SqliteAnswerEvidenceStore(stores);
             visualEvidenceReader = new VerifiedPageImageEvidenceReader(
                 CorpusId,
                 activationReader,
                 controlStore,
-                contentStore);
+                contentStore,
+                answerEvidenceStore);
             answeringService = new QuestionAnsweringService(
                 CorpusId,
                 ProductAdministrativeMaterialisationProfile.EmbeddingDescriptor,
@@ -334,14 +360,29 @@ internal sealed class ProductQueryRuntime :
                 retrievalPolicyExecutor,
                 retrievalPolicyConfiguration,
                 languageModel,
-                new SqliteAnswerEvidenceStore(stores),
+                answerEvidenceStore,
                 new SystemAnswerEvidenceRecordIdSource(),
-                answerEvidenceActivitySink);
+                answerEvidenceActivitySink,
+                visualMaterializer);
         }
         finally
         {
             initialisationGate.Release();
         }
+    }
+
+    private static IsolatedPdfRendererProcess CreateProductPdfRenderer()
+    {
+        var processPath = Environment.ProcessPath ??
+            throw new InvalidOperationException("The product renderer host path is unavailable.");
+        var isDotnetHost = string.Equals(
+            Path.GetFileNameWithoutExtension(processPath),
+            "dotnet",
+            StringComparison.OrdinalIgnoreCase);
+        return new IsolatedPdfRendererProcess(new RendererWorkerLaunch(
+            processPath,
+            isDotnetHost ? [typeof(Program).Assembly.Location] : [],
+            RuntimeInformation.RuntimeIdentifier));
     }
 
     private async Task ValidateCurrentAuthorityAsync(CancellationToken cancellationToken)
@@ -587,7 +628,9 @@ internal sealed class ProductQueryRuntime :
                 document.ContentObjectId == evidence.SourceContentObjectId) ||
             !DocumentRightsEligibilityPolicy.Evaluate(
                 evidence.Rights,
-                DocumentRightsEligibilityGate.PdfVisualEvidenceServing).IsEligible ||
+                evidence.RenderManifestId is null
+                    ? DocumentRightsEligibilityGate.TextualEvidence
+                    : DocumentRightsEligibilityGate.PdfVisualEvidenceServing).IsEligible ||
             evidence.Rights.Decisions.Any(decision =>
                 decision.EvidenceReference != approvedRightsEvidenceReference));
 

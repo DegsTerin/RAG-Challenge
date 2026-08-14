@@ -26,11 +26,10 @@ public sealed class DocumentActivationEvidenceBinding
                 nameof(rights));
         }
 
-        if ((documentBinding.DocumentFormat == DocumentFormat.Pdf && renderManifestId is null) ||
-            (documentBinding.DocumentFormat == DocumentFormat.Csv && renderManifestId is not null))
+        if (documentBinding.DocumentFormat == DocumentFormat.Csv && renderManifestId is not null)
         {
             throw new ArgumentException(
-                "A PDF activation requires one render manifest and a CSV activation cannot name one.",
+                "A CSV activation cannot name a PDF render manifest.",
                 nameof(renderManifestId));
         }
 

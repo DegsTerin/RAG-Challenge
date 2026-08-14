@@ -52,11 +52,7 @@ public sealed class SqliteControlPlaneStore(SqliteStoreOptions options)
         var existing = await context.DocumentRenderManifests.AsNoTracking()
             .FirstOrDefaultAsync(
                 row => row.CorpusId == request.CorpusId.Value &&
-                    row.DocumentId == manifest.DocumentId.Value &&
-                    row.DocumentVersion == manifest.DocumentVersion.Value &&
-                    row.SourceContentSha256 == manifest.SourceContentObjectId.Value &&
-                    row.RenderProfileId == manifest.RenderProfileId.Value &&
-                    row.RendererDescriptor == manifest.RendererDescriptor.Value,
+                    row.RenderManifestId == manifest.RenderManifestId.Value,
                 cancellationToken).ConfigureAwait(false);
 
         if (existing is not null)
@@ -182,6 +178,34 @@ public sealed class SqliteControlPlaneStore(SqliteStoreOptions options)
             corpusId,
             obligationSetId,
             cancellationToken).ConfigureAwait(false);
+    }
+
+    public async Task<DerivativeObligationSetV1?> ReadObligationSetForSourceAsync(
+        CorpusId corpusId,
+        DocumentId documentId,
+        DocumentVersionNumber documentVersion,
+        ContentObjectId sourceContentObjectId,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(corpusId);
+        ArgumentNullException.ThrowIfNull(documentId);
+        ArgumentNullException.ThrowIfNull(documentVersion);
+        ArgumentNullException.ThrowIfNull(sourceContentObjectId);
+        await using var context = options.CreateControlContext();
+        var row = await context.DerivativeObligationSets.AsNoTracking()
+            .SingleOrDefaultAsync(item =>
+                item.CorpusId == corpusId.Value &&
+                item.DocumentId == documentId.Value &&
+                item.DocumentVersion == documentVersion.Value &&
+                item.SourceContentSha256 == sourceContentObjectId.Value,
+                cancellationToken).ConfigureAwait(false);
+        return row is null
+            ? null
+            : await ReadObligationSetAsync(
+                context,
+                corpusId,
+                new DerivativeObligationSetId(row.ObligationSetId),
+                cancellationToken).ConfigureAwait(false);
     }
 
     public async Task<StoreMutationResult> CommitCatalogueAsync(
@@ -2295,14 +2319,15 @@ public sealed class SqliteControlPlaneStore(SqliteStoreOptions options)
                 {
                 }
 
-                if (binding.DocumentFormat == DocumentFormat.Csv)
+                if (binding.DocumentFormat == DocumentFormat.Csv ||
+                    evidence.RenderManifestId is null)
                 {
                     continue;
                 }
 
                 var manifestRow = await context.DocumentRenderManifests.AsNoTracking()
                     .SingleOrDefaultAsync(
-                        row => row.RenderManifestId == evidence.RenderManifestId!.Value,
+                        row => row.RenderManifestId == evidence.RenderManifestId.Value,
                         cancellationToken).ConfigureAwait(false);
 
                 if (manifestRow is null ||
@@ -2318,6 +2343,11 @@ public sealed class SqliteControlPlaneStore(SqliteStoreOptions options)
                     context,
                     manifestRow,
                     cancellationToken).ConfigureAwait(false);
+
+                if (!manifest.IsComplete)
+                {
+                    return false;
+                }
 
                 foreach (var page in manifest.OrderedPageImages)
                 {

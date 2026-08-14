@@ -373,7 +373,7 @@ public sealed class ControlPlaneDbContext(DbContextOptions<ControlPlaneDbContext
                 row.PageNumber,
                 row.RenderProfileId,
                 row.RendererDescriptor,
-            }).IsUnique();
+            });
             entity.HasOne<DocumentRenderManifestRow>().WithMany().HasForeignKey(row => new
             {
                 row.RenderManifestId,
@@ -909,7 +909,7 @@ public sealed class ControlPlaneDbContext(DbContextOptions<ControlPlaneDbContext
                     "rights_schema_version = 1");
                 table.HasCheckConstraint(
                     "ck_activation_evidence_manifest",
-                    "(document_format = 'Pdf' AND render_manifest_id IS NOT NULL) OR " +
+                    "document_format = 'Pdf' OR " +
                     "(document_format = 'Csv' AND render_manifest_id IS NULL)");
             });
             entity.HasKey(row => new
@@ -1104,8 +1104,7 @@ public sealed class ControlPlaneDbContext(DbContextOptions<ControlPlaneDbContext
                 table.HasCheckConstraint(
                     "ck_answer_evidence_citation_location",
                     "(document_format = 'Pdf' AND page_start > 0 AND page_end >= page_start " +
-                    "AND record_start IS NULL AND record_end IS NULL AND columns_json = '[]' " +
-                    "AND render_manifest_id IS NOT NULL) OR " +
+                    "AND record_start IS NULL AND record_end IS NULL AND columns_json = '[]') OR " +
                     "(document_format = 'Csv' AND page_start IS NULL AND page_end IS NULL " +
                     "AND ((record_start IS NULL AND record_end IS NULL) OR " +
                     "(record_start > 0 AND record_end >= record_start)) AND render_manifest_id IS NULL)");

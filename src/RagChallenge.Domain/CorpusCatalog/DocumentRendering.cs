@@ -210,6 +210,8 @@ public sealed class DocumentRenderManifest
 
     public DateTimeOffset GeneratedAt { get; }
 
+    public bool IsComplete => OrderedPageImages.Count == SourcePageCount;
+
     public static DocumentRenderManifest Create(
         DocumentId documentId,
         DocumentVersionNumber documentVersion,
@@ -302,6 +304,54 @@ public sealed class DocumentRenderManifest
             generatedAt);
     }
 
+    public static DocumentRenderManifest CreateNoticeBearingSelection(
+        DocumentId documentId,
+        DocumentVersionNumber documentVersion,
+        ContentObjectId sourceContentObjectId,
+        int sourcePageCount,
+        RendererDescriptor rendererDescriptor,
+        DerivativeObligationSetV1 obligationSet,
+        IEnumerable<DocumentPageImage> orderedPageImages,
+        DateTimeOffset generatedAt)
+    {
+        ArgumentNullException.ThrowIfNull(obligationSet);
+        var profile = new RenderProfileId(RenderProfileId.PdfPagePngNoticeV1);
+        var pages = Validate(
+            documentId,
+            documentVersion,
+            sourceContentObjectId,
+            sourcePageCount,
+            profile,
+            rendererDescriptor,
+            orderedPageImages,
+            obligationSet.ObligationSetId,
+            obligationSet.CanonicalSha256,
+            generatedAt,
+            requireComplete: false);
+        var digest = CanonicalDigest(
+            documentId,
+            documentVersion,
+            sourceContentObjectId,
+            sourcePageCount,
+            profile,
+            rendererDescriptor,
+            pages,
+            obligationSet.ObligationSetId,
+            obligationSet.CanonicalSha256);
+        return new DocumentRenderManifest(
+            documentId,
+            documentVersion,
+            sourceContentObjectId,
+            sourcePageCount,
+            profile,
+            rendererDescriptor,
+            pages,
+            obligationSet.ObligationSetId,
+            obligationSet.CanonicalSha256,
+            digest,
+            generatedAt);
+    }
+
     public static DocumentRenderManifest Rehydrate(
         DocumentId documentId,
         DocumentVersionNumber documentVersion,
@@ -326,7 +376,8 @@ public sealed class DocumentRenderManifest
             orderedPageImages,
             obligationSetId,
             obligationSetSha256,
-            generatedAt);
+            generatedAt,
+            requireComplete: false);
         var digest = CanonicalDigest(
             documentId,
             documentVersion,
@@ -369,7 +420,8 @@ public sealed class DocumentRenderManifest
         IEnumerable<DocumentPageImage> orderedPageImages,
         DerivativeObligationSetId? obligationSetId,
         DerivativeObligationSetSha256? obligationSetSha256,
-        DateTimeOffset generatedAt)
+        DateTimeOffset generatedAt,
+        bool requireComplete = true)
     {
         ArgumentNullException.ThrowIfNull(documentId);
         ArgumentNullException.ThrowIfNull(documentVersion);
@@ -405,10 +457,11 @@ public sealed class DocumentRenderManifest
 
         var pages = orderedPageImages.ToArray();
 
-        if (pages.Length != sourcePageCount)
+        if (pages.Length == 0 ||
+            (requireComplete || isLegacy) && pages.Length != sourcePageCount)
         {
             throw new ArgumentException(
-                "A final render manifest must contain exactly one image binding per source page.",
+                "A render manifest must contain a non-empty permitted page selection and legacy/full manifests must cover every source page.",
                 nameof(orderedPageImages));
         }
 
@@ -418,10 +471,14 @@ public sealed class DocumentRenderManifest
                 "A render manifest cannot contain a null page-image binding.",
                 nameof(orderedPageImages));
 
-            if (page.PageNumber != index + 1)
+            var expectedCompletePage = requireComplete || isLegacy;
+            if (page.PageNumber > sourcePageCount ||
+                (expectedCompletePage && page.PageNumber != index + 1) ||
+                (!expectedCompletePage && index > 0 &&
+                    pages[index - 1].PageNumber >= page.PageNumber))
             {
                 throw new ArgumentException(
-                    "Render-manifest pages must be unique, consecutive, one-based, and already ordered.",
+                    "Render-manifest pages must be unique, one-based, within the source, and already ordered; complete manifests are consecutive.",
                     nameof(orderedPageImages));
             }
 

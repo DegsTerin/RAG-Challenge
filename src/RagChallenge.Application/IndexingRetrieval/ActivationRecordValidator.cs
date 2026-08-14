@@ -95,7 +95,7 @@ public static class ActivationRecordValidator
 
         foreach (var evidence in proposedRecord.EvidenceBindings)
         {
-            var gate = evidence.DocumentBinding.DocumentFormat == DocumentFormat.Pdf
+            var gate = evidence.RenderManifestId is not null
                 ? DocumentRightsEligibilityGate.PdfVisualEvidence
                 : DocumentRightsEligibilityGate.TextualEvidence;
 

@@ -101,6 +101,56 @@ public sealed class DerivativeObligationSetTests
             TestModelFactory.Now));
     }
 
+    [Fact]
+    public void NoticeManifestSelectionPersistsOneCitedPageWithoutClaimingCompleteness()
+    {
+        var obligations = Obligations(Rights());
+        var profile = new RenderProfileId(RenderProfileId.PdfPagePngNoticeV1);
+        var renderer = new RendererDescriptor("notice-png-v1:selective");
+        var digest = new string('c', 64);
+        var page = new DocumentPageImage(
+            DocumentId,
+            DocumentVersion,
+            SourceId,
+            2,
+            profile,
+            renderer,
+            new ContentObjectId(digest),
+            new ImageSha256(digest),
+            4096,
+            DocumentPageImage.PngMediaType,
+            100,
+            180,
+            sourceRegionWidthPixels: 100,
+            sourceRegionHeightPixels: 120,
+            noticeRegionHeightPixels: 60);
+        var manifest = DocumentRenderManifest.CreateNoticeBearingSelection(
+            DocumentId,
+            DocumentVersion,
+            SourceId,
+            sourcePageCount: 3,
+            renderer,
+            obligations,
+            [page],
+            TestModelFactory.Now);
+        var reopened = DocumentRenderManifest.Rehydrate(
+            manifest.DocumentId,
+            manifest.DocumentVersion,
+            manifest.SourceContentObjectId,
+            manifest.SourcePageCount,
+            manifest.RenderProfileId,
+            manifest.RendererDescriptor,
+            manifest.OrderedPageImages,
+            manifest.ManifestSha256,
+            manifest.GeneratedAt,
+            manifest.ObligationSetId,
+            manifest.ObligationSetSha256);
+
+        Assert.False(manifest.IsComplete);
+        Assert.Equal(2, Assert.Single(reopened.OrderedPageImages).PageNumber);
+        Assert.Equal(manifest.RenderManifestId, reopened.RenderManifestId);
+    }
+
     private static DocumentRightsEligibilityRecordV1 Rights(DocumentRight? denied = null) =>
         new(
             DocumentId,

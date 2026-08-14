@@ -45,14 +45,16 @@ public sealed record QueryEvidenceBinding
         }
 
         if (binding.DocumentFormat == DocumentFormat.Pdf &&
-            (renderManifest is null ||
-             renderManifest.RenderManifestId != evidenceBinding.RenderManifestId ||
-             renderManifest.DocumentId != binding.DocumentId ||
-             renderManifest.DocumentVersion != binding.DocumentVersion ||
-             renderManifest.SourceContentObjectId != evidenceBinding.SourceContentObjectId))
+            ((evidenceBinding.RenderManifestId is null && renderManifest is not null) ||
+             (evidenceBinding.RenderManifestId is not null &&
+              (renderManifest is null ||
+               renderManifest.RenderManifestId != evidenceBinding.RenderManifestId ||
+               renderManifest.DocumentId != binding.DocumentId ||
+               renderManifest.DocumentVersion != binding.DocumentVersion ||
+               renderManifest.SourceContentObjectId != evidenceBinding.SourceContentObjectId))))
         {
             throw new ArgumentException(
-                "Query-time PDF evidence requires its exact final render manifest.",
+                "Query-time PDF evidence must preserve its optional activation render manifest exactly.",
                 nameof(renderManifest));
         }
 
@@ -437,6 +439,7 @@ public sealed class QuestionAnsweringService : IQuestionAnsweringService
     private readonly IAnswerEvidenceStore answerEvidenceStore;
     private readonly IAnswerEvidenceRecordIdSource answerEvidenceRecordIdSource;
     private readonly IAnswerEvidenceActivitySink answerEvidenceActivitySink;
+    private readonly IQueryVisualEvidenceMaterializer? visualEvidenceMaterializer;
 
     public QuestionAnsweringService(
         CorpusId configuredCorpusId,
@@ -449,7 +452,8 @@ public sealed class QuestionAnsweringService : IQuestionAnsweringService
         ILanguageModel languageModel,
         IAnswerEvidenceStore answerEvidenceStore,
         IAnswerEvidenceRecordIdSource answerEvidenceRecordIdSource,
-        IAnswerEvidenceActivitySink answerEvidenceActivitySink)
+        IAnswerEvidenceActivitySink answerEvidenceActivitySink,
+        IQueryVisualEvidenceMaterializer? visualEvidenceMaterializer = null)
     {
         this.configuredCorpusId = configuredCorpusId ??
             throw new ArgumentNullException(nameof(configuredCorpusId));
@@ -472,7 +476,7 @@ public sealed class QuestionAnsweringService : IQuestionAnsweringService
             throw new ArgumentNullException(nameof(answerEvidenceRecordIdSource));
         this.answerEvidenceActivitySink = answerEvidenceActivitySink ??
             throw new ArgumentNullException(nameof(answerEvidenceActivitySink));
-
+        this.visualEvidenceMaterializer = visualEvidenceMaterializer;
     }
 
     public async Task<QueryExecutionResult> AskAsync(
@@ -584,6 +588,51 @@ public sealed class QuestionAnsweringService : IQuestionAnsweringService
                 .Where(item => cited.Contains(item.ChunkId))
                 .Select(item => CreateCitation(snapshot, item))
                 .ToArray();
+            IReadOnlyCollection<OnDemandVisualEvidenceMaterialisation> visualMaterialisations = [];
+            if (request.ContractVersion == QueryContractVersion.V2 &&
+                visualEvidenceMaterializer is not null)
+            {
+                try
+                {
+                    visualMaterialisations = await visualEvidenceMaterializer.MaterialiseAsync(
+                        snapshot,
+                        citations,
+                        observedAt,
+                        cancellationToken).ConfigureAwait(false);
+                    citations = citations.Select(citation =>
+                    {
+                        var materialisation = citation.DocumentFormat == DocumentFormat.Pdf
+                            ? visualMaterialisations.SingleOrDefault(item =>
+                            item.Manifest.DocumentId == citation.DocumentId &&
+                            item.Manifest.DocumentVersion == citation.DocumentVersion &&
+                            item.Manifest.SourceContentObjectId == snapshot.EvidenceBindings
+                                .Single(binding =>
+                                    binding.Binding.DocumentId == citation.DocumentId &&
+                                    binding.Binding.DocumentVersion == citation.DocumentVersion)
+                                .EvidenceBinding.SourceContentObjectId &&
+                            Enumerable.Range(
+                                citation.PageStart!.Value,
+                                citation.PageEnd!.Value - citation.PageStart.Value + 1)
+                                .All(pageNumber => item.Manifest.OrderedPageImages.Any(page =>
+                                    page.PageNumber == pageNumber)))
+                            : null;
+                        return materialisation is null
+                            ? citation
+                            : citation with
+                            {
+                                DerivativeObligationSet = materialisation.ObligationSet,
+                            };
+                    }).ToArray();
+                }
+                catch (OperationCanceledException)
+                {
+                    throw;
+                }
+                catch (Exception)
+                {
+                    visualMaterialisations = [];
+                }
+            }
             var completion = new QueryCompletion(
                 QueryOutcome.Answered,
                 request.QuestionLanguage,
@@ -604,7 +653,8 @@ public sealed class QuestionAnsweringService : IQuestionAnsweringService
                     answerEvidenceRecordIdSource.Create(),
                     snapshot,
                     completion,
-                    observedAt);
+                    observedAt,
+                    visualMaterialisations);
                 var persisted = await answerEvidenceStore.PersistAsync(
                     answerEvidenceRecord,
                     cancellationToken).ConfigureAwait(false);

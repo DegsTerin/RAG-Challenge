@@ -132,8 +132,7 @@ internal sealed class AdministrativeActivationPlanProjector(
         if (plan.ExpectedCurrentRevision < 0 ||
             plan.PreviousGenerationRetentionDays <
                 (int)SqliteControlPlaneStore.MinimumPreviousGenerationRetention.TotalDays ||
-            plan.DocumentRenderManifests is null ||
-            plan.DocumentRenderManifests.Length != indexedDocuments.Count)
+            plan.DocumentRenderManifests is null)
         {
             throw new InvalidDataException("The activation-plan projection is incomplete.");
         }
@@ -148,14 +147,10 @@ internal sealed class AdministrativeActivationPlanProjector(
             var rights = indexed.Rights;
             var source = indexed.SourceContentObjectId;
 
-            if (!requested.Remove(
-                    (binding.DocumentId, binding.DocumentVersion),
-                    out var payload))
-            {
-                throw new InvalidDataException("The activation evidence set is incomplete.");
-            }
-
-            var renderManifestId = payload.RenderManifestId is null
+            requested.Remove(
+                (binding.DocumentId, binding.DocumentVersion),
+                out var payload);
+            var renderManifestId = payload?.RenderManifestId is null
                 ? null
                 : new RenderManifestId(payload.RenderManifestId);
             var item = new DocumentActivationEvidenceBinding(
@@ -164,7 +159,7 @@ internal sealed class AdministrativeActivationPlanProjector(
                 rights,
                 renderManifestId);
 
-            if (binding.DocumentFormat == DocumentFormat.Pdf)
+            if (renderManifestId is not null)
             {
                 var manifest = await manifestStore.ReadAsync(
                     corpusId,
@@ -173,6 +168,7 @@ internal sealed class AdministrativeActivationPlanProjector(
 
                 if (manifest is null ||
                     manifest.RenderManifestId != renderManifestId ||
+                    !manifest.IsComplete ||
                     manifest.RenderProfileId.Value != RenderProfileId.PdfPagePngNoticeV1 ||
                     manifest.DocumentId != binding.DocumentId ||
                     manifest.DocumentVersion != binding.DocumentVersion ||

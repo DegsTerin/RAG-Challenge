@@ -124,6 +124,30 @@ public sealed class QuestionAnsweringServiceTests
     }
 
     [Fact]
+    public async Task OnDemandVisualFailurePreservesTheTextualV2Answer()
+    {
+        var materializer = new FailingVisualEvidenceMaterializer();
+        var context = CreateContext(
+            SupportedQueryLanguage.EnGb,
+            textOnlyPdf: true,
+            visualEvidenceMaterializer: materializer);
+
+        var result = await context.Service.AskAsync(
+            new QueryRequest(
+                CorpusId,
+                SupportedQueryLanguage.EnGb,
+                "Question",
+                "correlation-text-first",
+                ContractVersion: QueryContractVersion.V2),
+            At(5));
+
+        Assert.Equal(QueryOutcome.Answered, result.Completion!.Outcome);
+        Assert.Empty(Assert.Single(result.Completion.Citations).PageImages);
+        Assert.Empty(Assert.Single(context.AnswerEvidenceStore.Records).PageImages);
+        Assert.Equal(1, materializer.CallCount);
+    }
+
+    [Fact]
     public async Task PostGenerationPersistenceFailureMapsToUnexpectedFailure()
     {
         var context = CreateContext(
@@ -395,7 +419,9 @@ public sealed class QuestionAnsweringServiceTests
         RetrievalPolicyOutcome? retrievalFailure = null,
         DocumentContentLanguage? contentLanguage = null,
         SourceDeclaredLanguage? sourceDeclaredLanguage = null,
-        bool mismatchedPolicyDescriptor = false)
+        bool mismatchedPolicyDescriptor = false,
+        bool textOnlyPdf = false,
+        IQueryVisualEvidenceMaterializer? visualEvidenceMaterializer = null)
     {
         contentLanguage ??= new DocumentContentLanguage(
             evidenceLanguage.ToCanonicalTag());
@@ -407,7 +433,11 @@ public sealed class QuestionAnsweringServiceTests
             DocumentFormat.Pdf,
             new SourceAdapterId("local-pdf"),
             SourceTrustClass.LocalAuthorised);
-        var (evidence, renderManifest) = CreatePdfEvidence(binding);
+        var (fullEvidence, fullRenderManifest) = CreatePdfEvidence(binding);
+        var evidence = textOnlyPdf
+            ? CreateEvidence(binding, fullEvidence.SourceContentObjectId, renderManifestId: null)
+            : fullEvidence;
+        var renderManifest = textOnlyPdf ? null : fullRenderManifest;
         var manifest = CreateManifest([binding]);
         var activation = new CorpusActivationRecord(
             CorpusId,
@@ -484,7 +514,8 @@ public sealed class QuestionAnsweringServiceTests
             model,
             answerEvidenceStore,
             new FixedAnswerEvidenceRecordIdSource(),
-            NullAnswerEvidenceActivitySink.Instance);
+            NullAnswerEvidenceActivitySink.Instance,
+            visualEvidenceMaterializer);
         return new TestContext(service, embedding, model, answerEvidenceStore);
     }
 
@@ -810,6 +841,21 @@ public sealed class QuestionAnsweringServiceTests
             DateTimeOffset observedAt,
             CancellationToken cancellationToken = default) =>
             Task.FromResult<QueryActivationSnapshot?>(snapshot);
+    }
+
+    private sealed class FailingVisualEvidenceMaterializer : IQueryVisualEvidenceMaterializer
+    {
+        public int CallCount { get; private set; }
+
+        public Task<IReadOnlyCollection<OnDemandVisualEvidenceMaterialisation>> MaterialiseAsync(
+            QueryActivationSnapshot snapshot,
+            IReadOnlyCollection<QueryCitation> citations,
+            DateTimeOffset generatedAt,
+            CancellationToken cancellationToken = default)
+        {
+            CallCount++;
+            throw new InvalidOperationException("Injected optional visual failure.");
+        }
     }
 
     private sealed class FakeEmbeddingProvider(

@@ -206,6 +206,14 @@ public interface IDocumentRenderManifestStore
         DerivativeObligationSetId obligationSetId,
         CancellationToken cancellationToken = default) =>
         Task.FromResult<DerivativeObligationSetV1?>(null);
+
+    Task<DerivativeObligationSetV1?> ReadObligationSetForSourceAsync(
+        CorpusId corpusId,
+        DocumentId documentId,
+        DocumentVersionNumber documentVersion,
+        ContentObjectId sourceContentObjectId,
+        CancellationToken cancellationToken = default) =>
+        Task.FromResult<DerivativeObligationSetV1?>(null);
 }
 
 public sealed record ContentMediaType

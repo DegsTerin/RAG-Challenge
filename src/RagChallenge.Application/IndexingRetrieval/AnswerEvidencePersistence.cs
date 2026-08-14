@@ -31,6 +31,22 @@ public interface IAnswerEvidenceStore
         CancellationToken cancellationToken = default);
 }
 
+public interface IAnswerEvidenceVisualAuthorityReader
+{
+    Task<bool> IsAuthorisedAsync(
+        CorpusId corpusId,
+        ActivationRecordRevision activationRecordRevision,
+        IndexGenerationId indexGenerationId,
+        DocumentId documentId,
+        DocumentVersionNumber documentVersion,
+        ContentObjectId sourceContentObjectId,
+        RenderManifestId renderManifestId,
+        int pageNumber,
+        ContentObjectId imageContentObjectId,
+        DateTimeOffset observedAt,
+        CancellationToken cancellationToken = default);
+}
+
 public interface IAnswerEvidenceRecordIdSource
 {
     AnswerEvidenceRecordId Create();
@@ -134,7 +150,8 @@ internal static class AnswerEvidenceRecordComposer
         AnswerEvidenceRecordId recordId,
         QueryActivationSnapshot snapshot,
         QueryCompletion completion,
-        DateTimeOffset createdAt)
+        DateTimeOffset createdAt,
+        IReadOnlyCollection<OnDemandVisualEvidenceMaterialisation>? visualMaterialisations = null)
     {
         ArgumentNullException.ThrowIfNull(recordId);
         ArgumentNullException.ThrowIfNull(snapshot);
@@ -148,6 +165,7 @@ internal static class AnswerEvidenceRecordComposer
                 "Only a fully validated Answered completion can produce persistent evidence.");
         }
 
+        visualMaterialisations ??= [];
         var citationBindings = completion.Citations.Select((citation, index) =>
         {
             var resolved = snapshot.EvidenceBindings.SingleOrDefault(binding =>
@@ -158,6 +176,17 @@ internal static class AnswerEvidenceRecordComposer
                 throw new InvalidDataException(
                     "A response citation has no exact activation evidence binding.");
             var evidence = resolved.EvidenceBinding;
+            var onDemandManifest = citation.DocumentFormat == DocumentFormat.Pdf
+                ? visualMaterialisations.SingleOrDefault(item =>
+                item.Manifest.DocumentId == citation.DocumentId &&
+                item.Manifest.DocumentVersion == citation.DocumentVersion &&
+                item.Manifest.SourceContentObjectId == evidence.SourceContentObjectId &&
+                Enumerable.Range(
+                    citation.PageStart!.Value,
+                    citation.PageEnd!.Value - citation.PageStart.Value + 1)
+                    .All(pageNumber => item.Manifest.OrderedPageImages.Any(page =>
+                        page.PageNumber == pageNumber)))?.Manifest
+                : null;
 
             return new AnswerEvidenceCitationBindingV1(
                 index + 1,
@@ -180,14 +209,19 @@ internal static class AnswerEvidenceRecordComposer
                 citation.RecordEnd,
                 citation.Columns,
                 sectionLocator: null,
-                evidence.RenderManifestId);
+                evidence.RenderManifestId ?? onDemandManifest?.RenderManifestId);
         }).ToArray();
         var pageBindings = citationBindings
-            .Where(citation => citation.DocumentFormat == DocumentFormat.Pdf)
+            .Where(citation => citation.DocumentFormat == DocumentFormat.Pdf &&
+                citation.RenderManifestId is not null)
             .SelectMany(citation => Enumerable.Range(
                 citation.PageStart!.Value,
                 citation.PageEnd!.Value - citation.PageStart.Value + 1)
-                .Select(pageNumber => CreatePageBinding(snapshot, citation, pageNumber)))
+                .Select(pageNumber => CreatePageBinding(
+                    snapshot,
+                    visualMaterialisations,
+                    citation,
+                    pageNumber)))
             .GroupBy(page => (page.DocumentId, page.DocumentVersion, page.PageNumber))
             .Select(group => group.First())
             .ToArray();
@@ -236,14 +270,22 @@ internal static class AnswerEvidenceRecordComposer
 
     private static AnswerEvidencePageBindingV1 CreatePageBinding(
         QueryActivationSnapshot snapshot,
+        IReadOnlyCollection<OnDemandVisualEvidenceMaterialisation> visualMaterialisations,
         AnswerEvidenceCitationBindingV1 citation,
         int pageNumber)
     {
         var resolved = snapshot.EvidenceBindings.Single(binding =>
             binding.Binding.DocumentId == citation.DocumentId &&
             binding.Binding.DocumentVersion == citation.DocumentVersion);
-        var manifest = resolved.RenderManifest ?? throw new InvalidDataException(
-            "A cited PDF has no fully hydrated final render manifest.");
+        var manifest = resolved.RenderManifest is { } activationManifest &&
+            activationManifest.RenderManifestId == citation.RenderManifestId
+            ? activationManifest
+            : visualMaterialisations.SingleOrDefault(item =>
+                item.Manifest.RenderManifestId == citation.RenderManifestId &&
+                item.Manifest.DocumentId == citation.DocumentId &&
+                item.Manifest.DocumentVersion == citation.DocumentVersion)?.Manifest ??
+                throw new InvalidDataException(
+                    "A cited PDF has no exact persisted render manifest.");
 
         if (manifest.RenderManifestId != citation.RenderManifestId ||
             manifest.SourceContentObjectId != citation.SourceContentObjectId)

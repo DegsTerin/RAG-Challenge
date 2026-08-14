@@ -56,6 +56,60 @@ public sealed class SqliteAnswerEvidenceStoreTests
     }
 
     [Fact]
+    public async Task PersistedPageAuthorityIsExactAndExpiresWithItsAnswerEvidence()
+    {
+        await using var fixture = await SqlitePersistenceFixture.CreateAsync();
+        var record = await CreateRecordAsync(fixture);
+        var store = new SqliteAnswerEvidenceStore(fixture.Options);
+        Assert.Equal(
+            AnswerEvidencePersistenceOutcome.Applied,
+            (await store.PersistAsync(record)).Outcome);
+        var citation = Assert.Single(record.Citations);
+        var page = Assert.Single(record.PageImages);
+
+        var authorised = await store.IsAuthorisedAsync(
+            record.CorpusId,
+            record.ActivationRecordRevision,
+            record.IndexGenerationId,
+            citation.DocumentId,
+            citation.DocumentVersion,
+            citation.SourceContentObjectId,
+            page.RenderManifestId,
+            page.PageNumber,
+            page.ImageContentObjectId,
+            record.CreatedAt);
+        var expired = await store.IsAuthorisedAsync(
+            record.CorpusId,
+            record.ActivationRecordRevision,
+            record.IndexGenerationId,
+            citation.DocumentId,
+            citation.DocumentVersion,
+            citation.SourceContentObjectId,
+            page.RenderManifestId,
+            page.PageNumber,
+            page.ImageContentObjectId,
+            record.ExpiresAt.AddTicks(1));
+
+        Assert.True(authorised);
+        Assert.False(expired);
+    }
+
+    [Fact]
+    public async Task TextOnlyPdfCitationPersistsWithoutAnyPageDerivative()
+    {
+        await using var fixture = await SqlitePersistenceFixture.CreateAsync();
+        var record = await CreateRecordAsync(fixture, textOnlyPdf: true);
+        var persisted = await new SqliteAnswerEvidenceStore(fixture.Options)
+            .PersistAsync(record);
+
+        Assert.Equal(AnswerEvidencePersistenceOutcome.Applied, persisted.Outcome);
+        Assert.Null(Assert.Single(persisted.PersistedRecord!.Citations).RenderManifestId);
+        Assert.Empty(persisted.PersistedRecord.PageImages);
+        Assert.Equal(0, await fixture.ScalarAsync(
+            "SELECT COUNT(*) FROM answer_evidence_pages;"));
+    }
+
+    [Fact]
     public async Task GenericBcp47CitationLanguagePersistsAndSurvivesRestart()
     {
         await using var fixture = await SqlitePersistenceFixture.CreateAsync();
@@ -288,13 +342,21 @@ public sealed class SqliteAnswerEvidenceStoreTests
         AnswerEvidenceRecordId? recordId = null,
         string correlationId = "correlation-answer-evidence",
         ActivationBindingSetDigest? activationDigest = null,
-        DocumentContentLanguage? contentLanguage = null)
+        DocumentContentLanguage? contentLanguage = null,
+        bool textOnlyPdf = false)
     {
         var (_, binding) = await fixture.CommitLocalCatalogueAsync(
             "Private source excerpt and https://private.invalid",
             contentLanguage);
         var generation = await fixture.CommitGenerationAsync(binding, "answer-evidence");
-        var evidence = await fixture.CreateActivationEvidenceAsync(binding);
+        var renderedEvidence = await fixture.CreateActivationEvidenceAsync(binding);
+        var evidence = textOnlyPdf
+            ? new DocumentActivationEvidenceBinding(
+                binding,
+                renderedEvidence.SourceContentObjectId,
+                renderedEvidence.Rights,
+                renderManifestId: null)
+            : renderedEvidence;
         var activation = await new GenerationActivationService(fixture.ControlStore)
             .ActivateAsync(new GenerationActivationRequest(
                 generation,
@@ -304,11 +366,13 @@ public sealed class SqliteAnswerEvidenceStoreTests
                 Audit("activate-answer-evidence", SqlitePersistenceFixture.At(3))));
         var active = activation.CurrentRecord ?? throw new InvalidOperationException(
             "The synthetic activation was not persisted.");
-        var manifest = await fixture.ControlStore.ReadAsync(
-            SqlitePersistenceFixture.CorpusId,
-            evidence.RenderManifestId!) ?? throw new InvalidOperationException(
-                "The synthetic render manifest was not persisted.");
-        var page = Assert.Single(manifest.OrderedPageImages);
+        var manifest = evidence.RenderManifestId is null
+            ? null
+            : await fixture.ControlStore.ReadAsync(
+                SqlitePersistenceFixture.CorpusId,
+                evidence.RenderManifestId) ?? throw new InvalidOperationException(
+                    "The synthetic render manifest was not persisted.");
+        var page = manifest?.OrderedPageImages.Single();
         var citation = new AnswerEvidenceCitationBindingV1(
             1,
             binding.DatabaseProductId,
@@ -331,20 +395,22 @@ public sealed class SqliteAnswerEvidenceStoreTests
             columns: null,
             sectionLocator: null,
             evidence.RenderManifestId);
-        var pageBinding = new AnswerEvidencePageBindingV1(
-            page.DocumentId,
-            page.DocumentVersion,
-            page.SourceContentObjectId,
-            page.PageNumber,
-            manifest.RenderManifestId,
-            page.RenderProfileId,
-            page.RendererDescriptor,
-            page.ImageContentObjectId,
-            page.ImageSha256,
-            page.ByteLength,
-            page.MediaType,
-            page.WidthPixels,
-            page.HeightPixels);
+        var pageBindings = page is null || manifest is null
+            ? Array.Empty<AnswerEvidencePageBindingV1>()
+            : [new AnswerEvidencePageBindingV1(
+                page.DocumentId,
+                page.DocumentVersion,
+                page.SourceContentObjectId,
+                page.PageNumber,
+                manifest.RenderManifestId,
+                page.RenderProfileId,
+                page.RendererDescriptor,
+                page.ImageContentObjectId,
+                page.ImageSha256,
+                page.ByteLength,
+                page.MediaType,
+                page.WidthPixels,
+                page.HeightPixels)];
         var answerBytes = Encoding.UTF8.GetBytes("Private answer body");
         return AnswerEvidenceRecordV1.Create(
             recordId ?? new AnswerEvidenceRecordId(
@@ -368,7 +434,7 @@ public sealed class SqliteAnswerEvidenceStoreTests
             correlationId,
             SqlitePersistenceFixture.At(4),
             [citation],
-            [pageBinding]);
+            pageBindings);
     }
 
     private static AnswerEvidenceRecordV1 CreateAuthorityMismatch(

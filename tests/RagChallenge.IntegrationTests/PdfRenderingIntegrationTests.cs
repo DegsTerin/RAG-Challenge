@@ -56,6 +56,31 @@ public sealed class PdfRenderingIntegrationTests
     }
 
     [Fact]
+    public void SelectiveRendererRasterisesOnlyTheRequestedPhysicalPage()
+    {
+        var policy = Policy(maximumPages: 3, maximumPixels: 25_000);
+        var pdf = CreatePdf(
+            new PageSpec(72, 72),
+            new PageSpec(72, 72),
+            new PageSpec(72, 72));
+
+        var selected = PdfToImagePdfPageRenderer.RenderSelection(
+            pdf,
+            policy,
+            RuntimeInformation.RuntimeIdentifier,
+            [2]);
+
+        Assert.Equal(3, selected.SourcePageCount);
+        Assert.Equal(2, Assert.Single(selected.Pages).PageNumber);
+        var fullFailure = Assert.Throws<PdfRenderException>(() =>
+            PdfToImagePdfPageRenderer.Render(
+                pdf,
+                policy,
+                RuntimeInformation.RuntimeIdentifier));
+        Assert.Equal(PdfRenderFailureKind.LimitExceeded, fullFailure.FailureKind);
+    }
+
+    [Fact]
     public async Task StreamingRendererEmitsTheSameOrderedFramesWithoutACompleteBufferedResult()
     {
         var policy = Policy(maximumPages: 3, maximumPixels: 300_000);
@@ -69,16 +94,18 @@ public sealed class PdfRenderingIntegrationTests
             RuntimeInformation.RuntimeIdentifier);
         RendererDescriptor? streamedDescriptor = null;
         var streamedPageCount = 0;
+        var streamedRenderedPageCount = 0;
         var streamed = new List<(int PageNumber, string Sha256, long TotalBytes)>();
 
         await PdfToImagePdfPageRenderer.RenderToAsync(
             pdf,
             policy,
             RuntimeInformation.RuntimeIdentifier,
-            (descriptor, pageCount, _) =>
+            (descriptor, pageCount, renderedPageCount, _) =>
             {
                 streamedDescriptor = descriptor;
                 streamedPageCount = pageCount;
+                streamedRenderedPageCount = renderedPageCount;
                 return Task.CompletedTask;
             },
             (page, totalBytes, _) =>
@@ -93,6 +120,7 @@ public sealed class PdfRenderingIntegrationTests
 
         Assert.Equal(buffered.RendererDescriptor, streamedDescriptor);
         Assert.Equal(buffered.SourcePageCount, streamedPageCount);
+        Assert.Equal(buffered.Pages.Count, streamedRenderedPageCount);
         Assert.Equal(
             buffered.Pages.Select((page, index) => (
                 page.PageNumber,
@@ -354,6 +382,82 @@ public sealed class PdfRenderingIntegrationTests
             page.ImageContentObjectId,
             new ExpectedHashAndLength(page.ImageContentObjectId, page.ByteLength));
         Assert.Equal(page.ByteLength, preserved.ByteLength);
+    }
+
+    [Fact]
+    public async Task DistinctCitedPageSelectionsPersistAsIndependentSparseManifests()
+    {
+        await using var fixture = await SqlitePersistenceFixture.CreateAsync();
+        var pdf = CreatePdf(new PageSpec(600, 300), new PageSpec(600, 300));
+        var document = await CommitPdfCatalogueAsync(fixture, pdf);
+        var rights = new DocumentRightsEligibilityRecordV1(
+            document.Id,
+            document.Version,
+            Enum.GetValues<DocumentRight>().Select(right => new DocumentRightDecision(
+                right,
+                DocumentRightDecisionState.Permitted,
+                new DocumentRightsEvidenceReference($"rights-selection-{right}"))));
+        var obligationSet = DerivativeObligationSetV1.Create(
+            rights,
+            document.ContentObjectId,
+            rights.Decisions.Select(decision => decision.EvidenceReference),
+            DocumentContentLanguage.EnGb,
+            "Synthetic Documentation Group",
+            "Synthetic Database Reference",
+            "1.0",
+            "synthetic-source-selection-v1",
+            "Synthetic attribution.",
+            "Copyright 2026 Synthetic Documentation Group.",
+            "Permission is granted for this project-owned synthetic fixture.",
+            ["Synthetic fixture disclaimer."],
+            DerivativeTrademarkTreatment.NotApplicable,
+            "NotApplicable: this synthetic fixture contains no third-party trademark.",
+            "Rendered derivative of the synthetic source; source pixels remain unchanged.",
+            new DateTimeOffset(2026, 8, 10, 12, 0, 0, TimeSpan.Zero),
+            "assessor-synthetic-v1");
+        var policy = Policy(maximumPages: 2, maximumPixels: 5_000_000);
+        var compositor = new NoticeBearingPageImageCompositor();
+        var service = new DocumentRenderCandidateService(
+            fixture.ContentStore,
+            CreateWorkerRenderer(),
+            new PngPageImageValidator(),
+            fixture.ControlStore,
+            compositor,
+            compositor);
+
+        var first = await service.FinaliseAsync(new DocumentRenderCandidateRequest(
+            SqlitePersistenceFixture.CorpusId,
+            document.Id,
+            document.Version,
+            document.ContentObjectId,
+            document.ByteLength,
+            rights,
+            policy,
+            new DateTimeOffset(2026, 8, 10, 13, 0, 0, TimeSpan.Zero),
+            obligationSet,
+            [1]));
+        var second = await service.FinaliseAsync(new DocumentRenderCandidateRequest(
+            SqlitePersistenceFixture.CorpusId,
+            document.Id,
+            document.Version,
+            document.ContentObjectId,
+            document.ByteLength,
+            rights,
+            policy,
+            new DateTimeOffset(2026, 8, 10, 13, 1, 0, TimeSpan.Zero),
+            obligationSet,
+            [2]));
+
+        Assert.Equal(StoreMutationOutcome.Applied, first.Outcome);
+        Assert.Equal(StoreMutationOutcome.Applied, second.Outcome);
+        Assert.False(first.Manifest.IsComplete);
+        Assert.False(second.Manifest.IsComplete);
+        Assert.Equal(1, Assert.Single(first.Manifest.OrderedPageImages).PageNumber);
+        Assert.Equal(2, Assert.Single(second.Manifest.OrderedPageImages).PageNumber);
+        Assert.Equal(2, await fixture.ScalarAsync(
+            "SELECT COUNT(*) FROM document_render_manifests;"));
+        Assert.Equal(2, await fixture.ScalarAsync(
+            "SELECT COUNT(*) FROM document_page_images;"));
     }
 
     [Fact]
@@ -731,7 +835,7 @@ public sealed class PdfRenderingIntegrationTests
     }
 
     [Fact]
-    public async Task ManifestCommitIsAtomicReadableIdempotentAndConflictAware()
+    public async Task ManifestCommitIsAtomicReadableIdempotentAndSupportsIndependentSelections()
     {
         await using var fixture = await SqlitePersistenceFixture.CreateAsync();
         var catalogue = await fixture.CommitLocalCatalogueAsync("synthetic source bytes");
@@ -746,23 +850,23 @@ public sealed class PdfRenderingIntegrationTests
         var readback = await fixture.ControlStore.ReadAsync(
             SqlitePersistenceFixture.CorpusId,
             first.RenderManifestId);
-        var conflictManifest = Manifest(
+        var independentManifest = Manifest(
             document,
             renderer,
             new byte[] { 7, 8, 9 },
             new byte[] { 10, 11, 12 });
-        var conflict = await fixture.ControlStore.CommitAsync(
+        var independent = await fixture.ControlStore.CommitAsync(
             new RenderManifestCommitRequest(
                 SqlitePersistenceFixture.CorpusId,
-                conflictManifest));
+                independentManifest));
 
         Assert.Equal(StoreMutationOutcome.Applied, applied.Outcome);
         Assert.Equal(StoreMutationOutcome.AlreadyApplied, replay.Outcome);
-        Assert.Equal(StoreMutationOutcome.RevisionConflict, conflict.Outcome);
+        Assert.Equal(StoreMutationOutcome.Applied, independent.Outcome);
         Assert.NotNull(readback);
         Assert.Equal(first.ManifestSha256, readback.ManifestSha256);
-        Assert.Equal(1, await fixture.ScalarAsync("SELECT COUNT(*) FROM document_render_manifests;"));
-        Assert.Equal(2, await fixture.ScalarAsync("SELECT COUNT(*) FROM document_page_images;"));
+        Assert.Equal(2, await fixture.ScalarAsync("SELECT COUNT(*) FROM document_render_manifests;"));
+        Assert.Equal(4, await fixture.ScalarAsync("SELECT COUNT(*) FROM document_page_images;"));
     }
 
     [Fact]

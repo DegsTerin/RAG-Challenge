@@ -31,6 +31,19 @@ public sealed class PdfToImagePdfPageRenderer
         ReadOnlyMemory<byte> source,
         PdfRenderPolicy policy,
         string effectiveRuntimeIdentifier,
+        CancellationToken cancellationToken = default) =>
+        RenderSelection(
+            source,
+            policy,
+            effectiveRuntimeIdentifier,
+            pageNumbers: null,
+            cancellationToken);
+
+    public static PdfRenderResult RenderSelection(
+        ReadOnlyMemory<byte> source,
+        PdfRenderPolicy policy,
+        string effectiveRuntimeIdentifier,
+        IReadOnlyCollection<int>? pageNumbers,
         CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(policy);
@@ -47,11 +60,11 @@ public sealed class PdfToImagePdfPageRenderer
 
         try
         {
-            var prepared = Prepare(source, policy, effectiveRuntimeIdentifier);
-            var pages = new List<RenderedPdfPageCandidate>(prepared.PageSizes.Length);
+            var prepared = Prepare(source, policy, effectiveRuntimeIdentifier, pageNumbers);
+            var pages = new List<RenderedPdfPageCandidate>(prepared.PageIndexes.Length);
             long totalOutputBytes = 0;
 
-            for (var pageIndex = 0; pageIndex < prepared.PageSizes.Length; pageIndex++)
+            foreach (var pageIndex in prepared.PageIndexes)
             {
                 var page = RenderPage(prepared, pageIndex, policy, cancellationToken);
                 totalOutputBytes = CountOutputBytes(page, totalOutputBytes, policy);
@@ -85,7 +98,24 @@ public sealed class PdfToImagePdfPageRenderer
         ReadOnlyMemory<byte> source,
         PdfRenderPolicy policy,
         string effectiveRuntimeIdentifier,
-        Func<RendererDescriptor, int, CancellationToken, Task> startOutput,
+        Func<RendererDescriptor, int, int, CancellationToken, Task> startOutput,
+        Func<RenderedPdfPageCandidate, long, CancellationToken, Task> writePage,
+        CancellationToken cancellationToken = default) =>
+        await RenderSelectionToAsync(
+            source,
+            policy,
+            effectiveRuntimeIdentifier,
+            pageNumbers: null,
+            startOutput,
+            writePage,
+            cancellationToken).ConfigureAwait(false);
+
+    internal static async Task RenderSelectionToAsync(
+        ReadOnlyMemory<byte> source,
+        PdfRenderPolicy policy,
+        string effectiveRuntimeIdentifier,
+        IReadOnlyCollection<int>? pageNumbers,
+        Func<RendererDescriptor, int, int, CancellationToken, Task> startOutput,
         Func<RenderedPdfPageCandidate, long, CancellationToken, Task> writePage,
         CancellationToken cancellationToken = default)
     {
@@ -105,14 +135,15 @@ public sealed class PdfToImagePdfPageRenderer
 
         try
         {
-            var prepared = Prepare(source, policy, effectiveRuntimeIdentifier);
+            var prepared = Prepare(source, policy, effectiveRuntimeIdentifier, pageNumbers);
             await startOutput(
                 prepared.RendererDescriptor,
                 prepared.PageSizes.Length,
+                prepared.PageIndexes.Length,
                 cancellationToken).ConfigureAwait(false);
             long totalOutputBytes = 0;
 
-            for (var pageIndex = 0; pageIndex < prepared.PageSizes.Length; pageIndex++)
+            foreach (var pageIndex in prepared.PageIndexes)
             {
                 var page = RenderPage(prepared, pageIndex, policy, cancellationToken);
                 totalOutputBytes = CountOutputBytes(page, totalOutputBytes, policy);
@@ -140,7 +171,8 @@ public sealed class PdfToImagePdfPageRenderer
     private static PreparedPdf Prepare(
         ReadOnlyMemory<byte> source,
         PdfRenderPolicy policy,
-        string effectiveRuntimeIdentifier)
+        string effectiveRuntimeIdentifier,
+        IReadOnlyCollection<int>? pageNumbers)
     {
         var sourceBytes = source.ToArray();
 #pragma warning disable CA1416 // The explicit Windows/Linux guard in each entry point matches the selected native assets.
@@ -156,10 +188,12 @@ public sealed class PdfToImagePdfPageRenderer
         var pageSizes = discoveredPageSizes
             .Select(size => (Width: (double)size.Width, Height: (double)size.Height))
             .ToArray();
+        var pageIndexes = SelectPageIndexes(pageSizes.Length, pageNumbers);
         long totalPixels = 0;
 
-        foreach (var size in pageSizes)
+        foreach (var pageIndex in pageIndexes)
         {
+            var size = pageSizes[pageIndex];
             var width = Math.Ceiling(size.Width * PdfRenderPolicy.Dpi / 72d);
             var height = Math.Ceiling(size.Height * PdfRenderPolicy.Dpi / 72d);
 
@@ -181,9 +215,31 @@ public sealed class PdfToImagePdfPageRenderer
         return new PreparedPdf(
             sourceBytes,
             pageSizes,
+            pageIndexes,
             PdfPagePngV1RendererIdentity.CreateDescriptor(
                 policy,
                 effectiveRuntimeIdentifier));
+    }
+
+    private static int[] SelectPageIndexes(
+        int sourcePageCount,
+        IReadOnlyCollection<int>? pageNumbers)
+    {
+        if (pageNumbers is null)
+        {
+            return Enumerable.Range(0, sourcePageCount).ToArray();
+        }
+
+        var selected = pageNumbers.ToArray();
+        if (selected.Length == 0 ||
+            selected.Distinct().Count() != selected.Length ||
+            selected.Any(pageNumber => pageNumber <= 0 || pageNumber > sourcePageCount))
+        {
+            throw new PdfRenderException(PdfRenderFailureKind.ProtocolViolation);
+        }
+
+        Array.Sort(selected);
+        return selected.Select(pageNumber => pageNumber - 1).ToArray();
     }
 
     private static RenderedPdfPageCandidate RenderPage(
@@ -252,5 +308,6 @@ public sealed class PdfToImagePdfPageRenderer
     private sealed record PreparedPdf(
         byte[] SourceBytes,
         (double Width, double Height)[] PageSizes,
+        int[] PageIndexes,
         RendererDescriptor RendererDescriptor);
 }

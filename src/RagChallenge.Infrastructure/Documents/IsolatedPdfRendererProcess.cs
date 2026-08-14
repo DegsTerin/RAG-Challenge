@@ -32,7 +32,7 @@ public sealed class RendererWorkerLaunch
     public string EffectiveRuntimeIdentifier { get; }
 }
 
-public sealed class IsolatedPdfRendererProcess : IPdfPageRenderer
+public sealed class IsolatedPdfRendererProcess : ISelectivePdfPageRenderer
 {
     private readonly RendererWorkerLaunch launch;
 
@@ -49,7 +49,29 @@ public sealed class IsolatedPdfRendererProcess : IPdfPageRenderer
     public async Task<PdfRenderResult> RenderAsync(
         VerifiedContentObject source,
         PdfRenderPolicy policy,
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken = default) =>
+        await RenderAsyncCore(
+            source,
+            policy,
+            pageNumbers: null,
+            cancellationToken).ConfigureAwait(false);
+
+    public async Task<PdfRenderResult> RenderSelectionAsync(
+        VerifiedContentObject source,
+        PdfRenderPolicy policy,
+        IReadOnlyCollection<int> pageNumbers,
+        CancellationToken cancellationToken = default) =>
+        await RenderAsyncCore(
+            source,
+            policy,
+            pageNumbers,
+            cancellationToken).ConfigureAwait(false);
+
+    private async Task<PdfRenderResult> RenderAsyncCore(
+        VerifiedContentObject source,
+        PdfRenderPolicy policy,
+        IReadOnlyCollection<int>? pageNumbers,
+        CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(source);
         ArgumentNullException.ThrowIfNull(policy);
@@ -73,6 +95,7 @@ public sealed class IsolatedPdfRendererProcess : IPdfPageRenderer
                 process.StandardInput.BaseStream,
                 source,
                 policy,
+                pageNumbers,
                 timeout.Token).ConfigureAwait(false);
             process.StandardInput.Close();
             var result = await PdfRenderWorkerProtocol.ReadResponseAsync(
@@ -205,15 +228,17 @@ public static class PdfRenderWorker
                 input,
                 request,
                 cancellationToken).ConfigureAwait(false);
-            await PdfToImagePdfPageRenderer.RenderToAsync(
+            await PdfToImagePdfPageRenderer.RenderSelectionToAsync(
                 source,
                 request.Policy,
                 RuntimeInformation.RuntimeIdentifier,
-                (descriptor, pageCount, token) =>
+                request.PageNumbers,
+                (descriptor, sourcePageCount, renderedPageCount, token) =>
                     PdfRenderWorkerProtocol.WriteSuccessHeaderAsync(
                         output,
                         descriptor,
-                        pageCount,
+                        sourcePageCount,
+                        renderedPageCount,
                         token),
                 (page, totalBytes, token) =>
                     PdfRenderWorkerProtocol.WritePageAsync(
@@ -254,15 +279,24 @@ public static class PdfRenderWorker
 
 internal static class PdfRenderWorkerProtocol
 {
-    private static readonly byte[] RequestMagic = Encoding.ASCII.GetBytes("RCPDFR1\0");
-    private static readonly byte[] ResponseMagic = Encoding.ASCII.GetBytes("RCPDFS1\0");
+    private static readonly byte[] RequestMagic = Encoding.ASCII.GetBytes("RCPDFR2\0");
+    private static readonly byte[] ResponseMagic = Encoding.ASCII.GetBytes("RCPDFS2\0");
 
     internal static async Task WriteRequestAsync(
         Stream output,
         VerifiedContentObject source,
         PdfRenderPolicy policy,
+        IReadOnlyCollection<int>? pageNumbers,
         CancellationToken cancellationToken)
     {
+        var selectedPages = pageNumbers?.Order().ToArray() ?? [];
+        if (selectedPages.Length > policy.MaximumPageCount ||
+            selectedPages.Any(pageNumber => pageNumber <= 0) ||
+            selectedPages.Distinct().Count() != selectedPages.Length)
+        {
+            throw new PdfRenderException(PdfRenderFailureKind.ProtocolViolation);
+        }
+
         using var header = new MemoryStream();
         using (var writer = new BinaryWriter(header, Encoding.UTF8, leaveOpen: true))
         {
@@ -277,6 +311,12 @@ internal static class PdfRenderWorkerProtocol
             writer.Write(policy.WorkerTimeout.Ticks);
             writer.Write(source.ByteLength);
             writer.Write(Convert.FromHexString(source.Sha256.Value));
+            writer.Write(selectedPages.Length);
+
+            foreach (var pageNumber in selectedPages)
+            {
+                writer.Write(pageNumber);
+            }
         }
 
         await output.WriteAsync(header.GetBuffer().AsMemory(0, checked((int)header.Length)), cancellationToken)
@@ -307,7 +347,7 @@ internal static class PdfRenderWorkerProtocol
         Stream input,
         CancellationToken cancellationToken)
     {
-        var fixedHeader = new byte[8 + 8 + 4 + (6 * 8) + 8 + 32];
+        var fixedHeader = new byte[8 + 8 + 4 + (6 * 8) + 8 + 32 + 4];
         await input.ReadExactlyAsync(fixedHeader, cancellationToken).ConfigureAwait(false);
         var offset = 0;
 
@@ -327,6 +367,8 @@ internal static class PdfRenderWorkerProtocol
         var timeoutTicks = ReadInt64(fixedHeader, ref offset);
         var sourceLength = ReadInt64(fixedHeader, ref offset);
         var expectedHash = fixedHeader.AsSpan(offset, 32).ToArray();
+        offset += 32;
+        var selectedPageCount = ReadInt32(fixedHeader, ref offset);
         var policy = new PdfRenderPolicy(
             maximumSourceBytes,
             maximumPages,
@@ -337,12 +379,33 @@ internal static class PdfRenderWorkerProtocol
             TimeSpan.FromTicks(maximumCpuTicks),
             TimeSpan.FromTicks(timeoutTicks));
 
-        if (sourceLength is <= 0 || sourceLength > policy.MaximumSourceByteLength)
+        if (sourceLength is <= 0 || sourceLength > policy.MaximumSourceByteLength ||
+            selectedPageCount < 0 || selectedPageCount > policy.MaximumPageCount)
         {
             throw new PdfRenderException(PdfRenderFailureKind.LimitExceeded);
         }
 
-        return new WorkerRequestHeader(policy, sourceLength, expectedHash);
+        int[]? selectedPages = null;
+        if (selectedPageCount > 0)
+        {
+            var pageBytes = new byte[checked(selectedPageCount * sizeof(int))];
+            await input.ReadExactlyAsync(pageBytes, cancellationToken).ConfigureAwait(false);
+            selectedPages = new int[selectedPageCount];
+            for (var index = 0; index < selectedPages.Length; index++)
+            {
+                selectedPages[index] = BinaryPrimitives.ReadInt32LittleEndian(
+                    pageBytes.AsSpan(index * sizeof(int), sizeof(int)));
+            }
+
+            if (selectedPages.Any(pageNumber => pageNumber <= 0) ||
+                selectedPages.Distinct().Count() != selectedPages.Length ||
+                !selectedPages.SequenceEqual(selectedPages.Order()))
+            {
+                throw new PdfRenderException(PdfRenderFailureKind.ProtocolViolation);
+            }
+        }
+
+        return new WorkerRequestHeader(policy, sourceLength, expectedHash, selectedPages);
     }
 
     internal static async Task<byte[]> ReadRequestBodyAsync(
@@ -370,6 +433,7 @@ internal static class PdfRenderWorkerProtocol
         Stream output,
         RendererDescriptor rendererDescriptor,
         int sourcePageCount,
+        int renderedPageCount,
         CancellationToken cancellationToken)
     {
         using var header = new MemoryStream();
@@ -379,6 +443,7 @@ internal static class PdfRenderWorkerProtocol
             writer.Write(0);
             WriteBoundedString(writer, rendererDescriptor.Value);
             writer.Write(sourcePageCount);
+            writer.Write(renderedPageCount);
         }
 
         await output.WriteAsync(header.GetBuffer().AsMemory(0, checked((int)header.Length)), cancellationToken)
@@ -441,19 +506,21 @@ internal static class PdfRenderWorkerProtocol
 
         var descriptor = await ReadBoundedStringAsync(input, 128, cancellationToken)
             .ConfigureAwait(false);
-        var countBytes = new byte[4];
+        var countBytes = new byte[8];
         await input.ReadExactlyAsync(countBytes, cancellationToken).ConfigureAwait(false);
-        var pageCount = BinaryPrimitives.ReadInt32LittleEndian(countBytes);
+        var sourcePageCount = BinaryPrimitives.ReadInt32LittleEndian(countBytes);
+        var renderedPageCount = BinaryPrimitives.ReadInt32LittleEndian(countBytes.AsSpan(4));
 
-        if (pageCount is <= 0 || pageCount > policy.MaximumPageCount)
+        if (sourcePageCount is <= 0 || sourcePageCount > policy.MaximumPageCount ||
+            renderedPageCount is <= 0 || renderedPageCount > sourcePageCount)
         {
             throw new PdfRenderException(PdfRenderFailureKind.ProtocolViolation);
         }
 
-        var pages = new List<RenderedPdfPageCandidate>(pageCount);
+        var pages = new List<RenderedPdfPageCandidate>(renderedPageCount);
         long totalBytes = 0;
 
-        for (var index = 0; index < pageCount; index++)
+        for (var index = 0; index < renderedPageCount; index++)
         {
             var pageHeader = new byte[28];
             await input.ReadExactlyAsync(pageHeader, cancellationToken).ConfigureAwait(false);
@@ -481,7 +548,10 @@ internal static class PdfRenderWorkerProtocol
                 bytes));
         }
 
-        return new PdfRenderResult(new RendererDescriptor(descriptor), pageCount, pages);
+        return new PdfRenderResult(
+            new RendererDescriptor(descriptor),
+            sourcePageCount,
+            pages);
     }
 
     internal static async Task TryWriteFailureAsync(
@@ -553,7 +623,8 @@ internal static class PdfRenderWorkerProtocol
     internal sealed record WorkerRequestHeader(
         PdfRenderPolicy Policy,
         long SourceLength,
-        byte[] ExpectedSha256);
+        byte[] ExpectedSha256,
+        IReadOnlyCollection<int>? PageNumbers);
 }
 
 internal static class WorkerResourceLimits

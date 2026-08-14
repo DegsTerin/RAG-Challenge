@@ -27,7 +27,9 @@ internal interface IAnswerEvidenceStoreFaultInjector
     void ThrowIfRequested(AnswerEvidenceStoreFaultPoint point);
 }
 
-public sealed class SqliteAnswerEvidenceStore : IAnswerEvidenceStore
+public sealed class SqliteAnswerEvidenceStore :
+    IAnswerEvidenceStore,
+    IAnswerEvidenceVisualAuthorityReader
 {
     private const string OperationKind = "AnswerEvidence";
     private const string AuditEventType = "AnswerEvidenceCreated";
@@ -111,6 +113,60 @@ public sealed class SqliteAnswerEvidenceStore : IAnswerEvidenceStore
         ArgumentNullException.ThrowIfNull(recordId);
         await using var context = options.CreateControlContext();
         return await ReadWithinAsync(context, recordId, cancellationToken).ConfigureAwait(false);
+    }
+
+    public async Task<bool> IsAuthorisedAsync(
+        CorpusId corpusId,
+        ActivationRecordRevision activationRecordRevision,
+        IndexGenerationId indexGenerationId,
+        DocumentId documentId,
+        DocumentVersionNumber documentVersion,
+        ContentObjectId sourceContentObjectId,
+        RenderManifestId renderManifestId,
+        int pageNumber,
+        ContentObjectId imageContentObjectId,
+        DateTimeOffset observedAt,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(corpusId);
+        ArgumentNullException.ThrowIfNull(activationRecordRevision);
+        ArgumentNullException.ThrowIfNull(indexGenerationId);
+        ArgumentNullException.ThrowIfNull(documentId);
+        ArgumentNullException.ThrowIfNull(documentVersion);
+        ArgumentNullException.ThrowIfNull(sourceContentObjectId);
+        ArgumentNullException.ThrowIfNull(renderManifestId);
+        ArgumentNullException.ThrowIfNull(imageContentObjectId);
+        if (pageNumber <= 0 || observedAt.Offset != TimeSpan.Zero)
+        {
+            return false;
+        }
+
+        await using var context = options.CreateControlContext();
+        var candidates = await context.AnswerEvidenceRecords.AsNoTracking().Where(record =>
+            record.CorpusId == corpusId.Value &&
+            record.ActivationRecordRevision == activationRecordRevision.Value &&
+            record.IndexGenerationId == indexGenerationId.Value &&
+            context.AnswerEvidencePages.Any(page =>
+                page.AnswerEvidenceRecordId == record.AnswerEvidenceRecordId &&
+                page.DocumentId == documentId.Value &&
+                page.DocumentVersion == documentVersion.Value &&
+                page.SourceContentSha256 == sourceContentObjectId.Value &&
+                page.RenderManifestId == renderManifestId.Value &&
+                page.PageNumber == pageNumber &&
+                page.ImageContentSha256 == imageContentObjectId.Value) &&
+            context.AnswerEvidenceCitations.Any(citation =>
+                citation.AnswerEvidenceRecordId == record.AnswerEvidenceRecordId &&
+                citation.DocumentId == documentId.Value &&
+                citation.DocumentVersion == documentVersion.Value &&
+                citation.SourceContentSha256 == sourceContentObjectId.Value &&
+                citation.RenderManifestId == renderManifestId.Value &&
+                citation.PageStart <= pageNumber &&
+                citation.PageEnd >= pageNumber))
+            .Select(record => new { record.CreatedAtUtc, record.ExpiresAtUtc })
+            .ToArrayAsync(cancellationToken).ConfigureAwait(false);
+        return candidates.Any(candidate =>
+            ControlPlaneMapping.ParseUtc(candidate.CreatedAtUtc) <= observedAt &&
+            ControlPlaneMapping.ParseUtc(candidate.ExpiresAtUtc) >= observedAt);
     }
 
     private static void AddRows(ControlPlaneDbContext context, AnswerEvidenceRecordV1 record)
@@ -279,7 +335,8 @@ public sealed class SqliteAnswerEvidenceStore : IAnswerEvidenceStore
                 binding.SourceObservationId != citation.SourceObservationId?.Value ||
                 evidence.DocumentFormat != citation.DocumentFormat.ToString() ||
                 evidence.SourceContentSha256 != citation.SourceContentObjectId.Value ||
-                evidence.RenderManifestId != citation.RenderManifestId?.Value ||
+                evidence.RenderManifestId is not null &&
+                    evidence.RenderManifestId != citation.RenderManifestId?.Value ||
                 document.ContentLanguage != citation.ContentLanguage.CanonicalTag ||
                 document.ContentSha256 != citation.SourceContentObjectId.Value)
             {
