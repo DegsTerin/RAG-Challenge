@@ -2,16 +2,18 @@
 
 ## Status
 
-Este índice descreve o corpus documental vigente `4.10.24`. `STATE-00`,
+Este índice descreve o corpus documental vigente `4.11.0`. `STATE-00`,
 `GATE-B01` e `STATE-01` a `STATE-06` estão encerrados com seus gates
 registrados. `STATE-07 TESTING_HOMOLOGATION` está ativo; incrementos locais,
 offline, determinísticos e sintéticos foram executados e reconciliados, sem
 constituir homologação de produto ou autorização geral de execução.
 
-Campanha/provider real, corpus e fontes reais, browser/tecnologia assistiva,
-carga, recuperação operacional, OCI, publicação e deploy permanecem sob
-fronteiras próprias e não executadas. Relatórios são evidência histórica; o
-presente factual pertence a
+O PostgreSQL 18.4 `LocalAuthorised` foi ativado e uma imagem privada foi
+implantada uma vez no Render Free, sem consulta de produto. Campanha pontuada,
+`RB-4`, Human Gate de `STATE-07`, produção e OCI permanecem sob fronteiras
+próprias. A reauditoria de governança bloqueia o consumo dos freezes RB-2/RB-3
+até disposição humana. Relatórios são evidência histórica; o presente factual
+pertence a
 [`Current-State.md`](../prompts/state/Current-State.md).
 
 ## Comece aqui
@@ -38,6 +40,9 @@ presente factual pertence a
     baseline de planejamento confirmada para dataset, thresholds, matriz de
     idioma, ambiente, verificações e limites do primeiro lote, sem autoridade
     de execução.
+12. [`Multi-Agent-Readiness-Audit.md`](Multi-Agent-Readiness-Audit.md):
+    auditoria da Etapa 1, correções, ownership, isolamento, findings e gate da
+    futura implementação do orchestrator.
 
 ## Produto e arquitetura
 
@@ -60,9 +65,25 @@ presente factual pertence a
 - [ADR-0009 — Document, Evidence and Query Language Taxonomy](architecture/ADR-0009-Document-Evidence-And-Query-Language-Taxonomy.md)
   (`accepted`; semantic reconciliation applied in corpus `4.9.5`;
   internal split and v2 projection later implemented)
+- [ADR-0010 — Persistent Answer-Evidence Records and Bounded Retention](architecture/ADR-0010-Persistent-Answer-Evidence-Records-And-Bounded-Retention.md)
+  (`accepted`; local implementation and reconciliation completed under
+  separate authority)
+- [ADR-0011 — Source Rights Evidence Mapping and Same-Origin Derivative Display Boundary](architecture/ADR-0011-Source-Rights-Evidence-Mapping-And-Same-Origin-Derivative-Display-Boundary.md)
+  (`accepted`; conditional rights mapping and same-origin boundary)
 - [ADR-0012 — Notice-Bearing Page-Image Profile and Derivative Obligation Delivery](architecture/ADR-0012-Notice-Bearing-Page-Image-Profile-And-Derivative-Obligation-Delivery.md)
-  (`accepted`; contract, schema/migrations and local behaviour implemented;
-  AQG notice-bearing, new A0 and product homologation remain separate)
+  (`accepted`; contract, schema/migrations, local behaviour, its synthetic AQG
+  and the A0-003 rights disposition completed; product/browser homologation
+  remains separate)
+- [ADR-0013 — MVP Language-Model Candidate and Deferred Frontier Evaluation](architecture/ADR-0013-MVP-Language-Model-Candidate-And-Deferred-Frontier-Evaluation.md)
+  (`accepted`; semantic reconciliation, fake-handler adapter compatibility and
+  its focused AQG completed; provider execution remains separately governed)
+- [ADR-0014 — Deterministic Retrieval Ranking and Retrieval-Only Baseline](architecture/ADR-0014-Deterministic-Retrieval-Ranking-And-Retrieval-Only-Baseline.md)
+  (`accepted`; RB-2/RB-3 are mechanically intact but unavailable pending human
+  disposition of the adjudication-authority conflict)
+- [ADR-0015 — Versioned Cosine Numerical Semantics](architecture/ADR-0015-Versioned-Cosine-Numerical-Semantics.md)
+  (`accepted`; implementation and corrective retest completed separately)
+- [ADR-0016 — Deterministic Development Orchestrator and Codex Runner Boundary](architecture/ADR-0016-Deterministic-Development-Orchestrator-And-Codex-Runner-Boundary.md)
+  (`proposed`; no Stage 2 implementation authority)
 - [Contratos canônicos de STATE-02](architecture/STATE-02-Canonical-Contracts.md)
 - [Dicionário lógico de dados e índice de S03-A](data/STATE-03-S03-A-Data-Dictionary.md)
 - [Threat model de STATE-02](security/STATE-02-Threat-Model.md)

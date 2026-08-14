@@ -134,12 +134,11 @@ foreach ($coverage in $branchCoverage.Values) {
 }
 
 $lineRate = $coveredLines / $validLines
-$branchRate = if ($validBranches -eq 0) {
-    1.0
+if ($validBranches -eq 0) {
+    throw "Cobertura reports contain no valid instrumented branches."
 }
-else {
-    $coveredBranches / $validBranches
-}
+
+$branchRate = $coveredBranches / $validBranches
 
 Write-Output (
     "Merged coverage: lines {0:P2} ({1}/{2}); branches {3:P2} ({4}/{5})." -f

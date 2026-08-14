@@ -257,29 +257,33 @@ concorrência são controles operacionais e não limites do catálogo.
 
 ## Limitações e evidências pendentes
 
-- A licença MIT do repositório foi aceita e materializada. ADR-0004 aceitou
-  `CC BY 4.0` para documentos autorais futuros, mas nenhum documento inicial
-  de produto, concessão de licença, idioma ou direito por banco foi
-  materializado.
-- PostgreSQL 18 é a primeira fonte oficial candidata verificada. Cada registro
-  adicional ainda exige URL canônica, termos/licença, `maxAge`, limites,
-  autoridade de rede e ativação próprios.
+- A licença MIT do repositório foi aceita e materializada. O PostgreSQL 18.4
+  `LocalAuthorised` tornou-se o primeiro documento de produto materializado e
+  ativado sob evidência de direitos, proveniência e idioma registrada. Cada
+  documento adicional continua exigindo sua própria disposição verificável.
+- PostgreSQL 18 é a primeira fonte oficial verificada. Cada registro adicional
+  ainda exige URL canônica, termos/licença, `maxAge`, limites, autoridade de
+  rede e ativação próprios.
 - ADR-0005 aceitou condicionalmente OpenAI para embeddings e LLM,
   `SqliteExactVectorStore`, EF Core SQLite e filesystem content-addressed.
-  Versões exatas de packages, conta, entitlement, custo, qualidade bilíngue,
-  desempenho, restart, backup e restore permanecem sem evidência executável.
+  Adapters e packages foram implementados sob versões governadas, mas campanha
+  LLM pontuada, qualidade bilíngue real, custo observado de consulta,
+  desempenho representativo e recuperação operacional permanecem separados.
 - ADR-0006 aceitou as quatro políticas de egress deny-by-default e o limite de
-  divulgação. Nenhum egress, provider, conta ou destino está habilitado por
-  essa decisão.
+  divulgação. Essa decisão por si só não habilita egress, provider, conta ou
+  destino; execuções posteriores pertencem às autoridades e evidências
+  registradas no Current State.
 - ADR-0005 aceitou condicionalmente o alvo OCI em `sa-saopaulo-1`; capacidade,
   entitlement, IAM, cobrança, consistência de backup e restore da tenancy
   permanecem não verificados.
-- O dataset de avaliação e os thresholds de recuperação/groundedness ainda
-  precisam ser materializados antes da primeira campanha pontuada.
+- RB-1 congelou desenho e thresholds. Os artefatos RB-2/RB-3 foram
+  materializados, mas a reauditoria de governança encontrou conflito de
+  adjudicação humana; eles permanecem indisponíveis para uma campanha pontuada
+  até disposição do proprietário e eventual sucessor coerente.
 - ADR-0007 foi aceito e sua semântica foi reconciliada nos contratos
-  documentais. `AQG-S02-001` e o resultado reprovado permanecem históricos até
-  nova auditoria combinada separadamente autorizada; essa correção não é
-  evidência de implementação.
+  documentais e implementada sob autoridade posterior. A auditoria combinada
+  dispôs `AQG-S02-001` a `AQG-S02-003` como `RESOLVIDOS`; os resultados
+  reprovados anteriores permanecem históricos.
 
 Esses itens distinguem decisões arquiteturais aceitas de evidência,
 implementação e autoridade externa ainda ausentes.

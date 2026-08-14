@@ -69,6 +69,8 @@ Um lote está pronto quando:
 
 - Piso inicial futuro: 70% de linhas e 45% de branches na suíte .NET
   abrangida.
+- O agregador falha fechado quando não encontra relatório, linha instrumentada
+  ou branch instrumentado válido. Ausência de branch não equivale a 100%.
 - 80% de linhas é meta direcional baseada em risco.
 - Cobertura não substitui testes funcionais, negativos, integração, contrato,
   RAG, segurança, acessibilidade, recuperação ou desempenho.
@@ -116,6 +118,41 @@ autoridade/configuração próprias.
 
 Auditoria não corrige silenciosamente, não inventa evidência e não promove
 estado.
+
+## Gate canônico do repositório
+
+O único entry point agregado do CI é `./eng/ci.ps1`; o workflow deve chamá-lo
+uma única vez. A ordem governada é:
+
+1. testes fail-closed das políticas de CI e cobertura;
+2. verificação LF dos lockfiles NuGet;
+3. restore locked;
+4. nova verificação dos lockfiles;
+5. `dotnet format --verify-no-changes`;
+6. build Release;
+7. testes .NET e cobertura Cobertura agregada;
+8. pisos de 70% de linhas e 45% de branches;
+9. `npm ci`, lint, typecheck, testes e build do Dashboard;
+10. auditorias de dependência somente quando o modo online estiver autorizado;
+11. auditoria de repositório;
+12. `git diff --check`.
+
+`./eng/ci.ps1 -Offline` é evidência local parcial porque omite auditorias de
+dependência que exigem rede. Seu PASS não pode ser rotulado como execução
+equivalente ao workflow online. A ausência de autoridade/rede gera
+`BLOCKED`/limitação explícita, nunca uma auditoria externa inventada.
+
+O gate completo é `SEQUENTIAL_ONLY` por worktree: restore, `bin/`, `obj/`,
+`node_modules/`, `dist/` e outros caches/outputs são compartilhados mesmo que
+`TestResults` use um GUID. Lanes podem executar checks focais em worktrees e
+recursos isolados; depois da integração, a coordenadora executa um único gate
+agregado sobre a baseline combinada.
+
+`eng/format.ps1` é mutante, alcança arquivos rastreados e não rastreados e não
+é um validador. Seu uso é coordinator-only, exige escopo revisado e nunca pode
+alterar prompts ou trabalho local do proprietário por conveniência. O comando
+de validação continua sendo `dotnet format --verify-no-changes` dentro do gate
+canônico.
 
 ## Gate para trabalho paralelo
 

@@ -1509,3 +1509,20 @@ reconciliation. The previous 516,099-byte State Transition Log prefix and both
 protected OpenAPI artefacts remained byte-for-byte unchanged. No build,
 product test, runtime preflight, provider call, scorer, query or `RB-4` was
 executed by this reconciliation.
+
+## Subsequent RB-2 governance-authority reaudit
+
+The Stage 1 multi-agent readiness audit preserved the prior digest,
+cardinality and byte-level verification as factually valid. It found a separate
+authority defect that the mechanical review did not dispose: the pre-review
+checkpoint requires two independent human reviews and human adjudication with
+no agent-authored decisions, while the retained package records non-human
+reviewers, twenty agent-authored adjudication decisions, zero human decision
+attributions and a contradictory negative-scope claim of
+`no agent-authored adjudication`.
+
+This correction does not mutate or reinterpret frozen bytes, vectors, scores
+or metrics. It withdraws only the claim that mechanical completeness proves a
+valid RB-2 gate completion. RB-2 and the transitively dependent RB-3 freeze are
+unavailable for RB-4 until the owner makes an explicit disposition and any
+required successor artefacts are produced under separate authority.

@@ -2,8 +2,10 @@
 
 ## Status and authority
 
-This pack contains architecture proposals prepared during `STATE-00
-DISCOVERY` and the active `STATE-02 ARCHITECTURE`. ADR-0001 was accepted by
+This pack originated during `STATE-00 DISCOVERY` and `STATE-02 ARCHITECTURE`.
+The current lifecycle position is `STATE-07 TESTING_HOMOLOGATION`; the
+authoritative current disposition is maintained in
+[`Current-State.md`](../../prompts/state/Current-State.md). ADR-0001 was accepted by
 `GATE-B01` on 2026-07-30 and was later
 superseded by accepted ADR-0003. ADR-0003 incorporates every non-naming
 ADR-0001 decision unchanged and replaces its naming provisions. ADR-0002 and
@@ -95,6 +97,13 @@ verifiable correction plan for `DR3-FIND-001` to `DR3-FIND-004`. Corpus
 `4.10.31` records architecture authority only; implementation, generation,
 tests, gate and lifecycle remain separate.
 
+ADR-0016 was prepared on 2026-08-14 by the Stage 1 governance and multi-agent
+readiness audit. It proposes a development-only deterministic TypeScript/Node
+24 coordinator and a narrow `AgentRunner` boundary with fake and Codex SDK
+adapters. Its status is `proposed`: no dependency, orchestrator implementation,
+authentication, agent execution or lifecycle authority exists until the owner
+makes an explicit decision and the Stage 2 readiness gate is re-evaluated.
+
 The later combined audit failed on `AQG-S02-001`, an internal contradiction
 between observation-inclusive generation identity and observation-only
 freshness rebinding. The owner accepted ADR-0007 explicitly on 2026-08-02. It
@@ -103,8 +112,9 @@ clauses of ADR-0002. Corpus `4.9.1` applies the traced semantic reconciliation;
 the separately authorised renewed audit on
 `main@3978a17201cf5f6ac4ddc189862736fc3646457b` approved the Automatic
 Quality Gate, disposed `AQG-S02-001` to `AQG-S02-003` as `RESOLVED` and found
-no new classified finding. The Human Gate remains pending and was not
-requested.
+no new classified finding. That paragraph records the gate's then-current
+boundary; the later `STATE-02` Human Gate and lifecycle transition are
+recorded in Current State and the append-only transition log.
 
 The owner has independently fixed the query-language boundary to `pt-BR` and
 `en-GB`: answers use the declared question language and source-derived
@@ -268,20 +278,26 @@ Dashboard -- versioned HTTP --> API
   (`accepted`; serving-policy correction implemented; no PostgreSQL rights
   reclassification or product authority)
 - [ADR-0012 — Notice-Bearing Page-Image Profile and Derivative Obligation Delivery](ADR-0012-Notice-Bearing-Page-Image-Profile-And-Derivative-Obligation-Delivery.md)
-  (`accepted`; contract, schema/migrations and local behaviour implemented;
-  AQG, new A0 and PostgreSQL reclassification remain separate)
+  (`accepted`; contract, schema/migrations, local behaviour, its synthetic AQG
+  and A0-003 rights disposition completed; product/browser homologation
+  remains separate)
 - [ADR-0013 — MVP Language-Model Candidate and Deferred Frontier Evaluation](ADR-0013-MVP-Language-Model-Candidate-And-Deferred-Frontier-Evaluation.md)
-  (`accepted`; semantic reconciliation applied in corpus `4.10.19`; no adapter
-  implementation, provider access, paid evaluation, OCI or deployment
-  authority)
+  (`accepted`; semantic reconciliation, fake-handler adapter compatibility and
+  its focused AQG completed; no provider access, paid evaluation or operational
+  configuration authority)
 - [ADR-0014 — Deterministic Retrieval Ranking and Retrieval-Only Baseline](ADR-0014-Deterministic-Retrieval-Ranking-And-Retrieval-Only-Baseline.md)
-  (`accepted`; `retrieval-v1` remains unchanged for valid inputs, MultiQuery
-  remains parked and implementation/evaluation authority remains separate)
+  (`accepted`; deterministic implementation and corrective gate are complete,
+  RB-1 remains valid, and the mechanically intact RB-2/RB-3 freezes are
+  unavailable for downstream use pending human disposition of the Stage 1
+  adjudication-authority conflict)
 - [ADR-0015 — Versioned Cosine Numerical Semantics](ADR-0015-Versioned-Cosine-Numerical-Semantics.md)
   (`accepted`; selects boundary canonicalisation with
   `cosine-f32mul-f64acc-boundary-canonical-v1`, `retrieval-v2` and a new
-  compatibility generation; implementation and corrective retest remain
-  separate)
+  compatibility generation; implementation and corrective retest were later
+  completed under separate authority)
+- [ADR-0016 — Deterministic Development Orchestrator and Codex Runner Boundary](ADR-0016-Deterministic-Development-Orchestrator-And-Codex-Runner-Boundary.md)
+  (`proposed`; requires an explicit owner decision before the tooling stack or
+  physical boundary may be implemented)
 
 ## STATE-02 design artefacts
 
@@ -298,22 +314,18 @@ Dashboard -- versioned HTTP --> API
 
 ## Remaining evidence and activation inputs
 
-- Actual initial PDF/CSV documents, per-document rights, provenance and
-  language evidence before any database product becomes active.
-- Evidence and explicit activation for each additional official source
-  registration; no generic URL or crawling authority exists.
-- Exact PDF/CSV package versions and disposable extraction/security spikes
-  required by accepted ADR-0005.
-- OpenAI account entitlement, limits, spend controls and the accepted
-  bilingual evaluation before provider use.
-- Representative exact-vector performance, persistence restart, backup
-  consistency and restore evidence.
-- OCI tenancy capacity, entitlement, IAM enforcement, effective billing and
-  restore evidence for the accepted conditional target.
-- The extensible evaluation dataset and thresholds frozen before scored runs.
-- A complete `STATE-02` Human Gate summary, prepared and presented only under
-  separate owner authority. The approved Automatic Quality Gate does not
-  request or decide that Human Gate.
+- Explicit human disposition of the RB-2/RB-3 adjudication-authority conflict;
+  existing frozen bytes remain historical evidence and cannot be corrected in
+  place.
+- A successor review/adjudication package, and if required a successor vector
+  freeze, before any RB-4 execution can be authorised.
+- An explicit owner decision on proposed ADR-0016 before any orchestrator
+  stack, dependency or physical tool boundary is implemented.
+- Product evaluation, provider, security, accessibility, operational recovery,
+  load, OCI and production evidence that remains `NOT_RUN` or separately
+  governed in Current State.
+- The `STATE-07` Automatic and Human Gates before any transition to
+  `STATE-08`.
 
 ADR-0007 and corpus `4.9.1` supplied the material decision and documentary
 change required by `AQG-S02-001`; the renewed audit disposed all three

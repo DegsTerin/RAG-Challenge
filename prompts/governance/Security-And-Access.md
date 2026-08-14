@@ -54,7 +54,8 @@ Os materiais do Challenge permitem consulta aberta. Portanto:
 - o ADR-0006 aceito escolheu uma superfície administrativa local não pública
   no modo one-shot do host principal; ela usa identidade do sistema
   operacional, permissões mínimas, motivo obrigatório, idempotência e
-  auditoria sanitizada, ainda sem implementação;
+  auditoria sanitizada e está implementada no host principal sob configuração
+  explícita e fail-closed;
 - o startup apenas verifica e carrega a geração ativa; mutação exige modo
   administrativo one-shot explicitamente configurado e invocado;
 - sincronização oficial usa a mesma superfície administrativa; consulta

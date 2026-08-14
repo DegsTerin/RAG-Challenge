@@ -7,6 +7,16 @@ proprietários.
 
 ## Lifecycle e gates
 
+- A fase de auditoria e correções de governança e prontidão multiagente da
+  Etapa 1 foi executada
+  sobre `codex/stage1-multi-agent-readiness@9f309e1b6a21a33cbd24b4b6498e840dd26585c9`,
+  sem mudar o lifecycle. Ela formalizou envelopes, ownership, isolamento,
+  stop conditions e agentes project-scoped, corrigiu o gate de cobertura sem
+  branches e preparou o ADR-0016 apenas como `proposed`. A validação final em
+  worktree limpa permanece pendente neste snapshot. A readiness provisória da
+  Etapa 2 é `HUMAN_DECISION_REQUIRED`: o ADR-0016 ainda exige aceitação
+  explícita e o conflito de autoridade humana do RB-2 exige disposição do
+  proprietário.
 - Posição: `STATE-00 DISCOVERY` encerrado; `GATE-B01
   ARCHITECTURE_BOOTSTRAP_DECISION` aprovado e encerrado; `STATE-01
   PROJECT_SETUP` encerrado após Human Gate aprovado sem ressalvas em
@@ -1427,10 +1437,11 @@ proprietários.
   sete contadores de materialização em zero. Nenhum documento/caso de produto,
   pergunta, qrel, vetor, geração, resultado ou pontuação foi criado. Build,
   testes executáveis, scorer, campanha, Automatic Quality Gate, Human Gate,
-  lifecycle e ação externa permaneceram `NOT_RUN`. `RB-2` continua sem
-  autorização.
+  lifecycle e ação externa permaneceram `NOT_RUN`. Naquela baseline, `RB-2`
+  permanecia sem autorização.
 - `RB-2 — Dataset materialisation readiness` e `RB-3 — Campaign-input freeze`:
-  concluídos posteriormente sobre a baseline rastreada limpa
+  materializados e mecanicamente congelados posteriormente sobre a baseline
+  rastreada limpa
   `main@0dbc415bad6532842aa6c4d1bb45ecd915bf5022`, corpus `4.10.41`, sem
   resultado pontuado. A revisão RB-2
   `rag-eval-catalogue-v1-postgresql-18-rb2-20260814-001` está
@@ -1446,10 +1457,16 @@ proprietários.
   com exatamente um vetor original por caso, 252 vetores de 1.536 componentes
   `float32` little-endian e 6.144 bytes cada. O receipt registra uma
   materialização de embeddings concluída sem retry e stores protegidos
-  idênticos antes/depois. Contadores de resultado, scorer, campanha Responses,
-  `RB-4` e Human Gate permanecem em zero. Nenhuma consulta de produto, score,
-  métrica observada, Automatic Quality Gate, Human Gate ou lifecycle foi
-  executado ou inferido; `RB-4` permanece `NOT_RUN` e não autorizado.
+  idênticos antes/depois. Esses fatos de integridade mecânica permanecem.
+  Porém, a auditoria posterior constatou que o checkpoint exigia duas revisões
+  humanas independentes e adjudicação humana sem decisões de agente, enquanto
+  o pacote retido registra `humanAttribution=false`, vinte decisões de
+  adjudicação de agente, zero decisões humanas e, contraditoriamente,
+  `no agent-authored adjudication`. Os bytes e hashes não foram alterados, mas
+  o literal `frozen-unscored-rb2-complete` não prova satisfação do gate. Até
+  decisão humana, RB-2 fica indisponível para avanço, RB-3 fica
+  transitivamente indisponível como input e `RB-4` permanece `NOT_RUN` e
+  bloqueado.
 - ADR-0015: `accepted` pela decisão humana explícita `ADR-0015: ACEITAR.` em
   2026-08-11 sobre `main@46de807148d5b547f56a0f7265b32428b232100f`, corpus
   `4.10.30`, working tree limpa e OpenAPI v1/v2 protegidas. A decisão seleciona
@@ -1533,7 +1550,7 @@ proprietários.
   a política de idioma acrescentou o 21º documento público por incremento
   versionado, e o ADR-0003 acrescentou o 22º.
 - A baseline aprovada no Human Gate de `STATE-00` permanece `3.4.0`.
-- O corpus de instruções vigente possui versão `4.10.42` e 13 arquivos em
+- O corpus de instruções vigente possui versão `4.11.0` e 13 arquivos em
   `prompts/`.
 - Visão, requisitos, arquitetura, RAG, segurança, qualidade, lifecycle,
   roadmap, backlog, estado, histórico e templates estão documentados.
@@ -1929,6 +1946,11 @@ proprietários.
   com 252 vetores. Preserva zero resultado, scorer, campanha Responses,
   `RB-4` e Human Gate; a qualificação do denominador não é homologação de
   produto e não muda lifecycle.
+- O corpus `4.11.0` acrescenta o playbook verificável de desenvolvimento
+  multiagente, configura seis papéis project-scoped, corrige o fail-open de
+  cobertura sem branches, prepara o ADR-0016 como `proposed` e registra a
+  reauditoria de autoridade do RB-2. Preserva integralmente os freezes e não
+  aceita ADR, executa Stage 2, altera produto, Human Gate ou lifecycle.
 - O corpus `4.3.0` formaliza a decisão explícita do proprietário de aceitar
   perguntas e respostas em `pt-BR` e `en-GB`: cada consulta declara o idioma,
   a resposta usa o mesmo idioma, textos derivados da fonte permanecem no
@@ -2111,14 +2133,17 @@ proprietários.
   anterior. `reference-materials/` permaneceu ignorado e preservou
   integralmente seus 24 arquivos; usos históricos, externos e de proveniência
   permanecem deliberadamente inalterados.
-- O pipeline CI está definido localmente, com menor privilégio e sem deploy;
-  não foi executado no GitHub.
+- O pipeline CI está definido com menor privilégio e sem deploy. Esta auditoria
+  não consultou o histórico remoto de execuções do GitHub; o estado de CI
+  remota não foi revalidado.
 - O arquivo `LICENSE` materializa a licença MIT aprovada.
-- Existem API, ingestão, recuperação, persistência SQLite e vector store
-  exato funcionais localmente dentro do escopo sintético de `STATE-04`. Não
-  existem corpus real autorizado, container, infraestrutura operacional ou
-  deploy homologados.
-- Nenhum recurso OCI ou GitHub foi criado ou alterado.
+- Existem API, ingestão, recuperação, persistência SQLite e vector store exato
+  funcionais. O PostgreSQL 18.4 `LocalAuthorised` está ativo na revisão `1` e
+  a imagem privada foi publicada no GHCR e implantada uma vez no serviço
+  Render Free descrito acima. Isso não constitui produção, não satisfaz
+  sozinho o requisito OCI e não autoriza `STATE-08`.
+- O package privado GHCR e o serviço Render Free são recursos externos já
+  observados; nenhuma ação remota foi executada por esta auditoria.
 - O DB-Notifier permaneceu somente leitura.
 
 ## Escopo corrente do produto
@@ -2226,13 +2251,11 @@ autorizada.
    confinada, sem representar armazenamento ou recuperação operacional.
 7. Verificar capacidade, entitlement, IAM, restore, custo e cobrança reais da
    tenancy OCI; as fontes públicas ainda divergem sobre a franquia gratuita.
-8. A revisão RB-2 de produto e o campaign-input RB-3 estão congelados e não
-   pontuados, com 252 casos/vetores, denominador completo e tags documentais
-   exatas preservadas. A classificação `REPRESENTATIVE_HOMOLOGATION` pertence
-   somente à suficiência do denominador; nenhum scorer, resultado, métrica ou
-   decisão de homologação existe. `RB-4 — Retrieval-only campaign` permanece
-   `NOT_RUN` e depende de autoridade humana separada, sem reaproveitar como
-   resultado a preparação sintética histórica da campanha de provider.
+8. Os bytes, hashes, 252 casos e 252 vetores dos freezes RB-2/RB-3 permanecem
+   preservados e não pontuados. A reauditoria encontrou incompatibilidade entre
+   a exigência de revisão/adjudicação humana e os atores/decisões registrados.
+   Completude mecânica não satisfaz o gate; RB-2 e RB-3 não podem alimentar
+   `RB-4` até disposição humana e eventual artefato sucessor coerente.
 9. `S03-CORR-01` concluiu o primeiro item da ordem de dependência.
    `S04-CORR-04-A` concluiu descritores verificados do content store e
    `S04-CORR-04-B` concluiu contratos/gates de direitos;
@@ -2255,31 +2278,23 @@ autorizada.
 
 ## Próxima autoridade
 
-O ADR-0014 foi aceito explicitamente mediante `ADR-0014: ACEITAR.` somente
-como autoridade arquitetural e reconciliado documentalmente sob
-`AUTH-STATE07-RETRIEVAL-DETERMINISM-ADR-RECONCILE-001`. `DR-0`, `DR-1` e
-`DR-2` estão concluídos. O `DR-3 — Determinism Automatic Quality Gate` foi
-inicialmente `REPROVADO`; a preparação e a aceitação do ADR-0015, a
-implementação corretiva no commit
-`9addb166e82dd04581beee7b4276a74977fe04c5` e sua reconciliação factual foram
-concluídas. O reteste corretivo independente posterior, autorizado por
-`AUTH-DR3-NUMERIC-SEMANTICS-AQG-RETEST-001`, foi `APROVADO`; `DR3-FIND-001` a
-`DR3-FIND-004` estão `RESOLVED`, sem novo achado P0, P1, P2 ou P3. `RB-1 —
-Evaluation design freeze` também está concluído sob
-`AUTH-RB1-EVALUATION-DESIGN-FREEZE-001`, exclusivamente como revisão de desenho
-imutável, não materializada e não pontuada. `RB-2 — Dataset materialisation
-readiness` foi concluído e congelado sem pontuação sob
-`AUTH-S07-RB2-REVIEW-ADJUDICATION-FREEZE-PACKAGE-001`; `RB-3 — Campaign-input
-freeze` foi concluído e congelado sem pontuação sob
-`AUTH-S07-RB3-CAMPAIGN-INPUT-FREEZE-001`, com 252 vetores vinculados ao mesmo
-denominador de 252 casos. A próxima condição diretamente relacionada na ordem
-do ADR-0014 é obter autoridade humana separada para `RB-4 — Retrieval-only
-campaign`, limitada aos inputs já congelados e a todos os casos/repetições,
-sem answer-LLM. `RB-4` permanece `NOT_RUN` e não autorizado. Scorer, campanha,
-consulta de produto, novo acesso a provider ou rede, chamada paga, OpenAPI,
-schema de produto, migration, MultiQuery, Human Gate e lifecycle permanecem
-fora desta reconciliação, e `retrieval-multi-query-v1-candidate` continua
-estacionado.
+A próxima autoridade diretamente relacionada é a decisão explícita do
+proprietário sobre a disposição dos freezes RB-2/RB-3: preservar/quarentenar
+os artefatos como evidência histórica e autorizar um sucessor com revisão e
+adjudicação humanas reais; ou alterar formalmente o requisito, aceitar o risco
+e ainda produzir um sucessor internamente coerente. Nenhuma alternativa
+permite reescrever os freezes existentes. `RB-4` permanece bloqueado e
+`NOT_RUN`.
+
+Separadamente, Stage 2 depende da aceitação explícita do ADR-0016 proposto. A
+aceitação arquitetural não resolve o conflito RB-2, não constitui Human Gate e
+não autoriza secret, provider, rede, billing, produção, release, push ou merge.
+
+## Contexto histórico preservado
+
+Os parágrafos seguintes registram snapshots e sequências anteriores. Verbos no
+presente dentro deles descrevem a baseline nomeada no próprio parágrafo e não
+substituem o snapshot vigente acima.
 
 O ADR-0013 foi aceito explicitamente mediante `ADR-0013: ACEITAR.` somente
 como autoridade arquitetural. Ele seleciona `gpt-5.4-mini-2026-03-17` para o

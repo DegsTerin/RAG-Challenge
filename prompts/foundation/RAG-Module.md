@@ -13,9 +13,9 @@ permanecem separados. O
 `AnswerEvidenceRecordV1`, sua retenção `P30D` e participação em
 reachability previstas pelo ADR-0010 foram implementados localmente por
 `S04-CORR-04-E`, sem gate ou homologação. A geração textual PostgreSQL 18.4
-está materializada e validada localmente, com entrada de ativação preparada e
-`renderManifestId=null`; nenhuma geração de produto, consulta ou resposta está
-ativa por esse fato.
+foi materializada, validada e posteriormente ativada na revisão `1`, com
+`renderManifestId=null`; nenhuma consulta de produto ou resposta foi executada
+por essa ativação. O Current State conserva a evidência e os limites vigentes.
 
 ## Objetivo e limites
 

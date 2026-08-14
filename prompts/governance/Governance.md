@@ -503,6 +503,184 @@ ou estado concluído. O fallback congela somente a frente afetada, preserva sua
 evidência e a retoma sequencialmente a partir da última baseline confirmada;
 nunca usa last-write-wins ou reversão automática de trabalho alheio.
 
+### Envelope obrigatório de tarefa
+
+Toda delegação executável ou lane paralela recebe um envelope fechado antes
+de começar. A conversa coordenadora é owner do envelope; uma worker não
+preenche lacunas concedendo autoridade a si própria. O mínimo obrigatório é:
+
+```text
+TASK_ID
+objective
+authority
+owner
+baseline
+execution_surface
+allowed_paths
+forbidden_paths
+dependencies
+shared_resources
+acceptance_criteria
+required_tests
+stop_conditions
+deliverables
+```
+
+- `authority` identifica a solicitação, requisito, ADR aceito e autorização de
+  execução aplicáveis, além do escopo negativo; conversa anterior é contexto,
+  não autoridade persistente.
+- `baseline` fixa branch, HEAD, estado da árvore, versão do corpus e contratos
+  protegidos relevantes.
+- `execution_surface` fixa `cwd`, worktree, writable roots, sandbox, approval,
+  network, política de ambiente e allowlist efetiva de tools, MCPs e skills;
+  configuração omitida ou herdada nunca é presumida segura.
+- `allowed_paths` e `forbidden_paths` são conjuntos explícitos; ausência de um
+  path em `allowed_paths` não concede escrita implícita.
+- `dependencies` distingue inputs já integrados de trabalho ainda pendente.
+- `shared_resources` declara ownership, mutabilidade, namespace/lease e forma
+  de isolamento de cada recurso.
+- `required_tests` diferencia checks focais, gate integrado, checks externos e
+  evidência humana; executar zero testes nunca é PASS.
+- `stop_conditions` inclui os códigos canônicos abaixo e qualquer limite
+  adicional da tarefa.
+- `deliverables` exige arquivos/artefatos, diff, comandos, resultados,
+  limitações e mensagem de retorno à coordenadora.
+
+Uma tarefa sem envelope completo permanece `NOT_READY`. A coordenadora pode
+pedir exploração read-only para fechar os campos, mas não pode delegar escrita
+nem reservar recurso mutável até o envelope ser verificável.
+
+Antes da primeira escrita, a coordenadora confirma independentemente o `cwd`
+resolvido, a raiz do worktree, branch, HEAD, estado da árvore, writable roots,
+sandbox, approval, network, política de ambiente, tools, MCPs, skills e todos
+os campos do envelope devolvidos pela worker. Overrides vivos do processo pai
+podem substituir defaults de custom agents; qualquer superfície mais ampla que
+a allowlist do envelope impede o dispatch. Instrução textual e `sandbox_mode`
+limitam comportamento, mas não provam isolamento nem desabilitam papéis
+embutidos da ferramenta. Somente os papéis definidos por este projeto são
+materializados abaixo; a coordenadora não despacha escrita a um papel embutido
+genérico.
+
+### Taxonomia operacional de paralelismo
+
+Esta taxonomia classifica operações; ela não substitui a classificação
+owner-facing `SEQUENTIAL_ONLY`, `PARALLEL_OPTIONAL` ou
+`PARALLEL_RECOMMENDED` do handoff.
+
+| Classe | Regra |
+|---|---|
+| `SAFE_PARALLEL` | Análise, inventário, revisão ou teste com inputs somente leitura e outputs/recursos integralmente isolados. |
+| `CONTRACT_FROZEN_PARALLEL` | Escrita em lanes disjuntas somente depois de contratos compartilhados possuírem owner, identidade/hash e baseline congelados. |
+| `SINGLE_OWNER` | Um único owner escreve o artefato ou recurso; outras lanes podem apenas consumi-lo como input congelado. |
+| `SEQUENTIAL_ONLY` | Decisão, mutação ou integração com dependência, autoridade humana, estado compartilhado, irreversibilidade, one-shot ou isolamento insuficiente. |
+
+`SAFE_PARALLEL` deixa de ser seguro diante de output compartilhado, cache
+mutável não isolado, porta fixa, ação global de processo ou dirty tree
+inesperada. `CONTRACT_FROZEN_PARALLEL` termina no primeiro pedido de mudança do
+contrato; a lane para com o código correspondente e o owner replaneja. Uma
+operação `SINGLE_OWNER` pode coexistir apenas com trabalho realmente disjunto;
+ela nunca permite dois autores alternarem o mesmo arquivo ou store.
+
+São sempre `SEQUENTIAL_ONLY` a aceitação/substituição de ADR, Human Gate,
+transição de lifecycle, adjudicação humana, integração de candidates, mudança
+de contrato compartilhado, migration ordenada, release, deploy, rollback,
+operação destrutiva e qualquer campanha one-shot. A produção paralela de
+evidência não paraleliza a decisão nem seu registro.
+
+### Ownership de artefatos
+
+Cada path e artefato lógico de uma lane recebe exatamente uma classe:
+
+| Classe | Semântica e exemplos |
+|---|---|
+| `READ_ONLY_FOR_WORKERS` | Autoridades e inputs que workers inspecionam sem editar, inclusive `AGENTS.md`, Start Here e decisões fora de sua lane. |
+| `SINGLE_OWNER` | OpenAPI, DTO/contrato compartilhado, schema, migration com designer/snapshot, solution/project, lockfile, CI, configuração ou manifesto mutável. |
+| `LANE_OWNED` | Implementação/testes/documentação explicitamente atribuídos a uma única lane, branch e worktree. |
+| `SHARED_BUT_FROZEN` | Contrato, fixture, corpus ou golden input identificado por versão/hash e somente leitura para todas as lanes durante o lote. |
+| `GENERATED` | Build, coverage, package, cache, temp ou output reproduzível, sempre task-owned e nunca fonte de autoridade. |
+| `HUMAN_CONTROLLED` | Requisito, mudança de escopo, aceitação de ADR/risco, adjudicação, Human Gate, lifecycle, provider, billing, produção e release. |
+| `COORDINATOR_ONLY` | Current State, histórico, changelog, registros de gate, integração e relatório consolidado do lote. |
+
+O owner de um contrato compartilhado não se torna owner de requisito, gate ou
+decisão humana. Arquivo gerado não pode ser promovido a evidência sem readback,
+identidade e vínculo ao comando/baseline. Uma worker nunca remove output,
+branch, worktree ou store que não possua marcador e namespace task-owned.
+
+### Recursos mutáveis e isolamento
+
+Antes de despachar escrita ou validação executável, a coordenadora inventaria
+os recursos abaixo e registra o isolamento no envelope:
+
+| Recurso | Regra mínima |
+|---|---|
+| Worktree e branch | Exclusivos por lane gravável; branch distinta no mesmo worktree é insuficiente. |
+| `bin/`, `obj/`, `node_modules/`, `dist/` e caches | Um worktree por execução; cache global mutável exige namespace próprio ou execução sequencial. |
+| Coverage, TestResults, artefatos, temporários e golden outputs | Root task-owned único; nenhum default fixo pode ser compartilhado entre execuções. |
+| SQLite, PostgreSQL, vector store, corpus e índice | Database/store exclusivo ou lease único; corpus/index congelado é somente leitura. |
+| Portas, listeners, processos, browser profiles e containers | Porta/profile/container exclusivo e ownership verificável; precheck isolado não substitui lease. |
+| Secrets, credentials, providers e recursos externos | Nunca compartilhados com worker; uso somente sob autoridade específica, menor privilégio e gate próprio. |
+| Tools, MCPs, skills, apps, connectors e plugins | Allowlist exata por lane; herança, descoberta ou disponibilidade não concede uso. Superfície externa inesperada bloqueia o dispatch. |
+
+O gate completo `eng/ci.ps1` não executa concorrentemente no mesmo worktree.
+Restore/build/test e `npm ci` compartilham outputs mesmo quando o diretório de
+coverage é único. O gate final roda sequencialmente sobre a baseline integrada.
+
+Locks são proporcionais ao risco, vinculados a `TASK_ID`, lane, recurso,
+owner e instante de aquisição. Lock stale não é roubado automaticamente.
+Retomada ou cleanup revalida processo, baseline, path, marcador task-owned e
+estado externo; dúvida preserva o recurso e escala. Lock global que elimina
+todo paralelismo é proibido quando namespaces disjuntos resolvem o risco.
+
+### Stop conditions canônicas
+
+Toda agente para antes da ação bloqueada, preserva a evidência observada e
+retorna um destes códigos sem retry, fallback ou ampliação silenciosa:
+
+| Código | Condição |
+|---|---|
+| `AMBIGUOUS_AUTHORITY` | Não é possível identificar autoridade ou escopo negativo inequívoco. |
+| `CONFLICTING_REQUIREMENTS` | Fontes materiais e aplicáveis exigem resultados incompatíveis. |
+| `ARCHITECTURE_CHANGE_REQUIRED` | A tarefa depende de nova stack, boundary ou decisão arquitetural. |
+| `PUBLIC_CONTRACT_CHANGE_REQUIRED` | O resultado exige alterar contrato público ou compartilhado congelado. |
+| `SCHEMA_CHANGE_REQUIRED` | É necessária mudança de schema sem owner/autoridade próprios. |
+| `MIGRATION_REQUIRED` | É necessária migration ou alteração de sequência já atribuída. |
+| `DESTRUCTIVE_OPERATION` | A continuação apagaria, sobrescreveria ou tornaria dado/estado dificilmente recuperável. |
+| `SECRET_REQUIRED` | A continuação depende de secret não autorizado ou indisponível. |
+| `PROVIDER_CHANGE_REQUIRED` | A continuação muda provider, modelo, egress, custo ou superfície externa. |
+| `HUMAN_DECISION_REQUIRED` | A continuação depende de requisito, aceitação de ADR/risco, adjudicação ou outra decisão humana que não seja o Human Gate de lifecycle. |
+| `HUMAN_GATE_REQUIRED` | A continuação depende especificamente do Human Gate de um único `STATE-ID`, com resumo completo e frase canônica. |
+| `UNEXPECTED_DIRTY_TREE` | Branch, HEAD, diff ou untracked mudou fora do envelope observado. |
+| `SHARED_RESOURCE_COLLISION` | Outro owner/processo usa o mesmo recurso mutável ou seu isolamento não pode ser provado. |
+| `OUT_OF_SCOPE_CHANGE_REQUIRED` | O aceite exige arquivo, comportamento ou autoridade fora da tarefa. |
+| `TEST_BASELINE_BROKEN` | O baseline ou gate obrigatório falha antes de poder atribuir a falha à lane. |
+
+Mudança material de baseline exige novo envelope ou revalidação explícita pela
+coordenadora. `HUMAN_DECISION_REQUIRED` não converte uma decisão do proprietário
+em Human Gate. `HUMAN_GATE_REQUIRED` não significa que uma worker possa pedir
+ou registrar a frase de gate. O retorno identifica fato, impacto, trabalho
+seguro independente, owner e condição objetiva de desbloqueio.
+
+### Papéis especializados
+
+A configuração project-scoped em `.codex/agents/` define estes papéis do
+projeto sem desabilitar papéis embutidos da ferramenta nem lhes conceder
+autoridade adicional:
+
+- `governance_guard`: read-only; reconstrói autoridade, lifecycle, ADRs,
+  gates e stop conditions;
+- `code_mapper`: read-only; mapeia dependências, ownership, testes e recursos;
+- `architect`: read-only; identifica boundaries, contratos e necessidade de
+  ADR, sem aceitar a própria proposta;
+- `implementation_worker`: `workspace-write` somente na lane isolada e no
+  envelope recebido;
+- `independent_reviewer`: read-only e independente da implementação julgada;
+- `security_reviewer`: read-only; revisa secrets, trust boundaries, inputs,
+  filesystem, subprocess, provider, logging e supply chain.
+
+Nenhum papel aceita requisito, risco, ADR, adjudicação, Human Gate, lifecycle,
+provider, billing, produção ou release. O sandbox limita ferramentas; não
+substitui ownership, escopo ou autoridade.
+
 ## Guard rails
 
 - Não inventar evidência, runtime, licença, modelo, preço ou aprovação.

@@ -101,6 +101,24 @@ $validBranches = @'
 </coverage>
 '@
 
+$validLineCoverageWithBranches = @'
+<?xml version="1.0" encoding="utf-8"?>
+<coverage>
+  <packages>
+    <package>
+      <classes>
+        <class filename="src/LineAndBranch.cs">
+          <lines>
+            <line number="10" hits="1" branch="True" condition-coverage="100% (1/1)" />
+            <line number="11" hits="0" branch="False" />
+          </lines>
+        </class>
+      </classes>
+    </package>
+  </packages>
+</coverage>
+'@
+
 $malformedBranches = $validBranches.Replace(
     'condition-coverage="50% (1/2)"',
     'condition-coverage="unknown"')
@@ -152,23 +170,23 @@ try {
         -ExpectedPattern "no valid instrumented lines"
 
     Invoke-CoverageCase `
-        -Name "branchless-equal-line-floor" `
+        -Name "branchless-report-fails-closed" `
         -Reports @{ "coverage.cobertura.xml" = $validBranchless } `
-        -ShouldSucceed $true `
+        -ShouldSucceed $false `
         -MinimumLineRate 0.50 `
         -MinimumBranchRate 1.00 `
-        -ExpectedPattern "lines 50.00% \(1/2\); branches 100.00% \(0/0\)"
+        -ExpectedPattern "no valid instrumented branches"
 
     Invoke-CoverageCase `
         -Name "below-line-floor" `
-        -Reports @{ "coverage.cobertura.xml" = $validBranchless } `
+        -Reports @{ "coverage.cobertura.xml" = $validLineCoverageWithBranches } `
         -ShouldSucceed $false `
         -MinimumLineRate 0.51 `
         -ExpectedPattern "Line coverage is below"
 
     Invoke-CoverageCase `
         -Name "above-line-floor" `
-        -Reports @{ "coverage.cobertura.xml" = $validBranchless } `
+        -Reports @{ "coverage.cobertura.xml" = $validLineCoverageWithBranches } `
         -ShouldSucceed $true `
         -MinimumLineRate 0.49 `
         -ExpectedPattern "lines 50.00% \(1/2\)"

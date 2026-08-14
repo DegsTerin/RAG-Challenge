@@ -2,7 +2,7 @@
 
 ## Versão atual
 
-- Versão: `4.10.42`
+- Versão: `4.11.0`
 - Data: 2026-08-14
 - Status: `STATE-07` ativo; ADR-0011 `accepted`, reconciliado e com a correção
   interna da política de serving implementada; o A0 candidato-específico
@@ -48,12 +48,18 @@
   freeze` concluído documentalmente com a revisão imutável
   `retrieval-v2-evaluation-design-v1` em estado
   `frozen-unmaterialised-unscored`, 28 artefatos normativos e sete contadores
-  de materialização em zero; `RB-2` e `RB-3` foram posteriormente concluídos
-  e congelados sem pontuação sobre a baseline `main@0dbc415`, com 252 casos e
-  252 vetores vinculados pelos manifests SHA-256
+  de materialização em zero; os artefatos `RB-2` e `RB-3` foram posteriormente
+  materializados e permanecem mecanicamente congelados sem pontuação sobre a
+  baseline `main@0dbc415`, com 252 casos e 252 vetores vinculados pelos
+  manifests SHA-256
   `daede1db869f7daf784fa2f3fc3b55e037cf4f3bb59a22f94e2026175858bfe4` e
-  `ac7b5763bc9e571b6365449b340c8256790c5fe57ba79142b592b854cf25303c`;
-  `RB-4` permanece `NOT_RUN` e não autorizado;
+  `ac7b5763bc9e571b6365449b340c8256790c5fe57ba79142b592b854cf25303c`.
+  A reauditoria de governança constatou ausência de atribuição humana e vinte
+  decisões de agente onde o checkpoint exigia revisão/adjudicação humana;
+  RB-2 não satisfaz atualmente seu gate, RB-3 fica indisponível para consumo e
+  `RB-4` permanece bloqueado e `NOT_RUN`;
+  o playbook multiagente, seis papéis project-scoped e stop conditions estão
+  formalizados; ADR-0016 permanece `proposed` e Stage 2 não foi iniciado;
   homologação de produto, Human Gate e mudança de lifecycle não executados
 - Escopo: 13 arquivos ativos em `prompts/`
 
@@ -68,6 +74,37 @@ A versão do corpus é independente da versão futura do software.
 
 Toda alteração atualiza este arquivo e, quando necessário,
 [`../Start-Here.md`](../Start-Here.md).
+
+## 4.11.0 — 2026-08-14
+
+- Introduz o playbook verificável de desenvolvimento multiagente com envelope
+  obrigatório, classes operacionais de paralelismo, ownership, isolamento de
+  recursos, stop conditions e papéis especializados sem autoridade humana.
+- Acrescenta a configuração project-scoped conservadora em `.codex/`, com
+  cinco papéis read-only e uma worker gravável limitada a branch, worktree,
+  ownership e recursos exclusivos. A worker usa defaults sem network/web,
+  ambiente core filtrado e verificação fail-closed da superfície efetiva
+  herdada antes do dispatch.
+- Define `eng/ci.ps1` como gate agregado único, explicita que `-Offline` omite
+  auditorias de dependência e que o gate final é sequencial por worktree.
+- Corrige o agregador Cobertura para falhar quando nenhum branch instrumentado
+  válido existe, em vez de atribuir 100% a `0/0`, e atualiza sua regressão.
+- Prepara o ADR-0016 como `proposed`, recomendando um coordenador determinístico
+  TypeScript/Node 24 e um `AgentRunner` com `FakeAgentRunner` e
+  `CodexRunner`; nenhuma dependência ou implementação do orchestrator foi
+  materializada.
+- Preserva byte a byte os freezes RB-2/RB-3 e seus hashes, mas registra a
+  incompatibilidade entre a exigência de adjudicação humana e os revisores,
+  vinte decisões de agente e zero atribuições humanas observados. Completude
+  mecânica não é satisfação do gate; RB-4 fica bloqueado.
+- Corrige o snapshot vigente e os índices documentais que ainda contradiziam
+  a implantação GHCR/Render e o lifecycle atual, preservando o contexto
+  histórico no log append-only.
+- Classifica a mudança como `MINOR` porque acrescenta uma capacidade de
+  governança e colaboração sem alterar requisitos funcionais, produto,
+  OpenAPI, schema, migration, provider, billing, Human Gate ou lifecycle.
+- Stage 2 permanece `HUMAN_DECISION_REQUIRED`: o proprietário deve dispor o
+  conflito RB-2 e aceitar ou rejeitar explicitamente o ADR-0016.
 
 ## 4.10.42 — 2026-08-14
 

@@ -134,13 +134,13 @@ nem afirma que as capacidades descritas neste documento estejam implementadas.
     └── RagChallenge.IntegrationTests/
 ```
 
-O scaffold de `STATE-01` materializou somente configuração, checks, hosts
-mínimos e marcadores de boundary. Não implementou ingestão, recuperação ou
-geração. As abstrações RAG permanecem conceitualmente separadas dentro de
-`RagChallenge.Application`, e a persistência dentro de
-`RagChallenge.Infrastructure`. A administração usa o modo one-shot explícito
-do host principal; ADR-0006 aceitou sua identidade local, permissões, motivo,
-idempotência e auditoria, ainda sem implementação.
+O scaffold de `STATE-01` materializou inicialmente somente configuração,
+checks, hosts mínimos e marcadores de boundary. Incrementos posteriores e
+separadamente autorizados implementaram ingestão, recuperação, geração e a
+administração one-shot no host principal. As abstrações RAG permanecem
+separadas dentro de `RagChallenge.Application`, e a persistência dentro de
+`RagChallenge.Infrastructure`. O estado executado e seus limites pertencem ao
+Current State e aos relatórios factuais, não a esta visão arquitetural.
 
 ## Convenções de nomenclatura
 

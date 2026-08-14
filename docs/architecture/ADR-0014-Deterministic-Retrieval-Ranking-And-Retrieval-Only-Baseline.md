@@ -58,15 +58,20 @@
   `AUTH-DR3-NUMERIC-SEMANTICS-AQG-RETEST-RECONCILE-001`, on clean
   `main@bf8a156e7c5eea801f29fb6e7742cac880783bc0`, corpus `4.10.32`, recorded
   by corpus `4.10.33`
-- RB-2 current status: `COMPLETE`, frozen and unscored under
+- RB-2 artefact status: mechanically frozen and unscored under
   `AUTH-S07-RB2-REVIEW-ADJUDICATION-FREEZE-PACKAGE-001` on
   `main@0dbc415bad6532842aa6c4d1bb45ecd915bf5022`, corpus `4.10.41`; the
   materialisation-freeze manifest SHA-256 is
-  `daede1db869f7daf784fa2f3fc3b55e037cf4f3bb59a22f94e2026175858bfe4`
-- RB-3 current status: `COMPLETE`, frozen and unscored under
+  `daede1db869f7daf784fa2f3fc3b55e037cf4f3bb59a22f94e2026175858bfe4`;
+  Stage 1 later found that the retained agent-authored adjudication does not
+  satisfy its human-review checkpoint, so the gate status requires human
+  disposition
+- RB-3 artefact status: mechanically frozen and unscored under
   `AUTH-S07-RB3-CAMPAIGN-INPUT-FREEZE-001` on the same baseline; the
   campaign-input-freeze manifest SHA-256 is
-  `ac7b5763bc9e571b6365449b340c8256790c5fe57ba79142b592b854cf25303c`
+  `ac7b5763bc9e571b6365449b340c8256790c5fe57ba79142b592b854cf25303c`;
+  it is unavailable for downstream use while the RB-2 authority defect is
+  unresolved
 
 ## Purpose and authority
 
@@ -1322,3 +1327,21 @@ lifecycle counters remain zero. No score, ordered retrieval result, metric or
 homologation conclusion exists. `RB-4 — Retrieval-only campaign` remains
 separately governed, unauthorised and `NOT_RUN`; MultiQuery remains
 `parked-non-canonical`.
+
+## Post-freeze governance audit disposition
+
+A later Stage 1 governance audit preserved both freezes byte for byte and
+revalidated their mechanical identities. It also found an independent
+authority defect: the RB-2 pre-review checkpoint requires two independent
+human reviews and human adjudication without agent-authored decisions, while
+the retained adjudication package records both reviewers with
+`humanAttribution=false`, twenty agent-authored adjudication decisions and zero
+human decision attributions. The same package simultaneously claims
+`no agent-authored adjudication` in its negative scope.
+
+Mechanical completeness therefore does not prove satisfaction of the RB-2
+gate. The freeze identities remain historical evidence, but RB-2 cannot
+currently satisfy the gate and RB-3 cannot be consumed by RB-4. No existing
+freeze may be edited in place. Permanent disposition requires explicit human
+authority, and any correction requires successor review/adjudication and, when
+its inputs change, successor campaign-input artefacts.
