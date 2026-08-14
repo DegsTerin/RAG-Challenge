@@ -1,0 +1,29 @@
+# Purpose: Defines the free-only Render service boundary for a separately published private image; placeholders prevent accidental deployment.
+services:
+  - type: web
+    name: rag-challenge
+    runtime: image
+    plan: free
+    numInstances: 1
+    healthCheckPath: /api/v1/health/ready
+    maxShutdownDelaySeconds: 30
+    autoDeployTrigger: off
+    image:
+      url: "<private-image-reference-by-digest>"
+    envVars:
+      - key: ASPNETCORE_ENVIRONMENT
+        value: Production
+      - key: RagChallenge__Setup__AllowExternalServices
+        value: "true"
+      - key: RagChallenge__Product__Enabled
+        value: "true"
+      - key: RagChallenge__Product__ApplyMigrations
+        value: "false"
+      - key: RagChallenge__Product__CatalogueProfile
+        value: postgresql-18.4
+      - key: RagChallenge__Product__ApprovedRightsEvidenceReference
+        value: auth-s07-a-product-a0-003
+      - key: RagChallenge__Product__CredentialEnvironmentVariable
+        value: OPENAI_API_KEY
+      - key: OPENAI_API_KEY
+        sync: false
