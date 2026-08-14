@@ -2,7 +2,7 @@
 
 ## Versão atual
 
-- Versão: `4.12.0`
+- Versão: `4.12.1`
 - Data: 2026-08-14
 - Status: `STATE-07` ativo; ADR-0011 `accepted`, reconciliado e com a correção
   interna da política de serving implementada; o A0 candidato-específico
@@ -65,8 +65,10 @@
   67,23% de branches; o proprietário selecionou quarentena histórica para os
   freezes RB-2/RB-3, mantendo RB-2 inválido, RB-3 indisponível para RB-4 e
   qualquer sucessor sob autoridade humana separada; ADR-0016 foi explicitamente
-  `accepted`, e a readiness reavaliada é `READY_FOR_STAGE_2`; Stage 2 ainda não
-  havia sido iniciado neste registro de decisão;
+  `accepted`; o preflight de dependências posterior encontrou ausência local
+  de `@openai/codex-sdk`, necessária para versão locked e testes do
+  `CodexRunner`, e refinou a readiness para
+  `HUMAN_DECISION_REQUIRED`; Stage 2 não foi iniciado;
   a política de idioma exige explicitamente en-GB em subject, body e footer de
   toda nova mensagem de commit pertencente ao projeto, sem transformar essa
   regra em autoridade implícita para amend, rebase ou reescrita de histórico;
@@ -84,6 +86,25 @@ A versão do corpus é independente da versão futura do software.
 
 Toda alteração atualiza este arquivo e, quando necessário,
 [`../Start-Here.md`](../Start-Here.md).
+
+## 4.12.1 — 2026-08-14
+
+- Registra o preflight de dependências da Etapa 2 sobre
+  `codex/stage1-multi-agent-readiness@60ccbdc4ec1e53bd456ba91c339846d65ada95e3`:
+  Node `24.19.0` e npm `11.17.0` estão disponíveis, mas não existe pacote ou
+  tarball local de `@openai/codex-sdk`.
+- Refina a readiness para `HUMAN_DECISION_REQUIRED`. ADR-0016 exige
+  versão exata locked, `package-lock.json` verificável e testes contratuais do
+  `CodexRunner`; nenhuma dessas evidências pode ser fabricada ou substituída
+  por parsing de terminal.
+- Mantém a implementação pausada antes da primeira alteração executável. A
+  condição de entrada é autoridade delimitada para aquisição e verificação do
+  pacote no npm registry, com lifecycle scripts desabilitados, ou fornecimento
+  de cache offline completo e verificável.
+- Mantém fora de escopo execução real de Codex, secret, provider de produto,
+  billing, produção, push, merge, release, Human Gate e lifecycle.
+- Classificação SemVer: `PATCH`, porque corrige a condição factual de readiness
+  sem mudar arquitetura, requisito, produto ou autoridade de execução.
 
 ## 4.12.0 — 2026-08-14
 

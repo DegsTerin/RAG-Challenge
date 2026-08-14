@@ -6,16 +6,21 @@ The Stage 1 audit, permitted corrections and clean-worktree validation are
 complete. The final Stage 2 readiness classification is:
 
 ```text
-READY_FOR_STAGE_2
+HUMAN_DECISION_REQUIRED
 ```
 
 The owner selected historical quarantine for the invalid RB-2/RB-3 retained
 package and explicitly accepted ADR-0016 on the post-audit baseline
 `355bd6cd731528bcdb8fccfe71ee93b70acb1d1e`. Both blocking decisions are now
 disposed. RB-2 remains invalid, RB-3 remains unavailable to RB-4 and successor
-human review remains separately governed; none is a Stage 2 dependency. The
-original implementation request may therefore proceed after this decision
-record is validated. Stage 2 has not started in this snapshot.
+human review remains separately governed; none is a Stage 2 dependency.
+
+The Stage 2 dependency preflight on the resulting committed baseline
+`60ccbdc4ec1e53bd456ba91c339846d65ada95e3` found no locally cached or
+installed `@openai/codex-sdk` package. ADR-0016 requires an exact locked SDK
+version and contract tests, while the current authority does not permit
+registry acquisition. Stage 2 has not started. The condition below must be
+satisfied before its first executable change.
 
 ## Scope and baseline
 
@@ -119,6 +124,7 @@ Automatic Quality Gate or Human Gate and does not authorise `STATE-08`.
 | `NET-001` | `MEDIUM` | Some harnesses release a dynamic port before host bind or use fixed default ports. | A TOCTOU collision can create flaky or false evidence. | Exclusive task lease/port is required; Stage 2 must test collision handling. |
 | `TOOL-001` | `MEDIUM` | `eng/format.ps1` mutates tracked and untracked non-ignored files. | A worker could rewrite owner inputs. | Classified coordinator-only and excluded from validation dispatch. |
 | `STATE-001` | `MEDIUM` | Current State retained long historical sequences with present-tense wording. | Old statements could be mistaken for current authority. | Current section corrected and the retained sequence explicitly labelled historical; full historical migration is not required for Stage 2. |
+| `DEP-001` | `BLOCKER` | The local npm cache and installed package inventory contain no `@openai/codex-sdk`, but ADR-0016 requires an exact locked SDK version, a reproducible lockfile and `CodexRunner` contract tests. | Complete Stage 2 implementation cannot be built or validated without acquiring and verifying the package graph. | `HUMAN_DECISION_REQUIRED`; obtain bounded owner authority for registry acquisition or provide a verified complete offline cache. |
 
 ## Corrections made
 
@@ -279,9 +285,21 @@ authority.
 
 The RB-2 defect is now contained outside Stage 2 by historical quarantine,
 and ADR-0016 supplies the required accepted architecture. No remaining Stage 1
-finding requires a human decision before local, offline-first Stage 2
-implementation. The original owner request and the current explicit resume
-instruction provide implementation authority subject to the accepted ADR,
-Stage 2 prompt, task envelopes, runtime preflight and all negative scope.
+governance or architecture finding requires a further human decision.
 
-The re-evaluated classification is `READY_FOR_STAGE_2`.
+The subsequent dependency preflight established one unsatisfied operational
+condition: `@openai/codex-sdk` and its package graph are unavailable from the
+local cache, and external package acquisition is outside the current authority.
+The implementation must not fabricate a lockfile, omit `CodexRunner` or use a
+terminal wrapper. The condition can be satisfied by either:
+
+1. bounded owner authority to resolve and acquire the exact SDK and required
+   development dependencies from the npm registry with lifecycle scripts
+   disabled, followed by lockfile and supply-chain validation; or
+2. a complete, integrity-verifiable offline cache supplied under separate
+   authority.
+
+Because satisfying the condition requires new owner authority or an
+owner-supplied dependency source, the re-evaluated classification is
+`HUMAN_DECISION_REQUIRED`. Stage 2 remains paused before its first executable
+change.

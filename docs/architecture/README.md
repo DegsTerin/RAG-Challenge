@@ -101,8 +101,11 @@ ADR-0016 was prepared on 2026-08-14 by the Stage 1 governance and multi-agent
 readiness audit and accepted explicitly by the owner through
 `ADR-0016: ACEITAR.`. It selects a development-only deterministic
 TypeScript/Node 24 coordinator and a narrow `AgentRunner` boundary with fake
-and Codex SDK adapters. The subsequent Stage 2 readiness re-evaluation passed;
-authentication, real agent execution and lifecycle remain separately governed.
+and Codex SDK adapters. The subsequent governance and architecture conditions
+passed, but dependency preflight found no local Codex SDK package graph. Stage
+2 remains paused until exact package acquisition is separately authorised or
+a complete verified offline cache is supplied; authentication, real agent
+execution and lifecycle remain separately governed.
 
 The later combined audit failed on `AQG-S02-001`, an internal contradiction
 between observation-inclusive generation identity and observation-only
@@ -295,8 +298,8 @@ Dashboard -- versioned HTTP --> API
   compatibility generation; implementation and corrective retest were later
   completed under separate authority)
 - [ADR-0016 — Deterministic Development Orchestrator and Codex Runner Boundary](ADR-0016-Deterministic-Development-Orchestrator-And-Codex-Runner-Boundary.md)
-  (`accepted`; local offline-first Stage 2 implementation is separately
-  authorised after readiness re-evaluation)
+  (`accepted`; Stage 2 implementation remains conditional on a verifiable
+  exact Codex SDK dependency graph)
 
 ## STATE-02 design artefacts
 
@@ -320,6 +323,9 @@ Dashboard -- versioned HTTP --> API
   successor vector freeze, before any RB-4 execution can be authorised.
 - Implementation evidence that the Stage 2 orchestrator conforms to accepted
   ADR-0016, its task contracts and its fail-closed runner boundary.
+- A verified exact Codex SDK package graph and lockfile, acquired only under
+  bounded package-registry authority or from a complete authorised offline
+  cache.
 - Product evaluation, provider, security, accessibility, operational recovery,
   load, OCI and production evidence that remains `NOT_RUN` or separately
   governed in Current State.

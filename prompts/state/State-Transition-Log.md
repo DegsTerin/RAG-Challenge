@@ -8285,3 +8285,43 @@ contém somente fatos cronológicos.
 - Integridade append-only: este histórico preserva byte a byte seu prefixo
   anterior de 525.470 bytes no SHA-256
   `699434c669414071a273acc3f08d01b6cf41dacbb0d2f4ab3fe7eb967ff21c50`.
+
+## 2026-08-14 — Condição de dependência da Etapa 2 identificada antes da implementação
+
+- Baseline observada: branch `codex/stage1-multi-agent-readiness`, HEAD
+  `60ccbdc4ec1e53bd456ba91c339846d65ada95e3`, corpus `4.12.0`, árvore
+  rastreada limpa e somente os três prompts do proprietário não rastreados.
+- A releitura integral do prompt da Etapa 2 confirmou o requisito de versão
+  exata, lockfile reproduzível e testes contratuais de `CodexRunner` sobre a
+  interface oficial selecionada por ADR-0016.
+- A documentação oficial vigente confirmou `@openai/codex-sdk` como biblioteca
+  TypeScript server-side, com start, continue e resume de threads. Node
+  `24.19.0` e npm `11.17.0` satisfazem a faixa aceita.
+- O inventário local observou zero entrada ou tarball de
+  `@openai/codex-sdk` no cache npm e nenhum pacote instalado utilizável. Sem o
+  pacote e seu grafo não é possível gerar/verificar legitimamente o
+  `package-lock.json`, compilar o adapter ou provar seus testes contratuais.
+- A autoridade vigente permite a implementação original somente dentro do
+  escopo local/offline-first e não concede aquisição externa por implicação.
+  Não houve `npm install`, acesso ao registry, criação de lockfile, scaffold,
+  código, diretório `tools/ai-orchestrator/` ou execução de agente.
+- A readiness é refinada para `HUMAN_DECISION_REQUIRED`, pois sua satisfação
+  depende de nova autoridade ou input do proprietário. A condição ainda não
+  satisfeita é receber autoridade delimitada para adquirir e
+  verificar a versão exata do SDK e dependências de desenvolvimento no npm
+  registry, com lifecycle scripts desabilitados, ou receber cache offline
+  completo e verificável.
+- Não são alternativas válidas fabricar lockfile, omitir `CodexRunner`, usar
+  parsing de terminal ou declarar evidência sem pacote. Se o SDK verificado
+  não suportar start/resume, working directory isolado, sandbox compatível e
+  resultado validável, aplica-se `ARCHITECTURE_CHANGE_REQUIRED`.
+- Escopo negativo preservado: nenhuma chamada real de Codex, secret, provider
+  de produto, billing, produção, push, merge, release, RB-4, Human Gate ou
+  mudança de lifecycle foi autorizada ou executada. Os freezes permanecem em
+  quarentena histórica e `STATE-07 TESTING_HOMOLOGATION` permanece ativo.
+- Runtime preflight: `NOT_APPLICABLE`, pois somente documentação, inventário
+  de cache e versões de toolchain foram inspecionados; nenhum comportamento
+  executável do projeto foi alterado ou validado.
+- Integridade append-only: este histórico preserva byte a byte seu prefixo
+  anterior de 528.251 bytes no SHA-256
+  `b1e6925a12b6bfc3b0c996678e76074255c462c3346e807c45a6be8d1d27baa6`.

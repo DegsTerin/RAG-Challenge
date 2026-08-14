@@ -2,7 +2,7 @@
 
 ## Status
 
-Este índice descreve o corpus documental vigente `4.12.0`. `STATE-00`,
+Este índice descreve o corpus documental vigente `4.12.1`. `STATE-00`,
 `GATE-B01` e `STATE-01` a `STATE-06` estão encerrados com seus gates
 registrados. `STATE-07 TESTING_HOMOLOGATION` está ativo; incrementos locais,
 offline, determinísticos e sintéticos foram executados e reconciliados, sem
@@ -84,8 +84,8 @@ factual pertence a
 - [ADR-0015 — Versioned Cosine Numerical Semantics](architecture/ADR-0015-Versioned-Cosine-Numerical-Semantics.md)
   (`accepted`; implementation and corrective retest completed separately)
 - [ADR-0016 — Deterministic Development Orchestrator and Codex Runner Boundary](architecture/ADR-0016-Deterministic-Development-Orchestrator-And-Codex-Runner-Boundary.md)
-  (`accepted`; Stage 2 implementation is separately authorised after the
-  readiness re-evaluation)
+  (`accepted`; Stage 2 readiness is conditional on authorised, verifiable
+  acquisition of the exact Codex SDK package graph)
 - [Contratos canônicos de STATE-02](architecture/STATE-02-Canonical-Contracts.md)
 - [Dicionário lógico de dados e índice de S03-A](data/STATE-03-S03-A-Data-Dictionary.md)
 - [Threat model de STATE-02](security/STATE-02-Threat-Model.md)

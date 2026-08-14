@@ -24,9 +24,13 @@ proprietários.
   RB-3 continua indisponível para RB-4, e qualquer sucessor exige autoridade
   separada, duas revisões humanas independentes e adjudicação humana real. A
   arquitetura TypeScript/Node 24 e a fronteira `AgentRunner` foram aceitas sem
-  constituir Human Gate. Reavaliada nessa baseline, a prontidão da Etapa 2 é
-  `READY_FOR_STAGE_2`; a implementação ainda não havia começado neste
-  snapshot de decisão.
+  constituir Human Gate. Após o commit documental limpo `60ccbdc`, o preflight
+  de dependências da Etapa 2 encontrou zero pacote ou tarball local de
+  `@openai/codex-sdk`. Como ADR-0016 exige versão exata locked e testes do
+  `CodexRunner`, e a autoridade vigente não inclui aquisição pelo registry, a
+  classificação refinada é `HUMAN_DECISION_REQUIRED`. A condição
+  ainda não está satisfeita e nenhuma alteração executável da Etapa 2 foi
+  iniciada.
 - Posição: `STATE-00 DISCOVERY` encerrado; `GATE-B01
   ARCHITECTURE_BOOTSTRAP_DECISION` aprovado e encerrado; `STATE-01
   PROJECT_SETUP` encerrado após Human Gate aprovado sem ressalvas em
@@ -1562,7 +1566,7 @@ proprietários.
   a política de idioma acrescentou o 21º documento público por incremento
   versionado, e o ADR-0003 acrescentou o 22º.
 - A baseline aprovada no Human Gate de `STATE-00` permanece `3.4.0`.
-- O corpus de instruções vigente possui versão `4.12.0` e 13 arquivos em
+- O corpus de instruções vigente possui versão `4.12.1` e 13 arquivos em
   `prompts/`.
 - Visão, requisitos, arquitetura, RAG, segurança, qualidade, lifecycle,
   roadmap, backlog, estado, histórico e templates estão documentados.
@@ -1958,6 +1962,13 @@ proprietários.
   com 252 vetores. Preserva zero resultado, scorer, campanha Responses,
   `RB-4` e Human Gate; a qualificação do denominador não é homologação de
   produto e não muda lifecycle.
+- O corpus `4.12.1` registra o preflight de dependências da Etapa 2 sobre
+  `60ccbdc`: Node `24.19.0` e npm `11.17.0` estão disponíveis, mas o cache e o
+  inventário local contêm zero `@openai/codex-sdk`. Sem autoridade para
+  aquisição no npm registry, não é possível produzir legitimamente o
+  `package-lock.json`, compilar o `CodexRunner` nem executar seus testes de
+  contrato. A readiness passa a `HUMAN_DECISION_REQUIRED`, ainda não
+  satisfeita; nenhuma implementação foi materializada.
 - O corpus `4.12.0` registra a quarentena histórica escolhida para os freezes
   RB-2/RB-3, sem edição in-place, e a aceitação arquitetural explícita da
   ADR-0016. RB-2 permanece inválido, RB-3 indisponível para RB-4 e qualquer
@@ -2306,13 +2317,21 @@ autorizada.
 
 ## Próxima autoridade
 
-As duas decisões humanas exigidas pela Etapa 1 foram registradas. Depois da
-validação deste registro e da reconfirmação da baseline Git, a próxima execução
-diretamente autorizada é a Etapa 2 original: implementar e validar o
-orchestrator determinístico TypeScript/Node 24 sob ADR-0016 e o prompt da
-Etapa 2. Essa autoridade é local e offline-first; não inclui chamada real de
-agente, secret, network, billing, provider, produção, push, merge, release,
-Human Gate ou mudança de lifecycle.
+As duas decisões humanas exigidas pela Etapa 1 foram registradas, mas o
+preflight da Etapa 2 encontrou uma condição operacional ainda não satisfeita.
+A próxima autoridade diretamente relacionada é uma permissão delimitada para
+resolver e adquirir do npm registry a versão exata de `@openai/codex-sdk` e as
+dependências de desenvolvimento estritamente necessárias, sempre com scripts
+de lifecycle desabilitados, sem audit online implícito e sem executar Codex.
+Como alternativa, o proprietário pode fornecer um cache offline completo e
+verificável. Somente depois da aquisição, lockfile e validação de supply chain
+a implementação original da Etapa 2 pode começar.
+
+Essa autoridade eventual não inclui chamada real de agente, secret, billing,
+provider de produto, produção, push, merge, release, Human Gate ou mudança de
+lifecycle. Se a versão verificada do SDK não suportar start/resume, working
+directory isolado, sandbox compatível e resultado validável, a implementação
+para com `ARCHITECTURE_CHANGE_REQUIRED`.
 
 Um sucessor de RB-2/RB-3 continua fora dessa execução e exige autoridade
 separada, duas revisões humanas independentes e adjudicação humana real. Os
