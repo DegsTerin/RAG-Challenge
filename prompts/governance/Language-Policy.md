@@ -52,6 +52,37 @@ Write new project-owned artefacts in British English (`en-GB`), including:
 Use British spelling in project-owned prose. Technical identifiers use clear
 English and follow the repository's established conventions.
 
+## Commit messages
+
+Every new Git commit created for this repository must use British English
+(`en-GB`) throughout its project-owned message. This is a mandatory invariant
+for every commit, regardless of change type, scope, authoring tool or delivery
+stage. It applies to:
+
+- the description after the Conventional Commit type and optional scope;
+- every project-owned sentence in an optional commit body; and
+- project-owned footer prose.
+
+Conventional Commit types and scopes, source identifiers, paths, commands,
+protocol fields, external product names, issue IDs and canonical Git trailers
+retain their required spelling. They are technical or external literals and
+must not be renamed merely to resemble British prose.
+
+The complete message must be checked before the commit is created. Prefer
+British forms such as `serialise`, `initialise`, `behaviour` and `authorised`
+when those words occur in project-owned prose. For example:
+
+```text
+test(integration): serialise shared SQLite state
+```
+
+is compliant; the same description using `serialize` is not.
+
+A non-compliant local commit message is a failed pre-delivery check. Stop and
+correct it before hand-off only when the applicable Git authority permits the
+required operation. This language rule does not itself authorise amend,
+rebase or history rewriting.
+
 ## External conventions
 
 Preserve mandatory names and spellings imposed by:

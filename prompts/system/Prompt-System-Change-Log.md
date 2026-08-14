@@ -2,7 +2,7 @@
 
 ## Versão atual
 
-- Versão: `4.11.0`
+- Versão: `4.11.1`
 - Data: 2026-08-14
 - Status: `STATE-07` ativo; ADR-0011 `accepted`, reconciliado e com a correção
   interna da política de serving implementada; o A0 candidato-específico
@@ -64,6 +64,9 @@
   offline limpo passou com 505 testes .NET, 45 testes web, 95,38% de linhas e
   67,23% de branches; ADR-0016 permanece `proposed`, a readiness final é
   `HUMAN_DECISION_REQUIRED` e Stage 2 não foi iniciado;
+  a política de idioma exige explicitamente en-GB em subject, body e footer de
+  toda nova mensagem de commit pertencente ao projeto, sem transformar essa
+  regra em autoridade implícita para amend, rebase ou reescrita de histórico;
   homologação de produto, Human Gate e mudança de lifecycle não executados
 - Escopo: 13 arquivos ativos em `prompts/`
 
@@ -78,6 +81,21 @@ A versão do corpus é independente da versão futura do software.
 
 Toda alteração atualiza este arquivo e, quando necessário,
 [`../Start-Here.md`](../Start-Here.md).
+
+## 4.11.1 — 2026-08-14
+
+- Torna explícita e obrigatória a regra já existente de que toda nova mensagem
+  de commit do repositório usa British English (`en-GB`) no subject, body e
+  footer pertencentes ao projeto.
+- Preserva tipos/scopes de Conventional Commits, identificadores de código,
+  paths, comandos, nomes externos, IDs e trailers canônicos em sua grafia
+  exigida.
+- Exige verificação da mensagem completa antes da criação do commit e registra
+  que uma mensagem local não conforme falha o check de pré-entrega.
+- Mantém amend, rebase e reescrita de histórico sob autoridade Git explícita;
+  a regra de idioma não concede essas operações por implicação.
+- Classificação SemVer: `PATCH`, porque esclarece e torna verificável uma regra
+  vigente sem mudar lifecycle, arquitetura, produto ou autoridade de execução.
 
 ## 4.11.0 — 2026-08-14
 

@@ -2,7 +2,7 @@
 
 ## Status
 
-Este índice descreve o corpus documental vigente `4.11.0`. `STATE-00`,
+Este índice descreve o corpus documental vigente `4.11.1`. `STATE-00`,
 `GATE-B01` e `STATE-01` a `STATE-06` estão encerrados com seus gates
 registrados. `STATE-07 TESTING_HOMOLOGATION` está ativo; incrementos locais,
 offline, determinísticos e sintéticos foram executados e reconciliados, sem

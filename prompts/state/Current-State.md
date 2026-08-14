@@ -1554,7 +1554,7 @@ proprietários.
   a política de idioma acrescentou o 21º documento público por incremento
   versionado, e o ADR-0003 acrescentou o 22º.
 - A baseline aprovada no Human Gate de `STATE-00` permanece `3.4.0`.
-- O corpus de instruções vigente possui versão `4.11.0` e 13 arquivos em
+- O corpus de instruções vigente possui versão `4.11.1` e 13 arquivos em
   `prompts/`.
 - Visão, requisitos, arquitetura, RAG, segurança, qualidade, lifecycle,
   roadmap, backlog, estado, histórico e templates estão documentados.
@@ -1950,6 +1950,11 @@ proprietários.
   com 252 vetores. Preserva zero resultado, scorer, campanha Responses,
   `RB-4` e Human Gate; a qualificação do denominador não é homologação de
   produto e não muda lifecycle.
+- O corpus `4.11.1` torna explícita a obrigatoriedade de British English
+  (`en-GB`) em toda nova mensagem de commit pertencente ao projeto, incluindo
+  subject, body e footer. Tipos/scopes, identificadores e literais externos
+  preservam sua grafia exigida. A regra deve ser verificada antes do commit e
+  não concede amend, rebase ou reescrita de histórico por implicação.
 - O corpus `4.11.0` acrescenta o playbook verificável de desenvolvimento
   multiagente, configura seis papéis project-scoped, corrige o fail-open de
   cobertura sem branches, prepara o ADR-0016 como `proposed` e registra a
