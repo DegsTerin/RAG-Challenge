@@ -7939,3 +7939,52 @@ contém somente fatos cronológicos.
 - Integridade append-only: este histórico preserva byte a byte seu prefixo
   anterior de 502.405 bytes no SHA-256
   `d2d63b9bdd2847597dfbd02774b0303b7f1273b5cc486c2192133a529dabee93`.
+
+## 2026-08-13 — Contrato text-first reconciliado com a geração PostgreSQL preparada
+
+- Estado anterior e resultante: `STATE-07 TESTING_HOMOLOGATION` permanece
+  ativo. Nenhum Automatic Quality Gate, Human Gate ou lifecycle foi executado
+  ou alterado.
+- Autoridade e baseline:
+  `AUTH-S07-LOCAL-PRODUCT-TEXT-FIRST-CONTRACT-RECONCILIATION-PREFLIGHT-001`,
+  branch `main`, HEAD `87f191c733715198451ee63da21ef24e121b0ac8`, corpus
+  `4.10.38`, working tree rastreada inicialmente limpa e OpenAPI v1/v2
+  protegidas. O runtime preflight desta atividade documental foi
+  `NÃO APLICÁVEL`; nenhum processo ou listener foi enumerado ou encerrado.
+- Divergência reconciliada: o contrato ativo ainda impunha renderização completa
+  de todas as páginas antes de qualquer ativação PDF, embora o pipeline
+  implementado já aceite `renderManifestId=null` sob `TextualEvidence` e
+  preserve o modo visual completo sob `PdfVisualEvidence`.
+- Contrato resultante: PDF text-first pode ser ativado sem pré-renderização; uma
+  resposta v2 fundamentada pode materializar sob demanda somente as páginas
+  físicas efetivamente citadas, entre uma e cinco por resposta. O manifesto
+  esparso pertence exclusivamente ao `AnswerEvidenceRecordV1` persistido, nunca
+  ao binding de ativação. Falha visual preserva a resposta textual e não cria
+  referência de imagem.
+- Estado factual de produto: a geração PostgreSQL 18.4
+  `idxgen-ec39244b021c90fceea1b3a628fe793a99f74650cad451f16ffbcd414af636f6`
+  contém 3.282 chunks e 3.282 vetores validados, com
+  `logicalArtifactDigest=abba9604bf19bae0349e0d72e7973a386371458eacffac66eeb803a9dabf30fe`,
+  `generationContentDigest=ec39244b021c90fceea1b3a628fe793a99f74650cad451f16ffbcd414af636f6`
+  e zero render manifest. A entrada `07-activate-generation.runtime.json` está
+  preparada com um binding LocalAuthorised e `renderManifestId=null`;
+  `activate-generation` não foi executado.
+- Escopo documental fechado: somente o contrato RAG, Current State, este
+  histórico append-only, Prompt System Change Log e o relatório factual de
+  `STATE-07` são alterados no commit focal. Corpus elevado por `PATCH` factual
+  de `4.10.38` para `4.10.39`.
+- Artefatos locais ignorados: somente autoridade, corpus e baseline do bundle,
+  handoff e marcador do store-alvo serão alinhados ao HEAD resultante. O
+  preflight posterior desse HEAD é read-only e reportado sanitizadamente fora
+  do commit único; ele não altera a geração nem concede autoridade de ativação.
+- Escopo negativo preservado: nenhum código, OpenAPI, PDF, SQLite, vetor,
+  content object, store protegido ou outro store é alterado. Build, restore,
+  testes, credencial, rede, renderização, embeddings, Responses, consulta,
+  `activate-generation`, publicação, push e deploy permanecem `NOT_RUN`.
+- Integridade append-only: este histórico preserva byte a byte seu prefixo
+  anterior de 505.282 bytes no SHA-256
+  `a6706a49bb1f2c9f5267e0d7ba133ff497149701ab7292ffacb36faa09373f4f`.
+- Próxima condição diretamente relacionada: obter autoridade humana separada e
+  delimitada para executar exatamente uma vez `activate-generation` somente
+  após o preflight post-commit confirmar integralmente geração, input, store e
+  stores protegidos. Consulta e qualquer etapa posterior permanecem separadas.

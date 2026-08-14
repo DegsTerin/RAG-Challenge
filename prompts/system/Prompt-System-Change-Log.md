@@ -2,16 +2,17 @@
 
 ## Versão atual
 
-- Versão: `4.10.38`
-- Data: 2026-08-12
+- Versão: `4.10.39`
+- Data: 2026-08-13
 - Status: `STATE-07` ativo; ADR-0011 `accepted`, reconciliado e com a correção
   interna da política de serving implementada; o A0 candidato-específico
   A0-003 dispõe as quatro operações visuais como `PERMITTED` somente sob o
   mecanismo notice-bearing e preserva distribuição/publicação externa
-  `DENIED`; o primeiro documento permanece `ELIGIBLE_CANDIDATE`, sem
-  materialização ou ativação; os seis valores project-owned do futuro
-  obligation set de `postgresql-18-reference-a4` estão aprovados exatamente,
-  mas nenhuma identidade determinística ou artefato foi criado; ADR-0012
+  `DENIED`; o primeiro documento foi materializado como `LocalAuthorised` em
+  uma geração text-first validada, com entrada de ativação preparada e ainda
+  não executada; o obligation set determinístico de
+  `postgresql-18-reference-a4` está vinculado ao perfil visual sob demanda;
+  ADR-0012
   `accepted`,
   reconciliado, com revisão do contrato v2 congelada, schema/migrations e
   comportamento notice-bearing implementados; o Automatic Quality Gate
@@ -60,6 +61,32 @@ A versão do corpus é independente da versão futura do software.
 
 Toda alteração atualiza este arquivo e, quando necessário,
 [`../Start-Here.md`](../Start-Here.md).
+
+## 4.10.39 — 2026-08-13
+
+- Reconcilia sob
+  `AUTH-S07-LOCAL-PRODUCT-TEXT-FIRST-CONTRACT-RECONCILIATION-PREFLIGHT-001`,
+  na baseline limpa
+  `main@87f191c733715198451ee63da21ef24e121b0ac8`, corpus `4.10.38`, o
+  contrato normativo RAG e os registros factuais com o pipeline text-first já
+  implementado.
+- Define que PDF pode integrar a ativação com `renderManifestId=null` sob
+  `TextualEvidence`, enquanto o modo visual completo permanece disponível sob
+  `PdfVisualEvidence` e manifesto consecutivo de todas as páginas.
+- Define que uma resposta v2 já fundamentada pode materializar sob demanda
+  somente as páginas PDF efetivamente citadas, entre uma e cinco por resposta;
+  o manifesto esparso é vinculado exclusivamente ao
+  `AnswerEvidenceRecordV1` persistido, nunca à ativação, e falha visual preserva
+  a resposta textual.
+- Registra factualmente a geração PostgreSQL 18.4
+  `idxgen-ec39244b021c90fceea1b3a628fe793a99f74650cad451f16ffbcd414af636f6`
+  com 3.282 chunks, 3.282 vetores, zero render manifest e input de ativação
+  preparado com `renderManifestId=null`; `activate-generation` permanece
+  `NOT_RUN`.
+- Classifica a mudança como `PATCH` normativa e factual. Nenhum código,
+  OpenAPI, PDF, SQLite, vetor, content object ou store protegido é alterado;
+  build, testes, credencial, rede, renderização, embeddings, Responses,
+  consulta, ativação, publicação, push e deploy permanecem `NOT_RUN`.
 
 ## 4.10.38 — 2026-08-12
 

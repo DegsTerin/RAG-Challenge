@@ -7,12 +7,15 @@ ADRs aceitos. O estado implementado e testado pertence ao Current State e aos
 relatórios dos estados. Os incrementos corretivos implementaram a separação de
 idiomas, o content store, os gates de direitos, o renderer/PNG e os vínculos de
 ativação previstos pelos ADRs 0008/0009. Incrementos posteriores implementaram
-v2, serving same-origin e o perfil notice-bearing local, preservando v1 byte a
-byte; o AQG notice-bearing e a homologação de produto permanecem separados. O
+v2, serving same-origin, o perfil notice-bearing local e o fluxo text-first,
+preservando v1 byte a byte; o AQG notice-bearing e a homologação de produto
+permanecem separados. O
 `AnswerEvidenceRecordV1`, sua retenção `P30D` e participação em
 reachability previstas pelo ADR-0010 foram implementados localmente por
-`S04-CORR-04-E`, sem gate ou homologação. Nenhum corpus real, provider real ou
-conteúdo real está ativo.
+`S04-CORR-04-E`, sem gate ou homologação. A geração textual PostgreSQL 18.4
+está materializada e validada localmente, com entrada de ativação preparada e
+`renderManifestId=null`; nenhuma geração de produto, consulta ou resposta está
+ativa por esse fato.
 
 ## Objetivo e limites
 
@@ -33,7 +36,6 @@ Governed local document or official snapshot (PDF/CSV)
   -> Discovery
   -> Validation
   -> Content-addressed persistence and verified reopen
-  -> Deterministic complete page rendering for PDF visual evidence
   -> Parsing
   -> Normalisation
   -> Chunking
@@ -51,6 +53,7 @@ Question
   -> Evidence policy
   -> Grounded generation
   -> Citation validation
+  -> Optional notice-bearing rendering of at most five cited PDF pages
   -> Persistent answer-evidence binding for Answered
   -> Answer outcome
 ```
@@ -141,28 +144,34 @@ dos próprios bytes, gravado idempotentemente e reaberto com hash e tamanho
 verificados. Git, Git LFS, `artifacts-local/`, catálogo e vector store não são
 substitutos.
 
-Para PDF, o perfil aceito `pdf-page-png-v1` produz uma imagem `image/png` por
-página física, numerada a partir de 1, a 144 DPI, RGB de 8 bits, fundo branco,
-aspect ratio preservado e dimensões de até 4.096 pixels por eixo. O binding
+Para PDF, os perfis aceitos produzem uma imagem `image/png` por página física,
+numerada a partir de 1, a 144 DPI, RGB de 8 bits, fundo branco, aspect ratio
+preservado e dimensões de até 4.096 pixels por eixo. O binding
 `DocumentPageImage` liga documento/versão, conteúdo fonte, página,
-perfil/renderer e conteúdo PNG. `DocumentRenderManifest` registra o conjunto
-completo e ordinal, page count, descriptors e digest canônico. Falha, lacuna,
-duplicidade, limite excedido, assinatura inválida ou readback inconsistente
-reprova a candidata inteira. CSV não recebe visualização implícita.
+perfil/renderer e conteúdo PNG. Um `DocumentRenderManifest` vinculado à
+ativação registra o conjunto completo e ordinal, page count, descriptors e
+digest canônico; falha, lacuna, duplicidade, limite excedido, assinatura
+inválida ou readback inconsistente reprova esse modo visual de ativação. CSV
+não recebe visualização implícita.
 
-O perfil `pdf-page-png-notice-v1` implementado preserva essa região de página
+O perfil `pdf-page-png-notice-v1` implementado preserva a região de página
 pixel a pixel e acrescenta um painel determinístico com o
 `DerivativeObligationSetV1` integral. Manifest, persistence/reachability,
 readback e serving vinculam e revalidam a mesma identidade/digest; o Dashboard
 apresenta o conteúdo exato como texto acessível junto da figura. Isso não
 reclassifica candidato, cria corpus de produto ou substitui seu AQG próprio.
 
-Importar ou renderizar não ativa conteúdo. Um PDF com evidência visual só
-pode ficar `Active` quando direitos, objeto fonte, manifesto completo, todos os
-PNGs e geração textual/indexada finalizada forem vinculados atomicamente.
-Documento `Deactivated` ou `Removed` não serve imagem, e cleanup precisa provar
-ausência de reachability por documento ativo/retido, manifesto, evidência de
-resposta e rollback.
+Importar ou renderizar não ativa conteúdo. O modo text-first permite ativar um
+PDF com geração textual/indexada finalizada, direitos `TextualEvidence`, objeto
+fonte verificado e `renderManifestId=null`. Alternativamente, uma ativação
+visual liga atomicamente direitos `PdfVisualEvidence`, manifesto completo e
+todos os PNGs verificados. Depois de uma resposta v2 text-first citar páginas
+PDF exatas, o runtime pode materializar sob demanda somente essas páginas, no
+intervalo de uma a cinco por resposta. O manifesto esparso resultante pertence
+exclusivamente à evidência persistida daquela resposta, nunca ao binding de
+ativação. Documento `Deactivated` ou `Removed` não serve imagem, e cleanup
+precisa provar ausência de reachability por documento ativo/retido, manifesto,
+evidência de resposta e rollback.
 
 O `AnswerEvidenceRecordV1` implementado torna a evidência de resposta uma raiz
 com expiração fixa e sem refresh. A evidência local sintética de
@@ -318,7 +327,7 @@ evidenceBindings[]
   sourceContentObjectId
   rightsSchemaVersion: 1
   rightsDecisions[10]
-  renderManifestId? # obrigatório para PDF, ausente para CSV
+  renderManifestId? # nulo no PDF text-first/CSV; completo no PDF visual
 generationActivatedAt
 recordUpdatedAt
 ```
@@ -338,9 +347,10 @@ observação” obtidos separadamente.
 
 Cada nova revisão persiste um binding de evidência imutável por documento: o
 `DocumentBinding` e objeto fonte exatos, snapshot completo das dez decisões de
-direitos em schema `1` e, para PDF, o render manifest exato. Esses campos não
-criam identidade/revisão administrativa ou digest global de direitos e não
-alteram os domínios de `sourceBindingSetDigest` ou
+direitos em schema `1` e o `renderManifestId` opcional. `null` seleciona o modo
+text-first; um valor seleciona o manifesto completo de ativação visual. Esses
+campos não criam identidade/revisão administrativa ou digest global de direitos
+e não alteram os domínios de `sourceBindingSetDigest` ou
 `activationBindingSetDigest`. Replay pelo mesmo `OperationId` compara também
 todos os vínculos e decisões. Revisão histórica sem o conjunto completo é
 preservada sem inferência, mas falha fechada como autoridade corrente de
@@ -348,11 +358,14 @@ consulta ou prontidão visual.
 
 Antes do CAS, a implementação confere corpus, documento, versão, formato,
 objeto fonte, idioma documental suportado, geração textual/vector finalizada e
-bindings idênticos ao manifesto. CSV exige `TextualEvidence` integralmente
-`Permitted`. PDF exige `PdfVisualEvidence` integralmente `Permitted`, manifesto
-finalizado da mesma fonte, uma linha consecutiva por página física e reabertura
-verificada da fonte e de todos os PNGs. A transação Control grava revisão,
-bindings, evidência/direitos, retenção, head, auditoria e completion do journal
+bindings idênticos ao manifesto. CSV e PDF text-first com
+`renderManifestId=null` exigem `TextualEvidence` integralmente `Permitted` e
+reabertura verificada da fonte. PDF com `renderManifestId` exige
+`PdfVisualEvidence` integralmente `Permitted`, manifesto finalizado da mesma
+fonte, uma linha consecutiva por página física e reabertura verificada da fonte
+e de todos os PNGs. Manifesto esparso sob demanda não satisfaz nem pode ser
+usado nesse binding de ativação. A transação Control grava revisão, bindings,
+evidência/direitos, retenção, head, auditoria e completion do journal
 administrativo aplicável como uma única mudança atômica.
 
 `catalogueRevision` identifica o snapshot imutável do catálogo que integra a
@@ -377,8 +390,9 @@ classificação de confiança é fechada e não concede autorização por si só
 - conteúdo hashado antes da indexação;
 - bytes validados promovidos idempotentemente ao `IDocumentContentStore` e
   reabertos com hash verificado antes de qualquer ativação;
-- para PDF visual, renderização completa e persistência/reabertura verificadas
-  de todos os PNGs antes de qualquer ativação;
+- para PDF com manifesto vinculado à ativação, renderização completa e
+  persistência/reabertura verificadas de todos os PNGs antes do CAS; PDF
+  text-first mantém `renderManifestId=null` e não pré-renderiza páginas;
 - nenhuma dependência de `reference-materials/`.
 
 ### Fontes oficiais externas
@@ -471,8 +485,9 @@ O MVP mantém o fluxo simples:
 2. validar formato, proveniência, licença, identidade e hash de cada documento;
 3. persistir ou reutilizar o objeto imutável por hash, reabri-lo pelo
    `IDocumentContentStore` e conferir seus bytes;
-4. para PDF com evidência visual, finalizar e verificar o manifesto completo
-   de páginas antes de considerar a candidata visualmente completa;
+4. escolher explicitamente o binding do PDF: text-first com
+   `renderManifestId=null`, ou visual com manifesto completo finalizado e
+   verificado antes da ativação;
 5. construir uma geração única com todos os chunks elegíveis e metadados de
    banco, documento, formato, origem e confiança;
 6. validar manifesto, referências reabríveis, compatibilidade, elegibilidade,
@@ -688,14 +703,19 @@ por essa superfície.
 O contrato v2 implementado conserva
 `questionLanguage`/`answerLanguage` fechados, amplia `CitationV2.contentLanguage`
 para BCP 47, preserva `sourceDeclaredLanguage` e adiciona referências
-`PageImageEvidenceV1`. Para o perfil notice-bearing, cada página carrega
-`obligationSetId` e a citação carrega uma
+`PageImageEvidenceV1`. Depois de validar a resposta fundamentada e suas
+citações, uma ativação text-first pode renderizar sob demanda somente as
+páginas físicas distintas efetivamente citadas, entre uma e cinco por resposta.
+O manifesto esparso precisa corresponder exatamente a esse conjunto; qualquer
+falha visual preserva a resposta textual já fundamentada e não inventa
+referência de imagem. Para o perfil notice-bearing, cada página materializada
+carrega `obligationSetId` e a citação carrega uma
 `DerivativeObligationPresentationV1` completa e coincidente. A resposta não
-embute PNG nem path; no máximo cinco páginas distintas citadas são
-referenciadas, e o endpoint same-origin revalida binding ativo, manifest,
-direitos e obrigação antes de servir bytes limitados. Evidência textual e
-obrigação acessível adjacentes continuam disponíveis. O LLM recebe somente
-texto; imagem exige autoridade separada de provider/egress/dados/custo.
+embute PNG nem path; o endpoint same-origin revalida binding ativo, manifesto,
+direitos, obrigação e autoridade do `AnswerEvidenceRecordV1` não expirado antes
+de servir bytes limitados. Evidência textual e obrigação acessível adjacentes
+continuam disponíveis. O LLM recebe somente texto; imagem exige autoridade
+separada de provider/egress/dados/custo.
 
 A resposta inclui metadados técnicos:
 
@@ -722,9 +742,10 @@ e falhas não criam registro.
 O agregado imutável liga a resposta por hash/comprimento ao corpus, revisão de
 ativação, catálogo, geração, ambos os binding digests, política de recuperação,
 prompt, modelo e cobertura. Cada citação preserva identidades exatas de banco,
-documento, versão, formato, idioma, chunk, fonte/proveniência, objeto fonte,
-localização e render manifest; páginas PDF citadas preservam também
-manifest/profile/renderer e a identidade integral do PNG.
+documento, versão, formato, idioma, chunk, fonte/proveniência, objeto fonte e
+localização. Quando a página citada foi materializada sob demanda, o mesmo
+registro persiste o manifesto esparso exato, profile/renderer e a identidade
+integral do PNG; sem materialização visual, esses campos permanecem ausentes.
 
 O registro não contém pergunta nem seu hash, resposta, título/excerto/URL de
 citação, prompt ou payload de provider, scores/vetores, identidade/IP do usuário,

@@ -1267,3 +1267,52 @@ preflight was `NOT_APPLICABLE`. Documentary validation passed
 `git diff --check` with exit code `0` and `eng/check-repository.ps1` with 311
 non-ignored files. Build, executable tests, `eng/ci.ps1` and the Automatic
 Quality Gate were not repeated during reconciliation.
+
+## PostgreSQL 18.4 text-first contract reconciliation
+
+### Authority, baseline and factual product state
+
+The product owner authorised
+`AUTH-S07-LOCAL-PRODUCT-TEXT-FIRST-CONTRACT-RECONCILIATION-PREFLIGHT-001`
+from clean `main@87f191c733715198451ee63da21ef24e121b0ac8`, prompt corpus
+`4.10.38`. The authority is limited to reconciling the active contract and
+factual records with the already implemented text-first pipeline, creating one
+focused local commit, aligning three ignored local handoff records to the
+resulting HEAD and performing one read-only post-commit preflight. It does not
+authorise generation activation or a product query.
+
+The PostgreSQL 18.4 LocalAuthorised generation
+`idxgen-ec39244b021c90fceea1b3a628fe793a99f74650cad451f16ffbcd414af636f6`
+is materialised and validated with 3,282 chunks and 3,282 vectors. Its logical
+artefact digest is
+`abba9604bf19bae0349e0d72e7973a386371458eacffac66eeb803a9dabf30fe`
+and its generation-content digest is
+`ec39244b021c90fceea1b3a628fe793a99f74650cad451f16ffbcd414af636f6`.
+It has one LocalAuthorised evidence binding, zero activation-bound render
+manifests and a prepared `07-activate-generation.runtime.json` whose
+`renderManifestId` is `null`. `activate-generation` has not run.
+
+### Reconciled text-first contract
+
+A PDF may be activated text-first with `renderManifestId=null` when the exact
+source object, generation and `TextualEvidence` rights pass the activation
+barrier. The existing full visual-activation mode remains supported: a non-null
+activation render manifest still requires `PdfVisualEvidence`, a complete
+consecutive physical-page manifest and verified readback of every bound PNG.
+
+After a grounded v2 answer and its citations have been validated, the runtime
+may materialise only the exact cited physical PDF pages that require visual
+evidence, with a hard range of one to five distinct pages per answer. The
+resulting sparse notice-bearing manifest is authority only through the
+persisted, unexpired `AnswerEvidenceRecordV1`; it is never activation-bound. A
+visual-rendering failure preserves the grounded textual answer and creates no
+invented image reference. The language model continues to receive text only.
+
+This reconciliation advances the prompt corpus to `4.10.39`. It changes no
+source code, protected OpenAPI artefact, PDF, SQLite database, vector, content
+object, protected store or other store. Build, restore, tests, credentials,
+network, rendering, embeddings, Responses, product query and
+`activate-generation` remain `NOT_RUN`. Runtime process preflight is
+`NOT_APPLICABLE` to the documentary change. The one post-commit product
+preflight is read-only and its sanitised result is reported outside the single
+tracked commit.

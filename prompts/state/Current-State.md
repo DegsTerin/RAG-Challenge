@@ -1,6 +1,6 @@
 # Estado Atual
 
-Este documento é o snapshot factual vigente do workspace em 2026-08-12. Ele
+Este documento é o snapshot factual vigente do workspace em 2026-08-13. Ele
 não concede autoridade. Evolução e decisões no contexto original pertencem ao
 [`State-Transition-Log.md`](State-Transition-Log.md) e aos relatórios
 proprietários.
@@ -1512,7 +1512,7 @@ proprietários.
   a política de idioma acrescentou o 21º documento público por incremento
   versionado, e o ADR-0003 acrescentou o 22º.
 - A baseline aprovada no Human Gate de `STATE-00` permanece `3.4.0`.
-- O corpus de instruções vigente possui versão `4.10.38` e 13 arquivos em
+- O corpus de instruções vigente possui versão `4.10.39` e 13 arquivos em
   `prompts/`.
 - Visão, requisitos, arquitetura, RAG, segurança, qualidade, lifecycle,
   roadmap, backlog, estado, histórico e templates estão documentados.
@@ -1871,6 +1871,20 @@ proprietários.
   `rightsMappingRevision`, `obligationSetId` ou `canonicalSha256`. Bundle,
   materialização, renderização, embeddings, indexação, ativação, AQG, Human
   Gate e lifecycle permanecem inalterados ou `NOT_RUN`.
+- O corpus `4.10.39` reconcilia sob
+  `AUTH-S07-LOCAL-PRODUCT-TEXT-FIRST-CONTRACT-RECONCILIATION-PREFLIGHT-001`,
+  sobre a baseline limpa
+  `main@87f191c733715198451ee63da21ef24e121b0ac8`, o contrato RAG ativo com o
+  pipeline text-first já implementado. PDF pode integrar uma ativação com
+  `renderManifestId=null` mediante `TextualEvidence`; o modo visual completo
+  permanece suportado mediante `PdfVisualEvidence`, e manifestos esparsos de
+  uma a cinco páginas físicas citadas pertencem somente ao
+  `AnswerEvidenceRecordV1` persistido. A geração PostgreSQL 18.4
+  `idxgen-ec39244b021c90fceea1b3a628fe793a99f74650cad451f16ffbcd414af636f6`
+  está validada com 3.282 chunks e 3.282 vetores, zero render manifest e entrada
+  `07-activate-generation.runtime.json` preparada com
+  `renderManifestId=null`; `activate-generation`, consulta e Responses não
+  foram executados.
 - O corpus `4.3.0` formaliza a decisão explícita do proprietário de aceitar
   perguntas e respostas em `pt-BR` e `en-GB`: cada consulta declara o idioma,
   a resposta usa o mesmo idioma, textos derivados da fonte permanecem no
@@ -2135,10 +2149,12 @@ autorizada.
    dois disclaimers completos dentro de cada PNG. Page rendering,
    derivative-image creation/retention e runtime display são `PERMITTED`
    somente sob esse perfil e suas condições fail-closed; distribuição externa
-   permanece `DENIED`. O candidato deixa de estar `BLOCKED/EXCLUDED` por
-   direitos e permanece `ELIGIBLE_CANDIDATE`, sem render, dataset, indexação ou
-   ativação. Cada documento posterior mantém seu próprio gate independente de
-   direitos, proveniência e idioma.
+   permanece `DENIED`. O documento foi importado e a geração text-first
+   `idxgen-ec39244b021c90fceea1b3a628fe793a99f74650cad451f16ffbcd414af636f6`
+   foi materializada e validada com 3.282 chunks, 3.282 vetores e zero render
+   manifest. A entrada de ativação está preparada com `renderManifestId=null`,
+   mas a geração permanece inativa. Cada documento posterior mantém seu próprio
+   gate independente de direitos, proveniência e idioma.
 2. Validar e ativar individualmente novos registros de fonte oficial; a
    aceitação arquitetural não autoriza URL, rede, download ou crawling.
 3. `S07-A` A1-A5 e seu Automatic Quality Gate foram concluídos e aprovados na
@@ -2252,9 +2268,10 @@ derivative-image creation, derivative-image retention e runtime derivative
 display são `PERMITTED` somente pelo `pdf-page-png-notice-v1`, com avisos
 completos dentro de cada PNG e ligações fail-closed. A intended
 source/derivative distribution boundary permanece `DENIED` fora do
-runtime-display. O candidato deixa o bloqueio de direitos e permanece
-`ELIGIBLE_CANDIDATE`; dataset, import, render, indexação e ativação continuam
-não executados e não autorizados por esse resultado.
+runtime-display. O A0 removeu o bloqueio de direitos e tornou o documento
+`ELIGIBLE_CANDIDATE`; a materialização text-first posterior importou e indexou
+o conteúdo em geração validada, sem renderização prévia. A ativação continua
+não executada e não foi autorizada por esse resultado de direitos.
 
 O ADR-0012 foi aceito explicitamente mediante `ADR-0012: ACEITAR.` somente
 como autoridade arquitetural, e sua reconciliação semântica nos seis
@@ -2277,8 +2294,10 @@ serving v2 foi corrigida no commit
 `b9c3e5f3a72c2dd7762c256198452ae2c217b2d2`. A verificação ocorre antes de
 `200` ou `304`, sem alteração do contrato público. O A0-003 dispõe as quatro
 operações visuais como `PERMITTED` somente sob o perfil notice-bearing e
-preserva distribuição/publicação externa `DENIED`; o candidato permanece
-`ELIGIBLE_CANDIDATE`, não materializado ou ativo.
+preserva distribuição/publicação externa `DENIED`. A geração text-first está
+materializada e validada, com ativação preparada e ainda não executada; páginas
+visuais continuam ausentes até uma resposta ativa citar páginas que requeiram
+evidência sob demanda.
 
 O segundo refinamento arquitetural da ordem registrada em Lifecycle está
 implementado até integração v2, restart, cold backup/restore confinado e
