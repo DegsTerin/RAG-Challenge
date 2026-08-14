@@ -7988,3 +7988,59 @@ contém somente fatos cronológicos.
   delimitada para executar exatamente uma vez `activate-generation` somente
   após o preflight post-commit confirmar integralmente geração, input, store e
   stores protegidos. Consulta e qualquer etapa posterior permanecem separadas.
+
+## 2026-08-14 — Ativação PostgreSQL reconciliada e pacote Render Free preparado localmente
+
+- Estado anterior e resultante: `STATE-07 TESTING_HOMOLOGATION` permanece
+  ativo. Nenhum Automatic Quality Gate, Human Gate ou lifecycle foi executado
+  ou alterado.
+- Ativação persistida: sob
+  `AUTH-S07-LOCAL-PRODUCT-TEXT-FIRST-ACTIVATE-GENERATION-001`, sobre
+  `main@4123413c49b3c1bdd587dce9380f44136c79c7f5`, corpus `4.10.39`, a operação
+  única `s07-postgresql-18-a4-local-v1-07-activate-generation` retornou
+  `CH_ADMIN_APPLIED` e aplicou a revisão ativa `1` para a geração
+  `idxgen-ec39244b021c90fceea1b3a628fe793a99f74650cad451f16ffbcd414af636f6`.
+  O `activationBindingSetDigest` persistido é
+  `234a1ff2e0e84c07574878ebd67b7015e4775a0256876d9cfc18f9adb0a6e2d6`;
+  permanecem 3.282 chunks, 3.282 vetores, um binding `LocalAuthorised` e
+  `renderManifestId=null`. Nenhuma consulta ou Responses foi executada.
+- Autoridade de pacote: em 2026-08-14 o proprietário autorizou preparar
+  localmente o pacote RAG-Challenge para Render Hobby com instância Free,
+  custo de hospedagem zero e bloqueio de recurso pago, proibindo publicação ou
+  criação de serviço externo. A autorização não acessa billing e não concede
+  deploy, registry, GitHub, secret remoto ou provider.
+- Implementação: o commit focal
+  `d72914ba79dcb482a2e5d2f1ce9cc8a812315c2b` cria Dockerfile fixado por digest,
+  entrypoint fail-closed, template Render não implantável, builder, verificador,
+  documentação e cinco testes focais. `plan: free`, uma instância, ausência de
+  disco/banco e auto-deploy desligado são verificações obrigatórias.
+- Persistência deliberada: o seed operacional de 83.539.360 bytes permanece
+  somente em `artifacts-local/` e em imagem privada local. Cada boot verifica o
+  seed, cria um store gravável novo em `/tmp`, verifica a cópia e inicia como
+  usuário não privilegiado. Reinício restaura a geração ativa e descarta
+  `AnswerEvidenceRecordV1` produzidos desde o boot; isso é demonstração
+  efêmera, não persistência de produção.
+- Evidência local: build Dashboard, publish .NET sem restore, readiness
+  loopback, auditoria do contexto e cinco testes focais passaram. O contexto
+  contém 44 arquivos, release de 35.689.002 bytes e três arquivos operacionais
+  de seed totalizando 83.539.360 bytes. A imagem Linux x64 local
+  `6f676930e5051e60d89aafd817d34763dcfc82e7877a129a6cc0c9bf9f049000`
+  respondeu Dashboard HTTP `200`, readiness `Ready`, preservou a geração ativa
+  após restart e removeu o probe transitório do store.
+- Diagnóstico do harness: a primeira prova de restart não releu uma porta
+  aleatória atribuída pelo Docker. Logs sanitizados mostraram o contêiner
+  reiniciado e escutando. A repetição com porta loopback explicitamente
+  reservada passou; nenhum código de produto foi alterado por esse falso
+  negativo.
+- Escopo negativo observado: nenhum segredo real foi lido; nenhuma chamada de
+  provider, Responses ou produto foi executada; nenhum recurso Render, OCI ou
+  GitHub foi criado; nenhuma imagem foi publicada; billing, PDF e stores
+  protegidos permaneceram inalterados. O Docker Desktop iniciado pela tarefa
+  foi encerrado e não restou contêiner da tarefa.
+- Arquitetura e entrega: o candidato Render Free não substitui ADR-0005 nem o
+  requisito OCI registrado pelos materiais do Challenge. Seleção final de
+  Render, publicação privada da imagem, credential de registry, secret de
+  provider e criação do serviço exigem reconciliação e autoridade externas
+  posteriores.
+- Versionamento: corpus elevado por `PATCH` factual de `4.10.39` para
+  `4.10.40`, sem alterar autoridade, OpenAPI ou lifecycle.

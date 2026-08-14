@@ -2,15 +2,16 @@
 
 ## Versão atual
 
-- Versão: `4.10.39`
-- Data: 2026-08-13
+- Versão: `4.10.40`
+- Data: 2026-08-14
 - Status: `STATE-07` ativo; ADR-0011 `accepted`, reconciliado e com a correção
   interna da política de serving implementada; o A0 candidato-específico
   A0-003 dispõe as quatro operações visuais como `PERMITTED` somente sob o
   mecanismo notice-bearing e preserva distribuição/publicação externa
   `DENIED`; o primeiro documento foi materializado como `LocalAuthorised` em
-  uma geração text-first validada, com entrada de ativação preparada e ainda
-  não executada; o obligation set determinístico de
+  uma geração text-first validada e ativada na revisão `1`, com pacote privado
+  Render Hobby/Free preparado e verificado somente localmente, sem publicação
+  ou serviço externo; o obligation set determinístico de
   `postgresql-18-reference-a4` está vinculado ao perfil visual sob demanda;
   ADR-0012
   `accepted`,
@@ -61,6 +62,29 @@ A versão do corpus é independente da versão futura do software.
 
 Toda alteração atualiza este arquivo e, quando necessário,
 [`../Start-Here.md`](../Start-Here.md).
+
+## 4.10.40 — 2026-08-14
+
+- Reconcilia a execução já persistida de
+  `AUTH-S07-LOCAL-PRODUCT-TEXT-FIRST-ACTIVATE-GENERATION-001`: geração
+  PostgreSQL 18.4
+  `idxgen-ec39244b021c90fceea1b3a628fe793a99f74650cad451f16ffbcd414af636f6`
+  ativa na revisão `1`, com 3.282 chunks, 3.282 vetores, binding
+  `LocalAuthorised` e `renderManifestId=null`.
+- Registra a preparação local autorizada do candidato Render Hobby/Free:
+  imagem privada, seed imutável verificado, cópia efêmera por boot, uma
+  instância `free`, nenhum disco ou banco Render e auto-deploy desligado.
+- Registra build, cinco testes focais, verificação integral do contexto,
+  execução Linux x64 loopback, Dashboard HTTP `200`, readiness `Ready` e
+  restauração da geração ativa após restart.
+- Mantém PDF, SQLite, chunks e vetores fora do Git; nenhuma imagem foi
+  publicada, nenhum serviço externo foi criado e nenhuma credencial real ou
+  provider foi usado.
+- Preserva a distinção entre o candidato Render Free e ADR-0005/requisito OCI;
+  seleção final e deploy permanecem pendentes de reconciliação e autoridade
+  próprias.
+- Classifica a mudança como `PATCH` factual. Não altera OpenAPI, lifecycle,
+  Human Gate, billing, provider, publicação, push ou deploy.
 
 ## 4.10.39 — 2026-08-13
 

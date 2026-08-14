@@ -1,6 +1,6 @@
 # Estado Atual
 
-Este documento é o snapshot factual vigente do workspace em 2026-08-13. Ele
+Este documento é o snapshot factual vigente do workspace em 2026-08-14. Ele
 não concede autoridade. Evolução e decisões no contexto original pertencem ao
 [`State-Transition-Log.md`](State-Transition-Log.md) e aos relatórios
 proprietários.
@@ -1512,7 +1512,7 @@ proprietários.
   a política de idioma acrescentou o 21º documento público por incremento
   versionado, e o ADR-0003 acrescentou o 22º.
 - A baseline aprovada no Human Gate de `STATE-00` permanece `3.4.0`.
-- O corpus de instruções vigente possui versão `4.10.39` e 13 arquivos em
+- O corpus de instruções vigente possui versão `4.10.40` e 13 arquivos em
   `prompts/`.
 - Visão, requisitos, arquitetura, RAG, segurança, qualidade, lifecycle,
   roadmap, backlog, estado, histórico e templates estão documentados.
@@ -1883,8 +1883,18 @@ proprietários.
   `idxgen-ec39244b021c90fceea1b3a628fe793a99f74650cad451f16ffbcd414af636f6`
   está validada com 3.282 chunks e 3.282 vetores, zero render manifest e entrada
   `07-activate-generation.runtime.json` preparada com
-  `renderManifestId=null`; `activate-generation`, consulta e Responses não
+  `renderManifestId=null`. A execução posterior e única de
+  `activate-generation` aplicou a revisão ativa `1`; consulta e Responses não
   foram executados.
+- O corpus `4.10.40` reconcilia a ativação PostgreSQL já persistida e registra
+  a preparação local do candidato Render Hobby/Free. O pacote usa uma imagem
+  privada com seed imutável, copia e verifica o store em filesystem efêmero a
+  cada boot, fixa `plan: free`, uma instância, nenhum disco ou banco Render e
+  auto-deploy desligado. Build, readiness loopback, imagem Linux x64, Dashboard
+  HTTP 200 e restart preservando a geração ativa passaram localmente. Nenhuma
+  imagem foi publicada, nenhum serviço Render foi criado e nenhuma credencial
+  real ou provider foi usado. O candidato não substitui ADR-0005 nem satisfaz
+  sozinho o requisito OCI sem reconciliação posterior.
 - O corpus `4.3.0` formaliza a decisão explícita do proprietário de aceitar
   perguntas e respostas em `pt-BR` e `en-GB`: cada consulta declara o idioma,
   a resposta usa o mesmo idioma, textos derivados da fonte permanecem no
@@ -2151,10 +2161,10 @@ autorizada.
    somente sob esse perfil e suas condições fail-closed; distribuição externa
    permanece `DENIED`. O documento foi importado e a geração text-first
    `idxgen-ec39244b021c90fceea1b3a628fe793a99f74650cad451f16ffbcd414af636f6`
-   foi materializada e validada com 3.282 chunks, 3.282 vetores e zero render
-   manifest. A entrada de ativação está preparada com `renderManifestId=null`,
-   mas a geração permanece inativa. Cada documento posterior mantém seu próprio
-   gate independente de direitos, proveniência e idioma.
+   foi materializada, validada e ativada na revisão `1`, com 3.282 chunks,
+   3.282 vetores e zero render manifest. A ativação preserva
+   `renderManifestId=null`. Cada documento posterior mantém seu próprio gate
+   independente de direitos, proveniência e idioma.
 2. Validar e ativar individualmente novos registros de fonte oficial; a
    aceitação arquitetural não autoriza URL, rede, download ou crawling.
 3. `S07-A` A1-A5 e seu Automatic Quality Gate foram concluídos e aprovados na
@@ -2270,8 +2280,9 @@ completos dentro de cada PNG e ligações fail-closed. A intended
 source/derivative distribution boundary permanece `DENIED` fora do
 runtime-display. O A0 removeu o bloqueio de direitos e tornou o documento
 `ELIGIBLE_CANDIDATE`; a materialização text-first posterior importou e indexou
-o conteúdo em geração validada, sem renderização prévia. A ativação continua
-não executada e não foi autorizada por esse resultado de direitos.
+o conteúdo em geração validada, sem renderização prévia. A ativação posterior
+foi executada sob autoridade própria; ela não foi autorizada por esse resultado
+de direitos.
 
 O ADR-0012 foi aceito explicitamente mediante `ADR-0012: ACEITAR.` somente
 como autoridade arquitetural, e sua reconciliação semântica nos seis
@@ -2295,9 +2306,9 @@ serving v2 foi corrigida no commit
 `200` ou `304`, sem alteração do contrato público. O A0-003 dispõe as quatro
 operações visuais como `PERMITTED` somente sob o perfil notice-bearing e
 preserva distribuição/publicação externa `DENIED`. A geração text-first está
-materializada e validada, com ativação preparada e ainda não executada; páginas
-visuais continuam ausentes até uma resposta ativa citar páginas que requeiram
-evidência sob demanda.
+materializada, validada e ativa na revisão `1`; páginas visuais continuam
+ausentes até uma resposta ativa citar páginas que requeiram evidência sob
+demanda.
 
 O segundo refinamento arquitetural da ordem registrada em Lifecycle está
 implementado até integração v2, restart, cold backup/restore confinado e

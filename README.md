@@ -3,21 +3,17 @@
 Assistente RAG independente para consultar documentação sobre bancos de dados
 em linguagem natural, com respostas fundamentadas e referências às fontes.
 
-> Status em 2026-08-06: `STATE-00` a `STATE-06` estão encerrados. O lote
-> `S06-A` integrou localmente o
-> Dashboard, a API e os stores persistentes com fixture e providers
-> determinísticos. O Automatic Quality Gate mais recente, sobre
-> `main@616bef4e2ae8c0b26c10781cd728dc6089136a60`, está `APROVADO`, sem
-> novo P0, P1, P2 ou P3. Os controles fail-closed integrados foram repetidos
-> pelo entry point automático, e `AQG-S06-005` está `RESOLVIDO`, assim como
-> `AQG-S06-001` a `AQG-S06-004`. O Human Gate de `STATE-06` foi `APROVADO
-> COM RESSALVAS` sobre
-> `main@2f70705dcbe293b22ccd039d0764b2b9ca4b2e8a`. A entrada documental de
-> `STATE-07` foi registrada sobre
-> `main@3240a4b13acd82a1cf5815ac64f6997b2a7f89bf`, corpus `4.9.3`; o estado
-> está ativo sem lote autorizado ou executado. Não existe
-> corpus, provider, fonte oficial, execução Linux, OCI ou produção reais, nem
-> publicação ou deploy.
+> Status em 2026-08-14: `STATE-07 TESTING_HOMOLOGATION` está ativo. O produto
+> local possui PostgreSQL 18.4 `LocalAuthorised` materializado e a geração
+> text-first
+> `idxgen-ec39244b021c90fceea1b3a628fe793a99f74650cad451f16ffbcd414af636f6`
+> ativada na revisão `1`, com 3.282 chunks, 3.282 vetores e
+> `renderManifestId=null`. O pacote privado candidato para Render Hobby com
+> instância Free foi preparado e validado localmente, inclusive em contêiner
+> Linux x64 e após restart. Nenhuma imagem foi publicada e nenhum serviço
+> Render, OCI ou GitHub foi criado ou alterado. Uma consulta real de produto
+> por `/v1/responses`, o deploy público e a homologação de produção ainda não
+> foram executados.
 
 ## Problema
 
@@ -136,7 +132,7 @@ O desenho detalhado está em
 e as regras específicas de RAG em
 [`RAG-Module.md`](prompts/foundation/RAG-Module.md).
 
-## Execução local, GitHub e OCI
+## Execução local, GitHub e hospedagem
 
 As toolchains fixadas, os restores governados e os checks completos estão
 documentados em [`PROJECT-SETUP.md`](docs/PROJECT-SETUP.md). Um cache ausente
@@ -182,6 +178,21 @@ ELF AArch64. O binário ARM64 não é executado no Windows e nenhuma operação 
 é realizada. O plano e as limitações estão em
 [`STATE-06-OCI-Readiness-And-Rehearsal.md`](docs/STATE-06-OCI-Readiness-And-Rehearsal.md).
 
+O candidato alternativo para Render Hobby/Free prepara uma imagem privada com
+o snapshot PostgreSQL ativado e restaura um store efêmero verificado em cada
+boot. Ele não publica o PDF, o store ou a imagem e não cria serviço externo:
+
+```powershell
+./eng/Build-RenderFreePackage.ps1
+./eng/Test-RenderFreePackage.ps1
+```
+
+O procedimento, as limitações de persistência e a barreira de custo estão em
+[`deploy/render-free/README.md`](deploy/render-free/README.md). Esse candidato
+não substitui silenciosamente o requisito OCI registrado pelos materiais do
+Challenge; a seleção final de Render exige reconciliação própria antes do
+deploy.
+
 O código poderá ser hospedado em um repositório público no GitHub. GitHub
 Pages, sozinho, hospeda apenas conteúdo estático e não executa o backend RAG
 nem protege credenciais de modelos. A entrega online deverá executar o
@@ -208,6 +219,7 @@ decisão explícita e adapter compatível.
 ```text
 .
 ├── .github/workflows/  # definição de CI, sem deploy
+├── deploy/render-free/ # pacote privado local, sem publicação
 ├── eng/                # checks reproduzíveis do setup
 ├── src/
 │   ├── RagChallenge.Domain/

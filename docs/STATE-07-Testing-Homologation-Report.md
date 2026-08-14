@@ -1316,3 +1316,68 @@ network, rendering, embeddings, Responses, product query and
 `NOT_APPLICABLE` to the documentary change. The one post-commit product
 preflight is read-only and its sanitised result is reported outside the single
 tracked commit.
+
+## PostgreSQL activation and local Render Free package
+
+### Persisted activation reconciliation
+
+The separately authorised
+`AUTH-S07-LOCAL-PRODUCT-TEXT-FIRST-ACTIVATE-GENERATION-001` executed
+`activate-generation` exactly once from clean
+`main@4123413c49b3c1bdd587dce9380f44136c79c7f5`, prompt corpus `4.10.39`.
+Operation `s07-postgresql-18-a4-local-v1-07-activate-generation` returned
+`CH_ADMIN_APPLIED` and persisted active revision `1` for generation
+`idxgen-ec39244b021c90fceea1b3a628fe793a99f74650cad451f16ffbcd414af636f6`.
+The activation binding-set digest is
+`234a1ff2e0e84c07574878ebd67b7015e4775a0256876d9cfc18f9adb0a6e2d6`.
+It retains one `LocalAuthorised` evidence binding, 3,282 chunks, 3,282 vectors
+and `renderManifestId=null`. No query, Responses call, rendering, embedding,
+publication or deployment followed that operation.
+
+A read-only product readiness probe during the later packaging activity
+reopened the same generation with status `Ready`, one active database, one
+eligible document and configuration revision `postgresql-18.4-product-v1`.
+This resolves the stale factual statement that activation remained prepared
+but unexecuted; the ignored bundle, handoff and prepared marker still require
+their own future reconciliation and are not used as deployment authority.
+
+### Render Hobby/Free candidate package
+
+On 2026-08-14, the product owner authorised local preparation only: no image
+publication, external-service creation or paid Render resource. Runtime
+preflight found no RAG-Challenge-owned product process or listener and stopped
+nothing. The implementation is committed as
+`d72914ba79dcb482a2e5d2f1ce9cc8a812315c2b`.
+
+The package enforces one Render web service with `plan: free`, one instance,
+no persistent disk, no managed database and auto-deploy disabled. Because the
+free filesystem is ephemeral and the 83,539,360-byte product seed exceeds the
+1 MB secret-file boundary, the package keeps the seed only in ignored local
+output and a future private image. The seed is read-only in the image; every
+boot verifies it, creates a fresh writable copy under `/tmp`, verifies that
+copy and then starts the product host as an unprivileged user. The public Git
+repository contains neither the PDF, SQLite files, chunks nor vectors.
+
+Local verification produced a 44-file context with a 35,689,002-byte release
+and three operational seed files totalling 83,539,360 bytes. Five focused
+integration tests passed. The package builder and verifier both passed without
+Docker, Render, provider or credential access. A subsequent local Docker build
+used the .NET 10.0.11 base image pinned by digest and produced image ID
+`6f676930e5051e60d89aafd817d34763dcfc82e7877a129a6cc0c9bf9f049000`.
+Loopback-only execution returned Dashboard HTTP `200`, readiness `Ready`, the
+expected active generation before and after restart, and removed a transient
+runtime-store probe on restart. No real credential was read, no provider was
+called and no image or service was published.
+
+The first restart harness attempt used a Docker-assigned random host port and
+did not refresh the mapping after restart. A bounded diagnostic proved that
+the container itself had restarted and was listening; the corrected harness
+used one reserved loopback port and passed. This was a harness false negative,
+not a product correction.
+
+Render Free deliberately loses answer-evidence writes on restart, redeploy or
+idle spin-down and is therefore a public demonstration boundary rather than
+durable production persistence. The package does not replace accepted
+ADR-0005 or the Challenge's recorded OCI requirement. Final target selection,
+private image publication, registry access, provider secret configuration and
+service creation remain separate external actions.
