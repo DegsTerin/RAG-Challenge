@@ -98,11 +98,11 @@ verifiable correction plan for `DR3-FIND-001` to `DR3-FIND-004`. Corpus
 tests, gate and lifecycle remain separate.
 
 ADR-0016 was prepared on 2026-08-14 by the Stage 1 governance and multi-agent
-readiness audit. It proposes a development-only deterministic TypeScript/Node
-24 coordinator and a narrow `AgentRunner` boundary with fake and Codex SDK
-adapters. Its status is `proposed`: no dependency, orchestrator implementation,
-authentication, agent execution or lifecycle authority exists until the owner
-makes an explicit decision and the Stage 2 readiness gate is re-evaluated.
+readiness audit and accepted explicitly by the owner through
+`ADR-0016: ACEITAR.`. It selects a development-only deterministic
+TypeScript/Node 24 coordinator and a narrow `AgentRunner` boundary with fake
+and Codex SDK adapters. The subsequent Stage 2 readiness re-evaluation passed;
+authentication, real agent execution and lifecycle remain separately governed.
 
 The later combined audit failed on `AQG-S02-001`, an internal contradiction
 between observation-inclusive generation identity and observation-only
@@ -288,16 +288,15 @@ Dashboard -- versioned HTTP --> API
 - [ADR-0014 — Deterministic Retrieval Ranking and Retrieval-Only Baseline](ADR-0014-Deterministic-Retrieval-Ranking-And-Retrieval-Only-Baseline.md)
   (`accepted`; deterministic implementation and corrective gate are complete,
   RB-1 remains valid, and the mechanically intact RB-2/RB-3 freezes are
-  unavailable for downstream use pending human disposition of the Stage 1
-  adjudication-authority conflict)
+  quarantined as historical evidence and unavailable for RB-4)
 - [ADR-0015 — Versioned Cosine Numerical Semantics](ADR-0015-Versioned-Cosine-Numerical-Semantics.md)
   (`accepted`; selects boundary canonicalisation with
   `cosine-f32mul-f64acc-boundary-canonical-v1`, `retrieval-v2` and a new
   compatibility generation; implementation and corrective retest were later
   completed under separate authority)
 - [ADR-0016 — Deterministic Development Orchestrator and Codex Runner Boundary](ADR-0016-Deterministic-Development-Orchestrator-And-Codex-Runner-Boundary.md)
-  (`proposed`; requires an explicit owner decision before the tooling stack or
-  physical boundary may be implemented)
+  (`accepted`; local offline-first Stage 2 implementation is separately
+  authorised after readiness re-evaluation)
 
 ## STATE-02 design artefacts
 
@@ -314,13 +313,13 @@ Dashboard -- versioned HTTP --> API
 
 ## Remaining evidence and activation inputs
 
-- Explicit human disposition of the RB-2/RB-3 adjudication-authority conflict;
-  existing frozen bytes remain historical evidence and cannot be corrected in
-  place.
-- A successor review/adjudication package, and if required a successor vector
-  freeze, before any RB-4 execution can be authorised.
-- An explicit owner decision on proposed ADR-0016 before any orchestrator
-  stack, dependency or physical tool boundary is implemented.
+- The existing RB-2/RB-3 freezes remain quarantined historical evidence and
+  cannot be corrected in place or consumed by RB-4.
+- A separately authorised successor review/adjudication package with two
+  independent human reviews and real human adjudication, and if required a
+  successor vector freeze, before any RB-4 execution can be authorised.
+- Implementation evidence that the Stage 2 orchestrator conforms to accepted
+  ADR-0016, its task contracts and its fail-closed runner boundary.
 - Product evaluation, provider, security, accessibility, operational recovery,
   load, OCI and production evidence that remains `NOT_RUN` or separately
   governed in Current State.

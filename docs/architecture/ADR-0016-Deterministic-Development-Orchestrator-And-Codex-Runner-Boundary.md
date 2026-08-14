@@ -2,11 +2,24 @@
 
 ## Status
 
-`proposed`
+`accepted`
 
 ## Date
 
 2026-08-14
+
+## Acceptance record
+
+- Accepted explicitly by the RAG-Challenge owner on 2026-08-14 through the
+  exact phrase `ADR-0016: ACEITAR.`
+- Decision baseline:
+  `codex/stage1-multi-agent-readiness@355bd6cd731528bcdb8fccfe71ee93b70acb1d1e`
+- The owner independently selected historical quarantine for the retained
+  RB-2/RB-3 freezes. That disposition does not make RB-2 valid, authorise
+  RB-4 or grant successor materialisation authority.
+- Acceptance selects only the architecture recorded by this ADR. It is not a
+  Human Gate and grants no secret, provider, network, billing, production,
+  push, merge, release or lifecycle authority.
 
 ## Owners
 
@@ -32,16 +45,16 @@
 
 ## Purpose and authority boundary
 
-This proposal defines the architecture boundary for a development-only
+This decision defines the architecture boundary for a development-only
 multi-agent orchestrator. It does not add a product capability, change the
 RAG runtime, select a product AI provider or advance lifecycle.
 
-The proposal exists because the future implementation would introduce a new
+The decision exists because its implementation introduces a new
 tooling stack, task and result contracts, local orchestration persistence,
 worktree control and security boundaries. Repository governance requires an
 accepted ADR before those boundaries are materialised.
 
-Acceptance would select the architecture below only. It would not install a
+Acceptance selects the architecture below only. It does not install a
 package, implement the tool, run Codex, grant a secret, permit network or paid
 usage, accept a Human Gate, authorise production, push, merge to `main` or
 advance `STATE-07`.
@@ -83,7 +96,7 @@ time.
   writable lane.
 - Keep Human Gates and architectural decisions outside the tool.
 
-## Proposed decision
+## Decision
 
 ### Tool boundary
 
@@ -287,7 +300,7 @@ result that can be validated, implementation stops with
 - Codex SDK behaviour and authentication remain version-sensitive.
 - Local state and worktree cleanup require careful Windows path handling.
 - Direct Codex SDK use differs from the conceptual Agents SDK layer in the
-  Stage 2 prompt and therefore requires explicit owner acceptance.
+  Stage 2 prompt; the owner explicitly accepted this adaptation.
 - Full online behaviour cannot be proven by the credential-free CI suite.
 
 ## Alternatives
@@ -317,16 +330,16 @@ Retained as the fallback. If this ADR is rejected or the supported SDK
 surface is insufficient, the repository continues using the Stage 1
 governance and project-scoped agents without an automated orchestrator.
 
-## Decision required
+## Decision record
 
-The owner must explicitly choose whether to accept this proposal. The exact
-acceptance phrase is:
+The owner accepted this decision through the exact phrase:
 
 ```text
 ADR-0016: ACEITAR.
 ```
 
 Acceptance is not a Human Gate and does not by itself authorise Stage 2
-implementation. After any decision, Stage 1 readiness must be re-evaluated
-against the resulting baseline and the independent RB-2 adjudication-authority
-blocker.
+implementation. The owner's original Stage 2 implementation request remains
+the execution authority only if the Stage 1 readiness re-evaluation passes on
+the resulting baseline. The independent RB-2 authority defect is disposed by
+historical quarantine, not by treating the retained package as valid.

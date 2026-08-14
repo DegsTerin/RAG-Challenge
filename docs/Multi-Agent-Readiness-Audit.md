@@ -6,13 +6,16 @@ The Stage 1 audit, permitted corrections and clean-worktree validation are
 complete. The final Stage 2 readiness classification is:
 
 ```text
-HUMAN_DECISION_REQUIRED
+READY_FOR_STAGE_2
 ```
 
-Stage 2 has not started. Two distinct human decisions are required: the owner
-must dispose the RB-2 adjudication-authority conflict, and proposed
-ADR-0016 must be explicitly accepted or rejected before its tooling stack is
-materialised.
+The owner selected historical quarantine for the invalid RB-2/RB-3 retained
+package and explicitly accepted ADR-0016 on the post-audit baseline
+`355bd6cd731528bcdb8fccfe71ee93b70acb1d1e`. Both blocking decisions are now
+disposed. RB-2 remains invalid, RB-3 remains unavailable to RB-4 and successor
+human review remains separately governed; none is a Stage 2 dependency. The
+original implementation request may therefore proceed after this decision
+record is validated. Stage 2 has not started in this snapshot.
 
 ## Scope and baseline
 
@@ -100,8 +103,8 @@ Automatic Quality Gate or Human Gate and does not authorise `STATE-08`.
 
 | ID | Severity | Finding | Impact | Disposition |
 |---|---|---|---|---|
-| `GOV-001` | `BLOCKER` | The RB-2 checkpoint requires two independent human reviews and human adjudication without agent-authored decisions, but the retained package records both reviewers with `humanAttribution=false`, twenty agent-authored decisions, zero human decisions and a contradictory `no agent-authored adjudication` claim. | RB-2 does not satisfy its gate; RB-3 cannot be consumed by RB-4. | Frozen bytes preserved; current claims corrected; `HUMAN_DECISION_REQUIRED`. |
-| `ARCH-001` | `BLOCKER` | Stage 2 introduces a tooling stack, physical boundary, runner contract, persistence and security model without an accepted owning ADR. | Repository rules prohibit materialising the orchestrator. | ADR-0016 prepared as `proposed`; explicit owner decision required. |
+| `GOV-001` | `BLOCKER` | The RB-2 checkpoint requires two independent human reviews and human adjudication without agent-authored decisions, but the retained package records both reviewers with `humanAttribution=false`, twenty agent-authored decisions, zero human decisions and a contradictory `no agent-authored adjudication` claim. | RB-2 does not satisfy its gate; RB-3 cannot be consumed by RB-4. | Disposed for Stage 2 readiness by explicit historical quarantine. Frozen bytes remain invalid and unavailable; successor work requires separate authority. |
+| `ARCH-001` | `BLOCKER` | Stage 2 introduces a tooling stack, physical boundary, runner contract, persistence and security model without an accepted owning ADR. | Repository rules prohibit materialising the orchestrator. | Resolved by the owner's explicit acceptance of ADR-0016 on 2026-08-14. |
 | `GOV-002` | `HIGH` | Governance lacked one normative task envelope, operational parallelism taxonomy, ownership classes, resource rules and canonical stop codes. | Delegations could infer scope, race or continue after authority loss. | Corrected in Governance. |
 | `CFG-001` | `HIGH` | No project-scoped `.codex` configuration or specialised roles existed. | Agent capability, sandbox, environment and responsibility were implicit. | Six conservative roles and a three-subagent cap added; the writable role has deny-by-default network, web and shell-environment defaults plus mandatory effective-surface verification. |
 | `QA-001` | `HIGH` | Cobertura aggregation treated zero valid branch observations as 100% coverage. | The 45% branch floor could pass without branch evidence. | Fixed fail-closed; a regression case was added and its execution evidence is recorded in the Quality gate section. |
@@ -250,23 +253,19 @@ rewriting or hiding the owner's files.
 
 ### RB-2/RB-3 disposition
 
-The existing freezes cannot be corrected in place.
-
-1. Recommended: retain/quarantine them as historical evidence and authorise a
-   successor RB-2 with two real independent human reviews and human
-   adjudication; produce a successor RB-3 if its bound inputs change.
-2. Alternative: formally change the human-adjudication requirement and accept
-   the risk, while still producing internally coherent successor artefacts.
-
-The second option changes a requirement and risk disposition. Neither option
-authorises RB-4, a provider call or a new embedding materialisation by itself.
+The owner selected option 1 on 2026-08-14. The existing freezes are retained
+unchanged as historical evidence, RB-2 is explicitly not gate-valid and RB-3
+is unavailable for RB-4. Any successor requires separate authority, two real
+independent human reviews and human adjudication; a successor RB-3 is required
+if its bound inputs change. This disposition authorises no RB-4, provider call
+or new embedding materialisation.
 
 ### ADR-0016
 
-The proposal recommends a deterministic TypeScript/Node 24 tool under
+ADR-0016 was explicitly accepted by the owner on 2026-08-14 through
+`ADR-0016: ACEITAR.`. It selects a deterministic TypeScript/Node 24 tool under
 `tools/ai-orchestrator/`, with `FakeAgentRunner` and direct
-`@openai/codex-sdk` integration behind `AgentRunner`. The exact acceptance
-phrase is:
+`@openai/codex-sdk` integration behind `AgentRunner`.
 
 ```text
 ADR-0016: ACEITAR.
@@ -276,5 +275,13 @@ Acceptance is architecture authority only. It does not resolve RB-2 or grant
 implementation, authentication, network, billing, production, push or merge
 authority.
 
-Until both decisions are made and their conditions are re-evaluated against
-the resulting repository baseline, Stage 2 is not authorised.
+### Re-evaluated readiness
+
+The RB-2 defect is now contained outside Stage 2 by historical quarantine,
+and ADR-0016 supplies the required accepted architecture. No remaining Stage 1
+finding requires a human decision before local, offline-first Stage 2
+implementation. The original owner request and the current explicit resume
+instruction provide implementation authority subject to the accepted ADR,
+Stage 2 prompt, task envelopes, runtime preflight and all negative scope.
+
+The re-evaluated classification is `READY_FOR_STAGE_2`.

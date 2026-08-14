@@ -8244,3 +8244,44 @@ contém somente fatos cronológicos.
 - Integridade append-only: este histórico preserva byte a byte seu prefixo
   anterior de 519.952 bytes no SHA-256
   `b1651b1043008d78fdcf19e21bb802bbeb801c7decad9867e101c01d4f91fbf5`.
+
+## 2026-08-14 — Disposição humana de RB-2/RB-3, aceitação de ADR-0016 e reavaliação da Etapa 2
+
+- Baseline de decisão: branch `codex/stage1-multi-agent-readiness`, HEAD
+  `355bd6cd731528bcdb8fccfe71ee93b70acb1d1e`, corpus `4.11.1`, árvore
+  rastreada limpa e somente os três prompts do proprietário não rastreados.
+  Nenhum worktree estrangeiro foi alterado, reutilizado ou removido.
+- Disposição RB-2/RB-3: o proprietário selecionou explicitamente
+  `OPÇÃO 1 — QUARENTENA HISTÓRICA E SUCESSOR HUMANO`. Os freezes atuais ficam
+  preservados sem edição in-place apenas como evidência histórica. RB-2 não
+  satisfaz seu gate, RB-3 permanece indisponível para RB-4 e nenhum dos dois
+  pode ser reinterpretado como válido por sua completude mecânica.
+- Condição de sucessor: qualquer sucessor RB-2 exige autoridade separada, duas
+  revisões humanas independentes e adjudicação humana real; um sucessor RB-3
+  também é necessário se seus inputs vinculados mudarem. Esta decisão não
+  autoriza criar esse sucessor nem executar RB-4.
+- Decisão arquitetural: o proprietário aceitou ADR-0016 pela frase exata
+  `ADR-0016: ACEITAR.`. A decisão seleciona somente o orchestrator
+  determinístico TypeScript/Node 24 e a fronteira `AgentRunner` com
+  `FakeAgentRunner` e `CodexRunner`. Ela não constitui Human Gate e não
+  materializa a implementação por si só.
+- Reavaliação objetiva: a quarentena remove a pendência RB-2/RB-3 do caminho
+  crítico da Etapa 2 sem validar os freezes, e a ADR aceita satisfaz a
+  pré-condição arquitetural. Não resta condição humana da Etapa 1 para a
+  implementação local e offline-first do orchestrator; a classificação passa
+  a `READY_FOR_STAGE_2`.
+- Autoridade resultante: a solicitação original das Etapas 1 e 2, combinada
+  com a instrução explícita de retomar se todas as condições fossem
+  satisfeitas, autoriza a Etapa 2 somente depois da validação deste registro e
+  sob o prompt da Etapa 2, ADR-0016 e a baseline Git resultante. A Etapa 2 não
+  havia sido iniciada neste registro de decisão.
+- Escopo negativo preservado: nenhum freeze foi editado; nenhum sucessor,
+  RB-4, provider, chamada real de agente, secret, network, billing, produção,
+  push, merge, release, Automatic Quality Gate ou Human Gate de lifecycle foi
+  executado ou autorizado. `STATE-07 TESTING_HOMOLOGATION` permanece ativo e
+  nenhuma transição de lifecycle ocorreu.
+- Runtime preflight: `NOT_APPLICABLE` para este incremento exclusivamente
+  documental; nenhum processo ou listener foi inspecionado ou encerrado.
+- Integridade append-only: este histórico preserva byte a byte seu prefixo
+  anterior de 525.470 bytes no SHA-256
+  `699434c669414071a273acc3f08d01b6cf41dacbb0d2f4ab3fe7eb967ff21c50`.

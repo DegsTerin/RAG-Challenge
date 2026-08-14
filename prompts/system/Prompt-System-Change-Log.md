@@ -2,7 +2,7 @@
 
 ## Versão atual
 
-- Versão: `4.11.1`
+- Versão: `4.12.0`
 - Data: 2026-08-14
 - Status: `STATE-07` ativo; ADR-0011 `accepted`, reconciliado e com a correção
   interna da política de serving implementada; o A0 candidato-específico
@@ -62,8 +62,11 @@
   formalizados; a corrida entre classes de integração que limpavam pools
   SQLite process-wide foi contida por serialização da assembly, e o gate
   offline limpo passou com 505 testes .NET, 45 testes web, 95,38% de linhas e
-  67,23% de branches; ADR-0016 permanece `proposed`, a readiness final é
-  `HUMAN_DECISION_REQUIRED` e Stage 2 não foi iniciado;
+  67,23% de branches; o proprietário selecionou quarentena histórica para os
+  freezes RB-2/RB-3, mantendo RB-2 inválido, RB-3 indisponível para RB-4 e
+  qualquer sucessor sob autoridade humana separada; ADR-0016 foi explicitamente
+  `accepted`, e a readiness reavaliada é `READY_FOR_STAGE_2`; Stage 2 ainda não
+  havia sido iniciado neste registro de decisão;
   a política de idioma exige explicitamente en-GB em subject, body e footer de
   toda nova mensagem de commit pertencente ao projeto, sem transformar essa
   regra em autoridade implícita para amend, rebase ou reescrita de histórico;
@@ -81,6 +84,27 @@ A versão do corpus é independente da versão futura do software.
 
 Toda alteração atualiza este arquivo e, quando necessário,
 [`../Start-Here.md`](../Start-Here.md).
+
+## 4.12.0 — 2026-08-14
+
+- Registra a escolha humana de quarentena histórica para os freezes RB-2/RB-3,
+  preservados byte a byte e sem edição in-place. RB-2 não satisfaz seu gate,
+  RB-3 permanece indisponível para RB-4 e qualquer sucessor exige autoridade
+  separada, duas revisões humanas independentes e adjudicação humana real.
+- Registra a aceitação explícita de ADR-0016 por `ADR-0016: ACEITAR.`, limitada
+  à arquitetura do orchestrator determinístico TypeScript/Node 24 e à
+  fronteira `AgentRunner` com `FakeAgentRunner` e `CodexRunner`.
+- Reavalia os bloqueios da Etapa 1 sobre
+  `codex/stage1-multi-agent-readiness@355bd6cd731528bcdb8fccfe71ee93b70acb1d1e`
+  e classifica a prontidão como `READY_FOR_STAGE_2`. A solicitação original e
+  a retomada explícita do proprietário fornecem autoridade de implementação
+  somente depois da validação deste registro e sob o prompt da Etapa 2.
+- Mantém fora de escopo RB-4, successor RB-2/RB-3, provider, chamada real de
+  agente, secret, network, billing, produção, push, merge, release, Human Gate
+  e mudança de lifecycle.
+- Classificação SemVer: `MINOR`, porque aceita uma nova fronteira arquitetural
+  de tooling e abre o gate de implementação da Etapa 2 sem mudar produto,
+  OpenAPI, schema, migration, provider, Human Gate ou lifecycle.
 
 ## 4.11.1 — 2026-08-14
 

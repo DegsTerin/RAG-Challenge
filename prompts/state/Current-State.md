@@ -17,10 +17,16 @@ proprietários.
   de integração, preservando a mesma árvore da identidade local pré-reescrita
   `a0def61`. A suíte focal passou 279/279 e `./eng/ci.ps1 -Offline` passou
   em worktree limpa com 505 testes .NET, 45 testes web, 95,38% de linhas e
-  67,23% de branches. A readiness final da Etapa 2 é
-  `HUMAN_DECISION_REQUIRED`: o ADR-0016 permanece `proposed`, e a contradição
-  entre o gate humano do RB-2 e sua adjudicação de agente exige disposição do
-  proprietário. A Etapa 2 não foi iniciada.
+  67,23% de branches. Em 2026-08-14, sobre
+  `codex/stage1-multi-agent-readiness@355bd6cd731528bcdb8fccfe71ee93b70acb1d1e`,
+  o proprietário selecionou quarentena histórica para os freezes RB-2/RB-3 e
+  aceitou explicitamente ADR-0016. RB-2 continua sem satisfazer seu gate,
+  RB-3 continua indisponível para RB-4, e qualquer sucessor exige autoridade
+  separada, duas revisões humanas independentes e adjudicação humana real. A
+  arquitetura TypeScript/Node 24 e a fronteira `AgentRunner` foram aceitas sem
+  constituir Human Gate. Reavaliada nessa baseline, a prontidão da Etapa 2 é
+  `READY_FOR_STAGE_2`; a implementação ainda não havia começado neste
+  snapshot de decisão.
 - Posição: `STATE-00 DISCOVERY` encerrado; `GATE-B01
   ARCHITECTURE_BOOTSTRAP_DECISION` aprovado e encerrado; `STATE-01
   PROJECT_SETUP` encerrado após Human Gate aprovado sem ressalvas em
@@ -1467,10 +1473,12 @@ proprietários.
   o pacote retido registra `humanAttribution=false`, vinte decisões de
   adjudicação de agente, zero decisões humanas e, contraditoriamente,
   `no agent-authored adjudication`. Os bytes e hashes não foram alterados, mas
-  o literal `frozen-unscored-rb2-complete` não prova satisfação do gate. Até
-  decisão humana, RB-2 fica indisponível para avanço, RB-3 fica
-  transitivamente indisponível como input e `RB-4` permanece `NOT_RUN` e
-  bloqueado.
+  o literal `frozen-unscored-rb2-complete` não prova satisfação do gate. O
+  proprietário selecionou quarentena histórica: RB-2 fica permanentemente
+  inválido nessa revisão, RB-3 fica indisponível como input de RB-4 e ambos
+  permanecem intactos apenas como evidência histórica. Qualquer sucessor
+  exige autoridade separada, duas revisões humanas independentes e
+  adjudicação humana real. `RB-4` permanece `NOT_RUN` e bloqueado.
 - ADR-0015: `accepted` pela decisão humana explícita `ADR-0015: ACEITAR.` em
   2026-08-11 sobre `main@46de807148d5b547f56a0f7265b32428b232100f`, corpus
   `4.10.30`, working tree limpa e OpenAPI v1/v2 protegidas. A decisão seleciona
@@ -1554,7 +1562,7 @@ proprietários.
   a política de idioma acrescentou o 21º documento público por incremento
   versionado, e o ADR-0003 acrescentou o 22º.
 - A baseline aprovada no Human Gate de `STATE-00` permanece `3.4.0`.
-- O corpus de instruções vigente possui versão `4.11.1` e 13 arquivos em
+- O corpus de instruções vigente possui versão `4.12.0` e 13 arquivos em
   `prompts/`.
 - Visão, requisitos, arquitetura, RAG, segurança, qualidade, lifecycle,
   roadmap, backlog, estado, histórico e templates estão documentados.
@@ -1950,6 +1958,15 @@ proprietários.
   com 252 vetores. Preserva zero resultado, scorer, campanha Responses,
   `RB-4` e Human Gate; a qualificação do denominador não é homologação de
   produto e não muda lifecycle.
+- O corpus `4.12.0` registra a quarentena histórica escolhida para os freezes
+  RB-2/RB-3, sem edição in-place, e a aceitação arquitetural explícita da
+  ADR-0016. RB-2 permanece inválido, RB-3 indisponível para RB-4 e qualquer
+  sucessor exige autoridade separada, duas revisões humanas independentes e
+  adjudicação humana real. A reavaliação objetiva resulta em
+  `READY_FOR_STAGE_2` somente para a implementação local e offline-first do
+  orchestrator sob a autoridade original e a retomada explícita do
+  proprietário; não autoriza RB-4, provider, secret, network, billing,
+  produção, release, Human Gate ou lifecycle.
 - O corpus `4.11.1` torna explícita a obrigatoriedade de British English
   (`en-GB`) em toda nova mensagem de commit pertencente ao projeto, incluindo
   subject, body e footer. Tipos/scopes, identificadores e literais externos
@@ -2263,8 +2280,10 @@ autorizada.
 8. Os bytes, hashes, 252 casos e 252 vetores dos freezes RB-2/RB-3 permanecem
    preservados e não pontuados. A reauditoria encontrou incompatibilidade entre
    a exigência de revisão/adjudicação humana e os atores/decisões registrados.
-   Completude mecânica não satisfaz o gate; RB-2 e RB-3 não podem alimentar
-   `RB-4` até disposição humana e eventual artefato sucessor coerente.
+   Pela quarentena histórica escolhida, completude mecânica não satisfaz o
+   gate: RB-2 permanece inválido, RB-3 não pode alimentar `RB-4` e um eventual
+   sucessor coerente exige autoridade separada, duas revisões humanas
+   independentes e adjudicação humana real.
 9. `S03-CORR-01` concluiu o primeiro item da ordem de dependência.
    `S04-CORR-04-A` concluiu descritores verificados do content store e
    `S04-CORR-04-B` concluiu contratos/gates de direitos;
@@ -2287,17 +2306,18 @@ autorizada.
 
 ## Próxima autoridade
 
-A próxima autoridade diretamente relacionada é a decisão explícita do
-proprietário sobre a disposição dos freezes RB-2/RB-3: preservar/quarentenar
-os artefatos como evidência histórica e autorizar um sucessor com revisão e
-adjudicação humanas reais; ou alterar formalmente o requisito, aceitar o risco
-e ainda produzir um sucessor internamente coerente. Nenhuma alternativa
-permite reescrever os freezes existentes. `RB-4` permanece bloqueado e
-`NOT_RUN`.
+As duas decisões humanas exigidas pela Etapa 1 foram registradas. Depois da
+validação deste registro e da reconfirmação da baseline Git, a próxima execução
+diretamente autorizada é a Etapa 2 original: implementar e validar o
+orchestrator determinístico TypeScript/Node 24 sob ADR-0016 e o prompt da
+Etapa 2. Essa autoridade é local e offline-first; não inclui chamada real de
+agente, secret, network, billing, provider, produção, push, merge, release,
+Human Gate ou mudança de lifecycle.
 
-Separadamente, Stage 2 depende da aceitação explícita do ADR-0016 proposto. A
-aceitação arquitetural não resolve o conflito RB-2, não constitui Human Gate e
-não autoriza secret, provider, rede, billing, produção, release, push ou merge.
+Um sucessor de RB-2/RB-3 continua fora dessa execução e exige autoridade
+separada, duas revisões humanas independentes e adjudicação humana real. Os
+freezes atuais não podem ser editados nem consumidos por RB-4; `RB-4` permanece
+bloqueado e `NOT_RUN`.
 
 ## Contexto histórico preservado
 
