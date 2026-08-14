@@ -1,6 +1,6 @@
 // Purpose: Reopens an explicitly configured product store and composes real OpenAI query providers without bootstrapping synthetic data or mutating catalogue and activation state.
-using System.Security.Cryptography;
 using System.Runtime.InteropServices;
+using System.Security.Cryptography;
 using System.Text;
 
 using Microsoft.Data.Sqlite;
