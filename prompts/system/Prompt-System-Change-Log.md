@@ -59,7 +59,11 @@
   RB-2 não satisfaz atualmente seu gate, RB-3 fica indisponível para consumo e
   `RB-4` permanece bloqueado e `NOT_RUN`;
   o playbook multiagente, seis papéis project-scoped e stop conditions estão
-  formalizados; ADR-0016 permanece `proposed` e Stage 2 não foi iniciado;
+  formalizados; a corrida entre classes de integração que limpavam pools
+  SQLite process-wide foi contida por serialização da assembly, e o gate
+  offline limpo passou com 505 testes .NET, 45 testes web, 95,38% de linhas e
+  67,23% de branches; ADR-0016 permanece `proposed`, a readiness final é
+  `HUMAN_DECISION_REQUIRED` e Stage 2 não foi iniciado;
   homologação de produto, Human Gate e mudança de lifecycle não executados
 - Escopo: 13 arquivos ativos em `prompts/`
 
@@ -89,6 +93,11 @@ Toda alteração atualiza este arquivo e, quando necessário,
   auditorias de dependência e que o gate final é sequencial por worktree.
 - Corrige o agregador Cobertura para falhar quando nenhum branch instrumentado
   válido existe, em vez de atribuir 100% a `0/0`, e atualiza sua regressão.
+- Contém a interferência observada entre fixtures que limpavam pools SQLite
+  process-wide por meio de serialização assembly-level das classes de teste de
+  integração. A suíte focal passou 279/279 e o gate offline em worktree limpa
+  passou com 505 testes .NET, 45 testes web, 95,38% de linhas e 67,23% de
+  branches.
 - Prepara o ADR-0016 como `proposed`, recomendando um coordenador determinístico
   TypeScript/Node 24 e um `AgentRunner` com `FakeAgentRunner` e
   `CodexRunner`; nenhuma dependência ou implementação do orchestrator foi

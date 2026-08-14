@@ -8164,3 +8164,83 @@ contém somente fatos cronológicos.
   e delimitada para `RB-4 — Retrieval-only campaign` sobre os inputs
   congelados, com todos os 252 casos e repetições, sem answer-LLM. Esta
   reconciliação não concede essa autoridade.
+
+## 2026-08-14 — Etapa 1 de governança e prontidão multiagente concluída
+
+- Estado anterior e resultante: `STATE-07 TESTING_HOMOLOGATION` permanece
+  ativo. Esta auditoria não executou Automatic Quality Gate ou Human Gate de
+  lifecycle, não autorizou `STATE-08` e não iniciou a Etapa 2.
+- Autoridade e sequência: os prompts do proprietário `Stage 0 - Instructions
+  developing AI agents`, `Stage 1 - Governance and Multi-Agent Readiness
+  Audit` e `Stage 2 - Multi-Agent Orchestrator Implementation` foram lidos
+  integralmente e aplicados como um plano sequencial. Stage 0 foi incluído por
+  disposição explícita do proprietário após aparecer como novo input local.
+- Baseline inicial: `main@9f309e1b6a21a33cbd24b4b6498e840dd26585c9`,
+  um commit à frente de `origin/main`, árvore rastreada limpa, nenhum tag e
+  somente os três prompts do proprietário não rastreados. A Etapa 1 foi
+  executada na branch `codex/stage1-multi-agent-readiness`; os prompts
+  permaneceram não rastreados e sem alteração.
+- Escopo lido: instruções globais e do repositório, Start Here, governança,
+  requisitos, lifecycle, estado e histórico, todos os ADRs, contratos,
+  OpenAPI, schemas, migrations, scripts, workflows, manifests, testes e os
+  pacotes locais completos de RB-1, RB-2 e RB-3. Worktrees estrangeiras foram
+  inventariadas e não foram limpas, reutilizadas ou podadas.
+- Achado bloqueante de governança: o checkpoint de RB-2 exige duas revisões
+  humanas independentes e adjudicação humana sem decisões de agente, mas o
+  pacote congelado registra `humanAttribution=false` para ambos os revisores,
+  vinte decisões de agente e zero decisões humanas, enquanto afirma
+  contraditoriamente `no agent-authored adjudication`. Os bytes congelados não
+  foram alterados; RB-2 não satisfaz seu gate, RB-3 não pode ser consumido por
+  RB-4 e a disposição exige autoridade humana.
+- Achado bloqueante de arquitetura: a Etapa 2 materializaria stack, fronteira
+  física, runner, persistência e controles de segurança ainda sem ADR aceita.
+  ADR-0016 foi preparado somente como `proposed`, recomendando coordenador
+  TypeScript/Node 24 e `@openai/codex-sdk` direto atrás de `AgentRunner` com
+  `FakeAgentRunner`; nenhuma dependência ou implementação foi materializada.
+- Correção de governança `1055934`: introduziu envelope verificável,
+  paralelismo operacional, ownership, isolamento, locks, stop conditions,
+  configuração `.codex` e seis papéis project-scoped; tornou branch coverage
+  sem observações uma falha, reconciliou o estado factual e preservou os
+  limites de lifecycle, segurança e autoridade humana.
+- Primeiro gate limpo: `./eng/ci.ps1 -Offline` sobre `1055934` passou 278 de
+  279 testes de integração e falhou ao abrir uma conexão com
+  `ObjectDisposedException` em `SQLitePCL.sqlite3`. O mesmo caso passou 1/1
+  isoladamente. A inspeção encontrou treze chamadas em sete arquivos que
+  limpavam pools SQLite process-wide enquanto classes xUnit podiam executar em
+  paralelo.
+- Correção de teste `b64291d`: adicionou serialização assembly-level das
+  classes de integração sem alterar produto, assertions ou thresholds. Essa
+  identidade substitui localmente `a0def61` após reescrita excepcional
+  autorizada somente para corrigir `serialize` para `serialise`; ambas possuem
+  a árvore idêntica `896659a5c4f40e57e954dc3980d4ba2377d9acda`. A suíte
+  focal passou 279/279 em aproximadamente 72 segundos.
+- Gate final observado: runtime preflight não encontrou processo
+  RAG-Challenge-owned nem listener conflitante. Em worktree limpa e detached
+  na identidade pré-reescrita
+  `a0def61bf39471fd7647198d29bbcd2702171fca`, equivalente pela árvore à
+  identidade atual `b64291d637b198120314f3152fc171b7904bb888`, com .NET `10.0.303`,
+  Node `24.19.0`, npm `11.17.0` e PowerShell `7.6.4`,
+  `./eng/ci.ps1 -Offline` iniciou em `2026-08-14T21:42:36.9170657Z`, terminou
+  com exit code zero em aproximadamente 144 segundos e passou: build Release
+  com zero warnings/errors; 215 testes unitários, 11 de arquitetura e 279 de
+  integração; 95,38% de linhas (50.110/52.539); 67,23% de branches
+  (5.164/7.681); lint, typecheck, 45 testes web, web build e auditoria de 351
+  arquivos não ignorados. O modo offline não executa auditorias online de
+  dependências e não equivale ao workflow hospedado completo.
+- Integridade preservada: OpenAPI v1/v2 mantiveram SHA-256
+  `d6a686b94c926914beb28b437f464430a01de6560c2e2d476cf5c36025813e34` e
+  `f4dca8db7fb7bd453e580495bb1bb7760812d954344931063e8549ed8f036733`.
+  Os freezes RB-2/RB-3 mantiveram
+  `daede1db869f7daf784fa2f3fc3b55e037cf4f3bb59a22f94e2026175858bfe4` e
+  `ac7b5763bc9e571b6365449b340c8256790c5fe57ba79142b592b854cf25303c`.
+- Disposição final da readiness: `HUMAN_DECISION_REQUIRED`. A Etapa 2 não
+  pode começar até o proprietário dispor o conflito RB-2 e aceitar ou rejeitar
+  explicitamente ADR-0016, e até as condições resultantes serem reavaliadas na
+  baseline real deixada por essas decisões.
+- Escopo negativo: nenhuma feature de produto, OpenAPI, schema, migration,
+  corpus, índice, provider, secret, billing, deploy, publicação, push, merge,
+  release, Human Gate ou lifecycle foi alterado. Nenhum artefato de
+  `tools/ai-orchestrator` ou dependência da Etapa 2 foi criado.
+- Integridade append-only: este histórico preserva byte a byte seu prefixo
+  anterior de 519.952 bytes no SHA-256
+  `b1651b1043008d78fdcf19e21bb802bbeb801c7decad9867e101c01d4f91fbf5`.

@@ -2,15 +2,15 @@
 
 ## Result
 
-The Stage 1 correction set is prepared, but final clean-worktree validation is
-pending in this snapshot. The provisional Stage 2 readiness classification is:
+The Stage 1 audit, permitted corrections and clean-worktree validation are
+complete. The final Stage 2 readiness classification is:
 
 ```text
 HUMAN_DECISION_REQUIRED
 ```
 
-Stage 2 has not started. Two independent human decisions are required: the
-owner must dispose the RB-2 adjudication-authority conflict, and proposed
+Stage 2 has not started. Two distinct human decisions are required: the owner
+must dispose the RB-2 adjudication-authority conflict, and proposed
 ADR-0016 must be explicitly accepted or rejected before its tooling stack is
 materialised.
 
@@ -112,7 +112,7 @@ Automatic Quality Gate or Human Gate and does not authorise `STATE-08`.
 | `SEC-001` | `MEDIUM` | The online NuGet vulnerability command relies on exit code and does not prove that a reported vulnerable package fails the gate. | Dependency findings may require manual interpretation. | Technical follow-up; no threshold was weakened. |
 | `QA-002` | `MEDIUM` | `eng/ci.ps1 -Offline` omits online dependency audits. | An offline PASS is not equivalent to the hosted workflow. | Difference formalised in Quality Gates and evidence labels. |
 | `EVID-001` | `MEDIUM` | An authority-gated S07 campaign test returns normally when authority is absent and may be counted as PASS rather than explicit skip/not-run. | Aggregate test counts do not prove campaign execution. | Campaign remains outside the generic gate/dispatch; dedicated authority and readback remain mandatory. |
-| `TEST-001` | `MEDIUM` | xUnit parallelism is not globally configured while some tests call global SQLite pool cleanup. | Multiple concurrent test processes or poorly isolated cases may interfere. | Full gate remains sequential per worktree; focused follow-up remains open. |
+| `TEST-001` | `HIGH` | Integration test classes ran in parallel while thirteen calls across seven files clear process-wide SQLite pools. The first clean gate failed one of 279 integration tests with a disposed native SQLite handle, while that test passed in isolation. | Independent fixtures could invalidate another class's pooled handle and make the canonical gate intermittent. | Resolved by assembly-level serialisation of integration test classes; the focused suite passed 279/279 and the clean aggregate gate then passed. |
 | `NET-001` | `MEDIUM` | Some harnesses release a dynamic port before host bind or use fixed default ports. | A TOCTOU collision can create flaky or false evidence. | Exclusive task lease/port is required; Stage 2 must test collision handling. |
 | `TOOL-001` | `MEDIUM` | `eng/format.ps1` mutates tracked and untracked non-ignored files. | A worker could rewrite owner inputs. | Classified coordinator-only and excluded from validation dispatch. |
 | `STATE-001` | `MEDIUM` | Current State retained long historical sequences with present-tense wording. | Old statements could be mistaken for current authority. | Current section corrected and the retained sequence explicitly labelled historical; full historical migration is not required for Stage 2. |
@@ -130,6 +130,9 @@ Automatic Quality Gate or Human Gate and does not authorise `STATE-08`.
 - Defined the canonical CI order, offline limitation and sequential final gate
   in Quality Gates.
 - Corrected the branch-coverage fail-open and its regression tests.
+- Serialised integration test classes at assembly scope because their retained
+  cleanup calls clear SQLite pools process-wide; in-method concurrency tests
+  remain intact.
 - Prepared ADR-0016 as a proposal only, with direct Codex SDK behind an
   `AgentRunner` boundary and no package/dependency installation.
 - Reconciled current-state, architecture, security, RAG and project-foundation
@@ -208,18 +211,34 @@ For an authorised offline local run:
 ./eng/ci.ps1 -Offline
 ```
 
-The offline form omits dependency audits and must be reported as partial
-relative to the hosted online workflow. The final report must record every
-focused Stage 1 command and the clean-worktree aggregate result individually;
-the transition log is appended only after those results are observed.
+The offline form omits dependency audits and is partial relative to the hosted
+online workflow. All commands below ran on 2026-08-14 with .NET `10.0.303`,
+Node `24.19.0`, npm `11.17.0` and PowerShell `7.6.4`. Runtime preflight before
+each executable validation found zero verified RAG-Challenge-owned processes
+and zero listeners on the known task ports; nothing was stopped.
 
-Current validation state before the clean-worktree run:
+| Worktree / HEAD | Command | Exit / duration | Observed result |
+|---|---|---|---|
+| Coordinator / Stage 1 candidate | `./eng/test-assert-coverage.ps1` | `0`; focused run | `PASS`: 11/11 policy cases, including rejection of branchless `0/0` coverage. |
+| Coordinator / Stage 1 candidate | `./eng/ci.ps1 -Offline` | `1`; diagnostic aggregate run | All executable checks passed: Release build with zero warnings/errors, 505 .NET tests, 95.38% line coverage, 67.23% branch coverage, web lint/typecheck, 45 web tests and web build. Repository hygiene then rejected only the three owner-owned untracked CRLF prompt files. |
+| Clean isolated worktree / `1055934` | `./eng/ci.ps1 -Offline` | `1`; first clean aggregate run | `FAIL`: 278/279 integration tests passed. `BackendEndToEndWorkflowTests.SyntheticCsvCorpusFlowsFromIngestionToGroundedCitation` received `ObjectDisposedException` for `SQLitePCL.sqlite3` while opening a pooled connection. |
+| Clean isolated worktree / `1055934` | Focused execution of the failed integration test | `0`; focused diagnostic run | `PASS`: 1/1, supporting cross-class interference rather than deterministic failure in the test's own fixture. |
+| Coordinator / pre-rewrite `a0def61` (current equivalent `b64291d`) | Full `RagChallenge.IntegrationTests` suite | `0`; approximately 72 seconds | `PASS`: 279/279 after assembly-level integration-test serialisation. |
+| `<worktree-root>/RAG-Challenge-stage1-ci-a0def61` (detached) / pre-rewrite `a0def61bf39471fd7647198d29bbcd2702171fca` (current equivalent `b64291d637b198120314f3152fc171b7904bb888`) | `./eng/ci.ps1 -Offline` | `0`; started `2026-08-14T21:42:36.9170657Z`; approximately 144 seconds | `PASS`: coverage policy 11/11; Release build zero warnings/errors; 215 unit, 11 architecture and 279 integration tests (505 total); 95.38% lines (50,110/52,539); 67.23% branches (5,164/7,681); web lint/typecheck; 45/45 web tests; web build; repository audit passed for 351 non-ignored files. |
 
-| Command | Result |
-|---|---|
-| `./eng/test-assert-coverage.ps1` | `PASS`: all 11 policy cases passed, including the branchless failure case. |
-| `./eng/ci.ps1 -Offline` in the coordinator worktree | `FAIL` at repository hygiene only: build, 505 .NET tests, coverage (95.38% lines; 67.23% branches), web lint/typecheck, 45 web tests and web build passed; the three owner-owned untracked prompt files were rejected only for CRLF. |
-| `./eng/ci.ps1 -Offline` in a clean isolated worktree | `PENDING`. |
+The owner later authorised a local, unpublished history rewrite solely to
+change the second commit subject from `serialize` to British English
+`serialise`. Pre-rewrite `a0def61bf39471fd7647198d29bbcd2702171fca` and
+current `b64291d637b198120314f3152fc171b7904bb888` have the identical tree
+`896659a5c4f40e57e954dc3980d4ba2377d9acda`. Historical rows retain the old
+identity where it names the commit actually executed; the current branch uses
+the new identity.
+
+The clean validation worktree remained detached at the exact candidate commit
+with zero tracked or untracked changes after the aggregate run. TOML parsing
+and agent/config invariants, internal Markdown links, protected OpenAPI hashes,
+RB-2/RB-3 retained hashes and `git diff --check` also passed. No Stage 2 tool,
+package, project or product dependency was present.
 
 The owner-owned Stage 0/1/2 prompt files use CRLF and are intentionally
 unmodified. Therefore the repository hygiene script is expected to fail in
@@ -257,5 +276,5 @@ Acceptance is architecture authority only. It does not resolve RB-2 or grant
 implementation, authentication, network, billing, production, push or merge
 authority.
 
-Until both decisions are made and the baseline is re-evaluated, Stage 2 is
-not authorised.
+Until both decisions are made and their conditions are re-evaluated against
+the resulting repository baseline, Stage 2 is not authorised.

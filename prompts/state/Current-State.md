@@ -7,16 +7,20 @@ proprietários.
 
 ## Lifecycle e gates
 
-- A fase de auditoria e correções de governança e prontidão multiagente da
-  Etapa 1 foi executada
-  sobre `codex/stage1-multi-agent-readiness@9f309e1b6a21a33cbd24b4b6498e840dd26585c9`,
-  sem mudar o lifecycle. Ela formalizou envelopes, ownership, isolamento,
-  stop conditions e agentes project-scoped, corrigiu o gate de cobertura sem
-  branches e preparou o ADR-0016 apenas como `proposed`. A validação final em
-  worktree limpa permanece pendente neste snapshot. A readiness provisória da
-  Etapa 2 é `HUMAN_DECISION_REQUIRED`: o ADR-0016 ainda exige aceitação
-  explícita e o conflito de autoridade humana do RB-2 exige disposição do
-  proprietário.
+- A auditoria, as correções permitidas e a validação de prontidão multiagente
+  da Etapa 1 foram concluídas na branch `codex/stage1-multi-agent-readiness`,
+  partindo de `main@9f309e1b6a21a33cbd24b4b6498e840dd26585c9`, sem mudar o
+  lifecycle. O commit `1055934` formalizou envelopes, ownership, isolamento,
+  stop conditions, agentes project-scoped e o gate de cobertura fail-closed.
+  O primeiro gate limpo revelou interferência process-wide entre classes de
+  teste que limpavam pools SQLite; `b64291d` serializou as classes da assembly
+  de integração, preservando a mesma árvore da identidade local pré-reescrita
+  `a0def61`. A suíte focal passou 279/279 e `./eng/ci.ps1 -Offline` passou
+  em worktree limpa com 505 testes .NET, 45 testes web, 95,38% de linhas e
+  67,23% de branches. A readiness final da Etapa 2 é
+  `HUMAN_DECISION_REQUIRED`: o ADR-0016 permanece `proposed`, e a contradição
+  entre o gate humano do RB-2 e sua adjudicação de agente exige disposição do
+  proprietário. A Etapa 2 não foi iniciada.
 - Posição: `STATE-00 DISCOVERY` encerrado; `GATE-B01
   ARCHITECTURE_BOOTSTRAP_DECISION` aprovado e encerrado; `STATE-01
   PROJECT_SETUP` encerrado após Human Gate aprovado sem ressalvas em
