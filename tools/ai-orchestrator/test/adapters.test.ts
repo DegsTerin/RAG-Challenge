@@ -1,6 +1,6 @@
 // Purpose: Verifies filesystem recovery, lock ownership, Codex policy mapping, bounded subprocesses and sequential integration safety.
 import assert from "node:assert/strict";
-import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
+import { mkdtemp, readFile, rename, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 import test from "node:test";
@@ -74,8 +74,26 @@ test("resource locks are atomic and cannot be released by a foreign attempt", as
     await assert.rejects(second.acquire("sqlite:test", { ...owner, attemptId: "attempt-other" }), (error: unknown) =>
       error instanceof OrchestratorStop && error.code === "SHARED_RESOURCE_COLLISION");
     await assert.rejects(first.release("sqlite:test", owner.runId, "attempt-other"), /not owned/);
-    await first.release("sqlite:test", owner.runId, owner.attemptId);
+    const prepared = await first.release("sqlite:test", owner.runId, owner.attemptId);
+    await first.finalise(prepared, owner);
     assert.deepEqual(await first.inspect(), []);
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+test("prepared lock finalisation rejects any change to the complete ownership record", async () => {
+  const root = await temporaryDirectory("orchestrator-lock-digest");
+  try {
+    const locks = new FileResourceLocks(root);
+    const owner = { runId: "run-fixture", taskId: "task-fixture", attemptId: "attempt-fixture", acquiredAt: instant };
+    await locks.acquire("sqlite:test", owner);
+    const prepared = await locks.release("sqlite:test", owner.runId, owner.attemptId);
+    const path = join(root, prepared.lockId);
+    const record = JSON.parse(await readFile(path, "utf8")) as Record<string, unknown>;
+    await writeFile(path, JSON.stringify({ ...record, processId: Number(record.processId) + 1 }), "utf8");
+    await assert.rejects(locks.finalise(prepared, owner), /ownership changed before finalisation/);
+    assert.equal((await readFile(path, "utf8")).length > 0, true);
   } finally {
     await rm(root, { recursive: true, force: true });
   }
@@ -85,12 +103,48 @@ test("thread checkpoints persist before a turn and require exact ownership for r
   const root = await temporaryDirectory("orchestrator-thread");
   try {
     const store = new FileThreadCheckpointStore(join(root, "state"));
-    const checkpoint = { schemaVersion: 1 as const, runId: "run-fixture", taskId: "task-fixture", attemptId: "attempt-fixture", agentId: "code_mapper" as const, threadId: "thread-fixture", startedAt: instant };
+    const checkpoint = {
+      schemaVersion: 1 as const,
+      runId: "run-fixture",
+      taskId: "task-fixture",
+      attemptId: "attempt-fixture",
+      agentId: "code_mapper" as const,
+      taskKind: "DISCOVERY" as const,
+      baseline,
+      candidateCommitId: null,
+      envelopeHash: "a".repeat(64),
+      stateRevision: 0,
+      deadlineMs: 300_000,
+      threadId: "thread-fixture",
+      startedAt: instant,
+    };
     await store.save(checkpoint);
     assert.deepEqual(await store.load(checkpoint.runId, checkpoint.taskId), checkpoint);
-    await assert.rejects(store.remove(checkpoint.runId, checkpoint.taskId, "attempt-other"), /ownership changed/);
-    await store.remove(checkpoint.runId, checkpoint.taskId, checkpoint.attemptId);
+    await assert.rejects(store.remove({ ...checkpoint, attemptId: "attempt-other" }), /ownership changed/);
+    await store.remove(checkpoint);
     assert.deepEqual(await store.inspect(checkpoint.runId), []);
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+test("prepared checkpoint removal is discoverable and can be finalised after a crash", async () => {
+  const root = await temporaryDirectory("orchestrator-thread-removal");
+  try {
+    const stateRoot = join(root, "state");
+    const store = new FileThreadCheckpointStore(stateRoot);
+    const checkpoint = {
+      schemaVersion: 1 as const, runId: "run-fixture", taskId: "task-fixture", attemptId: "attempt-fixture",
+      agentId: "code_mapper" as const, taskKind: "DISCOVERY" as const, baseline, candidateCommitId: null,
+      envelopeHash: "a".repeat(64), stateRevision: 1, deadlineMs: 300_000, threadId: "thread-fixture", startedAt: instant,
+    };
+    await store.save(checkpoint);
+    const directory = join(stateRoot, checkpoint.runId, "threads");
+    await rename(join(directory, `${checkpoint.taskId}.json`), join(directory, `${checkpoint.taskId}.${checkpoint.attemptId}.remove`));
+    assert.deepEqual(await store.inspect(checkpoint.runId), []);
+    assert.deepEqual(await store.inspectPreparedRemovals(checkpoint.runId), [checkpoint]);
+    await store.finalisePreparedRemoval(checkpoint);
+    assert.deepEqual(await store.inspectPreparedRemovals(checkpoint.runId), []);
   } finally {
     await rm(root, { recursive: true, force: true });
   }
@@ -110,7 +164,36 @@ test("CodexRunner is disabled before SDK construction without separate execution
   assert.equal(constructed, false);
 });
 
-test("CodexRunner maps isolated cwd, sandbox and structured output for start and resume", async () => {
+test("CodexRunner rejects an empty declarative authority reference before SDK construction", async () => {
+  let constructed = false;
+  const runner = new CodexRunner({ executionAuthorised: true, authorityReference: "", worktreeRoot: "C:/managed", environment: {}, model: null }, () => {
+    constructed = true;
+    throw new Error("not reached");
+  });
+  await assert.rejects(runner.run({
+    runId: "run-fixture", attemptId: "attempt-fixture", task: task(), baseline, contracts: [], candidate: null, resumeThreadId: null,
+    checkpointThread: async () => undefined,
+  }), (error: unknown) => error instanceof OrchestratorStop && error.code === "HUMAN_DECISION_REQUIRED");
+  assert.equal(constructed, false);
+});
+
+test("CodexRunner rejects a new thread whose identity is unavailable before the first turn", async () => {
+  let turnStarted = false;
+  const runner = new CodexRunner({
+    executionAuthorised: true, authorityReference: "separate-test-authority", worktreeRoot: "C:/managed",
+    environment: { PATH: "C:/bin" }, model: null,
+  }, () => ({
+    startThread: () => ({ id: null, runStreamed: async () => { turnStarted = true; throw new Error("not reached"); } }),
+    resumeThread: () => { throw new Error("not reached"); },
+  }));
+  await assert.rejects(runner.run({
+    runId: "run-fixture", attemptId: "attempt-fixture", task: task({ worktree: "C:/managed/lane" }), baseline, contracts: [], candidate: null, resumeThreadId: null,
+    checkpointThread: async () => undefined,
+  }), (error: unknown) => error instanceof OrchestratorStop && error.code === "ARCHITECTURE_CHANGE_REQUIRED");
+  assert.equal(turnStarted, false);
+});
+
+test("CodexRunner maps isolated cwd, sandbox and structured output for a persisted resume", async () => {
   const calls: { method: string; options: unknown; turnOptions?: unknown }[] = [];
   const thread = {
     id: "thread-fixture",
@@ -124,7 +207,7 @@ test("CodexRunner maps isolated cwd, sandbox and structured output for start and
     },
   };
   const factory: CodexClientFactory = () => ({
-    startThread(options) { calls.push({ method: "start", options }); return thread; },
+    startThread() { throw new Error("A new thread is not supported by the locked SDK boundary."); },
     resumeThread(_id, options) { calls.push({ method: "resume", options }); return thread; },
   });
   const runner = new CodexRunner({
@@ -135,14 +218,13 @@ test("CodexRunner maps isolated cwd, sandbox and structured output for start and
     model: null,
   }, factory);
   const agentTask = task({ owner: "implementation_worker", worktree: "C:/managed/lane-a", branch: "codex/lane-a" });
-  await runner.run({ runId: "run-fixture", attemptId: "attempt-fixture", task: agentTask, baseline, contracts: [], candidate: null, resumeThreadId: null, checkpointThread: async () => undefined });
   await runner.run({ runId: "run-fixture", attemptId: "attempt-fixture", task: agentTask, baseline, contracts: [], candidate: null, resumeThreadId: "thread-fixture", checkpointThread: async () => undefined });
-  const threadOptions = calls.find((call) => call.method === "start")?.options as Record<string, unknown>;
+  const threadOptions = calls.find((call) => call.method === "resume")?.options as Record<string, unknown>;
   assert.equal(threadOptions.sandboxMode, "workspace-write");
   assert.equal(threadOptions.approvalPolicy, "never");
   assert.equal(threadOptions.networkAccessEnabled, false);
   assert.equal(threadOptions.webSearchMode, "disabled");
-  assert.ok(calls.some((call) => call.method === "resume"));
+  assert.equal(calls.filter((call) => call.method === "resume").length, 1);
   assert.ok(calls.find((call) => call.method === "run")?.turnOptions !== undefined);
 });
 
@@ -224,10 +306,10 @@ test("sequential integration revalidates the reviewed candidate and integrated t
   const process = new ScriptedProcess([
     structured("head", `${baseline}\n`), structured("status"), structured("branch", "codex/integration\n"),
     structured("ancestry"), structured("count", "1\n"), structured("tree", `${tree}\n`), structured("diff", "tools/file.ts\u0000"), structured("candidate-patch", "patch"),
-    structured("cherry-pick"), structured("post-status"), structured("post-head", `${commit}\n`), structured("post-tree", `${tree}\n`),
+    structured("cherry-pick"), structured("owned-head", `${commit}\n`), structured("post-status"), structured("post-head", `${commit}\n`), structured("post-tree", `${tree}\n`),
     structured("post-count", "1\n"), structured("post-diff", "tools/file.ts\u0000"), structured("post-patch", "patch"),
   ]);
-  const pipeline = new SequentialIntegrationPipeline(process, "C:/git.exe", {});
+  const pipeline = new SequentialIntegrationPipeline(process, "C:/git.exe", {}, { run: async () => command("repository-ci-offline") });
   const candidate = { commitId: commit, treeId: tree, changedFiles: ["tools/file.ts"] };
   const implementation = task({
     taskId: "implementation", owner: "implementation_worker", status: "IMPLEMENTED", candidate,
@@ -239,19 +321,66 @@ test("sequential integration revalidates the reviewed candidate and integrated t
   assert.ok(process.requests.every((request) => request.executable === "C:/git.exe" && request.arguments.some((argument) => argument.startsWith("core.hooksPath="))));
 });
 
-test("failed integration is aborted and reported as a conflict", async () => {
+test("failed integration is preserved and reported without a destructive rollback", async () => {
   const commit = "1".repeat(40);
   const tree = "2".repeat(40);
   const process = new ScriptedProcess([
     structured("head", `${baseline}\n`), structured("status"), structured("branch", "codex/integration\n"),
     structured("ancestry"), structured("count", "1\n"), structured("tree", `${tree}\n`), structured("diff", "tools/file.ts\u0000"), structured("candidate-patch", "patch"),
-    structured("cherry-pick", "", "FAIL"), structured("abort"),
+    structured("cherry-pick", "", "FAIL"), structured("quit"),
   ]);
-  const pipeline = new SequentialIntegrationPipeline(process, "C:/git.exe", {});
+  const pipeline = new SequentialIntegrationPipeline(process, "C:/git.exe", {}, { run: async () => command("repository-ci-offline") });
   const candidate = { commitId: commit, treeId: tree, changedFiles: ["tools/file.ts"] };
   const implementation = task({ taskId: "implementation", owner: "implementation_worker", status: "IMPLEMENTED", candidate, result: passingResult(["tools/file.ts"]) });
   const integrationTask = task({ taskId: "integration", taskKind: "INTEGRATION", owner: "governance_guard", candidateTaskId: "implementation", executionSurface: { ...task().executionSurface, cwd: "C:/coordinator", tools: [] } });
   await assert.rejects(pipeline.integrate({ baseline, expectedCoordinatorHead: baseline, integrationTask, implementationTask: implementation, candidate, workerResult: implementation.result!, independentReview: null, securityReview: null }),
-    (error: unknown) => error instanceof OrchestratorStop && error.code === "CONFLICTING_REQUIREMENTS");
-  assert.ok(process.requests.at(-1)?.arguments.includes("--abort"));
+    (error: unknown) => error instanceof OrchestratorStop && error.code === "UNEXPECTED_DIRTY_TREE");
+  assert.ok(process.requests.some((request) => request.arguments.includes("--quit")));
+  assert.equal(process.requests.some((request) => request.arguments.includes("reset") || request.arguments.includes("--hard")), false);
+});
+
+test("post-integration validation failure restores the exact expected coordinator HEAD", async () => {
+  const commit = "1".repeat(40);
+  const tree = "2".repeat(40);
+  const process = new ScriptedProcess([
+    structured("head", `${baseline}\n`), structured("status"), structured("branch", "codex/integration\n"),
+    structured("ancestry"), structured("count", "1\n"), structured("tree", `${tree}\n`), structured("diff", "tools/file.ts\u0000"), structured("candidate-patch", "reviewed-patch"),
+    structured("cherry-pick"), structured("owned-head", `${commit}\n`), structured("post-status"), structured("post-head", `${commit}\n`), structured("post-tree", `${tree}\n`),
+    structured("post-count", "1\n"), structured("post-diff", "tools/file.ts\u0000"), structured("post-patch", "different-patch"),
+    structured("rollback-owned-head", `${commit}\n`), structured("rollback-owned-status"), structured("rollback-owned-branch", "codex/integration\n"),
+    structured("rollback-reference"), structured("rollback-worktree"), structured("rollback-head", `${baseline}\n`), structured("rollback-status"),
+  ]);
+  const pipeline = new SequentialIntegrationPipeline(process, "C:/git.exe", {}, { run: async () => command("repository-ci-offline") });
+  const candidate = { commitId: commit, treeId: tree, changedFiles: ["tools/file.ts"] };
+  const implementation = task({ taskId: "implementation", owner: "implementation_worker", status: "IMPLEMENTED", candidate, result: passingResult(["tools/file.ts"]) });
+  const integrationTask = task({ taskId: "integration", taskKind: "INTEGRATION", owner: "governance_guard", candidateTaskId: "implementation", executionSurface: { ...task().executionSurface, cwd: "C:/coordinator", tools: [] } });
+  await assert.rejects(
+    pipeline.integrate({ baseline, expectedCoordinatorHead: baseline, integrationTask, implementationTask: implementation, candidate, workerResult: implementation.result!, independentReview: null, securityReview: null }),
+    (error: unknown) => error instanceof OrchestratorStop && error.code === "UNEXPECTED_DIRTY_TREE",
+  );
+  assert.ok(process.requests.some((request) => request.arguments.includes("update-ref") && request.arguments.includes(commit) && request.arguments.includes(baseline)));
+  assert.ok(process.requests.some((request) => request.arguments.includes("read-tree") && request.arguments.includes(baseline)));
+  assert.equal(process.requests.some((request) => request.arguments.includes("--hard")), false);
+});
+
+test("post-integration drift is preserved without moving the coordinator reference", async () => {
+  const commit = "1".repeat(40);
+  const tree = "2".repeat(40);
+  const process = new ScriptedProcess([
+    structured("head", `${baseline}\n`), structured("status"), structured("branch", "codex/integration\n"),
+    structured("ancestry"), structured("count", "1\n"), structured("tree", `${tree}\n`), structured("diff", "tools/file.ts\u0000"), structured("candidate-patch", "reviewed-patch"),
+    structured("cherry-pick"), structured("owned-head", `${commit}\n`), structured("post-status"), structured("post-head", `${commit}\n`), structured("post-tree", `${tree}\n`),
+    structured("post-count", "1\n"), structured("post-diff", "tools/file.ts\u0000"), structured("post-patch", "different-patch"),
+    structured("rollback-owned-head", `${commit}\n`), structured("rollback-owned-status", " M tools/file.ts\u0000"), structured("rollback-owned-branch", "codex/integration\n"),
+  ]);
+  const pipeline = new SequentialIntegrationPipeline(process, "C:/git.exe", {}, { run: async () => command("repository-ci-offline") });
+  const candidate = { commitId: commit, treeId: tree, changedFiles: ["tools/file.ts"] };
+  const implementation = task({ taskId: "implementation", owner: "implementation_worker", status: "IMPLEMENTED", candidate, result: passingResult(["tools/file.ts"]) });
+  const integrationTask = task({ taskId: "integration", taskKind: "INTEGRATION", owner: "governance_guard", candidateTaskId: "implementation", executionSurface: { ...task().executionSurface, cwd: "C:/coordinator", tools: [] } });
+  await assert.rejects(
+    pipeline.integrate({ baseline, expectedCoordinatorHead: baseline, integrationTask, implementationTask: implementation, candidate, workerResult: implementation.result!, independentReview: null, securityReview: null }),
+    (error: unknown) => error instanceof OrchestratorStop && error.code === "UNEXPECTED_DIRTY_TREE",
+  );
+  assert.equal(process.requests.some((request) => request.arguments.includes("update-ref")), false);
+  assert.equal(process.requests.some((request) => request.arguments.includes("read-tree")), false);
 });

@@ -1,5 +1,6 @@
 // Purpose: Produces a deterministic side-effect-free execution preview including lanes, locks, gates and conflicts.
-import type { ProjectPlan, TaskDefinition } from "../core/contracts.js";
+import type { PersistedRunState, ProjectPlan, TaskDefinition } from "../core/contracts.js";
+import { canonicalJson } from "../core/canonical-json.js";
 import { assertTaskIsolation, taskConflict } from "../core/conflicts.js";
 import { DependencyGraph } from "../core/dependency-graph.js";
 import { scheduleWave } from "../core/scheduler.js";
@@ -52,7 +53,7 @@ function transitiveDependencies(taskId: string, tasks: readonly TaskDefinition[]
   return visited;
 }
 
-export function validatePlanSemantics(plan: ProjectPlan, repositoryRoot = "C:/repository"): void {
+export function validatePlanSemantics(plan: ProjectPlan, repositoryRoot = "C:/repository", requirePristineState = true): void {
   new DependencyGraph(plan.tasks);
   assertTaskIsolation(plan.tasks);
   const implementations = plan.tasks.filter((task) => task.taskKind === "IMPLEMENTATION");
@@ -128,9 +129,9 @@ export function validatePlanSemantics(plan: ProjectPlan, repositoryRoot = "C:/re
     if (task.humanGate !== (task.taskKind === "HUMAN_GATE")) {
       throw new OrchestratorStop("HUMAN_GATE_REQUIRED", `Human Gate task '${task.taskId}' must remain under governance ownership.`, task.taskId);
     }
-    if (task.taskKind === "QUALITY_GATE") {
+    if (["IMPLEMENTATION", "INTEGRATION", "QUALITY_GATE"].includes(task.taskKind)) {
       if (task.requiredTests.length !== 1 || task.requiredTests[0] !== "./eng/ci.ps1 -Offline") {
-        throw new OrchestratorStop("TEST_BASELINE_BROKEN", `Quality task '${task.taskId}' does not name the canonical coordinator-owned gate.`, task.taskId);
+        throw new OrchestratorStop("TEST_BASELINE_BROKEN", `Task '${task.taskId}' does not name the canonical coordinator-owned test gate.`, task.taskId);
       }
     } else if (task.requiredTests.length > 0) {
       throw new OrchestratorStop("TEST_BASELINE_BROKEN", `Task '${task.taskId}' cannot treat agent-declared tests as trusted evidence.`, task.taskId);
@@ -143,7 +144,7 @@ export function validatePlanSemantics(plan: ProjectPlan, repositoryRoot = "C:/re
     } else if (task.candidateTaskId !== null) {
       throw new OrchestratorStop("CONFLICTING_REQUIREMENTS", `Task '${task.taskId}' cannot declare a candidate task.`, task.taskId);
     }
-    if (task.status !== "DISCOVERED" || task.startedAt !== null || task.finishedAt !== null || task.result !== null || task.evidence.length > 0 || task.candidate !== null) {
+    if (requirePristineState && (task.status !== "DISCOVERED" || task.startedAt !== null || task.finishedAt !== null || task.result !== null || task.evidence.length > 0 || task.candidate !== null)) {
       throw new OrchestratorStop("UNEXPECTED_DIRTY_TREE", `Input plan task '${task.taskId}' contains forged runtime state or evidence.`, task.taskId);
     }
     if (task.taskKind === "INTEGRATION" && task.candidateTaskId !== null) {
@@ -170,7 +171,9 @@ export function validatePlanSemantics(plan: ProjectPlan, repositoryRoot = "C:/re
       throw new OrchestratorStop("AMBIGUOUS_AUTHORITY", `Integration task '${integration.taskId}' is not the unique integration for its implementation.`, integration.taskId);
     }
     const predecessor = integrations[index - 1];
-    if (predecessor !== undefined && !integration.dependencies.includes(predecessor.taskId)) {
+    const integrationDependencies = integration.dependencies.filter((dependency) => plan.tasks.find((task) => task.taskId === dependency)?.taskKind === "INTEGRATION");
+    if ((predecessor === undefined && integrationDependencies.length > 0) ||
+        (predecessor !== undefined && (integrationDependencies.length !== 1 || integrationDependencies[0] !== predecessor.taskId))) {
       throw new OrchestratorStop("AMBIGUOUS_AUTHORITY", `Integration task '${integration.taskId}' does not depend on the preceding deterministic integration.`, integration.taskId);
     }
   }
@@ -182,6 +185,58 @@ export function validatePlanSemantics(plan: ProjectPlan, repositoryRoot = "C:/re
       throw new OrchestratorStop("HUMAN_GATE_REQUIRED", "The external Human Gate is not downstream of the complete task graph.", humanGate?.taskId);
     }
   }
+}
+
+export function validatePersistedStateSemantics(state: PersistedRunState, repositoryRoot = "C:/repository"): void {
+  validatePlanSemantics({ schemaVersion: 1, project: "RAG-Challenge", baseline: state.baseline, maxConcurrency: state.maxConcurrency, tasks: state.tasks }, repositoryRoot, false);
+  const humanGates = state.tasks.filter((task) => task.taskKind === "HUMAN_GATE");
+  const reached = humanGates.filter((task) => task.status === "HUMAN_REVIEW_REQUIRED");
+  if (!state.humanGateReached) {
+    if (reached.length > 0) throw new OrchestratorStop("TEST_BASELINE_BROKEN", "Persisted Human Gate status conflicts with the run marker.");
+    return;
+  }
+  if (humanGates.length !== 1 || reached.length !== 1 || state.heldLocks.length > 0) {
+    throw new OrchestratorStop("HUMAN_GATE_REQUIRED", "The persisted Human Gate package is incomplete or still owns mutable resources.", humanGates[0]?.taskId);
+  }
+  for (const task of state.tasks) {
+    if (task.taskKind === "HUMAN_GATE") continue;
+    const expected = task.taskKind === "IMPLEMENTATION" ? "IMPLEMENTED" : "PASS";
+    if (task.status !== expected || task.result?.status !== "PASS" || (["IMPLEMENTATION", "INTEGRATION"].includes(task.taskKind) && task.candidate === null)) {
+      throw new OrchestratorStop("HUMAN_GATE_REQUIRED", `Task '${task.taskId}' does not support an evaluable Human Gate package.`, task.taskId);
+    }
+    const attempts = state.attempts.filter((attempt) => attempt.taskId === task.taskId);
+    const terminalAttempts = attempts.filter((attempt) => attempt.result !== null);
+    const latest = attempts.at(-1);
+    const agentTask = !["INTEGRATION", "QUALITY_GATE"].includes(task.taskKind);
+    if (latest === undefined || terminalAttempts.length !== 1 || terminalAttempts[0]?.attemptId !== latest.attemptId ||
+        latest.finishedAt === null || latest.retryClass !== null || latest.result === null || latest.agentId !== task.owner ||
+        canonicalJson(latest.result) !== canonicalJson(task.result) || (agentTask && latest.threadId === null) ||
+        task.startedAt === null || task.finishedAt === null || Date.parse(latest.startedAt) < Date.parse(task.startedAt) ||
+        Date.parse(latest.finishedAt) < Date.parse(task.finishedAt) || Date.parse(latest.finishedAt) < Date.parse(latest.startedAt)) {
+      throw new OrchestratorStop("HUMAN_GATE_REQUIRED", `Task '${task.taskId}' lacks one coherent terminal coordinator attempt.`, task.taskId);
+    }
+    if (task.taskKind === "QUALITY_GATE" && !task.result.tests.some((evidence) =>
+      evidence.commandId === "repository-ci-offline" && evidence.exitCode === 0 && evidence.result === "PASS")) {
+      throw new OrchestratorStop("HUMAN_GATE_REQUIRED", `Quality task '${task.taskId}' lacks the canonical coordinator-observed gate evidence.`, task.taskId);
+    }
+  }
+  persistedCoordinatorHead(state);
+}
+
+export function persistedCoordinatorHead(state: PersistedRunState): string {
+  const integrations = state.tasks.filter((task) => task.taskKind === "INTEGRATION")
+    .sort((left, right) => right.priority - left.priority || left.taskId.localeCompare(right.taskId));
+  let head = state.baseline;
+  let incomplete = false;
+  for (const task of integrations) {
+    if (task.status === "PASS" && task.candidate !== null) {
+      if (incomplete) throw new OrchestratorStop("TEST_BASELINE_BROKEN", "Persisted integration history is not a contiguous coordinator chain.", task.taskId);
+      head = task.candidate.commitId;
+    } else {
+      incomplete = true;
+    }
+  }
+  return head;
 }
 
 export function createDryRunPlan(plan: ProjectPlan, repositoryRoot = "C:/repository"): DryRunPlan {

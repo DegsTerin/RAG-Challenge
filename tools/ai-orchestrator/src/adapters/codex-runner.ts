@@ -34,7 +34,7 @@ export interface CodexRunnerPolicy {
 
 export type CodexClientFactory = (policy: CodexRunnerPolicy) => CodexClient;
 
-const permittedEnvironmentNames = new Set(["PATH", "SystemRoot", "TEMP", "TMP", "USERPROFILE", "LOCALAPPDATA", "APPDATA", "HOME"]);
+const permittedEnvironmentNames = new Set(["PATH", "SystemRoot", "TEMP", "TMP", "LOCALAPPDATA", "APPDATA"]);
 
 function defaultFactory(policy: CodexRunnerPolicy): CodexClient {
   return new Codex({
@@ -47,7 +47,7 @@ function defaultFactory(policy: CodexRunnerPolicy): CodexClient {
 }
 
 function assertWorktree(root: string, worktree: string | null): string {
-  if (worktree === null || !isAbsolute(worktree)) {
+  if (!isAbsolute(root) || worktree === null || !isAbsolute(worktree)) {
     throw new OrchestratorStop("AMBIGUOUS_AUTHORITY", "Codex execution requires an absolute isolated worktree.");
   }
   const absoluteRoot = resolve(root);
@@ -85,7 +85,8 @@ export class CodexRunner implements AgentRunner {
   ) {}
 
   public async run(request: AgentRunRequest, signal?: AbortSignal): Promise<AgentRunResponse> {
-    if (!this.policy.executionAuthorised || this.policy.authorityReference === null) {
+    if (!this.policy.executionAuthorised || this.policy.authorityReference === null ||
+        !/^[A-Za-z0-9][A-Za-z0-9._:-]{2,127}$/.test(this.policy.authorityReference)) {
       throw new OrchestratorStop(
         "HUMAN_DECISION_REQUIRED",
         "Real Codex execution is disabled until a separate bounded authority is recorded.",
@@ -112,17 +113,26 @@ export class CodexRunner implements AgentRunner {
     const thread = request.resumeThreadId === null
       ? client.startThread(threadOptions)
       : client.resumeThread(request.resumeThreadId, threadOptions);
-    if (request.resumeThreadId !== null) {
-      await request.checkpointThread(request.resumeThreadId);
+    const initialThreadId = request.resumeThreadId ?? thread.id;
+    if (initialThreadId === null) {
+      throw new OrchestratorStop(
+        "ARCHITECTURE_CHANGE_REQUIRED",
+        "The locked Codex SDK does not expose a new thread identity before its first turn, so new real execution remains disabled.",
+        request.task.taskId,
+      );
     }
+    if (thread.id !== null && thread.id !== initialThreadId) {
+      throw new OrchestratorStop("TEST_BASELINE_BROKEN", "Codex returned an inconsistent pre-turn thread identity.", request.task.taskId);
+    }
+    await request.checkpointThread(initialThreadId);
     const streamed = await thread.runStreamed(buildAgentPrompt(request), { outputSchema: agentResultOutputSchema, ...(signal === undefined ? {} : { signal }) });
-    let checkpointedThread = request.resumeThreadId;
+    let checkpointedThread = initialThreadId;
     let finalResponse: string | null = null;
     let completed = false;
     for await (const event of streamed.events) {
       if (event.type === "thread.started") {
         if (typeof event.thread_id !== "string" || event.thread_id.length === 0 ||
-            (request.resumeThreadId !== null && event.thread_id !== request.resumeThreadId)) {
+            event.thread_id !== checkpointedThread) {
           throw new OrchestratorStop("TEST_BASELINE_BROKEN", "Codex returned an inconsistent thread identity.", request.task.taskId);
         }
         await request.checkpointThread(event.thread_id);

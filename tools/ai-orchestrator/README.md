@@ -68,8 +68,9 @@ candidate commit, tree and changed-file set; they do not review an
 agent-selected identity.
 
 Agent tasks and deterministic tasks remain separate. Agent-declared test IDs
-or exit status are never coordinator-observed proof; required tests belong to
-the fixed canonical quality task. An implementation-agent
+or exit status are never coordinator-observed proof. The coordinator runs the
+fixed canonical offline gate after each implementation, after each sequential
+integration and once more as the final quality task. An implementation-agent
 `PASS` can produce only `IMPLEMENTED` after worktree and Git inspection.
 Independent and security reviews are distinct read-only tasks. Integration and
 the canonical quality gate are coordinator-owned executors and are never
@@ -105,6 +106,7 @@ node .\dist\src\cli.js run --dry-run --plan <plan.json>
 node .\dist\src\cli.js run --plan <plan.json> --runner fake --fixture-results <results.json> --git-executable <absolute-git.exe> --powershell-executable <absolute-pwsh.exe>
 node .\dist\src\cli.js status --run-id <run-id>
 node .\dist\src\cli.js resume --run-id <run-id> --runner fake --fixture-results <results.json> --git-executable <absolute-git.exe> --powershell-executable <absolute-pwsh.exe>
+node .\dist\src\cli.js resume --run-id <run-id> --reconcile-absent-locks --confirm-run-id <run-id> --confirm-runner-quiescence <run-id> --runner fake --fixture-results <results.json> --git-executable <absolute-git.exe> --powershell-executable <absolute-pwsh.exe>
 node .\dist\src\cli.js validate --run-id <run-id>
 node .\dist\src\cli.js validate --run-id <run-id> --quality-gate --powershell-executable <absolute-pwsh.exe>
 node .\dist\src\cli.js cleanup --run-id <run-id>
@@ -130,7 +132,9 @@ canonical `eng/ci.ps1 -Offline`; it does not substitute another gate.
 stores ownership markers outside Git worktrees. It refuses existing paths,
 branches, dirty mappings, missing markers and foreign ownership. Removal has no
 force option and deletes a task branch only with compare-and-swap `update-ref`
-against the observed commit.
+against the exact persisted candidate commit. An exact persisted task envelope allows cleanup to
+finish branch and marker removal after a previously completed worktree removal;
+missing or foreign ownership still fails closed.
 
 `SequentialIntegrationPipeline` requires a trusted `IMPLEMENTED` candidate,
 required read-only reviews, exactly one candidate commit, full commit and tree
@@ -139,9 +143,14 @@ IDs, the exact Git-derived diff including deletions, and a clean isolated
 sequential. It compares the complete bounded candidate patch with the patch
 actually integrated, so multiple disjoint candidates can advance the
 coordinator HEAD without weakening candidate identity. A conflicting
-cherry-pick is aborted; failure to restore the prior HEAD becomes
-`UNEXPECTED_DIRTY_TREE`. The pipeline never pushes, merges to `main`, releases
-or deploys.
+cherry-pick is quit without discarding its partial state and returns
+`UNEXPECTED_DIRTY_TREE` for explicit reconciliation. After a successful
+cherry-pick, post-integration validation or test failure moves the branch back
+only when HEAD, branch and a clean worktree still prove ownership of the exact
+integrated commit. It uses compare-and-swap `update-ref`, restores that known
+tree and then proves both HEAD and status; any drift is preserved without an
+automatic rollback. The pipeline never pushes, merges to `main`, releases or
+deploys.
 
 The separate downstream `QUALITY_GATE` task invokes only the canonical offline
 gate. A failed review, integration or quality gate prevents the Human Gate.
@@ -155,23 +164,54 @@ renamed atomically and linked to an append-only SHA-256 journal. Snapshots,
 journals, locks and ownership markers have byte limits. JSON input rejects
 duplicate and prototype keys before closed-schema validation. Completed
 snapshots, thread checkpoints, attempt metadata and journal links are validated
-as untrusted input on load. Review evidence and risks persist only as SHA-256
-references; agent prose and command output are minimised before persistence.
+as untrusted input on load. Thread checkpoints are bound to the immutable task
+envelope, baseline, candidate, owner, task kind, state revision and deadline.
+The coordinator writes a pre-turn checkpoint and attempt record before lock
+acquisition; the runner's opaque thread ID is then written to the append-only
+attempt history before streamed work continues.
+Review prose persists only as SHA-256 references. The Human Gate package may
+also retain closed, bounded finding items with severity, repository-relative
+location and summary, and risk items with severity, summary and mitigation.
+Command output is minimised before persistence.
 
 An interrupted temporary write, invalid response, digest mismatch, recorded
-held lock or orphan lock never becomes success. `resume` can return an
-interrupted agent task to `READY` only when its pre-turn thread checkpoint is
-present and no lock requires reconciliation; deterministic-task interruption
-remains fail-closed. Agent turns also have a coordinator-owned deadline.
+held lock or orphan lock never becomes success. Every executing task holds a
+coordinator-generated physical execution lease in addition to its declared
+resource locks. Acquisition and release update persisted ownership per task
+rather than per wave. A persisted lock must have a physical record; a physical
+record created immediately before a crash is accepted only when its owner and
+pre-turn checkpoint match the exact interrupted attempt. Release and
+absent-owner reconciliation use recoverable prepare, persisted-state and
+finalise phases. `resume` requires a bound pre-turn checkpoint once agent
+execution can have started. It also recognises three narrower coordinator-owned
+boundaries without one: wave assignment before attempt reservation, a reserved
+attempt with no thread or lock before checkpoint creation, and a completed
+transient attempt awaiting its next bounded retry. Absent-owner locks require `--reconcile-absent-locks`, exact
+`--confirm-run-id` and exact `--confirm-runner-quiescence`; active, invalid,
+foreign or incomplete lock sets remain blocked. Recovery records an
+`INTERRUPTED` attempt and assigns a new attempt identity without replenishing
+the cumulative attempt budget. Attempt start, thread binding and outcome are
+write-ahead revisions serialised by the coordinator even while runners execute
+in parallel. Dirty or advanced implementation worktrees
+cannot resume and require separate preservation or quarantine authority;
+the tool never adopts or discards their contents. Deterministic-task
+interruption remains fail-closed. Agent turns have a coordinator-owned deadline;
+locks and checkpoints remain preserved when termination cannot be confirmed.
 `status`, `validate`, report-only `cleanup` and safe `resume` reads are
-idempotent. Destructive cleanup requires the exact `--confirm-run-id`, terminal
+idempotent. Resume derives the expected clean coordinator HEAD from the
+contiguous persisted integration chain. Prepared checkpoint removals are
+finalised only when the persisted attempt proves their ownership. Destructive
+cleanup requires the exact `--confirm-run-id`, terminal
 tasks and zero locks. It removes task-owned worktrees and branches first, then
 atomically renames the physically contained run directory to a same-parent
-tombstone before recursive removal.
+tombstone retained as a quarantined audit record. It never recursively deletes
+the run record.
 
-Automatic retry is limited to `TRANSIENT_FAILURE`, respects the task's maximum
-of three attempts and preserves every attempt. Policy, authority, test,
-implementation and resource failures do not receive blind retries. Corrective
+Automatic retry is limited to `TRANSIENT_FAILURE`, respects the task's
+cumulative maximum of three attempts across recovery and preserves every
+attempt. `INTERRUPTED`, `TIMED_OUT` and `CANCELLED` remain distinct history;
+policy, authority, test, implementation and resource failures do not receive
+blind retries. Corrective
 work is represented by a new dependent task rather than rewriting history.
 
 ## Security
@@ -182,6 +222,13 @@ closed. Absolute, traversal, alternate-stream, wildcard, ambiguous Windows and
 reparse-boundary paths fail closed. State and cleanup are physically anchored
 at the repository root, not merely lexically contained. Agent-reported commands
 are evidence only; they are never executed.
+
+The local development threat model requires the orchestrator state root to be
+writable only by the coordinator account while a run is active. Node pathname
+operations cannot make each metadata check and subsequent filesystem mutation
+handle-relative and atomic; an independently privileged local process that can
+replace those paths concurrently is outside this boundary. Unexpected local
+mutation is a stop condition, not a recoverable ownership transfer.
 
 Coordinator-owned processes require absolute executables and use argv with
 `shell: false`, no login shell, a closed environment allowlist, timeout, output
@@ -200,7 +247,21 @@ values, raw agent output and absolute paths. Secrets, provider calls, network,
 web search, tracing and approval prompts are not part of the current execution
 surface.
 
-The Human Gate remains external. Reaching a Human Gate task persists
+The locked Codex SDK exposes a new thread ID only after its first turn starts.
+`CodexRunner` therefore returns `ARCHITECTURE_CHANGE_REQUIRED` before starting a
+new real turn unless a compatible SDK implementation supplies the ID before the
+turn. Resume with an already persisted identity remains mapped and testable;
+the CLI keeps all real Codex execution disabled without separate authority.
+
+The Human Gate remains external. `status`, `validate`, `resume` and `cleanup`
+revalidate persisted plan semantics, including one coherent terminal attempt
+per non-human task and canonical quality evidence. `status` labels its package
+`LOCAL_UNAUTHENTICATED` and cannot request a decision. Only `validate` with a
+live exact Git HEAD check and a newly passed canonical offline quality gate can
+label the package `LOCAL_UNAUTHENTICATED_LIVE_REVALIDATED` and make it
+decision-ready without claiming authenticated provenance. A package is emitted only when the one
+external gate is reached with zero locks, trusted candidates, passed reviews
+and quality gates, and the complete dependency closure. Reaching a Human Gate task persists
 `HUMAN_REVIEW_REQUIRED`, emits `HUMAN_GATE_REQUIRED` and stops. The tool cannot
 accept an ADR, adjudicate human evidence, change lifecycle, enable RB-4 or
 approve its own result.
@@ -212,10 +273,13 @@ build and serial Node tests with enforced floors of 70% lines and 45% branches.
 The suite covers contracts, graph failures, state transitions, ownership and
 resource collisions, contract freeze, worktree/baseline mapping, structured
 output, retry policy, persistence, recovery, dry run, controlled E2E delegation,
-review, quality-gate boundary, Human Gate, duplicate/prototype JSON, physical
+review, evaluable Human Gate package, quality-gate boundary, duplicate/prototype JSON, physical
 reparse boundaries, coordinator `cwd` binding, forged initial state, agent
-deadlines, streamed thread recovery, multi-candidate integration, deletions,
-multi-commit rejection, Git configuration denial, path sanitisation, output
-overflow, and a disposable real Git worktree lifecycle with compare-and-swap
-cleanup. No test invokes
+deadlines and cancellation, bound streamed-thread recovery, absent-owner lock
+reconciliation including prepared tombstones, mandatory execution leases,
+write-ahead retries, parallel-wave crash recovery, cumulative recovery budget, real
+two-candidate integration, real ownership-proved rollback, drift preservation, deletions,
+multi-commit rejection, Git configuration classes, path sanitisation, output
+overflow, partial cleanup recovery, and a disposable real Git worktree lifecycle
+with compare-and-swap cleanup. No test invokes
 Codex, an API, a provider or a paid service.

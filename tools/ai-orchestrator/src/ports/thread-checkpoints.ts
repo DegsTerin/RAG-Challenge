@@ -4,6 +4,8 @@ import type { ThreadCheckpoint } from "../core/contracts.js";
 export interface ThreadCheckpointStore {
   save(checkpoint: ThreadCheckpoint): Promise<void>;
   load(runId: string, taskId: string): Promise<ThreadCheckpoint | null>;
-  remove(runId: string, taskId: string, attemptId: string): Promise<void>;
+  remove(expected: ThreadCheckpoint): Promise<void>;
   inspect(runId: string): Promise<readonly ThreadCheckpoint[]>;
+  inspectPreparedRemovals(runId: string): Promise<readonly ThreadCheckpoint[]>;
+  finalisePreparedRemoval(expected: ThreadCheckpoint): Promise<void>;
 }

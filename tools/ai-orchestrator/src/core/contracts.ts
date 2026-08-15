@@ -96,6 +96,9 @@ export const retryClasses = [
   "AUTHORITY_FAILURE",
   "TEST_FAILURE",
   "RESOURCE_COLLISION",
+  "INTERRUPTED",
+  "TIMED_OUT",
+  "CANCELLED",
 ] as const;
 
 export type RetryClass = (typeof retryClasses)[number];
@@ -248,6 +251,12 @@ export interface ThreadCheckpoint {
   readonly taskId: string;
   readonly attemptId: string;
   readonly agentId: AgentId;
+  readonly taskKind: TaskKind;
+  readonly baseline: string;
+  readonly candidateCommitId: string | null;
+  readonly envelopeHash: string;
+  readonly stateRevision: number;
+  readonly deadlineMs: number;
   readonly threadId: string;
   readonly startedAt: string;
 }

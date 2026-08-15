@@ -1,9 +1,17 @@
 // Purpose: Detects path, ownership, worktree, branch, resource and contract collisions before concurrent assignment.
+import { resolve, sep } from "node:path";
 import type { TaskDefinition } from "./contracts.js";
 import { OrchestratorStop } from "./errors.js";
 
 function pathOverlaps(left: string, right: string): boolean {
   return left === right || left.startsWith(`${right}/`) || right.startsWith(`${left}/`);
+}
+
+function worktreePathOverlaps(left: string, right: string): boolean {
+  const normalise = (value: string): string => process.platform === "win32" ? resolve(value).toLowerCase() : resolve(value);
+  const leftPath = normalise(left);
+  const rightPath = normalise(right);
+  return leftPath === rightPath || leftPath.startsWith(`${rightPath}${sep}`) || rightPath.startsWith(`${leftPath}${sep}`);
 }
 
 function intersects(left: readonly string[], right: readonly string[]): boolean {
@@ -37,8 +45,8 @@ export function taskConflict(left: TaskDefinition, right: TaskDefinition): TaskC
   if (intersects(left.sharedResources, right.sharedResources)) {
     reasons.push("shared mutable resource");
   }
-  if (isWritable(left) && isWritable(right) && left.worktree !== null && left.worktree === right.worktree) {
-    reasons.push("shared worktree");
+  if (isWritable(left) && isWritable(right) && left.worktree !== null && right.worktree !== null && worktreePathOverlaps(left.worktree, right.worktree)) {
+    reasons.push("overlapping worktrees");
   }
   if (isWritable(left) && isWritable(right) && left.branch !== null && left.branch === right.branch) {
     reasons.push("shared branch");
@@ -79,10 +87,10 @@ export function assertTaskIsolation(tasks: readonly TaskDefinition[]): void {
       if (right === undefined) {
         continue;
       }
-      if (left.worktree === right.worktree || left.branch === right.branch) {
+      if ((left.worktree !== null && right.worktree !== null && worktreePathOverlaps(left.worktree, right.worktree)) || left.branch === right.branch) {
         throw new OrchestratorStop(
           "SHARED_RESOURCE_COLLISION",
-          `Writable tasks '${left.taskId}' and '${right.taskId}' share a worktree or branch.`,
+          `Writable tasks '${left.taskId}' and '${right.taskId}' have overlapping worktrees or share a branch.`,
         );
       }
     }

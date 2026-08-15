@@ -3,7 +3,7 @@ import type { AgentResult, AgentRunner, AgentRunRequest, AgentRunResponse } from
 import { OrchestratorStop } from "../core/errors.js";
 import { parseAgentResult } from "../core/validation.js";
 
-export type FakeOutcome = AgentResult | Error | ((request: AgentRunRequest) => AgentResult | Promise<AgentResult>);
+export type FakeOutcome = AgentResult | Error | ((request: AgentRunRequest, signal?: AbortSignal) => AgentResult | Promise<AgentResult>);
 
 export class FakeAgentRunner implements AgentRunner {
   public readonly calls: AgentRunRequest[] = [];
@@ -27,7 +27,7 @@ export class FakeAgentRunner implements AgentRunner {
     if (configured instanceof Error) {
       throw configured;
     }
-    const value = typeof configured === "function" ? await configured(request) : configured;
+    const value = await Promise.resolve(typeof configured === "function" ? configured(request, signal) : configured);
     const result = parseAgentResult(JSON.parse(JSON.stringify(value)) as unknown);
     return { result, threadId };
   }

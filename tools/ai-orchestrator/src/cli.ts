@@ -1,5 +1,5 @@
 // Purpose: Exposes explicit, fail-closed plan, run, resume, status, validate and cleanup commands for the standalone tool.
-import { readFile, readdir, rename, rm, stat } from "node:fs/promises";
+import { readdir, rename, stat } from "node:fs/promises";
 import { dirname, isAbsolute, relative, resolve, sep } from "node:path";
 import { fileURLToPath } from "node:url";
 import { BoundedProcess } from "./adapters/bounded-process.js";
@@ -13,13 +13,13 @@ import { GitWorktreeManager } from "./adapters/git-worktrees.js";
 import { RepositoryQualityGate } from "./adapters/quality-gate.js";
 import { Coordinator } from "./application/coordinator.js";
 import { SequentialIntegrationPipeline } from "./application/integration.js";
-import { createDryRunPlan } from "./application/plan.js";
+import { createDryRunPlan, persistedCoordinatorHead, validatePersistedStateSemantics } from "./application/plan.js";
 import { canonicalJson } from "./core/canonical-json.js";
 import type { AgentResult, PersistedRunState } from "./core/contracts.js";
 import { errorMessage, OrchestratorStop } from "./core/errors.js";
 import { parseAgentResult, parseProjectPlan } from "./core/validation.js";
 import type { EventSink, StructuredEvent } from "./observability/structured-log.js";
-import { assertNoExistingReparseBoundary, resolveRunRoot } from "./security/path-policy.js";
+import { assertNoExistingReparseBoundary, readBoundedRegularFile, resolveRunRoot } from "./security/path-policy.js";
 import { parseSecureJson } from "./security/secure-json.js";
 
 const packageRoot = resolve(dirname(fileURLToPath(import.meta.url)), "../..");
@@ -77,9 +77,8 @@ function safeEnvironment(): Readonly<Record<string, string>> {
 
 async function readJson(path: string): Promise<unknown> {
   const resolved = resolve(path);
-  const metadata = await stat(resolved);
-  if (!metadata.isFile() || metadata.size > 8_388_608) throw new OrchestratorStop("CONFLICTING_REQUIREMENTS", "JSON input is not a bounded regular file.");
-  return parseSecureJson(await readFile(resolved, "utf8"), "JSON input", "CONFLICTING_REQUIREMENTS");
+  const text = await readBoundedRegularFile(dirname(resolved), resolved, 8_388_608, "JSON input", "CONFLICTING_REQUIREMENTS");
+  return parseSecureJson(text, "JSON input", "CONFLICTING_REQUIREMENTS");
 }
 
 async function fakeOutcomes(path: string): Promise<ReadonlyMap<string, AgentResult>> {
@@ -90,10 +89,11 @@ async function fakeOutcomes(path: string): Promise<ReadonlyMap<string, AgentResu
   return new Map(Object.entries(value as Record<string, unknown>).map(([taskId, result]) => [taskId, parseAgentResult(result)]));
 }
 
-function stateSummary(state: PersistedRunState): unknown {
+export function stateSummary(state: PersistedRunState, humanGateLiveValidated = false): unknown {
   const implementationTasks = state.tasks.filter((task) => task.taskKind === "IMPLEMENTATION");
   const reviewTasks = state.tasks.filter((task) => ["INDEPENDENT_REVIEW", "SECURITY_REVIEW"].includes(task.taskKind));
   const qualityTasks = state.tasks.filter((task) => task.taskKind === "QUALITY_GATE");
+  const humanGateTask = state.tasks.find((task) => task.taskKind === "HUMAN_GATE") ?? null;
   return {
     schemaVersion: state.schemaVersion,
     runId: state.runId,
@@ -106,15 +106,24 @@ function stateSummary(state: PersistedRunState): unknown {
     tasks: state.tasks.map((task) => ({ taskId: task.taskId, owner: task.owner, status: task.status, stopCondition: task.result?.stopCondition ?? null })),
     attempts: state.attempts.map((attempt) => ({ attemptId: attempt.attemptId, taskId: attempt.taskId, retryClass: attempt.retryClass, threadId: attempt.threadId })),
     humanGatePackage: state.humanGateReached ? {
+      evidenceAuthenticity: humanGateLiveValidated ? "LOCAL_UNAUTHENTICATED_LIVE_REVALIDATED" : "LOCAL_UNAUTHENTICATED",
+      decisionReady: humanGateLiveValidated,
       baseline: state.baseline,
       implementedCandidates: implementationTasks.map((task) => ({ taskId: task.taskId, status: task.status, candidate: task.candidate })),
       remainingWork: state.tasks.filter((task) => !["PASS", "IMPLEMENTED", "HUMAN_REVIEW_REQUIRED"].includes(task.status)).map((task) => ({ taskId: task.taskId, status: task.status })),
       reviews: reviewTasks.map((task) => ({ taskId: task.taskId, kind: task.taskKind, status: task.status, stopCondition: task.result?.stopCondition ?? null })),
       qualityGates: qualityTasks.map((task) => ({ taskId: task.taskId, status: task.status, tests: task.result?.tests ?? [] })),
       changedFiles: [...new Set(implementationTasks.flatMap((task) => task.candidate?.changedFiles ?? []))].sort(),
+      findingReferences: [...new Set(reviewTasks.flatMap((task) => task.result?.evidence ?? []).filter((value) => value.startsWith("finding:")))].sort(),
+      riskReferences: [...new Set(state.tasks.flatMap((task) => task.result?.risks ?? []).filter((value) => value.startsWith("risk:") && !value.startsWith("risk:sha256:")))].sort(),
       evidenceDigests: [...new Set(reviewTasks.flatMap((task) => task.result?.evidence ?? []).filter((value) => value.startsWith("evidence:sha256:")))].sort(),
       knownRiskDigests: [...new Set(state.tasks.flatMap((task) => task.result?.risks ?? []).filter((value) => value.startsWith("risk:sha256:")))].sort(),
-      requestedDecision: "Review the complete package externally; the orchestrator does not approve or advance the lifecycle.",
+      gate: humanGateTask === null ? null : { taskId: humanGateTask.taskId, title: humanGateTask.title, objective: humanGateTask.objective, status: humanGateTask.status },
+      requestedDecision: humanGateTask === null
+        ? "No Human Gate task is available."
+        : humanGateLiveValidated
+          ? `Accept or reject Human Gate '${humanGateTask.taskId}' externally after reviewing this exact package; the orchestrator does not approve or advance the lifecycle.`
+          : "No Human Gate decision is requested from this unauthenticated local report; run live validation with the canonical offline quality gate and exact Git HEAD first.",
     } : null,
   };
 }
@@ -132,17 +141,18 @@ async function runCommand(arguments_: readonly string[], resume: boolean): Promi
   const store = new FileStateStore(root, repositoryRoot);
   const plan = resume ? null : parseProjectPlan(await readJson(requiredValue(arguments_, "--plan")));
   const recovered = resume ? await store.load(requiredValue(arguments_, "--run-id")) : null;
+  if (recovered !== null) validatePersistedStateSemantics(recovered, repositoryRoot);
   const processAdapter = new BoundedProcess();
   const gitExecutable = requiredValue(arguments_, "--git-executable");
   const powershellExecutable = requiredValue(arguments_, "--powershell-executable");
   await new GitBaselineVerifier(processAdapter, gitExecutable, safeEnvironment()).verify(
     repositoryRoot,
-    plan?.baseline ?? recovered?.baseline ?? "",
+    plan?.baseline ?? (recovered === null ? "" : persistedCoordinatorHead(recovered)),
   );
   const worktrees = new GitWorktreeManager(repositoryRoot, managedWorktreeRoot, processAdapter, gitExecutable, safeEnvironment());
   const inspector = new GitCandidateInspector(processAdapter, gitExecutable, safeEnvironment());
-  const integration = new SequentialIntegrationPipeline(processAdapter, gitExecutable, safeEnvironment());
   const quality = new RepositoryQualityGate(processAdapter, safeEnvironment(), powershellExecutable);
+  const integration = new SequentialIntegrationPipeline(processAdapter, gitExecutable, safeEnvironment(), quality);
   const coordinator = new Coordinator(
     new FakeAgentRunner(await fakeOutcomes(resultsPath)),
     store,
@@ -155,8 +165,13 @@ async function runCommand(arguments_: readonly string[], resume: boolean): Promi
     new FileThreadCheckpointStore(root, repositoryRoot),
     repositoryRoot,
   );
+  const resumeRunId = resume ? requiredValue(arguments_, "--run-id") : null;
+  const reconcileAbsentLocks = resume && hasFlag(arguments_, "--reconcile-absent-locks");
+  if (reconcileAbsentLocks && (valueAfter(arguments_, "--confirm-run-id") !== resumeRunId || valueAfter(arguments_, "--confirm-runner-quiescence") !== resumeRunId)) {
+    throw new OrchestratorStop("SHARED_RESOURCE_COLLISION", "Absent-owner lock reconciliation requires exact run and runner-quiescence confirmations.");
+  }
   const state = resume
-    ? await coordinator.resume(requiredValue(arguments_, "--run-id"), Number(valueAfter(arguments_, "--max-concurrency") ?? "3"))
+    ? await coordinator.resume(resumeRunId ?? "", Number(valueAfter(arguments_, "--max-concurrency") ?? "3"), undefined, reconcileAbsentLocks)
     : await coordinator.start(plan ?? (() => { throw new OrchestratorStop("TEST_BASELINE_BROKEN", "The execution plan was not loaded."); })());
   process.stdout.write(canonicalJson(stateSummary(state)));
 }
@@ -164,19 +179,30 @@ async function runCommand(arguments_: readonly string[], resume: boolean): Promi
 async function validateCommand(arguments_: readonly string[]): Promise<void> {
   const root = stateRoot(arguments_);
   const state = await new FileStateStore(root, repositoryRoot).load(requiredValue(arguments_, "--run-id"));
+  validatePersistedStateSemantics(state, repositoryRoot);
   const lockManager = new FileResourceLocks(resolve(root, "locks"), repositoryRoot);
   const locks = await lockManager.inspect();
   if (state.heldLocks.length > 0 || locks.length > 0) {
     throw new OrchestratorStop("SHARED_RESOURCE_COLLISION", "Validation found unreconciled resource locks.");
   }
+  const qualityRequested = hasFlag(arguments_, "--quality-gate");
+  if (state.humanGateReached && !qualityRequested) {
+    throw new OrchestratorStop("HUMAN_GATE_REQUIRED", "A Human Gate package requires live Git and canonical offline quality validation before it can request a decision.");
+  }
+  if (state.humanGateReached) {
+    await new GitBaselineVerifier(new BoundedProcess(), requiredValue(arguments_, "--git-executable"), safeEnvironment()).verify(
+      repositoryRoot,
+      persistedCoordinatorHead(state),
+    );
+  }
   let qualityGate = null;
-  if (hasFlag(arguments_, "--quality-gate")) {
+  if (qualityRequested) {
     qualityGate = await new RepositoryQualityGate(new BoundedProcess(), safeEnvironment(), requiredValue(arguments_, "--powershell-executable")).run(repositoryRoot);
     if (qualityGate.result !== "PASS") {
       throw new OrchestratorStop("TEST_BASELINE_BROKEN", "The canonical repository quality gate failed.");
     }
   }
-  process.stdout.write(canonicalJson({ state: stateSummary(state), locks: await lockManager.inspectRecords(), qualityGate: qualityGate === null ? null : { ...qualityGate, relevantOutput: [] } }));
+  process.stdout.write(canonicalJson({ state: stateSummary(state, state.humanGateReached && qualityGate?.result === "PASS"), locks: await lockManager.inspectRecords(), qualityGate: qualityGate === null ? null : { ...qualityGate, relevantOutput: [] } }));
 }
 
 async function cleanupCommand(arguments_: readonly string[]): Promise<void> {
@@ -184,11 +210,12 @@ async function cleanupCommand(arguments_: readonly string[]): Promise<void> {
   const runId = requiredValue(arguments_, "--run-id");
   const runRoot = resolveRunRoot(root, runId);
   const state = await new FileStateStore(root, repositoryRoot).load(runId);
+  validatePersistedStateSemantics(state, repositoryRoot);
   const lockManager = new FileResourceLocks(resolve(root, "locks"), repositoryRoot);
   const lockReport = await lockManager.inspectRecords();
   const terminal = state.tasks.every((task) => ["PASS", "IMPLEMENTED", "FAIL", "HUMAN_REVIEW_REQUIRED", "CANCELLED", "BLOCKED"].includes(task.status));
   const managed = state.tasks.filter((task) => task.taskKind === "IMPLEMENTATION" && task.worktree !== null)
-    .map((task) => ({ taskId: task.taskId, worktree: task.worktree, branch: task.branch, status: task.status }));
+    .map((task) => ({ taskId: task.taskId, worktree: task.worktree, branch: task.branch, baseline: state.baseline, head: task.candidate?.commitId ?? state.baseline, status: task.status }));
   const confirmation = valueAfter(arguments_, "--confirm-run-id");
   if (confirmation === null) {
     const files = (await readdir(runRoot)).sort();
@@ -201,11 +228,9 @@ async function cleanupCommand(arguments_: readonly string[]): Promise<void> {
   if (managed.length > 0) {
     const gitExecutable = requiredValue(arguments_, "--git-executable");
     const worktrees = new GitWorktreeManager(repositoryRoot, managedWorktreeRoot, new BoundedProcess(), gitExecutable, safeEnvironment());
-    const existingWorktrees = await worktrees.list();
-    const normalisePath = (value: string): string => process.platform === "win32" ? resolve(value).toLowerCase() : resolve(value);
     for (const entry of managed) {
-      if (entry.worktree !== null && existingWorktrees.some((record) => normalisePath(record.path) === normalisePath(entry.worktree ?? ""))) {
-        await worktrees.removeManaged(entry.taskId, entry.worktree);
+      if (entry.worktree !== null && entry.branch !== null) {
+        await worktrees.removeManaged(entry.taskId, entry.worktree, { branch: entry.branch, baseline: entry.baseline, head: entry.head });
       }
     }
   }
@@ -217,8 +242,7 @@ async function cleanupCommand(arguments_: readonly string[]): Promise<void> {
   });
   await rename(runRoot, tombstone);
   await assertNoExistingReparseBoundary(repositoryRoot, tombstone);
-  await rm(tombstone, { recursive: true, force: false });
-  process.stdout.write(canonicalJson({ runId, action: "REMOVED", managedWorktrees: managed.map((entry) => entry.taskId) }));
+  process.stdout.write(canonicalJson({ runId, action: "QUARANTINED", tombstone: `${runId}.cleanup`, managedWorktrees: managed.map((entry) => entry.taskId) }));
 }
 
 async function main(): Promise<void> {
@@ -232,6 +256,7 @@ async function main(): Promise<void> {
     await runCommand(arguments_, true);
   } else if (command === "status") {
     const state = await new FileStateStore(stateRoot(arguments_), repositoryRoot).load(requiredValue(arguments_, "--run-id"));
+    validatePersistedStateSemantics(state, repositoryRoot);
     process.stdout.write(canonicalJson(stateSummary(state)));
   } else if (command === "validate") {
     await validateCommand(arguments_);

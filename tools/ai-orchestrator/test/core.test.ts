@@ -1,7 +1,8 @@
 // Purpose: Verifies closed contracts, state transitions, dependency resolution, conflict detection and deterministic dry-run scheduling.
 import assert from "node:assert/strict";
 import test from "node:test";
-import { createDryRunPlan, validatePlanSemantics } from "../src/application/plan.js";
+import { createDryRunPlan, persistedCoordinatorHead, validatePlanSemantics } from "../src/application/plan.js";
+import type { PersistedRunState } from "../src/core/contracts.js";
 import { assertFrozenContracts, assertTaskIsolation, taskConflict } from "../src/core/conflicts.js";
 import { DependencyGraph } from "../src/core/dependency-graph.js";
 import { OrchestratorStop } from "../src/core/errors.js";
@@ -52,6 +53,13 @@ test("conflict detection includes paths, worktrees, branches and sequential task
 
 test("writable isolation and frozen-contract parallelism fail closed", () => {
   assert.throws(() => assertTaskIsolation([task({ owner: "implementation_worker", ownership: "LANE_OWNED" })]), /requires an explicit worktree/);
+  const parent = task({ taskId: "parent", owner: "implementation_worker", ownership: "LANE_OWNED", worktree: "C:/managed/lane", branch: "codex/parent" });
+  const child = task({ taskId: "child", owner: "implementation_worker", ownership: "LANE_OWNED", worktree: "C:/managed/lane/nested", branch: "codex/child" });
+  assert.throws(() => assertTaskIsolation([parent, child]), (error: unknown) => error instanceof OrchestratorStop && error.code === "SHARED_RESOURCE_COLLISION");
+  if (process.platform === "win32") {
+    const caseVariant = task({ taskId: "case-variant", owner: "implementation_worker", ownership: "LANE_OWNED", worktree: "c:/MANAGED/LANE", branch: "codex/case-variant" });
+    assert.throws(() => assertTaskIsolation([parent, caseVariant]), (error: unknown) => error instanceof OrchestratorStop && error.code === "SHARED_RESOURCE_COLLISION");
+  }
   assert.throws(() => assertFrozenContracts(task({
     parallelism: "CONTRACT_FROZEN_PARALLEL",
     requiredContracts: [{ contractId: "contract-a", state: "MUTABLE_WITH_OWNER", owner: "architect" }],
@@ -111,4 +119,13 @@ test("command evidence cannot claim PASS for a non-zero exit code", () => {
     ...passingResult(),
     tests: [{ commandId: "forged", exitCode: 1, durationMs: 1, result: "PASS", relevantOutput: [] }],
   }), /inconsistent exit-code evidence/);
+});
+
+test("resume baseline follows the contiguous persisted integration chain", () => {
+  const integratedHead = "3".repeat(40);
+  const first = task({ taskId: "integration-a", taskKind: "INTEGRATION", owner: "governance_guard", priority: 200, status: "PASS", candidate: { commitId: integratedHead, treeId: "4".repeat(40), changedFiles: [] } });
+  const second = task({ taskId: "integration-b", taskKind: "INTEGRATION", owner: "governance_guard", priority: 100, status: "DISCOVERED" });
+  const state: PersistedRunState = { schemaVersion: 1, runId: "run-integration", revision: 0, baseline, maxConcurrency: 1, createdAt: "2026-08-14T12:00:00.000Z", updatedAt: "2026-08-14T12:00:00.000Z", tasks: [first, second], attempts: [], heldLocks: [], humanGateReached: false };
+  assert.equal(persistedCoordinatorHead(state), integratedHead);
+  assert.throws(() => persistedCoordinatorHead({ ...state, tasks: [{ ...first, status: "DISCOVERED", candidate: null }, { ...second, status: "PASS", candidate: { commitId: "5".repeat(40), treeId: "6".repeat(40), changedFiles: [] } }] }), /not a contiguous coordinator chain/);
 });

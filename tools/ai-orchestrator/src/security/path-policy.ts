@@ -1,6 +1,8 @@
 // Purpose: Resolves orchestrator-owned paths fail-closed and rejects traversal, alternate streams and existing reparse boundaries.
-import { lstat, realpath } from "node:fs/promises";
+import { constants } from "node:fs";
+import { lstat, open, realpath } from "node:fs/promises";
 import { isAbsolute, relative, resolve, sep } from "node:path";
+import type { StopCode } from "../core/contracts.js";
 import { OrchestratorStop } from "../core/errors.js";
 import { assertIdentifier } from "../core/validation.js";
 
@@ -56,6 +58,45 @@ export async function assertNoExistingReparseBoundary(root: string, candidate: s
       throw error;
     }
   }
+}
+
+export async function readBoundedRegularFile(
+  authorityRoot: string,
+  path: string,
+  maximumBytes: number,
+  label: string,
+  stopCode: StopCode = "TEST_BASELINE_BROKEN",
+  taskId?: string,
+): Promise<string> {
+  await assertNoExistingReparseBoundary(authorityRoot, path);
+  const before = await lstat(path, { bigint: true });
+  if (before.isSymbolicLink() || !before.isFile() || before.size > BigInt(maximumBytes)) {
+    throw new OrchestratorStop(stopCode, `${label} is not a bounded regular file.`, taskId);
+  }
+  const flags = constants.O_RDONLY | (process.platform === "win32" ? 0 : constants.O_NOFOLLOW);
+  const handle = await open(path, flags);
+  let text: string;
+  try {
+    const opened = await handle.stat({ bigint: true });
+    if (!opened.isFile() || opened.dev !== before.dev || opened.ino !== before.ino || opened.size !== before.size) {
+      throw new OrchestratorStop(stopCode, `${label} changed before it could be opened safely.`, taskId);
+    }
+    const content = await handle.readFile();
+    const after = await handle.stat({ bigint: true });
+    if (after.dev !== opened.dev || after.ino !== opened.ino || after.size !== opened.size ||
+        after.mtimeMs !== opened.mtimeMs || content.byteLength > maximumBytes) {
+      throw new OrchestratorStop(stopCode, `${label} changed while it was being read.`, taskId);
+    }
+    text = content.toString("utf8");
+  } finally {
+    await handle.close();
+  }
+  await assertNoExistingReparseBoundary(authorityRoot, path);
+  const current = await lstat(path, { bigint: true });
+  if (current.isSymbolicLink() || current.dev !== before.dev || current.ino !== before.ino || current.size !== before.size || current.mtimeMs !== before.mtimeMs) {
+    throw new OrchestratorStop(stopCode, `${label} changed after it was read.`, taskId);
+  }
+  return text;
 }
 
 export function resolveRunRoot(stateRoot: string, runId: string): string {

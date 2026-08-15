@@ -14,6 +14,7 @@ export interface IntegrationRequest {
 
 export interface IntegrationOutcome {
   readonly evidence: CommandEvidence;
+  readonly tests: readonly CommandEvidence[];
   readonly candidate: CandidateEvidence;
 }
 

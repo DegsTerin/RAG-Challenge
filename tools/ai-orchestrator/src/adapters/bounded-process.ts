@@ -16,7 +16,7 @@ function sanitiseLine(value: string): string {
   return value
     .replace(/file:\/\/\/[^\s\r\n\0]+/gi, "<path>")
     .replace(/(?:[A-Za-z]:[\\/]|\\\\|\/\/)[^\s\r\n\0]+/g, "<path>")
-    .replace(/(?:^|\s)\/(?:home|Users|var|tmp)\/[^\s\r\n\0]+/g, " <path>")
+    .replace(/(^|[\s="'(:])\/(?!\/)[^\s\r\n\0="'(),;]+/g, "$1<path>")
     .replace(/(?:^|\s)(?:[^\s=]*(?:KEY|SECRET|TOKEN|PASSWORD)[^\s=]*)=[^\s]+/gi, " <redacted-assignment>")
     .replace(/\b(?:sk|sk-proj)-[A-Za-z0-9_-]{8,}\b/g, "<redacted-token>")
     .trim();

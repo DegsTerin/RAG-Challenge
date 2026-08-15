@@ -1,6 +1,6 @@
 // Purpose: Persists recoverable run snapshots and a tamper-evident journal using same-volume atomic replacement and fsync.
 import { createHash } from "node:crypto";
-import { mkdir, open, readFile, readdir, rename, stat } from "node:fs/promises";
+import { mkdir, open, readdir, rename, stat } from "node:fs/promises";
 import { basename, dirname, join } from "node:path";
 import {
   agentIds,
@@ -9,11 +9,12 @@ import {
   type AttemptRecord,
   type PersistedRunState,
   type RetryClass,
+  type TaskDefinition,
 } from "../core/contracts.js";
 import { canonicalJson } from "../core/canonical-json.js";
 import { OrchestratorStop } from "../core/errors.js";
 import { assertIdentifier, parseAgentResult, parseProjectPlan } from "../core/validation.js";
-import { assertNoExistingReparseBoundary, resolveRunRoot } from "../security/path-policy.js";
+import { assertNoExistingReparseBoundary, readBoundedRegularFile, resolveRunRoot } from "../security/path-policy.js";
 import { parseSecureJson } from "../security/secure-json.js";
 import type { StateStore } from "../ports/state-store.js";
 
@@ -30,14 +31,6 @@ interface JournalEntry {
 const maximumSnapshotBytes = 8_388_608;
 const maximumJournalBytes = 16_777_216;
 
-async function readBounded(path: string, maximumBytes: number, label: string): Promise<string> {
-  const metadata = await stat(path);
-  if (!metadata.isFile() || metadata.size > maximumBytes) {
-    throw new OrchestratorStop("TEST_BASELINE_BROKEN", `${label} is not a bounded regular file.`);
-  }
-  return await readFile(path, "utf8");
-}
-
 function hash(value: string): string {
   return createHash("sha256").update(value, "utf8").digest("hex");
 }
@@ -53,11 +46,11 @@ function instant(value: unknown, label: string): string {
   return value;
 }
 
-function parseAttempts(value: unknown, taskIds: ReadonlySet<string>): AttemptRecord[] {
+function parseAttempts(value: unknown, tasks: ReadonlyMap<string, TaskDefinition>): AttemptRecord[] {
   if (!Array.isArray(value) || value.length > 768) {
     throw new OrchestratorStop("TEST_BASELINE_BROKEN", "Persisted attempts are not a bounded array.");
   }
-  return value.map((entry, index) => {
+  const parsed = value.map((entry, index) => {
     if (entry === null || typeof entry !== "object" || Array.isArray(entry)) {
       throw new OrchestratorStop("TEST_BASELINE_BROKEN", `Persisted attempt ${index} is invalid.`);
     }
@@ -68,7 +61,8 @@ function parseAttempts(value: unknown, taskIds: ReadonlySet<string>): AttemptRec
     }
     assertIdentifier(attempt.attemptId, `attempts[${index}].attemptId`);
     assertIdentifier(attempt.taskId, `attempts[${index}].taskId`);
-    if (!taskIds.has(attempt.taskId) || typeof attempt.agentId !== "string" || !agentIds.includes(attempt.agentId as AgentId)) {
+    const task = tasks.get(attempt.taskId);
+    if (task === undefined || typeof attempt.agentId !== "string" || !agentIds.includes(attempt.agentId as AgentId) || attempt.agentId !== task.owner) {
       throw new OrchestratorStop("TEST_BASELINE_BROKEN", `Persisted attempt ${index} references an unknown task or agent.`);
     }
     const retryClass = attempt.retryClass === null
@@ -76,7 +70,7 @@ function parseAttempts(value: unknown, taskIds: ReadonlySet<string>): AttemptRec
       : typeof attempt.retryClass === "string" && retryClasses.includes(attempt.retryClass as RetryClass)
         ? attempt.retryClass as RetryClass
         : (() => { throw new OrchestratorStop("TEST_BASELINE_BROKEN", `Persisted attempt ${index} has an invalid retry class.`); })();
-    return {
+    const parsedAttempt: AttemptRecord = {
       attemptId: attempt.attemptId,
       taskId: attempt.taskId,
       agentId: attempt.agentId as AgentId,
@@ -85,12 +79,28 @@ function parseAttempts(value: unknown, taskIds: ReadonlySet<string>): AttemptRec
       retryClass,
       threadId: attempt.threadId === null
         ? null
-        : typeof attempt.threadId === "string" && attempt.threadId.length > 0 && attempt.threadId.length <= 256
+        : typeof attempt.threadId === "string" && attempt.threadId.length > 0 && attempt.threadId.length <= 256 && !attempt.threadId.startsWith("pending-")
           ? attempt.threadId
           : (() => { throw new OrchestratorStop("TEST_BASELINE_BROKEN", `Persisted attempt ${index} has an invalid thread ID.`); })(),
       result: attempt.result === null ? null : parseAgentResult(attempt.result),
     };
+    if (parsedAttempt.finishedAt === null && (parsedAttempt.retryClass !== null || parsedAttempt.result !== null)) {
+      throw new OrchestratorStop("TEST_BASELINE_BROKEN", `Persisted attempt ${index} has unfinished outcome metadata.`);
+    }
+    return parsedAttempt;
   });
+  const identities = new Set<string>();
+  const counts = new Map<string, number>();
+  for (const attempt of parsed) {
+    if (identities.has(attempt.attemptId)) throw new OrchestratorStop("TEST_BASELINE_BROKEN", `Persisted attempt identity '${attempt.attemptId}' is duplicated.`);
+    identities.add(attempt.attemptId);
+    const count = (counts.get(attempt.taskId) ?? 0) + 1;
+    if (count > (tasks.get(attempt.taskId)?.maxAttempts ?? 0)) {
+      throw new OrchestratorStop("TEST_BASELINE_BROKEN", `Persisted task '${attempt.taskId}' exceeds its attempt budget.`);
+    }
+    counts.set(attempt.taskId, count);
+  }
+  return parsed;
 }
 
 function parseState(value: unknown, expectedRunId: string): PersistedRunState {
@@ -121,7 +131,7 @@ function parseState(value: unknown, expectedRunId: string): PersistedRunState {
       throw new OrchestratorStop("TEST_BASELINE_BROKEN", "Persisted lock metadata is invalid.");
     }
   }
-  const attempts = parseAttempts(source.attempts, new Set(plan.tasks.map((task) => task.taskId)));
+  const attempts = parseAttempts(source.attempts, new Map(plan.tasks.map((task) => [task.taskId, task])));
   return {
     schemaVersion: 1,
     runId: expectedRunId,
@@ -201,7 +211,7 @@ export class FileStateStore implements StateStore {
       throw new OrchestratorStop("TEST_BASELINE_BROKEN", `Run '${runId}' has no complete state snapshot.`);
     }
     await this.verifyJournal(runRoot, runId);
-    const text = await readBounded(join(runRoot, latest), maximumSnapshotBytes, "State snapshot");
+    const text = await readBoundedRegularFile(this.authorityRoot, join(runRoot, latest), maximumSnapshotBytes, "State snapshot");
     const parsed = parseState(parseSecureJson(text, "State snapshot"), runId);
     if (snapshotName(parsed.revision) !== basename(latest)) {
       throw new OrchestratorStop("TEST_BASELINE_BROKEN", "Snapshot filename and revision disagree.");
@@ -216,7 +226,7 @@ export class FileStateStore implements StateStore {
     const journalPath = join(runRoot, "journal.jsonl");
     let existing = "";
     try {
-      existing = await readBounded(journalPath, maximumJournalBytes, "State journal");
+      existing = await readBoundedRegularFile(this.authorityRoot, journalPath, maximumJournalBytes, "State journal");
     } catch (error) {
       if ((error as NodeJS.ErrnoException).code !== "ENOENT") {
         throw error;
@@ -249,7 +259,7 @@ export class FileStateStore implements StateStore {
   }
 
   private async verifyJournal(runRoot: string, expectedRunId?: string): Promise<readonly JournalEntry[]> {
-    const text = await readBounded(join(runRoot, "journal.jsonl"), maximumJournalBytes, "State journal");
+    const text = await readBoundedRegularFile(this.authorityRoot, join(runRoot, "journal.jsonl"), maximumJournalBytes, "State journal");
     const lines = text.split("\n").filter((line) => line.length > 0);
     if (lines.length === 0 || lines.length > 4096) throw new OrchestratorStop("TEST_BASELINE_BROKEN", "The state journal has an invalid entry count.");
     const entries = lines.map((line, index) => {
