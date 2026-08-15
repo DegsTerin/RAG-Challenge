@@ -125,11 +125,11 @@ test("CodexRunner maps isolated cwd, sandbox and structured output for start and
   assert.ok(calls.find((call) => call.method === "run")?.turnOptions !== undefined);
 });
 
-test("CodexRunner rejects secret-shaped explicit environment names", async () => {
+test("CodexRunner rejects explicit environment names outside its allowlist", async () => {
   const factory: CodexClientFactory = () => { throw new Error("not reached"); };
   const runner = new CodexRunner({
     executionAuthorised: true, authorityReference: "test", worktreeRoot: "C:/managed",
-    environment: { OPENAI_API_KEY: "prohibited" }, model: null,
+    environment: { UNSAFE_VARIABLE: "fixture" }, model: null,
   }, factory);
   await assert.rejects(runner.run({
     runId: "run-fixture", attemptId: "attempt-fixture", task: task({ worktree: "C:/managed/lane" }), baseline, contracts: [], resumeThreadId: null,
