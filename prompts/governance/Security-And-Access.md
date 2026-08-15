@@ -106,13 +106,17 @@ exception cannot be used to look up, validate, copy, log or forward a value.
 Only an approved secret store, service manager or operational environment may
 inject the value directly into the product process. Administrative index
 embedding, query embedding and grounded generation each require their own
-bounded `AUTH-*` operational-authority reference. A reference is non-secret
-evidence only: it does not itself grant authority and must be revalidated for
-the exact operation immediately before credential lookup or provider egress.
+bounded, operation-specific `AUTH-*` request reference. Requested references
+are non-secret evidence only and never create trusted grants. A deny-all
+in-memory grant validator receives independently supplied, explicitly approved
+operational grants and must bind the exact operation/reference pair immediately
+before credential lookup or provider egress. Missing, untrusted or
+cross-operation grants stop with `HUMAN_DECISION_REQUIRED`. Grants are not
+persisted and product defaults never derive them from requested configuration.
 Code completion, deployment, product activation and credential availability do
 not grant operational authority. Readiness and visual-evidence serving must not
-read the credential. Synthetic enforcement tests use injected readers, maps
-and fake handlers only; real provider calls require separate explicit
+read the credential. Synthetic enforcement tests use injected readers, grant
+maps and fake handlers only; real provider calls require separate explicit
 authority.
 
 ## Ameaças RAG
