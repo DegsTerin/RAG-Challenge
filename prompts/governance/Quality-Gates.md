@@ -116,16 +116,10 @@ their own authority/configuration.
     the observed decision matches the work type.
 11. Record findings with severity, impact, reproduction and recommendation.
 
-For every applicable copy-ready payload, the documentary audit also verifies
-that it explicitly invokes all applicable controls and capabilities
-incorporated from Stage 0, Stage 1 and Stage 2. It verifies all exceptions:
-no message when none is useful; no artificial agent for simple work; no
-parallelisation of `SEQUENTIAL_ONLY`; no continuous authority from readiness;
-no broader scope, lifecycle, Human Gate, provider or external action; no added
-text in a canonical Human Gate-only payload; and no Stage instruction in a
-purely decisional payload that neither authorises nor coordinates work. It
-also verifies that Stage labels refer to incorporated tracked controls, not a
-parallel normative authority.
+The documentary audit verifies every copy-ready payload against the complete
+Stage 0/1/2 hand-off rule owned by [Governance](Governance.md), including its
+applicability, exclusions and non-authority boundary. The audit must not
+restate, replace or broaden that rule.
 
 An audit does not correct silently, invent evidence or advance state.
 

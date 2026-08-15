@@ -226,14 +226,43 @@ When continuity depends on a message, the final hand-off provides a ready-to-use
 6. does not invent approval or broaden authority by carrying context from
    another conversation.
 
-When such a payload authorises, prepares, continues, resumes or coordinates
-executable or documentary RAG-Challenge work, it must explicitly require the
-receiving coordinator to apply in full all applicable controls and
-capabilities incorporated from Stage 0, Stage 1 and Stage 2. The Stage names
-label controls already incorporated into tracked authorities and tooling; they
-do not make the original owner inputs a second normative authority. This rule
-is subject to the exceptions and authority boundaries in `AGENTS.md` and does
-not create authority by repetition.
+### Stage 0/1/2 hand-off rule
+
+A copy-ready payload that authorises, prepares, continues, resumes or
+coordinates executable or documentary RAG-Challenge work must explicitly
+require the receiving coordinator to apply in full all applicable controls and
+capabilities incorporated from Stage 0, Stage 1 and Stage 2.
+
+`Stage 0`, `Stage 1` and `Stage 2` are descriptive labels for controls already
+incorporated into tracked project authorities and tooling. The original Stage
+owner-input documents are historical, inactive and non-normative inputs. They
+never constitute a parallel authority, and a payload must not direct an agent
+to treat or reread them as normative instructions.
+
+Applying the controls in full means applying every control relevant to the
+authorised work. Depending on the task, this includes authority reconstruction,
+proportionate specialist-role selection, parallel-work classification, closed
+task envelopes, isolated branches, worktrees and mutable resources for write
+lanes, independent review, canonical stop conditions, durable state and
+checkpoints, deterministic sequential integration, and the applicable
+documentary or canonical gates.
+
+The rule has exactly these limitations and exceptions:
+
+1. It does not create a copy-ready message when no useful message is required.
+2. It does not require creating agents artificially for simple work.
+3. It does not convert `SEQUENTIAL_ONLY` work into parallel work.
+4. It does not treat multi-agent readiness as continuous authority.
+5. It does not broaden scope, lifecycle, a Human Gate, provider authority or
+   any external-action authority.
+6. It does not add content to a payload whose only permitted content is the
+   canonical Human Gate confirmation phrase.
+7. It does not apply to a purely decisional payload that neither authorises nor
+   coordinates project work.
+
+Repeating the Stage instruction transports no authority beyond the authority
+already recorded for the work. Templates materialises the applicable payloads
+and the permitted exclusions without redefining this rule.
 
 The target must match the action: `current`, `new` or
 `existing — <título-ou-label-confirmado>`. `START_NEW` adds a suggested,

@@ -58,11 +58,11 @@ present the concrete action first and the summary afterwards if needed.
 
 ### Accepted values
 
-- `<ROUTE>`: `CONTINUE_CURRENT`, `START_NEW` ou `RETURN_TO_EXISTING`;
-- `<TARGET>`: `current`, `new` ou
+- `<ROUTE>`: `CONTINUE_CURRENT`, `START_NEW` or `RETURN_TO_EXISTING`;
+- `<TARGET>`: `current`, `new` or
   `existing — <título-ou-label-confirmado>`;
-- `<NÍVEL>`: `Leve`, `Médio`, `Alto`, `Extra alto`, `Máximo` ou `Ultra`;
-- `<CLASSIFICAÇÃO>`: `SEQUENTIAL_ONLY`, `PARALLEL_OPTIONAL` ou
+- `<NÍVEL>`: `Leve`, `Médio`, `Alto`, `Extra alto`, `Máximo` or `Ultra`;
+- `<CLASSIFICAÇÃO>`: `SEQUENTIAL_ONLY`, `PARALLEL_OPTIONAL` or
   `PARALLEL_RECOMMENDED`.
 
 ### Conditional fields
@@ -472,7 +472,7 @@ not constitute a Human Gate. Each state requires a separate decision.
 - Corpus ID:
 - Source scope:
 - Actor and authority:
-- `sourceAdapterId` e `SourceTrustClass`:
+- `sourceAdapterId` and `SourceTrustClass`:
 - Licence/provenance:
 - Logical document:
 - Previous version:
@@ -534,7 +534,7 @@ not constitute a Human Gate. Each state requires a separate decision.
 - Allowlisted scheme/port/path:
 - Canonicalised URI and redirects disabled:
 - Authorised DNS A/AAAA and connected IP:
-- Host/SNI preservados:
+- Host/SNI preserved:
 - Anonymous public source and credential-free URL/query:
 - TLS/revocation policy and absence of auxiliary egress:
 - Purpose:
