@@ -173,8 +173,8 @@ compact lines of the final closing hand-off.
 - Objective/batch:
 - Route: `CONTINUE_CURRENT` / `START_NEW` / `RETURN_TO_EXISTING`
 - Target:
-  - `current`; ou
-  - `new`; ou
+  - `current`; or
+  - `new`; or
   - `existing — <título-ou-label-confirmado>`.
 - Suggested non-canonical title, only for `START_NEW`:
 - Reason:
