@@ -67,10 +67,16 @@ test("App Server returns and checkpoints a durable thread before a bounded turn 
   assert.deepEqual(JSON.parse(result), passingResult());
   const methods = transport.sent.map((message) => message.method);
   assert.deepEqual(methods.slice(0, 4), ["initialize", "initialized", "account/read", "thread/start"]);
+  const thread = transport.sent.find((message) => message.method === "thread/start")?.params as Record<string, unknown>;
+  assert.equal("runtimeWorkspaceRoots" in thread, false);
+  assert.equal("selectedCapabilityRoots" in thread, false);
   const turn = transport.sent.find((message) => message.method === "turn/start")?.params as Record<string, unknown>;
   assert.equal(turn.approvalPolicy, "never");
-  assert.deepEqual(turn.environments, []);
+  assert.equal("environments" in thread, false);
+  assert.equal("dynamicTools" in thread, false);
+  assert.equal("environments" in turn, false);
   assert.deepEqual(turn.sandboxPolicy, { type: "readOnly", networkAccess: false });
+  assert.equal("runtimeWorkspaceRoots" in turn, false);
 });
 
 test("App Server rejects API-key authentication without exposing credential data", async () => {

@@ -82,6 +82,19 @@ class SpawnedCodexTransport implements CodexAppServerTransport {
       "app-server",
       "--listen",
       "stdio://",
+      "--disable", "apps",
+      "--disable", "browser_use",
+      "--disable", "computer_use",
+      "--disable", "image_generation",
+      "--disable", "in_app_browser",
+      "--disable", "multi_agent",
+      "--disable", "plugins",
+      "--disable", "remote_plugin",
+      "--disable", "recommended_plugins",
+      "--disable", "skill_mcp_dependency_install",
+      "--disable", "skill_search",
+      "--disable", "tool_suggest",
+      "--disable", "workspace_dependencies",
       "-c",
       'web_search="disabled"',
       "-c",
@@ -207,14 +220,12 @@ export class CodexAppServerClient implements CodexAppServer {
       threadId,
       input: [{ type: "text", text: prompt, text_elements: [] }],
       cwd: configuration.workingDirectory,
-      runtimeWorkspaceRoots: [configuration.workingDirectory],
       approvalPolicy: "never",
       sandboxPolicy: configuration.sandbox === "read-only"
         ? { type: "readOnly", networkAccess: false }
         : { type: "workspaceWrite", writableRoots: [configuration.workingDirectory], networkAccess: false, excludeTmpdirEnvVar: true, excludeSlashTmp: true },
       ...(configuration.model === null ? {} : { model: configuration.model }),
       outputSchema: configuration.outputSchema,
-      environments: [],
     }), "turn/start result");
     if (this.terminalError !== null) throw this.terminalError;
     const turnId = nonEmptyString(object(result.turn, "turn/start turn").id, "turn/start turn id");
@@ -264,13 +275,9 @@ export class CodexAppServerClient implements CodexAppServer {
   private threadParameters(configuration: CodexThreadConfiguration): JsonObject {
     return {
       cwd: configuration.workingDirectory,
-      runtimeWorkspaceRoots: [configuration.workingDirectory],
       approvalPolicy: "never",
       sandbox: configuration.sandbox,
       serviceName: "rag_challenge_ai_orchestrator",
-      environments: [],
-      dynamicTools: [],
-      selectedCapabilityRoots: [],
       developerInstructions: "Do not use MCP servers, apps, skills, web search, or network access. Follow the supplied task envelope and output schema.",
       ...(configuration.model === null ? {} : { model: configuration.model }),
     };
