@@ -138,7 +138,7 @@ if ($dockerfile -notmatch "aspnet:10[.]0[.]11@sha256:[0-9a-f]{64}" -or
     $dockerfile -notmatch "(?m)^USER app\s*$" -or
     $dockerfile -notmatch "chmod -R a-w /opt/rag-challenge/seed" -or
     $entrypoint -notmatch "sha256sum -c seed-manifest[.]sha256" -or
-    $entrypoint -notmatch "CH_DEPLOY_PROVIDER_CREDENTIAL_MISSING" -or
+    $entrypoint -match "OPENAI_API_KEY|CredentialEnvironmentVariable" -or
     ($dockerfile + $entrypoint) -match "(?im)^\s*(?:curl|wget|Invoke-WebRequest|Invoke-RestMethod)\b") {
     throw "The container boundary is not pinned, unprivileged, offline-seeded and fail-closed."
 }

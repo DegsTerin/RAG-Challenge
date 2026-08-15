@@ -5,6 +5,7 @@ import type { AgentRunner, AgentRunRequest, AgentRunResponse } from "../core/con
 import { OrchestratorStop } from "../core/errors.js";
 import { agentResultOutputSchema, parseAgentResult } from "../core/validation.js";
 import { parseSecureJson } from "../security/secure-json.js";
+import { assertAuthorityReference, assertClosedEnvironment, assertNoSecretShapedText } from "../security/secret-policy.js";
 import { createCodexAppServer, type CodexAppServer } from "./codex-app-server.js";
 
 export interface CodexRunnerPolicy {
@@ -63,17 +64,15 @@ export class CodexRunner implements AgentRunner {
   ) {}
 
   public async run(request: AgentRunRequest, signal?: AbortSignal): Promise<AgentRunResponse> {
-    if (!this.policy.executionAuthorised || this.policy.authorityReference === null ||
-        !/^[A-Za-z0-9][A-Za-z0-9._:-]{2,127}$/.test(this.policy.authorityReference)) {
+    if (!this.policy.executionAuthorised || this.policy.authorityReference === null) {
       throw new OrchestratorStop(
         "HUMAN_DECISION_REQUIRED",
         "Real Codex execution is disabled until a separate bounded authority is recorded.",
         request.task.taskId,
       );
     }
-    if (Object.keys(this.policy.environment).some((name) => !permittedEnvironmentNames.has(name))) {
-      throw new OrchestratorStop("SECRET_REQUIRED", "The explicit Codex environment contains a variable outside the allowlist.", request.task.taskId);
-    }
+    assertAuthorityReference(this.policy.authorityReference, "Codex authority reference");
+    assertClosedEnvironment(this.policy.environment, permittedEnvironmentNames, "Codex environment");
     if (this.policy.model !== null && !(this.policy.permittedModels ?? []).includes(this.policy.model)) {
       throw new OrchestratorStop("HUMAN_DECISION_REQUIRED", "The requested Codex model is not present in the separately authorised model allowlist.", request.task.taskId);
     }
@@ -89,9 +88,11 @@ export class CodexRunner implements AgentRunner {
       ? await this.client.startThread(configuration, request.task.taskId)
       : await this.client.resumeThread(request.resumeThreadId, configuration, request.task.taskId);
     await request.checkpointThread(threadId);
+    const prompt = buildAgentPrompt(request);
+    assertNoSecretShapedText(prompt, "Codex prompt");
     const finalResponse = await this.client.runTurn(
       threadId,
-      buildAgentPrompt(request),
+      prompt,
       { ...configuration, outputSchema: agentResultOutputSchema },
       request.task.taskId,
       signal,
@@ -101,8 +102,10 @@ export class CodexRunner implements AgentRunner {
       if (Buffer.byteLength(finalResponse, "utf8") > 262_144) {
         throw new OrchestratorStop("TEST_BASELINE_BROKEN", "Codex returned an oversized structured result.", request.task.taskId);
       }
+      assertNoSecretShapedText(finalResponse, "Codex structured result");
       parsed = parseSecureJson(finalResponse, "Codex structured result");
-    } catch {
+    } catch (error) {
+      if (error instanceof OrchestratorStop && error.code === "SECRET_REQUIRED") throw error;
       throw new OrchestratorStop("TEST_BASELINE_BROKEN", "Codex returned invalid structured JSON.", request.task.taskId);
     }
     return { result: parseAgentResult(parsed), threadId };

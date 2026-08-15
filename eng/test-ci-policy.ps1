@@ -217,6 +217,18 @@ try {
         throw "The CI entry point still contains lockfile rewriting behaviour."
     }
 
+    $credentialScrub = [regex]::Match(
+        $ciScript,
+        '(?s)SetEnvironmentVariable\(\s*''OPENAI_API_KEY'',\s*\$null,\s*\[System[.]EnvironmentVariableTarget\]::Process\)')
+    $firstPolicyUse = $ciScript.IndexOf('. (Join-Path $PSScriptRoot "ci-policy.ps1")', [System.StringComparison]::Ordinal)
+
+    if (-not $credentialScrub.Success -or
+        $firstPolicyUse -lt 0 -or
+        $credentialScrub.Index -gt $firstPolicyUse -or
+        $ciScript -match 'GetEnvironmentVariable\([^)]*OPENAI_API_KEY') {
+        throw "The CI entry point must remove the product credential without reading it before invoking policy or child processes."
+    }
+
     if ($ciScript -notmatch 'Assert-FilesUseLfOnly') {
         throw "The CI entry point does not invoke the fail-closed LF policy."
     }

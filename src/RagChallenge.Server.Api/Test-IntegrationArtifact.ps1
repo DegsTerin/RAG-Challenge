@@ -97,6 +97,16 @@ function Start-TaskProcess {
     $startInfo.RedirectStandardOutput = $true
     $startInfo.RedirectStandardError = $true
     $startInfo.ArgumentList.Add((Join-Path $extractRoot "RagChallenge.Server.Api.dll"))
+    $startInfo.Environment.Clear()
+    $temporaryDirectory = [System.IO.Path]::GetTempPath()
+    $startInfo.Environment["TEMP"] = $temporaryDirectory
+    $startInfo.Environment["TMP"] = $temporaryDirectory
+    if ($IsWindows) {
+        $windowsDirectory = [System.IO.Directory]::GetParent(
+            [System.Environment]::SystemDirectory).FullName
+        $startInfo.Environment["SystemRoot"] = $windowsDirectory
+        $startInfo.Environment["WINDIR"] = $windowsDirectory
+    }
     $startInfo.Environment["DOTNET_ENVIRONMENT"] = "Integration"
     $startInfo.Environment["ASPNETCORE_URLS"] = $baseUri
     $startInfo.Environment["RagChallenge__Integration__Enabled"] = "true"

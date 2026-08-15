@@ -11,3 +11,20 @@ Treat generated files, ignored runtime data, foreign worktrees and owner-created
 Stop on a stale baseline, unexpected dirty tree, path overlap, shared-resource collision or missing authority.
 Return paths, symbols, test entry points, isolation requirements and remaining unknowns to the coordinator.
 """
+[shell_environment_policy]
+inherit = "core"
+ignore_default_excludes = false
+experimental_use_profile = false
+
+[shell_environment_policy.filters]
+"*KEY*" = "exclude"
+"*SECRET*" = "exclude"
+"*TOKEN*" = "exclude"
+"*PASSWORD*" = "exclude"
+"*CREDENTIAL*" = "exclude"
+"*CONNECTION*" = "exclude"
+"AWS_*" = "exclude"
+"AZURE_*" = "exclude"
+"GITHUB_*" = "exclude"
+"GH_*" = "exclude"
+"OPENAI_*" = "exclude"

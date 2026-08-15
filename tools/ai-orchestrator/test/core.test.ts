@@ -96,6 +96,16 @@ test("untrusted plan and agent output reject additional fields and unsafe paths"
   assert.throws(() => parseAgentResult({ ...passingResult(), status: "BLOCKED" }), /must carry a stop condition/);
 });
 
+test("plans and agent results reject synthetic secret-shaped strings before acceptance", () => {
+  const synthetic = "sk-proj-synthetic-not-a-real-secret";
+  const plan = structuredClone(projectPlan([task()])) as unknown as { tasks: { objective: string }[] };
+  plan.tasks[0]!.objective = synthetic;
+  assert.throws(() => parseProjectPlan(plan), (error: unknown) =>
+    error instanceof OrchestratorStop && error.code === "SECRET_REQUIRED" && !error.message.includes(synthetic));
+  assert.throws(() => parseAgentResult({ ...passingResult(), summary: synthetic }), (error: unknown) =>
+    error instanceof OrchestratorStop && error.code === "SECRET_REQUIRED" && !error.message.includes(synthetic));
+});
+
 test("parsed plan preserves its exact baseline and bounded concurrency", () => {
   const parsed = parseProjectPlan(projectPlan([task()], 2));
   assert.equal(parsed.baseline, baseline);

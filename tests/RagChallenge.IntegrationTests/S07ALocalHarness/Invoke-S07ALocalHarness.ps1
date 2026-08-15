@@ -72,16 +72,34 @@ function Invoke-ValidationTest {
         [string]$WorkingDirectory,
 
         [Parameter(Mandatory)]
-        [TimeSpan]$TestHostTimeout
+        [TimeSpan]$TestHostTimeout,
+
+        [string]$RunAuthority
     )
 
     $startInfo = [System.Diagnostics.ProcessStartInfo]::new()
-    $startInfo.FileName = "dotnet"
+    $startInfo.FileName = (Get-Command dotnet).Source
     $startInfo.WorkingDirectory = $WorkingDirectory
     $startInfo.UseShellExecute = $false
     $startInfo.CreateNoWindow = $true
     $startInfo.RedirectStandardOutput = $true
     $startInfo.RedirectStandardError = $true
+    $startInfo.Environment.Clear()
+    $temporaryDirectory = [System.IO.Path]::GetTempPath()
+    $startInfo.Environment["TEMP"] = $temporaryDirectory
+    $startInfo.Environment["TMP"] = $temporaryDirectory
+    if ($IsWindows) {
+        $windowsDirectory = [System.IO.Directory]::GetParent(
+            [System.Environment]::SystemDirectory).FullName
+        $startInfo.Environment["SystemRoot"] = $windowsDirectory
+        $startInfo.Environment["WINDIR"] = $windowsDirectory
+    }
+    $startInfo.Environment["DOTNET_CLI_TELEMETRY_OPTOUT"] = "1"
+    $startInfo.Environment["DOTNET_NOLOGO"] = "1"
+    $startInfo.Environment["DOTNET_SKIP_FIRST_TIME_EXPERIENCE"] = "1"
+    if (-not [string]::IsNullOrEmpty($RunAuthority)) {
+        $startInfo.Environment[$authorityVariable] = $RunAuthority
+    }
 
     foreach ($argument in @(
             "test",
@@ -189,21 +207,13 @@ try {
             [System.EnvironmentVariableTarget]::Process)
     }
 
-    $testExitCode = if ($Mode -eq "Validate") {
-        Invoke-ValidationTest `
-            -ProjectPath $projectPath `
-            -TestFilter $filter `
-            -WorkingDirectory $repositoryRoot `
-            -TestHostTimeout $testHostExitTimeout
-    }
-    else {
-        & dotnet test $projectPath `
-            --configuration Release `
-            --no-restore `
-            --filter $filter `
-            --logger "console;verbosity=normal"
-        $LASTEXITCODE
-    }
+    $runAuthority = if ($Mode -eq "Run") { $expectedAuthority } else { "" }
+    $testExitCode = Invoke-ValidationTest `
+        -ProjectPath $projectPath `
+        -TestFilter $filter `
+        -WorkingDirectory $repositoryRoot `
+        -TestHostTimeout $testHostExitTimeout `
+        -RunAuthority $runAuthority
 
     if ($testExitCode -ne 0) {
         throw "The S07-A local harness command failed with exit code $testExitCode."

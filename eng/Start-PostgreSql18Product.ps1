@@ -2,7 +2,15 @@
 [CmdletBinding()]
 param(
     [ValidateRange(1024, 65535)]
-    [int] $Port = 5189
+    [int] $Port = 5189,
+
+    [Parameter(Mandatory)]
+    [ValidatePattern('^AUTH-[A-Z0-9][A-Z0-9-]{2,122}$')]
+    [string] $QueryEmbeddingAuthorityReference,
+
+    [Parameter(Mandatory)]
+    [ValidatePattern('^AUTH-[A-Z0-9][A-Z0-9-]{2,122}$')]
+    [string] $GroundedGenerationAuthorityReference
 )
 
 $ErrorActionPreference = 'Stop'
@@ -10,26 +18,18 @@ $repositoryRoot = Split-Path -Parent $PSScriptRoot
 $serverDll = Join-Path $repositoryRoot 'src/RagChallenge.Server.Api/bin/Release/net10.0/RagChallenge.Server.Api.dll'
 $dashboardRoot = Join-Path $repositoryRoot 'src/RagChallenge.Dashboard.Web/dist'
 $storeRoot = Join-Path $repositoryRoot 'artifacts-local/state-07/product-materialisation/postgresql-18-reference-a4/product-store'
-$environmentFile = Join-Path $repositoryRoot '.env.local'
 $approvedRightsEvidenceReference = 'auth-s07-a-product-a0-003'
 
-foreach ($requiredPath in $serverDll, (Join-Path $dashboardRoot 'index.html'), $storeRoot, $environmentFile) {
+foreach ($requiredPath in $serverDll, (Join-Path $dashboardRoot 'index.html'), $storeRoot) {
     if (-not (Test-Path -LiteralPath $requiredPath)) {
         throw "Required product runtime path is unavailable: $requiredPath"
     }
 }
 
 $credentialName = 'OPENAI_API' + '_KEY'
-$keyLine = Get-Content -LiteralPath $environmentFile |
-    Where-Object { $_.StartsWith($credentialName + '=', [System.StringComparison]::Ordinal) } |
-    Select-Object -First 1
-if (-not $keyLine) {
-    throw 'OPENAI_API_KEY is unavailable in .env.local.'
-}
-
 [System.Environment]::SetEnvironmentVariable(
     $credentialName,
-    $keyLine.Substring($keyLine.IndexOf('=') + 1).Trim(),
+    $null,
     [System.EnvironmentVariableTarget]::Process)
 $env:ASPNETCORE_URLS = "http://127.0.0.1:$Port"
 $env:ASPNETCORE_ENVIRONMENT = 'Production'
@@ -42,14 +42,10 @@ $env:RagChallenge__Product__CatalogueProfile = 'postgresql-18.4'
 $env:RagChallenge__Product__ApprovedRightsEvidenceReference =
     $approvedRightsEvidenceReference
 $env:RagChallenge__Product__CredentialEnvironmentVariable = $credentialName
+$env:RagChallenge__Product__QueryEmbeddingAuthorityReference =
+    $QueryEmbeddingAuthorityReference
+$env:RagChallenge__Product__GroundedGenerationAuthorityReference =
+    $GroundedGenerationAuthorityReference
 
-try {
-    & dotnet $serverDll
-    exit $LASTEXITCODE
-}
-finally {
-    [System.Environment]::SetEnvironmentVariable(
-        $credentialName,
-        $null,
-        [System.EnvironmentVariableTarget]::Process)
-}
+& dotnet $serverDll
+exit $LASTEXITCODE

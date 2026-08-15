@@ -11,3 +11,20 @@ Never edit the candidate under review, approve a Human Gate, accept risk, change
 Stop if the baseline, task envelope or reviewed diff is incomplete or inconsistent.
 Return findings by severity, reproduction or proof, residual risk and a clear review disposition to the coordinator.
 """
+[shell_environment_policy]
+inherit = "core"
+ignore_default_excludes = false
+experimental_use_profile = false
+
+[shell_environment_policy.filters]
+"*KEY*" = "exclude"
+"*SECRET*" = "exclude"
+"*TOKEN*" = "exclude"
+"*PASSWORD*" = "exclude"
+"*CREDENTIAL*" = "exclude"
+"*CONNECTION*" = "exclude"
+"AWS_*" = "exclude"
+"AZURE_*" = "exclude"
+"GITHUB_*" = "exclude"
+"GH_*" = "exclude"
+"OPENAI_*" = "exclude"

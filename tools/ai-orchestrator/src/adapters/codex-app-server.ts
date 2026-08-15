@@ -3,10 +3,12 @@ import { spawn, type ChildProcessWithoutNullStreams } from "node:child_process";
 import { createRequire } from "node:module";
 import { OrchestratorStop } from "../core/errors.js";
 import { parseSecureJson } from "../security/secure-json.js";
+import { assertClosedEnvironment, assertNoSecretShapedMaterial, assertNoSecretShapedText } from "../security/secret-policy.js";
 
 const maximumProtocolLineBytes = 1_048_576;
 const maximumStderrBytes = 65_536;
 const defaultRequestTimeoutMs = 30_000;
+const permittedEnvironmentNames = new Set(["PATH", "SystemRoot", "TEMP", "TMP", "USERPROFILE", "LOCALAPPDATA", "APPDATA"]);
 
 type JsonObject = Readonly<Record<string, unknown>>;
 
@@ -76,6 +78,7 @@ class SpawnedCodexTransport implements CodexAppServerTransport {
   private closing = false;
 
   public constructor(policy: CodexAppServerLaunchPolicy) {
+    assertClosedEnvironment(policy.environment, permittedEnvironmentNames, "Codex App Server environment");
     const codexCliPath = createRequire(import.meta.url).resolve("@openai/codex/bin/codex.js");
     this.process = spawn(process.execPath, [
       codexCliPath,
@@ -129,6 +132,7 @@ class SpawnedCodexTransport implements CodexAppServerTransport {
     if (this.failed || this.process.stdin.destroyed || Buffer.byteLength(line, "utf8") > maximumProtocolLineBytes) {
       throw new OrchestratorStop("TEST_BASELINE_BROKEN", "Codex App Server transport is unavailable or the request is oversized.");
     }
+    assertNoSecretShapedText(line, "Codex App Server request");
     await new Promise<void>((resolvePromise, rejectPromise) => {
       this.process.stdin.write(`${line}\n`, "utf8", (error) => error === null || error === undefined ? resolvePromise() : rejectPromise(error));
     });
@@ -156,9 +160,12 @@ class SpawnedCodexTransport implements CodexAppServerTransport {
       const lineBytes = rawLine.at(-1) === 0x0d ? rawLine.subarray(0, -1) : rawLine;
       try {
         const line = new TextDecoder("utf-8", { fatal: true }).decode(lineBytes);
+        assertNoSecretShapedText(line, "Codex App Server response");
         if (line.length > 0) this.lineListeners.forEach((listener) => listener(line));
-      } catch {
-        this.fail(new Error("Codex App Server emitted invalid UTF-8."));
+      } catch (error) {
+        this.fail(error instanceof OrchestratorStop
+          ? error
+          : new Error("Codex App Server emitted invalid UTF-8."));
         return;
       }
       delimiter = this.stdoutBuffer.indexOf(0x0a);
@@ -216,6 +223,7 @@ export class CodexAppServerClient implements CodexAppServer {
     taskId: string,
     signal?: AbortSignal,
   ): Promise<string> {
+    assertNoSecretShapedText(prompt, "Codex turn prompt");
     const result = object(await this.request("turn/start", {
       threadId,
       input: [{ type: "text", text: prompt, text_elements: [] }],
@@ -294,6 +302,7 @@ export class CodexAppServerClient implements CodexAppServer {
 
   private async request(method: string, params: unknown): Promise<unknown> {
     if (this.terminalError !== null) throw this.terminalError;
+    assertNoSecretShapedMaterial(params, "Codex App Server protocol request");
     const id = this.nextRequestId++;
     return await new Promise<unknown>((resolvePromise, rejectPromise) => {
       const timeout = setTimeout(() => {
@@ -312,6 +321,7 @@ export class CodexAppServerClient implements CodexAppServer {
   private acceptLine(line: string): void {
     try {
       const message = object(parseSecureJson(line, "Codex App Server message"), "Codex App Server message");
+      assertNoSecretShapedMaterial(message, "Codex App Server protocol response");
       if (typeof message.id === "number" && typeof message.method === "string") {
         void this.transport.send(JSON.stringify({
           id: message.id,

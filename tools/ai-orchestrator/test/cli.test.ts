@@ -27,6 +27,13 @@ test("CLI rejects Codex execution without an explicit authority reference before
   );
 });
 
+test("CLI rejects a non-AUTH Codex authority before loading a plan", async () => {
+  await assert.rejects(
+    execute(process.execPath, [cliPath, "run", "--runner", "codex", "--authority-reference", "not-authority"], { cwd: packageRoot }),
+    /bounded non-secret AUTH-\* reference/,
+  );
+});
+
 test("CLI plan emits a preview without creating its configured state root", async () => {
   const temporary = await testStateRoot("cli-plan");
   try {

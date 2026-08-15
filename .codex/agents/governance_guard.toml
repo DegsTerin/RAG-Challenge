@@ -10,3 +10,20 @@ Never edit files, implement code, accept an ADR, adjudicate a human decision, ad
 Stop and report the canonical stop code when authority is ambiguous, conflicting or insufficient.
 Return concise findings with file references, observed facts, inferences, unresolved decisions and the exact condition needed to continue.
 """
+[shell_environment_policy]
+inherit = "core"
+ignore_default_excludes = false
+experimental_use_profile = false
+
+[shell_environment_policy.filters]
+"*KEY*" = "exclude"
+"*SECRET*" = "exclude"
+"*TOKEN*" = "exclude"
+"*PASSWORD*" = "exclude"
+"*CREDENTIAL*" = "exclude"
+"*CONNECTION*" = "exclude"
+"AWS_*" = "exclude"
+"AZURE_*" = "exclude"
+"GITHUB_*" = "exclude"
+"GH_*" = "exclude"
+"OPENAI_*" = "exclude"

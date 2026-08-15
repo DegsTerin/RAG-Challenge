@@ -308,9 +308,8 @@ public sealed class SetupHostArtefactTests
             "$ApprovedRightsEvidenceReference -ceq $supersededUnverifiedRightsEvidenceReference",
             launcher,
             StringComparison.Ordinal);
-        Assert.True(
-            launcher.IndexOf("$ApprovedRightsEvidenceReference -ceq", StringComparison.Ordinal) <
-            launcher.IndexOf("Get-Content -LiteralPath $environmentFile", StringComparison.Ordinal));
+        Assert.DoesNotContain(".env.local", launcher, StringComparison.OrdinalIgnoreCase);
+        Assert.DoesNotContain("Get-Content", launcher, StringComparison.Ordinal);
         Assert.Contains(
             "$env:RagChallenge__Product__ApplyMigrations = 'true'",
             launcher,
@@ -324,9 +323,19 @@ public sealed class SetupHostArtefactTests
             launcher,
             StringComparison.Ordinal);
         Assert.Contains(
-            "$env:RagChallenge__Product__CredentialEnvironmentVariable = $credentialName",
+            "$env:RagChallenge__Product__QueryEmbeddingAuthorityReference",
             launcher,
             StringComparison.Ordinal);
+        Assert.Contains(
+            "$env:RagChallenge__Product__GroundedGenerationAuthorityReference",
+            launcher,
+            StringComparison.Ordinal);
+        Assert.Contains(
+            "SetEnvironmentVariable(",
+            launcher,
+            StringComparison.Ordinal);
+        Assert.Contains("$credentialName = 'OPENAI_API' + '_KEY'", launcher, StringComparison.Ordinal);
+        Assert.DoesNotContain("GetEnvironmentVariable", launcher, StringComparison.Ordinal);
         Assert.Contains(
             "artifacts-local/state-07/product-materialisation/postgresql-18-reference-a4/product-store",
             postgreSqlLauncher.Replace('\\', '/'),
@@ -339,6 +348,9 @@ public sealed class SetupHostArtefactTests
             "$approvedRightsEvidenceReference = 'auth-s07-a-product-a0-003'",
             postgreSqlLauncher,
             StringComparison.Ordinal);
+        Assert.DoesNotContain(".env.local", postgreSqlLauncher, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("QueryEmbeddingAuthorityReference", postgreSqlLauncher, StringComparison.Ordinal);
+        Assert.Contains("GroundedGenerationAuthorityReference", postgreSqlLauncher, StringComparison.Ordinal);
         Assert.DoesNotContain(
             "corpus/oracle-database",
             postgreSqlLauncher.Replace('\\', '/'),

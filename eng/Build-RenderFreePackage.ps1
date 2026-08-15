@@ -209,6 +209,16 @@ try {
     $startInfo.RedirectStandardOutput = $true
     $startInfo.RedirectStandardError = $true
     $startInfo.ArgumentList.Add("RagChallenge.Server.Api.dll")
+    $startInfo.Environment.Clear()
+    $temporaryDirectory = [System.IO.Path]::GetTempPath()
+    $startInfo.Environment["TEMP"] = $temporaryDirectory
+    $startInfo.Environment["TMP"] = $temporaryDirectory
+    if ($IsWindows) {
+        $windowsDirectory = [System.IO.Directory]::GetParent(
+            [System.Environment]::SystemDirectory).FullName
+        $startInfo.Environment["SystemRoot"] = $windowsDirectory
+        $startInfo.Environment["WINDIR"] = $windowsDirectory
+    }
     $startInfo.Environment["DOTNET_ENVIRONMENT"] = "Production"
     $startInfo.Environment["ASPNETCORE_ENVIRONMENT"] = "Production"
     $startInfo.Environment["ASPNETCORE_URLS"] = "http://127.0.0.1:$readinessPort"
@@ -223,8 +233,12 @@ try {
         "auth-s07-a-product-a0-003"
     $startInfo.Environment[
         "RagChallenge__Product__CredentialEnvironmentVariable"] = "OPENAI_API_KEY"
-    $startInfo.Environment["OPENAI_API_KEY"] =
-        "local-readiness-placeholder-not-a-provider-credential"
+    $startInfo.Environment[
+        "RagChallenge__Product__QueryEmbeddingAuthorityReference"] =
+        "AUTH-RENDER-PACKAGE-READINESS-QUERY-EMBEDDING"
+    $startInfo.Environment[
+        "RagChallenge__Product__GroundedGenerationAuthorityReference"] =
+        "AUTH-RENDER-PACKAGE-READINESS-GROUNDED-GENERATION"
     $startInfo.Environment["Logging__LogLevel__Default"] = "Warning"
 
     $readinessProcess = [System.Diagnostics.Process]::Start($startInfo)

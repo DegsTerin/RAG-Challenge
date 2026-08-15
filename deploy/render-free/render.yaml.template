@@ -25,5 +25,9 @@ services:
         value: auth-s07-a-product-a0-003
       - key: RagChallenge__Product__CredentialEnvironmentVariable
         value: OPENAI_API_KEY
+      - key: RagChallenge__Product__QueryEmbeddingAuthorityReference
+        value: "<non-deployable-AUTH-query-embedding-placeholder>"
+      - key: RagChallenge__Product__GroundedGenerationAuthorityReference
+        value: "<non-deployable-AUTH-grounded-generation-placeholder>"
       - key: OPENAI_API_KEY
         sync: false

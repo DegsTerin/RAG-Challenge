@@ -89,6 +89,23 @@ test("App Server rejects API-key authentication without exposing credential data
     error instanceof OrchestratorStop && error.code === "SECRET_REQUIRED" && !error.message.includes("sk-"));
 });
 
+test("App Server rejects synthetic secret-shaped prompts before transport", async () => {
+  const transport = new ScriptedTransport((message, scripted) => {
+    if (message.method === "initialize") response(scripted, message, {});
+    if (message.method === "account/read") response(scripted, message, { account: { type: "chatgpt", email: null, planType: "plus" }, requiresOpenaiAuth: true });
+    if (message.method === "thread/start") response(scripted, message, { thread: { id: "thread-fixture" } });
+  });
+  const client = new CodexAppServerClient(transport);
+  const configuration = { workingDirectory: "C:/repository", sandbox: "read-only" as const, model: null };
+  const threadId = await client.startThread(configuration, "task-fixture");
+  const synthetic = "sk-proj-synthetic-not-a-real-secret";
+  await assert.rejects(
+    client.runTurn(threadId, synthetic, { ...configuration, outputSchema: {} }, "task-fixture"),
+    (error: unknown) => error instanceof OrchestratorStop && error.code === "SECRET_REQUIRED" && !error.message.includes(synthetic),
+  );
+  assert.equal(transport.sent.some((message) => message.method === "turn/start"), false);
+});
+
 test("App Server denies approval and user-input requests and fails the active turn", async () => {
   const transport = new ScriptedTransport((message, scripted) => {
     if (message.method === "initialize") response(scripted, message, {});
@@ -118,6 +135,17 @@ test("App Server rejects malformed protocol output and transport failure", async
     if (message.method === "initialize") scripted.fail(new Error("bounded process failure"));
   });
   await assert.rejects(new CodexAppServerClient(failed).assertChatGptSession(), /bounded process failure/);
+});
+
+test("App Server rejects secret-bearing protocol fields without echoing them", async () => {
+  const synthetic = "synthetic-secret-field-value";
+  const transport = new ScriptedTransport((message, scripted) => {
+    if (message.method === "initialize") response(scripted, message, { apiKey: synthetic });
+  });
+  await assert.rejects(
+    new CodexAppServerClient(transport).assertChatGptSession(),
+    (error: unknown) => error instanceof OrchestratorStop && error.code === "SECRET_REQUIRED" && !error.message.includes(synthetic),
+  );
 });
 
 test("App Server bounds unanswered protocol requests", async () => {

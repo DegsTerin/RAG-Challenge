@@ -7,6 +7,13 @@ param(
 $ErrorActionPreference = "Stop"
 Set-StrictMode -Version Latest
 
+# Executable policy enforcement: remove the exact product credential from the
+# CI process without reading it before any policy or child-process invocation.
+[System.Environment]::SetEnvironmentVariable(
+    'OPENAI_API_KEY',
+    $null,
+    [System.EnvironmentVariableTarget]::Process)
+
 $repositoryRoot = Split-Path -Parent $PSScriptRoot
 $dashboardRoot = Join-Path $repositoryRoot "src/RagChallenge.Dashboard.Web"
 $orchestratorRoot = Join-Path $repositoryRoot "tools/ai-orchestrator"

@@ -4,6 +4,7 @@ import { isAbsolute, join } from "node:path";
 import type { CommandEvidence } from "../core/contracts.js";
 import { OrchestratorStop } from "../core/errors.js";
 import type { ProcessRequest, StructuredProcessExecutor, StructuredProcessResult } from "../ports/process-executor.js";
+import { assertArgumentsContainNoSecretMaterial, assertClosedEnvironment } from "../security/secret-policy.js";
 
 const permittedEnvironmentNames = new Set([
   "PATH", "PATHEXT", "SystemRoot", "WINDIR", "TEMP", "TMP", "USERPROFILE", "HOME", "LOCALAPPDATA", "APPDATA",
@@ -31,14 +32,11 @@ function validateRequest(request: ProcessRequest): void {
       (request.maximumRelevantLines !== undefined && (!Number.isInteger(request.maximumRelevantLines) || request.maximumRelevantLines < 1 || request.maximumRelevantLines > 4096))) {
     throw new OrchestratorStop("CONFLICTING_REQUIREMENTS", "Subprocess bounds are outside the supported limits.");
   }
-  for (const [name, value] of Object.entries(request.environment)) {
-    if (!permittedEnvironmentNames.has(name) || value.length > 32_768 || /[\u0000\r\n]/.test(value)) {
-      throw new OrchestratorStop("SECRET_REQUIRED", `Subprocess environment name '${name}' is not in the closed operational allowlist.`);
-    }
-  }
+  assertClosedEnvironment(request.environment, permittedEnvironmentNames, "Subprocess environment");
   if (request.arguments.some((argument) => argument.includes("\u0000"))) {
     throw new OrchestratorStop("CONFLICTING_REQUIREMENTS", "Subprocess arguments cannot contain NUL characters.");
   }
+  assertArgumentsContainNoSecretMaterial(request.arguments, "Subprocess arguments");
 }
 
 async function terminateTree(child: ChildProcess, environment: Readonly<Record<string, string>>): Promise<boolean> {

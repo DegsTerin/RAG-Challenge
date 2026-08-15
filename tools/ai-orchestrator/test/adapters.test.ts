@@ -180,7 +180,7 @@ test("CodexRunner rejects an empty declarative authority reference before App Se
 test("CodexRunner checkpoints a new durable thread identity before the first turn", async () => {
   const calls: string[] = [];
   const runner = new CodexRunner({
-    executionAuthorised: true, authorityReference: "separate-test-authority", worktreeRoot: "C:/managed",
+    executionAuthorised: true, authorityReference: "AUTH-CODEX-TEST-001", worktreeRoot: "C:/managed",
     environment: { PATH: "C:/bin" }, model: null,
   }, () => ({
     async assertChatGptSession() { calls.push("auth"); },
@@ -211,7 +211,7 @@ test("CodexRunner maps isolated cwd, sandbox and structured output for a persist
   });
   const runner = new CodexRunner({
     executionAuthorised: true,
-    authorityReference: "separate-test-authority",
+    authorityReference: "AUTH-CODEX-TEST-002",
     worktreeRoot: "C:/managed",
     environment: { PATH: "C:/bin", SystemRoot: "C:/Windows" },
     model: null,
@@ -230,7 +230,7 @@ test("CodexRunner maps isolated cwd, sandbox and structured output for a persist
 test("CodexRunner rejects explicit environment names outside its allowlist", async () => {
   const factory: CodexAppServerFactory = () => { throw new Error("not reached"); };
   const runner = new CodexRunner({
-    executionAuthorised: true, authorityReference: "test", worktreeRoot: "C:/managed",
+    executionAuthorised: true, authorityReference: "AUTH-CODEX-TEST-003", worktreeRoot: "C:/managed",
     environment: { UNSAFE_VARIABLE: "fixture" }, model: null,
   }, factory);
   await assert.rejects(runner.run({

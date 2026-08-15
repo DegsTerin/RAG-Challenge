@@ -168,6 +168,21 @@ public sealed class S07ALocalHarnessTests
             StringComparison.Ordinal);
     }
 
+    [Fact]
+    public void HarnessEntryPointUsesClosedChildEnvironmentsWithoutTheProductCredentialIdentifier()
+    {
+        var repositoryRoot = FindRepositoryRoot();
+        var harness = File.ReadAllText(Path.Combine(
+            repositoryRoot,
+            "tests",
+            "RagChallenge.IntegrationTests",
+            "S07ALocalHarness",
+            "Invoke-S07ALocalHarness.ps1"));
+
+        Assert.DoesNotContain("OPENAI_API_KEY", harness, StringComparison.Ordinal);
+        Assert.Contains("$startInfo.Environment.Clear()", harness, StringComparison.Ordinal);
+    }
+
     private static string ReadString(string path, string propertyName)
     {
         using var document = JsonDocument.Parse(File.ReadAllBytes(path));
@@ -222,6 +237,19 @@ public sealed class S07ALocalHarnessTests
             UseShellExecute = false,
             CreateNoWindow = true,
         };
+        startInfo.Environment.Clear();
+        var temporaryDirectory = Path.GetTempPath();
+        startInfo.Environment["TEMP"] = temporaryDirectory;
+        startInfo.Environment["TMP"] = temporaryDirectory;
+        if (OperatingSystem.IsWindows())
+        {
+            var windowsDirectory = Directory.GetParent(Environment.SystemDirectory)?.FullName ??
+                throw new InvalidOperationException("The Windows directory is unavailable.");
+            startInfo.Environment["SystemRoot"] = windowsDirectory;
+            startInfo.Environment["WINDIR"] = windowsDirectory;
+        }
+        startInfo.Environment["GIT_CONFIG_NOSYSTEM"] = "1";
+        startInfo.Environment["GIT_TERMINAL_PROMPT"] = "0";
         startInfo.ArgumentList.Add("check-ignore");
         startInfo.ArgumentList.Add("--quiet");
         startInfo.ArgumentList.Add("--no-index");

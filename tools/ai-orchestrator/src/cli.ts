@@ -22,6 +22,7 @@ import { parseAgentResult, parseProjectPlan } from "./core/validation.js";
 import type { EventSink, StructuredEvent } from "./observability/structured-log.js";
 import { assertNoExistingReparseBoundary, readBoundedRegularFile, resolveRunRoot } from "./security/path-policy.js";
 import { parseSecureJson } from "./security/secure-json.js";
+import { assertAuthorityReference } from "./security/secret-policy.js";
 
 const packageRoot = resolve(dirname(fileURLToPath(import.meta.url)), "../..");
 const repositoryRoot = resolve(packageRoot, "../..");
@@ -139,6 +140,7 @@ async function runCommand(arguments_: readonly string[], resume: boolean): Promi
   }
   const fixtureResultsPath = runnerName === "fake" ? requiredValue(arguments_, "--fixture-results") : null;
   const codexAuthorityReference = runnerName === "codex" ? requiredValue(arguments_, "--authority-reference") : null;
+  if (codexAuthorityReference !== null) assertAuthorityReference(codexAuthorityReference, "Codex authority reference");
   const root = stateRoot(arguments_);
   const store = new FileStateStore(root, repositoryRoot);
   const plan = resume ? null : parseProjectPlan(await readJson(requiredValue(arguments_, "--plan")));

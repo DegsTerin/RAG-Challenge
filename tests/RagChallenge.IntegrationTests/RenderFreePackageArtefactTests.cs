@@ -51,6 +51,9 @@ public sealed class RenderFreePackageArtefactTests
             StringComparison.Ordinal);
         Assert.Contains("- key: OPENAI_API_KEY", template, StringComparison.Ordinal);
         Assert.Contains("sync: false", template, StringComparison.Ordinal);
+        Assert.Contains("RagChallenge__Product__QueryEmbeddingAuthorityReference", template, StringComparison.Ordinal);
+        Assert.Contains("RagChallenge__Product__GroundedGenerationAuthorityReference", template, StringComparison.Ordinal);
+        Assert.Contains("<non-deployable-AUTH-", template, StringComparison.Ordinal);
         Assert.DoesNotContain("sk-", template, StringComparison.OrdinalIgnoreCase);
     }
 
@@ -72,10 +75,8 @@ public sealed class RenderFreePackageArtefactTests
             "sha256sum -c seed-manifest.sha256",
             entrypoint,
             StringComparison.Ordinal);
-        Assert.Contains(
-            "CH_DEPLOY_PROVIDER_CREDENTIAL_MISSING",
-            entrypoint,
-            StringComparison.Ordinal);
+        Assert.DoesNotContain("OPENAI_API_KEY", entrypoint, StringComparison.Ordinal);
+        Assert.DoesNotContain("CredentialEnvironmentVariable", entrypoint, StringComparison.Ordinal);
         Assert.Contains(
             "RagChallenge__Product__StoreRoot",
             entrypoint,
@@ -102,6 +103,8 @@ public sealed class RenderFreePackageArtefactTests
         Assert.Contains("renderContacted = $false", builder, StringComparison.Ordinal);
         Assert.Contains("providerCalled = $false", builder, StringComparison.Ordinal);
         Assert.Contains("credentialRead = $false", builder, StringComparison.Ordinal);
+        Assert.Contains("$startInfo.Environment.Clear()", builder, StringComparison.Ordinal);
+        Assert.DoesNotContain("$startInfo.Environment[$credentialName]", builder, StringComparison.Ordinal);
         Assert.Contains("http://127.0.0.1:", builder, StringComparison.Ordinal);
         Assert.Contains("loopbackReadinessValidated = $true", builder, StringComparison.Ordinal);
         Assert.DoesNotMatch(

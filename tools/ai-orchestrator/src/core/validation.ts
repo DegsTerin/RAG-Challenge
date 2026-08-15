@@ -14,6 +14,7 @@ import {
 } from "./contracts.js";
 import { OrchestratorStop } from "./errors.js";
 import { isAbsolute } from "node:path";
+import { assertNoSecretShapedMaterial, assertNoSecretShapedText } from "../security/secret-policy.js";
 
 const identifierPattern = /^[a-z0-9][a-z0-9-]{0,63}$/;
 const gitObjectPattern = /^[0-9a-f]{40}$/;
@@ -44,9 +45,7 @@ function stringValue(value: unknown, label: string, maximum = 2048): string {
   if (typeof value !== "string" || value.length === 0 || value.length > maximum || /[\u0000-\u001f]/.test(value)) {
     throw new OrchestratorStop("CONFLICTING_REQUIREMENTS", `${label} must be a bounded printable string.`);
   }
-  if (/\b(?:sk|sk-proj)-[A-Za-z0-9_-]{8,}\b/.test(value) || /(?:KEY|SECRET|TOKEN|PASSWORD|CREDENTIAL|CONNECTION_STRING)\s*[=:]\s*\S+/i.test(value)) {
-    throw new OrchestratorStop("SECRET_REQUIRED", `${label} contains a secret-shaped value.`);
-  }
+  assertNoSecretShapedText(value, label);
   return value;
 }
 
@@ -148,6 +147,7 @@ function parseCommand(value: unknown, label: string) {
 }
 
 export function parseAgentResult(value: unknown): AgentResult {
+  assertNoSecretShapedMaterial(value, "agent result");
   const source = record(value, "agent result");
   exactKeys(source, resultKeys, "agent result");
   if (source.schemaVersion !== 1) {
@@ -299,6 +299,7 @@ function parseTask(value: unknown, label: string): TaskDefinition {
 }
 
 export function parseProjectPlan(value: unknown): ProjectPlan {
+  assertNoSecretShapedMaterial(value, "project plan");
   const source = record(value, "project plan");
   exactKeys(source, ["schemaVersion", "project", "baseline", "maxConcurrency", "tasks"], "project plan");
   if (source.schemaVersion !== 1 || source.project !== "RAG-Challenge") {

@@ -16,6 +16,12 @@ import { OrchestratorStop } from "../src/core/errors.js";
 import type { ProcessRequest, StructuredProcessExecutor, StructuredProcessResult } from "../src/ports/process-executor.js";
 import { gitArguments, gitEnvironment } from "../src/security/git-process-policy.js";
 import { parseSecureJson } from "../src/security/secure-json.js";
+import {
+  assertArgumentsContainNoSecretMaterial,
+  assertAuthorityReference,
+  assertClosedEnvironment,
+  assertNoSecretShapedMaterial,
+} from "../src/security/secret-policy.js";
 import { assertNoExistingReparseBoundary } from "../src/security/path-policy.js";
 import { baseline, instant, passingResult, task } from "./helpers.js";
 
@@ -65,6 +71,24 @@ test("secure JSON rejects duplicate keys before schema validation", () => {
   for (const key of ["__proto__", "constructor", "prototype"]) {
     assert.throws(() => parseSecureJson(`{"${key}":{}}`, "fixture"), /forbidden prototype key/);
   }
+});
+
+test("central secret policy rejects synthetic secret-shaped material without echoing it", () => {
+  const synthetic = "sk-proj-synthetic-not-a-real-secret";
+  for (const action of [
+    () => assertNoSecretShapedMaterial({ plan: { note: synthetic } }, "plan"),
+    () => assertArgumentsContainNoSecretMaterial(["--value", synthetic], "arguments"),
+    () => assertClosedEnvironment({ PATH: synthetic }, new Set(["PATH"]), "environment"),
+  ]) {
+    assert.throws(action, (error: unknown) =>
+      error instanceof OrchestratorStop && error.code === "SECRET_REQUIRED" && !error.message.includes(synthetic));
+  }
+});
+
+test("real runner authority accepts only bounded AUTH references", () => {
+  assert.doesNotThrow(() => assertAuthorityReference("AUTH-CODEX-RUN-001", "authority"));
+  assert.throws(() => assertAuthorityReference("separate-test-authority", "authority"), (error: unknown) =>
+    error instanceof OrchestratorStop && error.code === "HUMAN_DECISION_REQUIRED");
 });
 
 test("state persistence rejects a junction in an ancestor below the repository anchor", async (context) => {

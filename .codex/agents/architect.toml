@@ -11,3 +11,20 @@ Never edit files, accept an ADR, select a provider, create a secret, change life
 Stop with ARCHITECTURE_CHANGE_REQUIRED, PUBLIC_CONTRACT_CHANGE_REQUIRED, SCHEMA_CHANGE_REQUIRED or MIGRATION_REQUIRED when applicable.
 Return alternatives, trade-offs, affected owners, decision requested and objective acceptance criteria.
 """
+[shell_environment_policy]
+inherit = "core"
+ignore_default_excludes = false
+experimental_use_profile = false
+
+[shell_environment_policy.filters]
+"*KEY*" = "exclude"
+"*SECRET*" = "exclude"
+"*TOKEN*" = "exclude"
+"*PASSWORD*" = "exclude"
+"*CREDENTIAL*" = "exclude"
+"*CONNECTION*" = "exclude"
+"AWS_*" = "exclude"
+"AZURE_*" = "exclude"
+"GITHUB_*" = "exclude"
+"GH_*" = "exclude"
+"OPENAI_*" = "exclude"
