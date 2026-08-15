@@ -1,0 +1,3172 @@
+{
+  "$schema": "./language-migration-baseline.schema.json",
+  "payload": {
+    "schemaVersion": 1,
+    "baselineId": "rag-challenge-en-gb-migration-v1",
+    "status": "IN_PROGRESS",
+    "policyDigest": "sha256:e5853e3444fdaa369b1011af594f6d4a147fe9f9f3d549e8cda1be4bdffa8721",
+    "findings": [
+      {
+        "path": "docs/MVP-Roadmap-And-Backlog.md",
+        "line": 39,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "execução",
+        "contextHash": "863b8f68f3dd015c7f106c1d02238fceae796cfd5d275d1ac41d6398556d77ce",
+        "regionHash": "ca5aae820a5022801e4ef712703b29aef8cde283a66b0702f77c2af3b2812ba7"
+      },
+      {
+        "path": "docs/MVP-Roadmap-And-Backlog.md",
+        "line": 42,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "documentação",
+        "contextHash": "0b8f144a72255a1488b2c7278b7925a076f46dc50cfb0748a59ad7a4cd1ba37b",
+        "regionHash": "3075aada582320db54c03b7d33a43608c780125a022250966f05a5c5a2ab0e33"
+      },
+      {
+        "path": "docs/MVP-Roadmap-And-Backlog.md",
+        "line": 60,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "implementação",
+        "contextHash": "fe8405087d0d800ef9f50043bd53192f4fa52182628cb37794c2a0e7bf719dcd",
+        "regionHash": "75e295c18616ed1ed4a46726a737f17e2a63272cefba6dfa0c9ddab9dee59c4a"
+      },
+      {
+        "path": "docs/MVP-Roadmap-And-Backlog.md",
+        "line": 66,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "execução",
+        "contextHash": "6ae2d2d488b3db8bea801d45928b185a9c984abd0f286b0446a1b87b2d1636a8",
+        "regionHash": "cc42cb4425fff1110060247262ac745963c63cee4187ee2d2434f9f77319e2f6"
+      },
+      {
+        "path": "docs/MVP-Roadmap-And-Backlog.md",
+        "line": 87,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "teste",
+        "contextHash": "55bdbc17072834d544504499d62beb41e30543d231fb2dd14a6ec51bd846e997",
+        "regionHash": "c2951667669c28d5139377d2483ee3b2b4212ee813654d5dc0034ccdacc34467"
+      },
+      {
+        "path": "docs/MVP-Roadmap-And-Backlog.md",
+        "line": 101,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "autorização",
+        "contextHash": "37f5a789c91e91f462d402f8e8f9d8144554a074686a36e1400ef79163ebe84d",
+        "regionHash": "9fde4282cb64453f325f3fc3be8a022e613afed2c827133918cf4eaf28646210"
+      },
+      {
+        "path": "docs/MVP-Roadmap-And-Backlog.md",
+        "line": 146,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "segurança",
+        "contextHash": "4ac19ce8de403f382f1d5a3aa661bd06e41fb6fcddecc0429b87d8764eb6d870",
+        "regionHash": "d4cf8371b016e8493947a467ebf43a6fcd9414afd2d84c724f615aa6949c5dd0"
+      },
+      {
+        "path": "docs/MVP-Roadmap-And-Backlog.md",
+        "line": 166,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "execução",
+        "contextHash": "e7878cd829bb3dc1a7d5ec6614784ea82624e087135cbf04f90f66926f3066ac",
+        "regionHash": "271aa8d96e8eb07c0fe68fac57be319bfb63b543bcaef3be1de4232493ad68d6"
+      },
+      {
+        "path": "docs/MVP-Roadmap-And-Backlog.md",
+        "line": 168,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "autorização",
+        "contextHash": "44cb3d0d4914797f93b2f3f4eef098efa730dce72bc6dcb297492c12ab29ccff",
+        "regionHash": "8d7da5a56aca2e0415413512bd50e325d627ccb6b4eba7964e291f57538ca65a"
+      },
+      {
+        "path": "docs/MVP-Roadmap-And-Backlog.md",
+        "line": 170,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "implementação",
+        "contextHash": "7c3652aa1fa61858c20601b3bacc31b04c4c456b096a4da90cf55751bb629182",
+        "regionHash": "430a0b4b10c1a0bf7e12408e84f8c3084f6ca2e918dc6ba20775436b03c3fc29"
+      },
+      {
+        "path": "docs/MVP-Roadmap-And-Backlog.md",
+        "line": 208,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "falha",
+        "contextHash": "fd75d0556d4396232434aa09cbd31df9899ceed2ff4b01856210442ee27c2e0a",
+        "regionHash": "e64aa71dea3d9b82f036dcfb7cb8099f15981ce7b1c9e4a2ee596263677de2d8"
+      },
+      {
+        "path": "docs/MVP-Roadmap-And-Backlog.md",
+        "line": 228,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "falha",
+        "contextHash": "b7a52bda0aa9d5235bbace58eb6931d0330d2111112aa297458e07866f42109a",
+        "regionHash": "9b1da18a351ee9f51782856d04342664ed358dbf9828143b0401d47239d1ae8d"
+      },
+      {
+        "path": "docs/MVP-Roadmap-And-Backlog.md",
+        "line": 244,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "falha",
+        "contextHash": "c09ce8be4eba1ea1639ba0565325b3a4f96139a63745f247dd256be867caef5d",
+        "regionHash": "3c594fcacff5a00c7177cd9d7febb079a217208968411c824dff7bfeac79d985"
+      },
+      {
+        "path": "docs/MVP-Roadmap-And-Backlog.md",
+        "line": 272,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "teste",
+        "contextHash": "128af9378159797964a50a0cae50cb9f774d4ac129910b1cbe2b22a3a36dd8ac",
+        "regionHash": "f70e115d0e100d25244be9674dae091f77e53ceefed81ceae2543b1a24291db2"
+      },
+      {
+        "path": "docs/MVP-Roadmap-And-Backlog.md",
+        "line": 327,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "segurança",
+        "contextHash": "4319030c06a5437c96088198ea9a38ab5cbe83fd4976d356dc103f32438d836c",
+        "regionHash": "e67be71b47f8841cd186a8dcd73b1a5a886b0fb73de542a0d25e3a6afece0792"
+      },
+      {
+        "path": "docs/MVP-Roadmap-And-Backlog.md",
+        "line": 362,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "execução",
+        "contextHash": "c04716e3021b66f54f33dd0afe3d001fbeb8cef67ca8cab845c05e2c60248a8f",
+        "regionHash": "adaa79341710822dd3d398f9b94a781637c077ec94282857acabf8217651d2da"
+      },
+      {
+        "path": "docs/MVP-Roadmap-And-Backlog.md",
+        "line": 372,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "proprietário",
+        "contextHash": "2c186bb74d19f4eea3f55961a0877b0462444d7a4b9bac4690b4039908f1d414",
+        "regionHash": "a9069646ca11a32b186d3b6fb4d1f759caf9fcbc140b61eb64346a41d88969b9"
+      },
+      {
+        "path": "docs/MVP-Roadmap-And-Backlog.md",
+        "line": 384,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "execução",
+        "contextHash": "ecb34b8c622883e7cb724498d78edff47a5fbb8da1bcbc4d3c8b6cbbaa41d82c",
+        "regionHash": "791af267c97029f5be4f48d169d84c58ccab20e698f6c806bc217c971fecea93"
+      },
+      {
+        "path": "docs/MVP-Roadmap-And-Backlog.md",
+        "line": 386,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "execução",
+        "contextHash": "0426f85c85e2acecf3304d7511b248cad502863e02c490ceb3bc1907449aa30c",
+        "regionHash": "b5ecee469c8197dfa408db18fe5dce3fedebd0431f964552960845192ae07e83"
+      },
+      {
+        "path": "docs/MVP-Roadmap-And-Backlog.md",
+        "line": 422,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "execução",
+        "contextHash": "bdb52ca652d98d918ecb44809593469fee2f40861ddd462f8e840572865b1606",
+        "regionHash": "8d3fe05f411fe372c3f554bbf632731826215b9c623ba2bdd1f02e760d31da4f"
+      },
+      {
+        "path": "docs/MVP-Roadmap-And-Backlog.md",
+        "line": 443,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "documentação",
+        "contextHash": "b30bf14e4f6439b27e8c4ccba69efa14c757989498b6d31cba4e547675b7b3bf",
+        "regionHash": "97c6cb848f9c709673b7507de8b89273581d70bd911848ad18f45ffc43189083"
+      },
+      {
+        "path": "docs/MVP-Roadmap-And-Backlog.md",
+        "line": 448,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "falha",
+        "contextHash": "2def9383022b9f0376387c7cd8d91c93df9e6ee60a7c93ab191a6dd0b3b63c0a",
+        "regionHash": "54193eb6eb469afa3539a55afa32757b80fa877aad1b972dc0adf870f594dc93"
+      },
+      {
+        "path": "docs/MVP-Roadmap-And-Backlog.md",
+        "line": 456,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "autorização",
+        "contextHash": "84c8c96a8cc863d26a43c54546f04223296bda8ac450d3063616717f68fe53a7",
+        "regionHash": "93db58378bcb03c955aeca50dc4a4ed325a4c5acc7c56b02a7605643ee15787b"
+      },
+      {
+        "path": "docs/README.md",
+        "line": 1,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "documentação",
+        "contextHash": "8fd6dcd02a30a7c818168f8c04566070be04f9722e70249d79de1ca80bf8984d",
+        "regionHash": "b876ca7c697623daf886ed3f2283877c1894980f38c51fbc17cc0f83f2ee2e57"
+      },
+      {
+        "path": "docs/README.md",
+        "line": 9,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "autorização",
+        "contextHash": "9c34572519c0321803fa580604b60f3630312d389980b8ae73c1d44c270b28a1",
+        "regionHash": "c5819fb91ff80bcb72d5311b096f101a43ee6e6e8d323c1854b20f7061eb1a71"
+      },
+      {
+        "path": "docs/README.md",
+        "line": 26,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "validação",
+        "contextHash": "bef01e644b1148a9a9f6107c7a12f86910b2d27fc6c2bcb68184346dd2e12716",
+        "regionHash": "c6fe9d4dd463d78fd09c48a3e5e2c8e17610ae8eb5a5ae51c1b081e4b91e4de4"
+      },
+      {
+        "path": "docs/README.md",
+        "line": 27,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "execução",
+        "contextHash": "da84d41d0748c59d413615a8c745fbcac5295a00cd3092c11b2cb95b96eb2c52",
+        "regionHash": "6a4e77bd13e71b9bedad1546640ab0af009d535a231d8ea04e2ea311da1400c4"
+      },
+      {
+        "path": "docs/README.md",
+        "line": 48,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "execução",
+        "contextHash": "006a41f4f576d0a23b70443923fa06ea3d0cf81b3e3027f51ba43011dfd29ecf",
+        "regionHash": "dbe3165eb8dab2c5632a78f778b4653deff06c5fd31eb93218981325785b72ed"
+      },
+      {
+        "path": "docs/README.md",
+        "line": 50,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "execução",
+        "contextHash": "2b6c56ec3dfb77442a9d21b8f80717b8362b476e2fe8b1e548ae1ef6e9d0138a",
+        "regionHash": "7c1cf275b4960d451e6e47cacf9404043ef475ea58c0c8c07badb8e85ac5f57a"
+      },
+      {
+        "path": "docs/README.md",
+        "line": 54,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "execução",
+        "contextHash": "69cebeee1072d7303f898c8cc0dc9fcf6c8e37d9eed4685d79fc8139fc72f78d",
+        "regionHash": "be26dc2d4a24ef142051733ae7a17739a90f19d80700377069f71384ee2dd050"
+      },
+      {
+        "path": "docs/README.md",
+        "line": 57,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "implementação",
+        "contextHash": "ef7178e2136e789a3e38bdcdec820a38f12f9240e2f6343331027647a2024497",
+        "regionHash": "d1d03fc708dfd739fcf127049d513e54a6b40bbfa3c41111db9f25dc0660e570"
+      },
+      {
+        "path": "docs/README.md",
+        "line": 59,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "implementação",
+        "contextHash": "91db28a5bdefe05559655ba466ca4593d941f4afadf88d808a87e7c453960366",
+        "regionHash": "05d2161f10a40b3edf3c1728df14fe31ea12569ab4e4ac15e58a667c5514c1a6"
+      },
+      {
+        "path": "docs/README.md",
+        "line": 127,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "execução",
+        "contextHash": "3d5ae74157caec790198e106dc4e897f07d84c1beeeea9d92cf839fc24564b1c",
+        "regionHash": "3ef50daeca47f576e36c05911e914a37dd76afdbc55c7808d951e6150708a37b"
+      },
+      {
+        "path": "docs/README.md",
+        "line": 132,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "execução",
+        "contextHash": "46f857d32601f85e5b1d47827c4842e94956058366ede08a399e212e3d5a2fdc",
+        "regionHash": "9518881eb1a85868f191ec852d63f3e30b0db9550a97bb0cb94384f99b72ee40"
+      },
+      {
+        "path": "docs/README.md",
+        "line": 133,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "execução",
+        "contextHash": "c5bb7e89c491d098e91802dbefc362713aa57404fb6e9e503d6a5a549640ebf4",
+        "regionHash": "d32a5b6994eac73de3d936924a4ae5d65bb04d07a64db02e6f9efcc4b21fd2eb"
+      },
+      {
+        "path": "docs/README.md",
+        "line": 138,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "documentação",
+        "contextHash": "ad69407fd32b705bc19dfa1ee80f52d8fe1bfa2fa9ebf92876b02ae44ae710ef",
+        "regionHash": "d31e746a83ef3563fc37ef3548327a8cdbe26282b90808c81396374553c8e438"
+      },
+      {
+        "path": "prompts/foundation/Prompt-New-Project.md",
+        "line": 11,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "documentação",
+        "contextHash": "8642a4565387717b8b38553c7dfe3b301b9a26aab417e5f5a8a3ed71835a53b1",
+        "regionHash": "9f33b651c0d6b38cbe2a84332644ad158c8796840068909982864907c63fd562"
+      },
+      {
+        "path": "prompts/foundation/Prompt-New-Project.md",
+        "line": 18,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "documentação",
+        "contextHash": "147cf43eb2c92a089d2ed7439c3b2ffca926db1038c9d5e85e4d7a036dafa7a3",
+        "regionHash": "6a45ba3f313e47f4f951e2bddbc727fe7b12ac68e243bff7293a43fcf5ae61b8"
+      },
+      {
+        "path": "prompts/foundation/Prompt-New-Project.md",
+        "line": 52,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "documentação",
+        "contextHash": "3ec1ba6cb32813b682519710d18836bbb2b5c1ad8544537ddef10c32a94cd3dc",
+        "regionHash": "db18d70867a088a883134ff63e46ab1e458a86dde452b2091ef5c7c24a4703ed"
+      },
+      {
+        "path": "prompts/foundation/Prompt-New-Project.md",
+        "line": 56,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "proprietário",
+        "contextHash": "bb860de0b30e09bc18655f131a61744ac13e45ff2594cca0a2ea0f149904f84f",
+        "regionHash": "e83414dd5ecdde95ed1874883c79adebac8847f44e99c8e07e60a7ec2adecec1"
+      },
+      {
+        "path": "prompts/foundation/Prompt-New-Project.md",
+        "line": 108,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "execução",
+        "contextHash": "0dfe785c9bf4f3882b0137310f3796c274c2b731aeaaf654addbead9e73c7b22",
+        "regionHash": "fc4dcdff3df330ab97d229a7d3ab7eccb0ed9052a9c953ed4de185eda80d61c1"
+      },
+      {
+        "path": "prompts/foundation/Prompt-New-Project.md",
+        "line": 109,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "execução",
+        "contextHash": "d5c837f8dc646979fa076d84f6250a95af7b192c546d08d2835d8539c22fd055",
+        "regionHash": "adaa5dd720c9dae434f347155436a8fc4b63f7da0412c58c2b23b8fc52b6b478"
+      },
+      {
+        "path": "prompts/foundation/Prompt-New-Project.md",
+        "line": 110,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "documentação",
+        "contextHash": "3b03fbeae87d912e2ec191c2ceea1c1ee07f9655aac3b56f1198a21d520526ac",
+        "regionHash": "52be0f9d906a0a55dda453a983a5813164d41ee4b5ca8e6b0e3ab0553c528a8f"
+      },
+      {
+        "path": "prompts/foundation/Prompt-New-Project.md",
+        "line": 151,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "validação",
+        "contextHash": "7c819660ad2b0a487351f6ac9a645018452c974074a02568eb5128a0be38268c",
+        "regionHash": "aa5dd5a08e257f89faccaf9b2fdeb5f77a552b99ba25ca3ef8ec9e7fb2a12211"
+      },
+      {
+        "path": "prompts/foundation/Prompt-New-Project.md",
+        "line": 152,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "implementação",
+        "contextHash": "5a052abf4c502af08dfc128a51ff77c8dd87c201bf1da2910eeeca0099b0f10b",
+        "regionHash": "fd25fd86f09600a35f2ff3af7eda7b8e6b3f466770db087beca99c15622d8e09"
+      },
+      {
+        "path": "prompts/foundation/Prompt-New-Project.md",
+        "line": 156,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "segurança",
+        "contextHash": "532db24b60d4dc1b6a5075409e36eb4881acdc754d442da647051c7accd80a31",
+        "regionHash": "a4f2429bc13b9c819ecccf6540f5ded4ae2970b26c71bb08257ac30ac410969b"
+      },
+      {
+        "path": "prompts/foundation/Prompt-New-Project.md",
+        "line": 157,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "arquivo",
+        "contextHash": "69c8220631a66871ac59a0b27e79e14df7e018cb99e57b4681d70758ea45a6d1",
+        "regionHash": "00cf6d6e1ada325736b1901108fbdd45348c90843ac01bc7efbca5eb1d0186c8"
+      },
+      {
+        "path": "prompts/foundation/Prompt-New-Project.md",
+        "line": 178,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "implementação",
+        "contextHash": "6bde6e090913ca7b3dc424fd7c5e19d028f46f0ff31361706b0b1588195601c1",
+        "regionHash": "6249b208d5b6579fca18defa322e271e78d9f3cdec61cffdd68625dcbf764b79"
+      },
+      {
+        "path": "prompts/foundation/Prompt-New-Project.md",
+        "line": 195,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "falha",
+        "contextHash": "a3d2b44b772b6d2ed266f3c4751da1ddbaf959f9cc74432df10e47a9a3700890",
+        "regionHash": "a5aa2acb04107cc2e6efcebbbc92ab73ad860a8f595ee3efa10faa3b7846ab92"
+      },
+      {
+        "path": "prompts/foundation/Prompt-New-Project.md",
+        "line": 207,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "falha",
+        "contextHash": "f74d1d2efa3908b0215098df5b63cabf66b5d485c6b24b49ffb1a0b175925108",
+        "regionHash": "967b36f62948f6344ab84790e05b1e79ef2dc61b1e0f2da4959a5a0fcc19aafb"
+      },
+      {
+        "path": "prompts/foundation/Prompt-New-Project.md",
+        "line": 225,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "execução",
+        "contextHash": "775ef02d8c8142834efba92bcec08067ccde36c5321ff600fb6403cb4ae5930c",
+        "regionHash": "4cf01f64e52eefe5a45ce2296179c0c4e1a8b97c6bd25fd3f9ce1c35c84ec699"
+      },
+      {
+        "path": "prompts/foundation/Prompt-New-Project.md",
+        "line": 230,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "alteração",
+        "contextHash": "f68c6a8714fcd7ff68d9ad92d2937a45445cd7fc0a2f2ba3aeebc35c66bdbb6d",
+        "regionHash": "6f7ae08c41fec9f4c3414eb71b970f55a6742d873ecb21ebfb5b90a1fb7b3e41"
+      },
+      {
+        "path": "prompts/foundation/Prompt-New-Project.md",
+        "line": 236,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "validação",
+        "contextHash": "41fc2ba12274a0b1c4545e3e08862d14091311cb17a22a00aa803fe04dd6d327",
+        "regionHash": "d703d4a5cb818ec14dd2aa78e68d2c3a3bc174f692ae3de2dc00722b0baf46c8"
+      },
+      {
+        "path": "prompts/foundation/Prompt-New-Project.md",
+        "line": 249,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "execução",
+        "contextHash": "54142a3761f48a01c30c485aa748a067cddeb6daea9c535e0c48a062cbcd0169",
+        "regionHash": "f51d2b649ae85c1e21a7650fd35abb87405d512a90e2ac8931759b4a03872d98"
+      },
+      {
+        "path": "prompts/foundation/Prompt-New-Project.md",
+        "line": 282,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "proprietário",
+        "contextHash": "ef93ec71f04a7f67c444df4586e604a4509ae31e7874a5cb0d76ee9cc0469988",
+        "regionHash": "4dd3efba68faad4038f83a9b6903f972d1341f4165d9c993b9e7d8f8c0dda96f"
+      },
+      {
+        "path": "prompts/foundation/Prompt-New-Project.md",
+        "line": 289,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "implementação",
+        "contextHash": "733892e99e4acd21ea77947d40ae28d281e1d0c1464152de46353e46db4964f6",
+        "regionHash": "09fd3774105d58ce59cffca0cb73fa19ce801f95ed015daeaa05b3eff7d8bbf0"
+      },
+      {
+        "path": "prompts/foundation/RAG-Module.md",
+        "line": 28,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "autorização",
+        "contextHash": "c6e76360fa63814b551e8af5c04fb049d1719fec6e6b33fdfa07f63de33f040f",
+        "regionHash": "f665ae2d2ecdf04becaa4acf94b0dd703f1bcced75efccf24aaad6d7af6532f5"
+      },
+      {
+        "path": "prompts/foundation/RAG-Module.md",
+        "line": 123,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "arquivo",
+        "contextHash": "7acf352463caccba2bba2c107de711cae20f7fa3809f67c444613e7d52e0cee7",
+        "regionHash": "4a937dcdc0c430bd78e79e5ea6a752cd5cd1d195feabf63463ca54cd1c22aa50"
+      },
+      {
+        "path": "prompts/foundation/RAG-Module.md",
+        "line": 153,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "falha",
+        "contextHash": "a17ef40ea2675c052c23e99c57f0740aa6c4f70a01328fdcbcbd82b8c40f71a9",
+        "regionHash": "11d2d6e69d2ce3e3ab1cf46c2704e3c449f638b6414505411caa7975d19104bf"
+      },
+      {
+        "path": "prompts/foundation/RAG-Module.md",
+        "line": 287,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "implementação",
+        "contextHash": "ef1eb0a77c91a1a7e34f1f522c3d248c57c884e6190bce945343935a595f1cd0",
+        "regionHash": "b00459da1ca49eb6501b07c93ab0abcaac583bd868a9e228f21ea4dccaac092c"
+      },
+      {
+        "path": "prompts/foundation/RAG-Module.md",
+        "line": 305,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "falha",
+        "contextHash": "8e3f0643ab12cdf7b1a8a87642c352442d84b22eacf701ee0c3d6a3eb9666deb",
+        "regionHash": "e3bc975492e456e45379c9540e916bca0d3df2cc7e367baa984b214b1d633f3b"
+      },
+      {
+        "path": "prompts/foundation/RAG-Module.md",
+        "line": 342,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "falha",
+        "contextHash": "622a28c210cb23af5c374e24a5a77750b2b6a3f867bb15cff69330706bd7c57c",
+        "regionHash": "f5b1872ba6f0b2c279e3cce755734545e53625cedf8999267e6914a269664ca8"
+      },
+      {
+        "path": "prompts/foundation/RAG-Module.md",
+        "line": 356,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "falha",
+        "contextHash": "4684d0bd1eb39cf0141ca3464b992a551a4b71f2095b017b8de5f3febe6b5128",
+        "regionHash": "0eed31bce3b566c46e4a27f4f6711d41fd44ec5c03ffc27ec0328fb07f5ccafc"
+      },
+      {
+        "path": "prompts/foundation/RAG-Module.md",
+        "line": 359,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "implementação",
+        "contextHash": "bc0cdc43ff231ccbfdcd0e2e21e6c3812f0b354fa30611d80fd61155bed5cd87",
+        "regionHash": "4be1407f2c3ce6c39d7b1be772279f3fc4c88792c268742f7fb6d03f89617f7d"
+      },
+      {
+        "path": "prompts/foundation/RAG-Module.md",
+        "line": 383,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "autorização",
+        "contextHash": "d99bc297f629d51de8d13d89f58cc53b2a72ae0a6f64d4bb9d0f3a48dc3af23d",
+        "regionHash": "474434a6d304168c881ee5723c933f96ae626ad90d428cb4818700a3070df286"
+      },
+      {
+        "path": "prompts/foundation/RAG-Module.md",
+        "line": 388,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "arquivo",
+        "contextHash": "47c918a4fc89948b8feab398d8e31d6f19868cf73d62b22cd7e7c1ec1e68117f",
+        "regionHash": "e247a3b73d58df584ebd31ffab9575df1f9bb7df714b7e1a4a3fdc2eb60d286e"
+      },
+      {
+        "path": "prompts/foundation/RAG-Module.md",
+        "line": 400,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "implementação",
+        "contextHash": "616e300bfe9d83f40ee24db221f4de4ab5dd7ebf1a5fdbd597ba8b85be02daca",
+        "regionHash": "a87547fb322ef12b0ed92fbaac20e413d726d79eed4c8913642398ac2b289d48"
+      },
+      {
+        "path": "prompts/foundation/RAG-Module.md",
+        "line": 411,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "validação",
+        "contextHash": "38692de156daa54bed881ae3095bfac6542d22e33912e5d4a0db9d299668908f",
+        "regionHash": "406a5adf4f7361e550f8ccbc76be8794cd31f02a1ad05713b52dc8b2fd125cd7"
+      },
+      {
+        "path": "prompts/foundation/RAG-Module.md",
+        "line": 433,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "falha",
+        "contextHash": "fa1b1b91335a92c6a5d083157a2a05859a52e6218e2d5180d6981dec08048de5",
+        "regionHash": "9ea3d38f58770a49e44d5921516643c1cb9997f0a8fecd2235628d94a63e5823"
+      },
+      {
+        "path": "prompts/foundation/RAG-Module.md",
+        "line": 438,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "autorização",
+        "contextHash": "7e57a1561b83fc58f57d3c77111ed561e02cb309bf29b22ad0d683330b4acfaa",
+        "regionHash": "06636e201b061b2eec7259d1caf47a672f55874c8872a9556fd80e413bc5d188"
+      },
+      {
+        "path": "prompts/foundation/RAG-Module.md",
+        "line": 446,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "validação",
+        "contextHash": "42ab514b3ca343a981e92c80a07bd5638cc5156154f62969345adea84df054ec",
+        "regionHash": "115d9b8b0cba1014f1aa58ad5cef467406d8c012c202be5c6535c4c226785aac"
+      },
+      {
+        "path": "prompts/foundation/RAG-Module.md",
+        "line": 468,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "falha",
+        "contextHash": "41115693693ebbb9a4d2480519d195948cc7bd651eea38e0b4a8a7034c51b285",
+        "regionHash": "8129b48dbd76e434f1e1c8f323f11066f200cbbbb2d1fd9e7eecc0e508a61240"
+      },
+      {
+        "path": "prompts/foundation/RAG-Module.md",
+        "line": 474,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "falha",
+        "contextHash": "bb44e8ea2ca78fc35e9a4662269e195f6297955e40477434159bb95c74161b89",
+        "regionHash": "17b0ed710ed535ee25086838f9efeee20b7571d9378deb435922557946d65505"
+      },
+      {
+        "path": "prompts/foundation/RAG-Module.md",
+        "line": 590,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "validação",
+        "contextHash": "1594771c803e578ac89afcc56cfa5feca2462212648942500b44acf22f26cac0",
+        "regionHash": "aa41ddbb6f4e904d2a655f519081281fb3758e13043a4ce23c23ad7a68dcd0c6"
+      },
+      {
+        "path": "prompts/foundation/RAG-Module.md",
+        "line": 602,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "autorização",
+        "contextHash": "45cb9a8660c55d0bae7605b9237a3f3c640159d187c40dcd4d793519bdebbae3",
+        "regionHash": "4306b89f6bfe532cba0b5abbb438cb87a6e5dfcd2aa7fc39530ff70431abd74e"
+      },
+      {
+        "path": "prompts/foundation/RAG-Module.md",
+        "line": 621,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "validação",
+        "contextHash": "9f7d9b79410e201e8df09e87036193c631b78bbfee52223742aa5a82b31b1a3f",
+        "regionHash": "93f5f8b391e1c155ed90bf410b00c1d5610e4f471ce845afab37e75515af3691"
+      },
+      {
+        "path": "prompts/foundation/RAG-Module.md",
+        "line": 635,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "arquivo",
+        "contextHash": "579f2993c8615fbbfbf7bcc189aecb1ae47c8ebfbecfab7c88a633ae8e049c36",
+        "regionHash": "e2bb55d86974ce4baa05882fa1a0da1630f1c05ac43ef0b248beaeb1a218a32e"
+      },
+      {
+        "path": "prompts/foundation/RAG-Module.md",
+        "line": 676,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "falha",
+        "contextHash": "09b47b191952f47c2c5929ef17cb46a48fd4184374f5ece1bb97f80e16f917b0",
+        "regionHash": "9f5388cdb6a0c00d42b9c8c8648c8307b6fd61c39c0d492e5aab1e7d74062ae1"
+      },
+      {
+        "path": "prompts/foundation/RAG-Module.md",
+        "line": 710,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "falha",
+        "contextHash": "8f8152e8b5fb40646a9b3d0431fc16153ad04e26af26a6599c7f0976f4ad485f",
+        "regionHash": "3e1dd827ab4494bf9b76e7b346bc16da9f2865db745506f61338ff72d30ac3a9"
+      },
+      {
+        "path": "prompts/foundation/RAG-Module.md",
+        "line": 759,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "falha",
+        "contextHash": "24ac7fe29b27a91a61fdaa29b503368f7fd157ed7502a5d88644682b9d86cef2",
+        "regionHash": "91a3bcb6592df35d12ff9ac651a5c5c60c8fc5710e17b36804af71561ffba1ab"
+      },
+      {
+        "path": "prompts/foundation/RAG-Module.md",
+        "line": 767,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "segurança",
+        "contextHash": "fa2cf58b3a071f515389b9780be364635a06c117dd6b9f12b8c0e8630609485e",
+        "regionHash": "c6da87c40028e9798651395483c302ec7d88176b24608f195deffb4314314634"
+      },
+      {
+        "path": "prompts/foundation/RAG-Module.md",
+        "line": 779,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "validação",
+        "contextHash": "e19e212d58b165419f3b5463ab571626af83a813312f2ab6f5ce260e5e1c8766",
+        "regionHash": "5f32663a8b22bc85b568661114a948269366f0dbad7013201062b886b6c3d199"
+      },
+      {
+        "path": "prompts/foundation/RAG-Module.md",
+        "line": 798,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "segurança",
+        "contextHash": "45cff113731c16010dcc16d8c8ef667284a7ac985da9fde7467c95b086685883",
+        "regionHash": "26f7e2866d498e5555ba1597f407250a04132ec468d87c882721e8ae4cc8ebfd"
+      },
+      {
+        "path": "prompts/foundation/RAG-Module.md",
+        "line": 814,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "falha",
+        "contextHash": "e32bba06f207a5499071a60b31cc4674bbd37d9bb91cc618c798265dd3e48769",
+        "regionHash": "fa4c9d4fe0497c74dc7c33042c118a7ac5d14786204bd6fafdc358dd308087f1"
+      },
+      {
+        "path": "prompts/foundation/RAG-Module.md",
+        "line": 823,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "falha",
+        "contextHash": "6d767463483e7e34075769a7da913eb96add652a0d4b0325c2cd22025ff67145",
+        "regionHash": "338cee5c4cda2d387cb2fff262300a12fe979a9909f8e781ef2ae8bee329a51c"
+      },
+      {
+        "path": "prompts/foundation/RAG-Module.md",
+        "line": 825,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "falha",
+        "contextHash": "113b04b88b2b746812b724100530f8c3b810d10791c65da259d47047b8045df7",
+        "regionHash": "728367837e3ba1011239c1977db84ea4c057403fd3a817cc96d6c7f1e86b9da8"
+      },
+      {
+        "path": "prompts/foundation/RAG-Module.md",
+        "line": 844,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "execução",
+        "contextHash": "fab93f0f7b6fb65072390eea0fccebc432dbdb54e4ec30d8971778a5381eb7d0",
+        "regionHash": "1563bed5d10d2d9e8747ea8489961537f3a49abe95f0357ad562cd13ca2841e0"
+      },
+      {
+        "path": "prompts/foundation/RAG-Module.md",
+        "line": 851,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "autorização",
+        "contextHash": "4ebff7fe22cfe2db3aabcd9ec6a2b28c0ab896a7a28880a078417a54513a90bc",
+        "regionHash": "abecfccaf470f953e90f7b3ce3c333c21a4da411d68173d417a08673d0fc418c"
+      },
+      {
+        "path": "prompts/foundation/RAG-Module.md",
+        "line": 857,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "implementação",
+        "contextHash": "b8c5a0a2b1810e62eaaf0877580771adff337987077f45830c9e723db93c5c76",
+        "regionHash": "9490d2f195b748bb842b9defe4f45a17027f51657d5bc50c1cee251e17667e8f"
+      },
+      {
+        "path": "prompts/foundation/Solution-Architecture-Document.md",
+        "line": 11,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "implementação",
+        "contextHash": "d13e3b051b730278d4f0a36f777835f735e5dd89d8caf7d71edb3601b0bbc2f0",
+        "regionHash": "83d5862407bd5e5342e94320c2c2157a81477015b757efea87aeeb2880d02902"
+      },
+      {
+        "path": "prompts/foundation/Solution-Architecture-Document.md",
+        "line": 33,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "falha",
+        "contextHash": "84d401805509a0c0f73cf12018f9c49726cbb9782febf788bdaf3a6121ec9333",
+        "regionHash": "e101435ba79539662d4cbda7e26898333c947b137db7b0406459076819390106"
+      },
+      {
+        "path": "prompts/foundation/Solution-Architecture-Document.md",
+        "line": 92,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "validação",
+        "contextHash": "85b46e75c2f9e172f2867cd950499fd3ce13744456a7961ba9759f8db593bcf7",
+        "regionHash": "e240f9794a4c63ec8ee26d8d2a903230d13dc5941ca130f1be0b6cc25fb5aa99"
+      },
+      {
+        "path": "prompts/foundation/Solution-Architecture-Document.md",
+        "line": 147,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "arquivo",
+        "contextHash": "5b12925ee390aa4a59a1475aa024c240ef733eb1f9fcacae9c9c241485faab75",
+        "regionHash": "99aedd00f6d1ed2c9f4516d5e25a06acf4a5eff6aab36a6f750dce893a0aad28"
+      },
+      {
+        "path": "prompts/foundation/Solution-Architecture-Document.md",
+        "line": 190,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "arquivo",
+        "contextHash": "4c5ef289111c3ff381facb348aaf6c45e855cd7948a0f0d825f17e28ac174070",
+        "regionHash": "74ab9d5636e364db3d44b43338c493ed2672d241bcfb5e969b3880b0b36524a3"
+      },
+      {
+        "path": "prompts/foundation/Solution-Architecture-Document.md",
+        "line": 254,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "implementação",
+        "contextHash": "e2df283e8c1f1912435da9365bb158684dfb4c0faffeaa0a3076d3fb037b492f",
+        "regionHash": "28ac66961799ab97c03c361c5c65d7349ee2de0ca00846b29cc8ee65583c428f"
+      },
+      {
+        "path": "prompts/foundation/Solution-Architecture-Document.md",
+        "line": 268,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "implementação",
+        "contextHash": "c8677834be986e8f75a7d55ac6494a0aef8d0bcc34a028ab906c2ac0ffe38214",
+        "regionHash": "b544b4cff8b9412e2355b10ef43e0fa8ba779f6c22c1d6d2945d78e30afce8d5"
+      },
+      {
+        "path": "prompts/foundation/Solution-Architecture-Document.md",
+        "line": 295,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "implementação",
+        "contextHash": "0ce42357785701dbd189895a7e7da0297292924efbec6519d1a557df91201fa1",
+        "regionHash": "2deea1e90f59f506c8eef4bb5415af78d8d1bceb19c248cb540842d7668f7d26"
+      },
+      {
+        "path": "prompts/foundation/Solution-Architecture-Document.md",
+        "line": 333,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "teste",
+        "contextHash": "cf6dc2e404a4b3d9326a810763264c13ceb612d76228db7a4e88dd51b64fe950",
+        "regionHash": "adf0383b8b5b365c7b06c8ab1e35c717f4ce37ea22a5da3a86ad6c38a0bf0905"
+      },
+      {
+        "path": "prompts/foundation/Solution-Architecture-Document.md",
+        "line": 335,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "implementação",
+        "contextHash": "b63c281fb95f2d3df683ed2643490636bc0c5b79718ee13af463c2d11887e65a",
+        "regionHash": "0b916cad44148ab154adfea6d398900c41a3cbf6744936723971a0241d935e9b"
+      },
+      {
+        "path": "prompts/foundation/Solution-Architecture-Document.md",
+        "line": 363,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "implementação",
+        "contextHash": "b60bcdbebe2908b42acb6ab1643cc698caa9e504bdf3cc1aea79c00ff9bd9141",
+        "regionHash": "c642186d8adaa169a3b6053fe14887e204ac3d7a0f74749e5fb3cdb39a50f98c"
+      },
+      {
+        "path": "prompts/foundation/Solution-Architecture-Document.md",
+        "line": 378,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "falha",
+        "contextHash": "05a0c0fcf3146a7afed078ac118cf529552e65b8b270037e01daf6a76b38120b",
+        "regionHash": "74f3e404fda1d663d7f2db4a6f65587d47cb694b41b98492f070c68c03431e82"
+      },
+      {
+        "path": "prompts/foundation/Solution-Architecture-Document.md",
+        "line": 429,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "falha",
+        "contextHash": "400bd795dbf87e0d4064e6dd0ff7f8374e114176489f73e2d0c35a200febf11c",
+        "regionHash": "e0ba4233690c2592a8937f1bdf2a9938c3c45a8b7d576c249563397374b9fb9e"
+      },
+      {
+        "path": "prompts/foundation/Solution-Architecture-Document.md",
+        "line": 502,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "falha",
+        "contextHash": "7912e5c103c46e8e170480b780a9c77e9ca7f2db9af139cda1ec228bb9c31b25",
+        "regionHash": "b8c87da7846fba2754fd4de3cb5f26c61db36126392d6ec612d43a1632aaaae6"
+      },
+      {
+        "path": "prompts/foundation/Solution-Architecture-Document.md",
+        "line": 522,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "falha",
+        "contextHash": "700c64bd3b1e6a47c9d0f62ae4b52c41a0dd9b781f24949a59e1f6acff943012",
+        "regionHash": "ac49e100d90cb3342f73bce98113eebde3199856d6176b40948a16c7056829f0"
+      },
+      {
+        "path": "prompts/foundation/Solution-Architecture-Document.md",
+        "line": 559,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "validação",
+        "contextHash": "07a8b4e12821605920ddd464911f72e0479252e0e6abbbb44915f5260072049c",
+        "regionHash": "26ec8ec4a4a7d311c9345c59c55a37dee2d2a2a0571e680da267a9d0ab456fa9"
+      },
+      {
+        "path": "prompts/foundation/Solution-Architecture-Document.md",
+        "line": 570,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "autorização",
+        "contextHash": "85bd415c3bfb491c69404ec6a275ad0026b39d3447c4ebb44fba85f9196a479c",
+        "regionHash": "2d41ba3f2077c27b456be6d347be4bf05d49a5ddb1c0e6691a8ba1135fdc6a72"
+      },
+      {
+        "path": "prompts/foundation/Solution-Architecture-Document.md",
+        "line": 603,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "documentação",
+        "contextHash": "e8b73ee768a9d578cc662d984b8ff4f6a5eee52a2b31143e2efeddb8e84c7cfe",
+        "regionHash": "7438a5fca1db277e8ad12c180dbfe22d458010d9abfbc565ba0ed1d0e7c4d02a"
+      },
+      {
+        "path": "prompts/governance/Lifecycle.md",
+        "line": 16,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "proprietário",
+        "contextHash": "424cb1d9d01bea762e4b0ea8cae3a2d15a6bc3209450a5b81701c74cd6dae739",
+        "regionHash": "75abfd0c3176d2597aef6edd146b7a1658cf066cff39a9ba3494af6e5bf0a8c9"
+      },
+      {
+        "path": "prompts/governance/Lifecycle.md",
+        "line": 35,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "implementação",
+        "contextHash": "a448f772b4c3bdab5529a9f270489d3159ade85a8816e3c170b1a83158fca73a",
+        "regionHash": "6aaf908308e12a479bff1f985d5ed2b83283ab9e82dbff9a1d153bd2420f4498"
+      },
+      {
+        "path": "prompts/governance/Lifecycle.md",
+        "line": 51,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "autorização",
+        "contextHash": "5d70624aa145a81611a29dc4a37294b5bd9f429524aaec22c35d4fcb2a6e20f9",
+        "regionHash": "ebd56c0e9143c4e5d14b9dd8398d8f0431068b9308e0f60dbc8a392b90e23621"
+      },
+      {
+        "path": "prompts/governance/Lifecycle.md",
+        "line": 62,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "documentação",
+        "contextHash": "622d82436c41fa6e12626d49ad0b3105cf9eded5fd19640e9fd3d7154f05baba",
+        "regionHash": "7afcfe4b1ba2f592284da4d14b42e7ae9191b42fa1fb44fdce201fc79c128f1c"
+      },
+      {
+        "path": "prompts/governance/Lifecycle.md",
+        "line": 69,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "falha",
+        "contextHash": "864b1284a257df66340a6524cffcd8dc118b79af72369d186d82f569d207f1ed",
+        "regionHash": "b8b5f3dc102fe0d86eede1398044e7f1e99f78ef8d74c9bc6bd22530391a05ca"
+      },
+      {
+        "path": "prompts/governance/Lifecycle.md",
+        "line": 76,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "segurança",
+        "contextHash": "280f958844d329881d4dc39f29395cec803a6ddf6c7027e9139708d33666ecd9",
+        "regionHash": "05a430355e4fb2d8344172398324488f74cfffc4ddb2381180d457a7e06dbff5"
+      },
+      {
+        "path": "prompts/governance/Lifecycle.md",
+        "line": 106,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "segurança",
+        "contextHash": "671d9e4d43e368a1d1c7bdf56f70b122700d4d5bcff7637adf7b34604954a42e",
+        "regionHash": "98944283a8e2d206b8a6dbcd6660c8f57897df43e8e38c95ef59f6dbbfb2bc30"
+      },
+      {
+        "path": "prompts/governance/Lifecycle.md",
+        "line": 145,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "falha",
+        "contextHash": "d6ea46a3807d8bf96c7e6437c0805718fd76e218224f0b8270ac340975543698",
+        "regionHash": "c8a7df6bb305c22267622306e9ab05a67394d7905f0064b2561f5bfbc626d80b"
+      },
+      {
+        "path": "prompts/governance/Lifecycle.md",
+        "line": 167,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "validação",
+        "contextHash": "4c0353e76d4866baf31f104a3ea07a38f30a0bdbe6a903d944e77cd1a7016965",
+        "regionHash": "3714866d43eb94ae46b045af3bab849dc8dc74497980dda07a771dde453d8d32"
+      },
+      {
+        "path": "prompts/governance/Lifecycle.md",
+        "line": 182,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "falha",
+        "contextHash": "0390238570d012fd482649886f517e8bd1c562aa99492578c54b778ba6eba29d",
+        "regionHash": "a7f98b986f9bf758e2a379689469c0242eb1f7d60c83c03a4ea5589f1bb02f1d"
+      },
+      {
+        "path": "prompts/governance/Lifecycle.md",
+        "line": 214,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "autorização",
+        "contextHash": "4b6705ce5a7d5abae3ae31add58e880807c54bb2e643b45a065b226fbf3ba229",
+        "regionHash": "4ddc81f64b8545d48e5a34ebb1f2f446b12000e4db549b3061bedde180c9fddd"
+      },
+      {
+        "path": "prompts/governance/Lifecycle.md",
+        "line": 258,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "segurança",
+        "contextHash": "ab3f7f5909e6b42fa07e2ff27099cab2f15da65cec8ef967cb0e5f0ef0ff1480",
+        "regionHash": "def1c8afb41ff2d3e6ead83639f847c5a85298120c15bbc4e7c27e343e1ccf03"
+      },
+      {
+        "path": "prompts/governance/Lifecycle.md",
+        "line": 288,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "falha",
+        "contextHash": "b8653953c449b17df13ab2725017e94ada5e08af8ef156eb7768f7d8594120fc",
+        "regionHash": "4edb612fac45542225a14a8e510a8a1a2e52d85548f3f674103a1855d6118c34"
+      },
+      {
+        "path": "prompts/governance/Lifecycle.md",
+        "line": 331,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "implementação",
+        "contextHash": "19490c2aeb6f275ff46e9e4f5420f18306de177a6e609146702a946ebd680aea",
+        "regionHash": "1d955491ac69b11cbf757be00682697cebefffc4f2c0d4e10b5aff8cd758b192"
+      },
+      {
+        "path": "prompts/governance/Lifecycle.md",
+        "line": 357,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "execução",
+        "contextHash": "0055fff6b2dac6bcd9a0fea02a598a70b8a4c94392d116ad7cd89be91590297a",
+        "regionHash": "a0000f1926926c698ad84750e82870ec7a6705fd02d5f40b95369d78c79c47a1"
+      },
+      {
+        "path": "prompts/governance/Lifecycle.md",
+        "line": 360,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "execução",
+        "contextHash": "0cf06bab80a21d5c6fc1fa100a4723decc457172e0dfcd416df567e86a0e39a0",
+        "regionHash": "5ac86f656c56f0b9fa9ffa305dad02e5e3a22926d48a8b3b9f02c329d1db311f"
+      },
+      {
+        "path": "prompts/governance/Lifecycle.md",
+        "line": 377,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "segurança",
+        "contextHash": "5538b659dfc89c5d94875fa8e83cf83dbaebec70065beb5510122cb5ac38dd3c",
+        "regionHash": "225871db1410f170d8ae45c461a931283426584ed2f859a94405bb3a71cec620"
+      },
+      {
+        "path": "prompts/governance/Lifecycle.md",
+        "line": 381,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "segurança",
+        "contextHash": "094b3e4acee9c7f230333dafeae6f2ab16b71da5d331552ba500c4e60b8b5227",
+        "regionHash": "6a6017ab7210d147036f0df9badf9474f28047708eeb79c3b08ac0f05567ddb5"
+      },
+      {
+        "path": "prompts/governance/Lifecycle.md",
+        "line": 385,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "implementação",
+        "contextHash": "77b6d6a58589c63272d66a535ea899d1637b7f97d339372712db1319bd21e884",
+        "regionHash": "cf324784ae30369045fdc6f58762827ec5d16df03075e839591f820aa8206123"
+      },
+      {
+        "path": "prompts/governance/Security-And-Access.md",
+        "line": 1,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "segurança",
+        "contextHash": "7d5788af7da933dd9858d32dc0baa5132b1b9eb2bfacdc9645d9fa5ebb6b57bd",
+        "regionHash": "87536d124efb42af29c4df793b1ba30f03526af9742502ecda68d354db960491"
+      },
+      {
+        "path": "prompts/governance/Security-And-Access.md",
+        "line": 30,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "autorização",
+        "contextHash": "8104dd556707053a9e331f6af9d0b5103bdf402739c44b92e73bf3db1c65d5be",
+        "regionHash": "765389857333f3921523beb112bb33ca49307d3c80fe0ba8ad5a14515a60bdec"
+      },
+      {
+        "path": "prompts/governance/Security-And-Access.md",
+        "line": 64,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "autorização",
+        "contextHash": "664cdec3217bc55b5480452bd5bbed5b41d5b96b841d94e7a43a4ac0fadd6990",
+        "regionHash": "d9767712b26c75217480ccdc219ddbdb50740e10b92061c97eedda10b4251858"
+      },
+      {
+        "path": "prompts/governance/Security-And-Access.md",
+        "line": 153,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "alteração",
+        "contextHash": "34d4aa4496e4981d6fcf7f6e974e89615c2222f6b1dcb82e7cd92f3f5736c028",
+        "regionHash": "9fc909bb663e1ae98bc32e2f706382d6cee9528411a5ae4541bda3de97dda3d4"
+      },
+      {
+        "path": "prompts/governance/Security-And-Access.md",
+        "line": 154,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "validação",
+        "contextHash": "c313949da6b328d93b394e73b1d53009c71120b28bfda122af441e43bcdeeb38",
+        "regionHash": "9f9b4d71fc4ac03fcb3ad3e92eb831e9b4f979b6635639515b3afcdcef6c3219"
+      },
+      {
+        "path": "prompts/governance/Security-And-Access.md",
+        "line": 184,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "validação",
+        "contextHash": "59507c5d1a02fe350aad1af057852c0d921f63bc0a7b5e46436e78b7edb2986c",
+        "regionHash": "e13d89334b30a60797a648ed83fe308e3c25aa0fac8c9e40e13dfdb418db74de"
+      },
+      {
+        "path": "prompts/governance/Security-And-Access.md",
+        "line": 185,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "alteração",
+        "contextHash": "202157b806fc4c54e9fa69cdc6b64a73e33d55376386a6f3384624b788003f95",
+        "regionHash": "5e0bd901caa9a70c9cd78f691bd9c3187007fbba458c3e42b5bc1b5a2c7cc9a5"
+      },
+      {
+        "path": "prompts/governance/Security-And-Access.md",
+        "line": 204,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "autorização",
+        "contextHash": "e67046f25357b1439c495d770407173366400525eb305c1dabbabc37813ec016",
+        "regionHash": "0a3727888a6dc85f22b0a14b7fc1d4ca2b08e9ce6c57c641204c939b1d1d449f"
+      },
+      {
+        "path": "prompts/governance/Security-And-Access.md",
+        "line": 219,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "comportamento",
+        "contextHash": "a0cd37f707f3cf0c6f44630b8089228873941a39c00b3585014480ad3c32705a",
+        "regionHash": "25b84fb2885e320ccc8d41fca6c534e7a02659409a71a152b96f4470778c64a2"
+      },
+      {
+        "path": "prompts/governance/Security-And-Access.md",
+        "line": 228,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "validação",
+        "contextHash": "979e826616233ce90568af97930a032686a0909a5f358c7527d33ff9fe92d33a",
+        "regionHash": "ccffa86d651a7fa362f2c3c648ea394c41027ea5250d7588168ffb7da95eceff"
+      },
+      {
+        "path": "prompts/governance/Security-And-Access.md",
+        "line": 229,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "falha",
+        "contextHash": "c0998e13939bbae63e5c360d7dc032653758bdbb79cfb003b76bdd8572f17d6d",
+        "regionHash": "06b81084cdf2cec016d2fc14cbb86133d5c00f0d23832625c48ec249fafcce02"
+      },
+      {
+        "path": "prompts/governance/Security-And-Access.md",
+        "line": 254,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "execução",
+        "contextHash": "a6d8ec781b959a4cb3e2b9d0061fb046288c1eab86cdbf707b6c8d69ce18911b",
+        "regionHash": "9b2998271617b325874bb4dc87287bd7cdf14db270452f0e670a049a96ad5f93"
+      },
+      {
+        "path": "prompts/governance/Security-And-Access.md",
+        "line": 268,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "autorização",
+        "contextHash": "3da423dc90e668c2585f0c5850b594086ff617f15a13d3283689b03aeb8ce2f0",
+        "regionHash": "b324d42209f10d62f25c7642936e86b2377db156369377c2c21da96610bd9f59"
+      },
+      {
+        "path": "prompts/governance/Security-And-Access.md",
+        "line": 271,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "arquivo",
+        "contextHash": "22b572f8ed526bfad2499f9c8ad802632c92f2d97e6c439ddef695ae2ade07b5",
+        "regionHash": "e616d90999e07c13ef3abcfa40af9b515baa70eae605509d931b187107d3fb80"
+      },
+      {
+        "path": "prompts/governance/Security-And-Access.md",
+        "line": 300,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "execução",
+        "contextHash": "8fb4caf40f1b961a77c80015f6a17f13fd9f7ded6d2be61d1feea40f81318972",
+        "regionHash": "7855c0acf09d64950d5db4841350d21f443326a62935c5dfe4e4279168ac4fd5"
+      },
+      {
+        "path": "prompts/governance/Security-And-Access.md",
+        "line": 329,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "validação",
+        "contextHash": "fe4bfb9041b18d9bed91d81336b1d70bb4d41cc272808c73fe08c79d786f8d7c",
+        "regionHash": "140675e9c4dd0e2ffcc500c80c75aaf13cb4c073c19a442234be41aa8e5bce6a"
+      },
+      {
+        "path": "prompts/governance/Security-And-Access.md",
+        "line": 331,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "validação",
+        "contextHash": "56c316b859266fa2d15ad9cde0cd8a852b1d6ffdece39c02d1f9a86199500d25",
+        "regionHash": "414255395f0736ed9e02a831b195081874fdb8678d152cd1f89cc9506ea620ad"
+      },
+      {
+        "path": "prompts/governance/Security-And-Access.md",
+        "line": 335,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "falha",
+        "contextHash": "0e50e6f6f9bfc441e915e8388f7fc44c765e0d8922ef07e7e1f6d2dab8d94956",
+        "regionHash": "cdf9405e18d0a79f8b26bea2453b1347871d3f4ee2c09bd2e25f1b512996ed49"
+      },
+      {
+        "path": "prompts/governance/Security-And-Access.md",
+        "line": 339,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "validação",
+        "contextHash": "4a6894f34d93710f2a2c38a3cf49b6b2da54b7b604043b386afe9c4bb11cb55f",
+        "regionHash": "dc43b2d932e9e0c5cc00a867feefc31ad42ec7f4642413ac3cc08d570683c673"
+      },
+      {
+        "path": "prompts/governance/Security-And-Access.md",
+        "line": 343,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "validação",
+        "contextHash": "7a2f60b081e1ea3f7ccc7205ade3da8a06d7dcceb3bdcdc6a66f1fc51799a8e9",
+        "regionHash": "6fe44e885ddb030b9682e7fde9c02fb4e964df7f722425559f995a6076da07ef"
+      },
+      {
+        "path": "prompts/governance/Security-And-Access.md",
+        "line": 349,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "teste",
+        "contextHash": "1cb4ebb1bebc02eaae434fa6231682a8652435a2ac17e15facc2c8b45350f094",
+        "regionHash": "20a87a622130c71515b9eb1a76639ff79da9fc54f7765692f820532fa3199781"
+      },
+      {
+        "path": "prompts/governance/Security-And-Access.md",
+        "line": 350,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "autorização",
+        "contextHash": "d75df4e3dca01a20491be9c549b177a16c796f0764e8a209e0622ede512bda04",
+        "regionHash": "0772cf010083e8e2b3d7f8f1a020e54364d5e0c8cfeb5cf70f11373440ee3c12"
+      },
+      {
+        "path": "prompts/governance/Security-And-Access.md",
+        "line": 367,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "falha",
+        "contextHash": "6cc16e727ee289d054763a094beb0d4362fbef4f1d8ce86bb30d771e63862540",
+        "regionHash": "40d5ab88d7eb283c5fe36c283fdf1bcb391f4bd7316b5af10a8929f19ea88684"
+      },
+      {
+        "path": "prompts/governance/Security-And-Access.md",
+        "line": 386,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "falha",
+        "contextHash": "9fdbaff278c1c688961cde6e5c50feccf014b31895e93ae44a2d95b059659d48",
+        "regionHash": "9facf6f2b877a072c3923783480e4cd76ac2fdf393e37ea4fc32df6534cb9cf2"
+      },
+      {
+        "path": "prompts/governance/Security-And-Access.md",
+        "line": 407,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "autorização",
+        "contextHash": "51c366ea363baa17747a0a71e39a6d996343c2df96e636d7e69c3c3ee6cab266",
+        "regionHash": "31a5bec0e5b33d79c7a1e9621b136b2b3137b3cfdcc0ab1ded7a37b0626535df"
+      },
+      {
+        "path": "prompts/governance/Security-And-Access.md",
+        "line": 420,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "falha",
+        "contextHash": "9b0c280c36b32b94c53a1292dd47b596c4ce3041fe321451ddb69debb9fb584f",
+        "regionHash": "5df541c58e9795f6680e010178bc1c71e5c754cf12e4702f634216e8c078ae5e"
+      },
+      {
+        "path": "prompts/governance/Security-And-Access.md",
+        "line": 430,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "falha",
+        "contextHash": "e97c34cb08b5a14b5e4ecb89291491dc691208b74a1ac8dfe5a692c42f35376e",
+        "regionHash": "4b7b73fa50d7e8668fb4bde6985a894f2d072265c4cb3cd4053c60fc41b7cb48"
+      },
+      {
+        "path": "prompts/governance/Security-And-Access.md",
+        "line": 433,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "alteração",
+        "contextHash": "5934e8182e4c69edaad6a78f8acadb401eee3b509447d561c6168574a4e43468",
+        "regionHash": "c9a4e198e3f67fc8f59d6d86f159437e71169bed1b742f0cc0d694a68db42aef"
+      },
+      {
+        "path": "prompts/governance/Security-And-Access.md",
+        "line": 443,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "falha",
+        "contextHash": "5009b33a26a0279918b2f6a29bde26765a885d8f6a19cd1d6c3f0e734d497fb8",
+        "regionHash": "441469c605fae3d132fc59d21bb371759e1ffd1bb78382bd89c5a686acf2056d"
+      },
+      {
+        "path": "prompts/governance/Security-And-Access.md",
+        "line": 447,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "segurança",
+        "contextHash": "4b9a769114a4d0fbc47d0ab093ebad573e29a1474ec3e6f78d62d2ace1fbc621",
+        "regionHash": "fe37aec2127fe438b39931a84f6b3c815e58e6803a402f363b9d45fb15462a42"
+      },
+      {
+        "path": "prompts/governance/Security-And-Access.md",
+        "line": 478,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "falha",
+        "contextHash": "e4bbfd8929d33dea860e2cdfa3473245940548b208af2f6e85a5315e34ecd0f3",
+        "regionHash": "a73a1bd6b12d1bd8d9758dc745694db0fbbe79b57f29e7249e75b9fefad24bc3"
+      },
+      {
+        "path": "prompts/governance/Security-And-Access.md",
+        "line": 481,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "validação",
+        "contextHash": "cd80f293f96cd534245aafb8354eb493b6652ca58d74063d60b86d49c43b6592",
+        "regionHash": "e9d2cc4dd6c7966cff283158a349b27a8dcfe4a5a61e9c8469d49b6810cb2266"
+      },
+      {
+        "path": "prompts/governance/Security-And-Access.md",
+        "line": 488,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "falha",
+        "contextHash": "ddd897cce132c57b284e934e1297d4acb2f3827cc178987f3df490ea6e1744c2",
+        "regionHash": "8fc286a681060bd86aefa6fa0161858fb02eb85eb0d92a97ac187c228a868d71"
+      },
+      {
+        "path": "prompts/state/Current-State.md",
+        "line": 10,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "validação",
+        "contextHash": "0aaac8d84fe4637af077936faa82b11dcbf6731eef59153e008ddc74768213a0",
+        "regionHash": "68af00a53d11e76fc65306b6902fb262dada6b09b2bc10c871101478ff46de1c"
+      },
+      {
+        "path": "prompts/state/Current-State.md",
+        "line": 16,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "teste",
+        "contextHash": "018325a903b1f2f44aeea54c9c9d63e052dff334622255e334b3e40ab16eb759",
+        "regionHash": "ead8d3835e91f3503431fe74be1896d24fcd49785c22015c82cbd4eacac9d27d"
+      },
+      {
+        "path": "prompts/state/Current-State.md",
+        "line": 22,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "proprietário",
+        "contextHash": "f60caf510305a695e396597dbe9096e5844988dddf9e93aa70f0a9daa9f37122",
+        "regionHash": "7487aa7c1a264a36bb4e7ac7c7607b9a80137a75c9ab27a4903a71d932704233"
+      },
+      {
+        "path": "prompts/state/Current-State.md",
+        "line": 30,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "proprietário",
+        "contextHash": "15577f7690f5c9feffc790de8db133e5005f0f831ae93c257c4fb263ead331dc",
+        "regionHash": "3cf626365c6a7e9316667eb386f316c3356394ab5e0670f724f8d6b043657e7e"
+      },
+      {
+        "path": "prompts/state/Current-State.md",
+        "line": 45,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "proprietário",
+        "contextHash": "7a8e89b450a5504c20f2ae35b43c6569f8e88f202a28f3314fdd22f66bec4996",
+        "regionHash": "a1225cf5504002b7db5134ecb420bf2e814daae5422b21adf7cdf91d4fa6f76d"
+      },
+      {
+        "path": "prompts/state/Current-State.md",
+        "line": 52,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "proprietário",
+        "contextHash": "a42d4dfcaddf3ffc38065d631adab56e00d0541627c03497c3075af4ef254694",
+        "regionHash": "558ef4547691498222227f62413350059e42944f92ba721d4f2a9adcd499fa8d"
+      },
+      {
+        "path": "prompts/state/Current-State.md",
+        "line": 56,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "implementação",
+        "contextHash": "6ae2eea8a449e8aa9ea5f38ab9c0990ecdb905593cbb59d6cf031d035ffac15b",
+        "regionHash": "7a964d7e75296fe9fa707a634d6c3a14f1f7c0141c8a909d7831f3f09b2e57ae"
+      },
+      {
+        "path": "prompts/state/Current-State.md",
+        "line": 61,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "execução",
+        "contextHash": "c255b8b86993fc427ce36889806b410ff60ae93e90fccbe17538e0ca9bf9fb5b",
+        "regionHash": "4524c8168c43e0f04c963cba630843cf2ea1179042e053dbad279d95518e2320"
+      },
+      {
+        "path": "prompts/state/Current-State.md",
+        "line": 63,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "validação",
+        "contextHash": "a922cfed6efe188765cdd1070864b049d9b775b560f628d34731200bb310eef6",
+        "regionHash": "28538bf07f8bb64e15327bcece0f84a74f40deb952d3525c0b66dad1023e4203"
+      },
+      {
+        "path": "prompts/state/Current-State.md",
+        "line": 69,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "execução",
+        "contextHash": "6056c1bf7b6b0b35a6d3ad39655e60c65544477d331d0a7245bd732327d89d46",
+        "regionHash": "423d1535460ab67b34278208f1d4de7ccbd477a9af60d7ebe0c721b49ac0241a"
+      },
+      {
+        "path": "prompts/state/Current-State.md",
+        "line": 76,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "execução",
+        "contextHash": "a4474fb7dfe4fc3f536d45717df876e8f3e6f1a02909f993ffa4dbb951ab1139",
+        "regionHash": "ba9789d1b5f36a8ffd571d1d34cccccd9f6f3893554ad7bb98ccc5559f00edea"
+      },
+      {
+        "path": "prompts/state/Current-State.md",
+        "line": 83,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "proprietário",
+        "contextHash": "c63113b743f0c29c1221f536fbff3c85f5809d7064e9fffdd53b9de692540172",
+        "regionHash": "d25acf89c6115f7f21847e738e46a096cd6e7c1ef48da259c13395f5d71601c9"
+      },
+      {
+        "path": "prompts/state/Current-State.md",
+        "line": 84,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "execução",
+        "contextHash": "be46b186edefde9c1013b9c5fc8477e397e5f5171a6d597580e3d386a37df02e",
+        "regionHash": "611e8996be644c71db5cf2f1c9c1e151d1bfeeae3d4011028bcb6d0f89227487"
+      },
+      {
+        "path": "prompts/state/Current-State.md",
+        "line": 99,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "teste",
+        "contextHash": "bed668f9ca63aed30d5152c7cebea87b81aa79fd72fc8cec58f5fde246cb3aa9",
+        "regionHash": "648ad095b8fc04224a7ae29a61aa3c2b0e1a304942ad5304b8c8dc54dc5082b8"
+      },
+      {
+        "path": "prompts/state/Current-State.md",
+        "line": 105,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "proprietário",
+        "contextHash": "be9e7c4cc2258cfcf1d24ffa42b2c8fe4cf22accd9109e36fccd7f2d68b8bf49",
+        "regionHash": "bbac621cc4fd32d6ecbd47b77f8d3c36e504839a27ee65e56090640416904f9b"
+      },
+      {
+        "path": "prompts/state/Current-State.md",
+        "line": 119,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "validação",
+        "contextHash": "a8b427fcf5ac550be5e992a52d0f4352b5487f7acae7ee66d1974bfe72e66656",
+        "regionHash": "abb8b43f1e71308a98670ab597d81871bac0be00f7cc508f27e735ed7428988c"
+      },
+      {
+        "path": "prompts/state/Current-State.md",
+        "line": 130,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "autorização",
+        "contextHash": "ba042188efd86651c7d30a0a9197312ce70021e328618346a88456844a2c4842",
+        "regionHash": "f7c0ba3b2e32e5ad4c8dad5344ee01e9bfdf5b99e5fa22d02555bf74f1dc71ad"
+      },
+      {
+        "path": "prompts/state/Current-State.md",
+        "line": 134,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "execução",
+        "contextHash": "a2824f50815e548ea8084bee64e9fd8ca71f85cfbc69ba229a5040b1312f3540",
+        "regionHash": "33dfbea0ae3b32556350a1e6d97953cf3904600470665fc4387a77266ffd2132"
+      },
+      {
+        "path": "prompts/state/Current-State.md",
+        "line": 148,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "proprietário",
+        "contextHash": "6a0c5313ccae82dc885180d9699eb3661be3720f4fbe89bb894ff626874273d7",
+        "regionHash": "091f93a2467ad2047224d9338c7d5be1b483b5539c3c7c2ce8c64cffc8b447dd"
+      },
+      {
+        "path": "prompts/state/Current-State.md",
+        "line": 155,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "autorização",
+        "contextHash": "fdca7effcff86c68aa764b05651daec101e61666c51a39b790ebc8f51326f751",
+        "regionHash": "ef714128e1b8cd7d3b353c4b428ee758f27ed939a18199ed894c675d1a677954"
+      },
+      {
+        "path": "prompts/state/Current-State.md",
+        "line": 178,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "teste",
+        "contextHash": "cab8547132d817b6e3ad9a335dc0f40ce911439aa240dd527e4f1800e04785cc",
+        "regionHash": "5b6d1969ae9a5beaa50f135547f62af51c9fc8afbe777b18c1b00df423ae0a79"
+      },
+      {
+        "path": "prompts/state/Current-State.md",
+        "line": 187,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "validação",
+        "contextHash": "9b52b2e5f7e495d3ea16027a5c8542431f5ecca1409b55212210040372203c68",
+        "regionHash": "7717fcb8de0134553bfc1182de8df10990ef7dec21187ee9fde3ba9fad10e42f"
+      },
+      {
+        "path": "prompts/state/Current-State.md",
+        "line": 203,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "teste",
+        "contextHash": "1ebe6cb95fd4ddbfb44346ae3d0cac5fee7a1d19e93f3c60e1ce9c756867da8d",
+        "regionHash": "1ee323a3d7fa400cc196fd6d7421039f41e3da7c99bced7638d5f1b4f401f441"
+      },
+      {
+        "path": "prompts/state/Current-State.md",
+        "line": 212,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "validação",
+        "contextHash": "75000a866628dd1244d8e6745bae63d703e9f0fed72c82c6a9d61072cf34ff9f",
+        "regionHash": "ce24d077c11de1d6b33d013735f41d147905f9076fb8a4ebe46e97c9830a82e8"
+      },
+      {
+        "path": "prompts/state/Current-State.md",
+        "line": 226,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "teste",
+        "contextHash": "45463df36f3b56ccf66d9cc41d101cc254f27a4d3ef85b585824d8e88b5adc0e",
+        "regionHash": "9082bb044343fa281a40b3a37ba80b4b509d90983a20f09d480925b5622ef8c6"
+      },
+      {
+        "path": "prompts/state/Current-State.md",
+        "line": 235,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "teste",
+        "contextHash": "b3977925bcc067c713dbaf7eb89a9640c0e49d49367dbe959380f30366c68ecb",
+        "regionHash": "4055fd3ed23791738608158076f8ab8d37d024149efb18d954851ed9ea7f2e68"
+      },
+      {
+        "path": "prompts/state/Current-State.md",
+        "line": 246,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "validação",
+        "contextHash": "70366cfdf3fc904409b34b23a92581ee5e7734efc97293a7c515b4406fe3f051",
+        "regionHash": "108527779d3c336b33441614ee7787f0c6d3b2f92578af8a856e2297c6d4dc48"
+      },
+      {
+        "path": "prompts/state/Current-State.md",
+        "line": 254,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "teste",
+        "contextHash": "1fc82a9b8b6ff841379ca55e4fdac0bee1e4e23386f6417ae8ad20f80ec32c90",
+        "regionHash": "4aaad7204b43c6185281e19c8a233bd27efa514abb0b619aadbe991599eda161"
+      },
+      {
+        "path": "prompts/state/Current-State.md",
+        "line": 278,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "falha",
+        "contextHash": "57e7da84eb3b94b48441a387bd97b5fc77c4bac92f9bbbe0146d54b2d0b19806",
+        "regionHash": "df640d65a8acb5e5dcadae4da71260391cd107139b563ab9b4793b0cc1155a04"
+      },
+      {
+        "path": "prompts/state/Current-State.md",
+        "line": 299,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "segurança",
+        "contextHash": "bddbcb10d3826c852b3b1739a5058bf18c0f067dc04ffc312f27c88921e3f647",
+        "regionHash": "9dfecb1ddb2fc0f48611c9d395a69c87deab40e074064e03a7062425acc5549e"
+      },
+      {
+        "path": "prompts/state/Current-State.md",
+        "line": 308,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "teste",
+        "contextHash": "bf67ba8aa91d58a344056d55aea4aaf5bb81f3b2385299d82a568b96f98dfe53",
+        "regionHash": "26edefc471ec8e5a1a58ccf3cc597f0c0b830437904a3d1e6187903001583362"
+      },
+      {
+        "path": "prompts/state/Current-State.md",
+        "line": 317,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "proprietário",
+        "contextHash": "2ef1196ed84b9babe995418a7b9e24019fe90550a1e41e3bb7795102def2abc7",
+        "regionHash": "6d39a1fc1ff50cccbeab73d4c345cd37ed36630d659b7f94e8dee8b77ef09426"
+      },
+      {
+        "path": "prompts/state/Current-State.md",
+        "line": 318,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "proprietário",
+        "contextHash": "86a00b025ccb6f673293b492de6fc4e5897cc04b630b039090174f889af9649c",
+        "regionHash": "23b84a7ed1020af524103b51690e82d343212c477903a5723c90bd2e6c95638a"
+      },
+      {
+        "path": "prompts/state/Current-State.md",
+        "line": 330,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "segurança",
+        "contextHash": "668f7c7a2045c2de288a8a08aa91c9b8947bf72fb5c5f110f42107ff43b46160",
+        "regionHash": "2039b9ed2ed2e6e69a9497522325c454dc2b818214f09ae6d1589568bd5fbddd"
+      },
+      {
+        "path": "prompts/state/Current-State.md",
+        "line": 344,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "autorização",
+        "contextHash": "9d40984799835cdec0bdb4cb80a016c28dcbd09ab685e8b4d7beaafdca443526",
+        "regionHash": "5aba59d9de34ab5b5d68e853739548fb4f6ce9e5d48c2660457d466610db4ff4"
+      },
+      {
+        "path": "prompts/state/Current-State.md",
+        "line": 348,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "segurança",
+        "contextHash": "668f7c7a2045c2de288a8a08aa91c9b8947bf72fb5c5f110f42107ff43b46160",
+        "regionHash": "6e35dea7151e3eab7166ff05000c68741ea0504a81ce7b1b99a8e83e9b7406d2"
+      },
+      {
+        "path": "prompts/state/Current-State.md",
+        "line": 359,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "autorização",
+        "contextHash": "16df07bc465e75274f7893dcb2f0a0b90d42220e101f9a8dfebaaddad4e2cbb3",
+        "regionHash": "eede887ffe9ef111d702fb27d464d8422f82319401e61e32f78b248e13faa773"
+      },
+      {
+        "path": "prompts/state/Current-State.md",
+        "line": 362,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "proprietário",
+        "contextHash": "7ced241077e9247aef83957f3750c9241ba8372a2a08b5d1eb94bd751045c983",
+        "regionHash": "98824536ecd8da8ecc291fd6976b3c4e7c0d10aa47a325d397699d5d456b094c"
+      },
+      {
+        "path": "prompts/state/Current-State.md",
+        "line": 370,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "autorização",
+        "contextHash": "8890b503f26bd206bba7286d19878fc4efb9b13c6f723b989b171fa6f2ea9baf",
+        "regionHash": "6a5f43c528f799fb77720f43fa434b238096cac32d0edfe5eacbddb06f9b6e78"
+      },
+      {
+        "path": "prompts/state/Current-State.md",
+        "line": 381,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "documentação",
+        "contextHash": "ec9e90fae14744a20c03448d9278e5aa03ae2721ced151c3f6a41e88a66cb347",
+        "regionHash": "04dbb9b14e2915eee6575524da1a36d836a5ab236232cbc7d159be18e9b7867a"
+      },
+      {
+        "path": "prompts/state/Current-State.md",
+        "line": 406,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "proprietário",
+        "contextHash": "58a6e53c98905360f41e4590bbdee9debe97614db74ffc83fb740aa4a914061d",
+        "regionHash": "673df79ec064c9eec06dba5e925442721f6ffbbc022b4e50c42a63385472b92a"
+      },
+      {
+        "path": "prompts/state/Current-State.md",
+        "line": 440,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "execução",
+        "contextHash": "60ab700736fece51c4a1a471a18b5d6c49e8d7341e92577c5379aa586d71a7a7",
+        "regionHash": "c2fc5a615218154f1cc43527c9267e0e16b58f0c14d885889b545307f9e0192b"
+      },
+      {
+        "path": "prompts/state/Current-State.md",
+        "line": 443,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "proprietário",
+        "contextHash": "ff74a237b6acaca6d5f313875491189a934c0acb3688d8bb2336b1035807ff11",
+        "regionHash": "6e4e2ff5d1d913eabf257d3ecb0f1073dde97e6066005cd6a99fe3476dbc2615"
+      },
+      {
+        "path": "prompts/state/Current-State.md",
+        "line": 448,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "execução",
+        "contextHash": "fcf575f47d6b9d9b88b12c6a381ae9e5863339dec38dbdf045a5fcf517a20910",
+        "regionHash": "206e19f49ac8dfaa1b582f1b85913a0e99a21cedf7d068b474cf13e9df4ff96b"
+      },
+      {
+        "path": "prompts/state/Current-State.md",
+        "line": 462,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "teste",
+        "contextHash": "a9d858d243f6e4b7e50540558be1149de8240e5f52d60097f7d47e7386ee90e2",
+        "regionHash": "718a215fe23c84f4f97e353d76438f18662239651a0a4ef8d1aca06f18f57bae"
+      },
+      {
+        "path": "prompts/state/Current-State.md",
+        "line": 469,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "verificação",
+        "contextHash": "b3015b36bc5c438fe3bb022e8c864259c7d4a4bb0d1a4eeaf631454ed04ced46",
+        "regionHash": "3de945443c4dc9e4346c5a534de6384580e8ba6f8d35def961c74dbb7148ea79"
+      },
+      {
+        "path": "prompts/state/Current-State.md",
+        "line": 473,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "execução",
+        "contextHash": "f8b57378cd99fcb27a46293b2833daf4e41e9b7a588178cc7651ae64b6269d38",
+        "regionHash": "d9eb8e402c8514b96170e9a8612a1d37f1661ccb5f7ea8ac4b01fb697a08cbb8"
+      },
+      {
+        "path": "prompts/state/Current-State.md",
+        "line": 485,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "segurança",
+        "contextHash": "70fb37853fca0ad62148c62510c333ab993d553277cf880df44fd28fe309a2c4",
+        "regionHash": "f1d923abc49e8ab67a0c33e89dd7f54403e983e5b7ca68aedb397e52eccfb6c9"
+      },
+      {
+        "path": "prompts/state/Current-State.md",
+        "line": 494,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "execução",
+        "contextHash": "804fdd7ba9bf18cb6a8929a5f6e9cb221f79f60b9622bd989f6bd577e2e44193",
+        "regionHash": "1bccb0226c5b90197ab2130f4f8f3e0f653bd92ad7577016c08c955d59bc8e14"
+      },
+      {
+        "path": "prompts/state/Current-State.md",
+        "line": 507,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "verificação",
+        "contextHash": "55a403d35901facbaddb37992d8da69ec1c9f5375b2613ef90d35f3c6dd61ce0",
+        "regionHash": "84c06f617b18f3dca0ed9dd68d8c692b7fa2e32517a385b90dd5652b31497eab"
+      },
+      {
+        "path": "prompts/state/Current-State.md",
+        "line": 509,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "falha",
+        "contextHash": "8c85d26cabe9591d6f2a9531372fc192bb4fb71b681447f67c70853be29a5ad2",
+        "regionHash": "6ce975c4706689b2cb11029dcdf1f04d74ecc20ad267bebbb9bbe76357632b77"
+      },
+      {
+        "path": "prompts/state/Current-State.md",
+        "line": 519,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "proprietário",
+        "contextHash": "72f8e9a701b54dc2aac9dffbf44705e59996858acd0679f0762d04225b89b5cd",
+        "regionHash": "8df7020f27b1d018ebed6a63f08f9a4c6c489be72770f14f9187212e0971b1f2"
+      },
+      {
+        "path": "prompts/state/Current-State.md",
+        "line": 534,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "proprietário",
+        "contextHash": "1ffaa94590d98265a027875a8b2121fa1cfc5791a76f6fb57b85c2f9c903b51d",
+        "regionHash": "32285794f2e49a99364b22fb87ecf44a2a4c4537e7ef6399b0fe9a51a19a3f06"
+      },
+      {
+        "path": "prompts/state/Current-State.md",
+        "line": 537,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "falha",
+        "contextHash": "a0748907e7cdba2a18d35601f5a1e335e5442ca786e5e295c1aa5608aada46f4",
+        "regionHash": "8744a47f274f270e016d75ec6eafc414d9665b41e03aea879e17586c439de7f4"
+      },
+      {
+        "path": "prompts/state/Current-State.md",
+        "line": 540,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "falha",
+        "contextHash": "93dc2b0d6355e7265b2d6d13ea09e613472e0f99cac42e6b624f8d5132654a91",
+        "regionHash": "49418f43fe4a06264e8c99f59a4384fc551c71eb3d9723833548a13dde707a2f"
+      },
+      {
+        "path": "prompts/state/Current-State.md",
+        "line": 542,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "verificação",
+        "contextHash": "362ab61ebd05bd77c215691581966c1a0a571b4b5aecf543eb3adc941634b466",
+        "regionHash": "034506e6bb879d03a0ae7f78f797cfc8eafc6b7b196ddcabf3e6f14f99837b1c"
+      },
+      {
+        "path": "prompts/state/Current-State.md",
+        "line": 548,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "proprietário",
+        "contextHash": "139aef202bda1ed0edae039d471af1797a485f4ec7e16dedc9ca274b1bd2317a",
+        "regionHash": "74a3481c2e48bc12d1b18ad39177be8e92873124e1e7d809775c403136d037d8"
+      },
+      {
+        "path": "prompts/state/Current-State.md",
+        "line": 558,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "segurança",
+        "contextHash": "00b73f2cb52c8b93044b154b907a48924213d94dabdf00d9835e924c06e08c88",
+        "regionHash": "c2191da584592ea9418625367338a8d2a89c2a387d0029126dceaa97af16b371"
+      },
+      {
+        "path": "prompts/state/Current-State.md",
+        "line": 562,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "proprietário",
+        "contextHash": "e68563414f83f0b8e2e3c55e34b977d0ec50985fdd751c5d8e9d1fb2a2c900d0",
+        "regionHash": "cfcce4c2283167bd9559e4a5f597b94cd03e038c2a21a77fa5cad9514c2a63ac"
+      },
+      {
+        "path": "prompts/state/Current-State.md",
+        "line": 569,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "execução",
+        "contextHash": "b4c0e66d165fd2070f6da30d1c7585d696f493b15fb937e6915a7dc6205b86c4",
+        "regionHash": "8d81b811946931762459222c6768df4caaf68f0a6f4818e2e121867c0fad2aff"
+      },
+      {
+        "path": "prompts/state/Current-State.md",
+        "line": 580,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "segurança",
+        "contextHash": "1b8a37c9dffdce83fad040ea49d3c7ac06c251f6a05f9b599e46fed26601290c",
+        "regionHash": "f49933728b2d19c4f97fbade0f2a4f4af3ff769daca8d9dfc2587db1c17c8c45"
+      },
+      {
+        "path": "prompts/state/Current-State.md",
+        "line": 586,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "proprietário",
+        "contextHash": "210564cea21ff2fe29b4acc1a4c67bbadf0986b0cdc8fde798ee21964fe4077e",
+        "regionHash": "37b72d1801b40bfc670b09052d3e64fedfd8cd89ae765443a39d38c89aff5f69"
+      },
+      {
+        "path": "prompts/state/Current-State.md",
+        "line": 589,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "segurança",
+        "contextHash": "50eb72e2d337905d6edd7ccb1dd8efbb158685ef3736aa0d802969b89d658f72",
+        "regionHash": "122ac89d62de7d6b49a1ef067ebf63826b653a07bb36380ebe0e7d903c4a2eaf"
+      },
+      {
+        "path": "prompts/state/Current-State.md",
+        "line": 590,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "execução",
+        "contextHash": "76790c2a97d897d154ebb7257a675dfdc078f0e66c44235ba1d6ec45281b8e9b",
+        "regionHash": "6029455dca60e9d7931d5777b330435425801d9ef6442304cbf54b4d9b964636"
+      },
+      {
+        "path": "prompts/state/Current-State.md",
+        "line": 599,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "validação",
+        "contextHash": "8af81c89a18974ad51b95ae413a3999273f9fea6692d0cea3eadfc003d1e1a2d",
+        "regionHash": "09390d209fa82369be34056032846f954c1c1638e7589480cf12f3fc4ef2e8c5"
+      },
+      {
+        "path": "prompts/state/Current-State.md",
+        "line": 628,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "segurança",
+        "contextHash": "6f0c7023a58b88fd47b15eaead58e194e29deb632e3da3dc95bcc898889a0012",
+        "regionHash": "988095c8d95efb95f982e2398062be58d50c12a1dc188d3032b0b48289b8c4b1"
+      },
+      {
+        "path": "prompts/state/Current-State.md",
+        "line": 637,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "implementação",
+        "contextHash": "3f5b9540f3bb2bf3c14ebe0e9075c83e3658b3d379ba0b4479d01265c0b8ec0e",
+        "regionHash": "862e152d6c0dd8440a41377f07634e9d0c27291d03c6b65648126e7fcc9712d8"
+      },
+      {
+        "path": "prompts/state/Current-State.md",
+        "line": 662,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "verificação",
+        "contextHash": "5606f4263a556e533dca1ec151f77ee8172254576c95d7804bb70222485d10a0",
+        "regionHash": "313800f1b98e38edaa931337516b48e82cb959062820ebd127d7d2af0f75cdb7"
+      },
+      {
+        "path": "prompts/state/Current-State.md",
+        "line": 678,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "teste",
+        "contextHash": "cd88f2e3277a74078ab48e48d10192fc668aa9adce279e0a40f8ab27eccdb9f0",
+        "regionHash": "2061d6ce45733df87e720d58cb33c1dbc71227c8331bd127796a1a445fd6bad4"
+      },
+      {
+        "path": "prompts/state/Current-State.md",
+        "line": 706,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "teste",
+        "contextHash": "cea1c3f7dd16949a149ae965b4932454c28c5910bb59f1ad0f83b92112d00e99",
+        "regionHash": "55a1631de360ebf1a05ea5861b6fc094007c8e60f285817fe5df1d0db17cdc9e"
+      },
+      {
+        "path": "prompts/state/Current-State.md",
+        "line": 709,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "comportamento",
+        "contextHash": "fa000ad915ef8a21f4b6d2c5914a5a0e32b9aa3fc895190840b6fd4361ff4644",
+        "regionHash": "d77723b805ebc3bf4d7cc746ee9ab90402db1b818d1a7da4b0932a195790490e"
+      },
+      {
+        "path": "prompts/state/Current-State.md",
+        "line": 714,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "arquivo",
+        "contextHash": "29e37186724a8b6d183578d20c3bcb985b8a6b6e4a314dadce83a824ce04e001",
+        "regionHash": "cc97600680ced76605fadaf3ea08f2b2710554ed7103d2efdf688e23e8e4c464"
+      },
+      {
+        "path": "prompts/state/Current-State.md",
+        "line": 725,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "teste",
+        "contextHash": "f3abf242d36c84876baa06bac573ed9d24833540883d5e1e34c5b2dc39e5602d",
+        "regionHash": "52049829cf3b3d6a0bebb304d59fa22ebac258d81f41de0d3708dde63e5cfe30"
+      },
+      {
+        "path": "prompts/state/Current-State.md",
+        "line": 730,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "proprietário",
+        "contextHash": "e05c8f957e6f09c985ffbec6d784716f0b5de5ed2af20e92f9a35a04a8beb47e",
+        "regionHash": "f1d30592df10eef348fb74bf40fccecd90e16ffee3ff6e83a59a0f925af561a8"
+      },
+      {
+        "path": "prompts/state/Current-State.md",
+        "line": 743,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "comportamento",
+        "contextHash": "b4f972fd872bdd57e0cf8851e681738a6f02c86410c7af7b6398645b2ae81edb",
+        "regionHash": "14e1fdc944191a6a26956a531e01d49ca622a6cf92099bec8c269a6068cd0f93"
+      },
+      {
+        "path": "prompts/state/Current-State.md",
+        "line": 757,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "comportamento",
+        "contextHash": "a06ad824daf6857610e15b8cd5cdaafb8c596bdf7750572772be5142cc319a26",
+        "regionHash": "a1fcc4618eb0856f7287ea236ed0d3526b0f8785cf271dd15384ecb73460729e"
+      },
+      {
+        "path": "prompts/state/Current-State.md",
+        "line": 770,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "verificação",
+        "contextHash": "0cb4ecc1905cb2cd8756351b6e5433bbbbc897ce239dfc342be5d46077ff34f6",
+        "regionHash": "36b4e899e2c8a46245bdea6fe4e8e53770b396280ad6ddb19c3afec43f09b345"
+      },
+      {
+        "path": "prompts/state/Current-State.md",
+        "line": 777,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "comportamento",
+        "contextHash": "fa000ad915ef8a21f4b6d2c5914a5a0e32b9aa3fc895190840b6fd4361ff4644",
+        "regionHash": "d38e2c72f9299c8d26b4687e16a6dcedf43767a8e061e0d22a6ada1ac5986419"
+      },
+      {
+        "path": "prompts/state/Current-State.md",
+        "line": 781,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "arquivo",
+        "contextHash": "24aaa25d2817497b4457acf5461dd6b1d5523625e5b6d4a288522a558a1ce694",
+        "regionHash": "504d4704318c6afa619d8bebaa27c7772c70776188d396849e84182608750cb9"
+      },
+      {
+        "path": "prompts/state/Current-State.md",
+        "line": 793,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "teste",
+        "contextHash": "1e429f80232274339216f5098f1262491f5e9f453c3ca0765c24f732ac777b07",
+        "regionHash": "b801005c3e8f550a487ce5deecad66b386288025929203e3a7a561a347a158ee"
+      },
+      {
+        "path": "prompts/state/Current-State.md",
+        "line": 798,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "proprietário",
+        "contextHash": "e05c8f957e6f09c985ffbec6d784716f0b5de5ed2af20e92f9a35a04a8beb47e",
+        "regionHash": "e9fedadcad2f5dfb86b0c6cd03e8c1fae670ee062bc4acf7aaf32c201ad7ef53"
+      },
+      {
+        "path": "prompts/state/Current-State.md",
+        "line": 810,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "comportamento",
+        "contextHash": "01ccd66282ee22fc26720b6161bf142d4c2c5b85099b32b4688a792760e1036a",
+        "regionHash": "1ad0fbecb9ba2ac590106437c89f38b8e5ea658074891a690f2faaa4d7a37b47"
+      },
+      {
+        "path": "prompts/state/Current-State.md",
+        "line": 824,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "teste",
+        "contextHash": "85d919d4949a6de8ec9600121fd417aad0fe4caedcdeee04c774a8a2ef759b97",
+        "regionHash": "f063abac2d7d6e1346247f7c0f5746bae3b529f27b013c1b474843117e69a6a7"
+      },
+      {
+        "path": "prompts/state/Current-State.md",
+        "line": 840,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "comportamento",
+        "contextHash": "8078a531df32fde07408d551501b5bbcb1e4b19610f5946d5453041e1c290938",
+        "regionHash": "a5da353538f4b65a318155ca20e3407bbfd48bbd68906c6cc4dcde1ca0156763"
+      },
+      {
+        "path": "prompts/state/Current-State.md",
+        "line": 858,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "comportamento",
+        "contextHash": "8c538850332bff38ec36ef2017b84664551b99b60fb93c9a24ed1203091a00e6",
+        "regionHash": "2cb5d10831af7f3af551f2a7b399ca3b8c2eb16c5478b5595405e20996d65415"
+      },
+      {
+        "path": "prompts/state/Current-State.md",
+        "line": 863,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "proprietário",
+        "contextHash": "6751772471acc90ca8aea7655712b1e17b0aa4da38de5d66021ae2c920df40cd",
+        "regionHash": "3f7d2a077467d93f834d669349499ca03dbdaf3090b3d9cfd81aecd760be969d"
+      },
+      {
+        "path": "prompts/state/Current-State.md",
+        "line": 866,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "segurança",
+        "contextHash": "1af05dd537b0b79e07ffa32732363b5a78286edf13558a218d7d300f2e784054",
+        "regionHash": "ee7297cc81a0f8855fb718ac4c552f1fafc8e769d45e9fae300c2280777e1892"
+      },
+      {
+        "path": "prompts/state/Current-State.md",
+        "line": 868,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "implementação",
+        "contextHash": "b4d2dfa19b0541b7d498a36147571d68c27b3f67e830406cc9a078f635406893",
+        "regionHash": "3f47e1f68bbdd48d8e0c0b569080a0a6efa82c503c753ba9d95903ae0a0b768e"
+      },
+      {
+        "path": "prompts/state/Current-State.md",
+        "line": 872,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "proprietário",
+        "contextHash": "6751772471acc90ca8aea7655712b1e17b0aa4da38de5d66021ae2c920df40cd",
+        "regionHash": "5ca6d6d4e611f32d2092cae4aee6737006aa1f98e81b24bfb3c74afb2d56a7c3"
+      },
+      {
+        "path": "prompts/state/Current-State.md",
+        "line": 880,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "implementação",
+        "contextHash": "49cf66d5642c5131d631599d5bae3833c13b6802b1f556db686a405f36a644f2",
+        "regionHash": "0d5f4fec5950e752d4aaf78491a6a261998585cb8146e874705e3dda1de942df"
+      },
+      {
+        "path": "prompts/state/Current-State.md",
+        "line": 883,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "proprietário",
+        "contextHash": "27dbf4c0f487b0f9d7be71aedafb734db2608066d3645f9bb9c5fff4081a4188",
+        "regionHash": "1fc1cc5efe65f2fbdf9fe1a0ef06f1c9386ddd86ac0d5ed0378a34c939a7768e"
+      },
+      {
+        "path": "prompts/state/Current-State.md",
+        "line": 894,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "implementação",
+        "contextHash": "fcf7b035ea35cb385148999d5a2ccabb3decf93f62dd8cb8417ffe17c425e4d3",
+        "regionHash": "6d31156c6c91b0c7051adfe3642903f6e6d1d79388f85f95f3a5dbd78534516f"
+      },
+      {
+        "path": "prompts/state/Current-State.md",
+        "line": 907,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "verificação",
+        "contextHash": "5258b50ae0d94e9ef578ff7c9c3f67d5d6ccfcbafeeedbe00957425a678bfba3",
+        "regionHash": "3881c53ecc3c7640534fb9ea0f9bf65ce3926542450d232f5f8c8dd6376f3ca6"
+      },
+      {
+        "path": "prompts/state/Current-State.md",
+        "line": 916,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "alteração",
+        "contextHash": "6584eb4faea76861ccafe298661bf0e065f6d4d823c41ed3db7549da53881331",
+        "regionHash": "7cb6b8c0570d38f1462da35508cbc5a4013dbf254bb0c421182d13e5ff5a1a50"
+      },
+      {
+        "path": "prompts/state/Current-State.md",
+        "line": 919,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "implementação",
+        "contextHash": "fcf7b035ea35cb385148999d5a2ccabb3decf93f62dd8cb8417ffe17c425e4d3",
+        "regionHash": "f455740e6222ff5df542f00ea62387b260337a4a5068e93023227ca589133056"
+      },
+      {
+        "path": "prompts/state/Current-State.md",
+        "line": 924,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "implementação",
+        "contextHash": "ac1f0e0c4e9ec7763371c3afb3517e861199c7757525cc6ddacbf5053fba480a",
+        "regionHash": "12d547637844fcf2caf3779cf4b899072492e97d2887d793986da5008e127fb8"
+      },
+      {
+        "path": "prompts/state/Current-State.md",
+        "line": 928,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "validação",
+        "contextHash": "b30ff6224d27d6dc24adff3da22edd02f18c0afff4de5d4ef9bf025ad80add99",
+        "regionHash": "1858608b850306b46ae7daeca5cb371e2c54055a0bc09dfa09efb0d3000ba3ea"
+      },
+      {
+        "path": "prompts/state/Current-State.md",
+        "line": 931,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "verificação",
+        "contextHash": "44622bf66e0254fdeb9f82630b748e776bf7c502954ccc58fe83f82eefce4e3c",
+        "regionHash": "acb14445f59496f7913c5a0a369f110a9df015004cb39440b1012f8c84f538c5"
+      },
+      {
+        "path": "prompts/state/Current-State.md",
+        "line": 941,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "implementação",
+        "contextHash": "fcf7b035ea35cb385148999d5a2ccabb3decf93f62dd8cb8417ffe17c425e4d3",
+        "regionHash": "c60619e62dd85c2a83b353c48658892bfe1da20e0788051a68e0cedcdd506bc9"
+      },
+      {
+        "path": "prompts/state/Current-State.md",
+        "line": 953,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "verificação",
+        "contextHash": "84a482f0d26791115b3520a2ca677e61f027543f22e1456afffd777ea66e7bd1",
+        "regionHash": "1c537dfa45e8f6cfea43490bf46fb47af823c4446a703aaad6e8274c42cbe70d"
+      },
+      {
+        "path": "prompts/state/Current-State.md",
+        "line": 964,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "implementação",
+        "contextHash": "fcf7b035ea35cb385148999d5a2ccabb3decf93f62dd8cb8417ffe17c425e4d3",
+        "regionHash": "f2de30c008f7d0c3186f8ada3f5a06da2fa9640c028b7fc8ba4c4b15b2ab23b4"
+      },
+      {
+        "path": "prompts/state/Current-State.md",
+        "line": 973,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "implementação",
+        "contextHash": "b17a59ba135f1378e1552833a58e123ff1ab9bb335f42f30c2dd3908478e1c20",
+        "regionHash": "8b0795ff209aad4b97a990515b01e9c56f732e860c0a6fc91d6c2cb31ecf475a"
+      },
+      {
+        "path": "prompts/state/Current-State.md",
+        "line": 979,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "validação",
+        "contextHash": "72f65a235d099d3f4f8e95e8da7f37d26f3fd2df10c1942f747531c9c6dd7221",
+        "regionHash": "7881e8de1d14ca86bbf5130219e61987b8023478391a1e371c165cf31f86dbeb"
+      },
+      {
+        "path": "prompts/state/Current-State.md",
+        "line": 982,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "validação",
+        "contextHash": "73c7be273be9a43e5037b18ff3e97a69164dd89b45ba3cb55f35150591106084",
+        "regionHash": "e4bfb0de1d7db73e3b198982b1f67d65cb0d52e99896824d237fc8770e358c25"
+      },
+      {
+        "path": "prompts/state/Current-State.md",
+        "line": 985,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "verificação",
+        "contextHash": "882ef6c15d1d1722e8b4d53bb32b66a8b8aac26b83aa0545880bc5dd130f4d03",
+        "regionHash": "e1e4ffdc697944d4d0135e83b82ad3abdfa3ee01cd1d8a5165ef487a23e2113c"
+      },
+      {
+        "path": "prompts/state/Current-State.md",
+        "line": 1001,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "implementação",
+        "contextHash": "fcf7b035ea35cb385148999d5a2ccabb3decf93f62dd8cb8417ffe17c425e4d3",
+        "regionHash": "293f6b38c4dcfa6554039f6708ff0614148e6d769257fd7b7bc19ac980fca0e0"
+      },
+      {
+        "path": "prompts/state/Current-State.md",
+        "line": 1017,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "falha",
+        "contextHash": "b681bde80635b419b652666fdc95a7c413a0b9e7d65c266f39fba7c1dcd3b35e",
+        "regionHash": "c2bac75c4252d43f1490f2f8f4715f7b88d89c26abec63c5108e40948c35be1d"
+      },
+      {
+        "path": "prompts/state/Current-State.md",
+        "line": 1025,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "verificação",
+        "contextHash": "09ca5125751d457c97a641e1ad83c0988aff42426da2db1bae596a9735e5fa9c",
+        "regionHash": "b725dd6f2dd0a4be97ade9db0da69e34ce4d7141699c49c502b5b95920a9f1fa"
+      },
+      {
+        "path": "prompts/state/Current-State.md",
+        "line": 1039,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "proprietário",
+        "contextHash": "a4c3ce3422b9b135294556cb4e9862fac86c70bb7d52019d6148f937f67f14d8",
+        "regionHash": "592f1eed427870d354bfbec270324a6b7fa1083a8f18b2efeafea33374b28073"
+      },
+      {
+        "path": "prompts/state/Current-State.md",
+        "line": 1046,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "teste",
+        "contextHash": "5a0c0d460138d708f45466061433ec33671bfda80ce41e2729eac6e8911378f1",
+        "regionHash": "794c8f6025cff05a22cc08cc6c306442e03d582c2cfcc57cc37b5eb72895e5c1"
+      },
+      {
+        "path": "prompts/state/Current-State.md",
+        "line": 1048,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "implementação",
+        "contextHash": "c7dcb7b0166b37532e51947cd35fa06157cb74dbb74103af2fb4857fe6950676",
+        "regionHash": "1648eb3bafaccbc2e81fbc7ec320b394b6e4d65aa6c48cb3cf38c5c04d61f099"
+      },
+      {
+        "path": "prompts/state/Current-State.md",
+        "line": 1050,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "proprietário",
+        "contextHash": "0e95dca02476a004cb4f38547b8311b31aa3f47970ea29735c4ca8a1d78f381f",
+        "regionHash": "98a2f48237b2b8ae98ac32edc478dc06c2ec8f2c5d51400724dcf1a302eefbcc"
+      },
+      {
+        "path": "prompts/state/Current-State.md",
+        "line": 1051,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "implementação",
+        "contextHash": "12f8fc380666fd9b24fb279b7dd9f348edca1a5e4970649d507cb2b35fc390b8",
+        "regionHash": "77cb97115b67dcf8ed7fb4c5da9a1def3309468e6a48b777faacbd720593adfa"
+      },
+      {
+        "path": "prompts/state/Current-State.md",
+        "line": 1077,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "proprietário",
+        "contextHash": "4c9c4244b77a4fdb964ec627effc9eb9ad96786d6a877207865a374f41df4504",
+        "regionHash": "ee18f5b0e47f2f55fba894ca72ec77136a5bd24f0bb3139a4569a1b8063a4d82"
+      },
+      {
+        "path": "prompts/state/Current-State.md",
+        "line": 1084,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "implementação",
+        "contextHash": "44efd79ac5397ae8f1ad387d60c745493ea43090c3d2f2c9e5da41a93b5da325",
+        "regionHash": "f7fa092990d9cfb411bb01ab49aa9cc60bd6b0cabee91981d62bbdd5d9128a3a"
+      },
+      {
+        "path": "prompts/state/Current-State.md",
+        "line": 1086,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "comportamento",
+        "contextHash": "b1f924f0d6f5e2684d28fdf0eb38e51ce96d1be9b14dc0bd8453093c56a03906",
+        "regionHash": "4c694992067e71abb71d9cbdcc6147666a70cc88b93448dfb589dec205360871"
+      },
+      {
+        "path": "prompts/state/Current-State.md",
+        "line": 1104,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "proprietário",
+        "contextHash": "4c9c4244b77a4fdb964ec627effc9eb9ad96786d6a877207865a374f41df4504",
+        "regionHash": "b18db98ae79e43712d6f554bab5b4e63ab327e8f9a35c6715e5797b37277b246"
+      },
+      {
+        "path": "prompts/state/Current-State.md",
+        "line": 1110,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "execução",
+        "contextHash": "1ee0c17b9e96a9fa83fa2730e9ff422b1db4053ac0d418e10fdcc141b5115b41",
+        "regionHash": "39c21ddd570e4255f4aa4516af82ec26e30956ee0bf58d59f0bea87ba6a9d116"
+      },
+      {
+        "path": "prompts/state/Current-State.md",
+        "line": 1113,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "comportamento",
+        "contextHash": "b1f924f0d6f5e2684d28fdf0eb38e51ce96d1be9b14dc0bd8453093c56a03906",
+        "regionHash": "6396e3887e71e2c60bacdad602beb13ef2a5cac11446d3f6139b0beb8ac50588"
+      },
+      {
+        "path": "prompts/state/Current-State.md",
+        "line": 1124,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "teste",
+        "contextHash": "efc300d1ad53a290d76b5056572344fa97c0a802b308d22459a4d2e4e2f0e099",
+        "regionHash": "3669b8515a3c5c446a74d34daaf608e909ca889ba9e841874c4c76e33dfdb556"
+      },
+      {
+        "path": "prompts/state/Current-State.md",
+        "line": 1126,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "implementação",
+        "contextHash": "d1986368e6da180258cca970d70c0d126dfc46f7c079893c7ce2bcc205fea1d5",
+        "regionHash": "9c49f2a424be95713ec62f8ce1e00b6e06d0846b3cacb2f077bc9ff4c9750341"
+      },
+      {
+        "path": "prompts/state/Current-State.md",
+        "line": 1139,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "arquivo",
+        "contextHash": "a4bd6e869d3c7a7bbe6381f59c22ec0e71c320574866596f017fe043e382b418",
+        "regionHash": "9c01770c9772d6cc4be7498e0f3ec63a60127f357efb3ea97155f5227385cf80"
+      },
+      {
+        "path": "prompts/state/Current-State.md",
+        "line": 1141,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "implementação",
+        "contextHash": "da1138bcf1d5ab7a8d87f46a6eebeeaa18be7444b88481c61c7ddcc63362c4b7",
+        "regionHash": "6204461a2580b0e6da277950439145c9315489ae1520bfff85c446963bcbac4a"
+      },
+      {
+        "path": "prompts/state/Current-State.md",
+        "line": 1144,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "comportamento",
+        "contextHash": "a6b28e9eb5c514260962e974caad79c67c977bd0ed57ff919c97f32d36a74120",
+        "regionHash": "1ec50ef8ce3e3a0eff8230fab850c88ea0c94ea4b9a973b112e89c3ff5a49914"
+      },
+      {
+        "path": "prompts/state/Current-State.md",
+        "line": 1158,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "teste",
+        "contextHash": "7ed115a6dbaa5dbb130aa50cdaf4b88ac452cf14ad037889165ea958e2af01f2",
+        "regionHash": "6289625730b594d0c4eba1cb7c314cf08db3f5fac3688b1b984147e8fd672bf1"
+      },
+      {
+        "path": "prompts/state/Current-State.md",
+        "line": 1159,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "comportamento",
+        "contextHash": "c099e675bce5bd14b05b2878b88ed393c4877ca1b2afa1b56dc7612614eb3de7",
+        "regionHash": "93f9d2f761f189fac505c24627da36c8618c38bb5af88e937b5cc3a36d6a44dc"
+      },
+      {
+        "path": "prompts/state/Current-State.md",
+        "line": 1189,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "validação",
+        "contextHash": "a3365fe368937eeb8642e5f0da76098c4f533930fcea5c6ef3b80b12d305a25f",
+        "regionHash": "d04f9632b746c36473359a339c5988c413bcc60d967810931c825a867446f988"
+      },
+      {
+        "path": "prompts/state/Current-State.md",
+        "line": 1214,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "autorização",
+        "contextHash": "3056ece0ab33164650751acf3ffc4cacd213b8e37424964cd23662ff283a3ed5",
+        "regionHash": "68e59c54889f7db355d7fa41e99fc879da32ca8a0f96bf2595c771f56d59fb9a"
+      },
+      {
+        "path": "prompts/state/Current-State.md",
+        "line": 1216,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "execução",
+        "contextHash": "abd7cdc446e66fda8e3d0f09fadb3ed73e27f4a438f6a1331b812e02540deda0",
+        "regionHash": "37c59f7c354512faca78e882b52855c6521a6db5ee81b466ce4cd331657fd54c"
+      },
+      {
+        "path": "prompts/state/Current-State.md",
+        "line": 1219,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "verificação",
+        "contextHash": "c728b347307847e4bbe510ee1d0284a2e48eb45cf785037db5835ef57c4ae9b0",
+        "regionHash": "d1362c0a51b969ad221fdaa091dc11b9c668506028eb86c2dad55d0017dde77f"
+      },
+      {
+        "path": "prompts/state/Current-State.md",
+        "line": 1225,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "execução",
+        "contextHash": "497ebb965f36ad32b0b92888b79cacacfb43088442cee90b1587038efc8b8cfb",
+        "regionHash": "86ad92fb1d145f6faaa5450c929c63fe74fafe03d46973e952847fb000337350"
+      },
+      {
+        "path": "prompts/state/Current-State.md",
+        "line": 1226,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "proprietário",
+        "contextHash": "0211e4ff39f0bd9e423e012908ee100c0ac77e21a396f5a85083862e302078fc",
+        "regionHash": "b6a9dfb743a2cb3d62b742217ae7641d3ea4f8ab0c3f31fb5a6b802459fef367"
+      },
+      {
+        "path": "prompts/state/Current-State.md",
+        "line": 1249,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "autorização",
+        "contextHash": "48154efbafe668df7972578619835b88c1aa1882917e4998a9634e1554c36f4c",
+        "regionHash": "8d49d41a3d3a808a131616af159628f4d9783c952cd1578451bc002f144dcbb3"
+      },
+      {
+        "path": "prompts/state/Current-State.md",
+        "line": 1250,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "execução",
+        "contextHash": "1c5ca62642dfbfc942f1d316663fe1e92c34421226433d5204292fce5f8ad065",
+        "regionHash": "68def077fbd5f66d248d5d48f6ca40f775380960caf7cb1b3a9aba1327d3e157"
+      },
+      {
+        "path": "prompts/state/Current-State.md",
+        "line": 1252,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "validação",
+        "contextHash": "c60eff02178b723164143257ebcb26a4f938dc8646faf0862c162e9332462b3c",
+        "regionHash": "be2539b69826bc833c44d47d115f203c673b17353ba49d316d5769292ece8d1e"
+      },
+      {
+        "path": "prompts/state/Current-State.md",
+        "line": 1257,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "verificação",
+        "contextHash": "827c4271a74818ac82c2c2d1b7438a2a07db4accc2ca634cf92ae0680123e75f",
+        "regionHash": "8c41411273e187da87b570df0e0d05a5754a8ab4dbcb4f8b10217d989108d428"
+      },
+      {
+        "path": "prompts/state/Current-State.md",
+        "line": 1262,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "proprietário",
+        "contextHash": "2a88564241655c8ad14d1d137463abce9fa3458be43a516e04e2bca8188d5990",
+        "regionHash": "6b01cc076266c68a8d831279465450704f3a303a94c073012db9a073d70659e6"
+      },
+      {
+        "path": "prompts/state/Current-State.md",
+        "line": 1263,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "verificação",
+        "contextHash": "0b1ada5f8f72934dd578ad10802c49c20c6bd07dca0983f159ed74c6da0abea9",
+        "regionHash": "410f2cae8ca6942af7af0a036b5e8f062c5bdd6809b112d1db15b9842ad682dd"
+      },
+      {
+        "path": "prompts/state/Current-State.md",
+        "line": 1276,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "proprietário",
+        "contextHash": "37b8731303c37eba9eea4c72cb6b6ca80cfce03ce96c99b63ce17caeb290e079",
+        "regionHash": "887867cc8c26c4a4d310a1da9bf575e4914a6f08fca9baed6185c1c83c5651f6"
+      },
+      {
+        "path": "prompts/state/Current-State.md",
+        "line": 1278,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "execução",
+        "contextHash": "8a64aae63325a82c352e8998d06b413d2f8cc6bdd8c593c344c66c722cfeda02",
+        "regionHash": "6cab5d3fe0146e5f27928d96187133e812b540ee30245c58b8e7097ad97fa242"
+      },
+      {
+        "path": "prompts/state/Current-State.md",
+        "line": 1289,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "execução",
+        "contextHash": "8f984ea218f518abe634a1916b98b5724465ebc325cbe42ea1e1ebedafc3633e",
+        "regionHash": "00f9a348ed41aec2cb1ab2446efab056967bc6aa005beae643fe6eb6cea29395"
+      },
+      {
+        "path": "prompts/state/Current-State.md",
+        "line": 1293,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "alteração",
+        "contextHash": "07f12a0519688bc6d766f33b2cba7e6302601bde0d6332eb2caf4701b4386cdd",
+        "regionHash": "1bc663c93d291929d5c399bc418de8f488430df13905e47f704582b4bfc680df"
+      },
+      {
+        "path": "prompts/state/Current-State.md",
+        "line": 1310,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "arquivo",
+        "contextHash": "37982fa30c2eb8d6189b65759d1fe288b850024ad80185a42b8935ba346425a0",
+        "regionHash": "7de8aba3744a4c16aace871290f313f98e3c1b982eb427dd4a3cc5dbc45515e4"
+      },
+      {
+        "path": "prompts/state/Current-State.md",
+        "line": 1319,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "segurança",
+        "contextHash": "aa5c5098a2af9d2a345d9604c5b7b36a293c1d607f7c3e906aea1796cd9662de",
+        "regionHash": "68c5b698abda5b2b4e1d3a16cc90468e2d3ffb65985b480d213fe8732e8015b3"
+      },
+      {
+        "path": "prompts/state/Current-State.md",
+        "line": 1327,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "execução",
+        "contextHash": "0f54c7097115759a13d6f4546f4791eefd1ef02b74d0b184682e530b94adc9f8",
+        "regionHash": "ea1076196b41d24dacd433846fcac66703699a96ba031ac644988b182b6490cd"
+      },
+      {
+        "path": "prompts/state/Current-State.md",
+        "line": 1355,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "autorização",
+        "contextHash": "5c8507230085e1eb5ba058be6336b07cdfd2269cd1e5538440ee94e486f3bc1a",
+        "regionHash": "2a76b0e8eb39a1049026ce95d4bd8baa272078dc7e715c7939e46990acaf690a"
+      },
+      {
+        "path": "prompts/state/Current-State.md",
+        "line": 1365,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "proprietário",
+        "contextHash": "544475c934be88b65d5a7628d57b364cdf8a3d3d711d923a6e34b3a6b7c57ace",
+        "regionHash": "2561a64cfde7120c48782530913713c21979c3032903b22a2a0da3d7fb64b97d"
+      },
+      {
+        "path": "prompts/state/Current-State.md",
+        "line": 1382,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "comportamento",
+        "contextHash": "8c07fd226841715ffc5aec16c0aa5e230a012db9988eb856d199eb8f1ddd6e26",
+        "regionHash": "258e78be7adf6a5f7ea7caecb9831b5c33f0503b17dbd0c92527797c304d1625"
+      },
+      {
+        "path": "prompts/state/Current-State.md",
+        "line": 1386,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "alteração",
+        "contextHash": "24f84cc51eda4a91579cc8189e35c6569cc650d04694b2f55e47660eb5d62ace",
+        "regionHash": "8da40b4f7e0d95e2fd6bc688ee906e389285aa641a38ed8d128ad967ec858088"
+      },
+      {
+        "path": "prompts/state/Current-State.md",
+        "line": 1393,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "implementação",
+        "contextHash": "8100c9500cc9002c5fefbdaa1132638dbd31db22aa38a7729edcf8254dea8888",
+        "regionHash": "976b1b30a16481d25e0a94844f5ecff753c759760f95982c66eca3d613dbb3f1"
+      },
+      {
+        "path": "prompts/state/Current-State.md",
+        "line": 1403,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "comportamento",
+        "contextHash": "f110aa6aef0b32caaa5354fa3111728e61f962ec4d7a152e531bb54ff10069f5",
+        "regionHash": "8404c9ddb6bd17eaa8c645cb4be5ba42e702598840635f39fc6c551908a2b60d"
+      },
+      {
+        "path": "prompts/state/Current-State.md",
+        "line": 1411,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "comportamento",
+        "contextHash": "f9fef63f0afaa5e44ae53e36efe329e0dd8fa917a151143d14cc7470bf080326",
+        "regionHash": "c716156bc9d9d86e0fc10c2adf79221e8d089b5c71f73e13cc0762125b805ea1"
+      },
+      {
+        "path": "prompts/state/Current-State.md",
+        "line": 1493,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "autorização",
+        "contextHash": "b939ad6e4c708daf2871dbddf5cf832f4625e59b61a9fec3b616895738fd9fd4",
+        "regionHash": "a2868b014018b6441ab7959c744cd00716b08f4af3d094b867f69c549229c26d"
+      },
+      {
+        "path": "prompts/state/Current-State.md",
+        "line": 1519,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "proprietário",
+        "contextHash": "53ae3dd1375ef24ade070929950d364926b0f1c3c91ddce6c4122742769ec990",
+        "regionHash": "e9cae8585901f6d6837844e378a31afd20b23878957d7167bd2ed0599df5ce4e"
+      },
+      {
+        "path": "prompts/state/Current-State.md",
+        "line": 1533,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "implementação",
+        "contextHash": "7f93c09b74e8c61f73538125613b460dc2de822d1e34d2ca2cba7da25ba75488",
+        "regionHash": "b2b47877f76876bda5d0bd38b18857941000b7800a2154b68614aa87ddd885d9"
+      },
+      {
+        "path": "prompts/state/Current-State.md",
+        "line": 1545,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "proprietário",
+        "contextHash": "0436088dcbebd9e4b3cf889bd7abb4a1327dbf0392fcced066df7ec2d870f364",
+        "regionHash": "fc3bfc2cfe4906cd32fd3cf7f047cbd8fe00971cbd50bd82cbb18c2d4a4f4646"
+      },
+      {
+        "path": "prompts/state/Current-State.md",
+        "line": 1553,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "alteração",
+        "contextHash": "2b3107a4427f87c9243d4af9a5220718f7993a9d097335c1a834f2c6e09a49a7",
+        "regionHash": "55e1a93499ac47b7f626c5192916927d7d23f3230456a15c78873003ccc3d9b4"
+      },
+      {
+        "path": "prompts/state/Current-State.md",
+        "line": 1582,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "proprietário",
+        "contextHash": "5e010af8a8bbed1ae14d0d4e8b50df5df7330cc220177f44ddf0a53d90753436",
+        "regionHash": "8812d728e1e0ee0ab560cc0c4dc2820ca9b7e7fcd4c14bcad523f580b72143ca"
+      },
+      {
+        "path": "prompts/state/Current-State.md",
+        "line": 1609,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "segurança",
+        "contextHash": "4f1bed2ce6d98cccc0fa56a42e2502fd945afe26cd3a79fc7b4eecd5b58c3880",
+        "regionHash": "b5188c8bfb352ce00bbf48377b871ea3aa2f0060571750789ecd18e99af05c74"
+      },
+      {
+        "path": "prompts/state/Current-State.md",
+        "line": 1612,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "execução",
+        "contextHash": "696eb1a32c89ad028865d3f7353ae38aab91071b961bb4f4eb568117b6d5beab",
+        "regionHash": "fa7923ecc90f4464274bae7d05ecbef7426a691c3d673c11407cbdb5509c895f"
+      },
+      {
+        "path": "prompts/state/Current-State.md",
+        "line": 1614,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "implementação",
+        "contextHash": "20e8c234087317487d71f782f81928398fd358eb41f5b2f49a1dbc02f8ea98f5",
+        "regionHash": "2dfa228b43a1306f4b026a190f79403e1e77332af75e299de4319a2e1dfcd9be"
+      },
+      {
+        "path": "prompts/state/Current-State.md",
+        "line": 1617,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "segurança",
+        "contextHash": "1a78dfd9a547c4367b89b313207c1fddddd47f214ee838d9409cde44e2437b45",
+        "regionHash": "af5346acb52931bef6ff0f4995ae6668fd74fc73e30a09c5ab276e6003b01ef7"
+      },
+      {
+        "path": "prompts/state/Current-State.md",
+        "line": 1624,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "implementação",
+        "contextHash": "3b25840c6a9f8c59e2346b5e8e976bd95b1a37e5bb85ba9ae9c95933e042fb14",
+        "regionHash": "bfa7f3f8afaa72d3685e3672758a73ad5b5868fffc703b8fb8a6d6963c76dda8"
+      },
+      {
+        "path": "prompts/state/Current-State.md",
+        "line": 1630,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "segurança",
+        "contextHash": "f7af8d1ad2e2ff74c94152416d2b09c95f709de5f550e70f400fe8e270d7694d",
+        "regionHash": "06be8bfa5dd5a8dc4709e979fd5899e5d721de147cc90b1b8f69989dcac6b95a"
+      },
+      {
+        "path": "prompts/state/Current-State.md",
+        "line": 1632,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "comportamento",
+        "contextHash": "748c8b4cbdb7738dd794ff8cbccfb0d0bcfa0c8d5eccd015883ec65872a8fb11",
+        "regionHash": "ff2b3ac9ed15f3519841975d4eed04ce22e7e7e535b4e3928350be5f382b8b84"
+      },
+      {
+        "path": "prompts/state/Current-State.md",
+        "line": 1638,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "proprietário",
+        "contextHash": "ba6c43b5bc12dc0f744e1a294dd3a5b59b7a7be6c2fa969c2ea7be7c53c2f4e0",
+        "regionHash": "0a7e057ee26bdb05c41bc5271d763b9181a61ff29da4f011d2f3905f3a888aba"
+      },
+      {
+        "path": "prompts/state/Current-State.md",
+        "line": 1649,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "comportamento",
+        "contextHash": "81a0aa9664b26236566c2188c8401c25ea69e673908fd5f1e6f03e058cb42dbb",
+        "regionHash": "d0de83482d82422cf04872dd4307594fab16e135c430790455ece3818364a69e"
+      },
+      {
+        "path": "prompts/state/Current-State.md",
+        "line": 1653,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "comportamento",
+        "contextHash": "554b96313c0fdc1d8784ba17ff783ca9e09c348a819d0afd3572fd75383ca853",
+        "regionHash": "fb3ba9034231cb2e1afe14208a6b45cd2173f3e2283018092b351246b62aaa91"
+      },
+      {
+        "path": "prompts/state/Current-State.md",
+        "line": 1657,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "comportamento",
+        "contextHash": "cc45b94e1fd4acf066af614b5ad4d534a30b0f213822f33dfea5d731c84576b5",
+        "regionHash": "b626d9bf9eeca5efb834d4c081856143696c7d6e489af220a9be61cedc0cc391"
+      },
+      {
+        "path": "prompts/state/Current-State.md",
+        "line": 1674,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "comportamento",
+        "contextHash": "82a680515df38d26b4addebf531fed8ba6604b0a883377667299c444c2986714",
+        "regionHash": "74e1de394bc34a75eee5693e2bb3acf2d026a41bbd836e1ce564b29430a57f72"
+      },
+      {
+        "path": "prompts/state/Current-State.md",
+        "line": 1677,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "implementação",
+        "contextHash": "d54252537be27c731acbdb891dff805cc0996f2473b1256ff309e22a480ff30d",
+        "regionHash": "b26afd9c2dded9646dc05215f50902a31c959307e38d9a84ca2a119932a6a0f9"
+      },
+      {
+        "path": "prompts/state/Current-State.md",
+        "line": 1683,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "implementação",
+        "contextHash": "02a3b2cd8d3cc09dad327586eab65f4e9f695f9cfb071d4ce362b2fea6232407",
+        "regionHash": "799710b97555be2c49dac8a9414df0824e287e41bda431015445fb0446ff36da"
+      },
+      {
+        "path": "prompts/state/Current-State.md",
+        "line": 1689,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "falha",
+        "contextHash": "a77758ae4c875fa0e03ddb4b5c1977ad1111da38aa971c7ec65d0f9586e14807",
+        "regionHash": "d389f773454fa6b4fe4d3eec709c343006016f024b1b3762a3921235edafac34"
+      },
+      {
+        "path": "prompts/state/Current-State.md",
+        "line": 1691,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "implementação",
+        "contextHash": "7017e63f120100a92d8cf610a87c972025645d9def91f0745d05e8b35ed3fd6e",
+        "regionHash": "6a24dad064efde718345432f42076fa698ae8432999488cc3560b89c461da76a"
+      },
+      {
+        "path": "prompts/state/Current-State.md",
+        "line": 1702,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "implementação",
+        "contextHash": "dfc9fed69b595cb3838547cf8ec36600b4874338c6a9d2bde91db6c5918e941b",
+        "regionHash": "544856a653b496198a2ebf3a29c0b44441cc00668584dcb861d30039a63173f9"
+      },
+      {
+        "path": "prompts/state/Current-State.md",
+        "line": 1766,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "implementação",
+        "contextHash": "8d8e958dd2c326b2eead92e8c55a360c1f7fc88e1969ee248c2d71ff66098395",
+        "regionHash": "bf294c4ef63471bbeecea3f9374134d2d79edcc2c8982c4e246f1af4727c37c6"
+      },
+      {
+        "path": "prompts/state/Current-State.md",
+        "line": 1801,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "implementação",
+        "contextHash": "73c58e390cf91ea9f6cd1386d5a6570fc179c5d54f8d1434efa4227bf982b168",
+        "regionHash": "f16b4e043bc4acee6861caa0131316f3a05ec8b8f2ce465528999b2565b60ec6"
+      },
+      {
+        "path": "prompts/state/Current-State.md",
+        "line": 1808,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "validação",
+        "contextHash": "21493d474df9180ca48440379f717dc0dda20f50cc6b2c021f8637fa3d49b9fa",
+        "regionHash": "513f69cc6767d71b1a77e2f25a8733be72ed1cf954f849b6c6e69d55f59e08ef"
+      },
+      {
+        "path": "prompts/state/Current-State.md",
+        "line": 1826,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "teste",
+        "contextHash": "70bcaeefdf2fd0a54f72a658a9bc8992246c926f898123b2ef53a77c5466f409",
+        "regionHash": "48a77af4b7292d4765eda39f811d862e4dde8a99a0090750e68af8808d2bf43d"
+      },
+      {
+        "path": "prompts/state/Current-State.md",
+        "line": 1830,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "implementação",
+        "contextHash": "e11ba0c0ee10af0f17dc0236f79b0c9aad273e29241a61c4c0e9404a47545cfb",
+        "regionHash": "80c69aeae0f0ebfc231302e1c2f93f7b4cd0a3859511ef016a391ff1afba5466"
+      },
+      {
+        "path": "prompts/state/Current-State.md",
+        "line": 1839,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "arquivo",
+        "contextHash": "2efc5efe1418fa4b09a386a878a37e4c48100d64a3e7a3807756a7b515ecd9da",
+        "regionHash": "0b724947c462396c1e63412d2efd9d16fa5eabc7c27a023a497cc029c18fafba"
+      },
+      {
+        "path": "prompts/state/Current-State.md",
+        "line": 1853,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "implementação",
+        "contextHash": "db636ce99b513ba6bea4449839213cb1f450cf6a84dcec8309d7f8b090f5f5e4",
+        "regionHash": "9e754aabeaae4850d4ae9b708c1772e38b244a0d2d63cd76b30e37bd1aa09724"
+      },
+      {
+        "path": "prompts/state/Current-State.md",
+        "line": 1873,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "implementação",
+        "contextHash": "243c389bca0685a32f1ff7e9c75cf8826913befdcae369a1a2218560796797ce",
+        "regionHash": "5641b777a2b3b9cd507a0179dbf3155eca8994624ab2dca54d3e0bb364240e24"
+      },
+      {
+        "path": "prompts/state/Current-State.md",
+        "line": 1876,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "falha",
+        "contextHash": "8958573c559dad5cc0cbd8a58e5a5bf7362b3650cc1614a3b294d420fa1ef031",
+        "regionHash": "99f8551ba1955e9665a165ba5a4d99e191cb60cead71e892f22fa5336e0e5109"
+      },
+      {
+        "path": "prompts/state/Current-State.md",
+        "line": 1883,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "implementação",
+        "contextHash": "124b669aed6045a6dc0eb0039b8bd1ffc2d0d3120bf50ea6dad44cad717fb2f0",
+        "regionHash": "9ac3ff8bf0b313c0132b539f3fe0d64dc03bccb229f408dd8c97ba4c4d7944db"
+      },
+      {
+        "path": "prompts/state/Current-State.md",
+        "line": 1902,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "arquivo",
+        "contextHash": "96b4e52d657edd6a080ac306e6ff75d15d370b9dbf26088aef542609d8ee5e7e",
+        "regionHash": "4cc0aab5c89df8f342f4ec58c04f3f43d97a1bc7564d363b95cce3e4dcb437e6"
+      },
+      {
+        "path": "prompts/state/Current-State.md",
+        "line": 1950,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "execução",
+        "contextHash": "e8af799caacd8606eb78c86ab5f8c35b7127e644fb91144dea257b333557a00e",
+        "regionHash": "17c08ff7f490d3948605b574e765a835935249dcbabeec9cac3a21fbe5bb2341"
+      },
+      {
+        "path": "prompts/state/Current-State.md",
+        "line": 1978,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "execução",
+        "contextHash": "1565365868129a7d3a620d48a86de620ffd37984f0c2639762a78d2ee8c9e7e3",
+        "regionHash": "3ce9f18de1ed5b1b920c7af20736292995b8ab86dfdcb4ed3df49865f049fc9f"
+      },
+      {
+        "path": "prompts/state/Current-State.md",
+        "line": 2011,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "implementação",
+        "contextHash": "c1d6236a03f0c768f4eed17c1354f113a184a1eac3289951c23f05bb1a6cba9f",
+        "regionHash": "bdd8e0fb0a62f3907d39f2bd74975d9cbf4895171ec0c3f897e0e863582157a9"
+      },
+      {
+        "path": "prompts/state/Current-State.md",
+        "line": 2032,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "implementação",
+        "contextHash": "71430afb9ec9d078b661f7e05a7b22dc7595412d44495eb1f617f2d02f9e8d33",
+        "regionHash": "bbd21821efcc5dd7997c2e2bfe59cf00128492510bfbcd3ba65dda440f7712b9"
+      },
+      {
+        "path": "prompts/state/Current-State.md",
+        "line": 2034,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "proprietário",
+        "contextHash": "63ac4f3bcc70919d42113a400066950a0df3ece4e5f79d7a04b0d64f84dfe632",
+        "regionHash": "d9e4dbc443e527041f1fe757bb3866ca108bcc5f636359ba64bf77e5eede132d"
+      },
+      {
+        "path": "prompts/state/Current-State.md",
+        "line": 2046,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "proprietário",
+        "contextHash": "6aa9f7bdfad217ada34e28ffdc428a46c1ba99ff1f686c00c2b53be5fd8842f7",
+        "regionHash": "6d0a9258de67c79d37b49bbdfdd10c6e06b4611125580ce98930e979381b69bc"
+      },
+      {
+        "path": "prompts/state/Current-State.md",
+        "line": 2067,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "segurança",
+        "contextHash": "2dd6dd64e6805fc9a792b249874dd09dc836647067cdccef3eb8ccb31bc1ddaa",
+        "regionHash": "45221fa12ff50101dcb0108c8195727955db87fe3aa51dff42bb5d5ca202ffdd"
+      },
+      {
+        "path": "prompts/state/Current-State.md",
+        "line": 2071,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "proprietário",
+        "contextHash": "9f8538b918bc4b0fca5171465a9b8982ec28210565baa9381946b854308bc811",
+        "regionHash": "e2bd6e8777637eb1d302344318ec691a1d97a5c1c93a4ed5c616783c0282fa79"
+      },
+      {
+        "path": "prompts/state/Current-State.md",
+        "line": 2094,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "segurança",
+        "contextHash": "65bc3fee4d2946f732963f8c391d91d4113f9eb99bb13e9d71dcabc93e1e89a2",
+        "regionHash": "91db09e8e580d9677ee8455b2947d29c37b0b82a9252d6ac7338ed30183d2dfb"
+      },
+      {
+        "path": "prompts/state/Current-State.md",
+        "line": 2111,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "validação",
+        "contextHash": "0d9744d058ee0ca55dae9d96a4b51c426d3a63138ae72032e5554e0b971db1b3",
+        "regionHash": "7ad1aa07fc073e078d25aaea558f85059f10676bca86a091be0c0dfd3a9a6f9a"
+      },
+      {
+        "path": "prompts/state/Current-State.md",
+        "line": 2112,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "implementação",
+        "contextHash": "8ea2a6b1837db9476f11baff6eec3c23a7dceefdceb4c8131d8eb68264e1b166",
+        "regionHash": "0cd77175285601c75cc61208a226fd9bd4a679b2973ec1d7eb4779b939614e69"
+      },
+      {
+        "path": "prompts/state/Current-State.md",
+        "line": 2115,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "implementação",
+        "contextHash": "20e8c234087317487d71f782f81928398fd358eb41f5b2f49a1dbc02f8ea98f5",
+        "regionHash": "833592ac2655d809ae5e5565e3c4ce28fd0de026614cd01341ea82dd53df9539"
+      },
+      {
+        "path": "prompts/state/Current-State.md",
+        "line": 2125,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "execução",
+        "contextHash": "b0fe7f49f86cafb1372f7c46f17efc2f4b86bed3361bbd67a21cc881b0161c44",
+        "regionHash": "c37553b3976c7207b717424940cb05de027b0e32d996867ab875f2ca98f929b3"
+      },
+      {
+        "path": "prompts/state/Current-State.md",
+        "line": 2132,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "autorização",
+        "contextHash": "c40cc86216edb3c662a928f3e0f04d4acf0ed207210ca55f937328288dd435d8",
+        "regionHash": "fa69e0aea59abe1e793bdb0d4bdb1839d5e71c30026f496a4d295ff65f0d38a9"
+      },
+      {
+        "path": "prompts/state/Current-State.md",
+        "line": 2138,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "proprietário",
+        "contextHash": "cc27d7932c85fb70dbf301ac14fb3cb9db09762d8d02d185fe916821441b9f3b",
+        "regionHash": "4a31bacca4fd93e982133b41cd4bb5a4844c7087f76bcf30a38da3bedce6b0ef"
+      },
+      {
+        "path": "prompts/state/Current-State.md",
+        "line": 2162,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "execução",
+        "contextHash": "190f1cbdcf2e26d96bd4aafe39a0ef15f76141337ae31be68ab0c89646de246b",
+        "regionHash": "140a4a1568e963f34adfa438bf919832420cb94641b33341d9ec52db19347301"
+      },
+      {
+        "path": "prompts/state/Current-State.md",
+        "line": 2172,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "alteração",
+        "contextHash": "778ccb035abd1b070991a47c0d1af362e5a108a31bcde19d1aa9546c06ceefdb",
+        "regionHash": "1c3d6460ddc8a60b650eeac966cefb225635e7b7f7d62a147258064b270fb24d"
+      },
+      {
+        "path": "prompts/state/Current-State.md",
+        "line": 2212,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "execução",
+        "contextHash": "9a5f6a04c3681df65351ff9e8e83159591d9ba2440b0bdd9add15d6be7f40774",
+        "regionHash": "525eb710fd548f3b353a2543cece997746569aa2908b8f70763faeb2b924e31e"
+      },
+      {
+        "path": "prompts/state/Current-State.md",
+        "line": 2217,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "teste",
+        "contextHash": "5adb1fe3708d1fda5d80661d6f1efbb624e0a88041611d1989cc2c9bee289c3f",
+        "regionHash": "69330359588ae8cb3c2adf197c4c551e3455b7897b1ae2260cca9b8cd77b5099"
+      },
+      {
+        "path": "prompts/state/Current-State.md",
+        "line": 2224,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "arquivo",
+        "contextHash": "4858739489573e61d66ef478b4dab615352c1848aa33866a14ac4dc724afdf25",
+        "regionHash": "0b4a764926a424ff666183e2791ea2f54690a8cbb7286a4951b24282e0aff29c"
+      },
+      {
+        "path": "prompts/state/Current-State.md",
+        "line": 2231,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "arquivo",
+        "contextHash": "3681733973ca7bab181b9b4488cf06d8119411e42625c0a14fddc3d8040fc35b",
+        "regionHash": "01c70ffb36b297a8c1ac18c719d3b0848a642e66bb28ec91d2bedb4d17ca5a6a"
+      },
+      {
+        "path": "prompts/state/Current-State.md",
+        "line": 2243,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "documentação",
+        "contextHash": "17c00210c36b96a09250430b3e84d11650c6be225a26b3f74aaf51b54bff4c05",
+        "regionHash": "0fae8417e3e7a5a3ab21d2ceb250a6c3d395046095eb9c1eb5a4db40174ea71a"
+      },
+      {
+        "path": "prompts/state/Current-State.md",
+        "line": 2249,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "segurança",
+        "contextHash": "3a3892c8255029e1c43c5de0055a333fa5c87bc896cb2479d199c5a16d8dec39",
+        "regionHash": "dc755042384a421101244a55a20a917210143cbc3d739dd2a8a9f613701c4c76"
+      },
+      {
+        "path": "prompts/state/Current-State.md",
+        "line": 2256,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "validação",
+        "contextHash": "035612fc9710cf338d46c338fa97e5db543b6da87f1f5a1edffc6be9be6ed0a5",
+        "regionHash": "995a893c2b1b45c5d797e6e3ef13558819c48792d64dd91c952658019f614b65"
+      },
+      {
+        "path": "prompts/state/Current-State.md",
+        "line": 2288,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "execução",
+        "contextHash": "5a8ea136ab57b3e6fe391e670260a0b885b71d750d83f71db264db1341b34095",
+        "regionHash": "35166b49281b6d8c5546a508c22d2e006f0b5366ffe4ab7704ad262a94d23cf5"
+      },
+      {
+        "path": "prompts/state/Current-State.md",
+        "line": 2327,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "segurança",
+        "contextHash": "c3a16ef95e4626cc8a7eaf801c70c8031860a3776f589aef84dd349e8914e34a",
+        "regionHash": "8cb97c730bc41f5d9c2e977da60c53cb63bc87b4e8d5009abfd210d5e1017a9f"
+      },
+      {
+        "path": "prompts/state/Current-State.md",
+        "line": 2361,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "implementação",
+        "contextHash": "0e4c94d920ea40b2e8a561ae10cc93bd020fc5a89fde2b6587592b6190419678",
+        "regionHash": "995349f6b3473c4fb5329a8f9915d75b1d76b57bbe8fb9b5d100492445ddd5f1"
+      },
+      {
+        "path": "prompts/state/Current-State.md",
+        "line": 2378,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "execução",
+        "contextHash": "48c3e5bd70b7bc67f3febdb86f40d1c7cdb37776cd36b8a05dfce2e970cdd872",
+        "regionHash": "5507e63e4ce58299bcb1e25dfa498adb89b2aef39e54e413e1816b25e8e96117"
+      },
+      {
+        "path": "prompts/state/Current-State.md",
+        "line": 2387,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "execução",
+        "contextHash": "f7b7198bb386c2d7594f0d8d7f18b95c3001bde15494ccb5f87309abbb77f4e0",
+        "regionHash": "c18c10b4381e7ce5afd84f5cb798e2af61aef4ee56c65c660f5b49ce72f6e9cb"
+      },
+      {
+        "path": "prompts/state/Current-State.md",
+        "line": 2391,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "implementação",
+        "contextHash": "7c446d9c993526dc4ed66b16f191fa8e22a1414c03d0ea9ac64301fa6959432e",
+        "regionHash": "a5d534d1af02634a4e706e6b995d044e58be4a742160250a59ef4278f78b7b0a"
+      },
+      {
+        "path": "prompts/state/Current-State.md",
+        "line": 2392,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "execução",
+        "contextHash": "1ddf878d342883044c4b0254410b7e44309c35b7c9b306ea5a94a75b8ed05692",
+        "regionHash": "ed7dde4a1a44dea86fce74814428d32c3c39e7b93e4c11e3808fbb88f3d19aac"
+      },
+      {
+        "path": "prompts/state/Current-State.md",
+        "line": 2394,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "proprietário",
+        "contextHash": "e4712dec86623a97ca715d0dbd3392ae2d29fe4477c384d67e6418e0e0b27a77",
+        "regionHash": "98e168f3c7667b1fa46b1b4dda6cfd11a8a49f5a4cd7d11760bfc5b078e74f49"
+      },
+      {
+        "path": "prompts/state/Current-State.md",
+        "line": 2398,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "execução",
+        "contextHash": "681b8e86bb8b1ee1cfedbca76f5479558d12432397796cce4df6bae913e51610",
+        "regionHash": "5ecd2530ec2dbf0f6062095e996b279cc10eca1969ed5a6aa74e2e95a946fa2a"
+      },
+      {
+        "path": "README.md",
+        "line": 3,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "documentação",
+        "contextHash": "e251326c8807526898f6e9ac0cf966e3e5a1dd2af1ce762b11e095f9a64beaa9",
+        "regionHash": "0ecd2f6c0ea935b02b41bc79cd7f5290337c5e765a43014e483121ac39b020cf"
+      },
+      {
+        "path": "README.md",
+        "line": 27,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "verificação",
+        "contextHash": "911370b619ebeba39f305270c7d7439cf1bcacf0825078f3ef82bad58e85553d",
+        "regionHash": "569add185f082cc22c9cc413ff9c8fd66625cb37da00e443d7069c30acdae914"
+      },
+      {
+        "path": "README.md",
+        "line": 36,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "verificação",
+        "contextHash": "85517a72e4fdd297601f88eee2de806bbce349cb36b3586c983ca149c4828f45",
+        "regionHash": "8862241e92538370b4b96e3772e794c069926270e6c986006fab27c46415c1c6"
+      },
+      {
+        "path": "README.md",
+        "line": 56,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "documentação",
+        "contextHash": "98d25004c73c78c9e96b07e5a67b8b47df1249f0e2b1f263944e40fbf01a9e12",
+        "regionHash": "29f606dfe8e30908a725de1e1f87104cb3f25823dbb4b85f8a7db836ff6fb080"
+      },
+      {
+        "path": "README.md",
+        "line": 64,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "proprietário",
+        "contextHash": "2f0069cdf03d75a12432ad9501f12937191b1e6494a35642f74e36f4117d83a7",
+        "regionHash": "eb039459b7ce8a181dae817c1f0f25e634f96ec3f9db59617bf40952b6c7d50c"
+      },
+      {
+        "path": "README.md",
+        "line": 96,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "segurança",
+        "contextHash": "9c314b8d8ca941a40966ec246f9623428886c3b2f55a756b8af67fb1501fc9f8",
+        "regionHash": "5cc7b55bcbd282ff6331c3943623652c2d8ce45f0aad12180d388a99a6a17454"
+      },
+      {
+        "path": "README.md",
+        "line": 99,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "documentação",
+        "contextHash": "05eb087436ffff7e0e9cbde79ad990046d50965552cd304aca2ef776f18551d5",
+        "regionHash": "b9917160926fb868753790463fbd7085b6ea7dbe0439f4c5ff84b59d8e36916f"
+      },
+      {
+        "path": "README.md",
+        "line": 110,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "proprietário",
+        "contextHash": "ef3ab9a2653f9f37a57c43ba6dc898de0008c89f4509e2596f8317f5c687d366",
+        "regionHash": "cb22723a91def9220c1e269ca31da25cd4c9b6387389d43eb7c961164f337de0"
+      },
+      {
+        "path": "README.md",
+        "line": 171,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "execução",
+        "contextHash": "c7fc0d41fbfac368785b8d4d650164c14d0f0df2d884a774e9743ac0d2c11063",
+        "regionHash": "1a89c5b7bd3ac8be64beeb299e25adc94728dff339b8a3e0c7f0e4725f1d72ba"
+      },
+      {
+        "path": "README.md",
+        "line": 201,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "execução",
+        "contextHash": "ba4ef41086ce151ab93960e33f635d6694789b065ecd5f256155c1d0be34912a",
+        "regionHash": "d7a059702cfaf2c9876ec98b29b363afb2861e6e823a23c9e1ee692f95c64791"
+      },
+      {
+        "path": "README.md",
+        "line": 247,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "execução",
+        "contextHash": "4487255a1d1591c10594a1e912dedc967b7740f6afa43d067f0b1e1ea343f800",
+        "regionHash": "bbc4477f0f2c403d9bd1bcfae8acb24af5d6d19378aedec73378cbafd7e788c7"
+      },
+      {
+        "path": "README.md",
+        "line": 249,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "execução",
+        "contextHash": "3a0d856ccef2020156f2b677274232c1d4fdc4693739f2c20be0bcc6a572c509",
+        "regionHash": "88c4a8104db594926463938e55e583e95e8bf50ebc1f12f72520474baf3ad9b2"
+      },
+      {
+        "path": "README.md",
+        "line": 300,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "proprietário",
+        "contextHash": "6478584c0879a360718a2bd7223d629f2d234526592848b58ef87815cefff95f",
+        "regionHash": "5b4a7b02e7cd281f799aa077e720f5ea937e18481a60d7c4fbb4ef31d91c2ce9"
+      },
+      {
+        "path": "README.md",
+        "line": 303,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "segurança",
+        "contextHash": "fa2cf58b3a071f515389b9780be364635a06c117dd6b9f12b8c0e8630609485e",
+        "regionHash": "4b584c69babc3b30989faf40a521b9dc92e2a3806213e2761411b918329fc240"
+      },
+      {
+        "path": "README.md",
+        "line": 322,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "arquivo",
+        "contextHash": "64904835681bccda0ceaa00c597129321e788611e84ab68986061a431dfe4df9",
+        "regionHash": "85222ae870a6ea78dcc1c1b64f72a4d1958ae2753586a79dfccdcc932cfe7d52"
+      },
+      {
+        "path": "README.md",
+        "line": 323,
+        "ruleId": "PORTUGUESE_TECHNICAL_PROSE",
+        "token": "autorização",
+        "contextHash": "25e4dc0329d6e0d875c280fca8e3304f83c337bd1dd372e1626fd1ddfcafa675",
+        "regionHash": "a512eb74063a500e1dc8013c8118d603e9c971b8fc5f12164d8ea6bfe3af13fe"
+      },
+      {
+        "path": "src/RagChallenge.Application/Documents/DocumentParsingContracts.cs",
+        "line": 164,
+        "ruleId": "US_SPELLING",
+        "token": "artifact",
+        "contextHash": "03d961043888d84c6305cfdcbb5d587fcb3f0135400d4a1ef48be81d7bb1d86f",
+        "regionHash": "fcb80feaf18c1b23871250b10aea230b7bc9c8a105d6ebb774e708d3db5c673a"
+      }
+    ]
+  },
+  "digest": "sha256:fcee6b80d1a8002305869ea415dcfe225c70339874113ba019cd1f2b9344db9a"
+}

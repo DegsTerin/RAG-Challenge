@@ -1,0 +1,39 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://rag-challenge.invalid/schemas/language-migration-baseline-v1.json",
+  "title": "RAG-Challenge language migration baseline",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["$schema", "payload", "digest"],
+  "properties": {
+    "$schema": { "const": "./language-migration-baseline.schema.json" },
+    "payload": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["schemaVersion", "baselineId", "status", "policyDigest", "findings"],
+      "properties": {
+        "schemaVersion": { "const": 1 },
+        "baselineId": { "const": "rag-challenge-en-gb-migration-v1" },
+        "status": { "enum": ["IN_PROGRESS", "COMPLETE"] },
+        "policyDigest": { "type": "string", "pattern": "^sha256:[0-9a-f]{64}$" },
+        "findings": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["path", "line", "ruleId", "token", "contextHash", "regionHash"],
+            "properties": {
+              "path": { "type": "string", "minLength": 1 },
+              "line": { "type": "integer", "minimum": 1 },
+              "ruleId": { "enum": ["US_SPELLING", "PORTUGUESE_TECHNICAL_PROSE"] },
+              "token": { "type": "string", "minLength": 1 },
+              "contextHash": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+              "regionHash": { "type": "string", "pattern": "^[0-9a-f]{64}$" }
+            }
+          }
+        }
+      }
+    },
+    "digest": { "type": "string", "pattern": "^sha256:[0-9a-f]{64}$" }
+  }
+}

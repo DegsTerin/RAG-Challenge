@@ -64,6 +64,11 @@ A batch is ready when:
   broadening authority or claiming automatic configuration.
 - Communication and artefacts comply with the
   [language policy](Language-Policy.md).
+- Schema, policy digest, migration fingerprints, append-only identities,
+  repository prose and applicable new commit messages pass the automated
+  language check. This lexical result is necessary but never substitutes for
+  independent semantic review of British English and the structured
+  exclusions owned by the language policy.
 
 ## Coverage policy
 
@@ -128,18 +133,19 @@ An audit does not correct silently, invent evidence or advance state.
 The sole aggregated CI entry point is `./eng/ci.ps1`; the workflow must invoke
 it exactly once. The governed order is:
 
-1. fail-closed CI and coverage policy tests;
-2. LF verification of NuGet lockfiles;
-3. locked restore;
-4. repeat lockfile verification;
-5. `dotnet format --verify-no-changes`;
-6. Release build;
-7. .NET tests and aggregated Cobertura coverage;
-8. floors of 70% of lines and 45% of branches;
-9. `npm ci`, lint, typecheck, Dashboard tests and build;
-10. dependency audits only when online mode is authorised;
-11. repository audit;
-12. `git diff --check`.
+1. language-policy tests and one fail-closed repository/commit check;
+2. fail-closed CI and coverage policy tests;
+3. LF verification of NuGet lockfiles;
+4. locked restore;
+5. repeat lockfile verification;
+6. `dotnet format --verify-no-changes`;
+7. Release build;
+8. .NET tests and aggregated Cobertura coverage;
+9. floors of 70% of lines and 45% of branches;
+10. `npm ci`, lint, typecheck, Dashboard tests and build;
+11. dependency audits only when online mode is authorised;
+12. repository audit;
+13. `git diff --check`.
 
 `./eng/ci.ps1 -Offline` is partial local evidence because it omits dependency
 audits that require network access. Its PASS must not be labelled equivalent

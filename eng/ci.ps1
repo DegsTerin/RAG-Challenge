@@ -66,6 +66,19 @@ function Assert-NpmLockFileLineEndings {
 Push-Location $repositoryRoot
 
 try {
+    node (Join-Path $PSScriptRoot "test-language-policy.mjs")
+    Assert-LastExitCode "Language policy tests"
+
+    $languageArguments = @((Join-Path $PSScriptRoot "check-language.mjs"))
+    if (-not [string]::IsNullOrWhiteSpace($env:RAG_LANGUAGE_COMMIT_BASE)) {
+        $languageArguments += @("--commit-base", $env:RAG_LANGUAGE_COMMIT_BASE)
+    }
+    if (-not [string]::IsNullOrWhiteSpace($env:RAG_LANGUAGE_COMMIT_HEAD)) {
+        $languageArguments += @("--commit-head", $env:RAG_LANGUAGE_COMMIT_HEAD)
+    }
+    node @languageArguments
+    Assert-LastExitCode "Language policy check"
+
     Invoke-RequiredPolicyTest `
         -Name "fail-closed coverage aggregation" `
         -ScriptPath (Join-Path $PSScriptRoot "test-assert-coverage.ps1")

@@ -119,6 +119,23 @@ payload data or externally supplied content merely to apply `en-GB`.
 - Preserve functional `pt-BR`/`en-GB` localisation. Changing the supported
   interface or query languages requires a separate product decision.
 
+## Automated enforcement
+
+The repository applies the schema-validated policy in
+[`../../eng/language-policy.json`](../../eng/language-policy.json) and the
+temporary migration inventory in
+[`../../eng/language-migration-baseline.json`](../../eng/language-migration-baseline.json).
+Exclusions are exact, classified paths rather than generic ignore patterns.
+While migration is `IN_PROGRESS`, only an identical fingerprinted occurrence
+may remain; new or changed debt fails. A `COMPLETE` baseline must contain zero
+debt. The checker also protects accepted append-only prefixes and validates
+each new commit message without reinterpreting earlier Git history.
+
+Automated lexical checks are deliberately conservative. Passing them is
+necessary but not sufficient: an independent semantic review still confirms
+audience, ownership, external naming, source language and idiomatic British
+English.
+
 ## User interface
 
 The owner separately selected Brazilian Portuguese (`pt-BR`) and British

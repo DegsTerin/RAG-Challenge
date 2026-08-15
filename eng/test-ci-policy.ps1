@@ -259,12 +259,41 @@ try {
         }
     }
 
+    $languageTestCalls = [regex]::Matches(
+        $ciScript,
+        '(?m)^\s*node\s+\(Join-Path\s+\$PSScriptRoot\s+"test-language-policy[.]mjs"\)\s*$').Count
+    $languageCheckCalls = [regex]::Matches(
+        $ciScript,
+        '(?m)^\s*node\s+@languageArguments\s*$').Count
+    $firstRestore = $ciScript.IndexOf('dotnet restore RAG-Challenge.sln', [System.StringComparison]::Ordinal)
+    $languageTestIndex = $ciScript.IndexOf('"test-language-policy.mjs"', [System.StringComparison]::Ordinal)
+    $languageCheckIndex = $ciScript.IndexOf('node @languageArguments', [System.StringComparison]::Ordinal)
+
+    if ($languageTestCalls -ne 1 -or
+        $languageCheckCalls -ne 1 -or
+        $firstRestore -lt 0 -or
+        $languageTestIndex -lt 0 -or
+        $languageCheckIndex -lt 0 -or
+        $languageTestIndex -gt $firstRestore -or
+        $languageCheckIndex -gt $firstRestore) {
+        throw "The CI entry point must run the language tests and checker exactly once before restore."
+    }
+
     $workflowEntryPointCalls = [regex]::Matches(
         $workflow,
         '(?m)^\s*run:\s*\./eng/ci\.ps1\s*$').Count
 
     if ($workflowEntryPointCalls -ne 1) {
         throw "The workflow must invoke the canonical CI entry point exactly once."
+    }
+
+    if ($workflow -notmatch 'fetch-depth:\s*0' -or
+        $workflow -notmatch 'github[.]event[.]pull_request[.]base[.]sha' -or
+        $workflow -notmatch 'github[.]event[.]before' -or
+        $workflow -notmatch 'github[.]sha' -or
+        $workflow -notmatch 'RAG_LANGUAGE_COMMIT_BASE' -or
+        $workflow -notmatch 'RAG_LANGUAGE_COMMIT_HEAD') {
+        throw "The workflow must fetch full history and resolve the exact event-specific language boundary."
     }
 
     if ($workflow -notmatch 'Assert-VersionSatisfiesRange' -or

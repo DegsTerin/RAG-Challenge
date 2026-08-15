@@ -26,6 +26,7 @@ import {
   assertAuthorityReference,
   assertCliArgumentsContainNoSecretMaterial,
 } from "./security/secret-policy.js";
+import { loadTrustedLanguagePolicy } from "./security/language-policy.js";
 
 const packageRoot = resolve(dirname(fileURLToPath(import.meta.url)), "../..");
 const repositoryRoot = resolve(packageRoot, "../..");
@@ -157,7 +158,12 @@ async function runCommand(arguments_: readonly string[], resume: boolean): Promi
     plan?.baseline ?? (recovered === null ? "" : persistedCoordinatorHead(recovered)),
   );
   const worktrees = new GitWorktreeManager(repositoryRoot, managedWorktreeRoot, processAdapter, gitExecutable, safeEnvironment());
-  const inspector = new GitCandidateInspector(processAdapter, gitExecutable, safeEnvironment());
+  const inspector = new GitCandidateInspector(
+    processAdapter,
+    gitExecutable,
+    safeEnvironment(),
+    await loadTrustedLanguagePolicy(repositoryRoot),
+  );
   const quality = new RepositoryQualityGate(processAdapter, safeEnvironment(), powershellExecutable);
   const integration = new SequentialIntegrationPipeline(processAdapter, gitExecutable, safeEnvironment(), quality);
   let codexRunner: CodexRunner | null = null;

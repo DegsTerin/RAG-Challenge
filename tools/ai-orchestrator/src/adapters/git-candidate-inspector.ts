@@ -6,6 +6,7 @@ import type { StructuredProcessExecutor } from "../ports/process-executor.js";
 import { assertAbsoluteExecutable, gitArguments, gitEnvironment } from "../security/git-process-policy.js";
 import { assertRepositoryPath } from "../core/validation.js";
 import { assertSafeGitAttributes, assertSafeGitRepositoryConfiguration } from "../security/git-repository-policy.js";
+import { assertBritishCommitMessage, type TrustedLanguagePolicy } from "../security/language-policy.js";
 
 export class GitCandidateInspector implements CandidateInspector {
   private readonly environment: Readonly<Record<string, string>>;
@@ -14,6 +15,7 @@ export class GitCandidateInspector implements CandidateInspector {
     private readonly process: StructuredProcessExecutor,
     private readonly gitExecutable: string,
     environment: Readonly<Record<string, string | undefined>>,
+    private readonly languagePolicy: TrustedLanguagePolicy,
   ) {
     assertAbsoluteExecutable(gitExecutable, "Git executable");
     this.environment = gitEnvironment(environment);
@@ -37,11 +39,13 @@ export class GitCandidateInspector implements CandidateInspector {
     const commitCount = await this.git(task.worktree, "candidate-count", ["rev-list", "--count", `${baseline}..${commitId}`]);
     const tree = await this.git(task.worktree, "candidate-tree", ["rev-parse", "--verify", `${commitId}^{tree}`]);
     const diff = await this.git(task.worktree, "candidate-diff", ["diff", "--no-ext-diff", "--no-textconv", "--name-only", "-z", "--diff-filter=ACDMRTUXB", `${baseline}..${commitId}`, "--"]);
+    const message = await this.git(task.worktree, "candidate-message", ["show", "-s", "--format=%B", commitId]);
     const treeId = tree.stdout.trim();
     if (ancestry.evidence.result !== "PASS" || commitCount.evidence.result !== "PASS" || commitCount.stdout.trim() !== "1" ||
-        tree.evidence.result !== "PASS" || !/^[0-9a-f]{40}$/.test(treeId) || diff.evidence.result !== "PASS") {
+        tree.evidence.result !== "PASS" || !/^[0-9a-f]{40}$/.test(treeId) || diff.evidence.result !== "PASS" || message.evidence.result !== "PASS") {
       throw new OrchestratorStop("UNEXPECTED_DIRTY_TREE", "The candidate must be exactly one commit descending from the authorised baseline.", task.taskId);
     }
+    assertBritishCommitMessage(message.stdout, this.languagePolicy, task.taskId);
     const changedFiles = diff.stdout.split("\u0000").filter((path) => path.length > 0).sort();
     if (changedFiles.length === 0 || changedFiles.length > 256) {
       throw new OrchestratorStop("OUT_OF_SCOPE_CHANGE_REQUIRED", "The candidate diff is empty or exceeds its bounded contract.", task.taskId);

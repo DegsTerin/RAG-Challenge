@@ -25,7 +25,18 @@ import {
   removeProductCredentialFromEnvironment,
 } from "../src/security/secret-policy.js";
 import { assertNoExistingReparseBoundary } from "../src/security/path-policy.js";
+import { assertBritishCommitMessage, type TrustedLanguagePolicy } from "../src/security/language-policy.js";
 import { baseline, instant, passingResult, task } from "./helpers.js";
+
+const trustedLanguagePolicy: TrustedLanguagePolicy = {
+  policyId: "rag-challenge-language-policy-v1",
+  technicalLanguage: "en-GB",
+  bannedAmericanSpellings: [
+    { american: "behavior", british: "behaviour" },
+    { american: "normalize", british: "normalise" },
+  ],
+  portugueseTechnicalMarkers: ["implementação", "validação"],
+};
 
 function state(): PersistedRunState {
   return {
@@ -132,6 +143,44 @@ test("product credential removal deletes only the assembled identifier without r
   };
   removeProductCredentialFromEnvironment(environment);
   assert.deepEqual(environment, { PATH: "C:/synthetic" });
+});
+
+test("trusted candidate language policy accepts British prose and external literals but rejects subject or body debt", () => {
+  assert.doesNotThrow(() => assertBritishCommitMessage("fix(orchestrator): normalise candidate behaviour", trustedLanguagePolicy));
+  assert.doesNotThrow(() => assertBritishCommitMessage("fix(api): preserve OpenAI_API_KEY and https://example.invalid/behavior", trustedLanguagePolicy));
+  assert.throws(() => assertBritishCommitMessage("fix(orchestrator): normalize candidate", trustedLanguagePolicy), (error: unknown) =>
+    error instanceof OrchestratorStop && error.code === "OUT_OF_SCOPE_CHANGE_REQUIRED");
+  assert.throws(() => assertBritishCommitMessage("fix(orchestrator): preserve candidate\n\nReject behavior drift.", trustedLanguagePolicy), (error: unknown) =>
+    error instanceof OrchestratorStop && error.code === "OUT_OF_SCOPE_CHANGE_REQUIRED");
+});
+
+test("candidate cannot relax the coordinator-owned language policy", async () => {
+  const commit = "a".repeat(40);
+  const tree = "b".repeat(40);
+  const processAdapter = new RecordingGitProcess({
+    "candidate-head": `${commit}\n`,
+    "candidate-branch": "codex/implementation\n",
+    "candidate-status": "",
+    "candidate-count": "1\n",
+    "candidate-tree": `${tree}\n`,
+    "candidate-diff": "eng/language-policy.json\u0000",
+    "candidate-message": "fix(language): normalize behavior\n",
+  });
+  const definition = task({
+    taskId: "implementation",
+    owner: "implementation_worker",
+    allowedPaths: ["eng/language-policy.json"],
+    worktree: "C:/managed/implementation",
+    branch: "codex/implementation",
+  });
+  await assert.rejects(
+    new GitCandidateInspector(processAdapter, process.execPath, {}, trustedLanguagePolicy).inspect(
+      definition,
+      baseline,
+      passingResult(["eng/language-policy.json"]),
+    ),
+    (error: unknown) => error instanceof OrchestratorStop && error.code === "OUT_OF_SCOPE_CHANGE_REQUIRED",
+  );
 });
 
 test("state persistence rejects a junction in an ancestor below the repository anchor", async (context) => {
@@ -407,12 +456,12 @@ test("real disposable Git worktree captures deletions, rejects multi-commit cand
     assert.equal((await runGit(worktree, ["add", "--", "fixture.txt", "forbidden.txt"])).evidence.result, "PASS");
     assert.equal((await runGit(worktree, ["commit", "-m", "test(orchestrator): create disposable candidate"])).evidence.result, "PASS");
     const implementation = task({ taskId: "implementation", owner: "implementation_worker", allowedPaths: ["fixture.txt"], worktree, branch: "codex/implementation" });
-    const candidate = await new GitCandidateInspector(processAdapter, git, process.env).inspect(implementation, base, passingResult(["fixture.txt"]));
+    const candidate = await new GitCandidateInspector(processAdapter, git, process.env, trustedLanguagePolicy).inspect(implementation, base, passingResult(["fixture.txt"]));
     assert.deepEqual(candidate.changedFiles, ["fixture.txt", "forbidden.txt"]);
     await writeFile(join(worktree, "second.txt"), "second\n", "utf8");
     assert.equal((await runGit(worktree, ["add", "--", "second.txt"])).evidence.result, "PASS");
     assert.equal((await runGit(worktree, ["commit", "-m", "test(orchestrator): create second disposable commit"])).evidence.result, "PASS");
-    await assert.rejects(new GitCandidateInspector(processAdapter, git, process.env).inspect(implementation, base, passingResult(["fixture.txt", "forbidden.txt", "second.txt"])),
+    await assert.rejects(new GitCandidateInspector(processAdapter, git, process.env, trustedLanguagePolicy).inspect(implementation, base, passingResult(["fixture.txt", "forbidden.txt", "second.txt"])),
       /exactly one commit/);
     const advancedHead = (await runGit(worktree, ["rev-parse", "HEAD"])).stdout.trim();
     await assert.rejects(manager.removeManaged("implementation", worktree, { branch: "codex/implementation", baseline: base, head: candidate.commitId }), /persisted candidate identity|foreign or prunable/);
@@ -444,7 +493,7 @@ test("real sequential integration applies two reviewed one-commit candidates aga
     assert.equal((await runGit(repository, ["commit", "-m", "test(orchestrator): create integration baseline"])).evidence.result, "PASS");
     const base = (await runGit(repository, ["rev-parse", "HEAD"])).stdout.trim();
     const manager = new GitWorktreeManager(repository, managed, processAdapter, git, process.env);
-    const inspector = new GitCandidateInspector(processAdapter, git, process.env);
+    const inspector = new GitCandidateInspector(processAdapter, git, process.env, trustedLanguagePolicy);
     const candidates = [] as Array<{ taskId: string; path: string; branch: string; file: string }>;
     for (const suffix of ["a", "b"]) {
       const taskId = `implementation-${suffix}`;
@@ -516,7 +565,7 @@ test("real failed post-integration gate restores only the coordinator-owned comm
     assert.equal((await runGit(worktree, ["add", "--", "candidate.txt"])).evidence.result, "PASS");
     assert.equal((await runGit(worktree, ["commit", "-m", "test(orchestrator): create rollback candidate"])).evidence.result, "PASS");
     const definition = task({ taskId: "implementation", owner: "implementation_worker", allowedPaths: ["candidate.txt"], worktree, branch });
-    const candidate = await new GitCandidateInspector(processAdapter, git, process.env).inspect(definition, base, passingResult(["candidate.txt"]));
+    const candidate = await new GitCandidateInspector(processAdapter, git, process.env, trustedLanguagePolicy).inspect(definition, base, passingResult(["candidate.txt"]));
     const implementation = { ...definition, status: "IMPLEMENTED" as const, candidate, result: passingResult(["candidate.txt"]) };
     const integrationTask = task({
       taskId: "integration", taskKind: "INTEGRATION", owner: "governance_guard", candidateTaskId: definition.taskId,

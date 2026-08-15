@@ -26,6 +26,39 @@ jobs:
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
           persist-credentials: false
+          fetch-depth: 0
+
+      - name: Resolve language-check commit boundary
+        shell: pwsh
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          PULL_REQUEST_BASE: ${{ github.event.pull_request.base.sha }}
+          PUSH_BEFORE: ${{ github.event.before }}
+          CHECKED_OUT_HEAD: ${{ github.sha }}
+        run: |
+          $ErrorActionPreference = "Stop"
+          $fullSha = '^[0-9a-f]{40}$'
+          if ($env:EVENT_NAME -eq 'pull_request') {
+            if ($env:PULL_REQUEST_BASE -notmatch $fullSha -or $env:PULL_REQUEST_BASE -eq ('0' * 40)) {
+              throw "The pull-request base is missing or invalid."
+            }
+            "RAG_LANGUAGE_COMMIT_BASE=$env:PULL_REQUEST_BASE" >> $env:GITHUB_ENV
+          }
+          elseif ($env:EVENT_NAME -eq 'push') {
+            if ($env:PUSH_BEFORE -notmatch $fullSha -or $env:PUSH_BEFORE -eq ('0' * 40)) {
+              throw "The push-before commit is missing or invalid."
+            }
+            "RAG_LANGUAGE_COMMIT_BASE=$env:PUSH_BEFORE" >> $env:GITHUB_ENV
+          }
+          elseif ($env:EVENT_NAME -eq 'workflow_dispatch') {
+            if ($env:CHECKED_OUT_HEAD -notmatch $fullSha -or $env:CHECKED_OUT_HEAD -eq ('0' * 40)) {
+              throw "The workflow-dispatch head is missing or invalid."
+            }
+            "RAG_LANGUAGE_COMMIT_HEAD=$env:CHECKED_OUT_HEAD" >> $env:GITHUB_ENV
+          }
+          else {
+            throw "The workflow event does not define a language-check boundary."
+          }
 
       - name: Verify toolchains
         shell: pwsh
