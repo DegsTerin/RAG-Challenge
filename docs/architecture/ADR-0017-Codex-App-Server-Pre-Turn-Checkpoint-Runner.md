@@ -2,7 +2,7 @@
 
 ## Status
 
-`proposed`
+`accepted`
 
 ## Date
 
@@ -10,10 +10,16 @@
 
 ## Acceptance record
 
-- No acceptance or rejection has been recorded.
-- This proposal remains `HUMAN_DECISION_REQUIRED`.
-- Preparing this ADR does not authorise implementation, a real Codex turn,
-  account usage, network access, a secret, billing or a lifecycle transition.
+- Accepted explicitly by the RAG-Challenge owner on 2026-08-15 through the
+  exact phrase `ADR-0017: ACEITAR.`
+- Decision baseline:
+  `codex/main-stage-integration@f150b2d0523a92c25a40501f48c7247be3f7c36f`
+- Acceptance selects only the architecture recorded by this ADR. It is not a
+  Human Gate and grants no secret, API-key, product-provider, production,
+  push, merge, release or lifecycle authority.
+- The owner's preceding request to make Stage 0, Stage 1 and Stage 2
+  operational remains the separate bounded implementation and controlled
+  validation authority described by this ADR.
 
 ## Owners
 
@@ -280,13 +286,13 @@ continues to stop with `ARCHITECTURE_CHANGE_REQUIRED`.
 
 ## Decision request
 
-The owner may accept this proposal only after reviewing its transport,
-authentication, recovery, cost and validation boundaries. Acceptance uses:
+The owner accepted this proposal after reviewing its transport,
+authentication, recovery, cost and validation boundaries through:
 
 ```text
 ADR-0017: ACEITAR.
 ```
 
-Acceptance is not a Human Gate and does not itself authorise implementation or
-a real turn. Those actions remain bounded by the owner's current Stage 0/1/2
-activation request and the separate execution conditions recorded above.
+Acceptance is not a Human Gate. Implementation and one controlled real turn
+remain bounded by the owner's preceding Stage 0/1/2 activation request and the
+separate execution conditions recorded above.

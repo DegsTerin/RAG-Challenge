@@ -8468,3 +8468,23 @@ contém somente fatos cronológicos.
 - Integridade append-only: esta entrada preserva byte a byte o prefixo anterior
   de 538.200 bytes no SHA-256
   `e5ef54624e8cf6b917a0f402754f325406671a595c5ccdcb4e1b78f135586838`.
+
+## 2026-08-15 — ADR-0017 aceito para o runner Codex App Server
+
+- Baseline da decisão: branch `codex/main-stage-integration`, HEAD
+  `f150b2d0523a92c25a40501f48c7247be3f7c36f`, corpus `4.14.0`, worktree
+  rastreada e staged limpa.
+- Decisão humana: o proprietário aceitou ADR-0017 mediante a frase exata
+  `ADR-0017: ACEITAR.`. A decisão seleciona somente a substituição do
+  transporte real pelo Codex App Server com checkpoint persistido e relido
+  entre `thread/start` e `turn/start`.
+- Autoridade separada: o pedido anterior do proprietário para tornar Stage 0,
+  Stage 1 e Stage 2 operacionais permanece como envelope delimitado para a
+  implementação e uma validação real controlada, sem `OPENAI_API_KEY`.
+- Limites: a aceitação não é Human Gate e não concede secret, provider de
+  produto, produção, push, merge, release, deploy ou lifecycle.
+- Execução nesta reconciliação: runtime preflight, build, testes e chamada
+  Codex permaneceram `NOT_RUN`; nenhum código executável foi alterado.
+- Integridade append-only: esta entrada preserva byte a byte o prefixo anterior
+  de 540.501 bytes no SHA-256
+  `7dcd8c3e7afecfc0c34e2fb738caae24d18c2f88d86ea3c9f1a5a320c8661dca`.

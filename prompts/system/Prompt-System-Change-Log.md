@@ -2,7 +2,7 @@
 
 ## Versão atual
 
-- Versão: `4.14.0`
+- Versão: `4.14.1`
 - Data: 2026-08-15
 - Status: `STATE-07` ativo; ADR-0011 `accepted`, reconciliado e com a correção
   interna da política de serving implementada; o A0 candidato-específico
@@ -76,11 +76,11 @@
   locked, o proprietário manteve ADR-0016 `accepted` e não `superseded`,
   preservou `FakeAgentRunner` como a única baseline operacional validada e não
   criou ou aceitou ADR-0017 naquele boundary; a solicitação posterior do
-  proprietário preparou ADR-0017 como `proposed`, preservando o núcleo
+  proprietário preparou ADR-0017, depois explicitamente `accepted`,
+  preservando o núcleo
   determinístico e selecionando como candidata a sequência oficial do Codex
   App Server `thread/start` → checkpoint → `turn/start`, sem usar
-  `OPENAI_API_KEY`; aceitação, implementação e chamada real permanecem
-  separadas;
+  `OPENAI_API_KEY`; implementação e chamada real permanecem delimitadas;
   a política de idioma exige explicitamente en-GB em subject, body e footer de
   toda nova mensagem de commit pertencente ao projeto, sem transformar essa
   regra em autoridade implícita para amend, rebase ou reescrita de histórico;
@@ -98,6 +98,21 @@ A versão do corpus é independente da versão futura do software.
 
 Toda alteração atualiza este arquivo e, quando necessário,
 [`../Start-Here.md`](../Start-Here.md).
+
+## 4.14.1 — 2026-08-15
+
+- Registra a aceitação explícita de ADR-0017 pela frase
+  `ADR-0017: ACEITAR.` sobre
+  `codex/main-stage-integration@f150b2d0523a92c25a40501f48c7247be3f7c36f`.
+- A decisão seleciona somente o transporte Codex App Server com checkpoint
+  durável antes de `turn/start`; não é Human Gate e não concede secret,
+  `OPENAI_API_KEY`, provider de produto, produção, push, merge, release ou
+  lifecycle.
+- O pedido anterior do proprietário para tornar Stage 0, Stage 1 e Stage 2
+  operacionais permanece como autoridade delimitada para implementação e uma
+  validação real controlada conforme as condições do ADR.
+- Runtime preflight, build, testes e chamada Codex permaneceram `NOT_RUN`
+  durante esta reconciliação documental.
 
 ## 4.14.0 — 2026-08-15
 

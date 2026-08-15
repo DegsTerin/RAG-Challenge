@@ -113,13 +113,15 @@ Codex thread remains `ARCHITECTURE_CHANGE_REQUIRED`; authentication, real
 agent execution and lifecycle remain separately governed.
 
 ADR-0017 was prepared on 2026-08-15 under
-`AUTH-MULTI-AGENT-REAL-RUNNER-PREP-001` and remains `proposed`. It preserves
+`AUTH-MULTI-AGENT-REAL-RUNNER-PREP-001` and explicitly accepted by the owner
+on the same date through `ADR-0017: ACEITAR.`. It preserves
 the accepted deterministic coordinator and replaces only the real Codex
 runner transport with the officially documented App Server sequence
 `thread/start` → durable checkpoint → `turn/start`. The proposal uses only
-the existing user-scoped Codex authentication state after validation and
-excludes `OPENAI_API_KEY`. No implementation, real turn, billing, Human Gate
-or lifecycle change is authorised by preparation.
+the existing user-scoped Codex authentication state after validation and excludes
+`OPENAI_API_KEY`. Acceptance is not a Human Gate; implementation and one
+controlled real validation remain bounded by the owner's preceding activation
+request.
 
 The later combined audit failed on `AQG-S02-001`, an internal contradiction
 between observation-inclusive generation identity and observation-only
@@ -315,7 +317,7 @@ Dashboard -- versioned HTTP --> API
   (`accepted`; Stage 2 implementation and exact dependency validation are
   complete; a new real Codex thread still requires an architecture change)
 - [ADR-0017 — Codex App Server Pre-Turn Checkpoint Runner](ADR-0017-Codex-App-Server-Pre-Turn-Checkpoint-Runner.md)
-  (`proposed`; preserves the deterministic core and supplies pre-turn identity)
+  (`accepted`; preserves the deterministic core and supplies pre-turn identity)
 
 ## STATE-02 design artefacts
 
@@ -337,10 +339,9 @@ Dashboard -- versioned HTTP --> API
 - A separately authorised successor review/adjudication package with two
   independent human reviews and real human adjudication, and if required a
   successor vector freeze, before any RB-4 execution can be authorised.
-- Explicit owner acceptance of proposed ADR-0017 before changing the real
-  runner transport, followed by separately bounded implementation and one real
-  validation authority. Current fake execution remains separately authorised;
-  persisted-thread resume is contract evidence only until exercised.
+- Implementation and validation of accepted ADR-0017 under the owner's bounded
+  Stage 0/1/2 activation request. Current fake execution remains available;
+  persisted-thread resume remains contract evidence until exercised.
 - Product evaluation, provider, security, accessibility, operational recovery,
   load, OCI and production evidence that remains `NOT_RUN` or separately
   governed in Current State.

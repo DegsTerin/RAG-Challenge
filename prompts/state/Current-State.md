@@ -50,12 +50,14 @@ proprietários.
   proprietário para tornar Stage 0, Stage 1 e Stage 2 operacionais autorizou a
   preparação documental do sucessor ADR-0017. A consulta oficial e o registry
   npm confirmaram que `@openai/codex-sdk` estável permanece `0.147.0`; a SDK
-  continua sem identidade pré-turno. ADR-0017 está `proposed` e seleciona como
-  candidata a sequência oficial do Codex App Server `thread/start` →
+  continua sem identidade pré-turno. ADR-0017 foi depois explicitamente
+  `accepted` e seleciona como candidata a sequência oficial do Codex App
+  Server `thread/start` →
   checkpoint durável → `turn/start`, usando somente o estado de autenticação
   Codex local existente após validação e proibindo `OPENAI_API_KEY`. Nenhum
-  código, chamada real, secret, billing, Human Gate ou lifecycle foi alterado.
-  A continuação está `HUMAN_DECISION_REQUIRED` até aceitação explícita do ADR.
+  código, chamada real, secret, billing, Human Gate ou lifecycle foi alterado
+  até a reconciliação da decisão. O pedido anterior do proprietário permanece
+  como autoridade delimitada para implementação e uma validação controlada.
 - Posição: `STATE-00 DISCOVERY` encerrado; `GATE-B01
   ARCHITECTURE_BOOTSTRAP_DECISION` aprovado e encerrado; `STATE-01
   PROJECT_SETUP` encerrado após Human Gate aprovado sem ressalvas em
@@ -1591,7 +1593,7 @@ proprietários.
   a política de idioma acrescentou o 21º documento público por incremento
   versionado, e o ADR-0003 acrescentou o 22º.
 - A baseline aprovada no Human Gate de `STATE-00` permanece `3.4.0`.
-- O corpus de instruções vigente possui versão `4.14.0` e 13 arquivos em
+- O corpus de instruções vigente possui versão `4.14.1` e 13 arquivos em
   `prompts/`.
 - Visão, requisitos, arquitetura, RAG, segurança, qualidade, lifecycle,
   roadmap, backlog, estado, histórico e templates estão documentados.
@@ -2369,15 +2371,16 @@ envelope e autoridade próprios.
 Em 2026-08-15, a avaliação documental local concluiu que o SDK locked
 `0.147.0` não fornece identidade durável de nova thread antes do primeiro
 turn. A reavaliação atual confirmou `0.147.0` como release estável mais recente
-e preparou ADR-0017 como `proposed`. O candidato preserva ADR-0016 e substitui
+e preparou ADR-0017, posteriormente `accepted` pela frase explícita
+`ADR-0017: ACEITAR.`. O sucessor preserva ADR-0016 e substitui
 somente o transporte real pelo Codex App Server, cuja interface oficial separa
-`thread/start` de `turn/start`. Até aceitação explícita, `NEW_REAL_START`
-permanece proibido e deve parar com `ARCHITECTURE_CHANGE_REQUIRED`.
+`thread/start` de `turn/start`. A implementação ainda deve provar esse
+checkpoint antes de remover `ARCHITECTURE_CHANGE_REQUIRED` da operação real.
 
-A preparação documental de ADR-0017 está concluída. A próxima decisão
-diretamente relacionada é sua aceitação ou rejeição explícita pelo
-proprietário. Antes de qualquer primeiro turn ou efeito externo, a
-implementação separadamente autorizada deve comprovar identidade externa
+A preparação e a aceitação de ADR-0017 estão concluídas. A próxima operação
+diretamente relacionada é implementar e validar o successor runner sob o
+pedido delimitado do proprietário. Antes de qualquer primeiro turn, a
+implementação deve comprovar identidade externa
 resumível e durável antes de `turn/start`, além de preservar start/resume,
 working directory isolado, sandbox, approval/network deny e structured output
 validável.
