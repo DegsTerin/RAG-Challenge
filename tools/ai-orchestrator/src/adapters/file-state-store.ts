@@ -1,7 +1,7 @@
 // Purpose: Persists recoverable run snapshots and a tamper-evident journal using same-volume atomic replacement and fsync.
 import { createHash } from "node:crypto";
 import { mkdir, open, readFile, readdir, rename, stat } from "node:fs/promises";
-import { basename, join } from "node:path";
+import { basename, dirname, join } from "node:path";
 import {
   agentIds,
   retryClasses,
@@ -153,13 +153,14 @@ async function syncDirectory(directory: string): Promise<void> {
 }
 
 export class FileStateStore implements StateStore {
-  public constructor(private readonly stateRoot: string) {}
+  public constructor(private readonly stateRoot: string, private readonly authorityRoot: string = dirname(stateRoot)) {}
 
   public async save(state: PersistedRunState): Promise<void> {
     const validated = parseState(parseSecureJson(canonicalJson(state), "State snapshot"), state.runId);
     const runRoot = resolveRunRoot(this.stateRoot, validated.runId);
-    await assertNoExistingReparseBoundary(this.stateRoot, runRoot);
+    await assertNoExistingReparseBoundary(this.authorityRoot, runRoot);
     await mkdir(runRoot, { recursive: true });
+    await assertNoExistingReparseBoundary(this.authorityRoot, runRoot);
     const finalPath = join(runRoot, snapshotName(validated.revision));
     const temporaryPath = `${finalPath}.tmp`;
     try {
@@ -188,7 +189,7 @@ export class FileStateStore implements StateStore {
 
   public async load(runId: string): Promise<PersistedRunState> {
     const runRoot = resolveRunRoot(this.stateRoot, runId);
-    await assertNoExistingReparseBoundary(this.stateRoot, runRoot);
+    await assertNoExistingReparseBoundary(this.authorityRoot, runRoot);
     const files = await readdir(runRoot);
     const partial = files.find((file) => file.endsWith(".tmp"));
     if (partial !== undefined) {

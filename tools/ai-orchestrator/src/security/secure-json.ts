@@ -34,7 +34,7 @@ export function parseSecureJson(text: string, label: string, stopCode: StopCode 
     if (character === "{") {
       index += 1;
       whitespace();
-      const result: Record<string, unknown> = {};
+      const result = Object.create(null) as Record<string, unknown>;
       const keys = new Set<string>();
       if (text[index] === "}") { index += 1; return result; }
       let count = 0;
@@ -42,6 +42,7 @@ export function parseSecureJson(text: string, label: string, stopCode: StopCode 
         whitespace();
         if (text[index] !== '"') fail("contains a non-string object key.");
         const key = string();
+        if (["__proto__", "constructor", "prototype"].includes(key)) fail("contains a forbidden prototype key.");
         if (keys.has(key)) fail(`contains duplicate key '${key}'.`);
         keys.add(key);
         whitespace();

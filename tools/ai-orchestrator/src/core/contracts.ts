@@ -230,6 +230,7 @@ export interface AgentRunRequest {
   readonly contracts: readonly ContractRequirement[];
   readonly candidate: CandidateEvidence | null;
   readonly resumeThreadId: string | null;
+  readonly checkpointThread: (threadId: string) => Promise<void>;
 }
 
 export interface AgentRunResponse {
@@ -239,4 +240,14 @@ export interface AgentRunResponse {
 
 export interface AgentRunner {
   run(request: AgentRunRequest, signal?: AbortSignal): Promise<AgentRunResponse>;
+}
+
+export interface ThreadCheckpoint {
+  readonly schemaVersion: 1;
+  readonly runId: string;
+  readonly taskId: string;
+  readonly attemptId: string;
+  readonly agentId: AgentId;
+  readonly threadId: string;
+  readonly startedAt: string;
 }

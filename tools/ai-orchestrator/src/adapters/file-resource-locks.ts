@@ -1,6 +1,7 @@
 // Purpose: Acquires narrow atomic resource locks without stealing stale or foreign ownership records.
 import { createHash } from "node:crypto";
 import { mkdir, open, readFile, readdir, stat, unlink } from "node:fs/promises";
+import { dirname } from "node:path";
 import { canonicalJson } from "../core/canonical-json.js";
 import { OrchestratorStop } from "../core/errors.js";
 import { assertIdentifier } from "../core/validation.js";
@@ -45,7 +46,7 @@ function lockName(resource: string): string {
 export class FileResourceLocks implements ResourceLocks {
   private readonly held = new Map<string, LockRecord>();
 
-  public constructor(private readonly lockRoot: string) {}
+  public constructor(private readonly lockRoot: string, private readonly authorityRoot: string = dirname(lockRoot)) {}
 
   public async acquire(resource: string, record: ResourceLockOwner): Promise<void> {
     if (resource.length === 0 || resource.length > 128 || /[\u0000-\u001f]/.test(resource)) {
@@ -54,8 +55,9 @@ export class FileResourceLocks implements ResourceLocks {
     assertIdentifier(record.runId, "runId");
     assertIdentifier(record.taskId, "taskId");
     assertIdentifier(record.attemptId, "attemptId");
-    await assertNoExistingReparseBoundary(this.lockRoot, this.lockRoot);
+    await assertNoExistingReparseBoundary(this.authorityRoot, this.lockRoot);
     await mkdir(this.lockRoot, { recursive: true });
+    await assertNoExistingReparseBoundary(this.authorityRoot, this.lockRoot);
     const path = resolveContained(this.lockRoot, lockName(resource));
     const value: LockRecord = { schemaVersion: 1, resource, ...record, processId: process.pid };
     let handle;

@@ -18,6 +18,8 @@ export class FakeAgentRunner implements AgentRunner {
       throw new OrchestratorStop("TEST_BASELINE_BROKEN", `Fake execution for '${request.task.taskId}' was interrupted.`, request.task.taskId);
     }
     this.calls.push(request);
+    const threadId = request.resumeThreadId ?? `fake-${request.attemptId}`;
+    await request.checkpointThread(threadId);
     const configured = this.outcomes.get(request.task.taskId) ?? this.fallback;
     if (configured === null || configured === undefined) {
       throw new OrchestratorStop("TEST_BASELINE_BROKEN", `No fake outcome exists for '${request.task.taskId}'.`, request.task.taskId);
@@ -27,6 +29,6 @@ export class FakeAgentRunner implements AgentRunner {
     }
     const value = typeof configured === "function" ? await configured(request) : configured;
     const result = parseAgentResult(JSON.parse(JSON.stringify(value)) as unknown);
-    return { result, threadId: `fake-${request.attemptId}` };
+    return { result, threadId };
   }
 }

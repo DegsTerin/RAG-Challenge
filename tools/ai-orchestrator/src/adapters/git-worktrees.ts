@@ -1,6 +1,6 @@
 // Purpose: Creates, validates and removes only coordinator-marked Git worktrees through isolated Git configuration and raw structural output.
 import { mkdir, open, readFile, realpath, stat, unlink } from "node:fs/promises";
-import { isAbsolute, join, relative, resolve, sep } from "node:path";
+import { dirname, isAbsolute, join, relative, resolve, sep } from "node:path";
 import { canonicalJson } from "../core/canonical-json.js";
 import { OrchestratorStop } from "../core/errors.js";
 import { assertIdentifier } from "../core/validation.js";
@@ -9,6 +9,7 @@ import type { WorktreeManager, WorktreeRecord } from "../ports/worktrees.js";
 import { gitArguments, gitEnvironment, assertAbsoluteExecutable } from "../security/git-process-policy.js";
 import { assertNoExistingReparseBoundary } from "../security/path-policy.js";
 import { parseSecureJson } from "../security/secure-json.js";
+import { assertSafeGitRepositoryConfiguration } from "../security/git-repository-policy.js";
 
 interface OwnerMarker {
   readonly taskId: string;
@@ -43,7 +44,8 @@ function parsePorcelain(output: string): readonly WorktreeRecord[] {
 }
 
 function samePath(left: string, right: string): boolean {
-  return resolve(left).toLocaleLowerCase("en-US") === resolve(right).toLocaleLowerCase("en-US");
+  const normalise = (value: string): string => process.platform === "win32" ? resolve(value).toLowerCase() : resolve(value);
+  return normalise(left) === normalise(right);
 }
 
 export class GitWorktreeManager implements WorktreeManager {
@@ -76,7 +78,7 @@ export class GitWorktreeManager implements WorktreeManager {
       throw new OrchestratorStop("SHARED_RESOURCE_COLLISION", "The requested worktree path or branch already exists.", taskId);
     }
     await mkdir(join(this.managedRoot, ".owners"), { recursive: true });
-    await assertNoExistingReparseBoundary(this.managedRoot, path);
+    await assertNoExistingReparseBoundary(dirname(this.managedRoot), path);
     const marker: OwnerMarker = { taskId, path: resolve(path), branch, baseline };
     await this.writeMarker(taskId, marker);
     let created = false;
@@ -92,7 +94,7 @@ export class GitWorktreeManager implements WorktreeManager {
     }
   }
 
-  public async validate(taskId: string, path: string, branch: string, baseline: string): Promise<WorktreeRecord> {
+  public async validate(taskId: string, path: string, branch: string, baseline: string, allowInProgress = false): Promise<WorktreeRecord> {
     assertIdentifier(taskId, "taskId");
     await this.assertManagedPath(path);
     const marker = await this.readMarker(taskId);
@@ -100,15 +102,16 @@ export class GitWorktreeManager implements WorktreeManager {
       throw new OrchestratorStop("DESTRUCTIVE_OPERATION", "The worktree ownership marker does not match the task envelope.", taskId);
     }
     const record = (await this.list()).find((candidate) => samePath(candidate.path, path));
-    if (record === undefined || record.branch !== branch || record.head !== baseline || record.prunable) {
+    if (record === undefined || record.branch !== branch || (!allowInProgress && record.head !== baseline) || record.prunable) {
       throw new OrchestratorStop("UNEXPECTED_DIRTY_TREE", "The worktree mapping differs from its task envelope.", taskId);
     }
     const resolvedRealPath = await realpath(path);
     if (!samePath(resolvedRealPath, path)) {
       throw new OrchestratorStop("OUT_OF_SCOPE_CHANGE_REQUIRED", "The worktree path resolves through an unexpected filesystem boundary.", taskId);
     }
-    const status = await this.git("worktree-status", ["-C", path, "status", "--porcelain=v1", "-z", "--untracked-files=all"]);
-    if (status.evidence.result !== "PASS" || status.stdout.length !== 0) {
+    const ancestry = allowInProgress ? await this.git("worktree-resume-ancestry", ["merge-base", "--is-ancestor", baseline, record.head], path) : null;
+    const status = allowInProgress ? null : await this.git("worktree-status", ["-C", path, "status", "--porcelain=v1", "-z", "--untracked-files=all"], path);
+    if ((ancestry !== null && ancestry.evidence.result !== "PASS") || (status !== null && (status.evidence.result !== "PASS" || status.stdout.length !== 0))) {
       throw new OrchestratorStop("UNEXPECTED_DIRTY_TREE", "The managed worktree is not clean.", taskId);
     }
     return record;
@@ -125,23 +128,31 @@ export class GitWorktreeManager implements WorktreeManager {
     if (record === undefined || record.branch !== marker.branch || record.prunable) {
       throw new OrchestratorStop("UNEXPECTED_DIRTY_TREE", "The managed worktree mapping is absent or foreign.", taskId);
     }
-    const status = await this.git("worktree-remove-status", ["-C", path, "status", "--porcelain=v1", "-z", "--untracked-files=all"]);
+    const status = await this.git("worktree-remove-status", ["-C", path, "status", "--porcelain=v1", "-z", "--untracked-files=all"], path);
     const ancestor = await this.git("worktree-remove-ancestry", ["merge-base", "--is-ancestor", marker.baseline, record.head]);
     if (status.evidence.result !== "PASS" || status.stdout.length !== 0 || ancestor.evidence.result !== "PASS") {
       throw new OrchestratorStop("UNEXPECTED_DIRTY_TREE", "The managed worktree is dirty or no longer descends from its baseline.", taskId);
     }
     const result = await this.git("worktree-remove", ["worktree", "remove", path]);
     if (result.evidence.result !== "PASS") throw new OrchestratorStop("TEST_BASELINE_BROKEN", "Git worktree removal failed.", taskId);
+    const reference = `refs/heads/${marker.branch}`;
+    const removed = await this.git("worktree-remove-branch", ["update-ref", "-d", reference, record.head]);
+    if (removed.evidence.result !== "PASS") {
+      throw new OrchestratorStop("UNEXPECTED_DIRTY_TREE", "The managed branch changed before compare-and-swap removal.", taskId);
+    }
     await unlink(this.ownerMarker(taskId));
   }
 
   private async rollbackCreated(taskId: string, path: string, branch: string, baseline: string): Promise<void> {
     const record = (await this.list()).find((candidate) => samePath(candidate.path, path));
     if (record?.branch === branch && record.head === baseline && !record.prunable) {
-      const status = await this.git("worktree-rollback-status", ["-C", path, "status", "--porcelain=v1", "-z", "--untracked-files=all"]);
+      const status = await this.git("worktree-rollback-status", ["-C", path, "status", "--porcelain=v1", "-z", "--untracked-files=all"], path);
       if (status.evidence.result === "PASS" && status.stdout.length === 0) {
         await this.git("worktree-rollback-remove", ["worktree", "remove", path]);
-        await this.git("worktree-rollback-branch", ["branch", "--delete", "--force", branch]);
+        const branchRemoval = await this.git("worktree-rollback-branch", ["update-ref", "-d", `refs/heads/${branch}`, baseline]);
+        if (branchRemoval.evidence.result !== "PASS") {
+          throw new OrchestratorStop("UNEXPECTED_DIRTY_TREE", "Rollback branch identity changed before compare-and-swap removal.", taskId);
+        }
       }
     }
     await unlink(this.ownerMarker(taskId)).catch(() => undefined);
@@ -152,7 +163,7 @@ export class GitWorktreeManager implements WorktreeManager {
     if (relation === "" || relation === ".." || relation.startsWith(`..${sep}`) || isAbsolute(relation)) {
       throw new OrchestratorStop("OUT_OF_SCOPE_CHANGE_REQUIRED", "The worktree path is outside the managed root.");
     }
-    await assertNoExistingReparseBoundary(this.managedRoot, path);
+    await assertNoExistingReparseBoundary(dirname(this.managedRoot), path);
   }
 
   private ownerMarker(taskId: string): string {
@@ -186,7 +197,8 @@ export class GitWorktreeManager implements WorktreeManager {
     return source as unknown as OwnerMarker;
   }
 
-  private async git(commandId: string, arguments_: readonly string[]) {
+  private async git(commandId: string, arguments_: readonly string[], policyCwd = this.repositoryRoot) {
+    await assertSafeGitRepositoryConfiguration(this.process, this.gitExecutable, policyCwd, this.environment);
     return await this.process.runStructured({
       commandId,
       executable: this.gitExecutable,

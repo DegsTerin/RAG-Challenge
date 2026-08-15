@@ -3,9 +3,11 @@ import { isAbsolute } from "node:path";
 import { OrchestratorStop } from "../core/errors.js";
 
 const inheritedNames = ["SystemRoot", "WINDIR", "TEMP", "TMP", "USERPROFILE", "HOME", "LOCALAPPDATA", "APPDATA"] as const;
+const nullDevice = process.platform === "win32" ? "NUL" : "/dev/null";
 
 export const gitConfigurationArguments = [
-  "-c", "core.hooksPath=NUL",
+  "-c", `core.hooksPath=${nullDevice}`,
+  "-c", `core.attributesFile=${nullDevice}`,
   "-c", "core.fsmonitor=false",
   "-c", "commit.gpgSign=false",
   "-c", "tag.gpgSign=false",
@@ -13,6 +15,7 @@ export const gitConfigurationArguments = [
   "-c", "core.askPass=",
   "-c", "core.pager=cat",
   "-c", "diff.external=",
+  "-c", "protocol.allow=never",
   "-c", "protocol.file.allow=never",
   "-c", "protocol.http.allow=never",
   "-c", "protocol.https.allow=never",
@@ -30,7 +33,8 @@ export function assertAbsoluteExecutable(path: string, label: string): void {
 export function gitEnvironment(source: Readonly<Record<string, string | undefined>>): Readonly<Record<string, string>> {
   const environment: Record<string, string> = {
     GIT_CONFIG_NOSYSTEM: "1",
-    GIT_CONFIG_GLOBAL: process.platform === "win32" ? "NUL" : "/dev/null",
+    GIT_CONFIG_GLOBAL: nullDevice,
+    GIT_ATTR_NOSYSTEM: "1",
     GIT_TERMINAL_PROMPT: "0",
     GCM_INTERACTIVE: "Never",
     GIT_PAGER: "cat",

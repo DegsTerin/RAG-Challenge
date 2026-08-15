@@ -27,6 +27,30 @@ function state(): PersistedRunState {
 test("secure JSON rejects duplicate keys before schema validation", () => {
   assert.throws(() => parseSecureJson('{"status":"PASS","status":"FAIL"}', "fixture"), /duplicate key 'status'/);
   assert.throws(() => parseSecureJson(`${"[".repeat(65)}null${"]".repeat(65)}`, "fixture"), /maximum structural depth/);
+  for (const key of ["__proto__", "constructor", "prototype"]) {
+    assert.throws(() => parseSecureJson(`{"${key}":{}}`, "fixture"), /forbidden prototype key/);
+  }
+});
+
+test("state persistence rejects a junction in an ancestor below the repository anchor", async (context) => {
+  const root = await mkdtemp(join(tmpdir(), "orchestrator-state-anchor-"));
+  const external = await mkdtemp(join(tmpdir(), "orchestrator-state-external-"));
+  try {
+    const link = join(root, "artifacts-local");
+    try { await symlink(external, link, process.platform === "win32" ? "junction" : "dir"); }
+    catch (error) {
+      if ((error as NodeJS.ErrnoException).code === "EPERM") { context.skip("Junction creation is not permitted in this environment."); return; }
+      throw error;
+    }
+    const sentinel = join(external, "sentinel.txt");
+    await writeFile(sentinel, "preserve", "utf8");
+    await assert.rejects(new FileStateStore(join(link, "ai-orchestrator"), root).save(state()),
+      (error: unknown) => error instanceof OrchestratorStop && error.code === "OUT_OF_SCOPE_CHANGE_REQUIRED");
+    assert.equal(await readFile(sentinel, "utf8"), "preserve");
+  } finally {
+    await rm(root, { recursive: true, force: true });
+    await rm(external, { recursive: true, force: true });
+  }
 });
 
 test("existing symbolic-link or junction boundaries are rejected", async () => {
@@ -77,6 +101,12 @@ test("bounded processes reject PATH resolution, unsafe environment names, timeou
   const overflow = await processAdapter.run({ ...base, arguments: ["-e", "process.stdout.write('x'.repeat(10000))"], maximumOutputBytes: 64 });
   assert.equal(overflow.result, "BLOCKED");
   assert.ok(overflow.relevantOutput.includes("OUTPUT_LIMIT_EXCEEDED"));
+  const paths = await processAdapter.run({
+    ...base,
+    arguments: ["-e", "process.stdout.write('C:/Users/Alice/repo/file.cs\\n\\\\\\\\host\\\\share\\\\repo\\\\file.cs\\n/home/alice/repo/file.cs\\nfile:///C:/Users/Alice/repo/file.cs')"],
+  });
+  assert.equal(paths.result, "PASS");
+  assert.equal(paths.relevantOutput.some((line) => /Alice|alice|host|share/.test(line)), false);
 });
 
 test("timeout terminates the task-owned descendant process tree", async () => {
@@ -110,7 +140,7 @@ async function absoluteGit(): Promise<string> {
   throw new Error("An absolute Git executable is required for the disposable worktree test.");
 }
 
-test("real disposable Git worktree binds branch, clean baseline, candidate diff and task-owned cleanup", async () => {
+test("real disposable Git worktree captures deletions, rejects multi-commit candidates and cleans up with branch CAS", async () => {
   const root = await mkdtemp(join(tmpdir(), "orchestrator-git-"));
   const repository = join(root, "repository");
   const managed = join(root, "managed");
@@ -128,7 +158,8 @@ test("real disposable Git worktree binds branch, clean baseline, candidate diff 
     assert.equal((await runGit(repository, ["config", "user.name", "Orchestrator Fixture"])).evidence.result, "PASS");
     assert.equal((await runGit(repository, ["config", "user.email", "fixture@example.invalid"])).evidence.result, "PASS");
     await writeFile(join(repository, "fixture.txt"), "baseline\n", "utf8");
-    assert.equal((await runGit(repository, ["add", "--", "fixture.txt"])).evidence.result, "PASS");
+    await writeFile(join(repository, "forbidden.txt"), "preserve\n", "utf8");
+    assert.equal((await runGit(repository, ["add", "--", "fixture.txt", "forbidden.txt"])).evidence.result, "PASS");
     assert.equal((await runGit(repository, ["commit", "-m", "test(orchestrator): create disposable baseline"])).evidence.result, "PASS");
     const base = (await runGit(repository, ["rev-parse", "HEAD"])).stdout.trim();
     assert.match(base, /^[0-9a-f]{40}$/);
@@ -137,13 +168,42 @@ test("real disposable Git worktree binds branch, clean baseline, candidate diff 
     const created = await manager.create("implementation", worktree, "codex/implementation", base);
     assert.equal(created.head, base);
     await writeFile(join(worktree, "fixture.txt"), "candidate\n", "utf8");
-    assert.equal((await runGit(worktree, ["add", "--", "fixture.txt"])).evidence.result, "PASS");
+    await rm(join(worktree, "forbidden.txt"));
+    assert.equal((await runGit(worktree, ["add", "--", "fixture.txt", "forbidden.txt"])).evidence.result, "PASS");
     assert.equal((await runGit(worktree, ["commit", "-m", "test(orchestrator): create disposable candidate"])).evidence.result, "PASS");
     const implementation = task({ taskId: "implementation", owner: "implementation_worker", allowedPaths: ["fixture.txt"], worktree, branch: "codex/implementation" });
     const candidate = await new GitCandidateInspector(processAdapter, git, process.env).inspect(implementation, base, passingResult(["fixture.txt"]));
-    assert.deepEqual(candidate.changedFiles, ["fixture.txt"]);
+    assert.deepEqual(candidate.changedFiles, ["fixture.txt", "forbidden.txt"]);
+    await writeFile(join(worktree, "second.txt"), "second\n", "utf8");
+    assert.equal((await runGit(worktree, ["add", "--", "second.txt"])).evidence.result, "PASS");
+    assert.equal((await runGit(worktree, ["commit", "-m", "test(orchestrator): create second disposable commit"])).evidence.result, "PASS");
+    await assert.rejects(new GitCandidateInspector(processAdapter, git, process.env).inspect(implementation, base, passingResult(["fixture.txt", "forbidden.txt", "second.txt"])),
+      /exactly one commit/);
     await manager.removeManaged("implementation", worktree);
     assert.equal((await manager.list()).some((record) => resolve(record.path) === resolve(worktree)), false);
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+test("repository-local executable Git configuration is rejected before a sensitive operation", async () => {
+  const root = await mkdtemp(join(tmpdir(), "orchestrator-git-policy-"));
+  const repository = join(root, "repository");
+  const git = await absoluteGit();
+  const processAdapter = new BoundedProcess();
+  const environment = gitEnvironment(process.env);
+  const runGit = async (arguments_: readonly string[]) => await processAdapter.runStructured({
+    commandId: "git-policy-fixture", executable: git, arguments: gitArguments(arguments_), cwd: repository, environment,
+    timeoutMs: 120_000, maximumOutputBytes: 1_048_576,
+  });
+  try {
+    await mkdir(repository, { recursive: true });
+    assert.equal((await runGit(["init", "--initial-branch=codex/coordinator"])).evidence.result, "PASS");
+    assert.equal((await runGit(["config", "filter.evil.clean", "sentinel-command"])).evidence.result, "PASS");
+    const sentinel = join(root, "sentinel.txt");
+    const manager = new GitWorktreeManager(repository, join(root, "managed"), processAdapter, git, process.env);
+    await assert.rejects(manager.list(), (error: unknown) => error instanceof OrchestratorStop && error.code === "OUT_OF_SCOPE_CHANGE_REQUIRED");
+    await assert.rejects(access(sentinel), (error: unknown) => (error as NodeJS.ErrnoException).code === "ENOENT");
   } finally {
     await rm(root, { recursive: true, force: true });
   }

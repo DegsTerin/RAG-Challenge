@@ -8,6 +8,7 @@ import { CodexRunner, type CodexClientFactory } from "../src/adapters/codex-runn
 import { BoundedProcess } from "../src/adapters/bounded-process.js";
 import { FileResourceLocks } from "../src/adapters/file-resource-locks.js";
 import { FileStateStore } from "../src/adapters/file-state-store.js";
+import { FileThreadCheckpointStore } from "../src/adapters/file-thread-checkpoints.js";
 import { GitBaselineVerifier } from "../src/adapters/git-baseline.js";
 import { SequentialIntegrationPipeline } from "../src/application/integration.js";
 import type { CommandEvidence, PersistedRunState } from "../src/core/contracts.js";
@@ -80,6 +81,21 @@ test("resource locks are atomic and cannot be released by a foreign attempt", as
   }
 });
 
+test("thread checkpoints persist before a turn and require exact ownership for removal", async () => {
+  const root = await temporaryDirectory("orchestrator-thread");
+  try {
+    const store = new FileThreadCheckpointStore(join(root, "state"));
+    const checkpoint = { schemaVersion: 1 as const, runId: "run-fixture", taskId: "task-fixture", attemptId: "attempt-fixture", agentId: "code_mapper" as const, threadId: "thread-fixture", startedAt: instant };
+    await store.save(checkpoint);
+    assert.deepEqual(await store.load(checkpoint.runId, checkpoint.taskId), checkpoint);
+    await assert.rejects(store.remove(checkpoint.runId, checkpoint.taskId, "attempt-other"), /ownership changed/);
+    await store.remove(checkpoint.runId, checkpoint.taskId, checkpoint.attemptId);
+    assert.deepEqual(await store.inspect(checkpoint.runId), []);
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
 test("CodexRunner is disabled before SDK construction without separate execution authority", async () => {
   let constructed = false;
   const factory: CodexClientFactory = () => {
@@ -89,6 +105,7 @@ test("CodexRunner is disabled before SDK construction without separate execution
   const runner = new CodexRunner({ executionAuthorised: false, authorityReference: null, worktreeRoot: "C:/managed", environment: { PATH: "C:/bin" }, model: null }, factory);
   await assert.rejects(runner.run({
     runId: "run-fixture", attemptId: "attempt-fixture", task: task(), baseline, contracts: [], candidate: null, resumeThreadId: null,
+    checkpointThread: async () => undefined,
   }), (error: unknown) => error instanceof OrchestratorStop && error.code === "HUMAN_DECISION_REQUIRED");
   assert.equal(constructed, false);
 });
@@ -97,9 +114,13 @@ test("CodexRunner maps isolated cwd, sandbox and structured output for start and
   const calls: { method: string; options: unknown; turnOptions?: unknown }[] = [];
   const thread = {
     id: "thread-fixture",
-    async run(_input: string, turnOptions?: unknown) {
+    async runStreamed(_input: string, turnOptions?: unknown) {
       calls.push({ method: "run", options: null, turnOptions });
-      return { finalResponse: JSON.stringify(passingResult()) };
+      return { events: (async function* () {
+        yield { type: "thread.started", thread_id: "thread-fixture" };
+        yield { type: "item.completed", item: { type: "agent_message", text: JSON.stringify(passingResult()) } };
+        yield { type: "turn.completed" };
+      })() };
     },
   };
   const factory: CodexClientFactory = () => ({
@@ -114,8 +135,8 @@ test("CodexRunner maps isolated cwd, sandbox and structured output for start and
     model: null,
   }, factory);
   const agentTask = task({ owner: "implementation_worker", worktree: "C:/managed/lane-a", branch: "codex/lane-a" });
-  await runner.run({ runId: "run-fixture", attemptId: "attempt-fixture", task: agentTask, baseline, contracts: [], candidate: null, resumeThreadId: null });
-  await runner.run({ runId: "run-fixture", attemptId: "attempt-fixture", task: agentTask, baseline, contracts: [], candidate: null, resumeThreadId: "thread-fixture" });
+  await runner.run({ runId: "run-fixture", attemptId: "attempt-fixture", task: agentTask, baseline, contracts: [], candidate: null, resumeThreadId: null, checkpointThread: async () => undefined });
+  await runner.run({ runId: "run-fixture", attemptId: "attempt-fixture", task: agentTask, baseline, contracts: [], candidate: null, resumeThreadId: "thread-fixture", checkpointThread: async () => undefined });
   const threadOptions = calls.find((call) => call.method === "start")?.options as Record<string, unknown>;
   assert.equal(threadOptions.sandboxMode, "workspace-write");
   assert.equal(threadOptions.approvalPolicy, "never");
@@ -133,6 +154,7 @@ test("CodexRunner rejects explicit environment names outside its allowlist", asy
   }, factory);
   await assert.rejects(runner.run({
     runId: "run-fixture", attemptId: "attempt-fixture", task: task({ worktree: "C:/managed/lane" }), baseline, contracts: [], candidate: null, resumeThreadId: null,
+    checkpointThread: async () => undefined,
   }), (error: unknown) => error instanceof OrchestratorStop && error.code === "SECRET_REQUIRED");
 });
 
@@ -158,6 +180,12 @@ class ScriptedProcess implements StructuredProcessExecutor {
   }
   public async runStructured(request: ProcessRequest): Promise<StructuredProcessResult> {
     this.requests.push(request);
+    if (request.arguments.includes("config") && request.arguments.includes("--name-only")) {
+      return structured("git-config-policy");
+    }
+    if (request.arguments.includes("ls-files") || request.arguments.includes("check-attr")) {
+      return structured("git-attribute-policy");
+    }
     const result = this.results.shift();
     if (result === undefined) {
       throw new Error("Missing scripted process result.");
@@ -195,8 +223,9 @@ test("sequential integration revalidates the reviewed candidate and integrated t
   const tree = "2".repeat(40);
   const process = new ScriptedProcess([
     structured("head", `${baseline}\n`), structured("status"), structured("branch", "codex/integration\n"),
-    structured("ancestry"), structured("tree", `${tree}\n`), structured("diff", "tools/file.ts\u0000"),
-    structured("cherry-pick"), structured("post-status"), structured("post-tree", `${tree}\n`),
+    structured("ancestry"), structured("count", "1\n"), structured("tree", `${tree}\n`), structured("diff", "tools/file.ts\u0000"), structured("candidate-patch", "patch"),
+    structured("cherry-pick"), structured("post-status"), structured("post-head", `${commit}\n`), structured("post-tree", `${tree}\n`),
+    structured("post-count", "1\n"), structured("post-diff", "tools/file.ts\u0000"), structured("post-patch", "patch"),
   ]);
   const pipeline = new SequentialIntegrationPipeline(process, "C:/git.exe", {});
   const candidate = { commitId: commit, treeId: tree, changedFiles: ["tools/file.ts"] };
@@ -205,9 +234,9 @@ test("sequential integration revalidates the reviewed candidate and integrated t
     result: passingResult(["tools/file.ts"]), requiresIndependentReview: true, requiresSecurityReview: true,
   });
   const integrationTask = task({ taskId: "integration", taskKind: "INTEGRATION", owner: "governance_guard", candidateTaskId: "implementation", executionSurface: { ...task().executionSurface, cwd: "C:/coordinator", tools: [] } });
-  const evidence = await pipeline.integrate({ baseline, integrationTask, implementationTask: implementation, candidate, workerResult: implementation.result!, independentReview: passingResult(), securityReview: passingResult() });
-  assert.equal(evidence.result, "PASS");
-  assert.ok(process.requests.every((request) => request.executable === "C:/git.exe" && request.arguments.includes("core.hooksPath=NUL")));
+  const evidence = await pipeline.integrate({ baseline, expectedCoordinatorHead: baseline, integrationTask, implementationTask: implementation, candidate, workerResult: implementation.result!, independentReview: passingResult(), securityReview: passingResult() });
+  assert.equal(evidence.evidence.result, "PASS");
+  assert.ok(process.requests.every((request) => request.executable === "C:/git.exe" && request.arguments.some((argument) => argument.startsWith("core.hooksPath="))));
 });
 
 test("failed integration is aborted and reported as a conflict", async () => {
@@ -215,14 +244,14 @@ test("failed integration is aborted and reported as a conflict", async () => {
   const tree = "2".repeat(40);
   const process = new ScriptedProcess([
     structured("head", `${baseline}\n`), structured("status"), structured("branch", "codex/integration\n"),
-    structured("ancestry"), structured("tree", `${tree}\n`), structured("diff", "tools/file.ts\u0000"),
+    structured("ancestry"), structured("count", "1\n"), structured("tree", `${tree}\n`), structured("diff", "tools/file.ts\u0000"), structured("candidate-patch", "patch"),
     structured("cherry-pick", "", "FAIL"), structured("abort"),
   ]);
   const pipeline = new SequentialIntegrationPipeline(process, "C:/git.exe", {});
   const candidate = { commitId: commit, treeId: tree, changedFiles: ["tools/file.ts"] };
   const implementation = task({ taskId: "implementation", owner: "implementation_worker", status: "IMPLEMENTED", candidate, result: passingResult(["tools/file.ts"]) });
   const integrationTask = task({ taskId: "integration", taskKind: "INTEGRATION", owner: "governance_guard", candidateTaskId: "implementation", executionSurface: { ...task().executionSurface, cwd: "C:/coordinator", tools: [] } });
-  await assert.rejects(pipeline.integrate({ baseline, integrationTask, implementationTask: implementation, candidate, workerResult: implementation.result!, independentReview: null, securityReview: null }),
+  await assert.rejects(pipeline.integrate({ baseline, expectedCoordinatorHead: baseline, integrationTask, implementationTask: implementation, candidate, workerResult: implementation.result!, independentReview: null, securityReview: null }),
     (error: unknown) => error instanceof OrchestratorStop && error.code === "CONFLICTING_REQUIREMENTS");
   assert.ok(process.requests.at(-1)?.arguments.includes("--abort"));
 });

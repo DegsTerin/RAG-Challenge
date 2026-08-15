@@ -9,11 +9,14 @@ const permittedEnvironmentNames = new Set([
   "PATH", "PATHEXT", "SystemRoot", "WINDIR", "TEMP", "TMP", "USERPROFILE", "HOME", "LOCALAPPDATA", "APPDATA",
   "DOTNET_CLI_HOME", "NUGET_PACKAGES", "NUGET_HTTP_CACHE_PATH", "NPM_CONFIG_CACHE", "NPM_CONFIG_OFFLINE",
   "GIT_CONFIG_NOSYSTEM", "GIT_CONFIG_GLOBAL", "GIT_TERMINAL_PROMPT", "GCM_INTERACTIVE", "GIT_PAGER",
+  "GIT_ATTR_NOSYSTEM",
 ]);
 
 function sanitiseLine(value: string): string {
   return value
-    .replace(/[A-Za-z]:\\[^\r\n\0]*/g, "<path>")
+    .replace(/file:\/\/\/[^\s\r\n\0]+/gi, "<path>")
+    .replace(/(?:[A-Za-z]:[\\/]|\\\\|\/\/)[^\s\r\n\0]+/g, "<path>")
+    .replace(/(?:^|\s)\/(?:home|Users|var|tmp)\/[^\s\r\n\0]+/g, " <path>")
     .replace(/(?:^|\s)(?:[^\s=]*(?:KEY|SECRET|TOKEN|PASSWORD)[^\s=]*)=[^\s]+/gi, " <redacted-assignment>")
     .replace(/\b(?:sk|sk-proj)-[A-Za-z0-9_-]{8,}\b/g, "<redacted-token>")
     .trim();

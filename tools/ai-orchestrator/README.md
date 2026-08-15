@@ -40,8 +40,10 @@ The SDK adapter maps both `startThread` and `resumeThread`, an isolated absolute
 `workingDirectory`, task-bound read-only or workspace-write sandboxing,
 `approvalPolicy: "never"`, disabled network and web search, a closed output
 schema and a small environment allowlist. It refuses construction of the SDK
-client until a separate execution authority is supplied. No terminal scraping
-or Agents SDK dependency is used.
+client until a separate execution authority is supplied. It checkpoints the
+SDK `thread.started` event before consuming the rest of a streamed turn, so an
+interrupted task can resume by opaque thread ID. No terminal scraping or
+Agents SDK dependency is used.
 
 ## Agents and task contracts
 
@@ -57,12 +59,17 @@ Only the six Stage 1 roles are accepted:
 Plans, versioned results and execution surfaces are closed contracts. Their operator-facing JSON Schemas are
 in [`schemas/`](schemas/); runtime validation remains the authoritative
 acceptance boundary. A write task requires one `codex/` branch, one distinct
-worktree, an explicit ownership class and named mutable resources. A task that
-requires independent or security review must have the corresponding dependent
-review task in the plan. Reviews receive the Git-derived candidate commit, tree
-and changed-file set; they do not review an agent-selected identity.
+worktree, an explicit ownership class and named mutable resources. Every write
+task requires both a dependent independent review and a dependent security
+review, followed by exactly one coordinator-owned integration. Integrations
+form one deterministic chain; one canonical quality gate and one external Human
+Gate close the complete writable graph. Reviews receive the Git-derived
+candidate commit, tree and changed-file set; they do not review an
+agent-selected identity.
 
-Agent tasks and deterministic tasks remain separate. An implementation-agent
+Agent tasks and deterministic tasks remain separate. Agent-declared test IDs
+or exit status are never coordinator-observed proof; required tests belong to
+the fixed canonical quality task. An implementation-agent
 `PASS` can produce only `IMPLEMENTED` after worktree and Git inspection.
 Independent and security reviews are distinct read-only tasks. Integration and
 the canonical quality gate are coordinator-owned executors and are never
@@ -122,15 +129,19 @@ canonical `eng/ci.ps1 -Offline`; it does not substitute another gate.
 `GitWorktreeManager` creates only paths below its configured managed root and
 stores ownership markers outside Git worktrees. It refuses existing paths,
 branches, dirty mappings, missing markers and foreign ownership. Removal has no
-force option.
+force option and deletes a task branch only with compare-and-swap `update-ref`
+against the observed commit.
 
 `SequentialIntegrationPipeline` requires a trusted `IMPLEMENTED` candidate,
-required read-only reviews, full commit and tree IDs, the exact Git-derived
-diff, and a clean isolated `codex/` coordinator branch at the recorded
-baseline. Integration is sequential. It verifies that the integrated tree
-equals the reviewed tree. A conflicting cherry-pick is aborted; failure
-to restore the baseline becomes `UNEXPECTED_DIRTY_TREE`. The pipeline never
-pushes, merges to `main`, releases or deploys.
+required read-only reviews, exactly one candidate commit, full commit and tree
+IDs, the exact Git-derived diff including deletions, and a clean isolated
+`codex/` coordinator branch at the expected evolving HEAD. Integration is
+sequential. It compares the complete bounded candidate patch with the patch
+actually integrated, so multiple disjoint candidates can advance the
+coordinator HEAD without weakening candidate identity. A conflicting
+cherry-pick is aborted; failure to restore the prior HEAD becomes
+`UNEXPECTED_DIRTY_TREE`. The pipeline never pushes, merges to `main`, releases
+or deploys.
 
 The separate downstream `QUALITY_GATE` task invokes only the canonical offline
 gate. A failed review, integration or quality gate prevents the Human Gate.
@@ -142,16 +153,21 @@ Runtime data is limited to
 repository. Each revision is written to a same-volume temporary file, flushed,
 renamed atomically and linked to an append-only SHA-256 journal. Snapshots,
 journals, locks and ownership markers have byte limits. JSON input rejects
-duplicate keys before closed-schema validation. Completed snapshots, thread
-IDs, attempt metadata and journal links are validated as untrusted input on
-load. Agent prose and command output are minimised before persistence.
+duplicate and prototype keys before closed-schema validation. Completed
+snapshots, thread checkpoints, attempt metadata and journal links are validated
+as untrusted input on load. Review evidence and risks persist only as SHA-256
+references; agent prose and command output are minimised before persistence.
 
 An interrupted temporary write, invalid response, digest mismatch, recorded
-held lock, orphan lock or incomplete execution never becomes success. `resume`
-stops for reconciliation when any lock remains. `status`, `validate`, report-
-only `cleanup` and safe `resume` reads are idempotent. Destructive cleanup
-requires the exact `--confirm-run-id`, terminal tasks and zero locks; it can
-remove only that contained run directory.
+held lock or orphan lock never becomes success. `resume` can return an
+interrupted agent task to `READY` only when its pre-turn thread checkpoint is
+present and no lock requires reconciliation; deterministic-task interruption
+remains fail-closed. Agent turns also have a coordinator-owned deadline.
+`status`, `validate`, report-only `cleanup` and safe `resume` reads are
+idempotent. Destructive cleanup requires the exact `--confirm-run-id`, terminal
+tasks and zero locks. It removes task-owned worktrees and branches first, then
+atomically renames the physically contained run directory to a same-parent
+tombstone before recursive removal.
 
 Automatic retry is limited to `TRANSIENT_FAILURE`, respects the task's maximum
 of three attempts and preserves every attempt. Policy, authority, test,
@@ -163,15 +179,21 @@ work is represented by a new dependent task rather than rewriting history.
 Plans, repository content and agent output are untrusted data. Identifiers,
 paths, Git object IDs, enums, task fields and result fields are bounded and
 closed. Absolute, traversal, alternate-stream, wildcard, ambiguous Windows and
-reparse-boundary paths fail closed. Agent-reported commands are evidence only;
-they are never executed.
+reparse-boundary paths fail closed. State and cleanup are physically anchored
+at the repository root, not merely lexically contained. Agent-reported commands
+are evidence only; they are never executed.
 
 Coordinator-owned processes require absolute executables and use argv with
 `shell: false`, no login shell, a closed environment allowlist, timeout, output
 limits and process-tree termination. Git additionally disables hooks, signing,
 credential helpers, prompts, pagers, fsmonitor and external protocols through
-fixed command-scoped configuration. Raw bounded stdout is available only to
-structural parsers; persisted evidence is sanitised.
+fixed command-scoped configuration. Repository and worktree configuration is
+revalidated before sensitive commands; executable filters, text conversion,
+merge drivers, includes and similar keys are rejected. Custom `filter`, `diff`
+or `merge` attributes and candidate changes to `.gitattributes` or
+`.gitmodules` are also rejected. Raw bounded stdout is available only to
+structural parsers; persisted evidence is sanitised across Windows, UNC and
+POSIX path forms.
 Structured events contain correlation IDs, opaque location IDs, timing,
 result and stop code only; they exclude prompts, objectives, environment
 values, raw agent output and absolute paths. Secrets, provider calls, network,
@@ -190,7 +212,10 @@ build and serial Node tests with enforced floors of 70% lines and 45% branches.
 The suite covers contracts, graph failures, state transitions, ownership and
 resource collisions, contract freeze, worktree/baseline mapping, structured
 output, retry policy, persistence, recovery, dry run, controlled E2E delegation,
-review, quality-gate boundary, Human Gate, duplicate JSON, reparse boundaries,
-timeouts, output overflow, and a disposable real Git worktree lifecycle with
-task-owned cleanup. No test invokes
+review, quality-gate boundary, Human Gate, duplicate/prototype JSON, physical
+reparse boundaries, coordinator `cwd` binding, forged initial state, agent
+deadlines, streamed thread recovery, multi-candidate integration, deletions,
+multi-commit rejection, Git configuration denial, path sanitisation, output
+overflow, and a disposable real Git worktree lifecycle with compare-and-swap
+cleanup. No test invokes
 Codex, an API, a provider or a paid service.

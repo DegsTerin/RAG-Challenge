@@ -1,5 +1,5 @@
 // Purpose: Coordinates isolated agent work and deterministic review, integration and quality boundaries without accepting self-asserted evidence.
-import { randomUUID } from "node:crypto";
+import { createHash, randomUUID } from "node:crypto";
 import type { QualityGate } from "../adapters/quality-gate.js";
 import type {
   AgentResult,
@@ -24,6 +24,7 @@ import type { IntegrationExecutor } from "../ports/integration-executor.js";
 import type { ResourceLocks } from "../ports/resource-locks.js";
 import type { StateStore } from "../ports/state-store.js";
 import type { WorktreeManager } from "../ports/worktrees.js";
+import type { ThreadCheckpointStore } from "../ports/thread-checkpoints.js";
 import { validatePlanSemantics } from "./plan.js";
 
 export interface Clock {
@@ -76,6 +77,10 @@ function sanitiseCommand(command: CommandEvidence): CommandEvidence {
   return { ...command, relevantOutput: [] };
 }
 
+function digests(label: string, values: readonly string[]): string[] {
+  return values.map((value) => `${label}:sha256:${createHash("sha256").update(value, "utf8").digest("hex")}`);
+}
+
 function sanitiseAgentResult(result: AgentResult, changedFiles: readonly string[] = []): AgentResult {
   return {
     schemaVersion: 1,
@@ -84,8 +89,8 @@ function sanitiseAgentResult(result: AgentResult, changedFiles: readonly string[
     changedFiles,
     commands: result.commands.map(sanitiseCommand),
     tests: result.tests.map(sanitiseCommand),
-    evidence: result.status === "PASS" ? ["structured-result-accepted"] : [],
-    risks: [],
+    evidence: [...digests("evidence", result.evidence), ...(result.status === "PASS" ? ["structured-result-accepted"] : [])],
+    risks: digests("risk", result.risks),
     blockers: result.status === "BLOCKED" ? ["Execution stopped at a governed boundary."] : [],
     requestedAuthority: result.status === "BLOCKED" ? ["A separate authority may be required."] : [],
     stopCondition: result.stopCondition,
@@ -112,14 +117,6 @@ function samePaths(left: readonly string[], right: readonly string[]): boolean {
   return [...left].sort().join("\u0000") === [...right].sort().join("\u0000");
 }
 
-function assertRequiredAgentEvidence(task: TaskDefinition, result: AgentResult): void {
-  const observed = new Set(result.tests.filter((test) => test.result === "PASS").map((test) => test.commandId));
-  const missing = task.requiredTests.filter((testId) => !observed.has(testId));
-  if (missing.length > 0) {
-    throw new OrchestratorStop("TEST_BASELINE_BROKEN", `Task '${task.taskId}' did not return every required focused test ID.`, task.taskId);
-  }
-}
-
 function candidateTask(state: PersistedRunState, task: TaskDefinition): TaskDefinition {
   if (task.candidateTaskId === null) {
     throw new OrchestratorStop("AMBIGUOUS_AUTHORITY", `Task '${task.taskId}' has no candidate binding.`, task.taskId);
@@ -137,12 +134,15 @@ export class Coordinator {
     private readonly candidateInspector: CandidateInspector,
     private readonly integration: IntegrationExecutor,
     private readonly qualityGate: QualityGate,
+    private readonly checkpoints: ThreadCheckpointStore,
+    private readonly repositoryRoot: string,
+    private readonly agentTimeoutMs = 300_000,
     private readonly clock: Clock = systemClock,
     private readonly ids: IdSource = randomIds,
   ) {}
 
   public async start(plan: ProjectPlan, signal?: AbortSignal): Promise<PersistedRunState> {
-    validatePlanSemantics(plan);
+    validatePlanSemantics(plan, this.repositoryRoot);
     const now = this.clock.now();
     let state: PersistedRunState = {
       schemaVersion: 1,
@@ -170,11 +170,29 @@ export class Coordinator {
     if (state.heldLocks.length > 0 || orphanLocks.length > 0) {
       throw new OrchestratorStop("SHARED_RESOURCE_COLLISION", "Recovered state records held locks; operator reconciliation is required.");
     }
-    const interrupted = state.tasks.find((task) => ["ASSIGNED", "RUNNING", "TESTING", "REVIEW", "INTEGRATION_READY", "INTEGRATING", "VALIDATING"].includes(task.status));
-    if (interrupted !== undefined) {
-      throw new OrchestratorStop("TEST_BASELINE_BROKEN", `Task '${interrupted.taskId}' was interrupted; report-only reconciliation is required before resume.`, interrupted.taskId);
+    const checkpoints = await this.checkpoints.inspect(runId);
+    const checkpointByTask = new Map(checkpoints.map((checkpoint) => [checkpoint.taskId, checkpoint]));
+    const intermediate = state.tasks.filter((task) => ["ASSIGNED", "RUNNING", "TESTING", "REVIEW", "INTEGRATION_READY", "INTEGRATING", "VALIDATING"].includes(task.status));
+    if (intermediate.some((task) => !checkpointByTask.has(task.taskId) || ["INTEGRATION", "QUALITY_GATE", "HUMAN_GATE"].includes(task.taskKind))) {
+      const interrupted = intermediate.find((task) => !checkpointByTask.has(task.taskId) || ["INTEGRATION", "QUALITY_GATE", "HUMAN_GATE"].includes(task.taskKind));
+      throw new OrchestratorStop("TEST_BASELINE_BROKEN", `Task '${interrupted?.taskId ?? "unknown"}' was interrupted without a recoverable agent checkpoint.`, interrupted?.taskId);
     }
-    return await this.execute(state, signal);
+    let recovered = state;
+    if (intermediate.length > 0) {
+      recovered = await this.persist({
+        ...state,
+        tasks: state.tasks.map((task) => intermediate.some((entry) => entry.taskId === task.taskId)
+          ? { ...task, status: "READY" as const, startedAt: null, finishedAt: null, result: null }
+          : task),
+      });
+    }
+    for (const checkpoint of checkpoints) {
+      const task = recovered.tasks.find((entry) => entry.taskId === checkpoint.taskId);
+      if (task !== undefined && !["READY", "ASSIGNED", "RUNNING"].includes(task.status)) {
+        await this.checkpoints.remove(runId, checkpoint.taskId, checkpoint.attemptId);
+      }
+    }
+    return await this.execute(recovered, signal);
   }
 
   private async execute(initial: PersistedRunState, signal?: AbortSignal): Promise<PersistedRunState> {
@@ -221,6 +239,13 @@ export class Coordinator {
         state = { ...state, tasks: replaceTask(state.tasks, completed.task), attempts: [...state.attempts, ...completed.attempts], heldLocks: [] };
       }
       state = await this.persist(state);
+      for (const completed of results) {
+        const attempt = completed.attempts.at(-1);
+        if (attempt !== undefined) {
+          const checkpoint = await this.checkpoints.load(state.runId, completed.task.taskId);
+          if (checkpoint?.attemptId === attempt.attemptId) await this.checkpoints.remove(state.runId, completed.task.taskId, attempt.attemptId);
+        }
+      }
     }
   }
 
@@ -238,9 +263,10 @@ export class Coordinator {
   private async runTask(state: PersistedRunState, taskId: string, signal?: AbortSignal): Promise<{ task: TaskDefinition; attempts: AttemptRecord[] }> {
     let task = new DependencyGraph(state.tasks).task(taskId);
     const attempts: AttemptRecord[] = [];
+    let recoveredCheckpoint = await this.checkpoints.load(state.runId, task.taskId);
     for (let attemptNumber = 1; attemptNumber <= task.maxAttempts; attemptNumber += 1) {
-      const attemptId = this.ids.attemptId(task.taskId, attemptNumber);
-      const startedAt = this.clock.now();
+      const attemptId = recoveredCheckpoint?.attemptId ?? this.ids.attemptId(task.taskId, attemptNumber);
+      const startedAt = recoveredCheckpoint?.startedAt ?? this.clock.now();
       this.events.write({ timestamp: startedAt, event: "TASK_ASSIGNED", runId: state.runId, taskId, agentId: task.owner, attemptId, branchId: opaqueLocationId(task.branch), worktreeId: opaqueLocationId(task.worktree), result: null, stopCode: null, durationMs: null });
       const acquired: string[] = [];
       try {
@@ -259,8 +285,11 @@ export class Coordinator {
       } catch (error) {
         const finishedAt = this.clock.now();
         const retryClass = error instanceof ClassifiedFailure ? error.retryClass : "POLICY_FAILURE";
-        attempts.push({ attemptId, taskId, agentId: task.owner, startedAt, finishedAt, retryClass, threadId: null, result: null });
+        const checkpoint = await this.checkpoints.load(state.runId, task.taskId);
+        attempts.push({ attemptId, taskId, agentId: task.owner, startedAt, finishedAt, retryClass, threadId: checkpoint?.threadId ?? null, result: null });
         if (mayRetry(retryClass, attemptNumber, task.maxAttempts)) {
+          if (checkpoint !== null) await this.checkpoints.remove(state.runId, task.taskId, checkpoint.attemptId);
+          recoveredCheckpoint = null;
           continue;
         }
         const stop = error instanceof OrchestratorStop ? error : new OrchestratorStop("TEST_BASELINE_BROKEN", errorMessage(error), task.taskId);
@@ -281,27 +310,38 @@ export class Coordinator {
   }
 
   private async runAgentTask(state: PersistedRunState, task: TaskDefinition, attemptId: string, signal?: AbortSignal): Promise<{ task: TaskDefinition; threadId: string | null }> {
+    const checkpoint = await this.checkpoints.load(state.runId, task.taskId);
     if (task.taskKind === "IMPLEMENTATION") {
       if (task.worktree === null || task.branch === null) {
         throw new OrchestratorStop("AMBIGUOUS_AUTHORITY", "Implementation execution requires a bound worktree and branch.", task.taskId);
       }
       const existing = (await this.worktrees.list()).find((record) => record.path === task.worktree || record.branch === task.branch);
       if (existing === undefined) await this.worktrees.create(task.taskId, task.worktree, task.branch, state.baseline);
-      else await this.worktrees.validate(task.taskId, task.worktree, task.branch, state.baseline);
+      else await this.worktrees.validate(task.taskId, task.worktree, task.branch, state.baseline, checkpoint !== null);
     }
     const boundCandidate = ["INDEPENDENT_REVIEW", "SECURITY_REVIEW"].includes(task.taskKind) ? candidateTask(state, task).candidate : null;
     if (["INDEPENDENT_REVIEW", "SECURITY_REVIEW"].includes(task.taskKind) && boundCandidate === null) {
       throw new OrchestratorStop("TEST_BASELINE_BROKEN", "Review execution requires trusted candidate evidence.", task.taskId);
     }
-    const previousThread = [...state.attempts].reverse().find((attempt) => attempt.taskId === task.taskId && attempt.threadId !== null)?.threadId ?? null;
-    const response = await this.runner.run({ runId: state.runId, attemptId, task, baseline: state.baseline, contracts: task.requiredContracts, candidate: boundCandidate, resumeThreadId: previousThread }, signal);
+    const previousThread = checkpoint?.threadId ?? [...state.attempts].reverse().find((attempt) => attempt.taskId === task.taskId && attempt.threadId !== null)?.threadId ?? null;
+    const response = await this.runAgentWithDeadline({
+      runId: state.runId,
+      attemptId,
+      task,
+      baseline: state.baseline,
+      contracts: task.requiredContracts,
+      candidate: boundCandidate,
+      resumeThreadId: previousThread,
+      checkpointThread: async (threadId) => await this.checkpoints.save({
+        schemaVersion: 1, runId: state.runId, taskId: task.taskId, attemptId, agentId: task.owner, threadId, startedAt: checkpoint?.startedAt ?? task.startedAt ?? this.clock.now(),
+      }),
+    }, signal);
     if (response.result.status !== "PASS") {
       const accepted = sanitiseAgentResult(response.result);
       const terminal = response.result.status === "FAIL" ? "FAIL" : response.result.status === "BLOCKED" ? "BLOCKED" : "HUMAN_REVIEW_REQUIRED";
       return { task: transition(task, terminal, this.clock.now(), accepted), threadId: response.threadId };
     }
     if (task.taskKind === "IMPLEMENTATION") {
-      assertRequiredAgentEvidence(task, response.result);
       const candidate = await this.candidateInspector.inspect(task, state.baseline, response.result);
       if (!samePaths(candidate.changedFiles, response.result.changedFiles)) {
         throw new OrchestratorStop("OUT_OF_SCOPE_CHANGE_REQUIRED", "Agent-reported files do not match the trusted Git diff.", task.taskId);
@@ -338,12 +378,15 @@ export class Coordinator {
     const securityReview = reviews.find((entry) => entry.taskKind === "SECURITY_REVIEW")?.result ?? null;
     let current = transition(task, "INTEGRATION_READY", this.clock.now());
     current = transition(current, "INTEGRATING", this.clock.now());
-    const evidence = await this.integration.integrate({ baseline: state.baseline, integrationTask: task, implementationTask: implementation, candidate: implementation.candidate, workerResult: implementation.result, independentReview, securityReview }, signal);
-    if (evidence.result !== "PASS") {
+    const predecessor = task.dependencies.map((dependency) => state.tasks.find((entry) => entry.taskId === dependency))
+      .find((entry) => entry?.taskKind === "INTEGRATION");
+    const expectedCoordinatorHead = predecessor?.candidate?.commitId ?? state.baseline;
+    const outcome = await this.integration.integrate({ baseline: state.baseline, expectedCoordinatorHead, integrationTask: task, implementationTask: implementation, candidate: implementation.candidate, workerResult: implementation.result, independentReview, securityReview }, signal);
+    if (outcome.evidence.result !== "PASS") {
       throw new OrchestratorStop("CONFLICTING_REQUIREMENTS", "Sequential integration did not pass.", task.taskId);
     }
-    const result = deterministicResult("The coordinator integrated the reviewed candidate sequentially.", [evidence]);
-    current = transition(current, "VALIDATING", this.clock.now(), result);
+    const result = deterministicResult("The coordinator integrated the reviewed candidate sequentially.", [outcome.evidence]);
+    current = transition({ ...current, candidate: outcome.candidate }, "VALIDATING", this.clock.now(), result);
     current = transition(current, "PASS", this.clock.now(), result);
     return { task: current, threadId: null };
   }
@@ -352,5 +395,30 @@ export class Coordinator {
     const next = { ...state, revision: state.revision + 1, updatedAt: this.clock.now() };
     await this.stateStore.save(next);
     return next;
+  }
+
+  private async runAgentWithDeadline(request: Parameters<AgentRunner["run"]>[0], signal?: AbortSignal) {
+    if (!Number.isInteger(this.agentTimeoutMs) || this.agentTimeoutMs < 1 || this.agentTimeoutMs > 7_200_000) {
+      throw new OrchestratorStop("CONFLICTING_REQUIREMENTS", "Agent deadline is outside the supported bound.", request.task.taskId);
+    }
+    const controller = new AbortController();
+    const abort = (): void => controller.abort();
+    signal?.addEventListener("abort", abort, { once: true });
+    let timedOut = false;
+    const timer = setTimeout(() => { timedOut = true; controller.abort(); }, this.agentTimeoutMs);
+    if (signal?.aborted === true) controller.abort();
+    try {
+      return await Promise.race([
+        this.runner.run(request, controller.signal),
+        new Promise<never>((_resolve, reject) => controller.signal.addEventListener("abort", () => reject(new OrchestratorStop(
+          "TEST_BASELINE_BROKEN",
+          timedOut ? "The agent deadline expired." : "The agent execution was interrupted.",
+          request.task.taskId,
+        )), { once: true })),
+      ]);
+    } finally {
+      clearTimeout(timer);
+      signal?.removeEventListener("abort", abort);
+    }
   }
 }

@@ -1,11 +1,12 @@
 // Purpose: Exposes explicit, fail-closed plan, run, resume, status, validate and cleanup commands for the standalone tool.
-import { readFile, readdir, rm, stat } from "node:fs/promises";
+import { readFile, readdir, rename, rm, stat } from "node:fs/promises";
 import { dirname, isAbsolute, relative, resolve, sep } from "node:path";
 import { fileURLToPath } from "node:url";
 import { BoundedProcess } from "./adapters/bounded-process.js";
 import { FakeAgentRunner } from "./adapters/fake-agent-runner.js";
 import { FileResourceLocks } from "./adapters/file-resource-locks.js";
 import { FileStateStore } from "./adapters/file-state-store.js";
+import { FileThreadCheckpointStore } from "./adapters/file-thread-checkpoints.js";
 import { GitBaselineVerifier } from "./adapters/git-baseline.js";
 import { GitCandidateInspector } from "./adapters/git-candidate-inspector.js";
 import { GitWorktreeManager } from "./adapters/git-worktrees.js";
@@ -18,7 +19,7 @@ import type { AgentResult, PersistedRunState } from "./core/contracts.js";
 import { errorMessage, OrchestratorStop } from "./core/errors.js";
 import { parseAgentResult, parseProjectPlan } from "./core/validation.js";
 import type { EventSink, StructuredEvent } from "./observability/structured-log.js";
-import { resolveRunRoot } from "./security/path-policy.js";
+import { assertNoExistingReparseBoundary, resolveRunRoot } from "./security/path-policy.js";
 import { parseSecureJson } from "./security/secure-json.js";
 
 const packageRoot = resolve(dirname(fileURLToPath(import.meta.url)), "../..");
@@ -111,6 +112,8 @@ function stateSummary(state: PersistedRunState): unknown {
       reviews: reviewTasks.map((task) => ({ taskId: task.taskId, kind: task.taskKind, status: task.status, stopCondition: task.result?.stopCondition ?? null })),
       qualityGates: qualityTasks.map((task) => ({ taskId: task.taskId, status: task.status, tests: task.result?.tests ?? [] })),
       changedFiles: [...new Set(implementationTasks.flatMap((task) => task.candidate?.changedFiles ?? []))].sort(),
+      evidenceDigests: [...new Set(reviewTasks.flatMap((task) => task.result?.evidence ?? []).filter((value) => value.startsWith("evidence:sha256:")))].sort(),
+      knownRiskDigests: [...new Set(state.tasks.flatMap((task) => task.result?.risks ?? []).filter((value) => value.startsWith("risk:sha256:")))].sort(),
       requestedDecision: "Review the complete package externally; the orchestrator does not approve or advance the lifecycle.",
     } : null,
   };
@@ -126,7 +129,7 @@ async function runCommand(arguments_: readonly string[], resume: boolean): Promi
   }
   const resultsPath = requiredValue(arguments_, "--fixture-results");
   const root = stateRoot(arguments_);
-  const store = new FileStateStore(root);
+  const store = new FileStateStore(root, repositoryRoot);
   const plan = resume ? null : parseProjectPlan(await readJson(requiredValue(arguments_, "--plan")));
   const recovered = resume ? await store.load(requiredValue(arguments_, "--run-id")) : null;
   const processAdapter = new BoundedProcess();
@@ -143,12 +146,14 @@ async function runCommand(arguments_: readonly string[], resume: boolean): Promi
   const coordinator = new Coordinator(
     new FakeAgentRunner(await fakeOutcomes(resultsPath)),
     store,
-    new FileResourceLocks(resolve(root, "locks")),
+    new FileResourceLocks(resolve(root, "locks"), repositoryRoot),
     new ConsoleEventSink(),
     worktrees,
     inspector,
     integration,
     quality,
+    new FileThreadCheckpointStore(root, repositoryRoot),
+    repositoryRoot,
   );
   const state = resume
     ? await coordinator.resume(requiredValue(arguments_, "--run-id"), Number(valueAfter(arguments_, "--max-concurrency") ?? "3"))
@@ -158,8 +163,8 @@ async function runCommand(arguments_: readonly string[], resume: boolean): Promi
 
 async function validateCommand(arguments_: readonly string[]): Promise<void> {
   const root = stateRoot(arguments_);
-  const state = await new FileStateStore(root).load(requiredValue(arguments_, "--run-id"));
-  const lockManager = new FileResourceLocks(resolve(root, "locks"));
+  const state = await new FileStateStore(root, repositoryRoot).load(requiredValue(arguments_, "--run-id"));
+  const lockManager = new FileResourceLocks(resolve(root, "locks"), repositoryRoot);
   const locks = await lockManager.inspect();
   if (state.heldLocks.length > 0 || locks.length > 0) {
     throw new OrchestratorStop("SHARED_RESOURCE_COLLISION", "Validation found unreconciled resource locks.");
@@ -171,41 +176,62 @@ async function validateCommand(arguments_: readonly string[]): Promise<void> {
       throw new OrchestratorStop("TEST_BASELINE_BROKEN", "The canonical repository quality gate failed.");
     }
   }
-  process.stdout.write(canonicalJson({ state: stateSummary(state), locks: await lockManager.inspectRecords(), qualityGate }));
+  process.stdout.write(canonicalJson({ state: stateSummary(state), locks: await lockManager.inspectRecords(), qualityGate: qualityGate === null ? null : { ...qualityGate, relevantOutput: [] } }));
 }
 
 async function cleanupCommand(arguments_: readonly string[]): Promise<void> {
   const root = stateRoot(arguments_);
   const runId = requiredValue(arguments_, "--run-id");
   const runRoot = resolveRunRoot(root, runId);
-  const state = await new FileStateStore(root).load(runId);
-  const lockManager = new FileResourceLocks(resolve(root, "locks"));
+  const state = await new FileStateStore(root, repositoryRoot).load(runId);
+  const lockManager = new FileResourceLocks(resolve(root, "locks"), repositoryRoot);
   const lockReport = await lockManager.inspectRecords();
-  const terminal = state.tasks.every((task) => ["PASS", "FAIL", "HUMAN_REVIEW_REQUIRED", "CANCELLED", "BLOCKED"].includes(task.status));
+  const terminal = state.tasks.every((task) => ["PASS", "IMPLEMENTED", "FAIL", "HUMAN_REVIEW_REQUIRED", "CANCELLED", "BLOCKED"].includes(task.status));
+  const managed = state.tasks.filter((task) => task.taskKind === "IMPLEMENTATION" && task.worktree !== null)
+    .map((task) => ({ taskId: task.taskId, worktree: task.worktree, branch: task.branch, status: task.status }));
   const confirmation = valueAfter(arguments_, "--confirm-run-id");
   if (confirmation === null) {
     const files = (await readdir(runRoot)).sort();
-    process.stdout.write(canonicalJson({ runId, action: "REPORT_ONLY", terminal, files, locks: lockReport }));
+    process.stdout.write(canonicalJson({ runId, action: "REPORT_ONLY", terminal, files, locks: lockReport, managedWorktrees: managed }));
     return;
   }
   if (confirmation !== runId || !terminal || state.heldLocks.length > 0 || lockReport.length > 0) {
     throw new OrchestratorStop("DESTRUCTIVE_OPERATION", "Cleanup requires exact run confirmation, terminal tasks and no locks.");
   }
-  await rm(runRoot, { recursive: true, force: false });
-  process.stdout.write(canonicalJson({ runId, action: "REMOVED" }));
+  if (managed.length > 0) {
+    const gitExecutable = requiredValue(arguments_, "--git-executable");
+    const worktrees = new GitWorktreeManager(repositoryRoot, managedWorktreeRoot, new BoundedProcess(), gitExecutable, safeEnvironment());
+    const existingWorktrees = await worktrees.list();
+    const normalisePath = (value: string): string => process.platform === "win32" ? resolve(value).toLowerCase() : resolve(value);
+    for (const entry of managed) {
+      if (entry.worktree !== null && existingWorktrees.some((record) => normalisePath(record.path) === normalisePath(entry.worktree ?? ""))) {
+        await worktrees.removeManaged(entry.taskId, entry.worktree);
+      }
+    }
+  }
+  await assertNoExistingReparseBoundary(repositoryRoot, runRoot);
+  const tombstone = `${runRoot}.cleanup`;
+  await stat(tombstone).then(() => { throw new OrchestratorStop("DESTRUCTIVE_OPERATION", "The cleanup tombstone already exists."); }).catch((error) => {
+    if ((error as NodeJS.ErrnoException).code !== "ENOENT" && !(error instanceof OrchestratorStop)) throw error;
+    if (error instanceof OrchestratorStop) throw error;
+  });
+  await rename(runRoot, tombstone);
+  await assertNoExistingReparseBoundary(repositoryRoot, tombstone);
+  await rm(tombstone, { recursive: true, force: false });
+  process.stdout.write(canonicalJson({ runId, action: "REMOVED", managedWorktrees: managed.map((entry) => entry.taskId) }));
 }
 
 async function main(): Promise<void> {
   const [command, ...arguments_] = process.argv.slice(2);
   if (command === "plan" || (command === "run" && hasFlag(arguments_, "--dry-run"))) {
     const plan = parseProjectPlan(await readJson(requiredValue(arguments_, "--plan")));
-    process.stdout.write(canonicalJson(createDryRunPlan(plan)));
+    process.stdout.write(canonicalJson(createDryRunPlan(plan, repositoryRoot)));
   } else if (command === "run") {
     await runCommand(arguments_, false);
   } else if (command === "resume") {
     await runCommand(arguments_, true);
   } else if (command === "status") {
-    const state = await new FileStateStore(stateRoot(arguments_)).load(requiredValue(arguments_, "--run-id"));
+    const state = await new FileStateStore(stateRoot(arguments_), repositoryRoot).load(requiredValue(arguments_, "--run-id"));
     process.stdout.write(canonicalJson(stateSummary(state)));
   } else if (command === "validate") {
     await validateCommand(arguments_);

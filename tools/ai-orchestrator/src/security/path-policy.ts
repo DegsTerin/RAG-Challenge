@@ -1,5 +1,5 @@
 // Purpose: Resolves orchestrator-owned paths fail-closed and rejects traversal, alternate streams and existing reparse boundaries.
-import { lstat } from "node:fs/promises";
+import { lstat, realpath } from "node:fs/promises";
 import { isAbsolute, relative, resolve, sep } from "node:path";
 import { OrchestratorStop } from "../core/errors.js";
 import { assertIdentifier } from "../core/validation.js";
@@ -25,14 +25,15 @@ export async function assertNoExistingReparseBoundary(root: string, candidate: s
   if (relation === ".." || relation.startsWith(`..${sep}`) || isAbsolute(relation)) {
     throw new OrchestratorStop("OUT_OF_SCOPE_CHANGE_REQUIRED", "A filesystem path escapes its authorised root.");
   }
+  let physicalRoot: string;
   try {
     if ((await lstat(absoluteRoot)).isSymbolicLink()) {
       throw new OrchestratorStop("OUT_OF_SCOPE_CHANGE_REQUIRED", "The authorised root is a symbolic-link boundary.");
     }
+    physicalRoot = await realpath(absoluteRoot);
   } catch (error) {
-    if ((error as NodeJS.ErrnoException).code !== "ENOENT") {
-      throw error;
-    }
+    if ((error as NodeJS.ErrnoException).code === "ENOENT") throw new OrchestratorStop("OUT_OF_SCOPE_CHANGE_REQUIRED", "The authorised root does not exist.");
+    throw error;
   }
   const parts = relation === "" ? [] : relation.split(sep);
   let current = absoluteRoot;
@@ -42,6 +43,11 @@ export async function assertNoExistingReparseBoundary(root: string, candidate: s
       const metadata = await lstat(current);
       if (metadata.isSymbolicLink()) {
         throw new OrchestratorStop("OUT_OF_SCOPE_CHANGE_REQUIRED", "An existing path crosses a symbolic-link boundary.");
+      }
+      const physical = await realpath(current);
+      const physicalRelation = relative(physicalRoot, physical);
+      if (physicalRelation === ".." || physicalRelation.startsWith(`..${sep}`) || isAbsolute(physicalRelation)) {
+        throw new OrchestratorStop("OUT_OF_SCOPE_CHANGE_REQUIRED", "An existing path escapes its authorised physical root.");
       }
     } catch (error) {
       if ((error as NodeJS.ErrnoException).code === "ENOENT") {

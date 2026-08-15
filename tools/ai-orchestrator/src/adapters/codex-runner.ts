@@ -7,13 +7,15 @@ import { OrchestratorStop } from "../core/errors.js";
 import { agentResultOutputSchema, parseAgentResult } from "../core/validation.js";
 import { parseSecureJson } from "../security/secure-json.js";
 
-interface CodexTurn {
-  readonly finalResponse: string;
+interface CodexEvent {
+  readonly type: string;
+  readonly thread_id?: string;
+  readonly item?: { readonly type: string; readonly text?: string };
 }
 
 interface CodexThread {
   readonly id: string | null;
-  run(input: string, options?: TurnOptions): Promise<CodexTurn>;
+  runStreamed(input: string, options?: TurnOptions): Promise<{ readonly events: AsyncIterable<CodexEvent> }>;
 }
 
 interface CodexClient {
@@ -110,16 +112,41 @@ export class CodexRunner implements AgentRunner {
     const thread = request.resumeThreadId === null
       ? client.startThread(threadOptions)
       : client.resumeThread(request.resumeThreadId, threadOptions);
-    const turn = await thread.run(buildAgentPrompt(request), { outputSchema: agentResultOutputSchema, ...(signal === undefined ? {} : { signal }) });
+    if (request.resumeThreadId !== null) {
+      await request.checkpointThread(request.resumeThreadId);
+    }
+    const streamed = await thread.runStreamed(buildAgentPrompt(request), { outputSchema: agentResultOutputSchema, ...(signal === undefined ? {} : { signal }) });
+    let checkpointedThread = request.resumeThreadId;
+    let finalResponse: string | null = null;
+    let completed = false;
+    for await (const event of streamed.events) {
+      if (event.type === "thread.started") {
+        if (typeof event.thread_id !== "string" || event.thread_id.length === 0 ||
+            (request.resumeThreadId !== null && event.thread_id !== request.resumeThreadId)) {
+          throw new OrchestratorStop("TEST_BASELINE_BROKEN", "Codex returned an inconsistent thread identity.", request.task.taskId);
+        }
+        await request.checkpointThread(event.thread_id);
+        checkpointedThread = event.thread_id;
+      } else if (event.type === "item.completed" && event.item?.type === "agent_message" && typeof event.item.text === "string") {
+        finalResponse = event.item.text;
+      } else if (event.type === "turn.failed" || event.type === "error") {
+        throw new OrchestratorStop("TEST_BASELINE_BROKEN", "Codex reported a failed streamed turn.", request.task.taskId);
+      } else if (event.type === "turn.completed") {
+        completed = true;
+      }
+    }
+    if (!completed || checkpointedThread === null || finalResponse === null) {
+      throw new OrchestratorStop("TEST_BASELINE_BROKEN", "Codex streamed turn ended without a recoverable identity and structured result.", request.task.taskId);
+    }
     let parsed: unknown;
     try {
-      if (Buffer.byteLength(turn.finalResponse, "utf8") > 262_144) {
+      if (Buffer.byteLength(finalResponse, "utf8") > 262_144) {
         throw new OrchestratorStop("TEST_BASELINE_BROKEN", "Codex returned an oversized structured result.", request.task.taskId);
       }
-      parsed = parseSecureJson(turn.finalResponse, "Codex structured result");
+      parsed = parseSecureJson(finalResponse, "Codex structured result");
     } catch {
       throw new OrchestratorStop("TEST_BASELINE_BROKEN", "Codex returned invalid structured JSON.", request.task.taskId);
     }
-    return { result: parseAgentResult(parsed), threadId: thread.id };
+    return { result: parseAgentResult(parsed), threadId: checkpointedThread };
   }
 }

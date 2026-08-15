@@ -64,14 +64,14 @@ test("plan semantics require independent and security review dependencies", () =
     worktree: "C:/managed/implementation", branch: "codex/implementation",
     requiresIndependentReview: true, requiresSecurityReview: true,
   });
-  assert.throws(() => validatePlanSemantics(projectPlan([implementation])), /no dependent independent review/);
+  assert.throws(() => validatePlanSemantics(projectPlan([implementation])), /writable plan requires/);
 });
 
 test("dry run is deterministic and exposes lanes, locks and the external Human Gate", () => {
   const mapping = task({ taskId: "mapping", priority: 200 });
   const qualitySurface = { cwd: "C:/repository", writableRoots: ["C:/repository"], sandbox: "workspace-write" as const, approvalPolicy: "never" as const, networkAccess: false as const, environmentPolicy: "minimal" as const, tools: [], mcpServers: [], skills: [] };
   const gateSurface = { ...qualitySurface, writableRoots: [], sandbox: "read-only" as const };
-  const quality = task({ taskId: "quality", taskKind: "QUALITY_GATE", owner: "governance_guard", dependencies: ["mapping"], executionSurface: qualitySurface, ownership: "COORDINATOR_ONLY", parallelism: "SEQUENTIAL_ONLY", priority: 100 });
+  const quality = task({ taskId: "quality", taskKind: "QUALITY_GATE", owner: "governance_guard", dependencies: ["mapping"], executionSurface: qualitySurface, ownership: "COORDINATOR_ONLY", parallelism: "SEQUENTIAL_ONLY", priority: 100, requiredTests: ["./eng/ci.ps1 -Offline"] });
   const gate = task({ taskId: "human-gate", taskKind: "HUMAN_GATE", owner: "governance_guard", dependencies: ["quality"], humanGate: true, executionSurface: gateSurface, parallelism: "SEQUENTIAL_ONLY" });
   const preview = createDryRunPlan(projectPlan([mapping, quality, gate]));
   assert.deepEqual(preview.waves, [["mapping"], ["quality"], ["human-gate"]]);
@@ -92,4 +92,23 @@ test("parsed plan preserves its exact baseline and bounded concurrency", () => {
   const parsed = parseProjectPlan(projectPlan([task()], 2));
   assert.equal(parsed.baseline, baseline);
   assert.equal(parsed.maxConcurrency, 2);
+});
+
+test("input plans reject forged runtime state and evidence", () => {
+  assert.throws(() => validatePlanSemantics(projectPlan([task({ status: "PASS" })])), (error: unknown) =>
+    error instanceof OrchestratorStop && error.code === "UNEXPECTED_DIRTY_TREE");
+  assert.throws(() => validatePlanSemantics(projectPlan([task({ evidence: ["forged"] })])), (error: unknown) =>
+    error instanceof OrchestratorStop && error.code === "UNEXPECTED_DIRTY_TREE");
+});
+
+test("non-implementation execution is bound to the coordinator repository root", () => {
+  assert.throws(() => validatePlanSemantics(projectPlan([task({ executionSurface: { ...task().executionSurface, cwd: "C:/outside" } })]), "C:/repository"),
+    (error: unknown) => error instanceof OrchestratorStop && error.code === "OUT_OF_SCOPE_CHANGE_REQUIRED");
+});
+
+test("command evidence cannot claim PASS for a non-zero exit code", () => {
+  assert.throws(() => parseAgentResult({
+    ...passingResult(),
+    tests: [{ commandId: "forged", exitCode: 1, durationMs: 1, result: "PASS", relevantOutput: [] }],
+  }), /inconsistent exit-code evidence/);
 });

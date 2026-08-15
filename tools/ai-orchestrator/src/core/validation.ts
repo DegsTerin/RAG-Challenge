@@ -30,12 +30,14 @@ function record(value: unknown, label: string): JsonRecord {
 
 function exactKeys(value: JsonRecord, allowed: readonly string[], label: string): void {
   const unexpected = Object.keys(value).filter((key) => !allowed.includes(key));
+  const missing = allowed.filter((key) => !Object.hasOwn(value, key));
   if (unexpected.length > 0) {
     throw new OrchestratorStop(
       "CONFLICTING_REQUIREMENTS",
       `${label} contains unsupported fields: ${unexpected.sort().join(", ")}.`,
     );
   }
+  if (missing.length > 0) throw new OrchestratorStop("CONFLICTING_REQUIREMENTS", `${label} is missing required fields.`);
 }
 
 function stringValue(value: unknown, label: string, maximum = 2048): string {
@@ -131,11 +133,16 @@ const taskKeys = [
 function parseCommand(value: unknown, label: string) {
   const source = record(value, label);
   exactKeys(source, commandKeys, label);
+  const exitCode = integerValue(source.exitCode, `${label}.exitCode`, -2147483648, 2147483647);
+  const result = enumValue(source.result, ["PASS", "FAIL", "BLOCKED"] as const, `${label}.result`);
+  if ((result === "PASS") !== (exitCode === 0)) {
+    throw new OrchestratorStop("CONFLICTING_REQUIREMENTS", `${label} has inconsistent exit-code evidence.`);
+  }
   return {
     commandId: stringValue(source.commandId, `${label}.commandId`, 128),
-    exitCode: integerValue(source.exitCode, `${label}.exitCode`, -2147483648, 2147483647),
+    exitCode,
     durationMs: integerValue(source.durationMs, `${label}.durationMs`, 0, 86_400_000),
-    result: enumValue(source.result, ["PASS", "FAIL", "BLOCKED"] as const, `${label}.result`),
+    result,
     relevantOutput: stringArray(source.relevantOutput, `${label}.relevantOutput`, 32, 512),
   } as const;
 }

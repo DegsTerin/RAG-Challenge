@@ -9,6 +9,6 @@ export interface WorktreeRecord {
 export interface WorktreeManager {
   list(): Promise<readonly WorktreeRecord[]>;
   create(taskId: string, path: string, branch: string, baseline: string): Promise<WorktreeRecord>;
-  validate(taskId: string, path: string, branch: string, baseline: string): Promise<WorktreeRecord>;
+  validate(taskId: string, path: string, branch: string, baseline: string, allowInProgress?: boolean): Promise<WorktreeRecord>;
   removeManaged(taskId: string, path: string): Promise<void>;
 }
