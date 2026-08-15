@@ -9,6 +9,7 @@ Set-StrictMode -Version Latest
 
 $repositoryRoot = Split-Path -Parent $PSScriptRoot
 $dashboardRoot = Join-Path $repositoryRoot "src/RagChallenge.Dashboard.Web"
+$orchestratorRoot = Join-Path $repositoryRoot "tools/ai-orchestrator"
 $env:DOTNET_CLI_TELEMETRY_OPTOUT = "1"
 $env:DOTNET_NOLOGO = "1"
 $env:DOTNET_SKIP_FIRST_TIME_EXPERIENCE = "1"
@@ -39,6 +40,22 @@ function Assert-NuGetLockFileLineEndings {
     Assert-FilesUseLfOnly -Paths $absolutePaths
 }
 
+function Assert-NpmLockFileLineEndings {
+    $trackedLockFiles = @(& git ls-files -- "*package-lock.json")
+    Assert-LastExitCode "Tracked npm lockfile discovery"
+
+    if ($trackedLockFiles.Count -eq 0) {
+        throw "No tracked npm lockfiles were found."
+    }
+
+    $absolutePaths = @(
+        $trackedLockFiles | ForEach-Object {
+            Join-Path $repositoryRoot $_
+        })
+
+    Assert-FilesUseLfOnly -Paths $absolutePaths
+}
+
 Push-Location $repositoryRoot
 
 try {
@@ -50,6 +67,7 @@ try {
         -ScriptPath (Join-Path $PSScriptRoot "test-ci-policy.ps1")
 
     Assert-NuGetLockFileLineEndings
+    Assert-NpmLockFileLineEndings
 
     if ($Offline) {
         dotnet restore RAG-Challenge.sln `
@@ -109,6 +127,27 @@ try {
     finally {
         Pop-Location
     }
+
+    Push-Location $orchestratorRoot
+
+    try {
+        if ($Offline) {
+            npm ci --offline --ignore-scripts --no-audit --no-fund
+            Assert-LastExitCode "Offline orchestrator restore"
+        }
+        else {
+            npm ci --ignore-scripts --no-audit --no-fund
+            Assert-LastExitCode "Orchestrator restore"
+        }
+
+        npm run check
+        Assert-LastExitCode "Orchestrator checks"
+    }
+    finally {
+        Pop-Location
+    }
+
+    Assert-NpmLockFileLineEndings
 
     if (-not $Offline) {
         dotnet list RAG-Challenge.sln package --vulnerable --include-transitive

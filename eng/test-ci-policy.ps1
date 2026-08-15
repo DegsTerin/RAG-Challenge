@@ -257,8 +257,16 @@ try {
 
     if ($workflow -notmatch 'Assert-VersionSatisfiesRange' -or
         $workflow -notmatch '\$dashboardPackage\.engines\.node' -or
-        $workflow -notmatch '\$dashboardPackage\.engines\.npm') {
+        $workflow -notmatch '\$dashboardPackage\.engines\.npm' -or
+        $workflow -notmatch '\$orchestratorPackage\.engines\.node' -or
+        $workflow -notmatch '\$orchestratorPackage\.engines\.npm') {
         throw "The workflow does not validate the package engine ranges."
+    }
+
+    if ($ciScript -notmatch '\$orchestratorRoot' -or
+        $ciScript -notmatch 'npm run check' -or
+        $ciScript -notmatch 'Offline orchestrator restore') {
+        throw "The CI entry point does not run the locked orchestrator checks."
     }
 
     Write-Output "PASS: CI consumers use the shared fail-closed policy"
