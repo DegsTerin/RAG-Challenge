@@ -26,7 +26,7 @@ PostgreSQL 18.4 product store. Every process start:
 2. creates a fresh writable copy under `/tmp/rag-challenge-store`;
 3. verifies that copy before starting the API;
 4. starts the same-origin Dashboard and API as an unprivileged user; and
-5. fails closed when the seed or provider credential is absent.
+5. leaves provider-authority and credential validation to the product runtime.
 
 The active generation is restored after every restart. Answer-evidence records
 written after startup are intentionally disposable and are lost on a restart,
@@ -60,9 +60,13 @@ non-deployable and retains its placeholder. The Render dashboard showed `Free`
 before service creation. No disk, database, paid instance, autoscaling or paid
 workspace feature was added.
 
-`OPENAI_API_KEY` is supplied only as a Render secret environment variable. It
-is not part of the image or package. Provider use is billed independently from
-Render hosting and remains subject to its own authority and spending controls.
+The product credential is supplied only as a Render secret environment
+variable and is not part of the image or package. The entrypoint does not
+inspect its value. The non-deployable template also requires distinct bounded
+`AUTH-*` references for query embedding and grounded generation. The product
+validates the exact operation authority before credential lookup or provider
+egress. Provider use is billed independently from Render hosting and remains
+subject to its own authority and spending controls.
 
 ## Observed Render Free deployment
 

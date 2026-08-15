@@ -88,6 +88,33 @@ recuperação, nunca apenas depois da geração.
 - Não imprimir configuração completa nem ambiente inteiro.
 - Rotacionar imediatamente material exposto e preservar evidência sanitizada.
 
+## Product provider credential boundary
+
+`OPENAI_API_KEY` identifies a product-runtime secret only. Its value must never
+be received, inherited, read, validated, copied or transported by Stage 0,
+Stage 1, Stage 2, any agent or subagent, the orchestrator, CodexRunner, CI,
+ordinary tests or development tooling. Plans, prompts, task envelopes,
+arguments, files, commits, logs, evidence and artefacts must contain neither
+the value nor secret-shaped substitutes. Agent and governed child-process
+environments are closed and exclude the product credential.
+
+The canonical CI entry point may name the identifier solely as executable
+enforcement of this policy: it removes that exact process-scope variable,
+without reading it, before invoking policy code or any child process. This
+exception cannot be used to look up, validate, copy, log or forward a value.
+
+Only an approved secret store, service manager or operational environment may
+inject the value directly into the product process. Administrative index
+embedding, query embedding and grounded generation each require their own
+bounded `AUTH-*` operational-authority reference. A reference is non-secret
+evidence only: it does not itself grant authority and must be revalidated for
+the exact operation immediately before credential lookup or provider egress.
+Code completion, deployment, product activation and credential availability do
+not grant operational authority. Readiness and visual-evidence serving must not
+read the credential. Synthetic enforcement tests use injected readers, maps
+and fake handlers only; real provider calls require separate explicit
+authority.
+
 ## Ameaças RAG
 
 ### Prompt injection em documentos
