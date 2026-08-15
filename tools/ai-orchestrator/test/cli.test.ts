@@ -20,6 +20,13 @@ async function testStateRoot(prefix: string): Promise<string> {
   return await mkdtemp(join(permittedStateRoot, `${prefix}-`));
 }
 
+test("CLI rejects Codex execution without an explicit authority reference before loading a plan", async () => {
+  await assert.rejects(
+    execute(process.execPath, [cliPath, "run", "--runner", "codex"], { cwd: packageRoot }),
+    /Argument '--authority-reference' is required/,
+  );
+});
+
 test("CLI plan emits a preview without creating its configured state root", async () => {
   const temporary = await testStateRoot("cli-plan");
   try {

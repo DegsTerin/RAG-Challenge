@@ -1,27 +1,11 @@
-// Purpose: Adapts the verified Codex SDK behind a deny-by-default runner with isolated cwd, environment, sandbox and structured output.
-import { Codex, type ThreadOptions, type TurnOptions } from "@openai/codex-sdk";
+// Purpose: Adapts Codex App Server behind a deny-by-default runner with pre-turn checkpointing, isolated cwd and structured output.
 import { isAbsolute, relative, resolve, sep } from "node:path";
 import { buildAgentPrompt } from "../application/agent-prompt.js";
 import type { AgentRunner, AgentRunRequest, AgentRunResponse } from "../core/contracts.js";
 import { OrchestratorStop } from "../core/errors.js";
 import { agentResultOutputSchema, parseAgentResult } from "../core/validation.js";
 import { parseSecureJson } from "../security/secure-json.js";
-
-interface CodexEvent {
-  readonly type: string;
-  readonly thread_id?: string;
-  readonly item?: { readonly type: string; readonly text?: string };
-}
-
-interface CodexThread {
-  readonly id: string | null;
-  runStreamed(input: string, options?: TurnOptions): Promise<{ readonly events: AsyncIterable<CodexEvent> }>;
-}
-
-interface CodexClient {
-  startThread(options?: ThreadOptions): CodexThread;
-  resumeThread(id: string, options?: ThreadOptions): CodexThread;
-}
+import { createCodexAppServer, type CodexAppServer } from "./codex-app-server.js";
 
 export interface CodexRunnerPolicy {
   readonly executionAuthorised: boolean;
@@ -32,18 +16,12 @@ export interface CodexRunnerPolicy {
   readonly permittedModels?: readonly string[];
 }
 
-export type CodexClientFactory = (policy: CodexRunnerPolicy) => CodexClient;
+export type CodexAppServerFactory = (policy: CodexRunnerPolicy) => CodexAppServer;
 
-const permittedEnvironmentNames = new Set(["PATH", "SystemRoot", "TEMP", "TMP", "LOCALAPPDATA", "APPDATA"]);
+const permittedEnvironmentNames = new Set(["PATH", "SystemRoot", "TEMP", "TMP", "USERPROFILE", "LOCALAPPDATA", "APPDATA"]);
 
-function defaultFactory(policy: CodexRunnerPolicy): CodexClient {
-  return new Codex({
-    env: { ...policy.environment },
-    config: {
-      web_search: "disabled",
-      sandbox_workspace_write: { network_access: false },
-    },
-  });
+function defaultFactory(policy: CodexRunnerPolicy): CodexAppServer {
+  return createCodexAppServer({ environment: policy.environment });
 }
 
 function assertWorktree(root: string, worktree: string | null): string {
@@ -69,9 +47,7 @@ function assertExecutionSurface(request: AgentRunRequest, root: string): string 
       request.task.executionSurface.mcpServers.length > 0 || request.task.executionSurface.skills.length > 0) {
     throw new OrchestratorStop("OUT_OF_SCOPE_CHANGE_REQUIRED", "The task execution surface exceeds the Codex runner policy.", request.task.taskId);
   }
-  if (request.task.taskKind === "IMPLEMENTATION") {
-    return assertWorktree(root, request.task.worktree);
-  }
+  if (request.task.taskKind === "IMPLEMENTATION") return assertWorktree(root, request.task.worktree);
   if (!isAbsolute(request.task.executionSurface.cwd) || request.task.executionSurface.writableRoots.length > 0) {
     throw new OrchestratorStop("OUT_OF_SCOPE_CHANGE_REQUIRED", "A read-only Codex task requires an absolute non-writable cwd.", request.task.taskId);
   }
@@ -79,9 +55,11 @@ function assertExecutionSurface(request: AgentRunRequest, root: string): string 
 }
 
 export class CodexRunner implements AgentRunner {
+  private client: CodexAppServer | null = null;
+
   public constructor(
     private readonly policy: CodexRunnerPolicy,
-    private readonly factory: CodexClientFactory = defaultFactory,
+    private readonly factory: CodexAppServerFactory = defaultFactory,
   ) {}
 
   public async run(request: AgentRunRequest, signal?: AbortSignal): Promise<AgentRunResponse> {
@@ -100,54 +78,24 @@ export class CodexRunner implements AgentRunner {
       throw new OrchestratorStop("HUMAN_DECISION_REQUIRED", "The requested Codex model is not present in the separately authorised model allowlist.", request.task.taskId);
     }
     const workingDirectory = assertExecutionSurface(request, this.policy.worktreeRoot);
-    const client = this.factory(this.policy);
-    const threadOptions: ThreadOptions = {
+    this.client ??= this.factory(this.policy);
+    await this.client.assertChatGptSession();
+    const configuration = {
       workingDirectory,
-      skipGitRepoCheck: false,
-      sandboxMode: request.task.executionSurface.sandbox,
-      approvalPolicy: "never",
-      networkAccessEnabled: false,
-      webSearchMode: "disabled",
-      ...(this.policy.model === null ? {} : { model: this.policy.model }),
-    };
-    const thread = request.resumeThreadId === null
-      ? client.startThread(threadOptions)
-      : client.resumeThread(request.resumeThreadId, threadOptions);
-    const initialThreadId = request.resumeThreadId ?? thread.id;
-    if (initialThreadId === null) {
-      throw new OrchestratorStop(
-        "ARCHITECTURE_CHANGE_REQUIRED",
-        "The locked Codex SDK does not expose a new thread identity before its first turn, so new real execution remains disabled.",
-        request.task.taskId,
-      );
-    }
-    if (thread.id !== null && thread.id !== initialThreadId) {
-      throw new OrchestratorStop("TEST_BASELINE_BROKEN", "Codex returned an inconsistent pre-turn thread identity.", request.task.taskId);
-    }
-    await request.checkpointThread(initialThreadId);
-    const streamed = await thread.runStreamed(buildAgentPrompt(request), { outputSchema: agentResultOutputSchema, ...(signal === undefined ? {} : { signal }) });
-    let checkpointedThread = initialThreadId;
-    let finalResponse: string | null = null;
-    let completed = false;
-    for await (const event of streamed.events) {
-      if (event.type === "thread.started") {
-        if (typeof event.thread_id !== "string" || event.thread_id.length === 0 ||
-            event.thread_id !== checkpointedThread) {
-          throw new OrchestratorStop("TEST_BASELINE_BROKEN", "Codex returned an inconsistent thread identity.", request.task.taskId);
-        }
-        await request.checkpointThread(event.thread_id);
-        checkpointedThread = event.thread_id;
-      } else if (event.type === "item.completed" && event.item?.type === "agent_message" && typeof event.item.text === "string") {
-        finalResponse = event.item.text;
-      } else if (event.type === "turn.failed" || event.type === "error") {
-        throw new OrchestratorStop("TEST_BASELINE_BROKEN", "Codex reported a failed streamed turn.", request.task.taskId);
-      } else if (event.type === "turn.completed") {
-        completed = true;
-      }
-    }
-    if (!completed || checkpointedThread === null || finalResponse === null) {
-      throw new OrchestratorStop("TEST_BASELINE_BROKEN", "Codex streamed turn ended without a recoverable identity and structured result.", request.task.taskId);
-    }
+      sandbox: request.task.executionSurface.sandbox,
+      model: this.policy.model,
+    } as const;
+    const threadId = request.resumeThreadId === null
+      ? await this.client.startThread(configuration, request.task.taskId)
+      : await this.client.resumeThread(request.resumeThreadId, configuration, request.task.taskId);
+    await request.checkpointThread(threadId);
+    const finalResponse = await this.client.runTurn(
+      threadId,
+      buildAgentPrompt(request),
+      { ...configuration, outputSchema: agentResultOutputSchema },
+      request.task.taskId,
+      signal,
+    );
     let parsed: unknown;
     try {
       if (Buffer.byteLength(finalResponse, "utf8") > 262_144) {
@@ -157,6 +105,11 @@ export class CodexRunner implements AgentRunner {
     } catch {
       throw new OrchestratorStop("TEST_BASELINE_BROKEN", "Codex returned invalid structured JSON.", request.task.taskId);
     }
-    return { result: parseAgentResult(parsed), threadId: checkpointedThread };
+    return { result: parseAgentResult(parsed), threadId };
+  }
+
+  public async close(): Promise<void> {
+    await this.client?.close();
+    this.client = null;
   }
 }

@@ -4,7 +4,7 @@ import { mkdtemp, readFile, rename, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 import test from "node:test";
-import { CodexRunner, type CodexClientFactory } from "../src/adapters/codex-runner.js";
+import { CodexRunner, type CodexAppServerFactory } from "../src/adapters/codex-runner.js";
 import { BoundedProcess } from "../src/adapters/bounded-process.js";
 import { FileResourceLocks } from "../src/adapters/file-resource-locks.js";
 import { FileStateStore } from "../src/adapters/file-state-store.js";
@@ -150,11 +150,11 @@ test("prepared checkpoint removal is discoverable and can be finalised after a c
   }
 });
 
-test("CodexRunner is disabled before SDK construction without separate execution authority", async () => {
+test("CodexRunner is disabled before App Server construction without separate execution authority", async () => {
   let constructed = false;
-  const factory: CodexClientFactory = () => {
+  const factory: CodexAppServerFactory = () => {
     constructed = true;
-    throw new Error("The SDK client must not be constructed.");
+    throw new Error("The App Server client must not be constructed.");
   };
   const runner = new CodexRunner({ executionAuthorised: false, authorityReference: null, worktreeRoot: "C:/managed", environment: { PATH: "C:/bin" }, model: null }, factory);
   await assert.rejects(runner.run({
@@ -164,7 +164,7 @@ test("CodexRunner is disabled before SDK construction without separate execution
   assert.equal(constructed, false);
 });
 
-test("CodexRunner rejects an empty declarative authority reference before SDK construction", async () => {
+test("CodexRunner rejects an empty declarative authority reference before App Server construction", async () => {
   let constructed = false;
   const runner = new CodexRunner({ executionAuthorised: true, authorityReference: "", worktreeRoot: "C:/managed", environment: {}, model: null }, () => {
     constructed = true;
@@ -177,38 +177,37 @@ test("CodexRunner rejects an empty declarative authority reference before SDK co
   assert.equal(constructed, false);
 });
 
-test("CodexRunner rejects a new thread whose identity is unavailable before the first turn", async () => {
-  let turnStarted = false;
+test("CodexRunner checkpoints a new durable thread identity before the first turn", async () => {
+  const calls: string[] = [];
   const runner = new CodexRunner({
     executionAuthorised: true, authorityReference: "separate-test-authority", worktreeRoot: "C:/managed",
     environment: { PATH: "C:/bin" }, model: null,
   }, () => ({
-    startThread: () => ({ id: null, runStreamed: async () => { turnStarted = true; throw new Error("not reached"); } }),
-    resumeThread: () => { throw new Error("not reached"); },
+    async assertChatGptSession() { calls.push("auth"); },
+    async startThread() { calls.push("thread/start"); return "thread-new"; },
+    async resumeThread() { throw new Error("not reached"); },
+    async runTurn() { calls.push("turn/start"); return JSON.stringify(passingResult()); },
+    async close() { calls.push("close"); },
   }));
-  await assert.rejects(runner.run({
+  const response = await runner.run({
     runId: "run-fixture", attemptId: "attempt-fixture", task: task({ worktree: "C:/managed/lane" }), baseline, contracts: [], candidate: null, resumeThreadId: null,
-    checkpointThread: async () => undefined,
-  }), (error: unknown) => error instanceof OrchestratorStop && error.code === "ARCHITECTURE_CHANGE_REQUIRED");
-  assert.equal(turnStarted, false);
+    checkpointThread: async (threadId) => { assert.equal(threadId, "thread-new"); calls.push("checkpoint"); },
+  });
+  assert.equal(response.threadId, "thread-new");
+  assert.deepEqual(calls, ["auth", "thread/start", "checkpoint", "turn/start"]);
 });
 
 test("CodexRunner maps isolated cwd, sandbox and structured output for a persisted resume", async () => {
-  const calls: { method: string; options: unknown; turnOptions?: unknown }[] = [];
-  const thread = {
-    id: "thread-fixture",
-    async runStreamed(_input: string, turnOptions?: unknown) {
-      calls.push({ method: "run", options: null, turnOptions });
-      return { events: (async function* () {
-        yield { type: "thread.started", thread_id: "thread-fixture" };
-        yield { type: "item.completed", item: { type: "agent_message", text: JSON.stringify(passingResult()) } };
-        yield { type: "turn.completed" };
-      })() };
+  const calls: { method: string; value: unknown }[] = [];
+  const factory: CodexAppServerFactory = () => ({
+    async assertChatGptSession() { calls.push({ method: "auth", value: null }); },
+    async startThread() { throw new Error("not reached"); },
+    async resumeThread(id, configuration) { calls.push({ method: "resume", value: { id, configuration } }); return id; },
+    async runTurn(id, _prompt, configuration) {
+      calls.push({ method: "turn", value: { id, configuration } });
+      return JSON.stringify(passingResult());
     },
-  };
-  const factory: CodexClientFactory = () => ({
-    startThread() { throw new Error("A new thread is not supported by the locked SDK boundary."); },
-    resumeThread(_id, options) { calls.push({ method: "resume", options }); return thread; },
+    async close() { calls.push({ method: "close", value: null }); },
   });
   const runner = new CodexRunner({
     executionAuthorised: true,
@@ -219,17 +218,17 @@ test("CodexRunner maps isolated cwd, sandbox and structured output for a persist
   }, factory);
   const agentTask = task({ owner: "implementation_worker", worktree: "C:/managed/lane-a", branch: "codex/lane-a" });
   await runner.run({ runId: "run-fixture", attemptId: "attempt-fixture", task: agentTask, baseline, contracts: [], candidate: null, resumeThreadId: "thread-fixture", checkpointThread: async () => undefined });
-  const threadOptions = calls.find((call) => call.method === "resume")?.options as Record<string, unknown>;
-  assert.equal(threadOptions.sandboxMode, "workspace-write");
-  assert.equal(threadOptions.approvalPolicy, "never");
-  assert.equal(threadOptions.networkAccessEnabled, false);
-  assert.equal(threadOptions.webSearchMode, "disabled");
+  const resume = calls.find((call) => call.method === "resume")?.value as { configuration: Record<string, unknown> };
+  const turn = calls.find((call) => call.method === "turn")?.value as { configuration: Record<string, unknown> };
+  assert.equal(resume.configuration.sandbox, "workspace-write");
+  assert.equal(resume.configuration.workingDirectory, resolve("C:/managed/lane-a"));
+  assert.equal(turn.configuration.sandbox, "workspace-write");
+  assert.ok(turn.configuration.outputSchema !== undefined);
   assert.equal(calls.filter((call) => call.method === "resume").length, 1);
-  assert.ok(calls.find((call) => call.method === "run")?.turnOptions !== undefined);
 });
 
 test("CodexRunner rejects explicit environment names outside its allowlist", async () => {
-  const factory: CodexClientFactory = () => { throw new Error("not reached"); };
+  const factory: CodexAppServerFactory = () => { throw new Error("not reached"); };
   const runner = new CodexRunner({
     executionAuthorised: true, authorityReference: "test", worktreeRoot: "C:/managed",
     environment: { UNSAFE_VARIABLE: "fixture" }, model: null,

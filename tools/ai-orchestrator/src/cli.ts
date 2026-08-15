@@ -3,6 +3,7 @@ import { readdir, rename, stat } from "node:fs/promises";
 import { dirname, isAbsolute, relative, resolve, sep } from "node:path";
 import { fileURLToPath } from "node:url";
 import { BoundedProcess } from "./adapters/bounded-process.js";
+import { CodexRunner } from "./adapters/codex-runner.js";
 import { FakeAgentRunner } from "./adapters/fake-agent-runner.js";
 import { FileResourceLocks } from "./adapters/file-resource-locks.js";
 import { FileStateStore } from "./adapters/file-state-store.js";
@@ -15,7 +16,7 @@ import { Coordinator } from "./application/coordinator.js";
 import { SequentialIntegrationPipeline } from "./application/integration.js";
 import { createDryRunPlan, persistedCoordinatorHead, validatePersistedStateSemantics } from "./application/plan.js";
 import { canonicalJson } from "./core/canonical-json.js";
-import type { AgentResult, PersistedRunState } from "./core/contracts.js";
+import type { AgentResult, AgentRunner, PersistedRunState } from "./core/contracts.js";
 import { errorMessage, OrchestratorStop } from "./core/errors.js";
 import { parseAgentResult, parseProjectPlan } from "./core/validation.js";
 import type { EventSink, StructuredEvent } from "./observability/structured-log.js";
@@ -130,13 +131,14 @@ export function stateSummary(state: PersistedRunState, humanGateLiveValidated = 
 
 async function runCommand(arguments_: readonly string[], resume: boolean): Promise<void> {
   const runnerName = valueAfter(arguments_, "--runner") ?? "disabled";
-  if (runnerName !== "fake") {
+  if (!["fake", "codex"].includes(runnerName)) {
     throw new OrchestratorStop(
       "HUMAN_DECISION_REQUIRED",
-      "CLI agent execution is deny-by-default; this authority permits only --runner fake. Real Codex requires a separate execution envelope.",
+      "CLI agent execution is deny-by-default; select --runner fake or an explicitly authorised --runner codex envelope.",
     );
   }
-  const resultsPath = requiredValue(arguments_, "--fixture-results");
+  const fixtureResultsPath = runnerName === "fake" ? requiredValue(arguments_, "--fixture-results") : null;
+  const codexAuthorityReference = runnerName === "codex" ? requiredValue(arguments_, "--authority-reference") : null;
   const root = stateRoot(arguments_);
   const store = new FileStateStore(root, repositoryRoot);
   const plan = resume ? null : parseProjectPlan(await readJson(requiredValue(arguments_, "--plan")));
@@ -153,8 +155,28 @@ async function runCommand(arguments_: readonly string[], resume: boolean): Promi
   const inspector = new GitCandidateInspector(processAdapter, gitExecutable, safeEnvironment());
   const quality = new RepositoryQualityGate(processAdapter, safeEnvironment(), powershellExecutable);
   const integration = new SequentialIntegrationPipeline(processAdapter, gitExecutable, safeEnvironment(), quality);
+  let codexRunner: CodexRunner | null = null;
+  let runner: AgentRunner;
+  if (runnerName === "fake") {
+    runner = new FakeAgentRunner(await fakeOutcomes(fixtureResultsPath ?? ""));
+  } else {
+    const model = valueAfter(arguments_, "--model");
+    const permittedModels = (valueAfter(arguments_, "--permitted-models") ?? "")
+      .split(",")
+      .map((value) => value.trim())
+      .filter((value) => value.length > 0);
+    codexRunner = new CodexRunner({
+      executionAuthorised: true,
+      authorityReference: codexAuthorityReference,
+      worktreeRoot: managedWorktreeRoot,
+      environment: safeEnvironment(),
+      model,
+      permittedModels,
+    });
+    runner = codexRunner;
+  }
   const coordinator = new Coordinator(
-    new FakeAgentRunner(await fakeOutcomes(resultsPath)),
+    runner,
     store,
     new FileResourceLocks(resolve(root, "locks"), repositoryRoot),
     new ConsoleEventSink(),
@@ -170,10 +192,14 @@ async function runCommand(arguments_: readonly string[], resume: boolean): Promi
   if (reconcileAbsentLocks && (valueAfter(arguments_, "--confirm-run-id") !== resumeRunId || valueAfter(arguments_, "--confirm-runner-quiescence") !== resumeRunId)) {
     throw new OrchestratorStop("SHARED_RESOURCE_COLLISION", "Absent-owner lock reconciliation requires exact run and runner-quiescence confirmations.");
   }
-  const state = resume
-    ? await coordinator.resume(resumeRunId ?? "", Number(valueAfter(arguments_, "--max-concurrency") ?? "3"), undefined, reconcileAbsentLocks)
-    : await coordinator.start(plan ?? (() => { throw new OrchestratorStop("TEST_BASELINE_BROKEN", "The execution plan was not loaded."); })());
-  process.stdout.write(canonicalJson(stateSummary(state)));
+  try {
+    const state = resume
+      ? await coordinator.resume(resumeRunId ?? "", Number(valueAfter(arguments_, "--max-concurrency") ?? "3"), undefined, reconcileAbsentLocks)
+      : await coordinator.start(plan ?? (() => { throw new OrchestratorStop("TEST_BASELINE_BROKEN", "The execution plan was not loaded."); })());
+    process.stdout.write(canonicalJson(stateSummary(state)));
+  } finally {
+    await codexRunner?.close();
+  }
 }
 
 async function validateCommand(arguments_: readonly string[]): Promise<void> {

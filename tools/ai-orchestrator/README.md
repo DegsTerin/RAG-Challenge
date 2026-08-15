@@ -4,12 +4,12 @@
 
 This standalone TypeScript/Node 24 tool coordinates governed development work;
 it is not part of the RAG-Challenge product runtime or solution. It implements
-ADR-0016 behind a deterministic core and an `AgentRunner` port. The product
+ADR-0016 and ADR-0017 behind a deterministic core and an `AgentRunner` port. The product
 projects, product providers, corpus, database, OpenAPI contracts and lifecycle
 remain unchanged.
 
-The current package locks `@openai/codex-sdk` and `@openai/codex` at `0.147.0`,
-TypeScript at `5.7.3` and `@types/node` at `24.13.3`. Installation and CI use
+The current package locks `@openai/codex` at `0.147.0`, TypeScript at `5.7.3`
+and `@types/node` at `24.13.3`. Installation and CI use
 `--ignore-scripts --no-audit --no-fund`; offline restore is the preferred mode
 after the initial authorised acquisition.
 
@@ -34,16 +34,17 @@ The core owns task transitions, dependency and cycle detection, concurrency
 classification, path/resource conflicts, retry classification and closed
 structured-result validation. Adapters cannot grant authority or promote task
 state. `FakeAgentRunner` supplies deterministic local and test execution.
-`CodexRunner` is a thin direct adapter to the verified SDK surface.
+`CodexRunner` is a typed adapter to the Codex App Server JSONL surface.
 
-The SDK adapter maps both `startThread` and `resumeThread`, an isolated absolute
-`workingDirectory`, task-bound read-only or workspace-write sandboxing,
-`approvalPolicy: "never"`, disabled network and web search, a closed output
-schema and a small environment allowlist. It refuses construction of the SDK
-client until a separate execution authority is supplied. It checkpoints the
-SDK `thread.started` event before consuming the rest of a streamed turn, so an
-interrupted task can resume by opaque thread ID. No terminal scraping or
-Agents SDK dependency is used.
+The App Server adapter maps `thread/start`, `thread/resume` and `turn/start`, an
+isolated absolute working directory, task-bound read-only or workspace-write
+sandboxing, `approvalPolicy: "never"`, disabled agent network and web search, a
+closed output schema and a small environment allowlist. It requires a separate
+execution authority and validates `account/read` as an existing ChatGPT session;
+API-key and other provider authentication modes fail closed. A new durable
+thread ID is checkpointed before `turn/start`, so an interrupted task can resume
+by opaque thread ID. No terminal scraping, Codex SDK or Agents SDK dependency is
+used.
 
 ## Agents and task contracts
 
@@ -104,8 +105,10 @@ The supported commands are:
 node .\dist\src\cli.js plan --plan <plan.json>
 node .\dist\src\cli.js run --dry-run --plan <plan.json>
 node .\dist\src\cli.js run --plan <plan.json> --runner fake --fixture-results <results.json> --git-executable <absolute-git.exe> --powershell-executable <absolute-pwsh.exe>
+node .\dist\src\cli.js run --plan <plan.json> --runner codex --authority-reference <authority-id> --git-executable <absolute-git.exe> --powershell-executable <absolute-pwsh.exe>
 node .\dist\src\cli.js status --run-id <run-id>
 node .\dist\src\cli.js resume --run-id <run-id> --runner fake --fixture-results <results.json> --git-executable <absolute-git.exe> --powershell-executable <absolute-pwsh.exe>
+node .\dist\src\cli.js resume --run-id <run-id> --runner codex --authority-reference <authority-id> --git-executable <absolute-git.exe> --powershell-executable <absolute-pwsh.exe>
 node .\dist\src\cli.js resume --run-id <run-id> --reconcile-absent-locks --confirm-run-id <run-id> --confirm-runner-quiescence <run-id> --runner fake --fixture-results <results.json> --git-executable <absolute-git.exe> --powershell-executable <absolute-pwsh.exe>
 node .\dist\src\cli.js validate --run-id <run-id>
 node .\dist\src\cli.js validate --run-id <run-id> --quality-gate --powershell-executable <absolute-pwsh.exe>
@@ -119,12 +122,14 @@ Gate and candidate conflicts. The example in
 [`examples/controlled-plan.json`](examples/controlled-plan.json) is for preview
 only; its baseline must be replaced by the exact clean Git HEAD before a run.
 
-Non-dry-run CLI execution currently permits only `--runner fake`. It requires
-absolute Git and PowerShell paths and verifies an exact clean Git HEAD on a
-named `codex/` branch first. Real Codex execution
-requires a separately authorised programmatic envelope and is not enabled by
-installing the package. `validate --quality-gate` invokes the repository's
-canonical `eng/ci.ps1 -Offline`; it does not substitute another gate.
+Non-dry-run CLI execution supports `--runner fake` by default and `--runner
+codex` only with `--authority-reference`. Both require absolute Git and
+PowerShell paths and verify an exact clean Git HEAD on a named `codex/` branch
+first. Real execution uses the existing local ChatGPT login and never inherits
+`OPENAI_API_KEY`; installing the package alone does not authorise a run. An
+explicit model additionally requires `--model <id> --permitted-models <id,...>`.
+`validate --quality-gate` invokes the repository's canonical
+`eng/ci.ps1 -Offline`; it does not substitute another gate.
 
 ## Worktrees and integration
 
@@ -243,15 +248,16 @@ structural parsers; persisted evidence is sanitised across Windows, UNC and
 POSIX path forms.
 Structured events contain correlation IDs, opaque location IDs, timing,
 result and stop code only; they exclude prompts, objectives, environment
-values, raw agent output and absolute paths. Secrets, provider calls, network,
-web search, tracing and approval prompts are not part of the current execution
-surface.
+values, raw agent output and absolute paths. Secrets, agent network, web
+search, tracing and approval prompts are excluded. The separately authorised
+Codex service connection uses only the existing ChatGPT session and is distinct
+from the product's provider boundary.
 
-The locked Codex SDK exposes a new thread ID only after its first turn starts.
-`CodexRunner` therefore returns `ARCHITECTURE_CHANGE_REQUIRED` before starting a
-new real turn unless a compatible SDK implementation supplies the ID before the
-turn. Resume with an already persisted identity remains mapped and testable;
-the CLI keeps all real Codex execution disabled without separate authority.
+The former Codex SDK boundary exposed a new thread ID only after its first turn
+started. ADR-0017 replaces that transport with App Server `thread/start`, which
+returns the durable identity before `turn/start`. The CLI still keeps real
+Codex execution disabled unless the operator supplies a bounded authority
+reference and a plan that passes every existing coordinator gate.
 
 The Human Gate remains external. `status`, `validate`, `resume` and `cleanup`
 revalidate persisted plan semantics, including one coherent terminal attempt
@@ -275,7 +281,9 @@ resource collisions, contract freeze, worktree/baseline mapping, structured
 output, retry policy, persistence, recovery, dry run, controlled E2E delegation,
 review, evaluable Human Gate package, quality-gate boundary, duplicate/prototype JSON, physical
 reparse boundaries, coordinator `cwd` binding, forged initial state, agent
-deadlines and cancellation, bound streamed-thread recovery, absent-owner lock
+deadlines and cancellation, pre-turn App Server checkpointing and resume,
+ChatGPT-only authentication, approval and user-input denial, malformed output,
+protocol timeout and transport failure, absent-owner lock
 reconciliation including prepared tombstones, mandatory execution leases,
 write-ahead retries, parallel-wave crash recovery, cumulative recovery budget, real
 two-candidate integration, real ownership-proved rollback, drift preservation, deletions,
