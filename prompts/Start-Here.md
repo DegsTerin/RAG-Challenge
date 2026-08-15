@@ -1,107 +1,102 @@
-# RAG-Challenge — Sistema de Instruções
+# RAG-Challenge — Instruction System
 
-## Finalidade
+## Purpose
 
-Este é o ponto de entrada obrigatório para trabalhos governados no
-RAG-Challenge.
-O corpus separa visão, arquitetura, RAG, governança, segurança, qualidade,
-estado factual, histórico, templates e evidências.
+This is the mandatory entry point for governed work in RAG-Challenge.
+The corpus separates vision, architecture, RAG, governance, security, quality,
+factual state, history, templates and evidence.
 
-Agentes começam também por [`../AGENTS.md`](../AGENTS.md), fonte das regras
-permanentes e reutilizáveis. Este documento encaminha para autoridades
-temáticas; não transforma planos, templates ou relatórios históricos em
-permissão de execução.
+Agents also start with [`../AGENTS.md`](../AGENTS.md), the source of permanent
+and reusable rules. This document routes to thematic authorities; it does not
+turn plans, templates or historical reports into execution authority.
 
-Toda comunicação com o proprietário e todo artefato do projeto aplicam a
-autoridade temática definida em
+All owner communication and every project artefact apply the thematic
+authority defined in
 [`governance/Language-Policy.md`](governance/Language-Policy.md).
 
-## Ordem mínima de leitura
+## Minimum reading order
 
 1. [`foundation/Prompt-New-Project.md`](foundation/Prompt-New-Project.md):
-   visão, escopo, requisitos e limites.
-2. [`state/Current-State.md`](state/Current-State.md): situação factual
-   vigente.
-3. [`governance/Governance.md`](governance/Governance.md): estados,
-   autoridade e protocolo.
-4. Abrir somente os demais documentos necessários à tarefa.
+   vision, scope, requirements and boundaries.
+2. [`state/Current-State.md`](state/Current-State.md): current factual state.
+3. [`governance/Governance.md`](governance/Governance.md): states, authority
+   and protocol.
+4. Open only the other documents required for the task.
 
-## Roteamento
+## Routing
 
-| Necessidade | Documento |
+| Need | Document |
 |---|---|
-| Regras permanentes de trabalho | [`../AGENTS.md`](../AGENTS.md) |
-| Idioma da conversa, dos artefatos e da interface | [`governance/Language-Policy.md`](governance/Language-Policy.md) |
-| Visão, problema, MVP e requisitos | [`foundation/Prompt-New-Project.md`](foundation/Prompt-New-Project.md) |
-| Arquitetura, módulos, projetos e infraestrutura | [`foundation/Solution-Architecture-Document.md`](foundation/Solution-Architecture-Document.md) |
-| Pipeline RAG, documentos, índices e providers | [`foundation/RAG-Module.md`](foundation/RAG-Module.md) |
-| Autoridade, estados, bloqueio e rollback | [`governance/Governance.md`](governance/Governance.md) |
-| Entregáveis e critérios por estado | [`governance/Lifecycle.md`](governance/Lifecycle.md) |
-| Evidências, testes, CI e gates | [`governance/Quality-Gates.md`](governance/Quality-Gates.md) |
-| Segurança, acesso, logging e auditoria | [`governance/Security-And-Access.md`](governance/Security-And-Access.md) |
-| Estado factual atual | [`state/Current-State.md`](state/Current-State.md) |
-| Histórico append-only | [`state/State-Transition-Log.md`](state/State-Transition-Log.md) |
-| Semântica de handoff, continuidade, raciocínio e paralelismo | [`governance/Governance.md`](governance/Governance.md) |
-| Formato, ordem, texto copiável e formulários | [`templates/Templates.md`](templates/Templates.md) |
-| Versão do corpus de instruções | [`system/Prompt-System-Change-Log.md`](system/Prompt-System-Change-Log.md) |
-| Índice público da documentação | [`../docs/README.md`](../docs/README.md) |
-| Evidência do `STATE-00` | [`../docs/STATE-00-Discovery-Report.md`](../docs/STATE-00-Discovery-Report.md) |
-| Roadmap e backlog | [`../docs/MVP-Roadmap-And-Backlog.md`](../docs/MVP-Roadmap-And-Backlog.md) |
-| Decisões arquiteturais | [`../docs/architecture/README.md`](../docs/architecture/README.md) |
+| Permanent working rules | [`../AGENTS.md`](../AGENTS.md) |
+| Conversation, artefact and interface language | [`governance/Language-Policy.md`](governance/Language-Policy.md) |
+| Vision, problem, MVP and requirements | [`foundation/Prompt-New-Project.md`](foundation/Prompt-New-Project.md) |
+| Architecture, modules, projects and infrastructure | [`foundation/Solution-Architecture-Document.md`](foundation/Solution-Architecture-Document.md) |
+| RAG pipeline, documents, indexes and providers | [`foundation/RAG-Module.md`](foundation/RAG-Module.md) |
+| Authority, states, blocking and rollback | [`governance/Governance.md`](governance/Governance.md) |
+| Deliverables and criteria by state | [`governance/Lifecycle.md`](governance/Lifecycle.md) |
+| Evidence, tests, CI and gates | [`governance/Quality-Gates.md`](governance/Quality-Gates.md) |
+| Security, access, logging and audit | [`governance/Security-And-Access.md`](governance/Security-And-Access.md) |
+| Current factual state | [`state/Current-State.md`](state/Current-State.md) |
+| Append-only history | [`state/State-Transition-Log.md`](state/State-Transition-Log.md) |
+| Hand-off, continuity, reasoning and parallelism semantics | [`governance/Governance.md`](governance/Governance.md) |
+| Format, order, copy-ready text and forms | [`templates/Templates.md`](templates/Templates.md) |
+| Instruction corpus version | [`system/Prompt-System-Change-Log.md`](system/Prompt-System-Change-Log.md) |
+| Public documentation index | [`../docs/README.md`](../docs/README.md) |
+| `STATE-00` evidence | [`../docs/STATE-00-Discovery-Report.md`](../docs/STATE-00-Discovery-Report.md) |
+| Roadmap and backlog | [`../docs/MVP-Roadmap-And-Backlog.md`](../docs/MVP-Roadmap-And-Backlog.md) |
+| Architectural decisions | [`../docs/architecture/README.md`](../docs/architecture/README.md) |
 
-## Precedência
+## Precedence
 
-Em caso de conflito:
+If authorities conflict:
 
-1. instruções da plataforma, sistema e desenvolvedor;
-2. pedido atual e explícito do proprietário;
-3. segurança, proteção de dados e limites de autoridade externa;
-4. instruções aplicáveis ao diretório, da mais específica para a mais geral;
-5. estado factual vigente;
-6. decisões aceitas de arquitetura, governança, segurança e qualidade;
-7. visão e lifecycle;
-8. templates, roadmap e evidência histórica;
-9. convenções inferidas.
+1. platform, system and developer instructions;
+2. the owner's current explicit request;
+3. security, data-protection and external-authority boundaries;
+4. applicable directory instructions, from most specific to most general;
+5. current factual state;
+6. accepted architecture, governance, security and quality decisions;
+7. vision and lifecycle;
+8. templates, roadmap and historical evidence;
+9. inferred conventions.
 
-Não resolver um conflito reduzindo segurança, inventando aprovação ou
-ampliando escopo. Pedir direção quando a escolha alterar materialmente o
-resultado ou exigir nova autoridade.
+Do not resolve a conflict by reducing security, inventing approval or
+broadening scope. Request direction when the choice would materially change
+the result or require new authority.
 
-## Regras universais
+## Universal rules
 
-- Não inventar implementação, suporte, teste, ambiente, credencial,
-  licenciamento, disponibilidade de modelo ou aprovação.
-- Distinguir capacidade planejada, implementada, testada, homologada,
-  implantada e publicamente disponível.
-- Não usar os materiais locais ignorados como dependência silenciosa do
-  produto.
-- Não declarar cobertura de todos os bancos de dados; o catálogo é aberto e
-  evolui por versões verificáveis.
-- Não enviar conteúdo ou perguntas a um provedor externo sem configuração e
-  autoridade explícitas.
-- Não executar deploy, publicação, instalação, consumo pago, alteração de
-  secret ou acesso a fonte online sem autorização própria.
-- Consultar o estado antes de executar uma fase.
-- Atualizar estado e histórico somente quando houver mudança factual.
-- Manter o Human Gate separado da auditoria automática.
-- Aplicar o enforcement permanente de [`../AGENTS.md`](../AGENTS.md), a
-  semântica de handoff, continuidade, raciocínio e paralelismo de
-  [`governance/Governance.md`](governance/Governance.md), e o formato de
-  [`templates/Templates.md`](templates/Templates.md), sem redefini-los aqui.
-- Classificar runtime preflight conforme AGENTS e Governance antes de qualquer
-  inspeção; documentação e análise somente leitura permanecem
-  `NÃO APLICÁVEIS`.
-- Aplicar integralmente a
-  [`política de idioma`](governance/Language-Policy.md), sem reproduzi-la ou
-  enfraquecê-la em outro documento.
+- Do not invent implementation, support, testing, environment, credentials,
+  licensing, model availability or approval.
+- Distinguish planned, implemented, tested, homologated, deployed and publicly
+  available capabilities.
+- Do not use ignored local materials as a silent product dependency.
+- Do not claim coverage of every database; the catalogue is open and evolves
+  through verifiable versions.
+- Do not send content or questions to an external provider without explicit
+  configuration and authority.
+- Do not deploy, publish, install, consume paid services, change a secret or
+  access an online source without its own authority.
+- Inspect the state before executing a phase.
+- Update state and history only when a factual change occurs.
+- Keep the Human Gate separate from automatic audit.
+- Apply the permanent enforcement in [`../AGENTS.md`](../AGENTS.md), the
+  hand-off, continuity, reasoning and parallelism semantics in
+  [`governance/Governance.md`](governance/Governance.md), and the format in
+  [`templates/Templates.md`](templates/Templates.md), without redefining them
+  here.
+- Classify runtime preflight under AGENTS and Governance before any inspection;
+  documentation and read-only analysis remain `NOT_APPLICABLE`.
+- Apply the [language policy](governance/Language-Policy.md) in full, without
+  reproducing or weakening it in another document.
 
-## Estrutura ativa
+## Active structure
 
-O corpus contém 13 arquivos ativos em `prompts/`. Um novo arquivo normativo só
-deve existir quando houver autoridade, ciclo de vida, owner ou público
-realmente diferente. Caso contrário, atualizar o documento temático
-proprietário e o changelog do corpus.
+The corpus contains 13 active files under `prompts/`. A new normative file may
+exist only when it has genuinely different authority, lifecycle, owner or
+audience. Otherwise, update the owning thematic document and the corpus change
+log.
 
-O DB-Notifier não é uma autoridade externa em tempo de execução para este
-repositório. Seus padrões foram usados como referência no Discovery e foram
-adaptados para um MVP independente.
+DB-Notifier is not an external runtime authority for this repository. Its
+patterns were used as a Discovery reference and adapted for an independent
+MVP.

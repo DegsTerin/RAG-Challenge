@@ -38,7 +38,8 @@ restating it.
 
 ## Project artefacts
 
-Write new project-owned artefacts in British English (`en-GB`), including:
+Write current and new editable project-owned technical artefacts in British
+English (`en-GB`), including:
 
 - source code and project-owned technical terminology;
 - comments, docstrings and code documentation;
@@ -51,6 +52,10 @@ Write new project-owned artefacts in British English (`en-GB`), including:
 
 Use British spelling in project-owned prose. Technical identifiers use clear
 English and follow the repository's established conventions.
+
+Owner-facing communication and copy-ready payloads embedded as examples in a
+technical artefact remain in `pt-BR`. This is an intentional audience boundary,
+not mixed technical prose.
 
 ## Commit messages
 
@@ -98,13 +103,21 @@ payload data or externally supplied content merely to apply `en-GB`.
 
 ## Existing content
 
-- Do not automatically translate or rewrite existing documentation, source
-  history or historical evidence.
-- Preserve the current language of an existing file when making a limited
-  amendment, avoiding mixed-language documents.
-- A full language migration requires a separately authorised and planned
-  change.
-- Never rewrite Git history to translate previous commit messages.
+- Migrate editable, current, project-owned technical prose to `en-GB` only
+  through an explicitly authorised, reviewed and gated change. A limited
+  amendment outside such a migration preserves the existing file language and
+  avoids introducing mixed technical prose.
+- Never rewrite Git history or amend previous commit messages for translation.
+- Preserve append-only records and their integrity-protected prefixes. New
+  append-only entries follow this policy without translating earlier entries.
+- Preserve historical evidence and original owner inputs in their original
+  language. An `en-GB` provenance record may describe them but does not replace,
+  translate or reactivate them.
+- Preserve source content and citations in their original language.
+- Preserve external names, APIs, protocols, canonical fields, identifiers,
+  error codes and other mandatory literals.
+- Preserve functional `pt-BR`/`en-GB` localisation. Changing the supported
+  interface or query languages requires a separate product decision.
 
 ## User interface
 

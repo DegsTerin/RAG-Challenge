@@ -1,342 +1,351 @@
-# Qualidade, Evidências e Gates
+# Quality, Evidence and Gates
 
-## Padrão de evidências
+## Evidence standard
 
-Toda alegação técnica registra, conforme aplicável:
+Every technical claim records, as applicable:
 
-- comando e diretório;
-- versão das ferramentas;
-- data e ambiente;
+- command and directory;
+- tool versions;
+- date and environment;
 - exit code;
-- escopo;
-- resultado resumido;
-- artefato sanitizado;
-- distinção entre observado, inferido, não testado e bloqueado.
+- scope;
+- summarised result;
+- sanitised artefact;
+- distinction between observed, inferred, not tested and blocked.
 
-Ausência aparente de erro, compilação isolada ou resposta de um modelo não
-prova funcionamento completo.
+An apparent absence of errors, an isolated compilation or a model response does
+not prove complete operation.
 
 ## Definition of Ready
 
-Um lote está pronto quando:
+A batch is ready when:
 
-- requisito e critério de aceite possuem IDs;
-- estado e autoridade são claros;
-- escopo positivo e negativo estão definidos;
-- dependências e decisões bloqueadoras estão resolvidas;
-- dados, secrets e ações externas estão autorizados;
-- plano de teste, evidência e rollback é proporcional ao risco.
-- se houver paralelismo, coordenadora, lanes independentes, ownership,
-  isolamento, mensagens e ordem de integração estão definidos.
-- a próxima conversa e cada lane possuem raciocínio do Codex recomendado,
-  justificativa e alternativa caso o nível esteja indisponível.
-- a [`política de idioma`](Language-Policy.md) é aplicável ao lote, sem
-  tradução histórica ou idioma de interface inferidos.
+- requirements and acceptance criteria have IDs;
+- state and authority are clear;
+- positive and negative scope are defined;
+- dependencies and blocking decisions are resolved;
+- data, secrets and external actions are authorised;
+- the test, evidence and rollback plan is proportionate to risk;
+- when parallelism applies, the coordinator, independent lanes, ownership,
+  isolation, messages and integration order are defined;
+- the next conversation and each lane have a recommended Codex reasoning
+  level, justification and alternative if unavailable;
+- the [language policy](Language-Policy.md) applies to the batch without
+  translating history or inferring interface language.
 
 ## Definition of Done
 
-- Requisitos e critérios atendidos.
-- Build, formatação, lint, tipos e testes aplicáveis aprovados.
-- Direção de dependências preservada.
-- Segurança, falhas, limites e compatibilidade avaliados.
-- Logs, health e erros adequados ao lote.
-- Documentação e rollback atualizados.
-- Nenhum secret, conteúdo sem licença ou evidência falsa.
-- Itens não testados e riscos residuais explícitos.
-- Mudanças preexistentes não relacionadas preservadas.
-- Diff revisado e entrega focal.
-- O handoff cumpre integralmente a semântica de
-  [Governance](Governance.md) e o formato de
-  [Templates](../templates/Templates.md): ocorre uma vez na resposta final,
-  usa somente campos aplicáveis e mantém resultado, entrega futura,
-  lifecycle, ação humana e roteamento distintos.
-- Atualizações intermediárias acrescentam informação materialmente nova e não
-  repetem nem antecipam o handoff.
-- Rota, target, ação e payload são coerentes; texto obrigatório fica completo
-  e sem placeholders imediatamente após a conversa, com rótulo/cercas fora do
-  conteúdo, inclusive para Human Gate de uma linha ou payload com cerca
-  interna. Ausência só é aceita quando nenhuma ação depende de mensagem.
-- Runtime preflight foi classificado antes de qualquer inspeção e é aplicado
-  somente a mudança ou validação executável; em documentação/read-only não há
-  anúncio, enumeração ou encerramento de processo.
-- A classificação paralela, quando aplicável, satisfaz o gate específico
-  abaixo; raciocínio usa um valor canônico, justificativa e fallback sem
-  ampliar autoridade ou alegar configuração automática.
-- Comunicação e artefatos cumprem a
-  [`política de idioma`](Language-Policy.md).
+- Requirements and criteria are satisfied.
+- Applicable build, formatting, lint, type and test checks pass.
+- Dependency direction is preserved.
+- Security, failures, limits and compatibility are assessed.
+- Logs, health and errors are appropriate to the batch.
+- Documentation and rollback are updated.
+- No secret, unlicensed content or false evidence is present.
+- Untested items and residual risks are explicit.
+- Unrelated pre-existing changes are preserved.
+- The diff is reviewed and the delivery is focused.
+- The hand-off fully complies with [Governance](Governance.md) semantics and
+  [Templates](../templates/Templates.md) format: it appears once in the final
+  response, uses only applicable fields and keeps result, future deliverable,
+  lifecycle, human action and routing distinct.
+- Intermediate updates add materially new information and neither repeat nor
+  preview the hand-off.
+- Route, target, action and payload are coherent; mandatory text is complete
+  and placeholder-free immediately after the conversation field, with label
+  and fences outside the content, including a one-line Human Gate or a payload
+  with an inner fence. Absence is accepted only when no action depends on a
+  message.
+- Runtime preflight was classified before any inspection and applies only to
+  executable change or validation; documentation/read-only work does not
+  announce, enumerate or stop a process.
+- When applicable, the parallel classification satisfies the specific gate
+  below; reasoning uses a canonical value, justification and fallback without
+  broadening authority or claiming automatic configuration.
+- Communication and artefacts comply with the
+  [language policy](Language-Policy.md).
 
-## Política de cobertura
+## Coverage policy
 
-- Piso inicial futuro: 70% de linhas e 45% de branches na suíte .NET
-  abrangida.
-- O agregador falha fechado quando não encontra relatório, linha instrumentada
-  ou branch instrumentado válido. Ausência de branch não equivale a 100%.
-- 80% de linhas é meta direcional baseada em risco.
-- Cobertura não substitui testes funcionais, negativos, integração, contrato,
-  RAG, segurança, acessibilidade, recuperação ou desempenho.
-- Código crítico pode exigir cobertura superior.
-- Exclusões devem ser estreitas, justificadas e verificáveis.
-- Em `STATE-00`, cobertura de código é `NÃO APLICÁVEL`.
+- Initial future floor: 70% of lines and 45% of branches in the covered .NET
+  suite.
+- The aggregator fails closed when it finds no report, instrumented line or
+  valid instrumented branch. Absence of branches does not equal 100%.
+- 80% line coverage is a risk-based directional target.
+- Coverage does not replace functional, negative, integration, contract, RAG,
+  security, accessibility, recovery or performance tests.
+- Critical code may require higher coverage.
+- Exclusions must be narrow, justified and verifiable.
+- In `STATE-00`, code coverage is `NOT_APPLICABLE`.
 
-## Estratégia de testes
+## Test strategy
 
-| Tipo | Finalidade |
+| Type | Purpose |
 |---|---|
-| Unitário | Invariantes, versionamento, hashing, políticas, limites e falhas. |
-| Arquitetura | Dependências para dentro e superfícies proibidas. |
-| Contrato | Adapters PDF/CSV, catálogo, conteúdo fonte/PNG, render manifest, idiomas separados, answer-evidence interno, embeddings, vetor, LLM, OpenAPI v1 preservado e v2 planejado. |
-| Integração | Persistência, digests separados de geração/ativação, rebinding de observação, render/lifecycle, ativação atômica, answer-evidence/retenção/reachability, rollback por novo registro, restart e HTTP. |
-| RAG evaluation | Recuperação, groundedness, citações, recusa, matriz `pt-BR`/`en-GB` e estratos adicionais por idioma documental exato. |
-| Segurança | PDF/CSV/renderer malicioso, binding de imagem, language coercion, poisoning de registro, prompt injection, SSRF, source leakage, secrets e abuso. |
-| Acessibilidade | Teclado, foco, semântica, contraste, reflow, localização `pt-BR`/`en-GB`, temas `Light`/`Dark` e equivalente textual da evidência visual. |
-| E2E | Documento até resposta e deploy até smoke. |
-| Performance | Latência, limites, memória, custo e carga definidos. |
-| Recuperação | Falha de indexação, geração incompatível, mismatch de observação e rollback sem replay de freshness. |
+| Unit | Invariants, versioning, hashing, policies, limits and failures. |
+| Architecture | Inward dependencies and prohibited surfaces. |
+| Contract | PDF/CSV adapters, catalogue, source/PNG content, render manifest, separate languages, internal answer evidence, embeddings, vector, LLM, preserved OpenAPI v1 and planned v2. |
+| Integration | Persistence, separate generation/activation digests, observation rebinding, render/lifecycle, atomic activation, answer-evidence retention/reachability, rollback through a new record, restart and HTTP. |
+| RAG evaluation | Retrieval, groundedness, citations, refusal, the `pt-BR`/`en-GB` matrix and additional strata by exact document language. |
+| Security | Malicious PDF/CSV/renderer, image binding, language coercion, record poisoning, prompt injection, SSRF, source leakage, secrets and abuse. |
+| Accessibility | Keyboard, focus, semantics, contrast, reflow, `pt-BR`/`en-GB` localisation, `Light`/`Dark` themes and text equivalent for visual evidence. |
+| E2E | Document to answer and deployment to smoke. |
+| Performance | Defined latency, limits, memory, cost and load. |
+| Recovery | Indexing failure, incompatible generation, observation mismatch and rollback without freshness replay. |
 
-Testes padrão usam fixtures sintéticas ou corpus pequeno autorizado e não
-dependem de rede ou cobrança. Testes externos são opt-in, isolados e exigem
-autoridade/configuração próprias.
+Default tests use synthetic fixtures or a small authorised corpus and do not
+depend on network or billing. External tests are opt-in, isolated and require
+their own authority/configuration.
 
-## Auditoria automática comum
+## Common automatic audit
 
-1. Confirmar estado, escopo e autoridade.
-2. Conferir arquivos esperados e mudanças não relacionadas.
-3. Descobrir e executar os comandos reais.
-4. Validar formatação, build, testes, cobertura e arquitetura aplicáveis.
-5. Validar dependências, lockfiles, secrets e licenças aplicáveis.
-6. Verificar links, UTF-8/LF e trailing whitespace.
-7. Verificar configuração fail-closed e ausência de material local privado.
-8. Classificar cada gate como `APROVADO`, `REPROVADO`, `BLOQUEADO` ou
+1. Confirm state, scope and authority.
+2. Check expected files and unrelated changes.
+3. Discover and run the real commands.
+4. Validate applicable formatting, build, tests, coverage and architecture.
+5. Validate applicable dependencies, lockfiles, secrets and licences.
+6. Check links, UTF-8/LF and trailing whitespace.
+7. Check fail-closed configuration and absence of private local material.
+8. Classify each gate as `APROVADO`, `REPROVADO`, `BLOQUEADO` or
    `NÃO APLICÁVEL`.
-9. Auditar os resultados de handoff definidos na Definition of Done contra
-   Governance e Templates, incluindo unicidade, campos condicionais,
-   comentário intermediário, vocabulário, rota/target/ação, payload copiável,
-   cerca interna, Human Gate, raciocínio e fallback.
-10. Confirmar que runtime preflight foi classificado antes de qualquer
-    inspeção e que a decisão observada corresponde ao tipo de trabalho.
-11. Registrar achados com severidade, impacto, reprodução e recomendação.
+9. Audit the hand-off outcomes defined in Definition of Done against
+   Governance and Templates, including uniqueness, conditional fields,
+   intermediate commentary, vocabulary, route/target/action, copy-ready
+   payload, inner fence, Human Gate, reasoning and fallback.
+10. Confirm runtime preflight was classified before any inspection and that
+    the observed decision matches the work type.
+11. Record findings with severity, impact, reproduction and recommendation.
 
-Auditoria não corrige silenciosamente, não inventa evidência e não promove
-estado.
+For every applicable copy-ready payload, the documentary audit also verifies
+that it explicitly invokes all applicable controls and capabilities
+incorporated from Stage 0, Stage 1 and Stage 2. It verifies all exceptions:
+no message when none is useful; no artificial agent for simple work; no
+parallelisation of `SEQUENTIAL_ONLY`; no continuous authority from readiness;
+no broader scope, lifecycle, Human Gate, provider or external action; no added
+text in a canonical Human Gate-only payload; and no Stage instruction in a
+purely decisional payload that neither authorises nor coordinates work. It
+also verifies that Stage labels refer to incorporated tracked controls, not a
+parallel normative authority.
 
-## Gate canônico do repositório
+An audit does not correct silently, invent evidence or advance state.
 
-O único entry point agregado do CI é `./eng/ci.ps1`; o workflow deve chamá-lo
-uma única vez. A ordem governada é:
+## Canonical repository gate
 
-1. testes fail-closed das políticas de CI e cobertura;
-2. verificação LF dos lockfiles NuGet;
-3. restore locked;
-4. nova verificação dos lockfiles;
+The sole aggregated CI entry point is `./eng/ci.ps1`; the workflow must invoke
+it exactly once. The governed order is:
+
+1. fail-closed CI and coverage policy tests;
+2. LF verification of NuGet lockfiles;
+3. locked restore;
+4. repeat lockfile verification;
 5. `dotnet format --verify-no-changes`;
-6. build Release;
-7. testes .NET e cobertura Cobertura agregada;
-8. pisos de 70% de linhas e 45% de branches;
-9. `npm ci`, lint, typecheck, testes e build do Dashboard;
-10. auditorias de dependência somente quando o modo online estiver autorizado;
-11. auditoria de repositório;
+6. Release build;
+7. .NET tests and aggregated Cobertura coverage;
+8. floors of 70% of lines and 45% of branches;
+9. `npm ci`, lint, typecheck, Dashboard tests and build;
+10. dependency audits only when online mode is authorised;
+11. repository audit;
 12. `git diff --check`.
 
-`./eng/ci.ps1 -Offline` é evidência local parcial porque omite auditorias de
-dependência que exigem rede. Seu PASS não pode ser rotulado como execução
-equivalente ao workflow online. A ausência de autoridade/rede gera
-`BLOCKED`/limitação explícita, nunca uma auditoria externa inventada.
+`./eng/ci.ps1 -Offline` is partial local evidence because it omits dependency
+audits that require network access. Its PASS must not be labelled equivalent
+to the online workflow. Missing authority/network produces `BLOCKED` with an
+explicit limitation, never an invented external audit.
 
-O gate completo é `SEQUENTIAL_ONLY` por worktree: restore, `bin/`, `obj/`,
-`node_modules/`, `dist/` e outros caches/outputs são compartilhados mesmo que
-`TestResults` use um GUID. Lanes podem executar checks focais em worktrees e
-recursos isolados; depois da integração, a coordenadora executa um único gate
-agregado sobre a baseline combinada.
+The complete gate is `SEQUENTIAL_ONLY` per worktree: restore, `bin/`, `obj/`,
+`node_modules/`, `dist/` and other caches/outputs are shared even when
+`TestResults` uses a GUID. Lanes may run focused checks in isolated worktrees
+and resources; after integration, the coordinator runs one aggregated gate on
+the combined baseline.
 
-`eng/format.ps1` é mutante, alcança arquivos rastreados e não rastreados e não
-é um validador. Seu uso é coordinator-only, exige escopo revisado e nunca pode
-alterar prompts ou trabalho local do proprietário por conveniência. O comando
-de validação continua sendo `dotnet format --verify-no-changes` dentro do gate
-canônico.
+`eng/format.ps1` is mutating, reaches tracked and untracked files and is not a
+validator. Its use is coordinator-only, requires reviewed scope and must never
+alter prompts or the owner's local work for convenience. The validation
+command remains `dotnet format --verify-no-changes` inside the canonical gate.
 
-## Gate para trabalho paralelo
+## Parallel-work gate
 
-Uma recomendação `PARALLEL_OPTIONAL` ou `PARALLEL_RECOMMENDED` somente passa
-quando:
+A `PARALLEL_OPTIONAL` or `PARALLEL_RECOMMENDED` recommendation passes only
+when:
 
-- a conversa coordenadora possui título ou label confirmado;
-- baseline e envelope de autoridade são comuns e explícitos; cada lane recebe
-  somente seu subconjunto autorizado, o escopo negativo global e restrições
-  adicionais próprias;
-- dependências formam frentes independentes, sem consumir output ainda não
-  integrado de outra lane;
-- cada path, artefato e recurso mutável possui um único owner;
-- antes de Git rastreado, todas as workers simultâneas são `read-only`;
-- depois da autorização de Git, escritas usam worktrees/branches separados e
-  isolamento de runtime, dados, temporários e outputs aplicáveis;
-- cada lane possui mensagem exata, checks, entrega, stop conditions e retorno
-  para a coordenadora;
-- coordenadora e lanes possuem níveis de raciocínio próprios, com
-  justificativa e alternativa se indisponíveis;
-- workers não atualizam estado/histórico, integram outras lanes, tomam decisão
-  humana ou ampliam autoridade;
-- a coordenadora integra uma entrega por vez e executa os checks transversais
-  sobre o resultado combinado;
-- conflito, baseline stale ou isolamento insuficiente reclassifica o restante
-  como `SEQUENTIAL_ONLY`.
+- the coordinating conversation has a confirmed title or label;
+- baseline and authority envelope are common and explicit; each lane receives
+  only its authorised subset, global negative scope and its own additional
+  restrictions;
+- dependencies form independent fronts without consuming another lane's
+  not-yet-integrated output;
+- each path, artefact and mutable resource has one owner;
+- before tracked Git exists, every simultaneous worker is `read-only`;
+- after Git authority, writes use separate worktrees/branches and applicable
+  runtime, data, temporary and output isolation;
+- each lane has an exact message, checks, deliverable, stop conditions and
+  coordinator return;
+- coordinator and lanes have their own reasoning levels, with justification
+  and an alternative if unavailable;
+- workers do not update state/history, integrate other lanes, take human
+  decisions or broaden authority;
+- the coordinator integrates one deliverable at a time and runs cross-cutting
+  checks on the combined result;
+- conflict, stale baseline or insufficient isolation reclassifies the
+  remainder as `SEQUENTIAL_ONLY`.
 
-Human Gate, transição de lifecycle e decisão de ADR nunca são decididos em
-paralelo. A evidência pode ser produzida por lanes independentes, mas a
-decisão e seu registro pertencem à coordenadora após integração.
-`Ultra` somente pode ser recomendado quando este gate permite trabalho
-paralelo; sua indisponibilidade não remove nenhum requisito de isolamento,
-coordenação ou validação.
+A Human Gate, lifecycle transition or ADR decision is never decided in
+parallel. Independent lanes may produce evidence, but the decision and its
+record belong to the coordinator after integration. `Ultra` may be recommended
+only when this gate permits parallel work; its unavailability removes no
+isolation, coordination or validation requirement.
 
-## Gate documental do STATE-00
+## `STATE-00` documentary gate
 
-- Estrutura corresponde à lista aprovada.
-- Links locais resolvem.
-- Nomes canônicos, IDs e headings são consistentes.
-- Arquivos usam UTF-8, LF, newline final e não têm trailing whitespace.
-- Nenhum secret, host real ou dado pessoal desnecessário.
-- Requisitos oficiais, interpretação do MVP e evolução são rastreáveis.
-- Riscos, premissas, critérios, backlog e roadmap existem.
-- Current State contém presente; log contém história.
-- ADRs permanecem `proposed`.
-- Nenhuma capacidade é apresentada como implementada.
-- Durante a execução do gate, o Human Gate permanece `PENDENTE` até revisão
-  do relatório automático e decisão humana; depois disso, Current State e o
-  histórico preservam a decisão realmente registrada.
-- A ordem `Human Gate STATE-00` → `GATE-B01` → autorização de entrada em
-  `STATE-01` está explícita, sem aceitação implícita de ADR.
-- A fonte oficial está no MVP com uma única URL PDF, snapshot e escopo de
-  consulta; não restam alegações ativas de que está desativada/futura.
-- O desenho diferencia requisito planejado de autorização real de egress.
-- O RAG-Challenge é owner do OpenAPI; adapters consumidores pertencem aos
-  repositórios consumidores.
-- Lacunas identificadas por auditoria posterior estão reconciliadas ou
-  registradas como ressalvas explícitas do Human Gate.
-- Os resultados transversais de handoff, continuidade, Human Gate,
-  paralelismo, raciocínio e idioma satisfazem a Definition of Done e o gate de
-  trabalho paralelo acima, com autoridades e templates corretamente roteados.
+- Structure matches the approved list.
+- Local links resolve.
+- Canonical names, IDs and headings are consistent.
+- Files use UTF-8, LF, a final newline and no trailing whitespace.
+- No secret, real host or unnecessary personal data is present.
+- Official requirements, MVP interpretation and evolution are traceable.
+- Risks, assumptions, criteria, backlog and roadmap exist.
+- Current State contains the present; the log contains history.
+- ADRs remain `proposed`.
+- No capability is presented as implemented.
+- During gate execution, the Human Gate remains `PENDENTE` until the automatic
+  report is reviewed and a human decision is made; afterwards, Current State
+  and history preserve the decision actually recorded.
+- The order `Human Gate STATE-00` → `GATE-B01` → authority to enter `STATE-01`
+  is explicit, without implicit ADR acceptance.
+- The official source is in the MVP with one PDF URL, snapshot and query scope;
+  no active claim says it is disabled/future.
+- The design distinguishes a planned requirement from real egress authority.
+- RAG-Challenge owns OpenAPI; consuming adapters belong to consuming
+  repositories.
+- Gaps identified by a later audit are reconciled or recorded as explicit
+  Human Gate reservations.
+- Cross-cutting hand-off, continuity, Human Gate, parallelism, reasoning and
+  language outcomes satisfy Definition of Done and the parallel-work gate
+  above, with correctly routed authorities and templates.
 
-## Verificações por estado
+## Checks by state
 
-Os itens de ADR-0008/0009/0010 acrescentados abaixo são critérios para
-incrementos corretivos e para claims que dependam deles. Não reescrevem
-resultados históricos dos estados já encerrados nem constituem evidência de
-implementação; o Current State conserva essa separação factual.
+The ADR-0008/0009/0010 items below are criteria for corrective increments and
+claims that depend on them. They do not rewrite historical results of closed
+states or constitute implementation evidence; Current State preserves that
+factual separation.
 
-| Estado | Verificações adicionais |
+| State | Additional checks |
 |---|---|
-| `STATE-01` | Clone/bootstrap limpo, lockfiles, configuração, CI e ausência de domínio prematuro. |
-| `STATE-02` | ADRs, contratos, threat model, providers, catálogo inicial 51/54/9, PDF/CSV, fontes/licenças/allowlists, query `pt-BR`/`en-GB`, idioma documental BCP 47, content/page-image storage, quatro políticas de egress, persistência durável, erros/readiness/OpenAPI e rollback. |
-| `STATE-03` | Constraints, bancos/categorias/documentos/estados, idioma documental/source declaration, conteúdo fonte/PNG reabrível, render manifest/reachability, hashes, snapshots, journal de observações/freshness separado de `catalogueRevision`, vetores canônicos para `sourceBindingSetDigest` sem observação e `activationBindingSetDigest` completo, staging não consultável, três validações de projeção, manifesto íntegro, retenção, migrations e `CorpusActivationRecord` atômico; rollback constrói registro novo com observações compatíveis/elegíveis. |
-| `STATE-04` | Arquitetura, administração de bancos/documentos, parsers PDF/CSV, renderer/manifests/serving de imagem quando autorizados, sync oficial manual, `304`/hash idêntico com campos preservados/alterados exatos, rejeição de mismatch, retry idempotente, hard pre-filter de bindings elegíveis antes do top-k, recuperação unificada, `AnswerEvidenceRecordV1` atômico/minimizado com retenção `P30D` e reachability quando autorizado, OpenAPI v1 preservado e v2 separadamente versionado, query bilíngue, citações, recusa, falhas e adapters. |
-| `STATE-05` | Cobertura/proveniência, `interfaceLanguage` `pt-BR`/`en-GB`, temas `Light`/`Dark`, independência de `questionLanguage`, freshness, evidência visual com alternativa textual, estados de UI, teclado, contraste e acessibilidade. |
-| `STATE-06` | E2E com HTTP falso, source/render/index restart, backup/restore, serving visual, smoke real opt-in autorizado, artefato e sandbox OCI. |
-| `STATE-07` | Dataset estratificado por banco/documento/formato e idioma documental exato, matriz `pt-BR`/`en-GB`, visual-evidence rights/integrity/accessibility, answer-evidence privacy/atomicity/expiry/cleanup race quando implementado, source leakage, language coercion, DNS rebinding/pinning/redirect, stale, groundedness, carga, crash boundaries e recuperação. |
-| `STATE-08` | Artefato, egress oficial autorizado, deploy, smoke, health, evidência e rollback. |
+| `STATE-01` | Clean clone/bootstrap, lockfiles, configuration, CI and absence of premature domain code. |
+| `STATE-02` | ADRs, contracts, threat model, providers, initial 51/54/9 catalogue, PDF/CSV, sources/licences/allowlists, `pt-BR`/`en-GB` query, BCP 47 document language, content/page-image storage, four egress policies, durable persistence, errors/readiness/OpenAPI and rollback. |
+| `STATE-03` | Constraints, databases/categories/documents/states, document language/source declaration, reopenable source/PNG content, render manifest/reachability, hashes, snapshots, observation/freshness journal separate from `catalogueRevision`, canonical vectors for observation-free `sourceBindingSetDigest` and complete `activationBindingSetDigest`, non-queryable staging, three projection validations, integral manifest, retention, migrations and atomic `CorpusActivationRecord`; rollback builds a new record with compatible/eligible observations. |
+| `STATE-04` | Architecture, database/document administration, PDF/CSV parsers, authorised image renderer/manifests/serving, manual official sync, identical `304`/hash with exact preserved/changed fields, mismatch rejection, idempotent retry, hard pre-filter of eligible bindings before top-k, unified retrieval, atomic/minimised `AnswerEvidenceRecordV1` with `P30D` retention and reachability when authorised, preserved OpenAPI v1 and separately versioned v2, bilingual query, citations, refusal, failures and adapters. |
+| `STATE-05` | Coverage/provenance, `pt-BR`/`en-GB` `interfaceLanguage`, `Light`/`Dark` themes, independence from `questionLanguage`, freshness, visual evidence with a text alternative, UI states, keyboard, contrast and accessibility. |
+| `STATE-06` | E2E with fake HTTP, source/render/index restart, backup/restore, visual serving, authorised opt-in real smoke, artefact and OCI sandbox. |
+| `STATE-07` | Dataset stratified by database/document/format and exact document language, `pt-BR`/`en-GB` matrix, visual-evidence rights/integrity/accessibility, answer-evidence privacy/atomicity/expiry/cleanup race when implemented, source leakage, language coercion, DNS rebinding/pinning/redirect, stale state, groundedness, load, crash boundaries and recovery. |
+| `STATE-08` | Artefact, authorised official egress, deployment, smoke, health, evidence and rollback. |
 
-## Estratégia de CI
+## CI strategy
 
-O pipeline inicial deve usar menor privilégio e:
+The initial pipeline must use least privilege and:
 
-- cancelar execução anterior da mesma ref quando seguro;
-- aplicar timeout por job;
-- fixar toolchains e actions confiáveis;
-- não persistir credenciais do checkout;
-- restaurar por lockfile;
-- executar build Release, testes, cobertura e format;
-- executar lint, type checking, testes e build do Dashboard;
-- auditar dependências e secrets;
-- validar links Markdown e `git diff --check`;
-- não fazer deploy em evento de pull request.
+- cancel a previous run of the same ref when safe;
+- apply a per-job timeout;
+- pin trusted toolchains and actions;
+- not persist checkout credentials;
+- restore by lockfile;
+- run Release build, tests, coverage and format verification;
+- run lint, type checking, Dashboard tests and build;
+- audit dependencies and secrets;
+- validate Markdown links and `git diff --check`;
+- not deploy on a pull-request event.
 
-CD exige ambiente, secrets, gate e autorização próprios. CI aprovada não prova
-deploy.
+CD requires its own environment, secrets, gate and authority. Approved CI does
+not prove deployment.
 
-## Qualidade RAG
+## RAG quality
 
-A campanha define antes da execução:
+Before execution, the campaign defines:
 
-- corpus e versão;
-- catálogo/bancos/documentos ativos, formatos, snapshots/freshness e cobertura;
-- conjunto de perguntas e casos sem resposta;
-- `questionLanguage` e `contentLanguage` de cada caso, com os pares
-  `pt-BR→pt-BR`, `en-GB→en-GB`, `pt-BR→en-GB` e `en-GB→pt-BR` cobertos;
-- `SupportedQueryLanguage` fechado e `DocumentContentLanguage` BCP 47 exato;
-  cada tag documental adicional gera estrato próprio para `pt-BR` e `en-GB`,
-  sem coerção ou fusão silenciosa;
-- identidade do render manifest e das páginas citadas quando evidência visual
-  integrar a candidata;
-- providers, modelos, prompts e parâmetros;
-- versão do índice;
-- rubrica e thresholds;
-- ambiente e orçamento;
-- critérios de parada.
+- corpus and version;
+- active catalogue/databases/documents, formats, snapshots/freshness and
+  coverage;
+- question set and unanswerable cases;
+- each case's `questionLanguage` and `contentLanguage`, covering
+  `pt-BR→pt-BR`, `en-GB→en-GB`, `pt-BR→en-GB` and `en-GB→pt-BR` pairs;
+- closed `SupportedQueryLanguage` and exact BCP 47
+  `DocumentContentLanguage`; every additional document tag creates its own
+  `pt-BR` and `en-GB` stratum without coercion or silent merging;
+- render-manifest and cited-page identity when visual evidence forms part of
+  the candidate;
+- providers, models, prompts and parameters;
+- index version;
+- rubric and thresholds;
+- environment and budget;
+- stop criteria.
 
-Medidas candidatas:
+Candidate measures:
 
-- relevância/recall da recuperação;
-- precisão de citações;
-- correspondência exata entre idioma da resposta e da pergunta;
-- preservação do idioma original do texto derivado da fonte nas citações;
-- métricas por tag documental exata; `en` nunca integra o denominador `en-GB`;
-- integridade/rights do binding página-citação, serving bounded e equivalente
-  textual acessível quando a capacidade visual estiver implementada;
+- retrieval relevance/recall;
+- citation precision;
+- exact answer/question language match;
+- preservation of the original language of source-derived citation text;
+- metrics by exact document tag; `en` never enters the `en-GB` denominator;
+- page-citation binding integrity/rights, bounded serving and an accessible
+  text equivalent when visual capability is implemented;
 - groundedness;
-- taxa de respostas indevidas em casos sem evidência;
-- latência e custo;
-- estabilidade entre versões;
-- resistência a prompt injection;
-- taxa de proveniência incorreta, cobertura omitida ou fallback indevido;
+- improper-answer rate in cases without evidence;
+- latency and cost;
+- stability between versions;
+- prompt-injection resistance;
+- incorrect-provenance, omitted-coverage or improper-fallback rate;
 
-Não escolher thresholds depois de observar o resultado.
+Do not choose thresholds after observing the result.
 
-## Severidade de achados
+## Finding severity
 
-- `P0 Crítica`: exposição ativa, execução indevida, perda/corrupção severa ou
-  vazamento de secret.
-- `P1 Alta`: defeito grave, resposta perigosa não fundamentada ou regressão
-  provável.
-- `P2 Média`: impacto limitado ou risco de manutenção relevante.
-- `P3 Baixa`: melhoria útil sem risco imediato.
+- `P0 Critical`: active exposure, improper execution, severe loss/corruption or
+  secret leakage.
+- `P1 High`: severe defect, dangerous ungrounded answer or likely regression.
+- `P2 Medium`: limited impact or material maintenance risk.
+- `P3 Low`: useful improvement without immediate risk.
 
 ## Human Gate
 
-O validador humano:
+The human validator:
 
-- revisa o relatório automático;
-- repete amostras críticas;
-- confirma experiência, mensagens e limitações;
-- verifica distinção entre local/online e planejado/implementado;
-- registra decisão, data, ressalvas e evidência sanitizada.
+- reviews the automatic report;
+- repeats critical samples;
+- confirms experience, messages and limitations;
+- verifies local/online and planned/implemented distinctions;
+- records decision, date, reservations and sanitised evidence.
 
-Decisões:
+Decisions:
 
 - `PENDENTE`;
 - `APROVADO`;
 - `APROVADO COM RESSALVAS`;
 - `REPROVADO`.
 
-O gate exige um resumo de um único estado que identifica relatório, amostras,
-pendências, ressalvas e a decisão solicitada, seguido da frase inequívoca
-definida no template. Uma palavra ou confirmação abreviada nunca constitui
-Human Gate.
+The gate requires a summary for one state identifying the report, samples,
+pending items, reservations and requested decision, followed by the
+unambiguous phrase defined in the template. A word or abbreviated confirmation
+never constitutes a Human Gate.
 
-## Amostras humanas por estado
+## Human samples by state
 
-- `STATE-00`: revisar escopo, riscos, arquitetura, ADRs e backlog.
-- `STATE-01`: repetir onboarding, build e testes de clone limpo.
-- `STATE-02`: walkthrough de threats, providers, catálogo, formatos, fontes e rollback.
-- `STATE-03`: revisar bancos/categorias/documentos, snapshots, os dois domínios
-  de digest, journal de observações, geração, novo registro de rollback e
-  recuperação.
-- `STATE-04`: administração, sync oficial, perguntas por banco/formato/idioma,
-  recuperação unificada,
-  citações no idioma original, sem evidência e falhas.
-- `STATE-05`: cobertura/proveniência, idioma e tema; matriz entre
-  `interfaceLanguage` e `questionLanguage` executada em `Light` e `Dark`;
-  ausência de mistura, contraste, freshness, teclado, reflow, citações e
-  erros.
-- `STATE-06`: fluxo PDF/CSV local/oficial, restart e configuração de ambiente.
-- `STATE-07`: amostra por banco/documento/formato e pelos quatro pares
-  `pt-BR`/`en-GB`, SSRF, stale, mismatch/rebinding de observação, ataque, carga
-  e rollback sem replay de freshness.
-- `STATE-08`: egress, deploy, smoke, health e recuperação.
+- `STATE-00`: review scope, risks, architecture, ADRs and backlog.
+- `STATE-01`: repeat onboarding, build and clean-clone tests.
+- `STATE-02`: walk through threats, providers, catalogue, formats, sources and
+  rollback.
+- `STATE-03`: review databases/categories/documents, snapshots, both digest
+  domains, observation journal, generation, new rollback record and recovery.
+- `STATE-04`: administration, official sync, questions by
+  database/format/language, unified retrieval, citations in the original
+  language, absence of evidence and failures.
+- `STATE-05`: coverage/provenance, language and theme; execute the matrix
+  between `interfaceLanguage` and `questionLanguage` in `Light` and `Dark`;
+  absence of mixing, contrast, freshness, keyboard, reflow, citations and
+  errors.
+- `STATE-06`: local/official PDF/CSV flow, restart and environment
+  configuration.
+- `STATE-07`: sample by database/document/format and the four `pt-BR`/`en-GB`
+  pairs, SSRF, stale state, observation mismatch/rebinding, attack, load and
+  rollback without freshness replay.
+- `STATE-08`: egress, deployment, smoke, health and recovery.

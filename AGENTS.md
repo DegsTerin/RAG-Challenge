@@ -300,6 +300,24 @@ fence. Never defer or replace required text with the absence sentinel. Use the
 inline absence form only when no action depends on a message and no useful
 continuity message exists.
 
+Every copy-ready payload that authorises, prepares, continues, resumes or
+coordinates executable or documentary work in RAG-Challenge must explicitly
+instruct the receiving coordinator to apply in full all applicable controls
+and capabilities incorporated from Stage 0, Stage 1 and Stage 2. These names
+are descriptive labels for controls already incorporated into the tracked
+project authorities and tooling; the original owner-input documents are
+historical inputs and never constitute a parallel normative authority.
+
+Applying the Stage controls in full means applying each control that is
+relevant to the authorised task. It never requires agents for simple work,
+never converts `SEQUENTIAL_ONLY` work into parallel work, never treats
+multi-agent readiness as continuous authority, and never broadens scope,
+lifecycle, a Human Gate, provider authority or any external-action authority.
+The requirement does not create a copy-ready payload when no useful message is
+required. It also does not add text to a payload whose only permitted content
+is the canonical Human Gate confirmation phrase, or to a purely decisional
+payload that neither authorises nor coordinates project work.
+
 Apply the [language policy](prompts/governance/Language-Policy.md) and retain
 the required spelling of technical literals. Recommend the lowest sufficient
 canonical reasoning level for each conversation or lane, with justification
