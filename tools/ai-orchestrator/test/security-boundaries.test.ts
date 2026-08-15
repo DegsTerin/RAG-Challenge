@@ -19,8 +19,10 @@ import { parseSecureJson } from "../src/security/secure-json.js";
 import {
   assertArgumentsContainNoSecretMaterial,
   assertAuthorityReference,
+  assertCliArgumentsContainNoSecretMaterial,
   assertClosedEnvironment,
   assertNoSecretShapedMaterial,
+  removeProductCredentialFromEnvironment,
 } from "../src/security/secret-policy.js";
 import { assertNoExistingReparseBoundary } from "../src/security/path-policy.js";
 import { baseline, instant, passingResult, task } from "./helpers.js";
@@ -89,6 +91,47 @@ test("real runner authority accepts only bounded AUTH references", () => {
   assert.doesNotThrow(() => assertAuthorityReference("AUTH-CODEX-RUN-001", "authority"));
   assert.throws(() => assertAuthorityReference("separate-test-authority", "authority"), (error: unknown) =>
     error instanceof OrchestratorStop && error.code === "HUMAN_DECISION_REQUIRED");
+});
+
+test("product credential identifier cannot traverse text, object fields or CLI arguments", () => {
+  const identifier = "OPENAI_API_KEY";
+  for (const action of [
+    () => assertNoSecretShapedMaterial({ note: identifier }, "material"),
+    () => assertNoSecretShapedMaterial({ [identifier]: null }, "material"),
+    () => assertCliArgumentsContainNoSecretMaterial([identifier], "arguments"),
+    () => assertCliArgumentsContainNoSecretMaterial(["--openai-api-key", "synthetic"], "arguments"),
+    () => assertCliArgumentsContainNoSecretMaterial(["--credential", "synthetic"], "arguments"),
+  ]) {
+    assert.throws(action, (error: unknown) =>
+      error instanceof OrchestratorStop && error.code === "SECRET_REQUIRED" && !error.message.includes(identifier));
+  }
+});
+
+test("product credential identifier rejection is case-insensitive", () => {
+  const lowerCaseIdentifier = "openai_api_key";
+  const mixedCaseIdentifier = "OpenAI_Api_Key";
+  assert.throws(
+    () => assertNoSecretShapedMaterial({ note: lowerCaseIdentifier }, "material"),
+    (error: unknown) => error instanceof OrchestratorStop &&
+      error.code === "SECRET_REQUIRED" &&
+      !error.message.includes(lowerCaseIdentifier),
+  );
+  assert.throws(
+    () => assertNoSecretShapedMaterial({ [mixedCaseIdentifier]: null }, "material"),
+    (error: unknown) => error instanceof OrchestratorStop &&
+      error.code === "SECRET_REQUIRED" &&
+      !error.message.includes(mixedCaseIdentifier),
+  );
+});
+
+test("product credential removal deletes only the assembled identifier without reading it", () => {
+  const identifier = ["OPENAI", "API", "KEY"].join("_");
+  const environment: Record<string, string | undefined> = {
+    [identifier]: "synthetic-never-read",
+    PATH: "C:/synthetic",
+  };
+  removeProductCredentialFromEnvironment(environment);
+  assert.deepEqual(environment, { PATH: "C:/synthetic" });
 });
 
 test("state persistence rejects a junction in an ancestor below the repository anchor", async (context) => {

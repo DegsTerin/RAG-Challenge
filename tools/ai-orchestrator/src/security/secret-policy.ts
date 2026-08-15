@@ -2,6 +2,8 @@
 import { OrchestratorStop } from "../core/errors.js";
 
 const authorityReferencePattern = /^AUTH-[A-Z0-9][A-Z0-9-]{2,122}$/;
+const productCredentialIdentifier = ["OPENAI", "API", "KEY"].join("_");
+const productCredentialIdentifierPattern = new RegExp(productCredentialIdentifier, "i");
 const secretTokenPatterns = [
   /\b(?:sk|sk-proj)-[A-Za-z0-9_-]{8,}\b/,
   /-----BEGIN (?:RSA |EC |OPENSSH )?PRIVATE KEY-----/,
@@ -18,7 +20,8 @@ function reject(label: string): never {
 }
 
 export function assertNoSecretShapedText(value: string, label: string): void {
-  if (secretTokenPatterns.some((pattern) => pattern.test(value))) reject(label);
+  if (productCredentialIdentifierPattern.test(value) ||
+      secretTokenPatterns.some((pattern) => pattern.test(value))) reject(label);
 }
 
 export function assertNoSecretShapedMaterial(value: unknown, label: string): void {
@@ -35,7 +38,8 @@ export function assertNoSecretShapedMaterial(value: unknown, label: string): voi
       continue;
     }
     for (const [key, item] of Object.entries(current as Record<string, unknown>)) {
-      if (sensitiveFieldPattern.test(key) && typeof item === "string" && item.length > 0) {
+      if (productCredentialIdentifierPattern.test(key) ||
+          (sensitiveFieldPattern.test(key) && typeof item === "string" && item.length > 0)) {
         reject(label);
       }
       pending.push(item);
@@ -74,4 +78,21 @@ export function assertArgumentsContainNoSecretMaterial(
   label: string,
 ): void {
   for (const argument of arguments_) assertNoSecretShapedText(argument, label);
+}
+
+export function assertCliArgumentsContainNoSecretMaterial(
+  arguments_: readonly string[],
+  label: string,
+): void {
+  assertArgumentsContainNoSecretMaterial(arguments_, label);
+  for (const argument of arguments_) {
+    const option = argument.split("=", 1)[0] ?? "";
+    if (option.startsWith("-") && sensitiveFieldPattern.test(option)) reject(label);
+  }
+}
+
+export function removeProductCredentialFromEnvironment(
+  environment: Record<string, string | undefined>,
+): void {
+  Reflect.deleteProperty(environment, productCredentialIdentifier);
 }

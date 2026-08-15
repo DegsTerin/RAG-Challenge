@@ -239,6 +239,34 @@ test("CodexRunner rejects explicit environment names outside its allowlist", asy
   }), (error: unknown) => error instanceof OrchestratorStop && error.code === "SECRET_REQUIRED");
 });
 
+test("CodexRunner rejects the product credential identifier before starting a turn", async () => {
+  let turnStarted = false;
+  const runner = new CodexRunner({
+    executionAuthorised: true,
+    authorityReference: "AUTH-CODEX-TEST-004",
+    worktreeRoot: "C:/managed",
+    environment: { PATH: "C:/bin" },
+    model: null,
+  }, () => ({
+    async assertChatGptSession() {},
+    async startThread() { return "thread-secret-guard"; },
+    async resumeThread() { throw new Error("not reached"); },
+    async runTurn() { turnStarted = true; return JSON.stringify(passingResult()); },
+    async close() {},
+  }));
+  await assert.rejects(runner.run({
+    runId: "run-fixture",
+    attemptId: "attempt-fixture",
+    task: task({ owner: "implementation_worker", worktree: "C:/managed/lane", objective: "OPENAI_API_KEY" }),
+    baseline,
+    contracts: [],
+    candidate: null,
+    resumeThreadId: null,
+    checkpointThread: async () => undefined,
+  }), (error: unknown) => error instanceof OrchestratorStop && error.code === "SECRET_REQUIRED");
+  assert.equal(turnStarted, false);
+});
+
 test("bounded process uses argv execution and captures a bounded result", async () => {
   const result = await new BoundedProcess().run({
     commandId: "node-fixture",

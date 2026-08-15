@@ -98,11 +98,12 @@ test("App Server rejects synthetic secret-shaped prompts before transport", asyn
   const client = new CodexAppServerClient(transport);
   const configuration = { workingDirectory: "C:/repository", sandbox: "read-only" as const, model: null };
   const threadId = await client.startThread(configuration, "task-fixture");
-  const synthetic = "sk-proj-synthetic-not-a-real-secret";
-  await assert.rejects(
-    client.runTurn(threadId, synthetic, { ...configuration, outputSchema: {} }, "task-fixture"),
-    (error: unknown) => error instanceof OrchestratorStop && error.code === "SECRET_REQUIRED" && !error.message.includes(synthetic),
-  );
+  for (const synthetic of ["sk-proj-synthetic-not-a-real-secret", "OPENAI_API_KEY"]) {
+    await assert.rejects(
+      client.runTurn(threadId, synthetic, { ...configuration, outputSchema: {} }, "task-fixture"),
+      (error: unknown) => error instanceof OrchestratorStop && error.code === "SECRET_REQUIRED" && !error.message.includes(synthetic),
+    );
+  }
   assert.equal(transport.sent.some((message) => message.method === "turn/start"), false);
 });
 
@@ -138,9 +139,9 @@ test("App Server rejects malformed protocol output and transport failure", async
 });
 
 test("App Server rejects secret-bearing protocol fields without echoing them", async () => {
-  const synthetic = "synthetic-secret-field-value";
+  const synthetic = "OPENAI_API_KEY";
   const transport = new ScriptedTransport((message, scripted) => {
-    if (message.method === "initialize") response(scripted, message, { apiKey: synthetic });
+    if (message.method === "initialize") response(scripted, message, { note: synthetic });
   });
   await assert.rejects(
     new CodexAppServerClient(transport).assertChatGptSession(),

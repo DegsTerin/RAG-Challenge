@@ -34,6 +34,36 @@ test("CLI rejects a non-AUTH Codex authority before loading a plan", async () =>
   );
 });
 
+test("CLI rejects isolated, split and assignment-shaped credential arguments without echoing them", async () => {
+  const cases = [
+    ["OPENAI_API_KEY"],
+    ["openai_api_key"],
+    ["--OpenAI-Api-Key", "synthetic-cli-value"],
+    ["--credential", "synthetic-cli-value"],
+    ["--unsupported", "TOKEN=synthetic-cli-value"],
+  ] as const;
+  for (const arguments_ of cases) {
+    try {
+      await execute(process.execPath, [cliPath, "status", ...arguments_], { cwd: packageRoot });
+      assert.fail("The secret-shaped CLI arguments unexpectedly succeeded.");
+    } catch (error) {
+      const stderr = (error as { stderr?: string }).stderr ?? "";
+      assert.match(stderr, /"stopCondition":"SECRET_REQUIRED"/);
+      assert.doesNotMatch(stderr, /openai[_-]api[_-]key|synthetic-cli-value/i);
+    }
+  }
+});
+
+test("CLI bootstrap removes the assembled product credential before loading dependencies", async () => {
+  const bootstrap = await readFile(join(packageRoot, "src", "cli.ts"), "utf8");
+  const removalIndex = bootstrap.indexOf("Reflect.deleteProperty");
+  const dynamicImportIndex = bootstrap.indexOf('await import("./cli-main.js")');
+  assert.equal(/^\s*import\s/m.test(bootstrap), false);
+  assert.ok(removalIndex >= 0);
+  assert.ok(dynamicImportIndex > removalIndex);
+  assert.doesNotMatch(bootstrap, /OPENAI_API_KEY/);
+});
+
 test("CLI plan emits a preview without creating its configured state root", async () => {
   const temporary = await testStateRoot("cli-plan");
   try {
