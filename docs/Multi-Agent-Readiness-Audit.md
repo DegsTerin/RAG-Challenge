@@ -3,7 +3,7 @@
 ## Result
 
 The Stage 1 audit, permitted corrections and clean-worktree validation are
-complete. The final Stage 2 readiness classification is:
+complete. Its final classification at the dependency preflight boundary was:
 
 ```text
 HUMAN_DECISION_REQUIRED
@@ -17,10 +17,16 @@ human review remains separately governed; none is a Stage 2 dependency.
 
 The Stage 2 dependency preflight on the resulting committed baseline
 `60ccbdc4ec1e53bd456ba91c339846d65ada95e3` found no locally cached or
-installed `@openai/codex-sdk` package. ADR-0016 requires an exact locked SDK
-version and contract tests, while the current authority does not permit
-registry acquisition. Stage 2 has not started. The condition below must be
-satisfied before its first executable change.
+installed `@openai/codex-sdk` package. ADR-0016 required an exact locked SDK
+version and contract tests, while the authority at that historical boundary
+did not permit registry acquisition.
+
+The owner subsequently granted the exact bounded npm-registry authority
+requested by this report. The package condition was satisfied, Stage 2 was
+implemented and validated, and its current result is recorded separately in
+[`Stage-2-Multi-Agent-Orchestrator-Report.md`](Stage-2-Multi-Agent-Orchestrator-Report.md).
+This later execution does not rewrite the Stage 1 classification or its
+evidence.
 
 ## Scope and baseline
 
@@ -124,7 +130,7 @@ Automatic Quality Gate or Human Gate and does not authorise `STATE-08`.
 | `NET-001` | `MEDIUM` | Some harnesses release a dynamic port before host bind or use fixed default ports. | A TOCTOU collision can create flaky or false evidence. | Exclusive task lease/port is required; Stage 2 must test collision handling. |
 | `TOOL-001` | `MEDIUM` | `eng/format.ps1` mutates tracked and untracked non-ignored files. | A worker could rewrite owner inputs. | Classified coordinator-only and excluded from validation dispatch. |
 | `STATE-001` | `MEDIUM` | Current State retained long historical sequences with present-tense wording. | Old statements could be mistaken for current authority. | Current section corrected and the retained sequence explicitly labelled historical; full historical migration is not required for Stage 2. |
-| `DEP-001` | `BLOCKER` | The local npm cache and installed package inventory contain no `@openai/codex-sdk`, but ADR-0016 requires an exact locked SDK version, a reproducible lockfile and `CodexRunner` contract tests. | Complete Stage 2 implementation cannot be built or validated without acquiring and verifying the package graph. | `HUMAN_DECISION_REQUIRED`; obtain bounded owner authority for registry acquisition or provide a verified complete offline cache. |
+| `DEP-001` | `BLOCKER` | The local npm cache and installed package inventory contained no `@openai/codex-sdk`, but ADR-0016 required an exact locked SDK version, a reproducible lockfile and `CodexRunner` contract tests. | Complete Stage 2 implementation could not be built or validated without acquiring and verifying the package graph. | Resolved after bounded owner authority: the exact `0.147.0` package graph and lockfile were acquired and validated with lifecycle scripts disabled. |
 
 ## Corrections made
 
@@ -287,11 +293,12 @@ The RB-2 defect is now contained outside Stage 2 by historical quarantine,
 and ADR-0016 supplies the required accepted architecture. No remaining Stage 1
 governance or architecture finding requires a further human decision.
 
-The subsequent dependency preflight established one unsatisfied operational
-condition: `@openai/codex-sdk` and its package graph are unavailable from the
-local cache, and external package acquisition is outside the current authority.
-The implementation must not fabricate a lockfile, omit `CodexRunner` or use a
-terminal wrapper. The condition can be satisfied by either:
+The subsequent dependency preflight established one then-unsatisfied
+operational condition: `@openai/codex-sdk` and its package graph were
+unavailable from the local cache, and external package acquisition was outside
+the authority at that boundary. The implementation could not fabricate a
+lockfile, omit `CodexRunner` or use a terminal wrapper. The condition could be
+satisfied by either:
 
 1. bounded owner authority to resolve and acquire the exact SDK and required
    development dependencies from the npm registry with lifecycle scripts
@@ -299,7 +306,9 @@ terminal wrapper. The condition can be satisfied by either:
 2. a complete, integrity-verifiable offline cache supplied under separate
    authority.
 
-Because satisfying the condition requires new owner authority or an
-owner-supplied dependency source, the re-evaluated classification is
-`HUMAN_DECISION_REQUIRED`. Stage 2 remains paused before its first executable
-change.
+Because satisfying the condition required new owner authority or an
+owner-supplied dependency source, the Stage 1 classification at that boundary
+was `HUMAN_DECISION_REQUIRED`. The owner later supplied the bounded registry
+authority, and the Stage 2 report records the resulting implementation,
+validation and remaining `ARCHITECTURE_CHANGE_REQUIRED` condition for starting
+a new real Codex thread.

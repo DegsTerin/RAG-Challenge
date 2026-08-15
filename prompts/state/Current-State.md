@@ -1,6 +1,6 @@
 # Estado Atual
 
-Este documento é o snapshot factual vigente do workspace em 2026-08-14. Ele
+Este documento é o snapshot factual vigente do workspace em 2026-08-15. Ele
 não concede autoridade. Evolução e decisões no contexto original pertencem ao
 [`State-Transition-Log.md`](State-Transition-Log.md) e aos relatórios
 proprietários.
@@ -26,11 +26,21 @@ proprietários.
   arquitetura TypeScript/Node 24 e a fronteira `AgentRunner` foram aceitas sem
   constituir Human Gate. Após o commit documental limpo `60ccbdc`, o preflight
   de dependências da Etapa 2 encontrou zero pacote ou tarball local de
-  `@openai/codex-sdk`. Como ADR-0016 exige versão exata locked e testes do
-  `CodexRunner`, e a autoridade vigente não inclui aquisição pelo registry, a
-  classificação refinada é `HUMAN_DECISION_REQUIRED`. A condição
-  ainda não está satisfeita e nenhuma alteração executável da Etapa 2 foi
-  iniciada.
+  `@openai/codex-sdk` e refinou naquele momento a classificação para
+  `HUMAN_DECISION_REQUIRED`. O proprietário concedeu depois autoridade HTTPS
+  delimitada ao `registry.npmjs.org`; o grafo exato `0.147.0` foi adquirido
+  com scripts de lifecycle, audit e fund desabilitados, e as validações
+  posteriores usaram cache offline. A Etapa 2 implementou o orchestrator
+  determinístico isolado em `tools/ai-orchestrator/` nos commits `b10d8ac` a
+  `94ea9b7`. O gate canônico limpo passou 215 testes unitários, 11 de
+  arquitetura, 279 de integração, 45 web e 81 do orchestrator; dry run e E2E
+  controlado com `FakeAgentRunner` passaram. A disposição operacional é
+  `MULTI_AGENT_READY_WITH_CONDITIONS`: somente fake local está operacional; o
+  resume persistido está mapeado e testado por contrato, não exposto pelo CLI
+  e não exercitado contra Codex real. O SDK não fornece ID de nova thread
+  antes do primeiro turn, portanto um start Codex real retorna
+  `ARCHITECTURE_CHANGE_REQUIRED`. Nenhuma chamada Codex/provider, secret,
+  Human Gate ou mudança de lifecycle ocorreu.
 - Posição: `STATE-00 DISCOVERY` encerrado; `GATE-B01
   ARCHITECTURE_BOOTSTRAP_DECISION` aprovado e encerrado; `STATE-01
   PROJECT_SETUP` encerrado após Human Gate aprovado sem ressalvas em
@@ -1566,7 +1576,7 @@ proprietários.
   a política de idioma acrescentou o 21º documento público por incremento
   versionado, e o ADR-0003 acrescentou o 22º.
 - A baseline aprovada no Human Gate de `STATE-00` permanece `3.4.0`.
-- O corpus de instruções vigente possui versão `4.12.1` e 13 arquivos em
+- O corpus de instruções vigente possui versão `4.13.0` e 13 arquivos em
   `prompts/`.
 - Visão, requisitos, arquitetura, RAG, segurança, qualidade, lifecycle,
   roadmap, backlog, estado, histórico e templates estão documentados.
@@ -1962,13 +1972,23 @@ proprietários.
   com 252 vetores. Preserva zero resultado, scorer, campanha Responses,
   `RB-4` e Human Gate; a qualificação do denominador não é homologação de
   produto e não muda lifecycle.
-- O corpus `4.12.1` registra o preflight de dependências da Etapa 2 sobre
-  `60ccbdc`: Node `24.19.0` e npm `11.17.0` estão disponíveis, mas o cache e o
-  inventário local contêm zero `@openai/codex-sdk`. Sem autoridade para
-  aquisição no npm registry, não é possível produzir legitimamente o
-  `package-lock.json`, compilar o `CodexRunner` nem executar seus testes de
-  contrato. A readiness passa a `HUMAN_DECISION_REQUIRED`, ainda não
-  satisfeita; nenhuma implementação foi materializada.
+- O corpus `4.13.0` registra a autoridade delimitada posterior, a aquisição
+  exata do grafo `@openai/codex-sdk` `0.147.0`, a implementação e a validação
+  da Etapa 2. O orchestrator permanece tooling de desenvolvimento fora da
+  solução e do runtime de produto. O gate limpo, dry run, E2E controlado e
+  revisões independentes passaram; a prontidão é
+  `MULTI_AGENT_READY_WITH_CONDITIONS` somente para fake local neste host; o
+  resume Codex é evidência de contrato não operacional e nova thread Codex
+  real permanece `ARCHITECTURE_CHANGE_REQUIRED`. Em host com criação de file
+  symlink permitida, os dois testes leaf-symlink precisam passar antes de
+  transportar a mesma classificação para esse host.
+- O corpus `4.12.1` registrou historicamente o preflight de dependências sobre
+  `60ccbdc`: Node `24.19.0` e npm `11.17.0` estavam disponíveis, mas o cache e
+  o inventário local continham zero `@openai/codex-sdk`. Sem autoridade então
+  vigente para aquisição no npm registry, o lockfile e os testes do runner não
+  podiam ser produzidos; a readiness naquele boundary era
+  `HUMAN_DECISION_REQUIRED`. A autoridade posterior satisfez essa condição
+  sem reescrever o fato histórico.
 - O corpus `4.12.0` registra a quarentena histórica escolhida para os freezes
   RB-2/RB-3, sem edição in-place, e a aceitação arquitetural explícita da
   ADR-0016. RB-2 permanece inválido, RB-3 indisponível para RB-4 e qualquer
@@ -2317,15 +2337,17 @@ autorizada.
 
 ## Próxima autoridade
 
-As duas decisões humanas exigidas pela Etapa 1 foram registradas, mas o
-preflight da Etapa 2 encontrou uma condição operacional ainda não satisfeita.
-A próxima autoridade diretamente relacionada é uma permissão delimitada para
-resolver e adquirir do npm registry a versão exata de `@openai/codex-sdk` e as
-dependências de desenvolvimento estritamente necessárias, sempre com scripts
-de lifecycle desabilitados, sem audit online implícito e sem executar Codex.
-Como alternativa, o proprietário pode fornecer um cache offline completo e
-verificável. Somente depois da aquisição, lockfile e validação de supply chain
-a implementação original da Etapa 2 pode começar.
+A Etapa 2 está implementada e validada para coordenação determinística local
+com `FakeAgentRunner`. O resume de uma thread Codex cuja identidade já esteja
+persistida está apenas mapeado e testado por contrato; não é exposto pelo CLI,
+não foi exercitado contra Codex real e exige autoridades separadas de
+execução, provider, rede e credencial. Cada execução continua exigindo
+envelope e autoridade próprios. A próxima autoridade diretamente relacionada só é
+necessária se o proprietário desejar iniciar uma nova thread Codex real: nesse
+caso, deve aceitar um sucessor de ADR-0016 ou autorizar a avaliação de uma
+versão de SDK que exponha identidade durável antes do primeiro turn. Até essa
+decisão, `ARCHITECTURE_CHANGE_REQUIRED` é stop condition obrigatório e não há
+autoridade para execução Codex real.
 
 Essa autoridade eventual não inclui chamada real de agente, secret, billing,
 provider de produto, produção, push, merge, release, Human Gate ou mudança de

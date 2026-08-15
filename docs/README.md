@@ -2,7 +2,7 @@
 
 ## Status
 
-Este índice descreve o corpus documental vigente `4.12.1`. `STATE-00`,
+Este índice descreve o corpus documental vigente `4.13.0`. `STATE-00`,
 `GATE-B01` e `STATE-01` a `STATE-06` estão encerrados com seus gates
 registrados. `STATE-07 TESTING_HOMOLOGATION` está ativo; incrementos locais,
 offline, determinísticos e sintéticos foram executados e reconciliados, sem
@@ -16,6 +16,14 @@ RB-3 não pode ser consumido por RB-4; qualquer sucessor exige autoridade e
 revisão humanas separadas. Relatórios são evidência histórica; o presente
 factual pertence a
 [`Current-State.md`](../prompts/state/Current-State.md).
+
+A Etapa 2 implementou e validou o orchestrator determinístico de
+desenvolvimento aceito por ADR-0016. Somente a operação local com
+`FakeAgentRunner` está operacional sob envelope próprio. O resume Codex está
+mapeado e testado por contrato, mas não é exposto pelo CLI, não foi exercitado
+contra Codex real e continua a exigir autoridades separadas de execução,
+provider, rede e credencial. O início de uma nova thread Codex real permanece
+`ARCHITECTURE_CHANGE_REQUIRED`, sem alterar produto, Human Gate ou lifecycle.
 
 ## Comece aqui
 
@@ -44,6 +52,9 @@ factual pertence a
 12. [`Multi-Agent-Readiness-Audit.md`](Multi-Agent-Readiness-Audit.md):
     auditoria da Etapa 1, correções, ownership, isolamento, findings e gate da
     futura implementação do orchestrator.
+13. [`Stage-2-Multi-Agent-Orchestrator-Report.md`](Stage-2-Multi-Agent-Orchestrator-Report.md):
+    implementação, validações, dry run, recovery, segurança, limitações e
+    prontidão operacional do orchestrator de desenvolvimento.
 
 ## Produto e arquitetura
 
@@ -84,8 +95,8 @@ factual pertence a
 - [ADR-0015 — Versioned Cosine Numerical Semantics](architecture/ADR-0015-Versioned-Cosine-Numerical-Semantics.md)
   (`accepted`; implementation and corrective retest completed separately)
 - [ADR-0016 — Deterministic Development Orchestrator and Codex Runner Boundary](architecture/ADR-0016-Deterministic-Development-Orchestrator-And-Codex-Runner-Boundary.md)
-  (`accepted`; Stage 2 readiness is conditional on authorised, verifiable
-  acquisition of the exact Codex SDK package graph)
+  (`accepted`; Stage 2 implementation and exact package validation completed;
+  starting a new real Codex thread remains an architecture condition)
 - [Contratos canônicos de STATE-02](architecture/STATE-02-Canonical-Contracts.md)
 - [Dicionário lógico de dados e índice de S03-A](data/STATE-03-S03-A-Data-Dictionary.md)
 - [Threat model de STATE-02](security/STATE-02-Threat-Model.md)

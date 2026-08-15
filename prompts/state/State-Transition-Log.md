@@ -8325,3 +8325,74 @@ contém somente fatos cronológicos.
 - Integridade append-only: este histórico preserva byte a byte seu prefixo
   anterior de 528.251 bytes no SHA-256
   `b1e6925a12b6bfc3b0c996678e76074255c462c3346e807c45a6be8d1d27baa6`.
+
+## 2026-08-15 — Etapa 2 de orchestrator multiagente implementada e validada
+
+- Estado anterior e resultante: `STATE-07 TESTING_HOMOLOGATION` permanece
+  ativo. A Etapa 2 implementou tooling de desenvolvimento fora do runtime de
+  produto; não executou Automatic Quality Gate ou Human Gate de lifecycle e
+  não autorizou `STATE-08`.
+- Baseline da Etapa 2: branch `codex/stage1-multi-agent-readiness`, HEAD
+  `5f98f128a605a577eb987be3f951d90d9453b193`, árvore rastreada limpa e somente
+  os três prompts Stage 0/1/2 do proprietário não rastreados e preservados.
+- Autoridade de dependências: depois do stop `HUMAN_DECISION_REQUIRED`, o
+  proprietário autorizou exclusivamente HTTPS ao `registry.npmjs.org` para
+  metadados e aquisição de `@openai/codex-sdk`, transitivas e dependências de
+  desenvolvimento estritamente necessárias, com versões exatas, lifecycle
+  scripts desabilitados, sem audit ou fund e com geração/verificação do
+  lockfile. A autorização excluiu Codex real, API/provider, secrets, tracing,
+  billing e qualquer outro host.
+- Grafo adquirido: `@openai/codex-sdk` e `@openai/codex` `0.147.0`, TypeScript
+  `5.7.3`, `@types/node` `24.13.3` e `undici` `7.18.2`. As validações
+  posteriores restauraram do cache local em modo offline.
+- Implementação: os commits `b10d8ac`, `9433962`, `ac41b13`, `a4889c3`,
+  `5da6b9a` e `94ea9b7` materializam o coordenador determinístico, contratos e
+  schemas fechados, DAG/scheduler/state machine, `AgentRunner`,
+  `FakeAgentRunner`, `CodexRunner`, persistência e journal, checkpoints,
+  locks, Git/worktrees, integração sequencial, CLI, observabilidade,
+  recovery, segurança, testes e integração no CI canônico.
+- Isolamento e recovery: cada write lane exige branch/worktree/root/recurso
+  exclusivos; overlaps iguais, ancestrais ou descendentes são rejeitados.
+  Estado, tentativa, thread e outcome usam write-ahead; retry é cumulativo;
+  cleanup e rollback preservam qualquer path, marker, branch ou conteúdo cuja
+  ownership não possa ser provada.
+- Revisões finais: três revisões read-only independentes sobre o snapshot
+  `ef8bdf27baf8212699ea7cb030c1556a78811809` encontraram zero P0, P1, P2 ou
+  P3 e retornaram `READY_FOR_GATES`, `SECURITY_REVIEW_PASS` e
+  `MULTI_AGENT_READY`.
+- Gate executável: runtime preflight encontrou zero processo
+  RAG-Challenge-owned. Em worktree limpa e detached no commit
+  `94ea9b794f041c047363c85b0102e11e34fb2c9f`, `./eng/ci.ps1 -Offline` passou
+  com build sem warning/erro, 215 testes unitários, 11 de arquitetura, 279 de
+  integração, 45 web e 81 do orchestrator; cobertura .NET 95,38% de linhas e
+  67,23% de branches, cobertura do orchestrator 84,27% e 76,78%, e auditoria
+  de 404 arquivos aprovada. Dois testes leaf-symlink ficaram skipped porque o
+  host Windows não permitiu criação de file symlink; os testes de junction e
+  demais fronteiras físicas passaram.
+- Dry run e E2E: o plano controlado vinculado ao baseline exato produziu quatro
+  waves (`map-repository` + `check-architecture`; `independent-review`;
+  `quality-gate`; `human-gate`) sem criar estado ou executar agente. O E2E
+  controlado com `FakeAgentRunner` passou 1/1 e comprovou candidate binding,
+  revisões, integração e quality gate determinísticos.
+- Limitação arquitetural: o SDK `0.147.0` expõe o ID de nova thread apenas
+  depois do primeiro turn. Como o contrato exige identidade durável antes do
+  turn, novo start Codex real falha fechado com
+  `ARCHITECTURE_CHANGE_REQUIRED`. Resume de identidade já persistida está
+  mapeado e testado; o CLI não habilita execução Codex real.
+- Readiness operacional: `MULTI_AGENT_READY_WITH_CONDITIONS` para o
+  orchestrator local com fake neste host. O resume persistido está mapeado e
+  testado por contrato, mas não exposto pelo CLI nem exercitado contra Codex
+  real; exige autoridades separadas de execução, provider, rede e credencial.
+  Nova thread real exige sucessor aceito de ADR-0016 ou SDK compatível e
+  autoridade de execução separada. Em host que permita file symlink, os dois
+  testes leaf-symlink precisam passar antes de transportar a classificação.
+- Escopo negativo preservado: nenhuma chamada Codex/OpenAI/provider, secret,
+  tracing externo, billing, corpus, RB-4, Human Gate, produção, deploy, push,
+  merge, release ou mudança de lifecycle foi executada. OpenAPI v1/v2 e
+  projetos do produto permaneceram inalterados.
+- Git: nenhum push ou merge foi executado. O worktree temporário exclusivo de
+  validação foi removido somente depois de HEAD e árvore limpa serem
+  comprovados; worktrees estrangeiros permaneceram intocados.
+- Integridade append-only: este histórico preserva byte a byte seu prefixo
+  anterior de 530.978 bytes no SHA-256
+  `f5a86f67f8ce9959366cd79e3225e0890f370951fbc907b10932b07160214e7c`.

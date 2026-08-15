@@ -2,8 +2,8 @@
 
 ## Versão atual
 
-- Versão: `4.12.1`
-- Data: 2026-08-14
+- Versão: `4.13.0`
+- Data: 2026-08-15
 - Status: `STATE-07` ativo; ADR-0011 `accepted`, reconciliado e com a correção
   interna da política de serving implementada; o A0 candidato-específico
   A0-003 dispõe as quatro operações visuais como `PERMITTED` somente sob o
@@ -65,10 +65,14 @@
   67,23% de branches; o proprietário selecionou quarentena histórica para os
   freezes RB-2/RB-3, mantendo RB-2 inválido, RB-3 indisponível para RB-4 e
   qualquer sucessor sob autoridade humana separada; ADR-0016 foi explicitamente
-  `accepted`; o preflight de dependências posterior encontrou ausência local
-  de `@openai/codex-sdk`, necessária para versão locked e testes do
-  `CodexRunner`, e refinou a readiness para
-  `HUMAN_DECISION_REQUIRED`; Stage 2 não foi iniciado;
+  `accepted`; após o bloqueio histórico por ausência local do SDK, o
+  proprietário concedeu autoridade delimitada ao npm registry, o grafo exato
+  `@openai/codex-sdk` `0.147.0` foi locked e a Etapa 2 implementou e validou o
+  orchestrator determinístico de desenvolvimento. A prontidão é
+  `MULTI_AGENT_READY_WITH_CONDITIONS`: somente fake local está operacional; o
+  resume persistido está mapeado/testado por contrato e permanece sem execução
+  real, enquanto nova thread Codex real permanece
+  `ARCHITECTURE_CHANGE_REQUIRED`;
   a política de idioma exige explicitamente en-GB em subject, body e footer de
   toda nova mensagem de commit pertencente ao projeto, sem transformar essa
   regra em autoridade implícita para amend, rebase ou reescrita de histórico;
@@ -86,6 +90,39 @@ A versão do corpus é independente da versão futura do software.
 
 Toda alteração atualiza este arquivo e, quando necessário,
 [`../Start-Here.md`](../Start-Here.md).
+
+## 4.13.0 — 2026-08-15
+
+- Registra a autoridade exclusiva concedida para resolver e adquirir do
+  `registry.npmjs.org` o SDK e as dependências de desenvolvimento exatas, com
+  scripts de lifecycle, audit e fund desabilitados e validações posteriores
+  preferencialmente offline.
+- Registra a implementação isolada do orchestrator determinístico
+  TypeScript/Node 24 aceito por ADR-0016 em `tools/ai-orchestrator/`, fora da
+  solução e do runtime de produto.
+- Registra o grafo exato `@openai/codex-sdk` e `@openai/codex` `0.147.0`,
+  TypeScript `5.7.3`, `@types/node` `24.13.3` e `undici` `7.18.2`, com
+  `package-lock.json` verificável.
+- Registra contratos fechados, DAG e scheduler determinísticos, seis agentes,
+  worktrees/branches/locks isolados, persistência e recovery write-ahead,
+  revisões distintas, integração sequencial, gate canônico e parada externa
+  no Human Gate.
+- Registra `./eng/ci.ps1 -Offline` aprovado em worktree limpa no commit
+  `94ea9b7`: 215 testes unitários, 11 de arquitetura, 279 de integração, 45 web
+  e 81 do orchestrator; dry run e E2E controlado também aprovados.
+- Classifica a prontidão operacional como
+  `MULTI_AGENT_READY_WITH_CONDITIONS` para `FakeAgentRunner` neste host. Resume
+  persistido está mapeado e testado por contrato, mas não exposto pelo CLI nem
+  exercitado contra Codex real; exige autoridade separada. O SDK locked não
+  expõe ID de nova thread antes do primeiro turn, portanto novo start Codex
+  real permanece `ARCHITECTURE_CHANGE_REQUIRED` e não foi executado. Em host
+  que permita file symlink, os dois testes leaf-symlink precisam passar antes
+  de transportar a classificação.
+- Mantém fora de escopo Codex/API/provider real, secret, tracing, billing,
+  RB-4, Human Gate, mudança de lifecycle, produção, push, merge e release.
+- Classificação SemVer: `MINOR`, porque registra a nova capacidade de tooling
+  multiagente implementada e validada sem alterar produto, contrato público ou
+  lifecycle.
 
 ## 4.12.1 — 2026-08-14
 

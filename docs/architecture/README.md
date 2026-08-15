@@ -102,10 +102,15 @@ readiness audit and accepted explicitly by the owner through
 `ADR-0016: ACEITAR.`. It selects a development-only deterministic
 TypeScript/Node 24 coordinator and a narrow `AgentRunner` boundary with fake
 and Codex SDK adapters. The subsequent governance and architecture conditions
-passed, but dependency preflight found no local Codex SDK package graph. Stage
-2 remains paused until exact package acquisition is separately authorised or
-a complete verified offline cache is supplied; authentication, real agent
-execution and lifecycle remain separately governed.
+passed. After the owner separately authorised bounded npm-registry acquisition,
+the exact SDK graph was locked and Stage 2 implemented and validated the
+development orchestrator. Only `FakeAgentRunner` is operational locally. The
+persisted-thread resume path is mapped and contract-tested, but it is not
+exposed by the CLI, was not exercised against Codex and still requires
+separate execution, provider, network and credential authority. The locked SDK
+does not expose a new thread ID before its first turn, so starting a new real
+Codex thread remains `ARCHITECTURE_CHANGE_REQUIRED`; authentication, real
+agent execution and lifecycle remain separately governed.
 
 The later combined audit failed on `AQG-S02-001`, an internal contradiction
 between observation-inclusive generation identity and observation-only
@@ -298,8 +303,8 @@ Dashboard -- versioned HTTP --> API
   compatibility generation; implementation and corrective retest were later
   completed under separate authority)
 - [ADR-0016 — Deterministic Development Orchestrator and Codex Runner Boundary](ADR-0016-Deterministic-Development-Orchestrator-And-Codex-Runner-Boundary.md)
-  (`accepted`; Stage 2 implementation remains conditional on a verifiable
-  exact Codex SDK dependency graph)
+  (`accepted`; Stage 2 implementation and exact dependency validation are
+  complete; a new real Codex thread still requires an architecture change)
 
 ## STATE-02 design artefacts
 
@@ -321,11 +326,10 @@ Dashboard -- versioned HTTP --> API
 - A separately authorised successor review/adjudication package with two
   independent human reviews and real human adjudication, and if required a
   successor vector freeze, before any RB-4 execution can be authorised.
-- Implementation evidence that the Stage 2 orchestrator conforms to accepted
-  ADR-0016, its task contracts and its fail-closed runner boundary.
-- A verified exact Codex SDK package graph and lockfile, acquired only under
-  bounded package-registry authority or from a complete authorised offline
-  cache.
+- A separately accepted ADR-0016 successor or a verified compatible SDK
+  surface before starting a new real Codex thread. Current fake execution
+  remains separately authorised; persisted-thread resume is contract evidence
+  only until separately authorised and exercised.
 - Product evaluation, provider, security, accessibility, operational recovery,
   load, OCI and production evidence that remains `NOT_RUN` or separately
   governed in Current State.
