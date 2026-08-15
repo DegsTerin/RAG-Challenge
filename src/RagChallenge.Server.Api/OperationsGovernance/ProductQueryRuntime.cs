@@ -29,6 +29,8 @@ internal sealed record ProductQueryRuntimeOptions(
     ProductCatalogueProfile CatalogueProfile,
     DocumentRightsEvidenceReference ApprovedRightsEvidenceReference,
     string CredentialEnvironmentVariable,
+    ProductProviderOperationalAuthority QueryEmbeddingAuthority,
+    ProductProviderOperationalAuthority GroundedGenerationAuthority,
     bool ApplyMigrations)
 {
     internal const string EnabledKey = "RagChallenge:Product:Enabled";
@@ -39,6 +41,10 @@ internal sealed record ProductQueryRuntimeOptions(
         "RagChallenge:Product:CredentialEnvironmentVariable";
     internal const string ApprovedRightsEvidenceKey =
         "RagChallenge:Product:ApprovedRightsEvidenceReference";
+    internal const string QueryEmbeddingAuthorityKey =
+        "RagChallenge:Product:QueryEmbeddingAuthorityReference";
+    internal const string GroundedGenerationAuthorityKey =
+        "RagChallenge:Product:GroundedGenerationAuthorityReference";
     internal const string SupersededUnverifiedRightsEvidenceReference =
         "owner-oracle19-public-source-approval-2026-08-12";
 
@@ -69,11 +75,12 @@ internal sealed record ProductQueryRuntimeOptions(
             ParseApprovedRightsEvidenceReference(configuration[ApprovedRightsEvidenceKey]);
         var credential = OpaqueEnvironmentCredentialReference.Parse(
             configuration[CredentialKey] ?? string.Empty);
-        if (string.IsNullOrWhiteSpace(
-                Environment.GetEnvironmentVariable(credential.EnvironmentVariableName)))
-        {
-            throw new InvalidOperationException("The product provider credential is unavailable.");
-        }
+        var queryEmbeddingAuthority = ProductProviderOperationalAuthority.Parse(
+            ProductProviderOperation.QueryEmbedding,
+            configuration[QueryEmbeddingAuthorityKey]);
+        var groundedGenerationAuthority = ProductProviderOperationalAuthority.Parse(
+            ProductProviderOperation.GroundedGeneration,
+            configuration[GroundedGenerationAuthorityKey]);
 
         return new ProductQueryRuntimeOptions(
             new SqliteStoreOptions(
@@ -83,6 +90,8 @@ internal sealed record ProductQueryRuntimeOptions(
             catalogueProfile,
             approvedRightsEvidenceReference,
             credential.EnvironmentVariableName,
+            queryEmbeddingAuthority,
+            groundedGenerationAuthority,
             configuration.GetValue<bool>(ApplyMigrationsKey));
     }
 
@@ -149,6 +158,7 @@ internal sealed class ProductQueryRuntime :
 
     private readonly ProductQueryRuntimeOptions options;
     private readonly IAnswerEvidenceActivitySink answerEvidenceActivitySink;
+    private readonly Func<string, string?> credentialEnvironmentReader;
     private readonly HttpClient embeddingClient;
     private readonly HttpClient languageModelClient;
     private readonly SemaphoreSlim initialisationGate = new(1, 1);
@@ -171,11 +181,14 @@ internal sealed class ProductQueryRuntime :
 
     internal ProductQueryRuntime(
         ProductQueryRuntimeOptions options,
-        IAnswerEvidenceActivitySink? answerEvidenceActivitySink = null)
+        IAnswerEvidenceActivitySink? answerEvidenceActivitySink = null,
+        Func<string, string?>? credentialEnvironmentReader = null)
     {
         this.options = options ?? throw new ArgumentNullException(nameof(options));
         this.answerEvidenceActivitySink = answerEvidenceActivitySink ??
             NullAnswerEvidenceActivitySink.Instance;
+        this.credentialEnvironmentReader = credentialEnvironmentReader ??
+            Environment.GetEnvironmentVariable;
         embeddingClient = CreateOpenAiClient();
         languageModelClient = CreateOpenAiClient();
     }
@@ -308,13 +321,22 @@ internal sealed class ProductQueryRuntime :
             var activationReader = new SqliteQueryActivationReader(stores);
             var vectorStore = new SqliteVectorIndexStore(stores);
             IDocumentContentStore contentStore = new ImmutableContentStore(stores);
-            var credentialSource = CredentialSource;
+            var queryCredentialSource = new ProductProviderCredentialSource(
+                options.QueryEmbeddingAuthority,
+                ProductProviderOperation.QueryEmbedding,
+                options.CredentialEnvironmentVariable,
+                credentialEnvironmentReader);
+            var generationCredentialSource = new ProductProviderCredentialSource(
+                options.GroundedGenerationAuthority,
+                ProductProviderOperation.GroundedGeneration,
+                options.CredentialEnvironmentVariable,
+                credentialEnvironmentReader);
             var embeddingProvider = new OpenAiHttpEmbeddingProvider(
                 embeddingClient,
-                credentialSource);
+                queryCredentialSource.ReadAsync);
             var languageModel = new OpenAiHttpLanguageModel(
                 languageModelClient,
-                credentialSource,
+                generationCredentialSource.ReadAsync,
                 LanguageModelDescriptor);
             var retrievalPolicyConfiguration = RetrievalPolicyConfiguration.CreateRetrievalV2(
                 ProductAdministrativeMaterialisationProfile.EmbeddingDescriptor,
@@ -401,7 +423,6 @@ internal sealed class ProductQueryRuntime :
             activation,
             options.ApprovedRightsEvidenceReference,
             options.CatalogueProfile);
-        EnsureCredentialAvailable();
     }
 
     private async Task<QueryActivationSnapshot> VerifyPersistedStateAsync(
@@ -423,7 +444,6 @@ internal sealed class ProductQueryRuntime :
             activation,
             options.ApprovedRightsEvidenceReference,
             options.CatalogueProfile);
-        EnsureCredentialAvailable();
 
         var contentStore = new ImmutableContentStore(stores);
         foreach (var evidence in activation.EvidenceBindings)
@@ -702,23 +722,6 @@ internal sealed class ProductQueryRuntime :
         return Convert.ToHexString(SHA256.HashData(
                 Encoding.UTF8.GetBytes(canonical.ToString())))
             .ToLowerInvariant();
-    }
-
-    private void EnsureCredentialAvailable()
-    {
-        if (string.IsNullOrWhiteSpace(
-                Environment.GetEnvironmentVariable(options.CredentialEnvironmentVariable)))
-        {
-            throw new InvalidOperationException("The product provider credential is unavailable.");
-        }
-    }
-
-    private ValueTask<string> CredentialSource(CancellationToken cancellationToken)
-    {
-        cancellationToken.ThrowIfCancellationRequested();
-        return ValueTask.FromResult(
-            Environment.GetEnvironmentVariable(options.CredentialEnvironmentVariable) ??
-            string.Empty);
     }
 
     private static HttpClient CreateOpenAiClient() =>

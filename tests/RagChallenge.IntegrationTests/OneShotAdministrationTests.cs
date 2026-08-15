@@ -2060,6 +2060,7 @@ public sealed class OneShotAdministrationTests
     [InlineData("RagChallenge:Administration:ProductMaterialisation:Embedding:Dimensions", "3072")]
     [InlineData("RagChallenge:Administration:ProductMaterialisation:Embedding:ModelRevision", "drifted")]
     [InlineData("RagChallenge:Administration:ProductMaterialisation:Embedding:CredentialEnvironmentVariable", "invalid-secret-reference")]
+    [InlineData("RagChallenge:Administration:ProductMaterialisation:Embedding:OperationalAuthorityReference", "invalid-authority")]
     public void ProductProfileRejectsDisabledIncompleteOrDriftedConfiguration(
         string key,
         string value)
@@ -2171,7 +2172,9 @@ public sealed class OneShotAdministrationTests
                 "build-divergent.json"),
             root);
 
-        Assert.Equal((int)AdministrationExitCode.Success, applied.ExitCode);
+        Assert.True(
+            applied.ExitCode == (int)AdministrationExitCode.Success,
+            applied.Output + applied.Error);
         Assert.Contains("CH_ADMIN_APPLIED", applied.Output, StringComparison.Ordinal);
         Assert.DoesNotContain(
             "CH_ADMIN_CAPABILITY_NOT_COMPOSED",
@@ -2620,6 +2623,18 @@ public sealed class OneShotAdministrationTests
             UseShellExecute = false,
             CreateNoWindow = true,
         };
+        startInfo.Environment.Clear();
+        var temporaryDirectory = Path.GetTempPath();
+        startInfo.Environment["TEMP"] = temporaryDirectory;
+        startInfo.Environment["TMP"] = temporaryDirectory;
+
+        if (OperatingSystem.IsWindows())
+        {
+            var windowsDirectory = Directory.GetParent(Environment.SystemDirectory)?.FullName ??
+                throw new InvalidOperationException("The Windows directory is unavailable.");
+            startInfo.Environment["SystemRoot"] = windowsDirectory;
+            startInfo.Environment["WINDIR"] = windowsDirectory;
+        }
 
         foreach (var argument in arguments)
         {
@@ -2668,6 +2683,8 @@ public sealed class OneShotAdministrationTests
                 "RagChallenge__Administration__ProductMaterialisation__Embedding__Dimensions"] = "1536";
             startInfo.Environment[
                 "RagChallenge__Administration__ProductMaterialisation__Embedding__CredentialEnvironmentVariable"] = "RAG_CHALLENGE_TEST_UNSET_CREDENTIAL";
+            startInfo.Environment[
+                "RagChallenge__Administration__ProductMaterialisation__Embedding__OperationalAuthorityReference"] = "AUTH-TEST-ADMINISTRATIVE-INDEX-EMBEDDING";
             startInfo.Environment.Remove("RAG_CHALLENGE_TEST_UNSET_CREDENTIAL");
         }
 
@@ -2713,6 +2730,7 @@ public sealed class OneShotAdministrationTests
             ["RagChallenge:Administration:ProductMaterialisation:Embedding:ModelRevision"] = "text-embedding-3-small",
             ["RagChallenge:Administration:ProductMaterialisation:Embedding:Dimensions"] = "1536",
             ["RagChallenge:Administration:ProductMaterialisation:Embedding:CredentialEnvironmentVariable"] = "RAG_CHALLENGE_TEST_UNSET_CREDENTIAL",
+            ["RagChallenge:Administration:ProductMaterialisation:Embedding:OperationalAuthorityReference"] = "AUTH-TEST-ADMINISTRATIVE-INDEX-EMBEDDING",
         };
 
     private static async Task<OfficialAuthoritySeed> SeedOfficialAuthorityAsync(

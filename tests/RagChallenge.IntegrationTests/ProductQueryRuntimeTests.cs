@@ -15,6 +15,7 @@ using RagChallenge.Application.Persistence;
 using RagChallenge.Domain.CorpusCatalog;
 using RagChallenge.Domain.IndexingRetrieval;
 using RagChallenge.Infrastructure.Persistence;
+using RagChallenge.Infrastructure.Providers;
 using RagChallenge.Server.Api.Contracts.V1;
 using RagChallenge.Server.Api.OperationsGovernance;
 
@@ -164,6 +165,10 @@ public sealed class ProductQueryRuntimeTests
                 [ProductQueryRuntimeOptions.StoreRootKey] = root,
                 [ProductQueryRuntimeOptions.CatalogueProfileKey] = "oracle-database-19c",
                 [ProductQueryRuntimeOptions.CredentialKey] = "MISSING_PRODUCT_TEST_KEY",
+                [ProductQueryRuntimeOptions.QueryEmbeddingAuthorityKey] =
+                    "AUTH-TEST-QUERY-EMBEDDING",
+                [ProductQueryRuntimeOptions.GroundedGenerationAuthorityKey] =
+                    "AUTH-TEST-GROUNDED-GENERATION",
             };
             var missing = new ConfigurationBuilder()
                 .AddInMemoryCollection(settings)
@@ -196,9 +201,7 @@ public sealed class ProductQueryRuntimeTests
             "rag-challenge-product-runtime-tests",
             Guid.NewGuid().ToString("N"));
         Directory.CreateDirectory(root);
-        var credentialName = $"RAG_CHALLENGE_TEST_KEY_{Guid.NewGuid():N}"
-            .ToUpperInvariant();
-        Environment.SetEnvironmentVariable(credentialName, "synthetic-test-credential");
+        const string credentialName = "RAG_CHALLENGE_TEST_PRODUCT_CREDENTIAL";
         WebApplication? app = null;
 
         try
@@ -212,6 +215,10 @@ public sealed class ProductQueryRuntimeTests
                 $"--{ProductQueryRuntimeOptions.ApprovedRightsEvidenceKey}",
                 ProductRuntimeFixture.ApprovedRightsReference.Value,
                 $"--{ProductQueryRuntimeOptions.CredentialKey}", credentialName,
+                $"--{ProductQueryRuntimeOptions.QueryEmbeddingAuthorityKey}",
+                "AUTH-TEST-QUERY-EMBEDDING",
+                $"--{ProductQueryRuntimeOptions.GroundedGenerationAuthorityKey}",
+                "AUTH-TEST-GROUNDED-GENERATION",
                 "--RagChallenge:Setup:AllowExternalServices", "true",
             ]);
             var probe = Assert.IsType<ProductQueryRuntime>(
@@ -242,7 +249,6 @@ public sealed class ProductQueryRuntimeTests
                 await app.DisposeAsync();
             }
 
-            Environment.SetEnvironmentVariable(credentialName, null);
             SqliteConnection.ClearAllPools();
             if (Directory.Exists(root))
             {
@@ -263,9 +269,8 @@ public sealed class ProductQueryRuntimeTests
             Path.Combine(root, "control.db"),
             Path.Combine(root, "vectors.db"),
             Path.Combine(root, "content"));
-        var credentialName = $"RAG_CHALLENGE_TEST_KEY_{Guid.NewGuid():N}"
-            .ToUpperInvariant();
-        Environment.SetEnvironmentVariable(credentialName, "synthetic-test-credential");
+        const string credentialName = "RAG_CHALLENGE_TEST_PRODUCT_CREDENTIAL";
+        var credentialReads = 0;
 
         try
         {
@@ -276,7 +281,18 @@ public sealed class ProductQueryRuntimeTests
                 ProductCatalogueProfile.OracleDatabase19c,
                 ProductRuntimeFixture.ApprovedRightsReference,
                 credentialName,
-                ApplyMigrations: false));
+                ProductProviderOperationalAuthority.Parse(
+                    ProductProviderOperation.QueryEmbedding,
+                    "AUTH-TEST-QUERY-EMBEDDING"),
+                ProductProviderOperationalAuthority.Parse(
+                    ProductProviderOperation.GroundedGeneration,
+                    "AUTH-TEST-GROUNDED-GENERATION"),
+                ApplyMigrations: false),
+                credentialEnvironmentReader: _ =>
+                {
+                    credentialReads++;
+                    return "synthetic-product-credential";
+                });
 
             var readiness = await runtime.CheckAsync(ProductRuntimeFixture.ObservedAt);
 
@@ -284,16 +300,70 @@ public sealed class ProductQueryRuntimeTests
             Assert.Equal(
                 "Unavailable",
                 Assert.Single(readiness.Checks).State);
+            Assert.Equal(0, credentialReads);
         }
         finally
         {
-            Environment.SetEnvironmentVariable(credentialName, null);
             SqliteConnection.ClearAllPools();
             if (Directory.Exists(root))
             {
                 Directory.Delete(root, recursive: true);
             }
         }
+    }
+
+    [Fact]
+    public async Task SwappedProviderAuthorityStopsBeforeCredentialLookupAndHttpDispatch()
+    {
+        var credentialReads = 0;
+        var handler = new CountingHttpMessageHandler();
+        using var client = new HttpClient(handler, disposeHandler: false)
+        {
+            BaseAddress = new Uri("https://api.openai.com/", UriKind.Absolute),
+            Timeout = TimeSpan.FromSeconds(25),
+        };
+        var swappedAuthority = ProductProviderOperationalAuthority.Parse(
+            ProductProviderOperation.GroundedGeneration,
+            "AUTH-TEST-GROUNDED-GENERATION");
+        var source = new ProductProviderCredentialSource(
+            swappedAuthority,
+            ProductProviderOperation.QueryEmbedding,
+            "RAG_CHALLENGE_TEST_PRODUCT_CREDENTIAL",
+            _ =>
+            {
+                credentialReads++;
+                return "synthetic-product-credential";
+            });
+        var provider = new OpenAiHttpEmbeddingProvider(client, source.ReadAsync);
+
+        await Assert.ThrowsAsync<InvalidOperationException>(() =>
+            provider.EmbedAsync(new EmbeddingBatchRequest(
+                new EmbeddingProviderDescriptor(
+                    "openai",
+                    "text-embedding-3-small",
+                    "text-embedding-3-small",
+                    dimensions: 3),
+                ["synthetic question"],
+                maximumUtf8Bytes: 4096)));
+
+        Assert.Equal(0, credentialReads);
+        Assert.Equal(0, handler.CallCount);
+    }
+
+    [Theory]
+    [InlineData(null)]
+    [InlineData("")]
+    [InlineData("auth-lowercase")]
+    [InlineData("AUTH-")]
+    [InlineData("AUTH-A-")]
+    [InlineData("AUTH--INVALID")]
+    [InlineData("AUTH-INVALID_VALUE")]
+    public void OperationalAuthorityRequiresABoundedAuthReference(string? reference)
+    {
+        Assert.Throws<ArgumentException>(() =>
+            ProductProviderOperationalAuthority.Parse(
+                ProductProviderOperation.QueryEmbedding,
+                reference));
     }
 
     private static async Task<long> ScalarAsync(string path, string sql)
@@ -306,6 +376,19 @@ public sealed class ProductQueryRuntimeTests
         return Convert.ToInt64(
             await command.ExecuteScalarAsync(),
             System.Globalization.CultureInfo.InvariantCulture);
+    }
+
+    private sealed class CountingHttpMessageHandler : HttpMessageHandler
+    {
+        internal int CallCount { get; private set; }
+
+        protected override Task<HttpResponseMessage> SendAsync(
+            HttpRequestMessage request,
+            CancellationToken cancellationToken)
+        {
+            CallCount++;
+            throw new InvalidOperationException("HTTP dispatch was not expected.");
+        }
     }
 
     private static class ProductRuntimeFixture

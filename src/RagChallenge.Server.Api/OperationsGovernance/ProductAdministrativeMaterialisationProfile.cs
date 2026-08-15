@@ -65,6 +65,9 @@ internal static class ProductAdministrativeMaterialisationProfile
         options.Validate();
         var credentialReference = OpaqueEnvironmentCredentialReference.Parse(
             options.Embedding.CredentialEnvironmentVariable);
+        var operationalAuthority = ProductProviderOperationalAuthority.Parse(
+            ProductProviderOperation.AdministrativeIndexEmbedding,
+            options.Embedding.OperationalAuthorityReference);
         var selectedDependencies = dependencies ??
             ProductAdministrativeMaterialisationDependencies.CreateDefault();
         var authorityResolver = selectedDependencies.AuthorityResolverFactory(storeOptions) ??
@@ -79,15 +82,14 @@ internal static class ProductAdministrativeMaterialisationProfile
             throw new ArgumentException(
                 "The product embedding client factory returned no client.",
                 nameof(dependencies));
+        var credentialSource = new ProductProviderCredentialSource(
+            operationalAuthority,
+            ProductProviderOperation.AdministrativeIndexEmbedding,
+            credentialReference.EnvironmentVariableName,
+            selectedDependencies.CredentialEnvironmentReader);
         var embeddingProvider = new OpenAiHttpEmbeddingProvider(
             embeddingClient,
-            cancellationToken =>
-            {
-                cancellationToken.ThrowIfCancellationRequested();
-                return ValueTask.FromResult(
-                    selectedDependencies.CredentialEnvironmentReader(
-                        credentialReference.EnvironmentVariableName) ?? string.Empty);
-            });
+            credentialSource.ReadAsync);
         var renderManifestStore = selectedDependencies.RenderManifestStoreFactory(storeOptions) ??
             throw new ArgumentException(
                 "The product render-manifest factory returned no store.",
@@ -181,6 +183,8 @@ internal sealed class ProductEmbeddingOptions
     public int Dimensions { get; init; }
 
     public string CredentialEnvironmentVariable { get; init; } = string.Empty;
+
+    public string OperationalAuthorityReference { get; init; } = string.Empty;
 }
 
 internal sealed record ProductAdministrativeMaterialisationDependencies(
