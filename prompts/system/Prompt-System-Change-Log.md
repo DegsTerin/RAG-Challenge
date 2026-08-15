@@ -2,7 +2,7 @@
 
 ## Versão atual
 
-- Versão: `4.14.1`
+- Versão: `4.15.0`
 - Data: 2026-08-15
 - Status: `STATE-07` ativo; ADR-0011 `accepted`, reconciliado e com a correção
   interna da política de serving implementada; o A0 candidato-específico
@@ -68,19 +68,15 @@
   `accepted`; após o bloqueio histórico por ausência local do SDK, o
   proprietário concedeu autoridade delimitada ao npm registry, o grafo exato
   `@openai/codex-sdk` `0.147.0` foi locked e a Etapa 2 implementou e validou o
-  orchestrator determinístico de desenvolvimento. A prontidão é
-  `MULTI_AGENT_READY_WITH_CONDITIONS`: somente fake local está operacional; o
-  resume persistido está mapeado/testado por contrato e permanece sem execução
-  real, enquanto nova thread Codex real permanece
-  `ARCHITECTURE_CHANGE_REQUIRED`; após avaliação documental local do SDK
-  locked, o proprietário manteve ADR-0016 `accepted` e não `superseded`,
-  preservou `FakeAgentRunner` como a única baseline operacional validada e não
-  criou ou aceitou ADR-0017 naquele boundary; a solicitação posterior do
-  proprietário preparou ADR-0017, depois explicitamente `accepted`,
-  preservando o núcleo
-  determinístico e selecionando como candidata a sequência oficial do Codex
-  App Server `thread/start` → checkpoint → `turn/start`, sem usar
-  `OPENAI_API_KEY`; implementação e chamada real permanecem delimitadas;
+  orchestrator determinístico de desenvolvimento. A limitação posterior de
+  identidade pré-turno da SDK foi resolvida por ADR-0017, explicitamente
+  `accepted`: os commits integrados `583c3b4` e `9512d6e` substituíram somente
+  o transporte real pela dependência direta `@openai/codex` `0.147.0` e pela
+  sequência App Server `thread/start` → checkpoint → `turn/start`. A sessão
+  local `chatgpt` foi validada sem `OPENAI_API_KEY`; testes, gate canônico e um
+  turn real read-only controlado passaram. A prontidão do tooling é agora
+  `MULTI_AGENT_READY`, mantendo `FakeAgentRunner` para CI e autoridade própria
+  obrigatória para cada execução;
   a política de idioma exige explicitamente en-GB em subject, body e footer de
   toda nova mensagem de commit pertencente ao projeto, sem transformar essa
   regra em autoridade implícita para amend, rebase ou reescrita de histórico;
@@ -98,6 +94,33 @@ A versão do corpus é independente da versão futura do software.
 
 Toda alteração atualiza este arquivo e, quando necessário,
 [`../Start-Here.md`](../Start-Here.md).
+
+## 4.15.0 — 2026-08-15
+
+- Registra a implementação do ADR-0017 nos commits técnicos integrados
+  `583c3b4` e `9512d6e`, preservando o coordenador determinístico, contracts,
+  worktrees, integração sequencial, quality gate e Human Gate externo de
+  ADR-0016.
+- Substitui somente `@openai/codex-sdk` pela dependência direta e exata
+  `@openai/codex` `0.147.0` e materializa o cliente Codex App Server JSONL com
+  `thread/start`, checkpoint durável antes de `turn/start`, resume, timeout e
+  structured output fechado.
+- Expõe `--runner codex` somente com `--authority-reference`; mantém
+  `FakeAgentRunner` como runner determinístico de CI; nega approval, user
+  input, web search, agent network, MCP, plugins e capabilities externas.
+- Registra o preflight sanitizado `chatgpt`, sem herdar ou usar
+  `OPENAI_API_KEY`, e a correção que removeu campos condicionados à capability
+  experimental antes da validação real.
+- Registra `npm run check`, o gate canônico limpo e o único run real read-only
+  `run-38b7dabe-491d-40f8-baaf-ce11906bd78e` como `PASS`, com identidade
+  persistida durante `RUNNING`, resultado terminal validado e zero locks.
+- Reclassifica somente o tooling de desenvolvimento como
+  `MULTI_AGENT_READY`. Cada execução continua exigindo plano fechado, baseline
+  limpa e autoridade próprios; produto, provider de produto, Human Gate,
+  lifecycle, produção, push, merge, release e deploy permanecem fora do
+  escopo.
+- Classificação SemVer: `MINOR`, porque uma capacidade de execução Codex real
+  aceita foi materializada sem quebrar os contratos determinísticos existentes.
 
 ## 4.14.1 — 2026-08-15
 

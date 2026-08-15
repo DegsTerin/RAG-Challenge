@@ -8488,3 +8488,50 @@ contém somente fatos cronológicos.
 - Integridade append-only: esta entrada preserva byte a byte o prefixo anterior
   de 540.501 bytes no SHA-256
   `7dcd8c3e7afecfc0c34e2fb738caae24d18c2f88d86ea3c9f1a5a320c8661dca`.
+
+## 2026-08-15 — ADR-0017 implementado e runner Codex ativado
+
+- Autoridade: aceitação explícita `ADR-0017: ACEITAR.` e pedido delimitado
+  anterior do proprietário para tornar Stage 0, Stage 1 e Stage 2 operacionais,
+  incluindo uma validação real controlada e excluindo `OPENAI_API_KEY`.
+- Runtime preflight: aplicável antes da alteração executável; zero processo ou
+  listener pertencente ao RAG-Challenge foi encontrado, portanto nenhum
+  processo foi encerrado.
+- Implementação: os commits de origem `76d40b3` e `bf31821`, integrados
+  seletivamente como `583c3b4` e `9512d6e`, substituíram o SDK pelo cliente
+  JSONL do Codex App Server, mantiveram o núcleo determinístico e
+  `FakeAgentRunner`, adicionaram `--runner codex` com
+  `--authority-reference`, start/resume, checkpoint pré-turno, structured
+  output, timeout, encerramento do processo próprio e negação de approval,
+  user input, web search, agent network, MCP, plugins e capabilities externas.
+- Dependência e autenticação: `@openai/codex` permanece locked diretamente em
+  `0.147.0`. O `account/read` sanitizado confirmou somente o modo `chatgpt`;
+  o ambiente filho usa allowlist fechada e não herda `OPENAI_API_KEY`.
+- Correção de protocolo: a primeira tentativa orquestrada parou antes de criar
+  thread ou turn porque `runtimeWorkspaceRoots` exigia `experimentalApi`. O
+  diagnóstico seguinte mostrou a mesma exigência para `environments`. Ambos e
+  os demais campos experimentais foram removidos; `cwd` e a sandbox policy
+  explícita do turn preservam o isolamento estável. Um preflight posterior
+  obteve identidade durável sem iniciar turn.
+- Validação real: o run
+  `run-38b7dabe-491d-40f8-baaf-ce11906bd78e`, sobre o commit técnico de origem
+  `bf318213cccbddfa91d10dc5e7555e0f547b3431`, executou uma task read-only e
+  exatamente um turn real. A revisão `4` persistiu a identidade da thread
+  enquanto a task ainda estava `RUNNING`; as revisões `5` e `6` registraram
+  `PASS`; a validação persistida confirmou zero locks e nenhum stop condition.
+- Quality Gate: `npm run check` passou com 87 testes, 85 aprovados, zero falha
+  e dois skips condicionados à permissão de criar file symlink; cobertura do
+  orchestrator 81,89% de linhas e 75,85% de branches. O gate canônico limpo
+  passou 215 testes unitários, 11 de arquitetura, 279 de integração, 45 web e
+  87 do orchestrator; cobertura .NET 95,38%/67,23%; auditoria aprovada para 442
+  arquivos não ignorados.
+- Disposição: `MULTI_AGENT_READY` somente para o tooling de desenvolvimento.
+  Cada execução futura permanece deny-by-default e exige plano fechado,
+  baseline limpa e autoridade delimitada próprios. Produto, provider de
+  produto, dados reais, Human Gate, lifecycle, produção, push, merge, release
+  e deploy não foram alterados ou autorizados.
+- Preservação: os três documentos Stage 0/1/2 do proprietário permaneceram
+  não rastreados e sem alteração.
+- Integridade append-only: esta entrada preserva byte a byte o prefixo anterior
+  de 541.704 bytes no SHA-256
+  `fd577ffcea1eaa3bb78eca0247a79e23135e8b6ba7882874e5561c09eefaabb3`.

@@ -34,30 +34,41 @@ proprietários.
   determinístico isolado em `tools/ai-orchestrator/` nos commits `b10d8ac` a
   `94ea9b7`. O gate canônico limpo passou 215 testes unitários, 11 de
   arquitetura, 279 de integração, 45 web e 81 do orchestrator; dry run e E2E
-  controlado com `FakeAgentRunner` passaram. A disposição operacional é
-  `MULTI_AGENT_READY_WITH_CONDITIONS`: somente fake local está operacional; o
+  controlado com `FakeAgentRunner` passaram. Naquela baseline, a disposição
+  operacional era `MULTI_AGENT_READY_WITH_CONDITIONS`: somente fake local
+  estava operacional; o
   resume persistido está mapeado e testado por contrato, não exposto pelo CLI
   e não exercitado contra Codex real. O SDK não fornece ID de nova thread
   antes do primeiro turn, portanto um start Codex real retorna
   `ARCHITECTURE_CHANGE_REQUIRED`. Nenhuma chamada Codex/provider, secret,
-  Human Gate ou mudança de lifecycle ocorreu. Após avaliação documental local
-  do SDK locked, o proprietário decidiu manter ADR-0016 `accepted` e não
+  Human Gate ou mudança de lifecycle havia ocorrido naquele boundary. Após
+  avaliação documental local do SDK locked, o proprietário decidiu manter
+  ADR-0016 `accepted` e não
   `superseded`, preservar `FakeAgentRunner` como a única baseline operacional
   validada e manter `NEW_REAL_START` sob
-  `ARCHITECTURE_CHANGE_REQUIRED`. Nenhum ADR-0017 foi criado ou aceito, e
-  nenhuma versão adicional do SDK foi verificada.
+  `ARCHITECTURE_CHANGE_REQUIRED`. Naquela decisão, nenhum ADR-0017 foi criado
+  ou aceito, e nenhuma versão adicional do SDK foi verificada.
 - Sob `AUTH-MULTI-AGENT-REAL-RUNNER-PREP-001`, a solicitação posterior do
   proprietário para tornar Stage 0, Stage 1 e Stage 2 operacionais autorizou a
   preparação documental do sucessor ADR-0017. A consulta oficial e o registry
   npm confirmaram que `@openai/codex-sdk` estável permanece `0.147.0`; a SDK
   continua sem identidade pré-turno. ADR-0017 foi depois explicitamente
-  `accepted` e seleciona como candidata a sequência oficial do Codex App
-  Server `thread/start` →
-  checkpoint durável → `turn/start`, usando somente o estado de autenticação
-  Codex local existente após validação e proibindo `OPENAI_API_KEY`. Nenhum
-  código, chamada real, secret, billing, Human Gate ou lifecycle foi alterado
-  até a reconciliação da decisão. O pedido anterior do proprietário permanece
-  como autoridade delimitada para implementação e uma validação controlada.
+  `accepted` e a implementação substituiu somente o transporte SDK pelo Codex
+  App Server `thread/start` → checkpoint durável → `turn/start` nos commits
+  técnicos `583c3b4` e `9512d6e`. A dependência direta está locked em
+  `@openai/codex` `0.147.0`; a CLI expõe `--runner codex` somente com
+  `--authority-reference`, valida `account/read` como sessão `chatgpt` e não
+  herda `OPENAI_API_KEY`. O primeiro preflight de execução parou antes de criar
+  thread ou turn porque dois campos exigiam `experimentalApi`; a correção os
+  removeu e manteve somente o protocolo estável. Uma única validação real,
+  read-only e controlada passou no run
+  `run-38b7dabe-491d-40f8-baaf-ce11906bd78e`: a revisão `4` já continha a
+  identidade durável enquanto a task permanecia `RUNNING`, as revisões `5` e
+  `6` registraram `PASS`, e locks finais foram zero. A classificação atual do
+  tooling é `MULTI_AGENT_READY` dentro do envelope de desenvolvimento; cada
+  execução futura continua exigindo plano, baseline limpa e autoridade
+  delimitada próprios. Produto, provider do produto, secret, Human Gate e
+  lifecycle não foram alterados.
 - Posição: `STATE-00 DISCOVERY` encerrado; `GATE-B01
   ARCHITECTURE_BOOTSTRAP_DECISION` aprovado e encerrado; `STATE-01
   PROJECT_SETUP` encerrado após Human Gate aprovado sem ressalvas em
@@ -1593,7 +1604,7 @@ proprietários.
   a política de idioma acrescentou o 21º documento público por incremento
   versionado, e o ADR-0003 acrescentou o 22º.
 - A baseline aprovada no Human Gate de `STATE-00` permanece `3.4.0`.
-- O corpus de instruções vigente possui versão `4.14.1` e 13 arquivos em
+- O corpus de instruções vigente possui versão `4.15.0` e 13 arquivos em
   `prompts/`.
 - Visão, requisitos, arquitetura, RAG, segurança, qualidade, lifecycle,
   roadmap, backlog, estado, histórico e templates estão documentados.
@@ -2361,35 +2372,28 @@ autorizada.
 
 ## Próxima autoridade
 
-A Etapa 2 está implementada e validada para coordenação determinística local
-com `FakeAgentRunner`. O resume de uma thread Codex cuja identidade já esteja
-persistida está apenas mapeado e testado por contrato; não é exposto pelo CLI,
-não foi exercitado contra Codex real e exige autoridades separadas de
-execução, provider, rede e credencial. Cada execução continua exigindo
-envelope e autoridade próprios.
+A Etapa 2 está implementada e validada para coordenação determinística com
+`FakeAgentRunner` e com o runner Codex App Server selecionado por ADR-0017. O
+CLI expõe start e resume reais sob `--runner codex`, mas continua deny-by-default:
+cada execução exige um plano fechado, baseline Git limpa em branch `codex/`,
+`--authority-reference`, sandbox por task, approval `never`, rede de agente
+negada e estado ChatGPT local válido. `OPENAI_API_KEY` permanece fora dessa
+fronteira.
 
-Em 2026-08-15, a avaliação documental local concluiu que o SDK locked
-`0.147.0` não fornece identidade durável de nova thread antes do primeiro
-turn. A reavaliação atual confirmou `0.147.0` como release estável mais recente
-e preparou ADR-0017, posteriormente `accepted` pela frase explícita
-`ADR-0017: ACEITAR.`. O sucessor preserva ADR-0016 e substitui
-somente o transporte real pelo Codex App Server, cuja interface oficial separa
-`thread/start` de `turn/start`. A implementação ainda deve provar esse
-checkpoint antes de remover `ARCHITECTURE_CHANGE_REQUIRED` da operação real.
+Em 2026-08-15, ADR-0017 foi aceito pela frase explícita
+`ADR-0017: ACEITAR.` e implementado com o App Server estável. A autenticação
+sanitizada confirmou somente o modo `chatgpt`; `thread/start` devolveu a
+identidade antes de `turn/start`; o checkpoint foi persistido antes do turn; o
+resultado estruturado foi validado; e a execução real controlada terminou
+`PASS`. A antiga condição `ARCHITECTURE_CHANGE_REQUIRED` para
+`NEW_REAL_START` está resolvida por ADR-0017 e não se aplica ao runner atual.
 
-A preparação e a aceitação de ADR-0017 estão concluídas. A próxima operação
-diretamente relacionada é implementar e validar o successor runner sob o
-pedido delimitado do proprietário. Antes de qualquer primeiro turn, a
-implementação deve comprovar identidade externa
-resumível e durável antes de `turn/start`, além de preservar start/resume,
-working directory isolado, sandbox, approval/network deny e structured output
-validável.
-
-Essa autoridade eventual não inclui chamada real de agente, secret, billing,
-provider de produto, produção, push, merge, release, Human Gate ou mudança de
-lifecycle. Se a versão verificada do SDK não suportar start/resume, working
-directory isolado, sandbox compatível e resultado validável, a implementação
-para com `ARCHITECTURE_CHANGE_REQUIRED`.
+Não há implementação restante diretamente relacionada à ativação de Stage 0,
+Stage 1 e Stage 2. A próxima execução do orchestrator, quando houver trabalho
+de desenvolvimento concreto, deve receber um novo envelope delimitado do
+proprietário e um plano fechado; a prontidão não concede autoridade contínua.
+Provider de produto, produção, push, merge, release, Human Gate e mudança de
+lifecycle continuam fora dessa ativação.
 
 Um sucessor de RB-2/RB-3 continua fora dessa execução e exige autoridade
 separada, duas revisões humanas independentes e adjudicação humana real. Os

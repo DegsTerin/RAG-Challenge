@@ -344,3 +344,51 @@ Commits observed before documentary commit: b10d8ac, 9433962, ac41b13, a4889c3, 
 ```
 
 No push, merge, release or deployment was performed.
+
+## 19. ADR-0017 activation addendum — 2026-08-15
+
+This append-only addendum supersedes only the current operational conclusions
+in sections 15 to 17. It does not reinterpret the historical Stage 2 execution
+or its evidence.
+
+The owner explicitly accepted ADR-0017 and retained the preceding bounded
+request as authority for implementation and one controlled real validation.
+Source commits `76d40b3` and `bf31821`, integrated selectively as `583c3b4`
+and `9512d6e`, replaced `@openai/codex-sdk` with the direct, exact
+`@openai/codex` `0.147.0` App Server boundary. The CLI now accepts
+`--runner codex` only with `--authority-reference`; `FakeAgentRunner` remains
+the deterministic default and CI runner.
+
+The App Server client uses the stable JSONL sequence `initialize`,
+`account/read`, `thread/start`, durable checkpoint, and only then `turn/start`.
+It validates only `chatgpt` account mode, excludes `OPENAI_API_KEY` from the
+child environment, denies agent network and web search, disables unrelated
+capability features, rejects every server approval or user-input request, and
+requires closed structured output. The first execution preflight stopped
+before a thread or turn because `runtimeWorkspaceRoots` and `environments`
+require the experimental API capability. The stable client removed those
+fields, retained `cwd` and the explicit turn sandbox policy, and then obtained
+a durable thread identity without starting a turn.
+
+Verification on clean technical commit
+`bf318213cccbddfa91d10dc5e7555e0f547b3431` produced:
+
+| Verification | Result | Evidence |
+|---|---|---|
+| Sanitised local auth check | PASS | `account/read` returned account type `chatgpt`; no account identity or secret was recorded. |
+| Orchestrator package gate | PASS | 87 tests: 85 passed, 0 failed and 2 skipped because file-symlink creation is not permitted on this Windows host; 81.89% lines and 75.85% branches. |
+| Canonical `./eng/ci.ps1 -Offline` | PASS | 215 unit, 11 architecture, 279 integration, 45 dashboard and 87 orchestrator tests; .NET coverage 95.38% lines and 67.23% branches; repository audit passed 442 non-ignored files. |
+| Controlled real runner | PASS | Run `run-38b7dabe-491d-40f8-baaf-ce11906bd78e` executed one read-only task and one real turn. Revision 4 contained the durable thread ID while the task was still `RUNNING`; revisions 5 and 6 recorded `PASS`; final locks were zero. |
+| Persisted-state validation | PASS | The CLI re-read revision 6, the terminal attempt, thread binding and empty lock set without mutation. |
+
+The resulting current readiness is:
+
+```text
+MULTI_AGENT_READY
+```
+
+This readiness is limited to the development orchestrator boundary. It does
+not create standing authority: each future run still requires a closed plan,
+an exact clean `codex/` baseline and its own bounded authority reference.
+Product providers, product data, production, push, merge, release, Human Gate
+and lifecycle remain outside this activation.

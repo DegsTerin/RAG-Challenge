@@ -2,7 +2,7 @@
 
 ## Status
 
-Este índice descreve o corpus documental vigente `4.14.1`. `STATE-00`,
+Este índice descreve o corpus documental vigente `4.15.0`. `STATE-00`,
 `GATE-B01` e `STATE-01` a `STATE-06` estão encerrados com seus gates
 registrados. `STATE-07 TESTING_HOMOLOGATION` está ativo; incrementos locais,
 offline, determinísticos e sintéticos foram executados e reconciliados, sem
@@ -18,19 +18,15 @@ factual pertence a
 [`Current-State.md`](../prompts/state/Current-State.md).
 
 A Etapa 2 implementou e validou o orchestrator determinístico de
-desenvolvimento aceito por ADR-0016. Somente a operação local com
-`FakeAgentRunner` está operacional sob envelope próprio. O resume Codex está
-mapeado e testado por contrato, mas não é exposto pelo CLI, não foi exercitado
-contra Codex real e continua a exigir autoridades separadas de execução,
-provider, rede e credencial. O início de uma nova thread Codex real permanece
-`ARCHITECTURE_CHANGE_REQUIRED`, sem alterar produto, Human Gate ou lifecycle.
-A avaliação atual confirmou que a versão estável mais recente da SDK continua
-`0.147.0`; ADR-0017 foi depois explicitamente `accepted`. O sucessor preserva
-o núcleo da Etapa 2 e propõe o Codex App Server para obter e persistir
-`thread.id` antes de `turn/start`, sem usar `OPENAI_API_KEY`. Nenhuma
-implementação ou chamada real foi executada até esta reconciliação;
-implementação e validação permanecem no envelope operacional já solicitado
-pelo proprietário.
+desenvolvimento aceito por ADR-0016. ADR-0017 foi explicitamente `accepted` e
+substituiu somente o transporte SDK pelo Codex App Server estável em
+`@openai/codex` `0.147.0`. A CLI agora oferece start e resume por
+`--runner codex`, persiste `thread.id` antes de `turn/start`, exige
+`--authority-reference`, usa a sessão ChatGPT local validada e não herda
+`OPENAI_API_KEY`. Testes contratuais, o gate canônico e uma única validação real
+read-only passaram; a prontidão do tooling é `MULTI_AGENT_READY`. Cada execução
+futura permanece sob plano e autoridade próprios, sem alterar produto, Human
+Gate ou lifecycle.
 
 ## Comece aqui
 
@@ -103,9 +99,9 @@ pelo proprietário.
   (`accepted`; implementation and corrective retest completed separately)
 - [ADR-0016 — Deterministic Development Orchestrator and Codex Runner Boundary](architecture/ADR-0016-Deterministic-Development-Orchestrator-And-Codex-Runner-Boundary.md)
   (`accepted`; Stage 2 implementation and exact package validation completed;
-  starting a new real Codex thread remains an architecture condition)
+  ADR-0017 replaces only the former SDK transport limitation)
 - [ADR-0017 — Codex App Server Pre-Turn Checkpoint Runner](architecture/ADR-0017-Codex-App-Server-Pre-Turn-Checkpoint-Runner.md)
-  (`accepted`; implementation and one controlled real validation remain separate)
+  (`accepted` and implemented; one controlled real validation passed)
 - [Contratos canônicos de STATE-02](architecture/STATE-02-Canonical-Contracts.md)
 - [Dicionário lógico de dados e índice de S03-A](data/STATE-03-S03-A-Data-Dictionary.md)
 - [Threat model de STATE-02](security/STATE-02-Threat-Model.md)

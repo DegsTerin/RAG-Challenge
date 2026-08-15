@@ -113,15 +113,15 @@ Codex thread remains `ARCHITECTURE_CHANGE_REQUIRED`; authentication, real
 agent execution and lifecycle remain separately governed.
 
 ADR-0017 was prepared on 2026-08-15 under
-`AUTH-MULTI-AGENT-REAL-RUNNER-PREP-001` and explicitly accepted by the owner
+`AUTH-MULTI-AGENT-REAL-RUNNER-PREP-001` and was explicitly accepted by the owner
 on the same date through `ADR-0017: ACEITAR.`. It preserves
 the accepted deterministic coordinator and replaces only the real Codex
 runner transport with the officially documented App Server sequence
-`thread/start` → durable checkpoint → `turn/start`. The proposal uses only
-the existing user-scoped Codex authentication state after validation and excludes
-`OPENAI_API_KEY`. Acceptance is not a Human Gate; implementation and one
-controlled real validation remain bounded by the owner's preceding activation
-request.
+`thread/start` → durable checkpoint → `turn/start`. The implementation in
+`583c3b4` and `9512d6e` uses only the validated user-scoped ChatGPT session and
+excludes `OPENAI_API_KEY`. Contract tests, the canonical gate and one bounded
+read-only real turn passed. Acceptance and implementation are not a Human Gate;
+every later run still requires its own plan and execution authority.
 
 The later combined audit failed on `AQG-S02-001`, an internal contradiction
 between observation-inclusive generation identity and observation-only
@@ -315,9 +315,10 @@ Dashboard -- versioned HTTP --> API
   completed under separate authority)
 - [ADR-0016 — Deterministic Development Orchestrator and Codex Runner Boundary](ADR-0016-Deterministic-Development-Orchestrator-And-Codex-Runner-Boundary.md)
   (`accepted`; Stage 2 implementation and exact dependency validation are
-  complete; a new real Codex thread still requires an architecture change)
+  complete; ADR-0017 supersedes only its SDK transport limitation)
 - [ADR-0017 — Codex App Server Pre-Turn Checkpoint Runner](ADR-0017-Codex-App-Server-Pre-Turn-Checkpoint-Runner.md)
-  (`accepted`; preserves the deterministic core and supplies pre-turn identity)
+  (`accepted` and implemented; preserves the deterministic core, supplies
+  pre-turn identity and passed one controlled real validation)
 
 ## STATE-02 design artefacts
 
@@ -339,9 +340,8 @@ Dashboard -- versioned HTTP --> API
 - A separately authorised successor review/adjudication package with two
   independent human reviews and real human adjudication, and if required a
   successor vector freeze, before any RB-4 execution can be authorised.
-- Implementation and validation of accepted ADR-0017 under the owner's bounded
-  Stage 0/1/2 activation request. Current fake execution remains available;
-  persisted-thread resume remains contract evidence until exercised.
+- A new bounded authority and closed plan for each future orchestrator run;
+  readiness does not provide standing execution authority.
 - Product evaluation, provider, security, accessibility, operational recovery,
   load, OCI and production evidence that remains `NOT_RUN` or separately
   governed in Current State.
