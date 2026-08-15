@@ -1,0 +1,41 @@
+{
+  "name": "rag-challenge-ai-orchestrator",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "bin": {
+    "rag-ai-orchestrator": "./dist/src/cli.js"
+  },
+  "engines": {
+    "node": ">=24.18.0 <25",
+    "npm": ">=11.16.0 <12"
+  },
+  "devEngines": {
+    "runtime": {
+      "name": "node",
+      "version": ">=24.18.0 <25",
+      "onFail": "error"
+    },
+    "packageManager": {
+      "name": "npm",
+      "version": ">=11.16.0 <12",
+      "onFail": "error"
+    }
+  },
+  "scripts": {
+    "lint": "node ./scripts/lint.mjs",
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "build": "tsc -p tsconfig.build.json",
+    "cli": "node ./dist/src/cli.js",
+    "test": "npm run build && node --test --test-concurrency=1 \"dist/test/*.test.js\"",
+    "test:coverage": "npm run build && node --test --experimental-test-coverage --test-coverage-lines=70 --test-coverage-branches=45 --test-concurrency=1 \"dist/test/*.test.js\"",
+    "check": "npm run lint && npm run typecheck && npm run test:coverage"
+  },
+  "dependencies": {
+    "@openai/codex-sdk": "0.147.0"
+  },
+  "devDependencies": {
+    "@types/node": "24.13.3",
+    "typescript": "5.7.3"
+  }
+}
