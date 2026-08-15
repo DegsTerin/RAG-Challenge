@@ -36,9 +36,27 @@ public sealed class SetupHostArtefactTests
             .GetProperty("Administration")
             .GetProperty("Enabled")
             .GetBoolean();
+        var product = document.RootElement
+            .GetProperty("RagChallenge")
+            .GetProperty("Product");
+        var operationalGrants = product.GetProperty("OperationalGrants");
+        var administrativeEmbedding = document.RootElement
+            .GetProperty("RagChallenge")
+            .GetProperty("Administration")
+            .GetProperty("ProductMaterialisation")
+            .GetProperty("Embedding");
 
         Assert.False(allowExternalServices);
         Assert.False(administrationEnabled);
+        Assert.Equal(
+            string.Empty,
+            operationalGrants.GetProperty("QueryEmbeddingAuthorityReference").GetString());
+        Assert.Equal(
+            string.Empty,
+            operationalGrants.GetProperty("GroundedGenerationAuthorityReference").GetString());
+        Assert.Equal(
+            string.Empty,
+            administrativeEmbedding.GetProperty("TrustedOperationalGrantReference").GetString());
     }
 
     [Fact]
@@ -330,6 +348,9 @@ public sealed class SetupHostArtefactTests
             "$env:RagChallenge__Product__GroundedGenerationAuthorityReference",
             launcher,
             StringComparison.Ordinal);
+        Assert.Contains("AUTH-QUERY-EMBEDDING-", launcher, StringComparison.Ordinal);
+        Assert.Contains("AUTH-GROUNDED-GENERATION-", launcher, StringComparison.Ordinal);
+        Assert.DoesNotContain("OperationalGrants", launcher, StringComparison.Ordinal);
         Assert.Contains(
             "SetEnvironmentVariable(",
             launcher,
@@ -351,6 +372,7 @@ public sealed class SetupHostArtefactTests
         Assert.DoesNotContain(".env.local", postgreSqlLauncher, StringComparison.OrdinalIgnoreCase);
         Assert.Contains("QueryEmbeddingAuthorityReference", postgreSqlLauncher, StringComparison.Ordinal);
         Assert.Contains("GroundedGenerationAuthorityReference", postgreSqlLauncher, StringComparison.Ordinal);
+        Assert.DoesNotContain("OperationalGrants", postgreSqlLauncher, StringComparison.Ordinal);
         Assert.DoesNotContain(
             "corpus/oracle-database",
             postgreSqlLauncher.Replace('\\', '/'),

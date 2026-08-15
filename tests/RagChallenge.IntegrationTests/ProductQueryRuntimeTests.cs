@@ -166,9 +166,9 @@ public sealed class ProductQueryRuntimeTests
                 [ProductQueryRuntimeOptions.CatalogueProfileKey] = "oracle-database-19c",
                 [ProductQueryRuntimeOptions.CredentialKey] = "MISSING_PRODUCT_TEST_KEY",
                 [ProductQueryRuntimeOptions.QueryEmbeddingAuthorityKey] =
-                    "AUTH-TEST-QUERY-EMBEDDING",
+                    "AUTH-QUERY-EMBEDDING-TEST-001",
                 [ProductQueryRuntimeOptions.GroundedGenerationAuthorityKey] =
-                    "AUTH-TEST-GROUNDED-GENERATION",
+                    "AUTH-GROUNDED-GENERATION-TEST-001",
             };
             var missing = new ConfigurationBuilder()
                 .AddInMemoryCollection(settings)
@@ -216,9 +216,9 @@ public sealed class ProductQueryRuntimeTests
                 ProductRuntimeFixture.ApprovedRightsReference.Value,
                 $"--{ProductQueryRuntimeOptions.CredentialKey}", credentialName,
                 $"--{ProductQueryRuntimeOptions.QueryEmbeddingAuthorityKey}",
-                "AUTH-TEST-QUERY-EMBEDDING",
+                "AUTH-QUERY-EMBEDDING-TEST-001",
                 $"--{ProductQueryRuntimeOptions.GroundedGenerationAuthorityKey}",
-                "AUTH-TEST-GROUNDED-GENERATION",
+                "AUTH-GROUNDED-GENERATION-TEST-001",
                 "--RagChallenge:Setup:AllowExternalServices", "true",
             ]);
             var probe = Assert.IsType<ProductQueryRuntime>(
@@ -283,10 +283,11 @@ public sealed class ProductQueryRuntimeTests
                 credentialName,
                 ProductProviderOperationalAuthority.Parse(
                     ProductProviderOperation.QueryEmbedding,
-                    "AUTH-TEST-QUERY-EMBEDDING"),
+                    "AUTH-QUERY-EMBEDDING-TEST-001"),
                 ProductProviderOperationalAuthority.Parse(
                     ProductProviderOperation.GroundedGeneration,
-                    "AUTH-TEST-GROUNDED-GENERATION"),
+                    "AUTH-GROUNDED-GENERATION-TEST-001"),
+                ProductProviderOperationalGrantSet.DenyAll(),
                 ApplyMigrations: false),
                 credentialEnvironmentReader: _ =>
                 {
@@ -324,9 +325,11 @@ public sealed class ProductQueryRuntimeTests
         };
         var swappedAuthority = ProductProviderOperationalAuthority.Parse(
             ProductProviderOperation.GroundedGeneration,
-            "AUTH-TEST-GROUNDED-GENERATION");
+            "AUTH-GROUNDED-GENERATION-TEST-001");
+        var trustedGrants = new ProductProviderOperationalGrantSet([swappedAuthority]);
         var source = new ProductProviderCredentialSource(
             swappedAuthority,
+            trustedGrants,
             ProductProviderOperation.QueryEmbedding,
             "RAG_CHALLENGE_TEST_PRODUCT_CREDENTIAL",
             _ =>
@@ -336,7 +339,120 @@ public sealed class ProductQueryRuntimeTests
             });
         var provider = new OpenAiHttpEmbeddingProvider(client, source.ReadAsync);
 
-        await Assert.ThrowsAsync<InvalidOperationException>(() =>
+        var exception = await Assert.ThrowsAsync<ProductProviderOperationalAuthorityException>(() =>
+            provider.EmbedAsync(new EmbeddingBatchRequest(
+                new EmbeddingProviderDescriptor(
+                    "openai",
+                    "text-embedding-3-small",
+                    "text-embedding-3-small",
+                    dimensions: 3),
+                ["synthetic question"],
+                maximumUtf8Bytes: 4096)));
+
+        Assert.Contains(
+            ProductProviderOperationalAuthorityException.StopCode,
+            exception.Message,
+            StringComparison.Ordinal);
+        Assert.Equal(0, credentialReads);
+        Assert.Equal(0, handler.CallCount);
+    }
+
+    [Fact]
+    public async Task RequestedConfigurationDoesNotCreateATrustedOperationalGrant()
+    {
+        var root = Path.Combine(
+            Path.GetTempPath(),
+            "rag-challenge-product-grant-tests",
+            Guid.NewGuid().ToString("N"));
+        Directory.CreateDirectory(root);
+        var credentialReads = 0;
+        var handler = new CountingHttpMessageHandler();
+        using var client = new HttpClient(handler, disposeHandler: false)
+        {
+            BaseAddress = new Uri("https://api.openai.com/", UriKind.Absolute),
+            Timeout = TimeSpan.FromSeconds(25),
+        };
+
+        try
+        {
+            var configuration = new ConfigurationBuilder()
+                .AddInMemoryCollection(new Dictionary<string, string?>
+                {
+                    [ProductQueryRuntimeOptions.EnabledKey] = "true",
+                    [ProductQueryRuntimeOptions.StoreRootKey] = root,
+                    [ProductQueryRuntimeOptions.CatalogueProfileKey] = "oracle-database-19c",
+                    [ProductQueryRuntimeOptions.ApprovedRightsEvidenceKey] =
+                        ProductRuntimeFixture.ApprovedRightsReference.Value,
+                    [ProductQueryRuntimeOptions.CredentialKey] =
+                        "RAG_CHALLENGE_TEST_PRODUCT_CREDENTIAL",
+                    [ProductQueryRuntimeOptions.QueryEmbeddingAuthorityKey] =
+                        "AUTH-QUERY-EMBEDDING-REQUESTED-001",
+                    [ProductQueryRuntimeOptions.GroundedGenerationAuthorityKey] =
+                        "AUTH-GROUNDED-GENERATION-REQUESTED-001",
+                })
+                .Build();
+            var options = Assert.IsType<ProductQueryRuntimeOptions>(
+                ProductQueryRuntimeOptions.Resolve(configuration));
+            var source = new ProductProviderCredentialSource(
+                options.QueryEmbeddingAuthority,
+                options.OperationalGrants,
+                ProductProviderOperation.QueryEmbedding,
+                options.CredentialEnvironmentVariable,
+                _ =>
+                {
+                    credentialReads++;
+                    return "synthetic-product-credential";
+                });
+            var provider = new OpenAiHttpEmbeddingProvider(client, source.ReadAsync);
+
+            await Assert.ThrowsAsync<ProductProviderOperationalAuthorityException>(() =>
+                provider.EmbedAsync(new EmbeddingBatchRequest(
+                    new EmbeddingProviderDescriptor(
+                        "openai",
+                        "text-embedding-3-small",
+                        "text-embedding-3-small",
+                        dimensions: 3),
+                    ["synthetic question"],
+                    maximumUtf8Bytes: 4096)));
+
+            Assert.Equal(0, credentialReads);
+            Assert.Equal(0, handler.CallCount);
+        }
+        finally
+        {
+            Directory.Delete(root, recursive: true);
+        }
+    }
+
+    [Fact]
+    public async Task UntrustedGrantStopsBeforeCredentialLookupAndHttpDispatch()
+    {
+        var credentialReads = 0;
+        var handler = new CountingHttpMessageHandler();
+        using var client = new HttpClient(handler, disposeHandler: false)
+        {
+            BaseAddress = new Uri("https://api.openai.com/", UriKind.Absolute),
+            Timeout = TimeSpan.FromSeconds(25),
+        };
+        var requested = ProductProviderOperationalAuthority.Parse(
+            ProductProviderOperation.QueryEmbedding,
+            "AUTH-QUERY-EMBEDDING-REQUESTED-001");
+        var differentTrustedGrant = ProductProviderOperationalAuthority.Parse(
+            ProductProviderOperation.QueryEmbedding,
+            "AUTH-QUERY-EMBEDDING-TRUSTED-OTHER-001");
+        var source = new ProductProviderCredentialSource(
+            requested,
+            new ProductProviderOperationalGrantSet([differentTrustedGrant]),
+            ProductProviderOperation.QueryEmbedding,
+            "RAG_CHALLENGE_TEST_PRODUCT_CREDENTIAL",
+            _ =>
+            {
+                credentialReads++;
+                return "synthetic-product-credential";
+            });
+        var provider = new OpenAiHttpEmbeddingProvider(client, source.ReadAsync);
+
+        await Assert.ThrowsAsync<ProductProviderOperationalAuthorityException>(() =>
             provider.EmbedAsync(new EmbeddingBatchRequest(
                 new EmbeddingProviderDescriptor(
                     "openai",
@@ -358,12 +474,43 @@ public sealed class ProductQueryRuntimeTests
     [InlineData("AUTH-A-")]
     [InlineData("AUTH--INVALID")]
     [InlineData("AUTH-INVALID_VALUE")]
+    [InlineData("AUTH-GROUNDED-GENERATION-TEST-001")]
     public void OperationalAuthorityRequiresABoundedAuthReference(string? reference)
     {
         Assert.Throws<ArgumentException>(() =>
             ProductProviderOperationalAuthority.Parse(
                 ProductProviderOperation.QueryEmbedding,
                 reference));
+    }
+
+    [Fact]
+    public void OperationalAuthorityReferencesAreDistinctAcrossAllThreeOperations()
+    {
+        var administrative = ProductProviderOperationalAuthority.Parse(
+            ProductProviderOperation.AdministrativeIndexEmbedding,
+            "AUTH-ADMINISTRATIVE-INDEX-EMBEDDING-TEST-001");
+        var query = ProductProviderOperationalAuthority.Parse(
+            ProductProviderOperation.QueryEmbedding,
+            "AUTH-QUERY-EMBEDDING-TEST-001");
+        var generation = ProductProviderOperationalAuthority.Parse(
+            ProductProviderOperation.GroundedGeneration,
+            "AUTH-GROUNDED-GENERATION-TEST-001");
+        var grants = new ProductProviderOperationalGrantSet(
+            [administrative, query, generation]);
+
+        grants.Demand(
+            administrative,
+            ProductProviderOperation.AdministrativeIndexEmbedding);
+        grants.Demand(query, ProductProviderOperation.QueryEmbedding);
+        grants.Demand(generation, ProductProviderOperation.GroundedGeneration);
+        Assert.Throws<ArgumentException>(() =>
+            ProductProviderOperationalAuthority.Parse(
+                ProductProviderOperation.QueryEmbedding,
+                administrative.Reference));
+        Assert.Throws<ArgumentException>(() =>
+            ProductProviderOperationalAuthority.Parse(
+                ProductProviderOperation.GroundedGeneration,
+                query.Reference));
     }
 
     private static async Task<long> ScalarAsync(string path, string sql)

@@ -53,7 +53,15 @@ public sealed class RenderFreePackageArtefactTests
         Assert.Contains("sync: false", template, StringComparison.Ordinal);
         Assert.Contains("RagChallenge__Product__QueryEmbeddingAuthorityReference", template, StringComparison.Ordinal);
         Assert.Contains("RagChallenge__Product__GroundedGenerationAuthorityReference", template, StringComparison.Ordinal);
-        Assert.Contains("<non-deployable-AUTH-", template, StringComparison.Ordinal);
+        Assert.Contains("<replace-with-AUTH-QUERY-EMBEDDING-reference>", template, StringComparison.Ordinal);
+        Assert.Contains(
+            "RagChallenge__Product__OperationalGrants__QueryEmbeddingAuthorityReference",
+            template,
+            StringComparison.Ordinal);
+        Assert.Contains(
+            "RagChallenge__Product__OperationalGrants__GroundedGenerationAuthorityReference",
+            template,
+            StringComparison.Ordinal);
         Assert.DoesNotContain("sk-", template, StringComparison.OrdinalIgnoreCase);
     }
 
@@ -105,6 +113,14 @@ public sealed class RenderFreePackageArtefactTests
         Assert.Contains("credentialRead = $false", builder, StringComparison.Ordinal);
         Assert.Contains("$startInfo.Environment.Clear()", builder, StringComparison.Ordinal);
         Assert.DoesNotContain("$startInfo.Environment[$credentialName]", builder, StringComparison.Ordinal);
+        Assert.Contains(
+            "AUTH-QUERY-EMBEDDING-RENDER-PACKAGE-READINESS",
+            builder,
+            StringComparison.Ordinal);
+        Assert.Contains(
+            "AUTH-GROUNDED-GENERATION-RENDER-PACKAGE-READINESS",
+            builder,
+            StringComparison.Ordinal);
         Assert.Contains("http://127.0.0.1:", builder, StringComparison.Ordinal);
         Assert.Contains("loopbackReadinessValidated = $true", builder, StringComparison.Ordinal);
         Assert.DoesNotMatch(

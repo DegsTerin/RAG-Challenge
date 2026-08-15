@@ -235,10 +235,10 @@ try {
         "RagChallenge__Product__CredentialEnvironmentVariable"] = "OPENAI_API_KEY"
     $startInfo.Environment[
         "RagChallenge__Product__QueryEmbeddingAuthorityReference"] =
-        "AUTH-RENDER-PACKAGE-READINESS-QUERY-EMBEDDING"
+        "AUTH-QUERY-EMBEDDING-RENDER-PACKAGE-READINESS"
     $startInfo.Environment[
         "RagChallenge__Product__GroundedGenerationAuthorityReference"] =
-        "AUTH-RENDER-PACKAGE-READINESS-GROUNDED-GENERATION"
+        "AUTH-GROUNDED-GENERATION-RENDER-PACKAGE-READINESS"
     $startInfo.Environment["Logging__LogLevel__Default"] = "Warning"
 
     $readinessProcess = [System.Diagnostics.Process]::Start($startInfo)

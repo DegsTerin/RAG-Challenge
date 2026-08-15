@@ -26,8 +26,12 @@ services:
       - key: RagChallenge__Product__CredentialEnvironmentVariable
         value: OPENAI_API_KEY
       - key: RagChallenge__Product__QueryEmbeddingAuthorityReference
-        value: "<non-deployable-AUTH-query-embedding-placeholder>"
+        value: "<replace-with-AUTH-QUERY-EMBEDDING-reference>"
       - key: RagChallenge__Product__GroundedGenerationAuthorityReference
-        value: "<non-deployable-AUTH-grounded-generation-placeholder>"
+        value: "<replace-with-AUTH-GROUNDED-GENERATION-reference>"
+      - key: RagChallenge__Product__OperationalGrants__QueryEmbeddingAuthorityReference
+        value: "<replace-with-separately-approved-AUTH-QUERY-EMBEDDING-grant>"
+      - key: RagChallenge__Product__OperationalGrants__GroundedGenerationAuthorityReference
+        value: "<replace-with-separately-approved-AUTH-GROUNDED-GENERATION-grant>"
       - key: OPENAI_API_KEY
         sync: false

@@ -26,17 +26,28 @@ internal sealed record ProductProviderOperationalAuthority
         ProductProviderOperation operation,
         string? reference)
     {
+        var requiredPrefix = operation switch
+        {
+            ProductProviderOperation.AdministrativeIndexEmbedding =>
+                "AUTH-ADMINISTRATIVE-INDEX-EMBEDDING-",
+            ProductProviderOperation.QueryEmbedding => "AUTH-QUERY-EMBEDDING-",
+            ProductProviderOperation.GroundedGeneration => "AUTH-GROUNDED-GENERATION-",
+            _ => string.Empty,
+        };
         if (!Enum.IsDefined(operation) ||
             string.IsNullOrWhiteSpace(reference) ||
-            reference.Length < 8 ||
             reference.Length > 128 ||
-            !reference.StartsWith("AUTH-", StringComparison.Ordinal) ||
-            reference[5] is not (>= 'A' and <= 'Z') and not (>= '0' and <= '9') ||
-            reference.Any(character =>
-                character is not '-' and not (>= 'A' and <= 'Z') and not (>= '0' and <= '9')))
+            !reference.StartsWith(requiredPrefix, StringComparison.Ordinal) ||
+            reference.Length < requiredPrefix.Length + 3 ||
+            reference[requiredPrefix.Length] is not (>= 'A' and <= 'Z') and
+                not (>= '0' and <= '9') ||
+            reference.Skip(requiredPrefix.Length).Any(character =>
+                character is not '-' and
+                not (>= 'A' and <= 'Z') and
+                not (>= '0' and <= '9')))
         {
             throw new ArgumentException(
-                "A bounded non-secret AUTH-* operational authority reference is required.",
+                "A bounded operation-specific non-secret AUTH-* reference is required.",
                 nameof(reference));
         }
 
@@ -47,26 +58,76 @@ internal sealed record ProductProviderOperationalAuthority
     {
         if (Operation != expectedOperation)
         {
-            throw new InvalidOperationException(
-                "The product provider authority does not permit this operation.");
+            throw new ProductProviderOperationalAuthorityException();
         }
+    }
+}
+
+internal sealed class ProductProviderOperationalGrantSet
+{
+    private readonly HashSet<(ProductProviderOperation Operation, string Reference)> grants;
+
+    internal ProductProviderOperationalGrantSet(
+        IEnumerable<ProductProviderOperationalAuthority> trustedGrants)
+    {
+        ArgumentNullException.ThrowIfNull(trustedGrants);
+        grants = trustedGrants
+            .Select(grant => (grant.Operation, grant.Reference))
+            .ToHashSet();
+    }
+
+    internal static ProductProviderOperationalGrantSet DenyAll() => new([]);
+
+    internal static ProductProviderOperationalGrantSet FromExplicitConfiguration(
+        params (ProductProviderOperation Operation, string? Reference)[] configuredGrants) =>
+        new(configuredGrants
+            .Where(configured => !string.IsNullOrWhiteSpace(configured.Reference))
+            .Select(configured => ProductProviderOperationalAuthority.Parse(
+                configured.Operation,
+                configured.Reference)));
+
+    internal void Demand(
+        ProductProviderOperationalAuthority authority,
+        ProductProviderOperation expectedOperation)
+    {
+        ArgumentNullException.ThrowIfNull(authority);
+        authority.Revalidate(expectedOperation);
+        if (!grants.Contains((expectedOperation, authority.Reference)))
+        {
+            throw new ProductProviderOperationalAuthorityException();
+        }
+    }
+}
+
+internal sealed class ProductProviderOperationalAuthorityException : InvalidOperationException
+{
+    internal const string StopCode = "HUMAN_DECISION_REQUIRED";
+
+    internal ProductProviderOperationalAuthorityException()
+        : base(
+            "HUMAN_DECISION_REQUIRED: the exact product provider operation has no trusted operational grant.")
+    {
     }
 }
 
 internal sealed class ProductProviderCredentialSource
 {
     private readonly ProductProviderOperationalAuthority authority;
+    private readonly ProductProviderOperationalGrantSet trustedGrants;
     private readonly ProductProviderOperation expectedOperation;
     private readonly string credentialEnvironmentVariable;
     private readonly Func<string, string?> credentialReader;
 
     internal ProductProviderCredentialSource(
         ProductProviderOperationalAuthority authority,
+        ProductProviderOperationalGrantSet trustedGrants,
         ProductProviderOperation expectedOperation,
         string credentialEnvironmentVariable,
         Func<string, string?> credentialReader)
     {
         this.authority = authority ?? throw new ArgumentNullException(nameof(authority));
+        this.trustedGrants = trustedGrants ??
+            throw new ArgumentNullException(nameof(trustedGrants));
         this.expectedOperation = expectedOperation;
         this.credentialEnvironmentVariable =
             OpaqueEnvironmentCredentialReference.Parse(credentialEnvironmentVariable)
@@ -78,7 +139,7 @@ internal sealed class ProductProviderCredentialSource
     internal ValueTask<string> ReadAsync(CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
-        authority.Revalidate(expectedOperation);
+        trustedGrants.Demand(authority, expectedOperation);
         return ValueTask.FromResult(
             credentialReader(credentialEnvironmentVariable) ?? string.Empty);
     }

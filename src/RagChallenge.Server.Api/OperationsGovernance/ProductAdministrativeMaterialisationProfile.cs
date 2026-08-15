@@ -68,6 +68,10 @@ internal static class ProductAdministrativeMaterialisationProfile
         var operationalAuthority = ProductProviderOperationalAuthority.Parse(
             ProductProviderOperation.AdministrativeIndexEmbedding,
             options.Embedding.OperationalAuthorityReference);
+        var operationalGrants =
+            ProductProviderOperationalGrantSet.FromExplicitConfiguration(
+                (ProductProviderOperation.AdministrativeIndexEmbedding,
+                    options.Embedding.TrustedOperationalGrantReference));
         var selectedDependencies = dependencies ??
             ProductAdministrativeMaterialisationDependencies.CreateDefault();
         var authorityResolver = selectedDependencies.AuthorityResolverFactory(storeOptions) ??
@@ -84,6 +88,7 @@ internal static class ProductAdministrativeMaterialisationProfile
                 nameof(dependencies));
         var credentialSource = new ProductProviderCredentialSource(
             operationalAuthority,
+            operationalGrants,
             ProductProviderOperation.AdministrativeIndexEmbedding,
             credentialReference.EnvironmentVariableName,
             selectedDependencies.CredentialEnvironmentReader);
@@ -185,6 +190,8 @@ internal sealed class ProductEmbeddingOptions
     public string CredentialEnvironmentVariable { get; init; } = string.Empty;
 
     public string OperationalAuthorityReference { get; init; } = string.Empty;
+
+    public string TrustedOperationalGrantReference { get; init; } = string.Empty;
 }
 
 internal sealed record ProductAdministrativeMaterialisationDependencies(

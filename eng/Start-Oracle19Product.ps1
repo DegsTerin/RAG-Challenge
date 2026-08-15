@@ -7,11 +7,13 @@ param(
     [string] $ApprovedRightsEvidenceReference = '',
 
     [Parameter(Mandatory)]
-    [ValidatePattern('^AUTH-[A-Z0-9][A-Z0-9-]{2,122}$')]
+    [ValidateLength(24, 128)]
+    [ValidatePattern('^AUTH-QUERY-EMBEDDING-[A-Z0-9][A-Z0-9-]{2,}$')]
     [string] $QueryEmbeddingAuthorityReference,
 
     [Parameter(Mandatory)]
-    [ValidatePattern('^AUTH-[A-Z0-9][A-Z0-9-]{2,122}$')]
+    [ValidateLength(28, 128)]
+    [ValidatePattern('^AUTH-GROUNDED-GENERATION-[A-Z0-9][A-Z0-9-]{2,}$')]
     [string] $GroundedGenerationAuthorityReference
 )
 

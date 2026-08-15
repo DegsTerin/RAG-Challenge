@@ -63,10 +63,13 @@ workspace feature was added.
 The product credential is supplied only as a Render secret environment
 variable and is not part of the image or package. The entrypoint does not
 inspect its value. The non-deployable template also requires distinct bounded
-`AUTH-*` references for query embedding and grounded generation. The product
-validates the exact operation authority before credential lookup or provider
-egress. Provider use is billed independently from Render hosting and remains
-subject to its own authority and spending controls.
+operation-specific `AUTH-*` request references for query embedding and grounded
+generation, plus independently supplied trusted grants for those exact
+operation/reference pairs. Requested references never create trusted grants.
+The product validates the exact operation and trusted grant immediately before
+credential lookup or provider egress. Provider use is billed independently
+from Render hosting and remains subject to its own authority and spending
+controls.
 
 ## Observed Render Free deployment
 

@@ -31,6 +31,7 @@ internal sealed record ProductQueryRuntimeOptions(
     string CredentialEnvironmentVariable,
     ProductProviderOperationalAuthority QueryEmbeddingAuthority,
     ProductProviderOperationalAuthority GroundedGenerationAuthority,
+    ProductProviderOperationalGrantSet OperationalGrants,
     bool ApplyMigrations)
 {
     internal const string EnabledKey = "RagChallenge:Product:Enabled";
@@ -45,6 +46,10 @@ internal sealed record ProductQueryRuntimeOptions(
         "RagChallenge:Product:QueryEmbeddingAuthorityReference";
     internal const string GroundedGenerationAuthorityKey =
         "RagChallenge:Product:GroundedGenerationAuthorityReference";
+    internal const string TrustedQueryEmbeddingGrantKey =
+        "RagChallenge:Product:OperationalGrants:QueryEmbeddingAuthorityReference";
+    internal const string TrustedGroundedGenerationGrantKey =
+        "RagChallenge:Product:OperationalGrants:GroundedGenerationAuthorityReference";
     internal const string SupersededUnverifiedRightsEvidenceReference =
         "owner-oracle19-public-source-approval-2026-08-12";
 
@@ -81,6 +86,12 @@ internal sealed record ProductQueryRuntimeOptions(
         var groundedGenerationAuthority = ProductProviderOperationalAuthority.Parse(
             ProductProviderOperation.GroundedGeneration,
             configuration[GroundedGenerationAuthorityKey]);
+        var operationalGrants =
+            ProductProviderOperationalGrantSet.FromExplicitConfiguration(
+                (ProductProviderOperation.QueryEmbedding,
+                    configuration[TrustedQueryEmbeddingGrantKey]),
+                (ProductProviderOperation.GroundedGeneration,
+                    configuration[TrustedGroundedGenerationGrantKey]));
 
         return new ProductQueryRuntimeOptions(
             new SqliteStoreOptions(
@@ -92,6 +103,7 @@ internal sealed record ProductQueryRuntimeOptions(
             credential.EnvironmentVariableName,
             queryEmbeddingAuthority,
             groundedGenerationAuthority,
+            operationalGrants,
             configuration.GetValue<bool>(ApplyMigrationsKey));
     }
 
@@ -323,11 +335,13 @@ internal sealed class ProductQueryRuntime :
             IDocumentContentStore contentStore = new ImmutableContentStore(stores);
             var queryCredentialSource = new ProductProviderCredentialSource(
                 options.QueryEmbeddingAuthority,
+                options.OperationalGrants,
                 ProductProviderOperation.QueryEmbedding,
                 options.CredentialEnvironmentVariable,
                 credentialEnvironmentReader);
             var generationCredentialSource = new ProductProviderCredentialSource(
                 options.GroundedGenerationAuthority,
+                options.OperationalGrants,
                 ProductProviderOperation.GroundedGeneration,
                 options.CredentialEnvironmentVariable,
                 credentialEnvironmentReader);
