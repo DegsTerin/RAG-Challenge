@@ -2,7 +2,7 @@
 
 ## Versão atual
 
-- Versão: `4.13.1`
+- Versão: `4.14.0`
 - Data: 2026-08-15
 - Status: `STATE-07` ativo; ADR-0011 `accepted`, reconciliado e com a correção
   interna da política de serving implementada; o A0 candidato-específico
@@ -75,7 +75,12 @@
   `ARCHITECTURE_CHANGE_REQUIRED`; após avaliação documental local do SDK
   locked, o proprietário manteve ADR-0016 `accepted` e não `superseded`,
   preservou `FakeAgentRunner` como a única baseline operacional validada e não
-  criou ou aceitou ADR-0017;
+  criou ou aceitou ADR-0017 naquele boundary; a solicitação posterior do
+  proprietário preparou ADR-0017 como `proposed`, preservando o núcleo
+  determinístico e selecionando como candidata a sequência oficial do Codex
+  App Server `thread/start` → checkpoint → `turn/start`, sem usar
+  `OPENAI_API_KEY`; aceitação, implementação e chamada real permanecem
+  separadas;
   a política de idioma exige explicitamente en-GB em subject, body e footer de
   toda nova mensagem de commit pertencente ao projeto, sem transformar essa
   regra em autoridade implícita para amend, rebase ou reescrita de histórico;
@@ -93,6 +98,29 @@ A versão do corpus é independente da versão futura do software.
 
 Toda alteração atualiza este arquivo e, quando necessário,
 [`../Start-Here.md`](../Start-Here.md).
+
+## 4.14.0 — 2026-08-15
+
+- Registra `AUTH-MULTI-AGENT-REAL-RUNNER-PREP-001` e prepara ADR-0017 como
+  `proposed`, sem aceitação por implicação.
+- Confirma pela documentação oficial e pelo registry npm que a release estável
+  mais recente de `@openai/codex-sdk` permanece `0.147.0` e continua sem
+  identidade durável antes do primeiro turn.
+- Preserva o coordenador determinístico, `AgentRunner`, contratos, isolamento,
+  integração sequencial, quality gate, Human Gate externo e `FakeAgentRunner`
+  de ADR-0016.
+- Seleciona como candidata somente a troca do transporte real pelo protocolo
+  oficial Codex App Server: `thread/start`, persistência e readback do
+  checkpoint e, somente então, `turn/start`.
+- Define autenticação exclusivamente pelo estado Codex local já provisionado,
+  cuja validade deverá ser comprovada de forma sanitizada antes da execução;
+  `OPENAI_API_KEY`, argumentos de credencial, cópia de secret e fallback de
+  provider permanecem proibidos.
+- Escopo negativo: nenhum código executável, package, secret, chamada Codex,
+  billing, provider de produto, Automatic Quality Gate, Human Gate, lifecycle,
+  produção, push, merge, release ou deploy foi executado ou autorizado.
+- Runtime preflight, build e testes executáveis foram `NOT_APPLICABLE` e
+  `NOT_RUN`; a decisão permanece `HUMAN_DECISION_REQUIRED`.
 
 ## 4.13.1 — 2026-08-15
 

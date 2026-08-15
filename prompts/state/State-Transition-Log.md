@@ -8433,3 +8433,38 @@ contém somente fatos cronológicos.
 - Integridade append-only: esta entrada preserva byte a byte o prefixo anterior
   de 535.811 bytes no SHA-256
   `ab069efbfa989519ad7519a68c3dd36cbbd206ec492015c52a35cb8d14755972`.
+
+## 2026-08-15 — ADR-0017 preparado para checkpoint Codex pré-turno
+
+- Autoridade: `AUTH-MULTI-AGENT-REAL-RUNNER-PREP-001`, derivada da solicitação
+  explícita do proprietário para tornar Stage 0, Stage 1 e Stage 2
+  operacionais, mantendo a tarefa limitada e sem uso de `OPENAI_API_KEY`.
+- Baseline seletiva: worktree limpa `codex/main-stage-integration`, HEAD
+  `0854d46717214321783423370601ba0a0d045e7e`, corpus `4.13.1`. Os três
+  documentos Stage 0/1/2 do proprietário permanecem não rastreados e
+  preservados no worktree principal.
+- Verificação registrada: a documentação oficial mantém a SDK como superfície
+  para automação, mas a release estável mais recente no registry npm continua
+  `@openai/codex-sdk` `0.147.0` e seu ID permanece disponível somente após o
+  primeiro turn começar. A interface oficial Codex App Server retorna
+  `thread.id` em `thread/start` e inicia geração separadamente em `turn/start`.
+- Proposta: ADR-0017 permanece `proposed` e preserva o núcleo determinístico de
+  ADR-0016. O único boundary substituído é o transporte real do runner, com
+  sequência `thread/start` → checkpoint persistido e relido → `turn/start`.
+- Autenticação: o candidato usa somente o estado de autenticação Codex local
+  já provisionado, cuja validade ainda deverá ser comprovada de forma
+  sanitizada. Nenhuma `OPENAI_API_KEY` foi lida, usada, alterada, copiada ou
+  autorizada.
+- Disposição: `HUMAN_DECISION_REQUIRED`. A próxima decisão diretamente
+  relacionada é aceitar ou rejeitar ADR-0017. Implementação e uma validação
+  real permanecem ações posteriores e delimitadas.
+- Validação: escopo, links, UTF-8/LF, newline final, trailing whitespace,
+  `git diff --check` e higiene documental são os checks aplicáveis. Runtime
+  preflight, build e testes executáveis são `NOT_APPLICABLE` e `NOT_RUN` neste
+  incremento documental.
+- Escopo negativo preservado: nenhum código, dependency, chamada Codex,
+  secret, billing, provider de produto, Automatic Quality Gate, Human Gate,
+  lifecycle, produção, push, merge, release ou deploy foi executado.
+- Integridade append-only: esta entrada preserva byte a byte o prefixo anterior
+  de 538.200 bytes no SHA-256
+  `e5ef54624e8cf6b917a0f402754f325406671a595c5ccdcb4e1b78f135586838`.

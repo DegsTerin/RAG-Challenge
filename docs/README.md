@@ -2,7 +2,7 @@
 
 ## Status
 
-Este índice descreve o corpus documental vigente `4.13.1`. `STATE-00`,
+Este índice descreve o corpus documental vigente `4.14.0`. `STATE-00`,
 `GATE-B01` e `STATE-01` a `STATE-06` estão encerrados com seus gates
 registrados. `STATE-07 TESTING_HOMOLOGATION` está ativo; incrementos locais,
 offline, determinísticos e sintéticos foram executados e reconciliados, sem
@@ -24,10 +24,11 @@ mapeado e testado por contrato, mas não é exposto pelo CLI, não foi exercitad
 contra Codex real e continua a exigir autoridades separadas de execução,
 provider, rede e credencial. O início de uma nova thread Codex real permanece
 `ARCHITECTURE_CHANGE_REQUIRED`, sem alterar produto, Human Gate ou lifecycle.
-A avaliação documental local posterior não verificou versão adicional do SDK;
-o proprietário manteve ADR-0016 `accepted` e não `superseded`, preservou
-`FakeAgentRunner` como a única baseline operacional validada e não criou ou
-aceitou ADR-0017.
+A avaliação atual confirmou que a versão estável mais recente da SDK continua
+`0.147.0` e preparou ADR-0017 como `proposed`. O sucessor preserva o núcleo da
+Etapa 2 e propõe o Codex App Server para obter e persistir `thread.id` antes de
+`turn/start`, sem usar `OPENAI_API_KEY`. Nenhuma implementação ou chamada real
+foi executada; a decisão permanece `HUMAN_DECISION_REQUIRED`.
 
 ## Comece aqui
 
@@ -101,6 +102,8 @@ aceitou ADR-0017.
 - [ADR-0016 — Deterministic Development Orchestrator and Codex Runner Boundary](architecture/ADR-0016-Deterministic-Development-Orchestrator-And-Codex-Runner-Boundary.md)
   (`accepted`; Stage 2 implementation and exact package validation completed;
   starting a new real Codex thread remains an architecture condition)
+- [ADR-0017 — Codex App Server Pre-Turn Checkpoint Runner](architecture/ADR-0017-Codex-App-Server-Pre-Turn-Checkpoint-Runner.md)
+  (`proposed`; acceptance, implementation and real execution remain separate)
 - [Contratos canônicos de STATE-02](architecture/STATE-02-Canonical-Contracts.md)
 - [Dicionário lógico de dados e índice de S03-A](data/STATE-03-S03-A-Data-Dictionary.md)
 - [Threat model de STATE-02](security/STATE-02-Threat-Model.md)
