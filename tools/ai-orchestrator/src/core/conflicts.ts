@@ -11,7 +11,7 @@ function intersects(left: readonly string[], right: readonly string[]): boolean 
 }
 
 function isWritable(task: TaskDefinition): boolean {
-  return task.owner === "implementation_worker" || ["LANE_OWNED", "SINGLE_OWNER", "GENERATED"].includes(task.ownership);
+  return task.owner === "implementation_worker" || ["LANE_OWNED", "SINGLE_OWNER", "GENERATED", "COORDINATOR_ONLY"].includes(task.ownership);
 }
 
 export interface TaskConflict {
@@ -52,7 +52,7 @@ export function taskConflict(left: TaskDefinition, right: TaskDefinition): TaskC
 }
 
 export function assertTaskIsolation(tasks: readonly TaskDefinition[]): void {
-  const writeTasks = tasks.filter(isWritable);
+  const writeTasks = tasks.filter((task) => task.taskKind === "IMPLEMENTATION" || ["LANE_OWNED", "SINGLE_OWNER", "GENERATED"].includes(task.ownership));
   for (const task of writeTasks) {
     if (task.worktree === null || task.branch === null) {
       throw new OrchestratorStop(

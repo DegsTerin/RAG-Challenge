@@ -12,8 +12,7 @@ import { GitBaselineVerifier } from "../src/adapters/git-baseline.js";
 import { SequentialIntegrationPipeline } from "../src/application/integration.js";
 import type { CommandEvidence, PersistedRunState } from "../src/core/contracts.js";
 import { OrchestratorStop } from "../src/core/errors.js";
-import type { ProcessExecutor, ProcessRequest } from "../src/ports/process-executor.js";
-import type { QualityGate } from "../src/adapters/quality-gate.js";
+import type { ProcessRequest, StructuredProcessExecutor, StructuredProcessResult } from "../src/ports/process-executor.js";
 import { baseline, instant, passingResult, task } from "./helpers.js";
 
 async function temporaryDirectory(name: string): Promise<string> {
@@ -26,6 +25,7 @@ function state(runId = "run-fixture", revision = 0): PersistedRunState {
     runId,
     revision,
     baseline,
+    maxConcurrency: 3,
     createdAt: instant,
     updatedAt: instant,
     tasks: [task({ status: "PASS", startedAt: instant, finishedAt: instant, result: passingResult() })],
@@ -57,7 +57,7 @@ test("file state journal rejects digest tampering", async () => {
     const journalPath = join(root, "run-fixture", "journal.jsonl");
     const journal = await readFile(journalPath, "utf8");
     await writeFile(journalPath, journal.replace(/"stateHash":"[0-9a-f]+"/, '"stateHash":"0000"'), "utf8");
-    await assert.rejects(store.load("run-fixture"), /does not match its journal digest/);
+    await assert.rejects(store.load("run-fixture"), /state journal entry failed its closed contract/i);
   } finally {
     await rm(root, { recursive: true, force: true });
   }
@@ -88,7 +88,7 @@ test("CodexRunner is disabled before SDK construction without separate execution
   };
   const runner = new CodexRunner({ executionAuthorised: false, authorityReference: null, worktreeRoot: "C:/managed", environment: { PATH: "C:/bin" }, model: null }, factory);
   await assert.rejects(runner.run({
-    runId: "run-fixture", attemptId: "attempt-fixture", task: task(), baseline, contracts: [], resumeThreadId: null,
+    runId: "run-fixture", attemptId: "attempt-fixture", task: task(), baseline, contracts: [], candidate: null, resumeThreadId: null,
   }), (error: unknown) => error instanceof OrchestratorStop && error.code === "HUMAN_DECISION_REQUIRED");
   assert.equal(constructed, false);
 });
@@ -113,9 +113,9 @@ test("CodexRunner maps isolated cwd, sandbox and structured output for start and
     environment: { PATH: "C:/bin", SystemRoot: "C:/Windows" },
     model: null,
   }, factory);
-  const agentTask = task({ worktree: "C:/managed/lane-a" });
-  await runner.run({ runId: "run-fixture", attemptId: "attempt-fixture", task: agentTask, baseline, contracts: [], resumeThreadId: null });
-  await runner.run({ runId: "run-fixture", attemptId: "attempt-fixture", task: agentTask, baseline, contracts: [], resumeThreadId: "thread-fixture" });
+  const agentTask = task({ owner: "implementation_worker", worktree: "C:/managed/lane-a", branch: "codex/lane-a" });
+  await runner.run({ runId: "run-fixture", attemptId: "attempt-fixture", task: agentTask, baseline, contracts: [], candidate: null, resumeThreadId: null });
+  await runner.run({ runId: "run-fixture", attemptId: "attempt-fixture", task: agentTask, baseline, contracts: [], candidate: null, resumeThreadId: "thread-fixture" });
   const threadOptions = calls.find((call) => call.method === "start")?.options as Record<string, unknown>;
   assert.equal(threadOptions.sandboxMode, "workspace-write");
   assert.equal(threadOptions.approvalPolicy, "never");
@@ -132,7 +132,7 @@ test("CodexRunner rejects explicit environment names outside its allowlist", asy
     environment: { UNSAFE_VARIABLE: "fixture" }, model: null,
   }, factory);
   await assert.rejects(runner.run({
-    runId: "run-fixture", attemptId: "attempt-fixture", task: task({ worktree: "C:/managed/lane" }), baseline, contracts: [], resumeThreadId: null,
+    runId: "run-fixture", attemptId: "attempt-fixture", task: task({ worktree: "C:/managed/lane" }), baseline, contracts: [], candidate: null, resumeThreadId: null,
   }), (error: unknown) => error instanceof OrchestratorStop && error.code === "SECRET_REQUIRED");
 });
 
@@ -150,10 +150,13 @@ test("bounded process uses argv execution and captures a bounded result", async 
   assert.deepEqual(result.relevantOutput, ["fixture-output"]);
 });
 
-class ScriptedProcess implements ProcessExecutor {
+class ScriptedProcess implements StructuredProcessExecutor {
   public readonly requests: ProcessRequest[] = [];
-  public constructor(private readonly results: CommandEvidence[]) {}
+  public constructor(private readonly results: StructuredProcessResult[]) {}
   public async run(request: ProcessRequest): Promise<CommandEvidence> {
+    return (await this.runStructured(request)).evidence;
+  }
+  public async runStructured(request: ProcessRequest): Promise<StructuredProcessResult> {
     this.requests.push(request);
     const result = this.results.shift();
     if (result === undefined) {
@@ -167,57 +170,59 @@ function command(commandId: string, result: "PASS" | "FAIL" = "PASS", output: re
   return { commandId, exitCode: result === "PASS" ? 0 : 1, durationMs: 1, result, relevantOutput: output };
 }
 
+function structured(commandId: string, stdout = "", result: "PASS" | "FAIL" = "PASS"): StructuredProcessResult {
+  return { evidence: command(commandId, result), stdout, stderr: "" };
+}
+
 test("Git baseline verification requires exact HEAD, codex branch and a clean tree", async () => {
   const passing = new ScriptedProcess([
-    command("head", "PASS", [baseline]),
-    command("branch", "PASS", ["codex/coordinator"]),
-    command("status"),
+    structured("head", `${baseline}\n`),
+    structured("branch", "codex/coordinator\n"),
+    structured("status"),
   ]);
-  await new GitBaselineVerifier(passing, {}).verify("C:/repository", baseline);
+  await new GitBaselineVerifier(passing, "C:/git.exe", {}).verify("C:/repository", baseline);
   const dirty = new ScriptedProcess([
-    command("head", "PASS", [baseline]),
-    command("branch", "PASS", ["codex/coordinator"]),
-    command("status", "PASS", ["?? owner-file"]),
+    structured("head", `${baseline}\n`),
+    structured("branch", "codex/coordinator\n"),
+    structured("status", "?? owner-file\u0000"),
   ]);
-  await assert.rejects(new GitBaselineVerifier(dirty, {}).verify("C:/repository", baseline), (error: unknown) =>
+  await assert.rejects(new GitBaselineVerifier(dirty, "C:/git.exe", {}).verify("C:/repository", baseline), (error: unknown) =>
     error instanceof OrchestratorStop && error.code === "UNEXPECTED_DIRTY_TREE");
 });
 
-test("sequential integration requires reviews, a clean codex branch and a passing quality gate", async () => {
+test("sequential integration revalidates the reviewed candidate and integrated tree", async () => {
+  const commit = "1".repeat(40);
+  const tree = "2".repeat(40);
   const process = new ScriptedProcess([
-    command("status"),
-    command("branch", "PASS", ["codex/integration"]),
-    command("cherry-pick"),
+    structured("head", `${baseline}\n`), structured("status"), structured("branch", "codex/integration\n"),
+    structured("ancestry"), structured("tree", `${tree}\n`), structured("diff", "tools/file.ts\u0000"),
+    structured("cherry-pick"), structured("post-status"), structured("post-tree", `${tree}\n`),
   ]);
-  const quality: QualityGate = { async run() { return command("quality"); } };
-  const pipeline = new SequentialIntegrationPipeline(process, quality, {});
+  const pipeline = new SequentialIntegrationPipeline(process, "C:/git.exe", {});
+  const candidate = { commitId: commit, treeId: tree, changedFiles: ["tools/file.ts"] };
   const implementation = task({
-    taskId: "implementation", owner: "implementation_worker", status: "INTEGRATION_READY",
-    requiresIndependentReview: true, requiresSecurityReview: true,
+    taskId: "implementation", owner: "implementation_worker", status: "IMPLEMENTED", candidate,
+    result: passingResult(["tools/file.ts"]), requiresIndependentReview: true, requiresSecurityReview: true,
   });
-  const evidence = await pipeline.integrate(
-    "C:/coordinator", implementation, baseline, passingResult(["tools/file.ts"]), passingResult(), passingResult(),
-  );
-  assert.equal(evidence.qualityGate.result, "PASS");
-  assert.deepEqual(process.requests.map((request) => request.arguments[0]), ["status", "branch", "cherry-pick"]);
+  const integrationTask = task({ taskId: "integration", taskKind: "INTEGRATION", owner: "governance_guard", candidateTaskId: "implementation", executionSurface: { ...task().executionSurface, cwd: "C:/coordinator", tools: [] } });
+  const evidence = await pipeline.integrate({ baseline, integrationTask, implementationTask: implementation, candidate, workerResult: implementation.result!, independentReview: passingResult(), securityReview: passingResult() });
+  assert.equal(evidence.result, "PASS");
+  assert.ok(process.requests.every((request) => request.executable === "C:/git.exe" && request.arguments.includes("core.hooksPath=NUL")));
 });
 
 test("failed integration is aborted and reported as a conflict", async () => {
+  const commit = "1".repeat(40);
+  const tree = "2".repeat(40);
   const process = new ScriptedProcess([
-    command("status"),
-    command("branch", "PASS", ["codex/integration"]),
-    command("cherry-pick", "FAIL"),
-    command("abort"),
+    structured("head", `${baseline}\n`), structured("status"), structured("branch", "codex/integration\n"),
+    structured("ancestry"), structured("tree", `${tree}\n`), structured("diff", "tools/file.ts\u0000"),
+    structured("cherry-pick", "", "FAIL"), structured("abort"),
   ]);
-  const quality: QualityGate = { async run() { throw new Error("Quality gate must not run."); } };
-  const pipeline = new SequentialIntegrationPipeline(process, quality, {});
-  await assert.rejects(pipeline.integrate(
-    "C:/coordinator",
-    task({ taskId: "implementation", owner: "implementation_worker", status: "INTEGRATION_READY" }),
-    baseline,
-    passingResult(),
-    null,
-    null,
-  ), (error: unknown) => error instanceof OrchestratorStop && error.code === "CONFLICTING_REQUIREMENTS");
-  assert.equal(process.requests.at(-1)?.arguments[1], "--abort");
+  const pipeline = new SequentialIntegrationPipeline(process, "C:/git.exe", {});
+  const candidate = { commitId: commit, treeId: tree, changedFiles: ["tools/file.ts"] };
+  const implementation = task({ taskId: "implementation", owner: "implementation_worker", status: "IMPLEMENTED", candidate, result: passingResult(["tools/file.ts"]) });
+  const integrationTask = task({ taskId: "integration", taskKind: "INTEGRATION", owner: "governance_guard", candidateTaskId: "implementation", executionSurface: { ...task().executionSurface, cwd: "C:/coordinator", tools: [] } });
+  await assert.rejects(pipeline.integrate({ baseline, integrationTask, implementationTask: implementation, candidate, workerResult: implementation.result!, independentReview: null, securityReview: null }),
+    (error: unknown) => error instanceof OrchestratorStop && error.code === "CONFLICTING_REQUIREMENTS");
+  assert.ok(process.requests.at(-1)?.arguments.includes("--abort"));
 });

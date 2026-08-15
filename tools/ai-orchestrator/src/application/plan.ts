@@ -29,20 +29,92 @@ export function validatePlanSemantics(plan: ProjectPlan): void {
   new DependencyGraph(plan.tasks);
   assertTaskIsolation(plan.tasks);
   for (const task of plan.tasks) {
+    const expectedOwner = task.taskKind === "IMPLEMENTATION"
+      ? "implementation_worker"
+      : task.taskKind === "INDEPENDENT_REVIEW"
+        ? "independent_reviewer"
+        : task.taskKind === "SECURITY_REVIEW"
+          ? "security_reviewer"
+          : ["INTEGRATION", "QUALITY_GATE", "HUMAN_GATE"].includes(task.taskKind)
+            ? "governance_guard"
+            : null;
+    if (expectedOwner !== null && task.owner !== expectedOwner) {
+      throw new OrchestratorStop("AMBIGUOUS_AUTHORITY", `Task '${task.taskId}' has an owner incompatible with ${task.taskKind}.`, task.taskId);
+    }
+    if (task.taskKind === "DISCOVERY" && !["governance_guard", "code_mapper", "architect"].includes(task.owner)) {
+      throw new OrchestratorStop("AMBIGUOUS_AUTHORITY", `Discovery task '${task.taskId}' has an incompatible specialised owner.`, task.taskId);
+    }
+    const implementationWritable = task.taskKind === "IMPLEMENTATION";
+    const coordinatorWritable = ["INTEGRATION", "QUALITY_GATE"].includes(task.taskKind);
+    const writable = implementationWritable || coordinatorWritable;
+    if ((writable && task.executionSurface.sandbox !== "workspace-write") ||
+        (!writable && task.executionSurface.sandbox !== "read-only") ||
+        task.executionSurface.networkAccess || task.executionSurface.approvalPolicy !== "never" ||
+        task.executionSurface.environmentPolicy !== "minimal" || task.executionSurface.mcpServers.length > 0 ||
+        task.executionSurface.skills.length > 0) {
+      throw new OrchestratorStop("OUT_OF_SCOPE_CHANGE_REQUIRED", `Task '${task.taskId}' has an execution surface outside the current authority.`, task.taskId);
+    }
+    if (implementationWritable && (task.worktree === null || task.executionSurface.cwd !== task.worktree ||
+        task.executionSurface.writableRoots.length !== 1 || task.executionSurface.writableRoots[0] !== task.worktree)) {
+      throw new OrchestratorStop("SHARED_RESOURCE_COLLISION", `Implementation task '${task.taskId}' does not bind its sole writable root to its worktree.`, task.taskId);
+    }
+    if (coordinatorWritable && (task.ownership !== "COORDINATOR_ONLY" || task.parallelism !== "SEQUENTIAL_ONLY" ||
+        task.executionSurface.writableRoots.length !== 1 || task.executionSurface.writableRoots[0] !== task.executionSurface.cwd)) {
+      throw new OrchestratorStop("SHARED_RESOURCE_COLLISION", `Coordinator task '${task.taskId}' does not bind its sole writable root sequentially.`, task.taskId);
+    }
+    if (!writable && task.executionSurface.writableRoots.length > 0) {
+      throw new OrchestratorStop("OUT_OF_SCOPE_CHANGE_REQUIRED", `Read-only task '${task.taskId}' declares writable roots.`, task.taskId);
+    }
+    const expectedTools = task.taskKind === "IMPLEMENTATION"
+      ? ["apply_patch", "shell"]
+      : ["DISCOVERY", "INDEPENDENT_REVIEW", "SECURITY_REVIEW"].includes(task.taskKind)
+        ? ["shell"]
+        : [];
+    if ([...task.executionSurface.tools].sort().join("\u0000") !== expectedTools.join("\u0000")) {
+      throw new OrchestratorStop("OUT_OF_SCOPE_CHANGE_REQUIRED", `Task '${task.taskId}' has an unsupported tool surface.`, task.taskId);
+    }
     if (task.allowedPaths.some((allowed) =>
       task.forbiddenPaths.some((forbidden) => allowed === forbidden || allowed.startsWith(`${forbidden}/`) || forbidden.startsWith(`${allowed}/`)))) {
       throw new OrchestratorStop("CONFLICTING_REQUIREMENTS", `Task '${task.taskId}' has overlapping allowed and forbidden paths.`, task.taskId);
     }
     if (task.requiresIndependentReview && !plan.tasks.some((candidate) =>
-      candidate.owner === "independent_reviewer" && candidate.dependencies.includes(task.taskId))) {
+      candidate.taskKind === "INDEPENDENT_REVIEW" && candidate.candidateTaskId === task.taskId && candidate.dependencies.includes(task.taskId))) {
       throw new OrchestratorStop("AMBIGUOUS_AUTHORITY", `Task '${task.taskId}' has no dependent independent review.`, task.taskId);
     }
     if (task.requiresSecurityReview && !plan.tasks.some((candidate) =>
-      candidate.owner === "security_reviewer" && candidate.dependencies.includes(task.taskId))) {
+      candidate.taskKind === "SECURITY_REVIEW" && candidate.candidateTaskId === task.taskId && candidate.dependencies.includes(task.taskId))) {
       throw new OrchestratorStop("AMBIGUOUS_AUTHORITY", `Task '${task.taskId}' has no dependent security review.`, task.taskId);
     }
-    if (task.humanGate && task.owner !== "governance_guard") {
+    if (task.humanGate !== (task.taskKind === "HUMAN_GATE")) {
       throw new OrchestratorStop("HUMAN_GATE_REQUIRED", `Human Gate task '${task.taskId}' must remain under governance ownership.`, task.taskId);
+    }
+    if (["INDEPENDENT_REVIEW", "SECURITY_REVIEW", "INTEGRATION"].includes(task.taskKind)) {
+      const candidate = task.candidateTaskId === null ? null : plan.tasks.find((entry) => entry.taskId === task.candidateTaskId);
+      if (candidate?.taskKind !== "IMPLEMENTATION" || !task.dependencies.includes(candidate.taskId)) {
+        throw new OrchestratorStop("AMBIGUOUS_AUTHORITY", `Task '${task.taskId}' is not bound to a direct implementation dependency.`, task.taskId);
+      }
+    } else if (task.candidateTaskId !== null) {
+      throw new OrchestratorStop("CONFLICTING_REQUIREMENTS", `Task '${task.taskId}' cannot declare a candidate task.`, task.taskId);
+    }
+    if (task.candidate !== null) {
+      throw new OrchestratorStop("UNEXPECTED_DIRTY_TREE", `Input plan task '${task.taskId}' already contains runtime candidate evidence.`, task.taskId);
+    }
+    if (task.taskKind === "INTEGRATION" && task.candidateTaskId !== null) {
+      const implementation = plan.tasks.find((entry) => entry.taskId === task.candidateTaskId);
+      const requiredReviewIds = plan.tasks
+        .filter((entry) => entry.candidateTaskId === implementation?.taskId && ["INDEPENDENT_REVIEW", "SECURITY_REVIEW"].includes(entry.taskKind))
+        .map((entry) => entry.taskId);
+      if (requiredReviewIds.some((reviewId) => !task.dependencies.includes(reviewId))) {
+        throw new OrchestratorStop("AMBIGUOUS_AUTHORITY", `Integration task '${task.taskId}' does not depend on every required review.`, task.taskId);
+      }
+    }
+    if (task.taskKind === "QUALITY_GATE" && plan.tasks.some((entry) => entry.taskKind === "IMPLEMENTATION") &&
+        !task.dependencies.some((dependency) => plan.tasks.find((entry) => entry.taskId === dependency)?.taskKind === "INTEGRATION")) {
+      throw new OrchestratorStop("AMBIGUOUS_AUTHORITY", `Quality task '${task.taskId}' is not downstream of integration.`, task.taskId);
+    }
+    if (task.taskKind === "HUMAN_GATE" &&
+        !task.dependencies.some((dependency) => plan.tasks.find((entry) => entry.taskId === dependency)?.taskKind === "QUALITY_GATE")) {
+      throw new OrchestratorStop("HUMAN_GATE_REQUIRED", `Human Gate task '${task.taskId}' is not downstream of a deterministic quality gate.`, task.taskId);
     }
   }
 }

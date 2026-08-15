@@ -1,5 +1,6 @@
 {
   "map-repository": {
+    "schemaVersion": 1,
     "status": "PASS",
     "summary": "The bounded repository map completed.",
     "changedFiles": [],
@@ -12,6 +13,7 @@
     "stopCondition": null
   },
   "check-architecture": {
+    "schemaVersion": 1,
     "status": "PASS",
     "summary": "The accepted architecture remains internally consistent.",
     "changedFiles": [],
@@ -24,32 +26,13 @@
     "stopCondition": null
   },
   "independent-review": {
+    "schemaVersion": 1,
     "status": "PASS",
     "summary": "The controlled fixture evidence passed independent review.",
     "changedFiles": [],
     "commands": [],
     "tests": [],
     "evidence": ["controlled-fixture-review"],
-    "risks": [],
-    "blockers": [],
-    "requestedAuthority": [],
-    "stopCondition": null
-  },
-  "quality-gate": {
-    "status": "PASS",
-    "summary": "The controlled fixture represents a passing quality-gate boundary.",
-    "changedFiles": [],
-    "commands": [],
-    "tests": [
-      {
-        "commandId": "controlled-quality-gate",
-        "exitCode": 0,
-        "durationMs": 1,
-        "result": "PASS",
-        "relevantOutput": ["Controlled fixture only; not repository gate evidence."]
-      }
-    ],
-    "evidence": ["controlled-fixture-quality-gate"],
     "risks": [],
     "blockers": [],
     "requestedAuthority": [],

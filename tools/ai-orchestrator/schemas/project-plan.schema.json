@@ -23,14 +23,15 @@
       "type": "object",
       "additionalProperties": false,
       "required": [
-        "taskId", "title", "objective", "authority", "owner", "status", "priority", "dependencies", "blockedBy",
+        "taskId", "taskKind", "title", "objective", "authority", "executionSurface", "owner", "status", "priority", "dependencies", "blockedBy",
         "allowedPaths", "forbiddenPaths", "ownership", "sharedResources", "requiredContracts", "acceptanceCriteria",
         "requiredTests", "stopConditions", "deliverables", "worktree", "branch", "parallelism",
-        "requiresIndependentReview", "requiresSecurityReview", "humanGate", "maxAttempts", "createdAt", "startedAt",
+        "requiresIndependentReview", "requiresSecurityReview", "humanGate", "candidateTaskId", "candidate", "maxAttempts", "createdAt", "startedAt",
         "finishedAt", "result", "evidence"
       ],
       "properties": {
         "taskId": { "type": "string", "pattern": "^[a-z0-9][a-z0-9-]{0,63}$" },
+        "taskKind": { "enum": ["DISCOVERY", "IMPLEMENTATION", "INDEPENDENT_REVIEW", "SECURITY_REVIEW", "INTEGRATION", "QUALITY_GATE", "HUMAN_GATE"] },
         "title": { "type": "string", "minLength": 1, "maxLength": 256 },
         "objective": { "type": "string", "minLength": 1, "maxLength": 4096 },
         "authority": {
@@ -41,6 +42,22 @@
             "references": { "$ref": "#/$defs/textList" },
             "grants": { "$ref": "#/$defs/textList" },
             "negativeScope": { "$ref": "#/$defs/textList" }
+          }
+        },
+        "executionSurface": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["cwd", "writableRoots", "sandbox", "approvalPolicy", "networkAccess", "environmentPolicy", "tools", "mcpServers", "skills"],
+          "properties": {
+            "cwd": { "type": "string", "minLength": 1, "maxLength": 240 },
+            "writableRoots": { "type": "array", "maxItems": 32, "items": { "type": "string", "minLength": 1, "maxLength": 240 } },
+            "sandbox": { "enum": ["read-only", "workspace-write"] },
+            "approvalPolicy": { "const": "never" },
+            "networkAccess": { "const": false },
+            "environmentPolicy": { "const": "minimal" },
+            "tools": { "type": "array", "maxItems": 32, "items": { "type": "string", "minLength": 1, "maxLength": 64 } },
+            "mcpServers": { "type": "array", "maxItems": 32, "items": { "type": "string", "minLength": 1, "maxLength": 64 } },
+            "skills": { "type": "array", "maxItems": 32, "items": { "type": "string", "minLength": 1, "maxLength": 128 } }
           }
         },
         "owner": { "enum": ["governance_guard", "code_mapper", "architect", "implementation_worker", "independent_reviewer", "security_reviewer"] },
@@ -76,6 +93,22 @@
         "requiresIndependentReview": { "type": "boolean" },
         "requiresSecurityReview": { "type": "boolean" },
         "humanGate": { "type": "boolean" },
+        "candidateTaskId": { "type": ["string", "null"], "maxLength": 64 },
+        "candidate": {
+          "oneOf": [
+            { "type": "null" },
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["commitId", "treeId", "changedFiles"],
+              "properties": {
+                "commitId": { "type": "string", "pattern": "^[0-9a-f]{40}$" },
+                "treeId": { "type": "string", "pattern": "^[0-9a-f]{40}$" },
+                "changedFiles": { "type": "array", "maxItems": 256, "items": { "type": "string", "minLength": 1, "maxLength": 240 } }
+              }
+            }
+          ]
+        },
         "maxAttempts": { "type": "integer", "minimum": 1, "maximum": 3 },
         "createdAt": { "type": "string", "format": "date-time" },
         "startedAt": { "type": ["string", "null"], "format": "date-time" },

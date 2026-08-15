@@ -14,6 +14,7 @@ import { canonicalJson } from "../core/canonical-json.js";
 import { OrchestratorStop } from "../core/errors.js";
 import { assertIdentifier, parseAgentResult, parseProjectPlan } from "../core/validation.js";
 import { assertNoExistingReparseBoundary, resolveRunRoot } from "../security/path-policy.js";
+import { parseSecureJson } from "../security/secure-json.js";
 import type { StateStore } from "../ports/state-store.js";
 
 interface JournalEntry {
@@ -24,6 +25,17 @@ interface JournalEntry {
   readonly stateHash: string;
   readonly previousHash: string | null;
   readonly recordedAt: string;
+}
+
+const maximumSnapshotBytes = 8_388_608;
+const maximumJournalBytes = 16_777_216;
+
+async function readBounded(path: string, maximumBytes: number, label: string): Promise<string> {
+  const metadata = await stat(path);
+  if (!metadata.isFile() || metadata.size > maximumBytes) {
+    throw new OrchestratorStop("TEST_BASELINE_BROKEN", `${label} is not a bounded regular file.`);
+  }
+  return await readFile(path, "utf8");
 }
 
 function hash(value: string): string {
@@ -50,7 +62,7 @@ function parseAttempts(value: unknown, taskIds: ReadonlySet<string>): AttemptRec
       throw new OrchestratorStop("TEST_BASELINE_BROKEN", `Persisted attempt ${index} is invalid.`);
     }
     const attempt = entry as Record<string, unknown>;
-    const allowed = ["attemptId", "taskId", "agentId", "startedAt", "finishedAt", "retryClass", "result"];
+    const allowed = ["attemptId", "taskId", "agentId", "startedAt", "finishedAt", "retryClass", "threadId", "result"];
     if (Object.keys(attempt).some((key) => !allowed.includes(key)) || typeof attempt.attemptId !== "string" || typeof attempt.taskId !== "string") {
       throw new OrchestratorStop("TEST_BASELINE_BROKEN", `Persisted attempt ${index} failed its closed contract.`);
     }
@@ -71,6 +83,11 @@ function parseAttempts(value: unknown, taskIds: ReadonlySet<string>): AttemptRec
       startedAt: instant(attempt.startedAt, `attempts[${index}].startedAt`),
       finishedAt: attempt.finishedAt === null ? null : instant(attempt.finishedAt, `attempts[${index}].finishedAt`),
       retryClass,
+      threadId: attempt.threadId === null
+        ? null
+        : typeof attempt.threadId === "string" && attempt.threadId.length > 0 && attempt.threadId.length <= 256
+          ? attempt.threadId
+          : (() => { throw new OrchestratorStop("TEST_BASELINE_BROKEN", `Persisted attempt ${index} has an invalid thread ID.`); })(),
       result: attempt.result === null ? null : parseAgentResult(attempt.result),
     };
   });
@@ -82,12 +99,13 @@ function parseState(value: unknown, expectedRunId: string): PersistedRunState {
   }
   const source = value as Record<string, unknown>;
   const allowed = [
-    "schemaVersion", "runId", "revision", "baseline", "createdAt", "updatedAt", "tasks", "attempts", "heldLocks",
+    "schemaVersion", "runId", "revision", "baseline", "maxConcurrency", "createdAt", "updatedAt", "tasks", "attempts", "heldLocks",
     "humanGateReached",
   ];
   const unexpected = Object.keys(source).filter((key) => !allowed.includes(key));
   if (unexpected.length > 0 || source.schemaVersion !== 1 || source.runId !== expectedRunId ||
       !Number.isInteger(source.revision) || (source.revision as number) < 0 ||
+      !Number.isInteger(source.maxConcurrency) || (source.maxConcurrency as number) < 1 || (source.maxConcurrency as number) > 3 ||
       !Array.isArray(source.attempts) || !Array.isArray(source.heldLocks) || typeof source.humanGateReached !== "boolean") {
     throw new OrchestratorStop("TEST_BASELINE_BROKEN", "Persisted run state failed its closed contract.");
   }
@@ -95,7 +113,7 @@ function parseState(value: unknown, expectedRunId: string): PersistedRunState {
     schemaVersion: 1,
     project: "RAG-Challenge",
     baseline: source.baseline,
-    maxConcurrency: 1,
+    maxConcurrency: source.maxConcurrency,
     tasks: source.tasks,
   });
   for (const lock of source.heldLocks) {
@@ -109,6 +127,7 @@ function parseState(value: unknown, expectedRunId: string): PersistedRunState {
     runId: expectedRunId,
     revision: source.revision as number,
     baseline: plan.baseline,
+    maxConcurrency: plan.maxConcurrency,
     createdAt: instant(source.createdAt, "state.createdAt"),
     updatedAt: instant(source.updatedAt, "state.updatedAt"),
     tasks: plan.tasks,
@@ -137,20 +156,24 @@ export class FileStateStore implements StateStore {
   public constructor(private readonly stateRoot: string) {}
 
   public async save(state: PersistedRunState): Promise<void> {
-    const runRoot = resolveRunRoot(this.stateRoot, state.runId);
+    const validated = parseState(parseSecureJson(canonicalJson(state), "State snapshot"), state.runId);
+    const runRoot = resolveRunRoot(this.stateRoot, validated.runId);
     await assertNoExistingReparseBoundary(this.stateRoot, runRoot);
     await mkdir(runRoot, { recursive: true });
-    const finalPath = join(runRoot, snapshotName(state.revision));
+    const finalPath = join(runRoot, snapshotName(validated.revision));
     const temporaryPath = `${finalPath}.tmp`;
     try {
       await stat(finalPath);
-      throw new OrchestratorStop("UNEXPECTED_DIRTY_TREE", `State revision ${state.revision} already exists.`);
+      throw new OrchestratorStop("UNEXPECTED_DIRTY_TREE", `State revision ${validated.revision} already exists.`);
     } catch (error) {
       if ((error as NodeJS.ErrnoException).code !== "ENOENT") {
         throw error;
       }
     }
-    const serialised = canonicalJson(state);
+    const serialised = canonicalJson(validated);
+    if (Buffer.byteLength(serialised, "utf8") > maximumSnapshotBytes) {
+      throw new OrchestratorStop("TEST_BASELINE_BROKEN", "The state snapshot exceeds its persistence limit.");
+    }
     const handle = await open(temporaryPath, "wx", 0o600);
     try {
       await handle.writeFile(serialised, { encoding: "utf8" });
@@ -160,7 +183,7 @@ export class FileStateStore implements StateStore {
     }
     await rename(temporaryPath, finalPath);
     await syncDirectory(runRoot);
-    await this.appendJournal(runRoot, state, hash(serialised));
+    await this.appendJournal(runRoot, validated, hash(serialised));
   }
 
   public async load(runId: string): Promise<PersistedRunState> {
@@ -176,9 +199,9 @@ export class FileStateStore implements StateStore {
     if (latest === undefined) {
       throw new OrchestratorStop("TEST_BASELINE_BROKEN", `Run '${runId}' has no complete state snapshot.`);
     }
-    await this.verifyJournal(runRoot);
-    const text = await readFile(join(runRoot, latest), "utf8");
-    const parsed = parseState(JSON.parse(text) as unknown, runId);
+    await this.verifyJournal(runRoot, runId);
+    const text = await readBounded(join(runRoot, latest), maximumSnapshotBytes, "State snapshot");
+    const parsed = parseState(parseSecureJson(text, "State snapshot"), runId);
     if (snapshotName(parsed.revision) !== basename(latest)) {
       throw new OrchestratorStop("TEST_BASELINE_BROKEN", "Snapshot filename and revision disagree.");
     }
@@ -192,7 +215,7 @@ export class FileStateStore implements StateStore {
     const journalPath = join(runRoot, "journal.jsonl");
     let existing = "";
     try {
-      existing = await readFile(journalPath, "utf8");
+      existing = await readBounded(journalPath, maximumJournalBytes, "State journal");
     } catch (error) {
       if ((error as NodeJS.ErrnoException).code !== "ENOENT") {
         throw error;
@@ -209,6 +232,9 @@ export class FileStateStore implements StateStore {
       previousHash,
       recordedAt: state.updatedAt,
     };
+    if (Buffer.byteLength(existing, "utf8") + Buffer.byteLength(canonicalJson(entry), "utf8") > maximumJournalBytes) {
+      throw new OrchestratorStop("TEST_BASELINE_BROKEN", "The state journal exceeds its persistence limit.");
+    }
     const temporaryPath = join(runRoot, "journal.jsonl.tmp");
     const handle = await open(temporaryPath, "wx", 0o600);
     try {
@@ -221,16 +247,33 @@ export class FileStateStore implements StateStore {
     await syncDirectory(runRoot);
   }
 
-  private async verifyJournal(runRoot: string): Promise<readonly JournalEntry[]> {
-    const text = await readFile(join(runRoot, "journal.jsonl"), "utf8");
-    const entries = text.split("\n").filter((line) => line.length > 0).map((line) => JSON.parse(line) as JournalEntry);
+  private async verifyJournal(runRoot: string, expectedRunId?: string): Promise<readonly JournalEntry[]> {
+    const text = await readBounded(join(runRoot, "journal.jsonl"), maximumJournalBytes, "State journal");
+    const lines = text.split("\n").filter((line) => line.length > 0);
+    if (lines.length === 0 || lines.length > 4096) throw new OrchestratorStop("TEST_BASELINE_BROKEN", "The state journal has an invalid entry count.");
+    const entries = lines.map((line, index) => {
+      const parsed = parseSecureJson(line, `State journal entry ${index + 1}`);
+      if (parsed === null || typeof parsed !== "object" || Array.isArray(parsed)) throw new OrchestratorStop("TEST_BASELINE_BROKEN", "A state journal entry is not an object.");
+      const source = parsed as Record<string, unknown>;
+      if (Object.keys(source).sort().join(",") !== "event,previousHash,recordedAt,revision,runId,sequence,stateHash" ||
+          source.event !== "STATE_SAVED" || typeof source.runId !== "string" || typeof source.sequence !== "number" ||
+          typeof source.revision !== "number" || !Number.isInteger(source.sequence) || !Number.isInteger(source.revision) ||
+          typeof source.stateHash !== "string" || !/^[0-9a-f]{64}$/.test(source.stateHash) ||
+          !(source.previousHash === null || (typeof source.previousHash === "string" && /^[0-9a-f]{64}$/.test(source.previousHash))) ||
+          typeof source.recordedAt !== "string") {
+        throw new OrchestratorStop("TEST_BASELINE_BROKEN", "A state journal entry failed its closed contract.");
+      }
+      instant(source.recordedAt, `journal[${index}].recordedAt`);
+      return source as unknown as JournalEntry;
+    });
     let previousLine: string | null = null;
     for (const [index, entry] of entries.entries()) {
       const expectedPrevious = previousLine === null ? null : hash(`${previousLine}\n`);
-      if (entry.sequence !== index + 1 || entry.previousHash !== expectedPrevious || entry.event !== "STATE_SAVED") {
+      if (entry.sequence !== index + 1 || entry.revision !== index || entry.previousHash !== expectedPrevious ||
+          (expectedRunId !== undefined && entry.runId !== expectedRunId) || lines[index] !== canonicalJson(entry).trimEnd()) {
         throw new OrchestratorStop("TEST_BASELINE_BROKEN", "The state journal hash chain is invalid.");
       }
-      previousLine = JSON.stringify(JSON.parse(canonicalJson(entry)) as unknown);
+      previousLine = lines[index] ?? null;
     }
     return entries;
   }

@@ -69,10 +69,12 @@ test("plan semantics require independent and security review dependencies", () =
 
 test("dry run is deterministic and exposes lanes, locks and the external Human Gate", () => {
   const mapping = task({ taskId: "mapping", priority: 200 });
-  const review = task({ taskId: "review", owner: "independent_reviewer", dependencies: ["mapping"], priority: 100 });
-  const gate = task({ taskId: "human-gate", owner: "governance_guard", dependencies: ["review"], humanGate: true, parallelism: "SEQUENTIAL_ONLY" });
-  const preview = createDryRunPlan(projectPlan([mapping, review, gate]));
-  assert.deepEqual(preview.waves, [["mapping"], ["review"], ["human-gate"]]);
+  const qualitySurface = { cwd: "C:/repository", writableRoots: ["C:/repository"], sandbox: "workspace-write" as const, approvalPolicy: "never" as const, networkAccess: false as const, environmentPolicy: "minimal" as const, tools: [], mcpServers: [], skills: [] };
+  const gateSurface = { ...qualitySurface, writableRoots: [], sandbox: "read-only" as const };
+  const quality = task({ taskId: "quality", taskKind: "QUALITY_GATE", owner: "governance_guard", dependencies: ["mapping"], executionSurface: qualitySurface, ownership: "COORDINATOR_ONLY", parallelism: "SEQUENTIAL_ONLY", priority: 100 });
+  const gate = task({ taskId: "human-gate", taskKind: "HUMAN_GATE", owner: "governance_guard", dependencies: ["quality"], humanGate: true, executionSurface: gateSurface, parallelism: "SEQUENTIAL_ONLY" });
+  const preview = createDryRunPlan(projectPlan([mapping, quality, gate]));
+  assert.deepEqual(preview.waves, [["mapping"], ["quality"], ["human-gate"]]);
   assert.deepEqual(preview.humanGates, ["human-gate"]);
 });
 

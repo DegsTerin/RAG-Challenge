@@ -15,3 +15,13 @@ export interface ProcessRequest {
 export interface ProcessExecutor {
   run(request: ProcessRequest, signal?: AbortSignal): Promise<CommandEvidence>;
 }
+
+export interface StructuredProcessResult {
+  readonly evidence: CommandEvidence;
+  readonly stdout: string;
+  readonly stderr: string;
+}
+
+export interface StructuredProcessExecutor extends ProcessExecutor {
+  runStructured(request: ProcessRequest, signal?: AbortSignal): Promise<StructuredProcessResult>;
+}

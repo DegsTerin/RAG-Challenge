@@ -11,10 +11,13 @@ export interface TaskGroups {
 }
 
 const runningStatuses = new Set<TaskStatus>([
-  "ASSIGNED", "RUNNING", "IMPLEMENTED", "TESTING", "REVIEW", "INTEGRATION_READY", "INTEGRATING", "VALIDATING",
+  "ASSIGNED", "RUNNING", "TESTING", "REVIEW", "INTEGRATION_READY", "INTEGRATING", "VALIDATING",
 ]);
-const terminalSuccess = new Set<TaskStatus>(["PASS"]);
 const terminalFailure = new Set<TaskStatus>(["FAIL", "CANCELLED", "HUMAN_REVIEW_REQUIRED"]);
+
+function isSuccessful(task: TaskDefinition): boolean {
+  return task.status === "PASS" || (task.taskKind === "IMPLEMENTATION" && task.status === "IMPLEMENTED");
+}
 
 function sorted(tasks: readonly TaskDefinition[]): TaskDefinition[] {
   return [...tasks].sort((left, right) => right.priority - left.priority || left.taskId.localeCompare(right.taskId, "en"));
@@ -37,7 +40,7 @@ export class DependencyGraph {
   }
 
   public dependenciesSatisfied(task: TaskDefinition): boolean {
-    return task.dependencies.every((dependency) => terminalSuccess.has(this.task(dependency).status));
+    return task.dependencies.every((dependency) => isSuccessful(this.task(dependency)));
   }
 
   public hasFailedDependency(task: TaskDefinition): boolean {
@@ -52,7 +55,7 @@ export class DependencyGraph {
       task.status === "BLOCKED" || task.blockedBy.length > 0 ||
       (!this.dependenciesSatisfied(task) && !this.hasFailedDependency(task)));
     const running = this.tasks.filter((task) => runningStatuses.has(task.status));
-    const completed = this.tasks.filter((task) => terminalSuccess.has(task.status));
+    const completed = this.tasks.filter(isSuccessful);
     const failed = this.tasks.filter((task) => terminalFailure.has(task.status) || this.hasFailedDependency(task));
     return {
       ready: sorted(ready),

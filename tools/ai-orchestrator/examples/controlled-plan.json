@@ -6,6 +6,7 @@
   "tasks": [
     {
       "taskId": "map-repository",
+      "taskKind": "DISCOVERY",
       "title": "Map the repository",
       "objective": "Map the bounded read-only surface required by the candidate change.",
       "authority": {
@@ -13,6 +14,7 @@
         "grants": ["read-only repository inspection"],
         "negativeScope": ["no writes", "no provider", "no Human Gate decision"]
       },
+      "executionSurface": { "cwd": "C:/Projects/RAG-Challenge", "writableRoots": [], "sandbox": "read-only", "approvalPolicy": "never", "networkAccess": false, "environmentPolicy": "minimal", "tools": ["shell"], "mcpServers": [], "skills": [] },
       "owner": "code_mapper",
       "status": "DISCOVERED",
       "priority": 300,
@@ -33,6 +35,8 @@
       "requiresIndependentReview": false,
       "requiresSecurityReview": false,
       "humanGate": false,
+      "candidateTaskId": null,
+      "candidate": null,
       "maxAttempts": 1,
       "createdAt": "2026-08-14T12:00:00.000Z",
       "startedAt": null,
@@ -42,6 +46,7 @@
     },
     {
       "taskId": "check-architecture",
+      "taskKind": "DISCOVERY",
       "title": "Check architecture",
       "objective": "Check the accepted architecture and frozen contracts without editing them.",
       "authority": {
@@ -49,6 +54,7 @@
         "grants": ["read-only architecture assessment"],
         "negativeScope": ["no ADR decision", "no writes"]
       },
+      "executionSurface": { "cwd": "C:/Projects/RAG-Challenge", "writableRoots": [], "sandbox": "read-only", "approvalPolicy": "never", "networkAccess": false, "environmentPolicy": "minimal", "tools": ["shell"], "mcpServers": [], "skills": [] },
       "owner": "architect",
       "status": "DISCOVERED",
       "priority": 250,
@@ -71,6 +77,8 @@
       "requiresIndependentReview": false,
       "requiresSecurityReview": false,
       "humanGate": false,
+      "candidateTaskId": null,
+      "candidate": null,
       "maxAttempts": 1,
       "createdAt": "2026-08-14T12:00:00.000Z",
       "startedAt": null,
@@ -80,6 +88,7 @@
     },
     {
       "taskId": "independent-review",
+      "taskKind": "DISCOVERY",
       "title": "Review the candidate evidence",
       "objective": "Review the two read-only findings independently.",
       "authority": {
@@ -87,7 +96,8 @@
         "grants": ["read-only independent review"],
         "negativeScope": ["no writes", "no gate approval"]
       },
-      "owner": "independent_reviewer",
+      "executionSurface": { "cwd": "C:/Projects/RAG-Challenge", "writableRoots": [], "sandbox": "read-only", "approvalPolicy": "never", "networkAccess": false, "environmentPolicy": "minimal", "tools": ["shell"], "mcpServers": [], "skills": [] },
+      "owner": "governance_guard",
       "status": "DISCOVERED",
       "priority": 200,
       "dependencies": ["map-repository", "check-architecture"],
@@ -107,6 +117,8 @@
       "requiresIndependentReview": false,
       "requiresSecurityReview": false,
       "humanGate": false,
+      "candidateTaskId": null,
+      "candidate": null,
       "maxAttempts": 1,
       "createdAt": "2026-08-14T12:00:00.000Z",
       "startedAt": null,
@@ -116,6 +128,7 @@
     },
     {
       "taskId": "quality-gate",
+      "taskKind": "QUALITY_GATE",
       "title": "Run the canonical quality gate",
       "objective": "Record the canonical offline quality-gate evidence.",
       "authority": {
@@ -123,6 +136,7 @@
         "grants": ["local offline validation"],
         "negativeScope": ["no external service", "no lifecycle change"]
       },
+      "executionSurface": { "cwd": "C:/Projects/RAG-Challenge", "writableRoots": ["C:/Projects/RAG-Challenge"], "sandbox": "workspace-write", "approvalPolicy": "never", "networkAccess": false, "environmentPolicy": "minimal", "tools": [], "mcpServers": [], "skills": [] },
       "owner": "governance_guard",
       "status": "DISCOVERED",
       "priority": 100,
@@ -143,6 +157,8 @@
       "requiresIndependentReview": false,
       "requiresSecurityReview": false,
       "humanGate": false,
+      "candidateTaskId": null,
+      "candidate": null,
       "maxAttempts": 1,
       "createdAt": "2026-08-14T12:00:00.000Z",
       "startedAt": null,
@@ -152,6 +168,7 @@
     },
     {
       "taskId": "human-gate",
+      "taskKind": "HUMAN_GATE",
       "title": "Prepare the external Human Gate",
       "objective": "Stop and present the complete package to the human owner.",
       "authority": {
@@ -159,6 +176,7 @@
         "grants": ["prepare decision package"],
         "negativeScope": ["no auto-approval", "no lifecycle change"]
       },
+      "executionSurface": { "cwd": "C:/Projects/RAG-Challenge", "writableRoots": [], "sandbox": "read-only", "approvalPolicy": "never", "networkAccess": false, "environmentPolicy": "minimal", "tools": [], "mcpServers": [], "skills": [] },
       "owner": "governance_guard",
       "status": "DISCOVERED",
       "priority": 50,
@@ -179,6 +197,8 @@
       "requiresIndependentReview": false,
       "requiresSecurityReview": false,
       "humanGate": true,
+      "candidateTaskId": null,
+      "candidate": null,
       "maxAttempts": 1,
       "createdAt": "2026-08-14T12:00:00.000Z",
       "startedAt": null,

@@ -6,12 +6,14 @@ import {
   parallelismClasses,
   resultStatuses,
   stopCodes,
+  taskKinds,
   taskStatuses,
   type AgentResult,
   type ProjectPlan,
   type TaskDefinition,
 } from "./contracts.js";
 import { OrchestratorStop } from "./errors.js";
+import { isAbsolute } from "node:path";
 
 const identifierPattern = /^[a-z0-9][a-z0-9-]{0,63}$/;
 const gitObjectPattern = /^[0-9a-f]{40}$/;
@@ -39,6 +41,9 @@ function exactKeys(value: JsonRecord, allowed: readonly string[], label: string)
 function stringValue(value: unknown, label: string, maximum = 2048): string {
   if (typeof value !== "string" || value.length === 0 || value.length > maximum || /[\u0000-\u001f]/.test(value)) {
     throw new OrchestratorStop("CONFLICTING_REQUIREMENTS", `${label} must be a bounded printable string.`);
+  }
+  if (/\b(?:sk|sk-proj)-[A-Za-z0-9_-]{8,}\b/.test(value) || /(?:KEY|SECRET|TOKEN|PASSWORD|CREDENTIAL|CONNECTION_STRING)\s*[=:]\s*\S+/i.test(value)) {
+    throw new OrchestratorStop("SECRET_REQUIRED", `${label} contains a secret-shaped value.`);
   }
   return value;
 }
@@ -108,14 +113,18 @@ const authorityKeys = ["references", "grants", "negativeScope"] as const;
 const contractKeys = ["contractId", "state", "owner"] as const;
 const commandKeys = ["commandId", "exitCode", "durationMs", "result", "relevantOutput"] as const;
 const resultKeys = [
-  "status", "summary", "changedFiles", "commands", "tests", "evidence", "risks", "blockers",
+  "schemaVersion", "status", "summary", "changedFiles", "commands", "tests", "evidence", "risks", "blockers",
   "requestedAuthority", "stopCondition",
 ] as const;
+const executionSurfaceKeys = [
+  "cwd", "writableRoots", "sandbox", "approvalPolicy", "networkAccess", "environmentPolicy", "tools", "mcpServers", "skills",
+] as const;
+const candidateKeys = ["commitId", "treeId", "changedFiles"] as const;
 const taskKeys = [
-  "taskId", "title", "objective", "authority", "owner", "status", "priority", "dependencies", "blockedBy",
+  "taskId", "taskKind", "title", "objective", "authority", "executionSurface", "owner", "status", "priority", "dependencies", "blockedBy",
   "allowedPaths", "forbiddenPaths", "ownership", "sharedResources", "requiredContracts", "acceptanceCriteria",
   "requiredTests", "stopConditions", "deliverables", "worktree", "branch", "parallelism",
-  "requiresIndependentReview", "requiresSecurityReview", "humanGate", "maxAttempts", "createdAt", "startedAt",
+  "requiresIndependentReview", "requiresSecurityReview", "humanGate", "candidateTaskId", "candidate", "maxAttempts", "createdAt", "startedAt",
   "finishedAt", "result", "evidence",
 ] as const;
 
@@ -134,6 +143,9 @@ function parseCommand(value: unknown, label: string) {
 export function parseAgentResult(value: unknown): AgentResult {
   const source = record(value, "agent result");
   exactKeys(source, resultKeys, "agent result");
+  if (source.schemaVersion !== 1) {
+    throw new OrchestratorStop("CONFLICTING_REQUIREMENTS", "The agent result schema version is unsupported.");
+  }
   const changedFiles = stringArray(source.changedFiles, "agent result.changedFiles", 256, 240);
   for (const [index, path] of changedFiles.entries()) {
     assertRepositoryPath(path, `agent result.changedFiles[${index}]`);
@@ -148,12 +160,21 @@ export function parseAgentResult(value: unknown): AgentResult {
   if (status !== "BLOCKED" && stopCondition !== null) {
     throw new OrchestratorStop("CONFLICTING_REQUIREMENTS", "Only a blocked agent result may carry a stop condition.");
   }
+  if (status === "PASS" && (
+    (Array.isArray(source.blockers) && source.blockers.length > 0) ||
+    (Array.isArray(source.requestedAuthority) && source.requestedAuthority.length > 0))) {
+    throw new OrchestratorStop("CONFLICTING_REQUIREMENTS", "A passing result cannot contain blockers or requested authority.");
+  }
   const commands = Array.isArray(source.commands) ? source.commands.map((item, index) => parseCommand(item, `commands[${index}]`)) : null;
   const tests = Array.isArray(source.tests) ? source.tests.map((item, index) => parseCommand(item, `tests[${index}]`)) : null;
   if (commands === null || tests === null || commands.length > 64 || tests.length > 64) {
     throw new OrchestratorStop("CONFLICTING_REQUIREMENTS", "Agent command and test evidence must be bounded arrays.");
   }
+  if (status === "PASS" && [...commands, ...tests].some((command) => command.result !== "PASS")) {
+    throw new OrchestratorStop("CONFLICTING_REQUIREMENTS", "A passing result cannot contain failed or blocked command evidence.");
+  }
   return {
+    schemaVersion: 1,
     status,
     summary: stringValue(source.summary, "agent result.summary", 4096),
     changedFiles,
@@ -191,14 +212,47 @@ function parseTask(value: unknown, label: string): TaskDefinition {
       owner: stringValue(contract.owner, `${label}.requiredContracts[${index}].owner`, 128),
     };
   });
+  const executionSource = record(source.executionSurface, `${label}.executionSurface`);
+  exactKeys(executionSource, executionSurfaceKeys, `${label}.executionSurface`);
+  const cwd = stringValue(executionSource.cwd, `${label}.executionSurface.cwd`, 240);
+  const writableRoots = stringArray(executionSource.writableRoots, `${label}.executionSurface.writableRoots`, 32, 240);
+  if (!isAbsolute(cwd) || writableRoots.some((root) => !isAbsolute(root))) {
+    throw new OrchestratorStop("OUT_OF_SCOPE_CHANGE_REQUIRED", `${label}.executionSurface paths must be absolute.`);
+  }
+  const candidate = source.candidate === null ? null : (() => {
+    const candidateSource = record(source.candidate, `${label}.candidate`);
+    exactKeys(candidateSource, candidateKeys, `${label}.candidate`);
+    const commitId = stringValue(candidateSource.commitId, `${label}.candidate.commitId`, 40);
+    const treeId = stringValue(candidateSource.treeId, `${label}.candidate.treeId`, 40);
+    if (!gitObjectPattern.test(commitId) || !gitObjectPattern.test(treeId)) {
+      throw new OrchestratorStop("UNEXPECTED_DIRTY_TREE", `${label}.candidate identities must be full Git object identifiers.`);
+    }
+    const changedFiles = stringArray(candidateSource.changedFiles, `${label}.candidate.changedFiles`, 256, 240);
+    changedFiles.forEach((path, index) => assertRepositoryPath(path, `${label}.candidate.changedFiles[${index}]`));
+    return { commitId, treeId, changedFiles };
+  })();
   return {
     taskId,
+    taskKind: enumValue(source.taskKind, taskKinds, `${label}.taskKind`),
     title: stringValue(source.title, `${label}.title`, 256),
     objective: stringValue(source.objective, `${label}.objective`, 4096),
     authority: {
       references: stringArray(authoritySource.references, `${label}.authority.references`),
       grants: stringArray(authoritySource.grants, `${label}.authority.grants`),
       negativeScope: stringArray(authoritySource.negativeScope, `${label}.authority.negativeScope`),
+    },
+    executionSurface: {
+      cwd,
+      writableRoots,
+      sandbox: enumValue(executionSource.sandbox, ["read-only", "workspace-write"] as const, `${label}.executionSurface.sandbox`),
+      approvalPolicy: enumValue(executionSource.approvalPolicy, ["never"] as const, `${label}.executionSurface.approvalPolicy`),
+      networkAccess: executionSource.networkAccess === false
+        ? false
+        : (() => { throw new OrchestratorStop("PROVIDER_CHANGE_REQUIRED", `${label}.executionSurface.networkAccess must be false.`); })(),
+      environmentPolicy: enumValue(executionSource.environmentPolicy, ["minimal"] as const, `${label}.executionSurface.environmentPolicy`),
+      tools: stringArray(executionSource.tools, `${label}.executionSurface.tools`, 32, 64),
+      mcpServers: stringArray(executionSource.mcpServers, `${label}.executionSurface.mcpServers`, 32, 64),
+      skills: stringArray(executionSource.skills, `${label}.executionSurface.skills`, 32, 128),
     },
     owner: enumValue(source.owner, agentIds, `${label}.owner`),
     status: enumValue(source.status, taskStatuses, `${label}.status`),
@@ -222,6 +276,12 @@ function parseTask(value: unknown, label: string): TaskDefinition {
     requiresIndependentReview: booleanValue(source.requiresIndependentReview, `${label}.requiresIndependentReview`),
     requiresSecurityReview: booleanValue(source.requiresSecurityReview, `${label}.requiresSecurityReview`),
     humanGate: booleanValue(source.humanGate, `${label}.humanGate`),
+    candidateTaskId: source.candidateTaskId === null ? null : (() => {
+      const value = stringValue(source.candidateTaskId, `${label}.candidateTaskId`, 64);
+      assertIdentifier(value, `${label}.candidateTaskId`);
+      return value;
+    })(),
+    candidate,
     maxAttempts: integerValue(source.maxAttempts, `${label}.maxAttempts`, 1, 3),
     createdAt: isoInstant(source.createdAt, `${label}.createdAt`),
     startedAt: nullableInstant(source.startedAt, `${label}.startedAt`),
@@ -266,6 +326,7 @@ export const agentResultOutputSchema = {
   additionalProperties: false,
   required: [...resultKeys],
   properties: {
+    schemaVersion: { type: "integer", const: 1 },
     status: { type: "string", enum: [...resultStatuses] },
     summary: { type: "string", minLength: 1, maxLength: 4096 },
     changedFiles: { type: "array", maxItems: 256, items: { type: "string", minLength: 1, maxLength: 240 } },

@@ -1,33 +1,40 @@
-// Purpose: Verifies the exact clean Git baseline and coordinator branch before any non-dry-run orchestration begins or resumes.
-import type { ProcessExecutor } from "../ports/process-executor.js";
+// Purpose: Verifies the exact clean Git baseline through an absolute, non-interactive and configuration-isolated Git executable.
 import { OrchestratorStop } from "../core/errors.js";
+import type { StructuredProcessExecutor } from "../ports/process-executor.js";
+import { assertAbsoluteExecutable, gitArguments, gitEnvironment } from "../security/git-process-policy.js";
 
 export class GitBaselineVerifier {
+  private readonly environment: Readonly<Record<string, string>>;
+
   public constructor(
-    private readonly process: ProcessExecutor,
-    private readonly environment: Readonly<Record<string, string>>,
-  ) {}
+    private readonly process: StructuredProcessExecutor,
+    private readonly gitExecutable: string,
+    environment: Readonly<Record<string, string | undefined>>,
+  ) {
+    assertAbsoluteExecutable(gitExecutable, "Git executable");
+    this.environment = gitEnvironment(environment);
+  }
 
   public async verify(repositoryRoot: string, expectedHead: string, signal?: AbortSignal): Promise<void> {
     const head = await this.git(repositoryRoot, "baseline-head", ["rev-parse", "HEAD"], signal);
     const branch = await this.git(repositoryRoot, "baseline-branch", ["branch", "--show-current"], signal);
-    const status = await this.git(repositoryRoot, "baseline-status", ["status", "--porcelain", "--untracked-files=all"], signal);
-    if (head.result !== "PASS" || head.relevantOutput.at(-1) !== expectedHead || branch.result !== "PASS" ||
-        !(branch.relevantOutput.at(-1) ?? "").startsWith("codex/") || status.result !== "PASS" || status.relevantOutput.length !== 0) {
+    const status = await this.git(repositoryRoot, "baseline-status", ["status", "--porcelain=v1", "-z", "--untracked-files=all"], signal);
+    if (head.evidence.result !== "PASS" || head.stdout.trim() !== expectedHead || branch.evidence.result !== "PASS" ||
+        !branch.stdout.trim().startsWith("codex/") || status.evidence.result !== "PASS" || status.stdout.length !== 0) {
       throw new OrchestratorStop("UNEXPECTED_DIRTY_TREE", "Git HEAD, branch or working tree differs from the execution baseline.");
     }
   }
 
   private async git(cwd: string, commandId: string, arguments_: readonly string[], signal?: AbortSignal) {
-    return await this.process.run({
+    return await this.process.runStructured({
       commandId,
-      executable: "git",
-      arguments: arguments_,
+      executable: this.gitExecutable,
+      arguments: gitArguments(arguments_),
       cwd,
       environment: this.environment,
       timeoutMs: 120_000,
       maximumOutputBytes: 1_048_576,
-      maximumRelevantLines: 4096,
+      maximumRelevantLines: 256,
     }, signal);
   }
 }

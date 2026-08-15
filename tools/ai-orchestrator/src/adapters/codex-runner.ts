@@ -5,6 +5,7 @@ import { buildAgentPrompt } from "../application/agent-prompt.js";
 import type { AgentRunner, AgentRunRequest, AgentRunResponse } from "../core/contracts.js";
 import { OrchestratorStop } from "../core/errors.js";
 import { agentResultOutputSchema, parseAgentResult } from "../core/validation.js";
+import { parseSecureJson } from "../security/secure-json.js";
 
 interface CodexTurn {
   readonly finalResponse: string;
@@ -26,6 +27,7 @@ export interface CodexRunnerPolicy {
   readonly worktreeRoot: string;
   readonly environment: Readonly<Record<string, string>>;
   readonly model: string | null;
+  readonly permittedModels?: readonly string[];
 }
 
 export type CodexClientFactory = (policy: CodexRunnerPolicy) => CodexClient;
@@ -55,6 +57,25 @@ function assertWorktree(root: string, worktree: string | null): string {
   return absoluteWorktree;
 }
 
+function assertExecutionSurface(request: AgentRunRequest, root: string): string {
+  if (["INTEGRATION", "QUALITY_GATE", "HUMAN_GATE"].includes(request.task.taskKind)) {
+    throw new OrchestratorStop("AMBIGUOUS_AUTHORITY", "Deterministic and Human Gate tasks cannot be dispatched to Codex.", request.task.taskId);
+  }
+  const expectedSandbox = request.task.taskKind === "IMPLEMENTATION" ? "workspace-write" : "read-only";
+  if (request.task.executionSurface.sandbox !== expectedSandbox || request.task.executionSurface.networkAccess ||
+      request.task.executionSurface.approvalPolicy !== "never" || request.task.executionSurface.environmentPolicy !== "minimal" ||
+      request.task.executionSurface.mcpServers.length > 0 || request.task.executionSurface.skills.length > 0) {
+    throw new OrchestratorStop("OUT_OF_SCOPE_CHANGE_REQUIRED", "The task execution surface exceeds the Codex runner policy.", request.task.taskId);
+  }
+  if (request.task.taskKind === "IMPLEMENTATION") {
+    return assertWorktree(root, request.task.worktree);
+  }
+  if (!isAbsolute(request.task.executionSurface.cwd) || request.task.executionSurface.writableRoots.length > 0) {
+    throw new OrchestratorStop("OUT_OF_SCOPE_CHANGE_REQUIRED", "A read-only Codex task requires an absolute non-writable cwd.", request.task.taskId);
+  }
+  return resolve(request.task.executionSurface.cwd);
+}
+
 export class CodexRunner implements AgentRunner {
   public constructor(
     private readonly policy: CodexRunnerPolicy,
@@ -72,12 +93,15 @@ export class CodexRunner implements AgentRunner {
     if (Object.keys(this.policy.environment).some((name) => !permittedEnvironmentNames.has(name))) {
       throw new OrchestratorStop("SECRET_REQUIRED", "The explicit Codex environment contains a variable outside the allowlist.", request.task.taskId);
     }
-    const workingDirectory = assertWorktree(this.policy.worktreeRoot, request.task.worktree);
+    if (this.policy.model !== null && !(this.policy.permittedModels ?? []).includes(this.policy.model)) {
+      throw new OrchestratorStop("HUMAN_DECISION_REQUIRED", "The requested Codex model is not present in the separately authorised model allowlist.", request.task.taskId);
+    }
+    const workingDirectory = assertExecutionSurface(request, this.policy.worktreeRoot);
     const client = this.factory(this.policy);
     const threadOptions: ThreadOptions = {
       workingDirectory,
       skipGitRepoCheck: false,
-      sandboxMode: "workspace-write",
+      sandboxMode: request.task.executionSurface.sandbox,
       approvalPolicy: "never",
       networkAccessEnabled: false,
       webSearchMode: "disabled",
@@ -89,7 +113,10 @@ export class CodexRunner implements AgentRunner {
     const turn = await thread.run(buildAgentPrompt(request), { outputSchema: agentResultOutputSchema, ...(signal === undefined ? {} : { signal }) });
     let parsed: unknown;
     try {
-      parsed = JSON.parse(turn.finalResponse) as unknown;
+      if (Buffer.byteLength(turn.finalResponse, "utf8") > 262_144) {
+        throw new OrchestratorStop("TEST_BASELINE_BROKEN", "Codex returned an oversized structured result.", request.task.taskId);
+      }
+      parsed = parseSecureJson(turn.finalResponse, "Codex structured result");
     } catch {
       throw new OrchestratorStop("TEST_BASELINE_BROKEN", "Codex returned invalid structured JSON.", request.task.taskId);
     }

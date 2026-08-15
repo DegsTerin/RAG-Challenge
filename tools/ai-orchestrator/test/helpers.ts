@@ -14,6 +14,7 @@ export const instant = "2026-08-14T12:00:00.000Z";
 
 export function passingResult(changedFiles: readonly string[] = []): AgentResult {
   return {
+    schemaVersion: 1,
     status: "PASS",
     summary: "The bounded task completed.",
     changedFiles,
@@ -28,11 +29,39 @@ export function passingResult(changedFiles: readonly string[] = []): AgentResult
 }
 
 export function task(overrides: Partial<TaskDefinition> = {}): TaskDefinition {
+  const writable = overrides.owner === "implementation_worker";
+  const worktree = overrides.worktree ?? (writable ? "C:/managed/default" : null);
+  const inferredKind = overrides.humanGate === true
+    ? "HUMAN_GATE"
+    : overrides.owner === "independent_reviewer"
+      ? "INDEPENDENT_REVIEW"
+      : overrides.owner === "security_reviewer"
+        ? "SECURITY_REVIEW"
+        : writable
+          ? "IMPLEMENTATION"
+          : "DISCOVERY";
+  const tools = inferredKind === "IMPLEMENTATION"
+    ? ["shell", "apply_patch"]
+    : ["DISCOVERY", "INDEPENDENT_REVIEW", "SECURITY_REVIEW"].includes(inferredKind)
+      ? ["shell"]
+      : [];
   return {
     taskId: "map-repository",
+    taskKind: inferredKind,
     title: "Map repository",
     objective: "Map the authorised repository paths.",
     authority: { references: ["owner-request"], grants: ["read-only inspection"], negativeScope: ["no writes"] },
+    executionSurface: {
+      cwd: worktree ?? "C:/repository",
+      writableRoots: writable && worktree !== null ? [worktree] : [],
+      sandbox: writable ? "workspace-write" : "read-only",
+      approvalPolicy: "never",
+      networkAccess: false,
+      environmentPolicy: "minimal",
+      tools,
+      mcpServers: [],
+      skills: [],
+    },
     owner: "code_mapper",
     status: "DISCOVERED",
     priority: 100,
@@ -47,12 +76,14 @@ export function task(overrides: Partial<TaskDefinition> = {}): TaskDefinition {
     requiredTests: [],
     stopConditions: ["UNEXPECTED_DIRTY_TREE"],
     deliverables: ["repository-map"],
-    worktree: null,
+    worktree,
     branch: null,
     parallelism: "SAFE_PARALLEL",
     requiresIndependentReview: false,
     requiresSecurityReview: false,
     humanGate: false,
+    candidateTaskId: null,
+    candidate: null,
     maxAttempts: 1,
     createdAt: instant,
     startedAt: null,
@@ -103,6 +134,10 @@ export class InMemoryResourceLocks implements ResourceLocks {
 
   public async inspect(): Promise<readonly string[]> {
     return [...this.held.keys()].sort();
+  }
+
+  public async inspectRecords() {
+    return [...this.held.entries()].map(([lockId, owner]) => ({ lockId, status: "ACTIVE" as const, runId: owner.runId, taskId: owner.taskId, attemptId: owner.attemptId, acquiredAt: owner.acquiredAt }));
   }
 }
 

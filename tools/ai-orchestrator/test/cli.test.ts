@@ -43,6 +43,7 @@ test("CLI status and cleanup report do not mutate a completed run", async () => 
       runId: "run-cli",
       revision: 0,
       baseline,
+      maxConcurrency: 3,
       createdAt: instant,
       updatedAt: instant,
       tasks: [task({ status: "PASS", startedAt: instant, finishedAt: instant, result: passingResult() })],

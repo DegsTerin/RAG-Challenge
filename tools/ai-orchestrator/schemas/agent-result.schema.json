@@ -5,6 +5,7 @@
   "type": "object",
   "additionalProperties": false,
   "required": [
+    "schemaVersion",
     "status",
     "summary",
     "changedFiles",
@@ -17,6 +18,7 @@
     "stopCondition"
   ],
   "properties": {
+    "schemaVersion": { "const": 1 },
     "status": { "enum": ["PASS", "FAIL", "BLOCKED", "HUMAN_REVIEW_REQUIRED"] },
     "summary": { "type": "string", "minLength": 1, "maxLength": 4096 },
     "changedFiles": { "type": "array", "maxItems": 256, "items": { "type": "string", "minLength": 1, "maxLength": 240 } },

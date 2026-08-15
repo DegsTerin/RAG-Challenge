@@ -10,6 +10,18 @@ export const agentIds = [
 
 export type AgentId = (typeof agentIds)[number];
 
+export const taskKinds = [
+  "DISCOVERY",
+  "IMPLEMENTATION",
+  "INDEPENDENT_REVIEW",
+  "SECURITY_REVIEW",
+  "INTEGRATION",
+  "QUALITY_GATE",
+  "HUMAN_GATE",
+] as const;
+
+export type TaskKind = (typeof taskKinds)[number];
+
 export const taskStatuses = [
   "DISCOVERED",
   "READY",
@@ -109,6 +121,7 @@ export interface CommandEvidence {
 }
 
 export interface AgentResult {
+  readonly schemaVersion: 1;
   readonly status: ResultStatus;
   readonly summary: string;
   readonly changedFiles: readonly string[];
@@ -121,11 +134,31 @@ export interface AgentResult {
   readonly stopCondition: StopCode | null;
 }
 
+export interface ExecutionSurface {
+  readonly cwd: string;
+  readonly writableRoots: readonly string[];
+  readonly sandbox: "read-only" | "workspace-write";
+  readonly approvalPolicy: "never";
+  readonly networkAccess: false;
+  readonly environmentPolicy: "minimal";
+  readonly tools: readonly string[];
+  readonly mcpServers: readonly string[];
+  readonly skills: readonly string[];
+}
+
+export interface CandidateEvidence {
+  readonly commitId: string;
+  readonly treeId: string;
+  readonly changedFiles: readonly string[];
+}
+
 export interface TaskDefinition {
   readonly taskId: string;
+  readonly taskKind: TaskKind;
   readonly title: string;
   readonly objective: string;
   readonly authority: AuthorityEnvelope;
+  readonly executionSurface: ExecutionSurface;
   readonly owner: AgentId;
   readonly status: TaskStatus;
   readonly priority: number;
@@ -146,6 +179,8 @@ export interface TaskDefinition {
   readonly requiresIndependentReview: boolean;
   readonly requiresSecurityReview: boolean;
   readonly humanGate: boolean;
+  readonly candidateTaskId: string | null;
+  readonly candidate: CandidateEvidence | null;
   readonly maxAttempts: number;
   readonly createdAt: string;
   readonly startedAt: string | null;
@@ -169,6 +204,7 @@ export interface AttemptRecord {
   readonly startedAt: string;
   readonly finishedAt: string | null;
   readonly retryClass: RetryClass | null;
+  readonly threadId: string | null;
   readonly result: AgentResult | null;
 }
 
@@ -177,6 +213,7 @@ export interface PersistedRunState {
   readonly runId: string;
   readonly revision: number;
   readonly baseline: string;
+  readonly maxConcurrency: number;
   readonly createdAt: string;
   readonly updatedAt: string;
   readonly tasks: readonly TaskDefinition[];
@@ -191,6 +228,7 @@ export interface AgentRunRequest {
   readonly task: TaskDefinition;
   readonly baseline: string;
   readonly contracts: readonly ContractRequirement[];
+  readonly candidate: CandidateEvidence | null;
   readonly resumeThreadId: string | null;
 }
 
