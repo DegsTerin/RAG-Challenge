@@ -40,7 +40,12 @@ proprietários.
   e não exercitado contra Codex real. O SDK não fornece ID de nova thread
   antes do primeiro turn, portanto um start Codex real retorna
   `ARCHITECTURE_CHANGE_REQUIRED`. Nenhuma chamada Codex/provider, secret,
-  Human Gate ou mudança de lifecycle ocorreu.
+  Human Gate ou mudança de lifecycle ocorreu. Após avaliação documental local
+  do SDK locked, o proprietário decidiu manter ADR-0016 `accepted` e não
+  `superseded`, preservar `FakeAgentRunner` como a única baseline operacional
+  validada e manter `NEW_REAL_START` sob
+  `ARCHITECTURE_CHANGE_REQUIRED`. Nenhum ADR-0017 foi criado ou aceito, e
+  nenhuma versão adicional do SDK foi verificada.
 - Posição: `STATE-00 DISCOVERY` encerrado; `GATE-B01
   ARCHITECTURE_BOOTSTRAP_DECISION` aprovado e encerrado; `STATE-01
   PROJECT_SETUP` encerrado após Human Gate aprovado sem ressalvas em
@@ -1576,7 +1581,7 @@ proprietários.
   a política de idioma acrescentou o 21º documento público por incremento
   versionado, e o ADR-0003 acrescentou o 22º.
 - A baseline aprovada no Human Gate de `STATE-00` permanece `3.4.0`.
-- O corpus de instruções vigente possui versão `4.13.0` e 13 arquivos em
+- O corpus de instruções vigente possui versão `4.13.1` e 13 arquivos em
   `prompts/`.
 - Visão, requisitos, arquitetura, RAG, segurança, qualidade, lifecycle,
   roadmap, backlog, estado, histórico e templates estão documentados.
@@ -1972,6 +1977,13 @@ proprietários.
   com 252 vetores. Preserva zero resultado, scorer, campanha Responses,
   `RB-4` e Human Gate; a qualificação do denominador não é homologação de
   produto e não muda lifecycle.
+- O corpus `4.13.1` registra a decisão humana posterior à avaliação documental
+  do SDK locked: ADR-0016 permanece `accepted` e não `superseded`,
+  `FakeAgentRunner` permanece a única baseline operacional validada, nenhum
+  ADR-0017 foi criado ou aceito e `NEW_REAL_START` continua
+  `ARCHITECTURE_CHANGE_REQUIRED`. A avaliação não verificou versão adicional
+  do SDK e não executou rede, Codex, provider, credencial, billing, Human Gate,
+  lifecycle, produção, push, merge ou release.
 - O corpus `4.13.0` registra a autoridade delimitada posterior, a aquisição
   exata do grafo `@openai/codex-sdk` `0.147.0`, a implementação e a validação
   da Etapa 2. O orchestrator permanece tooling de desenvolvimento fora da
@@ -2342,12 +2354,23 @@ com `FakeAgentRunner`. O resume de uma thread Codex cuja identidade já esteja
 persistida está apenas mapeado e testado por contrato; não é exposto pelo CLI,
 não foi exercitado contra Codex real e exige autoridades separadas de
 execução, provider, rede e credencial. Cada execução continua exigindo
-envelope e autoridade próprios. A próxima autoridade diretamente relacionada só é
-necessária se o proprietário desejar iniciar uma nova thread Codex real: nesse
-caso, deve aceitar um sucessor de ADR-0016 ou autorizar a avaliação de uma
-versão de SDK que exponha identidade durável antes do primeiro turn. Até essa
-decisão, `ARCHITECTURE_CHANGE_REQUIRED` é stop condition obrigatório e não há
-autoridade para execução Codex real.
+envelope e autoridade próprios.
+
+Em 2026-08-15, a avaliação documental local concluiu que o SDK locked
+`0.147.0` não fornece identidade durável de nova thread antes do primeiro
+turn. Nenhuma versão adicional foi verificada. O proprietário decidiu manter
+ADR-0016 `accepted` e não `superseded`, preservar `FakeAgentRunner` como a
+única baseline operacional validada e não criar ou aceitar ADR-0017.
+`NEW_REAL_START` permanece proibido e deve parar com
+`ARCHITECTURE_CHANGE_REQUIRED`.
+
+Qualquer avaliação documental futura de ADR-0017, materialização de sucessor
+ou nova avaliação de SDK exige autoridade própria. Antes de qualquer primeiro
+turn ou efeito externo, uma interface oficialmente suportada e verificável
+deve fornecer identidade externa resumível e durável por mecanismo
+client-supplied, idempotente ou deterministicamente reconciliável, além de
+preservar start/resume, working directory isolado, sandbox, approval/network
+deny e structured output validável.
 
 Essa autoridade eventual não inclui chamada real de agente, secret, billing,
 provider de produto, produção, push, merge, release, Human Gate ou mudança de

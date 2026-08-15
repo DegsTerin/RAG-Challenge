@@ -2,7 +2,7 @@
 
 ## Versão atual
 
-- Versão: `4.13.0`
+- Versão: `4.13.1`
 - Data: 2026-08-15
 - Status: `STATE-07` ativo; ADR-0011 `accepted`, reconciliado e com a correção
   interna da política de serving implementada; o A0 candidato-específico
@@ -72,7 +72,10 @@
   `MULTI_AGENT_READY_WITH_CONDITIONS`: somente fake local está operacional; o
   resume persistido está mapeado/testado por contrato e permanece sem execução
   real, enquanto nova thread Codex real permanece
-  `ARCHITECTURE_CHANGE_REQUIRED`;
+  `ARCHITECTURE_CHANGE_REQUIRED`; após avaliação documental local do SDK
+  locked, o proprietário manteve ADR-0016 `accepted` e não `superseded`,
+  preservou `FakeAgentRunner` como a única baseline operacional validada e não
+  criou ou aceitou ADR-0017;
   a política de idioma exige explicitamente en-GB em subject, body e footer de
   toda nova mensagem de commit pertencente ao projeto, sem transformar essa
   regra em autoridade implícita para amend, rebase ou reescrita de histórico;
@@ -90,6 +93,28 @@ A versão do corpus é independente da versão futura do software.
 
 Toda alteração atualiza este arquivo e, quando necessário,
 [`../Start-Here.md`](../Start-Here.md).
+
+## 4.13.1 — 2026-08-15
+
+- Registra a decisão humana posterior à avaliação documental local do SDK:
+  ADR-0016 permanece `accepted` e não `superseded`, e `FakeAgentRunner`
+  permanece a única baseline operacional validada.
+- Registra que ADR-0017 não foi criado ou aceito, nenhuma versão adicional do
+  SDK foi verificada e `NEW_REAL_START` continua
+  `ARCHITECTURE_CHANGE_REQUIRED`.
+- Mantém como condição futura uma interface oficialmente suportada e
+  verificável que forneça identidade externa resumível e durável antes do
+  primeiro turn ou efeito externo, por mecanismo client-supplied, idempotente
+  ou deterministicamente reconciliável, preservando também start/resume,
+  working directory isolado, sandbox, approval/network deny e structured
+  output validável.
+- Mantém fora de escopo ADR sucessor, implementação, aquisição de SDK, rede,
+  Codex/provider, secret, billing, Human Gate, lifecycle, produção, push,
+  merge e release. Runtime preflight e testes executáveis foram
+  `NOT_APPLICABLE`.
+- Classificação SemVer: `PATCH`, porque reconcilia uma disposição factual sem
+  introduzir capacidade, alterar arquitetura, conceder autoridade operacional
+  ou mudar lifecycle.
 
 ## 4.13.0 — 2026-08-15
 

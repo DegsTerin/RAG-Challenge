@@ -8396,3 +8396,40 @@ contém somente fatos cronológicos.
 - Integridade append-only: este histórico preserva byte a byte seu prefixo
   anterior de 530.978 bytes no SHA-256
   `f5a86f67f8ce9959366cd79e3225e0890f370951fbc907b10932b07160214e7c`.
+
+## 2026-08-15 — Disposição fake-only de ADR-0016 preservada após avaliação documental
+
+- Baseline observada: branch `codex/stage1-multi-agent-readiness`, HEAD
+  `0bf65c7b15e402d12ab8f7df5855bc5aebaf1bba`, árvore rastreada e staged
+  limpas, com somente os três prompts Stage 0/1/2 do proprietário não
+  rastreados e preservados.
+- Autoridade: o proprietário autorizou exclusivamente avaliação documental,
+  sem materialização, de um sucessor de ADR-0016 ou de uma versão verificada
+  do SDK que fornecesse identidade durável de nova thread antes do primeiro
+  turn. Depois, autorizou somente esta reconciliação factual em quatro
+  documentos canônicos.
+- Evidência: o SDK locked `@openai/codex-sdk` `0.147.0` expõe identidade de
+  nova thread somente depois do início do primeiro turn. Nenhuma versão
+  adicional foi localmente verificada, e nenhum acesso de rede foi executado.
+- Decisão humana: ADR-0016 permanece `accepted` e não `superseded`;
+  `FakeAgentRunner` permanece a única baseline operacional validada; ADR-0017
+  não foi criado ou aceito; `NEW_REAL_START` permanece
+  `ARCHITECTURE_CHANGE_REQUIRED`.
+- Condição futura: antes de qualquer primeiro turn ou efeito externo, uma
+  interface oficialmente suportada e verificável deve fornecer identidade
+  externa resumível e durável por mecanismo client-supplied, idempotente ou
+  deterministicamente reconciliável, além de preservar start/resume, working
+  directory isolado, sandbox, approval/network deny e structured output
+  validável. Qualquer nova avaliação ou sucessor exige autoridade própria.
+- Estado resultante: `MULTI_AGENT_READY_WITH_CONDITIONS` permanece inalterado
+  somente para a baseline local com `FakeAgentRunner`; `STATE-07
+  TESTING_HOMOLOGATION`, Human Gate e lifecycle permanecem inalterados.
+- Escopo negativo preservado: nenhum ADR sucessor, implementação, aquisição de
+  SDK, Codex/provider, rede, credencial, billing, produção, push, merge,
+  release, RB-4, Human Gate ou mudança de lifecycle foi autorizado ou
+  executado.
+- Runtime preflight e testes executáveis: `NOT_APPLICABLE`, pois a ação foi
+  exclusivamente documental e não alterou comportamento executável.
+- Integridade append-only: esta entrada preserva byte a byte o prefixo anterior
+  de 535.811 bytes no SHA-256
+  `ab069efbfa989519ad7519a68c3dd36cbbd206ec492015c52a35cb8d14755972`.

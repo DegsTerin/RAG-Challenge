@@ -2,7 +2,7 @@
 
 ## Status
 
-Este índice descreve o corpus documental vigente `4.13.0`. `STATE-00`,
+Este índice descreve o corpus documental vigente `4.13.1`. `STATE-00`,
 `GATE-B01` e `STATE-01` a `STATE-06` estão encerrados com seus gates
 registrados. `STATE-07 TESTING_HOMOLOGATION` está ativo; incrementos locais,
 offline, determinísticos e sintéticos foram executados e reconciliados, sem
@@ -24,6 +24,10 @@ mapeado e testado por contrato, mas não é exposto pelo CLI, não foi exercitad
 contra Codex real e continua a exigir autoridades separadas de execução,
 provider, rede e credencial. O início de uma nova thread Codex real permanece
 `ARCHITECTURE_CHANGE_REQUIRED`, sem alterar produto, Human Gate ou lifecycle.
+A avaliação documental local posterior não verificou versão adicional do SDK;
+o proprietário manteve ADR-0016 `accepted` e não `superseded`, preservou
+`FakeAgentRunner` como a única baseline operacional validada e não criou ou
+aceitou ADR-0017.
 
 ## Comece aqui
 
