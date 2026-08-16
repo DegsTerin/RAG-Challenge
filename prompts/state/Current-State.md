@@ -117,6 +117,25 @@ reports.
   observed, and no reusable worker remained after the gate. No provider call,
   credential use, external network, external action, Human Gate or lifecycle
   transition occurred under this authority.
+- Under `AUTH-ENGB-REPOSITORY-COMPLETION-IMPL-001`, the coordinator
+  started from the exact clean baseline
+  `main@8882ab8a58e1db58fb0148b967894f1b8388adc2`, reviewed and integrated
+  the private-identifier candidate as `172575da`, then created, reviewed and
+  integrated the enforcement candidate as `b9031d5` followed by corrective
+  commit `fe7f9f0`. The internal lane changed only private, editable,
+  non-serialised, non-persisted and non-contractual names. The binding
+  owner-listed canonical family, public script names, OpenAPI v1/v2, migrations,
+  evaluation data, localisation, sources, citations, accepted ADRs and product
+  requirements remain preserved. The v2 language policy classifies every
+  tracked blob, exact binary and immutable-text identities, digest-bound
+  regions, filenames, internal identifiers and new commit messages. An
+  independent security review found a generic `pt-BR` dictionary bypass; the
+  candidate was held, the bypass was removed, two exposed localisation
+  fixtures received exact region classifications and the closing review
+  passed with zero P0–P3 findings. Focused checks passed; the integrated final
+  reviews, documentary gate and the single canonical offline gate remain
+  pending. The complete factual record is
+  [`En-GB-Repository-Completion-Report.md`](../../docs/En-GB-Repository-Completion-Report.md).
 - Position: `STATE-00 DISCOVERY` closed; `GATE-B01
   ARCHITECTURE_BOOTSTRAP_DECISION` approved and closed; `STATE-01
   PROJECT_SETUP` closed after a Human Gate approved without reservations on
@@ -1652,7 +1671,7 @@ reports.
   the language policy added the 21st public document through a versioned
   increment, and ADR-0003 added the 22nd.
 - The baseline approved at the `STATE-00` Human Gate remains `3.4.0`.
-- The current instruction corpus is version `4.16.0` and has 13 files under
+- The current instruction corpus is version `4.17.0` and has 13 files under
   `prompts/`.
 - Vision, requirements, architecture, RAG, security, quality, lifecycle,
   roadmap, backlog, state, history and templates are documented.

@@ -2,7 +2,7 @@
 
 ## Current version
 
-- Version: `4.16.0`
+- Version: `4.17.0`
 - Date: 2026-08-16
 - Status: `STATE-07` active; ADR-0011 through ADR-0017 retain their recorded
   accepted dispositions and implemented or pending boundaries; PostgreSQL 18.4
@@ -10,13 +10,13 @@
   notice-bearing, retrieval-determinism, provider-candidate and RB-1 through
   RB-4 dispositions remain exactly as recorded in Current State; the
   development orchestrator remains `MULTI_AGENT_READY` with separate authority
-  required for every execution; the Stage 0/1/2 governance,
-  product-credential isolation and en-GB migration implementation is complete
-  on the isolated integration candidate; the product credential identifier is
-  restricted to a closed classified allowlist and its orchestrator parser
-  contract has passed independent reviews; the language baseline is
-  `COMPLETE` with zero accepted debt; documentary and canonical offline gates
-  passed on the clean isolated candidate with fresh-node controls; product
+  required for every execution; the Stage 0/1/2 governance and
+  product-credential isolation remain complete; repository-wide en-GB
+  completion is integrated on its isolated candidate, including exact blob,
+  exception, filename, identifier and new-commit-message enforcement; the
+  language baseline is `COMPLETE` with zero accepted debt; focused checks and
+  lane reviews passed after the attributable localisation-bypass correction,
+  while integrated reviews and the final gates remain pending; product
   homologation, Human Gate and lifecycle change remain unexecuted
 - Scope: 13 active files under `prompts/`
 
@@ -30,6 +30,36 @@ The corpus version is independent from the future software version.
 
 Every change updates this file and, when necessary,
 [`../Start-Here.md`](../Start-Here.md).
+
+## 4.17.0 — 2026-08-16
+
+- Migrates only proven private test names, helpers, parameters and local
+  variables from the legacy spelling to `Artefact` or `artefact`, preserving
+  every public, serialised, persisted, hash-bound and contractual identity.
+- Classifies every tracked blob as strict UTF-8 text or an exact digest-bound
+  binary, and replaces broad whole-file exclusions with closed immutable-text
+  classifications or unique digest-bound regions.
+- Enforces exact allowances for binding canonical identifiers, filenames and
+  literals by path, class, kind, value, count and context, while preventing new
+  legacy-spelled private identifiers and filenames.
+- Inspects every new commit message, including embedded identifier stems,
+  without rewriting prior messages and while preserving backticked canonical
+  technical literals.
+- Preserves owner-facing `pt-BR`, functional localisation, sources,
+  citations, frozen evaluation data, generated migrations, accepted contracts,
+  OpenAPI v1/v2 and append-only or digest-bound history.
+- Records the independent P1 finding against a generic `pt-BR` dictionary
+  bypass, its removal, the new negative regression test and exact
+  classification of the two localisation fixtures exposed by the correction.
+- Keeps the protected enforcement update exceptional and manually reviewed;
+  no wildcard, automatic baseline writer, ordinary authority switch or
+  reusable bypass is introduced.
+- Preserves provider, credential, external-action, ADR, Human Gate and
+  lifecycle boundaries. Integrated final reviews, the documentary gate and
+  exactly one canonical offline gate remain pending.
+- Classification: `MINOR`, because the corpus gains complete tracked-blob,
+  repository-identifier and commit-message enforcement without changing
+  lifecycle or product contracts.
 
 ## 4.16.0 — 2026-08-16
 

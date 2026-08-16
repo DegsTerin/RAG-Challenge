@@ -8663,3 +8663,45 @@ contém somente fatos cronológicos.
 - Append-only integrity: this entry preserves the complete previous file of
   550,227 bytes at SHA-256
   `1a1c6317bdc126bf244cfa50f397e3d54aa24c3188dd7d1f01c1be6b2da13c38`.
+
+## 2026-08-16 — en-GB repository completion candidate reconciled
+
+- Authority: `AUTH-ENGB-REPOSITORY-COMPLETION-IMPL-001`, with the owner’s
+  binding decision to preserve the enumerated canonical family and stated
+  public scripts exactly.
+- Baseline and isolation: the coordinator matched the exact clean baseline
+  `main@8882ab8a58e1db58fb0148b967894f1b8388adc2`. The internal and
+  enforcement lanes used the exclusive branches and worktrees named by the
+  owner; the enforcement lane was created only after the internal candidate
+  had been reviewed and integrated. Mutations, integration and gates remained
+  sequential; reviewers were read-only.
+- Internal completion: source commit `f7b51dd` was independently approved and
+  integrated as `172575da`. It changed only six files and 54 proven private,
+  editable, non-serialised, non-persisted, non-hash-bound and non-contractual
+  lexical occurrences. Focused unit tests passed 21/21 and integration tests
+  passed 3/3.
+- Enforcement completion: source commits `1ae50b3` and `db57d68` were
+  integrated one at a time as `b9031d5` and `fe7f9f0`. Policy v2 classifies
+  all tracked blobs, exact binary and immutable-text identities, digest-bound
+  regions, legacy-spelled filenames, canonical identifiers and every new
+  commit message. Its baseline remains `COMPLETE` with zero accepted debt.
+- Independent correction: the first enforcement review found a P1 generic
+  skip for any line containing a `"pt-BR"` key. Integration stopped. The skip
+  was removed, its former reproduction became a negative regression test and
+  the two localisation fixtures exposed by the correction received exact
+  digest-bound classifications. The closing review passed with zero P0–P3
+  findings.
+- Preserved identities: OpenAPI v1/v2 blobs and SHA-256 values, the migrations
+  and evaluation trees, accepted ADRs, product requirements, localisation,
+  sources, citations, append-only prefixes, the binding canonical family and
+  the four owner-listed public script paths remain unchanged.
+- Current gate status: focused lane checks and independent lane reviews passed.
+  Integrated final reviews, the documentary gate and exactly one sequential
+  `./eng/ci.ps1 -Offline` execution on the reviewed integrated baseline remain
+  pending.
+- Negative scope: no provider, product credential identifier or value,
+  billing, network, installation, OCI, GitHub, push, pull request, merge,
+  release, deploy, ADR, Human Gate or lifecycle action occurred.
+- Append-only integrity: this entry preserves the complete previous file of
+  552,927 bytes at SHA-256
+  `4bc73464a8c1e0002fa01e2b5952f5b0030fcfdd943e1efbe86ef318088da086`.
