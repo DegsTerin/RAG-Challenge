@@ -4,9 +4,10 @@
   "title": "RAG-Challenge language enforcement policy",
   "type": "object",
   "additionalProperties": false,
-  "required": ["$schema", "payload", "digest"],
+  "required": ["$schema", "schemaDigest", "payload", "digest"],
   "properties": {
     "$schema": { "const": "./language-policy.schema.json" },
+    "schemaDigest": { "type": "string", "pattern": "^sha256:[0-9a-f]{64}$" },
     "payload": {
       "type": "object",
       "additionalProperties": false,
@@ -83,7 +84,7 @@
             "required": ["path", "classification", "startMarker", "endMarker", "sha256"],
             "properties": {
               "path": { "type": "string", "minLength": 1 },
-              "classification": { "const": "PRESERVED_HISTORICAL_REGION" },
+              "classification": { "enum": ["PRESERVED_HISTORICAL_REGION", "SYNTHETIC_ENFORCEMENT_REGION"] },
               "startMarker": { "type": "string", "minLength": 1 },
               "endMarker": { "type": ["string", "null"] },
               "sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" }

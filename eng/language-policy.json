@@ -1,5 +1,6 @@
 {
   "$schema": "./language-policy.schema.json",
+  "schemaDigest": "sha256:557d0719e16105d7430aa83e7cd79260a4bb8640c56ebd37493d22a21756da99",
   "payload": {
     "schemaVersion": 1,
     "policyId": "rag-challenge-language-policy-v1",
@@ -109,12 +110,9 @@
     "excludedPaths": [
       { "path": "docs/api/openapi-v1.json", "classification": "FROZEN_PUBLIC_CONTRACT", "reason": "The accepted OpenAPI v1 bytes are frozen." },
       { "path": "docs/api/openapi-v2.json", "classification": "FROZEN_PUBLIC_CONTRACT", "reason": "The accepted OpenAPI v2 bytes are frozen." },
-      { "path": "prompts/templates/Templates.md", "classification": "OWNER_FACING_PT_BR", "reason": "The template payloads and labels are intentionally owner-facing pt-BR." },
       { "path": "src/RagChallenge.Dashboard.Web/src/i18n.ts", "classification": "FUNCTIONAL_LOCALISATION", "reason": "The file owns the functional pt-BR and en-GB interface dictionaries." },
       { "path": "src/RagChallenge.Dashboard.Web/test/fixtures/query-v1.mjs", "classification": "SOURCE_OR_CITATION_DATA", "reason": "The fixture preserves bilingual question, answer and citation data." },
       { "path": "src/RagChallenge.Dashboard.Web/test/fixtures/query-v2.mjs", "classification": "SOURCE_OR_CITATION_DATA", "reason": "The fixture preserves bilingual question, answer and citation data." },
-      { "path": "tools/ai-orchestrator/test/security-boundaries.test.ts", "classification": "EXTERNAL_CANONICAL_FORMAT", "reason": "The synthetic enforcement tests intentionally contain rejected language fixtures." },
-      { "path": "eng/test-language-policy.mjs", "classification": "EXTERNAL_CANONICAL_FORMAT", "reason": "The language-policy tests intentionally contain rejected American and Portuguese fixtures." },
       { "path": "docs/Ingestion-Hardening-Historical-Owner-Request.md", "classification": "HISTORICAL_EVIDENCE", "reason": "The original owner request remains historical evidence in its original language." },
       { "path": "docs/Multi-Agent-Readiness-Audit.md", "classification": "HISTORICAL_EVIDENCE", "reason": "The completed Stage 1 readiness audit remains historical implementation evidence." },
       { "path": "docs/Stage-2-Multi-Agent-Orchestrator-Report.md", "classification": "HISTORICAL_EVIDENCE", "reason": "The completed Stage 2 report remains historical implementation evidence." },
@@ -134,6 +132,7 @@
       { "path": "docs/architecture/ADR-0014-Deterministic-Retrieval-Ranking-And-Retrieval-Only-Baseline.md", "classification": "ACCEPTED_ARCHITECTURE_HISTORY", "reason": "The accepted decision record is preserved as architectural history." },
       { "path": "docs/architecture/ADR-0015-Versioned-Cosine-Numerical-Semantics.md", "classification": "ACCEPTED_ARCHITECTURE_HISTORY", "reason": "The accepted decision record is preserved as architectural history." },
       { "path": "docs/architecture/ADR-0016-Deterministic-Development-Orchestrator-And-Codex-Runner-Boundary.md", "classification": "ACCEPTED_ARCHITECTURE_HISTORY", "reason": "The accepted decision record is preserved as architectural history." },
+      { "path": "docs/architecture/ADR-0017-Product-Credential-Isolation-And-Operational-Authority.md", "classification": "ACCEPTED_ARCHITECTURE_HISTORY", "reason": "The accepted decision record is preserved as architectural history." },
       { "path": "docs/STATE-00-Discovery-Report.md", "classification": "HISTORICAL_EVIDENCE", "reason": "The state report is accepted historical evidence." },
       { "path": "docs/STATE-01-Project-Setup-Report.md", "classification": "HISTORICAL_EVIDENCE", "reason": "The state report is accepted historical evidence." },
       { "path": "docs/STATE-02-Architecture-Report.md", "classification": "HISTORICAL_EVIDENCE", "reason": "The state report is accepted historical evidence." },
@@ -213,6 +212,62 @@
     ],
     "excludedRegions": [
       {
+        "path": "eng/test-language-policy.mjs",
+        "classification": "SYNTHETIC_ENFORCEMENT_REGION",
+        "startMarker": "// SYNTHETIC_LANGUAGE_POLICY_PAYLOAD_START",
+        "endMarker": "// SYNTHETIC_LANGUAGE_POLICY_PAYLOAD_END",
+        "sha256": "6695cf9079c5f6e1ee651ca09a109e1c938ae5f48a48113a0b1cae7cf7589fd9"
+      },
+      {
+        "path": "eng/test-language-policy.mjs",
+        "classification": "SYNTHETIC_ENFORCEMENT_REGION",
+        "startMarker": "// SYNTHETIC_LANGUAGE_REPOSITORY_START",
+        "endMarker": "// SYNTHETIC_LANGUAGE_REPOSITORY_END",
+        "sha256": "06dba61b9d952570fef5d8fe46005aba241966581ac302c7df0082a0d71ac1aa"
+      },
+      {
+        "path": "eng/test-language-policy.mjs",
+        "classification": "SYNTHETIC_ENFORCEMENT_REGION",
+        "startMarker": "// SYNTHETIC_LANGUAGE_TRUST_TAMPER_START",
+        "endMarker": "// SYNTHETIC_LANGUAGE_TRUST_TAMPER_END",
+        "sha256": "e4e6ab34e27aed6113125d6e8d7fc35994010d93854cb814442600549589d56f"
+      },
+      {
+        "path": "eng/test-language-policy.mjs",
+        "classification": "SYNTHETIC_ENFORCEMENT_REGION",
+        "startMarker": "// SYNTHETIC_LANGUAGE_SECRET_MESSAGES_START",
+        "endMarker": "// SYNTHETIC_LANGUAGE_SECRET_MESSAGES_END",
+        "sha256": "19796ad0b31eee10a569435cafdd873d8d0c1683af0b97339b8cd1d03977fb17"
+      },
+      {
+        "path": "eng/test-language-policy.mjs",
+        "classification": "SYNTHETIC_ENFORCEMENT_REGION",
+        "startMarker": "// SYNTHETIC_LANGUAGE_OWNER_PAYLOAD_START",
+        "endMarker": "// SYNTHETIC_LANGUAGE_OWNER_PAYLOAD_END",
+        "sha256": "8947a202bbfae6b0c4979bfd713a17a33f57abf05c567c7f79f3b1c3caceb848"
+      },
+      {
+        "path": "eng/test-language-policy.mjs",
+        "classification": "SYNTHETIC_ENFORCEMENT_REGION",
+        "startMarker": "// SYNTHETIC_LANGUAGE_MIGRATION_DEBT_START",
+        "endMarker": "// SYNTHETIC_LANGUAGE_MIGRATION_DEBT_END",
+        "sha256": "1798695053cb080e41631b15bda6eefbfc16cc28a884b731f60db62ed2f4a93a"
+      },
+      {
+        "path": "eng/test-language-policy.mjs",
+        "classification": "SYNTHETIC_ENFORCEMENT_REGION",
+        "startMarker": "// SYNTHETIC_LANGUAGE_HISTORY_AND_COMMITS_START",
+        "endMarker": "// SYNTHETIC_LANGUAGE_HISTORY_AND_COMMITS_END",
+        "sha256": "aca5eb445f12653b8b23cb3570f6a9bb40a2ccc27a90eaa16eda6b0b468d2eb7"
+      },
+      {
+        "path": "tools/ai-orchestrator/test/security-boundaries.test.ts",
+        "classification": "SYNTHETIC_ENFORCEMENT_REGION",
+        "startMarker": "// SYNTHETIC_ORCHESTRATOR_ENFORCEMENT_START",
+        "endMarker": "// SYNTHETIC_ORCHESTRATOR_ENFORCEMENT_END",
+        "sha256": "597567640cead55e7557283bf50f2bda97194a507f3d45ac5f4fc5229f61a322"
+      },
+      {
         "path": "prompts/state/Current-State.md",
         "classification": "PRESERVED_HISTORICAL_REGION",
         "startMarker": "## Contexto histórico preservado",
@@ -225,5 +280,5 @@
       { "path": "prompts/system/Prompt-System-Change-Log.md", "prefixBytes": 157982, "sha256": "15cc9ecb5b6d6a6de5e951e045fbde7ce6cec0cee0ab6631a5a15fb29bb699a4" }
     ]
   },
-  "digest": "sha256:bdc7585c08801fa59149d6a8893f7801701983e87020196135dd198713b40703"
+  "digest": "sha256:141dd0da59df751dc2a754b60ab20f2b93fa5359dd35d54263edce1c172d244d"
 }

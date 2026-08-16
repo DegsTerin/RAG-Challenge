@@ -70,9 +70,22 @@ agent-selected identity.
 
 Candidate inspection also reads the exact commit message with
 `git show -s --format=%B` and applies the coordinator repository's trusted
-language manifest before evidence or integration. A candidate worktree cannot
-relax that policy by changing its own copy. Non-compliant technical prose stops
-with `OUT_OF_SCOPE_CHANGE_REQUIRED`; prior Git history remains unchanged.
+language manifest, schema binding, migration baseline and checker executable
+before evidence or integration. Raw commit text passes the central non-echoing
+secret boundary before language parsing. The coordinator checker then scans
+the candidate worktree using the coordinator repository as a separate trusted
+policy root. A candidate worktree cannot relax exclusions, schema constraints,
+digests or debt by changing its own copy, and an ordinary candidate cannot
+change language-control files. Non-compliant technical prose stops with
+`OUT_OF_SCOPE_CHANGE_REQUIRED`; secret-shaped commit text stops with
+`SECRET_REQUIRED`; prior Git history remains unchanged.
+
+The initial Stage 0/1/2 language-control change is a manually reviewed
+exception outside the ordinary candidate-range path. The checker exposes no
+general policy-update capability or reusable authority flag. Rechecking that
+historical bootstrap range under the post-bootstrap rule therefore reports the
+control-file change and requires the already separate manual review; this local
+control does not claim an external branch-protection configuration.
 
 Agent tasks and deterministic tasks remain separate. Agent-declared test IDs
 or exit status are never coordinator-observed proof. The coordinator runs the

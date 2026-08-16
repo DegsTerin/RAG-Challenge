@@ -1,6 +1,7 @@
 // Purpose: Exercises duplicate JSON, bounded persistence, process denial and a disposable real Git worktree lifecycle.
 import assert from "node:assert/strict";
-import { access, mkdir, mkdtemp, readFile, rm, symlink, unlink, writeFile } from "node:fs/promises";
+import { randomUUID } from "node:crypto";
+import { access, mkdir, readFile, rm, symlink, unlink, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { delimiter, join, resolve } from "node:path";
 import test from "node:test";
@@ -8,7 +9,7 @@ import { BoundedProcess } from "../src/adapters/bounded-process.js";
 import { FileResourceLocks } from "../src/adapters/file-resource-locks.js";
 import { FileStateStore } from "../src/adapters/file-state-store.js";
 import { FileThreadCheckpointStore } from "../src/adapters/file-thread-checkpoints.js";
-import { GitCandidateInspector } from "../src/adapters/git-candidate-inspector.js";
+import { GitCandidateInspector, TrustedCandidateLanguageChecker } from "../src/adapters/git-candidate-inspector.js";
 import { GitWorktreeManager } from "../src/adapters/git-worktrees.js";
 import { SequentialIntegrationPipeline } from "../src/application/integration.js";
 import type { PersistedRunState } from "../src/core/contracts.js";
@@ -22,6 +23,7 @@ import {
   assertCliArgumentsContainNoSecretMaterial,
   assertClosedEnvironment,
   assertNoSecretShapedMaterial,
+  assertNoSecretShapedText,
   removeProductCredentialFromEnvironment,
 } from "../src/security/secret-policy.js";
 import { assertNoExistingReparseBoundary } from "../src/security/path-policy.js";
@@ -37,6 +39,18 @@ const trustedLanguagePolicy: TrustedLanguagePolicy = {
   ],
   portugueseTechnicalMarkers: ["implementação", "validação"],
 };
+const passingLanguageChecker = { check: async (): Promise<void> => undefined };
+
+async function guidTempDirectory(prefix: string): Promise<string> {
+  const root = join(tmpdir(), `${prefix}${randomUUID()}`);
+  await mkdir(root, { recursive: false });
+  return root;
+}
+
+function syntheticGitArguments(arguments_: readonly string[]): readonly string[] {
+  const nullDevice = process.platform === "win32" ? "NUL" : "/dev/null";
+  return gitArguments(["-c", `init.templateDir=${nullDevice}`, ...arguments_]);
+}
 
 function state(): PersistedRunState {
   return {
@@ -86,6 +100,7 @@ test("secure JSON rejects duplicate keys before schema validation", () => {
   }
 });
 
+// SYNTHETIC_ORCHESTRATOR_ENFORCEMENT_START
 test("central secret policy rejects synthetic secret-shaped material without echoing it", () => {
   const synthetic = "sk-proj-synthetic-not-a-real-secret";
   for (const action of [
@@ -147,7 +162,10 @@ test("product credential removal deletes only the assembled identifier without r
 
 test("trusted candidate language policy accepts British prose and external literals but rejects subject or body debt", () => {
   assert.doesNotThrow(() => assertBritishCommitMessage("fix(orchestrator): normalise candidate behaviour", trustedLanguagePolicy));
-  assert.doesNotThrow(() => assertBritishCommitMessage("fix(api): preserve OpenAI_API_KEY and https://example.invalid/behavior", trustedLanguagePolicy));
+  assert.doesNotThrow(() => assertBritishCommitMessage("fix(api): preserve https://example.invalid/behavior", trustedLanguagePolicy));
+  const identifier = "OPENAI_API_KEY";
+  assert.throws(() => assertNoSecretShapedText(`fix(api): preserve ${identifier}`, "Candidate commit message"), (error: unknown) =>
+    error instanceof OrchestratorStop && error.code === "SECRET_REQUIRED" && !error.message.includes(identifier));
   assert.throws(() => assertBritishCommitMessage("fix(orchestrator): normalize candidate", trustedLanguagePolicy), (error: unknown) =>
     error instanceof OrchestratorStop && error.code === "OUT_OF_SCOPE_CHANGE_REQUIRED");
   assert.throws(() => assertBritishCommitMessage("fix(orchestrator): preserve candidate\n\nReject behavior drift.", trustedLanguagePolicy), (error: unknown) =>
@@ -174,7 +192,7 @@ test("candidate cannot relax the coordinator-owned language policy", async () =>
     branch: "codex/implementation",
   });
   await assert.rejects(
-    new GitCandidateInspector(processAdapter, process.execPath, {}, trustedLanguagePolicy).inspect(
+    new GitCandidateInspector(processAdapter, process.execPath, {}, trustedLanguagePolicy, passingLanguageChecker).inspect(
       definition,
       baseline,
       passingResult(["eng/language-policy.json"]),
@@ -183,9 +201,99 @@ test("candidate cannot relax the coordinator-owned language policy", async () =>
   );
 });
 
+test("candidate commit secrets and invalid UTF-8 fail before language evidence without echoing", async () => {
+  const commit = "a".repeat(40);
+  const tree = "b".repeat(40);
+  const definition = task({
+    taskId: "implementation",
+    owner: "implementation_worker",
+    allowedPaths: ["fixture.txt"],
+    worktree: "C:/managed/implementation",
+    branch: "codex/implementation",
+  });
+  for (const [message, code] of [
+    ["fix(candidate): preserve OPENAI_API_KEY\n", "SECRET_REQUIRED"],
+    ["fix(candidate): preserve sk-proj-synthetic-not-a-real-secret\n", "SECRET_REQUIRED"],
+    ["fix(candidate): invalid \uFFFD message\n", "OUT_OF_SCOPE_CHANGE_REQUIRED"],
+  ] as const) {
+    let checkerCalls = 0;
+    const processAdapter = new RecordingGitProcess({
+      "candidate-head": `${commit}\n`, "candidate-branch": "codex/implementation\n", "candidate-status": "",
+      "candidate-count": "1\n", "candidate-tree": `${tree}\n`, "candidate-diff": "fixture.txt\u0000", "candidate-message": message,
+    });
+    await assert.rejects(
+      new GitCandidateInspector(processAdapter, process.execPath, {}, trustedLanguagePolicy, {
+        check: async () => { checkerCalls += 1; },
+      }).inspect(definition, baseline, passingResult(["fixture.txt"])),
+      (error: unknown) => error instanceof OrchestratorStop && error.code === code && !error.message.includes(message.trim()),
+    );
+    assert.equal(checkerCalls, 0);
+  }
+});
+
+test("ordinary candidates cannot alter trusted language controls or bypass the trusted content check", async () => {
+  const commit = "a".repeat(40);
+  const tree = "b".repeat(40);
+  const outputs = {
+    "candidate-head": `${commit}\n`, "candidate-branch": "codex/implementation\n", "candidate-status": "",
+    "candidate-count": "1\n", "candidate-tree": `${tree}\n`, "candidate-message": "fix(candidate): preserve trusted language controls\n",
+  };
+  const definition = task({
+    taskId: "implementation",
+    owner: "implementation_worker",
+    allowedPaths: ["eng/language-policy.json", "eng/language-migration-baseline.json", "eng/language-policy.schema.json"],
+    worktree: "C:/managed/implementation",
+    branch: "codex/implementation",
+  });
+  await assert.rejects(
+    new GitCandidateInspector(
+      new RecordingGitProcess({ ...outputs, "candidate-diff": "eng/language-policy.json\u0000eng/language-migration-baseline.json\u0000eng/language-policy.schema.json\u0000" }),
+      process.execPath, {}, trustedLanguagePolicy, passingLanguageChecker,
+    ).inspect(definition, baseline, passingResult(definition.allowedPaths)),
+    (error: unknown) => error instanceof OrchestratorStop && error.code === "OUT_OF_SCOPE_CHANGE_REQUIRED",
+  );
+
+  let checkerCalls = 0;
+  const ordinary = task({ ...definition, allowedPaths: ["fixture.txt"] });
+  await assert.rejects(
+    new GitCandidateInspector(
+      new RecordingGitProcess({ ...outputs, "candidate-diff": "fixture.txt\u0000" }),
+      process.execPath,
+      {},
+      trustedLanguagePolicy,
+      { check: async () => { checkerCalls += 1; throw new OrchestratorStop("OUT_OF_SCOPE_CHANGE_REQUIRED", "Synthetic trusted policy rejection."); } },
+    ).inspect(ordinary, baseline, passingResult(["fixture.txt"])),
+    (error: unknown) => error instanceof OrchestratorStop && error.code === "OUT_OF_SCOPE_CHANGE_REQUIRED",
+  );
+  assert.equal(checkerCalls, 1);
+});
+// SYNTHETIC_ORCHESTRATOR_ENFORCEMENT_END
+
+test("trusted candidate checker executes the coordinator script against the candidate root with a closed environment", async () => {
+  const processAdapter = new RecordingGitProcess();
+  const coordinatorRoot = resolve("../..");
+  const checkerPath = join(coordinatorRoot, "eng", "check-language.mjs");
+  await new TrustedCandidateLanguageChecker(
+    processAdapter,
+    process.execPath,
+    checkerPath,
+    coordinatorRoot,
+    {},
+  ).check("C:/synthetic-candidate", "a".repeat(40), "implementation");
+  const request = processAdapter.requests.at(-1);
+  assert.equal(request?.commandId, "candidate-language");
+  assert.deepEqual(request?.environment, {});
+  assert.deepEqual(request?.arguments, [
+    checkerPath,
+    "--repository-root", "C:/synthetic-candidate",
+    "--trusted-policy-root", coordinatorRoot,
+    "--commit-head", "a".repeat(40),
+  ]);
+});
+
 test("state persistence rejects a junction in an ancestor below the repository anchor", async (context) => {
-  const root = await mkdtemp(join(tmpdir(), "orchestrator-state-anchor-"));
-  const external = await mkdtemp(join(tmpdir(), "orchestrator-state-external-"));
+  const root = await guidTempDirectory("orchestrator-state-anchor-");
+  const external = await guidTempDirectory("orchestrator-state-external-");
   try {
     const link = join(root, "artifacts-local");
     try { await symlink(external, link, process.platform === "win32" ? "junction" : "dir"); }
@@ -205,7 +313,7 @@ test("state persistence rejects a junction in an ancestor below the repository a
 });
 
 test("existing symbolic-link or junction boundaries are rejected", async () => {
-  const root = await mkdtemp(join(tmpdir(), "orchestrator-reparse-"));
+  const root = await guidTempDirectory("orchestrator-reparse-");
   try {
     const target = join(root, "target");
     const link = join(root, "link");
@@ -218,8 +326,8 @@ test("existing symbolic-link or junction boundaries are rejected", async () => {
 });
 
 test("report-only lock inspection rejects a junction boundary", async (context) => {
-  const root = await mkdtemp(join(tmpdir(), "orchestrator-lock-anchor-"));
-  const external = await mkdtemp(join(tmpdir(), "orchestrator-lock-external-"));
+  const root = await guidTempDirectory("orchestrator-lock-anchor-");
+  const external = await guidTempDirectory("orchestrator-lock-external-");
   try {
     const link = join(root, "locks");
     try { await symlink(external, link, process.platform === "win32" ? "junction" : "dir"); }
@@ -238,8 +346,8 @@ test("report-only lock inspection rejects a junction boundary", async (context) 
 });
 
 test("worktree ownership directory junction cannot escape the managed root", async (context) => {
-  const root = await mkdtemp(join(tmpdir(), "orchestrator-owner-root-"));
-  const external = await mkdtemp(join(tmpdir(), "orchestrator-owner-external-"));
+  const root = await guidTempDirectory("orchestrator-owner-root-");
+  const external = await guidTempDirectory("orchestrator-owner-external-");
   try {
     const managed = join(root, "managed");
     await mkdir(managed);
@@ -264,8 +372,8 @@ test("worktree ownership directory junction cannot escape the managed root", asy
 });
 
 test("worktree ownership marker leaf link is rejected before Git mutation", async (context) => {
-  const root = await mkdtemp(join(tmpdir(), "orchestrator-owner-marker-"));
-  const external = await mkdtemp(join(tmpdir(), "orchestrator-owner-marker-external-"));
+  const root = await guidTempDirectory("orchestrator-owner-marker-");
+  const external = await guidTempDirectory("orchestrator-owner-marker-external-");
   try {
     const managed = join(root, "managed");
     const owners = join(managed, ".owners");
@@ -292,7 +400,7 @@ test("worktree ownership marker leaf link is rejected before Git mutation", asyn
 });
 
 test("state and lock reads fail closed on oversized or ambiguous local artefacts", async () => {
-  const root = await mkdtemp(join(tmpdir(), "orchestrator-bounds-"));
+  const root = await guidTempDirectory("orchestrator-bounds-");
   try {
     const store = new FileStateStore(root);
     await store.save(state());
@@ -312,8 +420,8 @@ test("state and lock reads fail closed on oversized or ambiguous local artefacts
 });
 
 test("persisted snapshot, journal, checkpoint and lock leaf links fail closed", async (context) => {
-  const root = await mkdtemp(join(tmpdir(), "orchestrator-leaf-links-"));
-  const external = await mkdtemp(join(tmpdir(), "orchestrator-leaf-external-"));
+  const root = await guidTempDirectory("orchestrator-leaf-links-");
+  const external = await guidTempDirectory("orchestrator-leaf-external-");
   const replaceWithLink = async (path: string, name: string): Promise<boolean> => {
     const target = join(external, name);
     await writeFile(target, await readFile(path));
@@ -420,7 +528,7 @@ async function absoluteGit(): Promise<string> {
 }
 
 test("real disposable Git worktree captures deletions, rejects multi-commit candidates and cleans up with branch CAS", async () => {
-  const root = await mkdtemp(join(tmpdir(), "orchestrator-git-"));
+  const root = await guidTempDirectory("orchestrator-git-");
   const repository = join(root, "repository");
   const managed = join(root, "managed");
   const worktree = join(managed, "implementation");
@@ -428,7 +536,7 @@ test("real disposable Git worktree captures deletions, rejects multi-commit cand
   const processAdapter = new BoundedProcess();
   const environment = gitEnvironment(process.env);
   const runGit = async (cwd: string, arguments_: readonly string[]) => await processAdapter.runStructured({
-    commandId: "git-fixture", executable: git, arguments: gitArguments(arguments_), cwd, environment,
+    commandId: "git-fixture", executable: git, arguments: syntheticGitArguments(arguments_), cwd, environment,
     timeoutMs: 120_000, maximumOutputBytes: 1_048_576,
   });
   try {
@@ -456,12 +564,12 @@ test("real disposable Git worktree captures deletions, rejects multi-commit cand
     assert.equal((await runGit(worktree, ["add", "--", "fixture.txt", "forbidden.txt"])).evidence.result, "PASS");
     assert.equal((await runGit(worktree, ["commit", "-m", "test(orchestrator): create disposable candidate"])).evidence.result, "PASS");
     const implementation = task({ taskId: "implementation", owner: "implementation_worker", allowedPaths: ["fixture.txt"], worktree, branch: "codex/implementation" });
-    const candidate = await new GitCandidateInspector(processAdapter, git, process.env, trustedLanguagePolicy).inspect(implementation, base, passingResult(["fixture.txt"]));
+    const candidate = await new GitCandidateInspector(processAdapter, git, process.env, trustedLanguagePolicy, passingLanguageChecker).inspect(implementation, base, passingResult(["fixture.txt"]));
     assert.deepEqual(candidate.changedFiles, ["fixture.txt", "forbidden.txt"]);
     await writeFile(join(worktree, "second.txt"), "second\n", "utf8");
     assert.equal((await runGit(worktree, ["add", "--", "second.txt"])).evidence.result, "PASS");
     assert.equal((await runGit(worktree, ["commit", "-m", "test(orchestrator): create second disposable commit"])).evidence.result, "PASS");
-    await assert.rejects(new GitCandidateInspector(processAdapter, git, process.env, trustedLanguagePolicy).inspect(implementation, base, passingResult(["fixture.txt", "forbidden.txt", "second.txt"])),
+    await assert.rejects(new GitCandidateInspector(processAdapter, git, process.env, trustedLanguagePolicy, passingLanguageChecker).inspect(implementation, base, passingResult(["fixture.txt", "forbidden.txt", "second.txt"])),
       /exactly one commit/);
     const advancedHead = (await runGit(worktree, ["rev-parse", "HEAD"])).stdout.trim();
     await assert.rejects(manager.removeManaged("implementation", worktree, { branch: "codex/implementation", baseline: base, head: candidate.commitId }), /persisted candidate identity|foreign or prunable/);
@@ -473,14 +581,14 @@ test("real disposable Git worktree captures deletions, rejects multi-commit cand
 });
 
 test("real sequential integration applies two reviewed one-commit candidates against the evolving HEAD", async () => {
-  const root = await mkdtemp(join(tmpdir(), "orchestrator-integration-chain-"));
+  const root = await guidTempDirectory("orchestrator-integration-chain-");
   const repository = join(root, "repository");
   const managed = join(root, "managed");
   const git = await absoluteGit();
   const processAdapter = new BoundedProcess();
   const environment = gitEnvironment(process.env);
   const runGit = async (cwd: string, arguments_: readonly string[]) => await processAdapter.runStructured({
-    commandId: "git-chain-fixture", executable: git, arguments: gitArguments(arguments_), cwd, environment,
+    commandId: "git-chain-fixture", executable: git, arguments: syntheticGitArguments(arguments_), cwd, environment,
     timeoutMs: 120_000, maximumOutputBytes: 1_048_576,
   });
   try {
@@ -493,7 +601,7 @@ test("real sequential integration applies two reviewed one-commit candidates aga
     assert.equal((await runGit(repository, ["commit", "-m", "test(orchestrator): create integration baseline"])).evidence.result, "PASS");
     const base = (await runGit(repository, ["rev-parse", "HEAD"])).stdout.trim();
     const manager = new GitWorktreeManager(repository, managed, processAdapter, git, process.env);
-    const inspector = new GitCandidateInspector(processAdapter, git, process.env, trustedLanguagePolicy);
+    const inspector = new GitCandidateInspector(processAdapter, git, process.env, trustedLanguagePolicy, passingLanguageChecker);
     const candidates = [] as Array<{ taskId: string; path: string; branch: string; file: string }>;
     for (const suffix of ["a", "b"]) {
       const taskId = `implementation-${suffix}`;
@@ -538,7 +646,7 @@ test("real sequential integration applies two reviewed one-commit candidates aga
 });
 
 test("real failed post-integration gate restores only the coordinator-owned commit", async () => {
-  const root = await mkdtemp(join(tmpdir(), "orchestrator-integration-rollback-"));
+  const root = await guidTempDirectory("orchestrator-integration-rollback-");
   const repository = join(root, "repository");
   const managed = join(root, "managed");
   const worktree = join(managed, "implementation");
@@ -547,7 +655,7 @@ test("real failed post-integration gate restores only the coordinator-owned comm
   const processAdapter = new BoundedProcess();
   const environment = gitEnvironment(process.env);
   const runGit = async (cwd: string, arguments_: readonly string[]) => await processAdapter.runStructured({
-    commandId: "git-rollback-fixture", executable: git, arguments: gitArguments(arguments_), cwd, environment,
+    commandId: "git-rollback-fixture", executable: git, arguments: syntheticGitArguments(arguments_), cwd, environment,
     timeoutMs: 120_000, maximumOutputBytes: 1_048_576,
   });
   try {
@@ -565,7 +673,7 @@ test("real failed post-integration gate restores only the coordinator-owned comm
     assert.equal((await runGit(worktree, ["add", "--", "candidate.txt"])).evidence.result, "PASS");
     assert.equal((await runGit(worktree, ["commit", "-m", "test(orchestrator): create rollback candidate"])).evidence.result, "PASS");
     const definition = task({ taskId: "implementation", owner: "implementation_worker", allowedPaths: ["candidate.txt"], worktree, branch });
-    const candidate = await new GitCandidateInspector(processAdapter, git, process.env, trustedLanguagePolicy).inspect(definition, base, passingResult(["candidate.txt"]));
+    const candidate = await new GitCandidateInspector(processAdapter, git, process.env, trustedLanguagePolicy, passingLanguageChecker).inspect(definition, base, passingResult(["candidate.txt"]));
     const implementation = { ...definition, status: "IMPLEMENTED" as const, candidate, result: passingResult(["candidate.txt"]) };
     const integrationTask = task({
       taskId: "integration", taskKind: "INTEGRATION", owner: "governance_guard", candidateTaskId: definition.taskId,
@@ -588,7 +696,7 @@ test("real failed post-integration gate restores only the coordinator-owned comm
 });
 
 test("managed cleanup completes branch and marker removal after the worktree was already removed", async () => {
-  const root = await mkdtemp(join(tmpdir(), "orchestrator-partial-cleanup-"));
+  const root = await guidTempDirectory("orchestrator-partial-cleanup-");
   const repository = join(root, "repository");
   const managed = join(root, "managed");
   const worktree = join(managed, "implementation");
@@ -597,7 +705,7 @@ test("managed cleanup completes branch and marker removal after the worktree was
   const processAdapter = new BoundedProcess();
   const environment = gitEnvironment(process.env);
   const runGit = async (arguments_: readonly string[]) => await processAdapter.runStructured({
-    commandId: "git-partial-cleanup-fixture", executable: git, arguments: gitArguments(arguments_), cwd: repository, environment,
+    commandId: "git-partial-cleanup-fixture", executable: git, arguments: syntheticGitArguments(arguments_), cwd: repository, environment,
     timeoutMs: 120_000, maximumOutputBytes: 1_048_576,
   });
   try {
@@ -621,7 +729,7 @@ test("managed cleanup completes branch and marker removal after the worktree was
 });
 
 test("managed cleanup rejects a recreated path after marker, record and branch are absent", async () => {
-  const root = await mkdtemp(join(tmpdir(), "orchestrator-unowned-cleanup-"));
+  const root = await guidTempDirectory("orchestrator-unowned-cleanup-");
   const repository = join(root, "repository");
   const managed = join(root, "managed");
   const worktree = join(managed, "implementation");
@@ -630,7 +738,7 @@ test("managed cleanup rejects a recreated path after marker, record and branch a
   const processAdapter = new BoundedProcess();
   const environment = gitEnvironment(process.env);
   const runGit = async (arguments_: readonly string[]) => await processAdapter.runStructured({
-    commandId: "git-unowned-cleanup-fixture", executable: git, arguments: gitArguments(arguments_), cwd: repository, environment,
+    commandId: "git-unowned-cleanup-fixture", executable: git, arguments: syntheticGitArguments(arguments_), cwd: repository, environment,
     timeoutMs: 120_000, maximumOutputBytes: 1_048_576,
   });
   try {
@@ -661,7 +769,7 @@ test("managed cleanup rejects a recreated path after marker, record and branch a
 });
 
 test("managed cleanup preserves marker and branch when a removed worktree path is recreated", async () => {
-  const root = await mkdtemp(join(tmpdir(), "orchestrator-recreated-cleanup-"));
+  const root = await guidTempDirectory("orchestrator-recreated-cleanup-");
   const repository = join(root, "repository");
   const managed = join(root, "managed");
   const worktree = join(managed, "implementation");
@@ -671,7 +779,7 @@ test("managed cleanup preserves marker and branch when a removed worktree path i
   const processAdapter = new BoundedProcess();
   const environment = gitEnvironment(process.env);
   const runGit = async (arguments_: readonly string[]) => await processAdapter.runStructured({
-    commandId: "git-recreated-cleanup-fixture", executable: git, arguments: gitArguments(arguments_), cwd: repository, environment,
+    commandId: "git-recreated-cleanup-fixture", executable: git, arguments: syntheticGitArguments(arguments_), cwd: repository, environment,
     timeoutMs: 120_000, maximumOutputBytes: 1_048_576,
   });
   try {
@@ -711,7 +819,7 @@ test("managed cleanup preserves marker and branch when a removed worktree path i
 });
 
 test("failed worktree creation preserves its marker and partial filesystem path", async () => {
-  const root = await mkdtemp(join(tmpdir(), "orchestrator-failed-create-"));
+  const root = await guidTempDirectory("orchestrator-failed-create-");
   const repository = join(root, "repository");
   const managed = join(root, "managed");
   const worktree = join(managed, "implementation");
@@ -720,7 +828,7 @@ test("failed worktree creation preserves its marker and partial filesystem path"
   const bounded = new BoundedProcess();
   const environment = gitEnvironment(process.env);
   const runGit = async (arguments_: readonly string[]) => await bounded.runStructured({
-    commandId: "git-failed-create-fixture", executable: git, arguments: gitArguments(arguments_), cwd: repository, environment,
+    commandId: "git-failed-create-fixture", executable: git, arguments: syntheticGitArguments(arguments_), cwd: repository, environment,
     timeoutMs: 120_000, maximumOutputBytes: 1_048_576,
   });
   try {
@@ -752,7 +860,7 @@ test("failed worktree creation preserves its marker and partial filesystem path"
 });
 
 test("created worktree rollback preserves its marker and branch when the path is recreated", async () => {
-  const root = await mkdtemp(join(tmpdir(), "orchestrator-recreated-rollback-"));
+  const root = await guidTempDirectory("orchestrator-recreated-rollback-");
   const repository = join(root, "repository");
   const managed = join(root, "managed");
   const worktree = join(managed, "implementation");
@@ -761,7 +869,7 @@ test("created worktree rollback preserves its marker and branch when the path is
   const bounded = new BoundedProcess();
   const environment = gitEnvironment(process.env);
   const runGit = async (arguments_: readonly string[]) => await bounded.runStructured({
-    commandId: "git-recreated-rollback-fixture", executable: git, arguments: gitArguments(arguments_), cwd: repository, environment,
+    commandId: "git-recreated-rollback-fixture", executable: git, arguments: syntheticGitArguments(arguments_), cwd: repository, environment,
     timeoutMs: 120_000, maximumOutputBytes: 1_048_576,
   });
   try {
@@ -798,13 +906,13 @@ test("created worktree rollback preserves its marker and branch when the path is
 });
 
 test("repository-local executable Git configuration classes are rejected before a sensitive operation", async () => {
-  const root = await mkdtemp(join(tmpdir(), "orchestrator-git-policy-"));
+  const root = await guidTempDirectory("orchestrator-git-policy-");
   const repository = join(root, "repository");
   const git = await absoluteGit();
   const processAdapter = new BoundedProcess();
   const environment = gitEnvironment(process.env);
   const runGit = async (arguments_: readonly string[]) => await processAdapter.runStructured({
-    commandId: "git-policy-fixture", executable: git, arguments: gitArguments(arguments_), cwd: repository, environment,
+    commandId: "git-policy-fixture", executable: git, arguments: syntheticGitArguments(arguments_), cwd: repository, environment,
     timeoutMs: 120_000, maximumOutputBytes: 1_048_576,
   });
   try {

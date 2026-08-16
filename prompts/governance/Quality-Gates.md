@@ -66,7 +66,9 @@ A batch is ready when:
   [language policy](Language-Policy.md).
 - Schema, policy digest, migration fingerprints, append-only identities,
   repository prose and applicable new commit messages pass the automated
-  language check. This lexical result is necessary but never substitutes for
+  language check. Candidate checks use coordinator-owned policy bytes and
+  reject ordinary changes to language controls. This lexical result is
+  necessary but never substitutes for
   independent semantic review of British English and the structured
   exclusions owned by the language policy.
 

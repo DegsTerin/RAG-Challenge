@@ -4,9 +4,10 @@
   "title": "RAG-Challenge language migration baseline",
   "type": "object",
   "additionalProperties": false,
-  "required": ["$schema", "payload", "digest"],
+  "required": ["$schema", "schemaDigest", "payload", "digest"],
   "properties": {
     "$schema": { "const": "./language-migration-baseline.schema.json" },
+    "schemaDigest": { "type": "string", "pattern": "^sha256:[0-9a-f]{64}$" },
     "payload": {
       "type": "object",
       "additionalProperties": false,

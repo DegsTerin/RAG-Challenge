@@ -1,10 +1,11 @@
 {
   "$schema": "./language-migration-baseline.schema.json",
+  "schemaDigest": "sha256:227f8d4137d26d5bbf2cd07fab2f9d9d0d5db2cc8d89ca95c7c655752dd1f56a",
   "payload": {
     "schemaVersion": 1,
     "baselineId": "rag-challenge-en-gb-migration-v1",
     "status": "IN_PROGRESS",
-    "policyDigest": "sha256:bdc7585c08801fa59149d6a8893f7801701983e87020196135dd198713b40703",
+    "policyDigest": "sha256:141dd0da59df751dc2a754b60ab20f2b93fa5359dd35d54263edce1c172d244d",
     "findings": [
       {
         "path": "docs/MVP-Roadmap-And-Backlog.md",
@@ -3168,5 +3169,5 @@
       }
     ]
   },
-  "digest": "sha256:26196c21b5bacbe6d509543de56ee64eaefe407ca952b9659575d5b7b03f2d78"
+  "digest": "sha256:ee240ab996c87d360b199d5440d3af8ca48aa518cf654f8c6a1b95bbc1d6bacb"
 }

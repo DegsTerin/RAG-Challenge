@@ -1,8 +1,8 @@
 // Purpose: Loads the coordinator-owned en-GB policy and rejects non-compliant candidate commit prose before evidence is trusted.
 import { createHash } from "node:crypto";
-import { readFile } from "node:fs/promises";
-import { resolve } from "node:path";
 import { OrchestratorStop } from "../core/errors.js";
+import { readBoundedRegularFile, resolveContained } from "./path-policy.js";
+import { parseSecureJson } from "./secure-json.js";
 
 export interface TrustedLanguagePolicy {
   readonly policyId: "rag-challenge-language-policy-v1";
@@ -33,10 +33,10 @@ function asRecord(value: unknown): Readonly<Record<string, unknown>> {
   return value as Readonly<Record<string, unknown>>;
 }
 
-export function parseTrustedLanguagePolicy(value: unknown): TrustedLanguagePolicy {
+export function parseTrustedLanguagePolicy(value: unknown, expectedSchemaDigest: string): TrustedLanguagePolicy {
   const document = asRecord(value);
-  if (!exactKeys(document, ["$schema", "payload", "digest"]) || document.$schema !== "./language-policy.schema.json" ||
-      typeof document.digest !== "string" || !/^sha256:[0-9a-f]{64}$/.test(document.digest)) {
+  if (!exactKeys(document, ["$schema", "schemaDigest", "payload", "digest"]) || document.$schema !== "./language-policy.schema.json" ||
+      document.schemaDigest !== expectedSchemaDigest || typeof document.digest !== "string" || !/^sha256:[0-9a-f]{64}$/.test(document.digest)) {
     throw new OrchestratorStop("OUT_OF_SCOPE_CHANGE_REQUIRED", "The trusted coordinator language policy envelope is invalid.");
   }
   const payload = asRecord(document.payload);
@@ -73,10 +73,27 @@ export function parseTrustedLanguagePolicy(value: unknown): TrustedLanguagePolic
 }
 
 export async function loadTrustedLanguagePolicy(repositoryRoot: string): Promise<TrustedLanguagePolicy> {
-  let value: unknown;
-  try { value = JSON.parse(await readFile(resolve(repositoryRoot, "eng", "language-policy.json"), "utf8")); }
-  catch { throw new OrchestratorStop("OUT_OF_SCOPE_CHANGE_REQUIRED", "The trusted coordinator language policy is missing or unreadable."); }
-  return parseTrustedLanguagePolicy(value);
+  try {
+    const schemaPath = resolveContained(repositoryRoot, "eng", "language-policy.schema.json");
+    const schemaText = await readBoundedRegularFile(repositoryRoot, schemaPath, 1_048_576, "Trusted language schema", "OUT_OF_SCOPE_CHANGE_REQUIRED");
+    if (schemaText.includes("\uFFFD")) throw new Error("invalid UTF-8");
+    const schema = asRecord(parseSecureJson(schemaText, "Trusted language schema", "OUT_OF_SCOPE_CHANGE_REQUIRED"));
+    if (schema.$schema !== "https://json-schema.org/draft/2020-12/schema" ||
+        schema.$id !== "https://rag-challenge.invalid/schemas/language-policy-v1.json" || schema.additionalProperties !== false) {
+      throw new Error("invalid schema identity");
+    }
+    const expectedSchemaDigest = `sha256:${createHash("sha256").update(schemaText).digest("hex")}`;
+    const policyPath = resolveContained(repositoryRoot, "eng", "language-policy.json");
+    const policyText = await readBoundedRegularFile(repositoryRoot, policyPath, 8_388_608, "Trusted language policy", "OUT_OF_SCOPE_CHANGE_REQUIRED");
+    if (policyText.includes("\uFFFD")) throw new Error("invalid UTF-8");
+    return parseTrustedLanguagePolicy(
+      parseSecureJson(policyText, "Trusted language policy", "OUT_OF_SCOPE_CHANGE_REQUIRED"),
+      expectedSchemaDigest,
+    );
+  } catch (error) {
+    if (error instanceof OrchestratorStop) throw error;
+    throw new OrchestratorStop("OUT_OF_SCOPE_CHANGE_REQUIRED", "The trusted coordinator language policy is missing or unreadable.");
+  }
 }
 
 function escapeRegex(value: string): string {
@@ -84,6 +101,9 @@ function escapeRegex(value: string): string {
 }
 
 export function assertBritishCommitMessage(message: string, policy: TrustedLanguagePolicy, taskId?: string): void {
+  if (message.includes("\uFFFD")) {
+    throw new OrchestratorStop("OUT_OF_SCOPE_CHANGE_REQUIRED", "The candidate commit message is not valid UTF-8.", taskId);
+  }
   const normalised = message.normalize("NFC")
     .replace(/https?:\/\/\S+/gi, " ")
     .replace(/`[^`]*`/g, " ")

@@ -126,10 +126,20 @@ The repository applies the schema-validated policy in
 temporary migration inventory in
 [`../../eng/language-migration-baseline.json`](../../eng/language-migration-baseline.json).
 Exclusions are exact, classified paths rather than generic ignore patterns.
+Synthetic rejection fixtures use digest-bound regions; ordinary technical
+prose in the same test files remains in scope. Schema byte digests bind the
+closed manifests to the reviewed schema constraints.
 While migration is `IN_PROGRESS`, only an identical fingerprinted occurrence
 may remain; new or changed debt fails. A `COMPLETE` baseline must contain zero
 debt. The checker also protects accepted append-only prefixes and validates
 each new commit message without reinterpreting earlier Git history.
+Candidate inspection uses the coordinator repository as a separate trusted
+policy root, scans the candidate tree with that policy and rejects ordinary
+changes to language-control files. The Stage 0/1/2 language-enforcement
+bootstrap is an exceptional manually reviewed policy update outside the
+ordinary candidate-range path. The checker contains no reusable authority flag
+or bypass for later candidates; consequently, applying the post-bootstrap rule
+to the historical bootstrap range intentionally reports a control-file change.
 
 Automated lexical checks are deliberately conservative. Passing them is
 necessary but not sufficient: an independent semantic review still confirms

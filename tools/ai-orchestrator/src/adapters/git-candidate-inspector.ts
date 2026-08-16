@@ -7,6 +7,71 @@ import { assertAbsoluteExecutable, gitArguments, gitEnvironment } from "../secur
 import { assertRepositoryPath } from "../core/validation.js";
 import { assertSafeGitAttributes, assertSafeGitRepositoryConfiguration } from "../security/git-repository-policy.js";
 import { assertBritishCommitMessage, type TrustedLanguagePolicy } from "../security/language-policy.js";
+import { readBoundedRegularFile } from "../security/path-policy.js";
+import { assertNoSecretShapedText } from "../security/secret-policy.js";
+
+export interface CandidateLanguageChecker {
+  check(worktree: string, commitId: string, taskId: string): Promise<void>;
+}
+
+const languageControlPaths = new Set([
+  ".github/workflows/ci.yml",
+  "eng/check-language.mjs",
+  "eng/ci.ps1",
+  "eng/language-migration-baseline.json",
+  "eng/language-migration-baseline.schema.json",
+  "eng/language-policy.json",
+  "eng/language-policy.schema.json",
+  "eng/test-ci-policy.ps1",
+  "eng/test-language-policy.mjs",
+  "prompts/governance/Language-Policy.md",
+  "prompts/governance/Quality-Gates.md",
+  "tools/ai-orchestrator/src/adapters/git-candidate-inspector.ts",
+  "tools/ai-orchestrator/src/cli-main.ts",
+  "tools/ai-orchestrator/src/security/language-policy.ts",
+]);
+
+export class TrustedCandidateLanguageChecker implements CandidateLanguageChecker {
+  public constructor(
+    private readonly process: StructuredProcessExecutor,
+    private readonly nodeExecutable: string,
+    private readonly checkerPath: string,
+    private readonly coordinatorRoot: string,
+    private readonly environment: Readonly<Record<string, string>>,
+  ) {
+    assertAbsoluteExecutable(nodeExecutable, "Node executable");
+    assertAbsoluteExecutable(checkerPath, "Trusted language checker");
+  }
+
+  public async check(worktree: string, commitId: string, taskId: string): Promise<void> {
+    await readBoundedRegularFile(
+      this.coordinatorRoot,
+      this.checkerPath,
+      2_097_152,
+      "Trusted language checker",
+      "OUT_OF_SCOPE_CHANGE_REQUIRED",
+      taskId,
+    );
+    const result = await this.process.runStructured({
+      commandId: "candidate-language",
+      executable: this.nodeExecutable,
+      arguments: [
+        this.checkerPath,
+        "--repository-root", worktree,
+        "--trusted-policy-root", this.coordinatorRoot,
+        "--commit-head", commitId,
+      ],
+      cwd: this.coordinatorRoot,
+      environment: this.environment,
+      timeoutMs: 120_000,
+      maximumOutputBytes: 1_048_576,
+      maximumRelevantLines: 32,
+    });
+    if (result.evidence.result !== "PASS") {
+      throw new OrchestratorStop("OUT_OF_SCOPE_CHANGE_REQUIRED", "The candidate failed the trusted coordinator language check.", taskId);
+    }
+  }
+}
 
 export class GitCandidateInspector implements CandidateInspector {
   private readonly environment: Readonly<Record<string, string>>;
@@ -16,6 +81,7 @@ export class GitCandidateInspector implements CandidateInspector {
     private readonly gitExecutable: string,
     environment: Readonly<Record<string, string | undefined>>,
     private readonly languagePolicy: TrustedLanguagePolicy,
+    private readonly languageChecker: CandidateLanguageChecker,
   ) {
     assertAbsoluteExecutable(gitExecutable, "Git executable");
     this.environment = gitEnvironment(environment);
@@ -45,6 +111,10 @@ export class GitCandidateInspector implements CandidateInspector {
         tree.evidence.result !== "PASS" || !/^[0-9a-f]{40}$/.test(treeId) || diff.evidence.result !== "PASS" || message.evidence.result !== "PASS") {
       throw new OrchestratorStop("UNEXPECTED_DIRTY_TREE", "The candidate must be exactly one commit descending from the authorised baseline.", task.taskId);
     }
+    if (message.stdout.includes("\uFFFD")) {
+      throw new OrchestratorStop("OUT_OF_SCOPE_CHANGE_REQUIRED", "The candidate commit message is not valid UTF-8.", task.taskId);
+    }
+    assertNoSecretShapedText(message.stdout, "Candidate commit message");
     assertBritishCommitMessage(message.stdout, this.languagePolicy, task.taskId);
     const changedFiles = diff.stdout.split("\u0000").filter((path) => path.length > 0).sort();
     if (changedFiles.length === 0 || changedFiles.length > 256) {
@@ -54,6 +124,10 @@ export class GitCandidateInspector implements CandidateInspector {
     if (changedFiles.some((path) => path.split("/").at(-1) === ".gitattributes" || path === ".gitmodules")) {
       throw new OrchestratorStop("OUT_OF_SCOPE_CHANGE_REQUIRED", "Candidates cannot change Git attribute or submodule control files.", task.taskId);
     }
+    if (changedFiles.some((path) => languageControlPaths.has(path))) {
+      throw new OrchestratorStop("OUT_OF_SCOPE_CHANGE_REQUIRED", "Ordinary candidates cannot change language-enforcement controls.", task.taskId);
+    }
+    await this.languageChecker.check(task.worktree, commitId, task.taskId);
     return { commitId, treeId, changedFiles };
   }
 

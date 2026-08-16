@@ -9,7 +9,7 @@ import { FileResourceLocks } from "./adapters/file-resource-locks.js";
 import { FileStateStore } from "./adapters/file-state-store.js";
 import { FileThreadCheckpointStore } from "./adapters/file-thread-checkpoints.js";
 import { GitBaselineVerifier } from "./adapters/git-baseline.js";
-import { GitCandidateInspector } from "./adapters/git-candidate-inspector.js";
+import { GitCandidateInspector, TrustedCandidateLanguageChecker } from "./adapters/git-candidate-inspector.js";
 import { GitWorktreeManager } from "./adapters/git-worktrees.js";
 import { RepositoryQualityGate } from "./adapters/quality-gate.js";
 import { Coordinator } from "./application/coordinator.js";
@@ -75,6 +75,14 @@ function stateRoot(arguments_: readonly string[]): string {
 
 function safeEnvironment(): Readonly<Record<string, string>> {
   const allowedNames = ["PATH", "SystemRoot", "TEMP", "TMP", "USERPROFILE", "LOCALAPPDATA", "APPDATA"] as const;
+  return Object.fromEntries(allowedNames.flatMap((name) => {
+    const value = process.env[name];
+    return value === undefined ? [] : [[name, value]];
+  }));
+}
+
+function languageCheckerEnvironment(): Readonly<Record<string, string>> {
+  const allowedNames = ["PATH", "SystemRoot", "WINDIR", "TEMP", "TMP"] as const;
   return Object.fromEntries(allowedNames.flatMap((name) => {
     const value = process.env[name];
     return value === undefined ? [] : [[name, value]];
@@ -163,6 +171,13 @@ async function runCommand(arguments_: readonly string[], resume: boolean): Promi
     gitExecutable,
     safeEnvironment(),
     await loadTrustedLanguagePolicy(repositoryRoot),
+    new TrustedCandidateLanguageChecker(
+      processAdapter,
+      process.execPath,
+      resolve(repositoryRoot, "eng", "check-language.mjs"),
+      repositoryRoot,
+      languageCheckerEnvironment(),
+    ),
   );
   const quality = new RepositoryQualityGate(processAdapter, safeEnvironment(), powershellExecutable);
   const integration = new SequentialIntegrationPipeline(processAdapter, gitExecutable, safeEnvironment(), quality);
