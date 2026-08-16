@@ -56,6 +56,9 @@ Human Gate or lifecycle.
 13. [`Stage-2-Multi-Agent-Orchestrator-Report.md`](Stage-2-Multi-Agent-Orchestrator-Report.md):
     implementation, validations, dry run, recovery, security, limitations and
     operational readiness of the development orchestrator.
+14. [`Stage-0-1-2-Historical-Owner-Input-Manifest.md`](Stage-0-1-2-Historical-Owner-Input-Manifest.md):
+    hashes, sizes, provenance, implementation lineage and the inactive,
+    non-normative classification of the three local historical owner inputs.
 
 ## Product and architecture
 
@@ -128,10 +131,15 @@ Human Gate or lifecycle.
 | `prompts/state/State-Transition-Log.md` | Append-only history. |
 | `docs/architecture/ADR-*` | A decision according to its own status. |
 | `docs/STATE-*` | Evidence from a specific execution. |
+| `docs/Stage-0-1-2-Historical-Owner-Input-Manifest.md` | Provenance evidence for local historical owner inputs; never normative authority. |
 | Roadmap and templates | Planning; they do not grant execution. |
 
 ## Local materials
 
-`reference-materials/` contains the original received files and remains
-ignored by Git. Public documentation does not depend on these files to resolve
-links or run the future product.
+`reference-materials/` contains original received files and remains ignored by
+Git. The three Stage owner inputs are preserved byte for byte under
+`reference-materials/governance-inputs/`; their tracked provenance is recorded
+in the
+[`Stage 0/1/2 historical owner-input manifest`](Stage-0-1-2-Historical-Owner-Input-Manifest.md).
+Public documentation does not depend on these local files to resolve links or
+run the future product.

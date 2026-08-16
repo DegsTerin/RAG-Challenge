@@ -69,6 +69,23 @@ reports.
   future execution still requires its own plan, clean baseline and bounded
   authority. The product, product provider, secret, Human Gate and
   lifecycle were not changed.
+- Under `AUTH-STAGE012-GOV-SEC-ENGB-IMPL-001`, the isolated integration branch
+  implemented and independently reviewed the permanent Stage hand-off rule,
+  the product-provider credential boundary, trusted en-GB enforcement and the
+  approved migration of current project-owned technical prose. At integration
+  head `1226ca4429a3b6a1f9ed18a21ce6630bb5cd7ce6`, the language checker reported
+  zero actual migration findings; its transitional baseline remained
+  `IN_PROGRESS` pending the separately controlled completion reconciliation.
+  The three original Stage owner inputs were then moved byte for byte from the
+  repository root to the ignored `reference-materials/governance-inputs/`
+  directory. Their hashes, sizes, filenames and implementation lineage are
+  recorded in
+  [`Stage-0-1-2-Historical-Owner-Input-Manifest.md`](../../docs/Stage-0-1-2-Historical-Owner-Input-Manifest.md).
+  They are local historical evidence, inactive and non-normative; no tracked
+  translation or second authority was created. Local `main` remained at
+  `d9968cac893f70989553fe9b8ae07ad7a3dbdaae` at this boundary, and no final
+  canonical gate, provider call, credential use, external action, Human Gate
+  or lifecycle transition had occurred.
 - Position: `STATE-00 DISCOVERY` closed; `GATE-B01
   ARCHITECTURE_BOOTSTRAP_DECISION` approved and closed; `STATE-01
   PROJECT_SETUP` closed after a Human Gate approved without reservations on
