@@ -9,7 +9,7 @@ import { BoundedProcess } from "../src/adapters/bounded-process.js";
 import { FileResourceLocks } from "../src/adapters/file-resource-locks.js";
 import { FileStateStore } from "../src/adapters/file-state-store.js";
 import { FileThreadCheckpointStore } from "../src/adapters/file-thread-checkpoints.js";
-import { GitCandidateInspector, TrustedCandidateLanguageChecker } from "../src/adapters/git-candidate-inspector.js";
+import { GitCandidateInspector, TrustedCandidateLanguageChecker, isProtectedLanguageControlPath } from "../src/adapters/git-candidate-inspector.js";
 import { GitWorktreeManager } from "../src/adapters/git-worktrees.js";
 import { SequentialIntegrationPipeline } from "../src/application/integration.js";
 import type { PersistedRunState } from "../src/core/contracts.js";
@@ -289,6 +289,27 @@ test("trusted candidate checker executes the coordinator script against the cand
     "--trusted-policy-root", coordinatorRoot,
     "--commit-head", "a".repeat(40),
   ]);
+});
+
+test("candidate protection includes every direct and transitive enforcement dependency class", () => {
+  for (const path of [
+    "tools/ai-orchestrator/src/security/secret-policy.ts",
+    "tools/ai-orchestrator/src/security/path-policy.ts",
+    "tools/ai-orchestrator/src/security/secure-json.ts",
+    "tools/ai-orchestrator/src/adapters/bounded-process.ts",
+    "tools/ai-orchestrator/src/security/git-process-policy.ts",
+    "tools/ai-orchestrator/src/security/git-repository-policy.ts",
+    "tools/ai-orchestrator/src/core/contracts.ts",
+    "tools/ai-orchestrator/src/core/errors.ts",
+    "tools/ai-orchestrator/src/core/validation.ts",
+    "tools/ai-orchestrator/src/ports/candidate-inspector.ts",
+    "tools/ai-orchestrator/src/ports/process-executor.ts",
+    "tools/ai-orchestrator/test/adapters.test.ts",
+    "tools/ai-orchestrator/test/cli.test.ts",
+    "tools/ai-orchestrator/test/codex-app-server.test.ts",
+    "tools/ai-orchestrator/test/core.test.ts",
+    "tools/ai-orchestrator/test/security-boundaries.test.ts",
+  ]) assert.equal(isProtectedLanguageControlPath(path), true, path);
 });
 
 test("state persistence rejects a junction in an ancestor below the repository anchor", async (context) => {

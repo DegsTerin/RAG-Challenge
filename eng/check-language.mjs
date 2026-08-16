@@ -25,9 +25,26 @@ const languageControlPaths = new Set([
   "prompts/governance/Language-Policy.md",
   "prompts/governance/Quality-Gates.md",
   "tools/ai-orchestrator/src/adapters/git-candidate-inspector.ts",
+  "tools/ai-orchestrator/src/adapters/bounded-process.ts",
   "tools/ai-orchestrator/src/cli-main.ts",
+  "tools/ai-orchestrator/src/core/contracts.ts",
+  "tools/ai-orchestrator/src/core/errors.ts",
+  "tools/ai-orchestrator/src/core/validation.ts",
+  "tools/ai-orchestrator/src/ports/candidate-inspector.ts",
+  "tools/ai-orchestrator/src/ports/process-executor.ts",
+  "tools/ai-orchestrator/src/security/git-process-policy.ts",
+  "tools/ai-orchestrator/src/security/git-repository-policy.ts",
   "tools/ai-orchestrator/src/security/language-policy.ts",
+  "tools/ai-orchestrator/src/security/path-policy.ts",
+  "tools/ai-orchestrator/src/security/secret-policy.ts",
+  "tools/ai-orchestrator/src/security/secure-json.ts",
+  "tools/ai-orchestrator/test/adapters.test.ts",
+  "tools/ai-orchestrator/test/cli.test.ts",
+  "tools/ai-orchestrator/test/codex-app-server.test.ts",
+  "tools/ai-orchestrator/test/core.test.ts",
+  "tools/ai-orchestrator/test/security-boundaries.test.ts",
 ]);
+export function isProtectedLanguageControlPath(path) { return languageControlPaths.has(path); }
 const proseJsonKeys = new Set([
   "description", "displayName", "help", "label", "message", "note", "objective",
   "purpose", "reason", "summary", "text", "title",
@@ -373,6 +390,7 @@ export function assertSafeCommitMessage(message) {
   const patterns = [
     new RegExp(productCredentialIdentifier, "i"),
     /\b(?:sk|sk-proj)-[A-Za-z0-9_-]{8,}\b/,
+    /\b(?:ghp_[A-Za-z0-9]{20,}|github_pat_[A-Za-z0-9_]{20,}|xox[baprs]-[A-Za-z0-9-]{12,}|AKIA[0-9A-Z]{16})\b/,
     /-----BEGIN (?:RSA |EC |OPENSSH )?PRIVATE KEY-----/,
     /\bBearer\s+[A-Za-z0-9._~+/-]{12,}={0,2}\b/i,
     /(?:KEY|SECRET|TOKEN|PASSWORD|CREDENTIAL|CONNECTION_STRING)\s*[=:]\s*["']?[^\s,"'}]{4,}/i,
@@ -412,7 +430,7 @@ function closedGitEnvironment() {
   return environment;
 }
 
-function git(repositoryRoot, arguments_) {
+function gitBytes(repositoryRoot, arguments_, maximumBytes = 16 * 1024 * 1024) {
   const nullDevice = process.platform === "win32" ? "NUL" : "/dev/null";
   const configuration = [
     "--no-optional-locks",
@@ -439,13 +457,17 @@ function git(repositoryRoot, arguments_) {
     shell: false,
     windowsHide: true,
     timeout: 30_000,
-    maxBuffer: 16 * 1024 * 1024,
+    maxBuffer: maximumBytes,
     stdio: ["ignore", "pipe", "pipe"],
   });
   if (result.error !== undefined || result.signal !== null || result.status !== 0 || !Buffer.isBuffer(result.stdout)) {
     throw new Error("Git operation failed closed.");
   }
-  return decodeUtf8(result.stdout, "Git output");
+  return result.stdout;
+}
+
+function git(repositoryRoot, arguments_) {
+  return decodeUtf8(gitBytes(repositoryRoot, arguments_), "Git output");
 }
 
 function assertInside(root, path) {
@@ -453,39 +475,77 @@ function assertInside(root, path) {
   if (relation === ".." || relation.startsWith(`..${sep}`) || isAbsolute(relation)) throw new Error("A language-policy path escapes the repository root.");
 }
 
-async function verifyAppendOnlyPrefixes(repositoryRoot, payload) {
+function parseIndexEntries(repositoryRoot) {
+  return git(repositoryRoot, ["ls-files", "--stage", "-z"]).split("\0").filter(Boolean).map((entry) => {
+    const match = /^(\d{6}) ([0-9a-f]{40,64}) ([0-3])\t([^\u0000]+)$/.exec(entry);
+    if (match === null || !["100644", "100755"].includes(match[1]) || match[3] !== "0") {
+      throw new Error("Git index contains a non-regular or staged-conflict entry.");
+    }
+    assertRepositoryPath(match[4], "tracked path");
+    return { path: match[4], objectId: match[2] };
+  }).sort((left, right) => left.path.localeCompare(right.path));
+}
+
+function parseCommitEntries(repositoryRoot, commit) {
+  return git(repositoryRoot, ["ls-tree", "-r", "-z", "--full-tree", commit]).split("\0").filter(Boolean).map((entry) => {
+    const match = /^(\d{6}) (blob|tree|commit) ([0-9a-f]{40,64})\t([^\u0000]+)$/.exec(entry);
+    if (match === null || !["100644", "100755"].includes(match[1]) || match[2] !== "blob") {
+      throw new Error("Git commit contains a non-regular tracked entry.");
+    }
+    assertRepositoryPath(match[4], "tracked path");
+    return { path: match[4], objectId: match[3] };
+  }).sort((left, right) => left.path.localeCompare(right.path));
+}
+
+async function selectedSource(repositoryRoot, commit = null) {
+  const entries = commit === null ? parseIndexEntries(repositoryRoot) : parseCommitEntries(repositoryRoot, commit);
+  if (new Set(entries.map((entry) => entry.path)).size !== entries.length) {
+    throw new Error("Git source contains duplicate tracked paths.");
+  }
+  const objects = new Map(entries.map((entry) => [entry.path, entry.objectId]));
+  return {
+    paths: entries.map((entry) => entry.path),
+    read: async (path) => {
+      const objectId = objects.get(path);
+      if (objectId === undefined) throw new Error("Selected Git source is missing a tracked path.");
+      if (commit !== null) {
+        const bytes = gitBytes(repositoryRoot, ["cat-file", "blob", objectId], maximumTrackedFileBytes + 1);
+        if (bytes.byteLength > maximumTrackedFileBytes) throw new Error("Tracked Git blob exceeds the bounded file limit.");
+        return bytes;
+      }
+      const absolute = resolve(repositoryRoot, path);
+      assertInside(repositoryRoot, absolute);
+      return await readBoundedRegularFile(repositoryRoot, absolute, maximumTrackedFileBytes, "Tracked language file");
+    },
+  };
+}
+
+async function verifyAppendOnlyPrefixes(source, payload) {
   for (const entry of payload.appendOnlyPrefixes) {
-    const path = resolve(repositoryRoot, entry.path); assertInside(repositoryRoot, path);
-    const bytes = await readBoundedRegularFile(repositoryRoot, path, maximumTrackedFileBytes, "Append-only file");
+    const bytes = await source.read(entry.path);
     if (bytes.length < entry.prefixBytes || sha256(bytes.subarray(0, entry.prefixBytes)) !== entry.sha256) {
       throw new Error(`Append-only prefix identity changed for '${entry.path}'.`);
     }
   }
 }
 
-export async function inspectRepository(repositoryRoot, payload) {
-  const entries = git(repositoryRoot, ["ls-files", "--stage", "-z"]).split("\0").filter(Boolean).map((entry) => {
-    const match = /^(\d{6}) ([0-9a-f]{40,64}) ([0-3])\t([^\u0000]+)$/.exec(entry);
-    if (match === null || !["100644", "100755"].includes(match[1]) || match[3] !== "0") {
-      throw new Error("Git index contains a non-regular or staged-conflict entry.");
-    }
-    assertRepositoryPath(match[4], "tracked path");
-    return match[4];
-  }).sort();
-  if (new Set(entries).size !== entries.length) throw new Error("Git index contains duplicate tracked paths.");
-  const tracked = entries;
+export async function inspectRepository(repositoryRoot, payload, commit = null, suppliedSource = null) {
+  const source = suppliedSource ?? await selectedSource(repositoryRoot, commit);
+  const tracked = source.paths;
   const trackedSet = new Set(tracked);
   const excluded = new Set(payload.excludedPaths.map((entry) => entry.path));
   const appendOnly = new Map(payload.appendOnlyPrefixes.map((entry) => [entry.path, entry]));
   const extensions = new Set(payload.scannedExtensions);
   const findings = [];
+  for (const entry of payload.excludedPaths) {
+    if (!trackedSet.has(entry.path)) throw new Error("A whole-file exclusion path is not a regular tracked file.");
+  }
   for (const region of payload.excludedRegions) {
     if (!trackedSet.has(region.path)) throw new Error("A required excluded region path is not tracked.");
   }
   for (const path of tracked) {
     if (excluded.has(path) || !extensions.has(extname(path).toLowerCase())) continue;
-    const absolute = resolve(repositoryRoot, path); assertInside(repositoryRoot, absolute);
-    const bytes = await readBoundedRegularFile(repositoryRoot, absolute, maximumTrackedFileBytes, "Tracked language file");
+    const bytes = await source.read(path);
     const prefix = appendOnly.get(path);
     let text;
     if (prefix === undefined) {
@@ -527,6 +587,17 @@ function changedPaths(repositoryRoot, base, head = "HEAD") {
     .split("\0").filter(Boolean);
 }
 
+function exactCommitChangedPaths(repositoryRoot, commit) {
+  return git(repositoryRoot, ["diff-tree", "--root", "--no-commit-id", "--name-only", "-r", "-z", commit, "--"])
+    .split("\0").filter(Boolean);
+}
+
+function assertNoLanguageControlChanges(paths) {
+  if (paths.some((path) => isProtectedLanguageControlPath(path))) {
+    throw new Error("Commit changes language controls and requires exceptional manual review.");
+  }
+}
+
 function commitMessages(repositoryRoot, base, expectedHead) {
   const head = git(repositoryRoot, ["rev-parse", "--verify", "HEAD"]).trim();
   if (!/^[0-9a-f]{40}$/.test(head)) throw new Error("Repository HEAD is not a full commit identity.");
@@ -535,11 +606,13 @@ function commitMessages(repositoryRoot, base, expectedHead) {
       throw new Error("Commit head must be the exact non-zero repository HEAD.");
     }
     if (base !== null) throw new Error("Commit base and explicit commit head are mutually exclusive.");
+    assertNoLanguageControlChanges(exactCommitChangedPaths(repositoryRoot, head));
     const message = git(repositoryRoot, ["show", "-s", "--format=%B", head]);
     assertSafeCommitMessage(message);
     return [message];
   }
   if (base === null) {
+    assertNoLanguageControlChanges(exactCommitChangedPaths(repositoryRoot, head));
     const message = git(repositoryRoot, ["show", "-s", "--format=%B", head]);
     assertSafeCommitMessage(message);
     return [message];
@@ -549,9 +622,7 @@ function commitMessages(repositoryRoot, base, expectedHead) {
   git(repositoryRoot, ["merge-base", "--is-ancestor", base, "HEAD"]);
   const commits = git(repositoryRoot, ["rev-list", "--reverse", `${base}..HEAD`]).trim().split(/\r?\n/).filter(Boolean);
   if (commits.length === 0) throw new Error("Commit range contains no new commit.");
-  if (changedPaths(repositoryRoot, base).some((path) => languageControlPaths.has(path))) {
-    throw new Error("Commit range changes language controls and requires exceptional manual review.");
-  }
+  assertNoLanguageControlChanges(changedPaths(repositoryRoot, base));
   return commits.map((commit) => {
     const message = git(repositoryRoot, ["show", "-s", "--format=%B", commit]);
     assertSafeCommitMessage(message);
@@ -569,6 +640,14 @@ export async function loadPolicy(trustedPolicyRoot) {
 export async function runCheck({ repositoryRoot, trustedPolicyRoot = repositoryRoot, commitBase = null, commitHead = null }) {
   repositoryRoot = resolve(repositoryRoot);
   trustedPolicyRoot = resolve(trustedPolicyRoot);
+  const currentHead = git(repositoryRoot, ["rev-parse", "--verify", "HEAD"]).trim();
+  if (!/^[0-9a-f]{40}$/.test(currentHead)) throw new Error("Repository HEAD is not a full commit identity.");
+  if (commitHead !== null) {
+    if (!/^[0-9a-f]{40}$/.test(commitHead) || /^0{40}$/.test(commitHead) || commitHead !== currentHead) {
+      throw new Error("Commit head must be the exact non-zero repository HEAD.");
+    }
+  }
+  if (commitBase === null) assertNoLanguageControlChanges(exactCommitChangedPaths(repositoryRoot, currentHead));
   const policy = await loadPolicy(trustedPolicyRoot);
   const baselineSchemaDigest = await assertSchemaIdentity(
     trustedPolicyRoot,
@@ -576,8 +655,9 @@ export async function runCheck({ repositoryRoot, trustedPolicyRoot = repositoryR
     baselineSchemaId,
     "Language migration baseline",
   );
-  await verifyAppendOnlyPrefixes(repositoryRoot, policy.payload);
-  const findings = await inspectRepository(repositoryRoot, policy.payload);
+  const source = await selectedSource(repositoryRoot, commitHead);
+  await verifyAppendOnlyPrefixes(source, policy.payload);
+  const findings = await inspectRepository(repositoryRoot, policy.payload, commitHead, source);
   const baselinePath = resolve(trustedPolicyRoot, "eng/language-migration-baseline.json");
   const baseline = validateBaselineDocument(
     await parseJsonFile(trustedPolicyRoot, baselinePath, "Language migration baseline"),
@@ -588,7 +668,7 @@ export async function runCheck({ repositoryRoot, trustedPolicyRoot = repositoryR
   const messages = commitMessages(repositoryRoot, commitBase, commitHead);
   const commitFindings = messages.flatMap((message) => inspectCommitMessage(message, policy.payload));
   if (commitFindings.length > 0) throw new Error(`Language enforcement rejected ${commitFindings.length} commit-message item(s).`);
-  return { files: git(repositoryRoot, ["ls-files", "--stage", "-z"]).split("\0").filter(Boolean).length, findings: findings.length, commits: messages.length };
+  return { files: source.paths.length, findings: findings.length, commits: messages.length };
 }
 
 function valueAfter(arguments_, name) {
@@ -605,7 +685,7 @@ async function main() {
   const valueOptions = new Set(["--repository-root", "--trusted-policy-root", "--commit-base", "--commit-head"]);
   for (let index = 0; index < arguments_.length; index += 1) {
     const argument = arguments_[index];
-    if (!valueOptions.has(argument)) throw new Error(`Unknown language-policy argument '${argument}'.`);
+    if (!valueOptions.has(argument)) throw new Error("Unknown language-policy argument.");
     index += 1;
     if (index >= arguments_.length || arguments_[index].startsWith("--")) throw new Error(`Argument '${argument}' requires a value.`);
   }
@@ -620,11 +700,17 @@ async function main() {
 }
 
 function sanitiseFailure(error) {
+  const productCredentialIdentifier = ["OPENAI", "API", "KEY"].join("_");
   const message = error instanceof Error ? error.message : "Language policy failed closed.";
   return message
     .replace(/(?:[A-Za-z]:[\\/]|\\\\)[^\s\r\n'\"]+/g, "<path>")
     .replace(/(^|\s)\/(?!\/)[^\s\r\n'\"]+/g, "$1<path>")
     .replace(/\b(?:sk|sk-proj)-[A-Za-z0-9_-]{8,}\b/g, "<redacted>")
+    .replace(/\b(?:ghp_[A-Za-z0-9]{20,}|github_pat_[A-Za-z0-9_]{20,}|xox[baprs]-[A-Za-z0-9-]{12,}|AKIA[0-9A-Z]{16})\b/g, "<redacted>")
+    .replace(new RegExp(productCredentialIdentifier, "ig"), "<redacted>")
+    .replace(/\bBearer\s+[A-Za-z0-9._~+/-]{12,}={0,2}\b/gi, "<redacted>")
+    .replace(/-----BEGIN (?:RSA |EC |OPENSSH )?PRIVATE KEY-----/g, "<redacted>")
+    .replace(/(?:KEY|SECRET|TOKEN|PASSWORD|CREDENTIAL|CONNECTION_STRING)\s*[=:]\s*["']?[^\s,"'}]{4,}/gi, "<redacted>")
     .slice(0, 512);
 }
 

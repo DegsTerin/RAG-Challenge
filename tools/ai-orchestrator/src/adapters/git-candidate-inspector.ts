@@ -16,6 +16,7 @@ export interface CandidateLanguageChecker {
 
 const languageControlPaths = new Set([
   ".github/workflows/ci.yml",
+  "tools/ai-orchestrator/src/adapters/bounded-process.ts",
   "eng/check-language.mjs",
   "eng/ci.ps1",
   "eng/language-migration-baseline.json",
@@ -28,8 +29,24 @@ const languageControlPaths = new Set([
   "prompts/governance/Quality-Gates.md",
   "tools/ai-orchestrator/src/adapters/git-candidate-inspector.ts",
   "tools/ai-orchestrator/src/cli-main.ts",
+  "tools/ai-orchestrator/src/core/contracts.ts",
+  "tools/ai-orchestrator/src/core/errors.ts",
+  "tools/ai-orchestrator/src/core/validation.ts",
+  "tools/ai-orchestrator/src/ports/candidate-inspector.ts",
+  "tools/ai-orchestrator/src/ports/process-executor.ts",
+  "tools/ai-orchestrator/src/security/git-process-policy.ts",
+  "tools/ai-orchestrator/src/security/git-repository-policy.ts",
   "tools/ai-orchestrator/src/security/language-policy.ts",
+  "tools/ai-orchestrator/src/security/path-policy.ts",
+  "tools/ai-orchestrator/src/security/secret-policy.ts",
+  "tools/ai-orchestrator/src/security/secure-json.ts",
+  "tools/ai-orchestrator/test/adapters.test.ts",
+  "tools/ai-orchestrator/test/cli.test.ts",
+  "tools/ai-orchestrator/test/codex-app-server.test.ts",
+  "tools/ai-orchestrator/test/core.test.ts",
+  "tools/ai-orchestrator/test/security-boundaries.test.ts",
 ]);
+export function isProtectedLanguageControlPath(path: string): boolean { return languageControlPaths.has(path); }
 
 export class TrustedCandidateLanguageChecker implements CandidateLanguageChecker {
   public constructor(
@@ -124,7 +141,7 @@ export class GitCandidateInspector implements CandidateInspector {
     if (changedFiles.some((path) => path.split("/").at(-1) === ".gitattributes" || path === ".gitmodules")) {
       throw new OrchestratorStop("OUT_OF_SCOPE_CHANGE_REQUIRED", "Candidates cannot change Git attribute or submodule control files.", task.taskId);
     }
-    if (changedFiles.some((path) => languageControlPaths.has(path))) {
+    if (changedFiles.some((path) => isProtectedLanguageControlPath(path))) {
       throw new OrchestratorStop("OUT_OF_SCOPE_CHANGE_REQUIRED", "Ordinary candidates cannot change language-enforcement controls.", task.taskId);
     }
     await this.languageChecker.check(task.worktree, commitId, task.taskId);

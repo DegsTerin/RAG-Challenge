@@ -132,7 +132,7 @@
       { "path": "docs/architecture/ADR-0014-Deterministic-Retrieval-Ranking-And-Retrieval-Only-Baseline.md", "classification": "ACCEPTED_ARCHITECTURE_HISTORY", "reason": "The accepted decision record is preserved as architectural history." },
       { "path": "docs/architecture/ADR-0015-Versioned-Cosine-Numerical-Semantics.md", "classification": "ACCEPTED_ARCHITECTURE_HISTORY", "reason": "The accepted decision record is preserved as architectural history." },
       { "path": "docs/architecture/ADR-0016-Deterministic-Development-Orchestrator-And-Codex-Runner-Boundary.md", "classification": "ACCEPTED_ARCHITECTURE_HISTORY", "reason": "The accepted decision record is preserved as architectural history." },
-      { "path": "docs/architecture/ADR-0017-Product-Credential-Isolation-And-Operational-Authority.md", "classification": "ACCEPTED_ARCHITECTURE_HISTORY", "reason": "The accepted decision record is preserved as architectural history." },
+      { "path": "docs/architecture/ADR-0017-Codex-App-Server-Pre-Turn-Checkpoint-Runner.md", "classification": "ACCEPTED_ARCHITECTURE_HISTORY", "reason": "The accepted decision record is preserved as architectural history." },
       { "path": "docs/STATE-00-Discovery-Report.md", "classification": "HISTORICAL_EVIDENCE", "reason": "The state report is accepted historical evidence." },
       { "path": "docs/STATE-01-Project-Setup-Report.md", "classification": "HISTORICAL_EVIDENCE", "reason": "The state report is accepted historical evidence." },
       { "path": "docs/STATE-02-Architecture-Report.md", "classification": "HISTORICAL_EVIDENCE", "reason": "The state report is accepted historical evidence." },
@@ -223,7 +223,7 @@
         "classification": "SYNTHETIC_ENFORCEMENT_REGION",
         "startMarker": "// SYNTHETIC_LANGUAGE_REPOSITORY_START",
         "endMarker": "// SYNTHETIC_LANGUAGE_REPOSITORY_END",
-        "sha256": "06dba61b9d952570fef5d8fe46005aba241966581ac302c7df0082a0d71ac1aa"
+        "sha256": "67963d08bdf49aef1aecd5e8cbd1ef5aa2bbbc189fa60790fe1978b7b068198c"
       },
       {
         "path": "eng/test-language-policy.mjs",
@@ -237,7 +237,7 @@
         "classification": "SYNTHETIC_ENFORCEMENT_REGION",
         "startMarker": "// SYNTHETIC_LANGUAGE_SECRET_MESSAGES_START",
         "endMarker": "// SYNTHETIC_LANGUAGE_SECRET_MESSAGES_END",
-        "sha256": "87f1ed95ce84a685df6d4b3d10d56e71bc387bc20e2f400da52308b2e994e277"
+        "sha256": "24d9aafb6f77eba11d1784692920932b10085877db87b5924b15e37cb451cd9f"
       },
       {
         "path": "eng/test-language-policy.mjs",
@@ -258,7 +258,7 @@
         "classification": "SYNTHETIC_ENFORCEMENT_REGION",
         "startMarker": "// SYNTHETIC_LANGUAGE_HISTORY_AND_COMMITS_START",
         "endMarker": "// SYNTHETIC_LANGUAGE_HISTORY_AND_COMMITS_END",
-        "sha256": "aca5eb445f12653b8b23cb3570f6a9bb40a2ccc27a90eaa16eda6b0b468d2eb7"
+        "sha256": "a68f08676f7a72b312f11f7a0e1508bf31f4e375dc32ee91e9d0b656e542160b"
       },
       {
         "path": "tools/ai-orchestrator/test/security-boundaries.test.ts",
@@ -280,5 +280,5 @@
       { "path": "prompts/system/Prompt-System-Change-Log.md", "prefixBytes": 157982, "sha256": "15cc9ecb5b6d6a6de5e951e045fbde7ce6cec0cee0ab6631a5a15fb29bb699a4" }
     ]
   },
-  "digest": "sha256:63da4a5ee450e99509c1467cd49b9464cc3dd1ed69d0c25665e5587431682846"
+  "digest": "sha256:fc5bd2d45b0e98780c45c89ebedaeff84ba67df93ed82d02772d8fcfb196444e"
 }

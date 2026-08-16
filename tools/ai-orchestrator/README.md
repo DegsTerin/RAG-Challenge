@@ -72,11 +72,15 @@ Candidate inspection also reads the exact commit message with
 `git show -s --format=%B` and applies the coordinator repository's trusted
 language manifest, schema binding, migration baseline and checker executable
 before evidence or integration. Raw commit text passes the central non-echoing
-secret boundary before language parsing. The coordinator checker then scans
-the candidate worktree using the coordinator repository as a separate trusted
-policy root. A candidate worktree cannot relax exclusions, schema constraints,
-digests or debt by changing its own copy, and an ordinary candidate cannot
-change language-control files. Non-compliant technical prose stops with
+secret boundary before language parsing. The coordinator checker uses its
+repository as a separate trusted policy root, while candidate paths, modes,
+bounded bytes, append-only prefixes and excluded regions come from the exact
+immutable commit tree. Later worktree mutation cannot change that result. A
+candidate cannot relax exclusions, schema constraints, digests or debt by
+changing its own copy. Protected controls include the direct and transitive
+secret, filesystem, Git, process and validation implementation plus their
+enforcement tests; an ordinary candidate cannot change any of them.
+Non-compliant technical prose stops with
 `OUT_OF_SCOPE_CHANGE_REQUIRED`; secret-shaped commit text stops with
 `SECRET_REQUIRED`; prior Git history remains unchanged.
 

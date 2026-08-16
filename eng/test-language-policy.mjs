@@ -15,6 +15,7 @@ import {
   inspectCommitMessage,
   inspectRepository,
   inspectRegions,
+  isProtectedLanguageControlPath,
   runCheck,
   sha256,
   validateBaselineDocument,
@@ -117,6 +118,9 @@ async function createRepository(initialMessage = "test(language): initialise syn
   await writeFile(join(root, "eng", "language-migration-baseline.json"), `${JSON.stringify(baseline, null, 2)}\n`, "utf8");
   git(root, "add", "eng/language-migration-baseline.json");
   git(root, "commit", "-m", "test(language): record synthetic migration baseline");
+  await writeFile(join(root, "technical.md"), "British technical prose remains authorised.\n", "utf8");
+  git(root, "add", "technical.md");
+  git(root, "commit", "-m", "test(language): establish ordinary synthetic head");
   await writeFile(join(root, "history.md"), "history\n", "utf8");
   return root;
 }
@@ -194,6 +198,12 @@ test("baseline regeneration is not exposed by the tracked checker", () => {
 test("CLI failures sanitise absolute paths and do not emit Git stderr", async () => {
   const root = await guidTempDirectory("rag-challenge-language-missing-");
   try {
+    await writeFile(join(root, "fixture.md"), "British fixture prose.\n", "utf8");
+    git(root, "init", "--initial-branch=main");
+    git(root, "config", "user.name", "Language Fixture");
+    git(root, "config", "user.email", "language@example.invalid");
+    git(root, "add", "fixture.md");
+    git(root, "commit", "-m", "test(language): create missing-policy fixture");
     const result = spawnSync(process.execPath, [join(sourceRoot, "check-language.mjs"), "--repository-root", root], {
       cwd: sourceRoot, encoding: "utf8", env: childEnvironment(), shell: false, windowsHide: true, timeout: 30_000,
     });
@@ -205,6 +215,27 @@ test("CLI failures sanitise absolute paths and do not emit Git stderr", async ()
 
 test("ambiguous catalog and license forms are reserved for semantic review", () => {
   assert.equal(bannedAmericanSpellings.some((entry) => ["catalog", "license"].includes(entry.american)), false);
+});
+
+test("every direct and transitive language-enforcement dependency is protected", () => {
+  for (const path of [
+    "tools/ai-orchestrator/src/security/secret-policy.ts",
+    "tools/ai-orchestrator/src/security/path-policy.ts",
+    "tools/ai-orchestrator/src/security/secure-json.ts",
+    "tools/ai-orchestrator/src/adapters/bounded-process.ts",
+    "tools/ai-orchestrator/src/security/git-process-policy.ts",
+    "tools/ai-orchestrator/src/security/git-repository-policy.ts",
+    "tools/ai-orchestrator/src/core/contracts.ts",
+    "tools/ai-orchestrator/src/core/errors.ts",
+    "tools/ai-orchestrator/src/core/validation.ts",
+    "tools/ai-orchestrator/src/ports/candidate-inspector.ts",
+    "tools/ai-orchestrator/src/ports/process-executor.ts",
+    "tools/ai-orchestrator/test/adapters.test.ts",
+    "tools/ai-orchestrator/test/cli.test.ts",
+    "tools/ai-orchestrator/test/codex-app-server.test.ts",
+    "tools/ai-orchestrator/test/core.test.ts",
+    "tools/ai-orchestrator/test/security-boundaries.test.ts",
+  ]) assert.equal(isProtectedLanguageControlPath(path), true, path);
 });
 
 for (const entry of bannedAmericanSpellings) {
@@ -220,12 +251,38 @@ test("raw commit messages reject credential identifiers, secret shapes and inval
   const payload = policyPayload();
   const identifier = "OPENAI_API_KEY";
   const syntheticSecret = "sk-proj-synthetic-not-a-real-secret";
-  for (const value of [identifier, syntheticSecret, "invalid \uFFFD message"]) {
+  for (const value of [
+    identifier,
+    syntheticSecret,
+    "Bearer synthetic-token-value",
+    "-----BEGIN PRIVATE KEY-----",
+    "PASSWORD=synthetic-value",
+    "ghp_abcdefghijklmnopqrstuvwxyz123456",
+    "invalid \uFFFD message",
+  ]) {
     assert.throws(() => assertSafeCommitMessage(value), (error) =>
       error instanceof Error && !error.message.includes(value));
   }
   const text = "CH_INDEX_UNAVAILABLE https://example.invalid/color /src/color.ts 0123456789abcdef0123456789abcdef pt-BR en-GB";
   assert.deepEqual(inspectRegions("fixture.md", extractProse("fixture.md", text), payload), []);
+});
+
+test("CLI unknown-argument failures never echo synthetic secret-shape families", () => {
+  for (const synthetic of [
+    "OPENAI_API_KEY",
+    "sk-proj-synthetic-not-a-real-secret",
+    "Bearer synthetic-token-value",
+    "-----BEGIN PRIVATE KEY-----",
+    "PASSWORD=synthetic-value",
+    "ghp_abcdefghijklmnopqrstuvwxyz123456",
+  ]) {
+    const result = spawnSync(process.execPath, [join(sourceRoot, "check-language.mjs"), synthetic], {
+      cwd: sourceRoot, encoding: "utf8", env: childEnvironment(), shell: false, windowsHide: true, timeout: 30_000,
+    });
+    assert.equal(result.status, 1);
+    assert.equal(result.stderr.includes(synthetic), false);
+    assert.match(result.stderr, /Unknown language-policy argument/);
+  }
 });
 // SYNTHETIC_LANGUAGE_SECRET_MESSAGES_END
 
@@ -277,6 +334,33 @@ test("append-only enforcement scans new suffixes and detects prefix mutation", a
   } finally { await rm(root, { recursive: true, force: true }); }
 });
 
+test("immutable commit mode ignores adversarial worktree content and prefix mutations", async () => {
+  const root = await createRepository();
+  try {
+    const head = git(root, "rev-parse", "HEAD");
+    await writeFile(join(root, "technical.md"), "This dirty worktree changes behavior.\n", "utf8");
+    await assert.doesNotReject(runCheck({ repositoryRoot: root, commitHead: head }));
+    await assert.rejects(runCheck({ repositoryRoot: root }), /new or changed/);
+    await writeFile(join(root, "technical.md"), "British technical prose remains authorised.\n", "utf8");
+    await writeFile(join(root, "history.md"), "changed\n", "utf8");
+    await assert.doesNotReject(runCheck({ repositoryRoot: root, commitHead: head }));
+    await assert.rejects(runCheck({ repositoryRoot: root }), /Append-only prefix identity changed/);
+  } finally { await rm(root, { recursive: true, force: true }); }
+});
+
+test("whole-file exclusions require exact regular tracked files", async () => {
+  const root = await createRepository();
+  try {
+    const payload = policyPayload({
+      excludedPaths: [
+        ...policyPayload().excludedPaths,
+        { path: "missing.md", classification: "HISTORICAL_EVIDENCE", reason: "Synthetic missing exclusion." },
+      ],
+    });
+    await assert.rejects(inspectRepository(root, payload), /whole-file exclusion path/);
+  } finally { await rm(root, { recursive: true, force: true }); }
+});
+
 test("identity-bound historical region fails closed on marker or digest drift", async () => {
   const root = await createRepository();
   try {
@@ -291,7 +375,7 @@ test("commit range accepts British prose and rejects American subject or body", 
   const root = await createRepository();
   try {
     const base = git(root, "rev-parse", "HEAD");
-    await writeFile(join(root, "technical.md"), "British technical prose remains authorised.\n", "utf8");
+    await writeFile(join(root, "technical.md"), "British technical prose continues to be authorised.\n", "utf8");
     git(root, "add", "technical.md");
     git(root, "commit", "-m", "docs(language): clarify authorised prose");
     await assert.doesNotReject(runCheck({ repositoryRoot: root, commitBase: base }));
@@ -324,6 +408,9 @@ test("ordinary commit ranges reject language-control changes unconditionally", a
     await writeFile(policyPath, `\n${await readFile(policyPath, "utf8")}`, "utf8");
     git(root, "add", "eng/language-policy.json");
     git(root, "commit", "-m", "test(language): preserve reviewed policy bytes");
+    const head = git(root, "rev-parse", "HEAD");
+    await assert.rejects(runCheck({ repositoryRoot: root }), /exceptional manual review/);
+    await assert.rejects(runCheck({ repositoryRoot: root, commitHead: head }), /exceptional manual review/);
     await assert.rejects(runCheck({ repositoryRoot: root, commitBase: base }), /exceptional manual review/);
   } finally { await rm(root, { recursive: true, force: true }); }
 });
