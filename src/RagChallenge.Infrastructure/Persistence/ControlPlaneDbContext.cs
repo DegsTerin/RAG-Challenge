@@ -87,6 +87,51 @@ public sealed class ControlPlaneDbContext(DbContextOptions<ControlPlaneDbContext
     internal DbSet<AnswerEvidencePageRow> AnswerEvidencePages =>
         Set<AnswerEvidencePageRow>();
 
+    internal DbSet<ProviderBudgetStoreEpochRow> ProviderBudgetStoreEpochs =>
+        Set<ProviderBudgetStoreEpochRow>();
+
+    internal DbSet<ProviderBudgetControlHeadRow> ProviderBudgetControlHeads =>
+        Set<ProviderBudgetControlHeadRow>();
+
+    internal DbSet<ProviderBudgetEnvelopeRow> ProviderBudgetEnvelopes =>
+        Set<ProviderBudgetEnvelopeRow>();
+
+    internal DbSet<ProviderBudgetConfigurationRow> ProviderBudgetConfigurations =>
+        Set<ProviderBudgetConfigurationRow>();
+
+    internal DbSet<ProviderBudgetOperationAllocationRow> ProviderBudgetOperationAllocations =>
+        Set<ProviderBudgetOperationAllocationRow>();
+
+    internal DbSet<ProviderBudgetLedgerRevisionRow> ProviderBudgetLedgerRevisions =>
+        Set<ProviderBudgetLedgerRevisionRow>();
+
+    internal DbSet<ProviderBudgetOperationBalanceRevisionRow>
+        ProviderBudgetOperationBalanceRevisions =>
+            Set<ProviderBudgetOperationBalanceRevisionRow>();
+
+    internal DbSet<ProviderBudgetReservationRow> ProviderBudgetReservations =>
+        Set<ProviderBudgetReservationRow>();
+
+    internal DbSet<ProviderBudgetReservationTransitionRow>
+        ProviderBudgetReservationTransitions =>
+            Set<ProviderBudgetReservationTransitionRow>();
+
+    internal DbSet<ProviderBudgetCommitmentRow> ProviderBudgetCommitments =>
+        Set<ProviderBudgetCommitmentRow>();
+
+    internal DbSet<ProviderBudgetReleaseRow> ProviderBudgetReleases =>
+        Set<ProviderBudgetReleaseRow>();
+
+    internal DbSet<ProviderBudgetReconciliationDispositionRow>
+        ProviderBudgetReconciliationDispositions =>
+            Set<ProviderBudgetReconciliationDispositionRow>();
+
+    internal DbSet<ProviderBudgetRearmRow> ProviderBudgetRearms =>
+        Set<ProviderBudgetRearmRow>();
+
+    internal DbSet<ProviderBudgetAuditEventRow> ProviderBudgetAuditEvents =>
+        Set<ProviderBudgetAuditEventRow>();
+
     internal DbSet<AdminOperationRow> AdminOperations => Set<AdminOperationRow>();
 
     internal DbSet<AuditEventRow> AuditEvents => Set<AuditEventRow>();
@@ -109,6 +154,7 @@ public sealed class ControlPlaneDbContext(DbContextOptions<ControlPlaneDbContext
         ConfigureActivations(modelBuilder);
         ConfigureAnswerEvidence(modelBuilder);
         ConfigureOperations(modelBuilder);
+        ConfigureProviderBudget(modelBuilder);
         ApplyPhysicalConventions(modelBuilder);
     }
 
@@ -1256,6 +1302,578 @@ public sealed class ControlPlaneDbContext(DbContextOptions<ControlPlaneDbContext
         });
     }
 
+    private static void ConfigureProviderBudget(ModelBuilder modelBuilder)
+    {
+        modelBuilder.Entity<ProviderBudgetStoreEpochRow>(entity =>
+        {
+            entity.ToTable("provider_budget_store_epochs", table =>
+            {
+                table.HasCheckConstraint("ck_provider_budget_store_epochs_id", StableId("store_epoch_id"));
+                table.HasCheckConstraint("ck_provider_budget_store_epochs_revision", "epoch_revision > 0");
+                table.HasCheckConstraint(
+                    "ck_provider_budget_store_epochs_previous_id",
+                    "previous_store_epoch_id IS NULL OR " + StableId("previous_store_epoch_id"));
+                table.HasCheckConstraint("ck_provider_budget_store_epochs_authority", StableId("authority_reference"));
+                table.HasCheckConstraint("ck_provider_budget_store_epochs_occurred_utc", UtcInstant("occurred_at_utc"));
+                table.HasCheckConstraint("ck_provider_budget_store_epochs_previous_digest", Sha256("previous_epoch_sha256"));
+                table.HasCheckConstraint("ck_provider_budget_store_epochs_digest", Sha256("epoch_sha256"));
+                table.HasCheckConstraint(
+                    "ck_provider_budget_store_epochs_kind",
+                    "(epoch_kind = 'Initial' AND epoch_revision = 1 " +
+                    "AND previous_store_epoch_id IS NULL AND restore_checkpoint_sha256 IS NULL) OR " +
+                    "(epoch_kind = 'Restore' AND epoch_revision > 1 " +
+                    "AND previous_store_epoch_id IS NOT NULL AND restore_checkpoint_sha256 IS NOT NULL)");
+                table.HasCheckConstraint(
+                    "ck_provider_budget_store_epochs_restore_digest",
+                    "restore_checkpoint_sha256 IS NULL OR " + Sha256("restore_checkpoint_sha256"));
+                table.HasTrigger("trg_provider_budget_store_epochs_append_insert");
+                table.HasTrigger("trg_provider_budget_store_epochs_immutable_update");
+                table.HasTrigger("trg_provider_budget_store_epochs_immutable_delete");
+            });
+            entity.HasKey(row => row.StoreEpochId);
+            entity.HasIndex(row => row.EpochRevision).IsUnique();
+            entity.HasIndex(row => row.EpochSha256).IsUnique();
+            entity.HasOne<ProviderBudgetStoreEpochRow>().WithMany()
+                .HasForeignKey(row => row.PreviousStoreEpochId)
+                .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        modelBuilder.Entity<ProviderBudgetControlHeadRow>(entity =>
+        {
+            entity.ToTable("provider_budget_control_heads", table =>
+            {
+                table.HasCheckConstraint(
+                    "ck_provider_budget_control_heads_id",
+                    "control_id = 'provider-budget-control-v1'");
+                table.HasCheckConstraint(
+                    "ck_provider_budget_control_heads_revisions",
+                    "epoch_revision > 0 AND row_revision > 0");
+                table.HasTrigger("trg_provider_budget_control_heads_validate_insert");
+                table.HasTrigger("trg_provider_budget_control_heads_validate_update");
+                table.HasTrigger("trg_provider_budget_control_heads_immutable_delete");
+            });
+            entity.HasKey(row => row.ControlId);
+            entity.HasIndex(row => row.CurrentStoreEpochId).IsUnique();
+            entity.HasOne<ProviderBudgetStoreEpochRow>().WithMany()
+                .HasForeignKey(row => row.CurrentStoreEpochId)
+                .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        modelBuilder.Entity<ProviderBudgetEnvelopeRow>(entity =>
+        {
+            entity.ToTable("provider_budget_envelopes", table =>
+            {
+                table.HasCheckConstraint("ck_provider_budget_envelopes_id", StableId("envelope_id"));
+                table.HasCheckConstraint("ck_provider_budget_envelopes_schema", "schema_version = 1");
+                table.HasCheckConstraint("ck_provider_budget_envelopes_environment", StableId("environment_id"));
+                table.HasCheckConstraint("ck_provider_budget_envelopes_provider", StableId("provider_id"));
+                table.HasCheckConstraint("ck_provider_budget_envelopes_billing_scope", StableId("billing_scope_reference"));
+                table.HasCheckConstraint("ck_provider_budget_envelopes_model", StableId("model_id"));
+                table.HasCheckConstraint(
+                    "ck_provider_budget_envelopes_currency",
+                    "length(currency_code) = 3 AND currency_code NOT GLOB '*[^A-Z]*'");
+                table.HasCheckConstraint("ck_provider_budget_envelopes_accounting_unit", StableId("accounting_unit_id"));
+                table.HasCheckConstraint(
+                    "ck_provider_budget_envelopes_revisions",
+                    "current_configuration_revision > 0 AND current_ledger_revision > 0 " +
+                    "AND current_rearm_revision >= 0");
+                table.HasCheckConstraint("ck_provider_budget_envelopes_state", ProviderBudgetState("state"));
+                table.HasCheckConstraint(
+                    "ck_provider_budget_envelopes_session",
+                    "(state <> 'Armed') OR runtime_session_id IS NOT NULL");
+                table.HasCheckConstraint(
+                    "ck_provider_budget_envelopes_amounts",
+                    ProviderBudgetAmounts(
+                        "aggregate_limit_units",
+                        "aggregate_committed_units",
+                        "aggregate_reserved_units",
+                        "aggregate_indeterminate_units"));
+                table.HasCheckConstraint(
+                    "ck_provider_budget_envelopes_initialised",
+                    "is_initialised IN (0, 1) AND " +
+                    "(is_initialised = 1 OR (state = 'Disarmed' AND runtime_session_id IS NULL " +
+                    "AND aggregate_limit_units = 0 AND aggregate_committed_units = 0 " +
+                    "AND aggregate_reserved_units = 0 AND aggregate_indeterminate_units = 0 " +
+                    "AND is_closed = 0))");
+                table.HasCheckConstraint(
+                    "ck_provider_budget_envelopes_closed",
+                    "(is_closed = 0 AND closed_at_utc IS NULL AND closure_authority_reference IS NULL) OR " +
+                    "(is_closed = 1 AND state <> 'Armed' AND closed_at_utc IS NOT NULL " +
+                    "AND closure_authority_reference IS NOT NULL " +
+                    "AND aggregate_reserved_units = 0 AND aggregate_indeterminate_units = 0)");
+                table.HasCheckConstraint("ck_provider_budget_envelopes_created_utc", UtcInstant("created_at_utc"));
+                table.HasCheckConstraint(
+                    "ck_provider_budget_envelopes_closed_utc",
+                    "closed_at_utc IS NULL OR " + UtcInstant("closed_at_utc"));
+                table.HasCheckConstraint(
+                    "ck_provider_budget_envelopes_time_order",
+                    "closed_at_utc IS NULL OR closed_at_utc >= created_at_utc");
+                table.HasCheckConstraint("ck_provider_budget_envelopes_creation_authority", StableId("creation_authority_reference"));
+                table.HasCheckConstraint(
+                    "ck_provider_budget_envelopes_closure_authority",
+                    "closure_authority_reference IS NULL OR " + StableId("closure_authority_reference"));
+                table.HasCheckConstraint("ck_provider_budget_envelopes_ledger_digest", Sha256("current_ledger_sha256"));
+                table.HasTrigger("trg_provider_budget_envelopes_uninitialised_insert");
+                table.HasTrigger("trg_provider_budget_envelopes_validate_update");
+                table.HasTrigger("trg_provider_budget_envelopes_immutable_delete");
+            });
+            entity.HasKey(row => row.EnvelopeId);
+            entity.HasIndex(row => new
+            {
+                row.EnvironmentId,
+                row.ProviderId,
+                row.BillingScopeReference,
+                row.ModelId,
+                row.CurrencyCode,
+                row.AccountingUnitId,
+            }).IsUnique();
+            entity.HasOne<ProviderBudgetStoreEpochRow>().WithMany()
+                .HasForeignKey(row => row.CurrentStoreEpochId)
+                .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        modelBuilder.Entity<ProviderBudgetConfigurationRow>(entity =>
+        {
+            entity.ToTable("provider_budget_configurations", table =>
+            {
+                table.HasCheckConstraint(
+                    "ck_provider_budget_configurations_revision",
+                    "(configuration_revision = 1 AND previous_configuration_revision IS NULL) OR " +
+                    "(configuration_revision > 1 " +
+                    "AND previous_configuration_revision = configuration_revision - 1)");
+                table.HasCheckConstraint("ck_provider_budget_configurations_schedule_id", StableId("cost_schedule_id"));
+                table.HasCheckConstraint("ck_provider_budget_configurations_schedule_digest", Sha256("cost_schedule_sha256"));
+                table.HasCheckConstraint("ck_provider_budget_configurations_limit", "aggregate_limit_units >= 0");
+                table.HasCheckConstraint("ck_provider_budget_configurations_effective_utc", UtcInstant("effective_at_utc"));
+                table.HasCheckConstraint("ck_provider_budget_configurations_expires_utc", UtcInstant("expires_at_utc"));
+                table.HasCheckConstraint("ck_provider_budget_configurations_time_order", "expires_at_utc > effective_at_utc");
+                table.HasCheckConstraint("ck_provider_budget_configurations_authority", StableId("configuration_authority_reference"));
+                table.HasCheckConstraint("ck_provider_budget_configurations_created_utc", UtcInstant("created_at_utc"));
+                table.HasCheckConstraint(
+                    "ck_provider_budget_configurations_sealed_utc",
+                    "sealed_at_utc IS NULL OR " + UtcInstant("sealed_at_utc"));
+                table.HasCheckConstraint(
+                    "ck_provider_budget_configurations_seal_order",
+                    "sealed_at_utc IS NULL OR sealed_at_utc >= created_at_utc");
+                table.HasCheckConstraint("ck_provider_budget_configurations_digest", Sha256("configuration_sha256"));
+                table.HasTrigger("trg_provider_budget_configurations_append_insert");
+                table.HasTrigger("trg_provider_budget_configurations_seal_update");
+                table.HasTrigger("trg_provider_budget_configurations_immutable_delete");
+            });
+            entity.HasKey(row => new { row.EnvelopeId, row.ConfigurationRevision });
+            entity.HasIndex(row => new { row.EnvelopeId, row.ConfigurationSha256 }).IsUnique();
+            entity.HasOne<ProviderBudgetEnvelopeRow>().WithMany()
+                .HasForeignKey(row => row.EnvelopeId)
+                .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        modelBuilder.Entity<ProviderBudgetOperationAllocationRow>(entity =>
+        {
+            entity.ToTable("provider_budget_operation_allocations", table =>
+            {
+                table.HasCheckConstraint("ck_provider_budget_operation_allocations_operation", ProviderBudgetOperation("operation_class"));
+                table.HasCheckConstraint("ck_provider_budget_operation_allocations_limit", "allocation_limit_units >= 0");
+                table.HasTrigger("trg_provider_budget_operation_allocations_unsealed_insert");
+                table.HasTrigger("trg_provider_budget_operation_allocations_sealed_update");
+                table.HasTrigger("trg_provider_budget_operation_allocations_sealed_delete");
+            });
+            entity.HasKey(row => new
+            {
+                row.EnvelopeId,
+                row.ConfigurationRevision,
+                row.OperationClass,
+            });
+            entity.HasOne<ProviderBudgetConfigurationRow>().WithMany()
+                .HasForeignKey(row => new { row.EnvelopeId, row.ConfigurationRevision })
+                .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        modelBuilder.Entity<ProviderBudgetLedgerRevisionRow>(entity =>
+        {
+            entity.ToTable("provider_budget_ledger_revisions", table =>
+            {
+                table.HasCheckConstraint(
+                    "ck_provider_budget_ledger_revisions_revision",
+                    "(ledger_revision = 1 AND previous_ledger_revision IS NULL) OR " +
+                    "(ledger_revision > 1 AND previous_ledger_revision = ledger_revision - 1)");
+                table.HasCheckConstraint("ck_provider_budget_ledger_revisions_configuration", "configuration_revision > 0");
+                table.HasCheckConstraint("ck_provider_budget_ledger_revisions_rearm", "rearm_revision >= 0");
+                table.HasCheckConstraint("ck_provider_budget_ledger_revisions_state", ProviderBudgetState("state"));
+                table.HasCheckConstraint(
+                    "ck_provider_budget_ledger_revisions_session",
+                    "(state <> 'Armed') OR runtime_session_id IS NOT NULL");
+                table.HasCheckConstraint(
+                    "ck_provider_budget_ledger_revisions_amounts",
+                    ProviderBudgetAmounts(
+                        "aggregate_limit_units",
+                        "aggregate_committed_units",
+                        "aggregate_reserved_units",
+                        "aggregate_indeterminate_units"));
+                table.HasCheckConstraint(
+                    "ck_provider_budget_ledger_revisions_transition",
+                    "transition_kind IN ('EnvelopeCreated', 'ConfigurationChanged', " +
+                    "'ReservationAdmitted', 'DispatchStarted', 'ObservedCommitted', " +
+                    "'IndeterminateCommitted', 'OverrunCommitted', 'PreSendReleased', " +
+                    "'ConflictTripped', 'PolicyTripped', 'Exhausted', 'Expired', " +
+                    "'Reconciled', 'Rearmed', 'EnvelopeClosed', 'RestoreDetected')");
+                table.HasCheckConstraint(
+                    "ck_provider_budget_ledger_revisions_request",
+                    "provider_request_id IS NULL OR " + StableId("provider_request_id"));
+                table.HasCheckConstraint("ck_provider_budget_ledger_revisions_authority", StableId("transition_authority_reference"));
+                table.HasCheckConstraint("ck_provider_budget_ledger_revisions_occurred_utc", UtcInstant("occurred_at_utc"));
+                table.HasCheckConstraint("ck_provider_budget_ledger_revisions_previous_digest", Sha256("previous_ledger_sha256"));
+                table.HasCheckConstraint("ck_provider_budget_ledger_revisions_digest", Sha256("ledger_sha256"));
+                table.HasCheckConstraint("ck_provider_budget_ledger_revisions_complete", "is_complete IN (0, 1)");
+                table.HasTrigger("trg_provider_budget_ledger_revisions_append_insert");
+                table.HasTrigger("trg_provider_budget_ledger_revisions_complete_update");
+                table.HasTrigger("trg_provider_budget_ledger_revisions_immutable_delete");
+            });
+            entity.HasKey(row => new { row.EnvelopeId, row.LedgerRevision });
+            entity.HasIndex(row => new { row.StoreEpochId, row.EnvelopeId, row.LedgerRevision });
+            entity.HasIndex(row => new { row.EnvelopeId, row.LedgerSha256 }).IsUnique();
+            entity.HasOne<ProviderBudgetEnvelopeRow>().WithMany()
+                .HasForeignKey(row => row.EnvelopeId)
+                .OnDelete(DeleteBehavior.Restrict);
+            entity.HasOne<ProviderBudgetStoreEpochRow>().WithMany()
+                .HasForeignKey(row => row.StoreEpochId)
+                .OnDelete(DeleteBehavior.Restrict);
+            entity.HasOne<ProviderBudgetConfigurationRow>().WithMany()
+                .HasForeignKey(row => new { row.EnvelopeId, row.ConfigurationRevision })
+                .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        modelBuilder.Entity<ProviderBudgetOperationBalanceRevisionRow>(entity =>
+        {
+            entity.ToTable("provider_budget_operation_balance_revisions", table =>
+            {
+                table.HasCheckConstraint("ck_provider_budget_operation_balances_operation", ProviderBudgetOperation("operation_class"));
+                table.HasCheckConstraint(
+                    "ck_provider_budget_operation_balances_amounts",
+                    ProviderBudgetAmounts(
+                        "allocation_limit_units",
+                        "committed_units",
+                        "reserved_units",
+                        "indeterminate_units"));
+                table.HasTrigger("trg_provider_budget_operation_balances_incomplete_insert");
+                table.HasTrigger("trg_provider_budget_operation_balances_immutable_update");
+                table.HasTrigger("trg_provider_budget_operation_balances_immutable_delete");
+            });
+            entity.HasKey(row => new
+            {
+                row.EnvelopeId,
+                row.LedgerRevision,
+                row.OperationClass,
+            });
+            entity.HasOne<ProviderBudgetLedgerRevisionRow>().WithMany()
+                .HasForeignKey(row => new { row.EnvelopeId, row.LedgerRevision })
+                .OnDelete(DeleteBehavior.Restrict);
+            entity.HasOne<ProviderBudgetOperationAllocationRow>().WithMany()
+                .HasForeignKey(row => new
+                {
+                    row.EnvelopeId,
+                    row.ConfigurationRevision,
+                    row.OperationClass,
+                })
+                .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        modelBuilder.Entity<ProviderBudgetReservationRow>(entity =>
+        {
+            entity.ToTable("provider_budget_reservations", table =>
+            {
+                table.HasCheckConstraint("ck_provider_budget_reservations_id", StableId("provider_request_id"));
+                table.HasCheckConstraint("ck_provider_budget_reservations_operation", ProviderBudgetOperation("operation_class"));
+                table.HasCheckConstraint("ck_provider_budget_reservations_authority", StableId("operation_authority_reference"));
+                table.HasCheckConstraint("ck_provider_budget_reservations_request_plan", Sha256("request_plan_sha256"));
+                table.HasCheckConstraint("ck_provider_budget_reservations_request", Sha256("request_sha256"));
+                table.HasCheckConstraint("ck_provider_budget_reservations_maximum_basis", Sha256("maximum_charge_basis_sha256"));
+                table.HasCheckConstraint("ck_provider_budget_reservations_schedule", Sha256("cost_schedule_sha256"));
+                table.HasCheckConstraint("ck_provider_budget_reservations_binding", Sha256("binding_sha256"));
+                table.HasCheckConstraint("ck_provider_budget_reservations_maximum", "maximum_charge_units >= 0");
+                table.HasCheckConstraint("ck_provider_budget_reservations_session", StableId("admitted_runtime_session_id"));
+                table.HasCheckConstraint(
+                    "ck_provider_budget_reservations_revisions",
+                    "configuration_revision > 0 AND admission_ledger_revision > 0 " +
+                    "AND current_reservation_revision > 0 " +
+                    "AND (terminal_ledger_revision IS NULL OR terminal_ledger_revision > 0)");
+                table.HasCheckConstraint(
+                    "ck_provider_budget_reservations_initialised",
+                    "is_initialised IN (0, 1) AND " +
+                    "(is_initialised = 1 OR (status = 'Reserved' " +
+                    "AND dispatch_started_at_utc IS NULL AND terminal_at_utc IS NULL " +
+                    "AND terminal_ledger_revision IS NULL))");
+                table.HasCheckConstraint("ck_provider_budget_reservations_status", ProviderBudgetReservationStatus("status"));
+                table.HasCheckConstraint("ck_provider_budget_reservations_admitted_utc", UtcInstant("admitted_at_utc"));
+                table.HasCheckConstraint(
+                    "ck_provider_budget_reservations_dispatch_utc",
+                    "dispatch_started_at_utc IS NULL OR " + UtcInstant("dispatch_started_at_utc"));
+                table.HasCheckConstraint(
+                    "ck_provider_budget_reservations_terminal_utc",
+                    "terminal_at_utc IS NULL OR " + UtcInstant("terminal_at_utc"));
+                table.HasCheckConstraint(
+                    "ck_provider_budget_reservations_time_order",
+                    "(dispatch_started_at_utc IS NULL OR dispatch_started_at_utc >= admitted_at_utc) " +
+                    "AND (terminal_at_utc IS NULL OR terminal_at_utc >= admitted_at_utc) " +
+                    "AND (terminal_at_utc IS NULL OR dispatch_started_at_utc IS NULL " +
+                    "OR terminal_at_utc >= dispatch_started_at_utc)");
+                table.HasCheckConstraint(
+                    "ck_provider_budget_reservations_state_shape",
+                    "(status = 'Reserved' AND dispatch_started_at_utc IS NULL " +
+                    "AND terminal_at_utc IS NULL AND terminal_ledger_revision IS NULL) OR " +
+                    "(status = 'DispatchStarted' AND dispatch_started_at_utc IS NOT NULL " +
+                    "AND terminal_at_utc IS NULL AND terminal_ledger_revision IS NULL) OR " +
+                    "(status = 'ReleasedPreSend' AND dispatch_started_at_utc IS NULL " +
+                    "AND terminal_at_utc IS NOT NULL AND terminal_ledger_revision IS NOT NULL) OR " +
+                    "(status IN ('Committed', 'IndeterminateCommitted', 'OverrunCommitted') " +
+                    "AND dispatch_started_at_utc IS NOT NULL AND terminal_at_utc IS NOT NULL " +
+                    "AND terminal_ledger_revision IS NOT NULL)");
+                table.HasCheckConstraint("ck_provider_budget_reservations_transition_digest", Sha256("current_transition_sha256"));
+                table.HasTrigger("trg_provider_budget_reservations_uninitialised_insert");
+                table.HasTrigger("trg_provider_budget_reservations_validate_update");
+                table.HasTrigger("trg_provider_budget_reservations_immutable_delete");
+            });
+            entity.HasKey(row => row.ProviderRequestId);
+            entity.HasIndex(row => new { row.EnvelopeId, row.Status });
+            entity.HasOne<ProviderBudgetEnvelopeRow>().WithMany()
+                .HasForeignKey(row => row.EnvelopeId)
+                .OnDelete(DeleteBehavior.Restrict);
+            entity.HasOne<ProviderBudgetStoreEpochRow>().WithMany()
+                .HasForeignKey(row => row.StoreEpochId)
+                .OnDelete(DeleteBehavior.Restrict);
+            entity.HasOne<ProviderBudgetConfigurationRow>().WithMany()
+                .HasForeignKey(row => new { row.EnvelopeId, row.ConfigurationRevision })
+                .OnDelete(DeleteBehavior.Restrict);
+            entity.HasOne<ProviderBudgetLedgerRevisionRow>().WithMany()
+                .HasForeignKey(row => new { row.EnvelopeId, row.AdmissionLedgerRevision })
+                .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        modelBuilder.Entity<ProviderBudgetReservationTransitionRow>(entity =>
+        {
+            entity.ToTable("provider_budget_reservation_transitions", table =>
+            {
+                table.HasCheckConstraint(
+                    "ck_provider_budget_reservation_transitions_revision",
+                    "reservation_revision > 0");
+                table.HasCheckConstraint(
+                    "ck_provider_budget_reservation_transitions_from",
+                    "from_status IS NULL OR " + ProviderBudgetReservationStatus("from_status"));
+                table.HasCheckConstraint("ck_provider_budget_reservation_transitions_to", ProviderBudgetReservationStatus("to_status"));
+                table.HasCheckConstraint(
+                    "ck_provider_budget_reservation_transitions_kind",
+                    "transition_kind IN ('Admission', 'DispatchStarted', 'ObservedCommitted', " +
+                    "'IndeterminateCommitted', 'OverrunCommitted', 'PreSendReleased')");
+                table.HasCheckConstraint(
+                    "ck_provider_budget_reservation_transitions_shape",
+                    "(reservation_revision = 1 AND from_status IS NULL " +
+                    "AND to_status = 'Reserved' AND transition_kind = 'Admission') OR " +
+                    "(reservation_revision > 1 AND from_status IS NOT NULL)");
+                table.HasCheckConstraint(
+                    "ck_provider_budget_reservation_transitions_proof",
+                    "proof_sha256 IS NULL OR " + Sha256("proof_sha256"));
+                table.HasCheckConstraint(
+                    "ck_provider_budget_reservation_transitions_outcome",
+                    "outcome_code IS NULL OR " + StableId("outcome_code"));
+                table.HasCheckConstraint("ck_provider_budget_reservation_transitions_occurred_utc", UtcInstant("occurred_at_utc"));
+                table.HasCheckConstraint("ck_provider_budget_reservation_transitions_previous_digest", Sha256("previous_transition_sha256"));
+                table.HasCheckConstraint("ck_provider_budget_reservation_transitions_digest", Sha256("transition_sha256"));
+                table.HasTrigger("trg_provider_budget_reservation_transitions_append_insert");
+                table.HasTrigger("trg_provider_budget_reservation_transitions_immutable_update");
+                table.HasTrigger("trg_provider_budget_reservation_transitions_immutable_delete");
+            });
+            entity.HasKey(row => new { row.ProviderRequestId, row.ReservationRevision });
+            entity.HasOne<ProviderBudgetReservationRow>().WithMany()
+                .HasForeignKey(row => row.ProviderRequestId)
+                .OnDelete(DeleteBehavior.Restrict);
+            entity.HasOne<ProviderBudgetLedgerRevisionRow>().WithMany()
+                .HasForeignKey(row => new { row.EnvelopeId, row.LedgerRevision })
+                .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        modelBuilder.Entity<ProviderBudgetCommitmentRow>(entity =>
+        {
+            entity.ToTable("provider_budget_commitments", table =>
+            {
+                table.HasCheckConstraint(
+                    "ck_provider_budget_commitments_kind",
+                    "commitment_kind IN ('Observed', 'IndeterminateMaximum', 'OverrunMaximum')");
+                table.HasCheckConstraint("ck_provider_budget_commitments_amount", "committed_units >= 0");
+                table.HasCheckConstraint("ck_provider_budget_commitments_usage", Sha256("usage_evidence_sha256"));
+                table.HasCheckConstraint("ck_provider_budget_commitments_outcome", StableId("provider_outcome_code"));
+                table.HasCheckConstraint(
+                    "ck_provider_budget_commitments_duration",
+                    "provider_duration_milliseconds IS NULL OR " +
+                    "provider_duration_milliseconds BETWEEN 0 AND 86400000");
+                table.HasCheckConstraint("ck_provider_budget_commitments_occurred_utc", UtcInstant("occurred_at_utc"));
+                table.HasCheckConstraint("ck_provider_budget_commitments_digest", Sha256("commitment_sha256"));
+                table.HasTrigger("trg_provider_budget_commitments_validate_insert");
+                table.HasTrigger("trg_provider_budget_commitments_immutable_update");
+                table.HasTrigger("trg_provider_budget_commitments_immutable_delete");
+            });
+            entity.HasKey(row => row.ProviderRequestId);
+            entity.HasOne<ProviderBudgetReservationRow>().WithMany()
+                .HasForeignKey(row => row.ProviderRequestId)
+                .OnDelete(DeleteBehavior.Restrict);
+            entity.HasOne<ProviderBudgetLedgerRevisionRow>().WithMany()
+                .HasForeignKey(row => new { row.EnvelopeId, row.LedgerRevision })
+                .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        modelBuilder.Entity<ProviderBudgetReleaseRow>(entity =>
+        {
+            entity.ToTable("provider_budget_releases", table =>
+            {
+                table.HasCheckConstraint(
+                    "ck_provider_budget_releases_proof_kind",
+                    "proof_kind IN ('BeforeCredentialLookup', 'TransportConfirmedZeroRequestBytes')");
+                table.HasCheckConstraint("ck_provider_budget_releases_proof", Sha256("proof_sha256"));
+                table.HasCheckConstraint("ck_provider_budget_releases_authority", StableId("authority_reference"));
+                table.HasCheckConstraint("ck_provider_budget_releases_occurred_utc", UtcInstant("occurred_at_utc"));
+                table.HasCheckConstraint("ck_provider_budget_releases_digest", Sha256("release_sha256"));
+                table.HasTrigger("trg_provider_budget_releases_validate_insert");
+                table.HasTrigger("trg_provider_budget_releases_immutable_update");
+                table.HasTrigger("trg_provider_budget_releases_immutable_delete");
+            });
+            entity.HasKey(row => row.ProviderRequestId);
+            entity.HasOne<ProviderBudgetReservationRow>().WithMany()
+                .HasForeignKey(row => row.ProviderRequestId)
+                .OnDelete(DeleteBehavior.Restrict);
+            entity.HasOne<ProviderBudgetLedgerRevisionRow>().WithMany()
+                .HasForeignKey(row => new { row.EnvelopeId, row.LedgerRevision })
+                .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        modelBuilder.Entity<ProviderBudgetReconciliationDispositionRow>(entity =>
+        {
+            entity.ToTable("provider_budget_reconciliation_dispositions", table =>
+            {
+                table.HasCheckConstraint("ck_provider_budget_reconciliation_dispositions_id", StableId("disposition_id"));
+                table.HasCheckConstraint(
+                    "ck_provider_budget_reconciliation_dispositions_kind",
+                    "disposition_kind IN ('ConfirmedNoCharge', 'ConfirmedCharge', 'ConfirmedMaximum')");
+                table.HasCheckConstraint(
+                    "ck_provider_budget_reconciliation_dispositions_amounts",
+                    "confirmed_charge_units >= 0 AND restored_units >= 0 " +
+                    "AND (disposition_kind <> 'ConfirmedNoCharge' OR confirmed_charge_units = 0) " +
+                    "AND (disposition_kind <> 'ConfirmedMaximum' OR restored_units = 0)");
+                table.HasCheckConstraint("ck_provider_budget_reconciliation_dispositions_authority", StableId("authority_reference"));
+                table.HasCheckConstraint("ck_provider_budget_reconciliation_dispositions_actor", StableId("actor_reference"));
+                table.HasCheckConstraint("ck_provider_budget_reconciliation_dispositions_evidence", Sha256("evidence_sha256"));
+                table.HasCheckConstraint("ck_provider_budget_reconciliation_dispositions_occurred_utc", UtcInstant("occurred_at_utc"));
+                table.HasCheckConstraint("ck_provider_budget_reconciliation_dispositions_digest", Sha256("disposition_sha256"));
+                table.HasTrigger("trg_provider_budget_reconciliation_validate_insert");
+                table.HasTrigger("trg_provider_budget_reconciliation_immutable_update");
+                table.HasTrigger("trg_provider_budget_reconciliation_immutable_delete");
+            });
+            entity.HasKey(row => row.DispositionId);
+            entity.HasIndex(row => row.ProviderRequestId).IsUnique();
+            entity.HasOne<ProviderBudgetReservationRow>().WithMany()
+                .HasForeignKey(row => row.ProviderRequestId)
+                .OnDelete(DeleteBehavior.Restrict);
+            entity.HasOne<ProviderBudgetLedgerRevisionRow>().WithMany()
+                .HasForeignKey(row => new { row.EnvelopeId, row.LedgerRevision })
+                .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        modelBuilder.Entity<ProviderBudgetRearmRow>(entity =>
+        {
+            entity.ToTable("provider_budget_rearms", table =>
+            {
+                table.HasCheckConstraint(
+                    "ck_provider_budget_rearms_revisions",
+                    "rearm_revision > 0 AND expected_configuration_revision > 0 " +
+                    "AND expected_ledger_revision > 0 AND expected_rearm_revision = rearm_revision - 1 " +
+                    "AND resulting_ledger_revision = expected_ledger_revision + 1");
+                table.HasCheckConstraint("ck_provider_budget_rearms_session", StableId("new_runtime_session_id"));
+                table.HasCheckConstraint("ck_provider_budget_rearms_authority", StableId("authority_reference"));
+                table.HasCheckConstraint("ck_provider_budget_rearms_actor", StableId("actor_reference"));
+                table.HasCheckConstraint("ck_provider_budget_rearms_reason", Sha256("reason_sha256"));
+                table.HasCheckConstraint(
+                    "ck_provider_budget_rearms_amounts",
+                    "acknowledged_committed_units >= 0 AND acknowledged_reserved_units >= 0 " +
+                    "AND acknowledged_indeterminate_units >= 0 " +
+                    "AND acknowledged_indeterminate_units <= acknowledged_committed_units");
+                table.HasCheckConstraint("ck_provider_budget_rearms_balances", Sha256("operation_balances_sha256"));
+                table.HasCheckConstraint("ck_provider_budget_rearms_configuration", Sha256("configuration_sha256"));
+                table.HasCheckConstraint("ck_provider_budget_rearms_occurred_utc", UtcInstant("occurred_at_utc"));
+                table.HasCheckConstraint("ck_provider_budget_rearms_digest", Sha256("rearm_sha256"));
+                table.HasTrigger("trg_provider_budget_rearms_validate_insert");
+                table.HasTrigger("trg_provider_budget_rearms_immutable_update");
+                table.HasTrigger("trg_provider_budget_rearms_immutable_delete");
+            });
+            entity.HasKey(row => new { row.EnvelopeId, row.RearmRevision });
+            entity.HasIndex(row => new
+            {
+                row.EnvelopeId,
+                row.StoreEpochId,
+                row.NewRuntimeSessionId,
+            }).IsUnique();
+            entity.HasOne<ProviderBudgetEnvelopeRow>().WithMany()
+                .HasForeignKey(row => row.EnvelopeId)
+                .OnDelete(DeleteBehavior.Restrict);
+            entity.HasOne<ProviderBudgetStoreEpochRow>().WithMany()
+                .HasForeignKey(row => row.StoreEpochId)
+                .OnDelete(DeleteBehavior.Restrict);
+            entity.HasOne<ProviderBudgetLedgerRevisionRow>().WithMany()
+                .HasForeignKey(row => new { row.EnvelopeId, row.ResultingLedgerRevision })
+                .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        modelBuilder.Entity<ProviderBudgetAuditEventRow>(entity =>
+        {
+            entity.ToTable("provider_budget_audit_events", table =>
+            {
+                table.HasCheckConstraint("ck_provider_budget_audit_events_id", StableId("audit_event_id"));
+                table.HasCheckConstraint(
+                    "ck_provider_budget_audit_events_request_id",
+                    "provider_request_id IS NULL OR " + StableId("provider_request_id"));
+                table.HasCheckConstraint(
+                    "ck_provider_budget_audit_events_operation",
+                    "operation_class IS NULL OR " + ProviderBudgetOperation("operation_class"));
+                table.HasCheckConstraint(
+                    "ck_provider_budget_audit_events_event",
+                    "event_type IN ('EnvelopeCreated', 'ConfigurationRevised', " +
+                    "'ReservationAdmitted', 'ReservationConflict', 'DispatchStarted', " +
+                    "'PreSendFailureObserved', 'ReservationReleased', 'CommitmentRecorded', " +
+                    "'IndeterminateCommitted', 'OverrunDetected', 'EnvelopeTripped', " +
+                    "'EnvelopeExhausted', 'EnvelopeExpired', 'ReconciliationRecorded', " +
+                    "'EnvelopeRearmed', 'EnvelopeClosed', 'RestoreDetected')");
+                table.HasCheckConstraint(
+                    "ck_provider_budget_audit_events_authority",
+                    "authority_reference IS NULL OR " + StableId("authority_reference"));
+                table.HasCheckConstraint(
+                    "ck_provider_budget_audit_events_actor",
+                    "actor_reference IS NULL OR " + StableId("actor_reference"));
+                table.HasCheckConstraint(
+                    "ck_provider_budget_audit_events_request",
+                    "request_sha256 IS NULL OR " + Sha256("request_sha256"));
+                table.HasCheckConstraint(
+                    "ck_provider_budget_audit_events_maximum",
+                    "maximum_charge_units IS NULL OR maximum_charge_units >= 0");
+                table.HasCheckConstraint(
+                    "ck_provider_budget_audit_events_from_state",
+                    "from_state IS NULL OR " + ProviderBudgetState("from_state"));
+                table.HasCheckConstraint(
+                    "ck_provider_budget_audit_events_to_state",
+                    "to_state IS NULL OR " + ProviderBudgetState("to_state"));
+                table.HasCheckConstraint("ck_provider_budget_audit_events_outcome", StableId("outcome_code"));
+                table.HasCheckConstraint("ck_provider_budget_audit_events_occurred_utc", UtcInstant("occurred_at_utc"));
+                table.HasCheckConstraint("ck_provider_budget_audit_events_details", Sha256("details_sha256"));
+                table.HasTrigger("trg_provider_budget_audit_events_validate_insert");
+                table.HasTrigger("trg_provider_budget_audit_events_immutable_update");
+                table.HasTrigger("trg_provider_budget_audit_events_immutable_delete");
+            });
+            entity.HasKey(row => row.AuditEventId);
+            entity.HasIndex(row => new { row.EnvelopeId, row.OccurredAtUtc });
+            entity.HasOne<ProviderBudgetEnvelopeRow>().WithMany()
+                .HasForeignKey(row => row.EnvelopeId)
+                .OnDelete(DeleteBehavior.Restrict);
+            entity.HasOne<ProviderBudgetLedgerRevisionRow>().WithMany()
+                .HasForeignKey(row => new { row.EnvelopeId, row.LedgerRevision })
+                .OnDelete(DeleteBehavior.Restrict);
+        });
+    }
+
     private static void ApplyPhysicalConventions(ModelBuilder modelBuilder)
     {
         foreach (var entityType in modelBuilder.Model.GetEntityTypes())
@@ -1299,6 +1917,29 @@ public sealed class ControlPlaneDbContext(DbContextOptions<ControlPlaneDbContext
 
     private static string UtcInstant(string column) =>
         $"length({column}) = 33 AND substr({column}, -6) = '+00:00'";
+
+    private static string ProviderBudgetState(string column) =>
+        $"{column} IN ('Disarmed', 'Armed', 'Tripped', 'Exhausted', " +
+        "'ReconciliationRequired', 'Expired')";
+
+    private static string ProviderBudgetOperation(string column) =>
+        $"{column} IN ('AdministrativeIndexEmbedding', 'QueryEmbedding', " +
+        "'GroundedGeneration')";
+
+    private static string ProviderBudgetReservationStatus(string column) =>
+        $"{column} IN ('Reserved', 'DispatchStarted', 'Committed', " +
+        "'ReleasedPreSend', 'IndeterminateCommitted', 'OverrunCommitted')";
+
+    private static string ProviderBudgetAmounts(
+        string limitColumn,
+        string committedColumn,
+        string reservedColumn,
+        string indeterminateColumn) =>
+        $"{limitColumn} >= 0 AND {committedColumn} >= 0 " +
+        $"AND {reservedColumn} >= 0 AND {indeterminateColumn} >= 0 " +
+        $"AND {committedColumn} <= {limitColumn} " +
+        $"AND {reservedColumn} <= {limitColumn} - {committedColumn} " +
+        $"AND {indeterminateColumn} <= {committedColumn}";
 
     private static string CatalogueStatus(string column) =>
         $"{column} IN ('Candidate', 'Active', 'Deactivated', 'Removed')";

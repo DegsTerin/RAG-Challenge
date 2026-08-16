@@ -633,6 +633,404 @@ internal sealed class AnswerEvidencePageRow
     public int HeightPixels { get; set; }
 }
 
+internal sealed class ProviderBudgetStoreEpochRow
+{
+    public required string StoreEpochId { get; set; }
+
+    public long EpochRevision { get; set; }
+
+    public string? PreviousStoreEpochId { get; set; }
+
+    public required string EpochKind { get; set; }
+
+    public string? RestoreCheckpointSha256 { get; set; }
+
+    public required string AuthorityReference { get; set; }
+
+    public required string OccurredAtUtc { get; set; }
+
+    public required string PreviousEpochSha256 { get; set; }
+
+    public required string EpochSha256 { get; set; }
+}
+
+internal sealed class ProviderBudgetControlHeadRow
+{
+    public required string ControlId { get; set; }
+
+    public required string CurrentStoreEpochId { get; set; }
+
+    public long EpochRevision { get; set; }
+
+    public long RowRevision { get; set; }
+}
+
+internal sealed class ProviderBudgetEnvelopeRow
+{
+    public required string EnvelopeId { get; set; }
+
+    public int SchemaVersion { get; set; }
+
+    public required string CurrentStoreEpochId { get; set; }
+
+    public required string EnvironmentId { get; set; }
+
+    public required string ProviderId { get; set; }
+
+    public required string BillingScopeReference { get; set; }
+
+    public required string ModelId { get; set; }
+
+    public required string CurrencyCode { get; set; }
+
+    public required string AccountingUnitId { get; set; }
+
+    public long CurrentConfigurationRevision { get; set; }
+
+    public long CurrentLedgerRevision { get; set; }
+
+    public long CurrentRearmRevision { get; set; }
+
+    public required string State { get; set; }
+
+    public string? RuntimeSessionId { get; set; }
+
+    public long AggregateLimitUnits { get; set; }
+
+    public long AggregateCommittedUnits { get; set; }
+
+    public long AggregateReservedUnits { get; set; }
+
+    public long AggregateIndeterminateUnits { get; set; }
+
+    public int IsInitialised { get; set; }
+
+    public int IsClosed { get; set; }
+
+    public required string CreatedAtUtc { get; set; }
+
+    public required string CreationAuthorityReference { get; set; }
+
+    public string? ClosedAtUtc { get; set; }
+
+    public string? ClosureAuthorityReference { get; set; }
+
+    public required string CurrentLedgerSha256 { get; set; }
+}
+
+internal sealed class ProviderBudgetConfigurationRow
+{
+    public required string EnvelopeId { get; set; }
+
+    public long ConfigurationRevision { get; set; }
+
+    public long? PreviousConfigurationRevision { get; set; }
+
+    public required string CostScheduleId { get; set; }
+
+    public required string CostScheduleSha256 { get; set; }
+
+    public long AggregateLimitUnits { get; set; }
+
+    public required string EffectiveAtUtc { get; set; }
+
+    public required string ExpiresAtUtc { get; set; }
+
+    public required string ConfigurationAuthorityReference { get; set; }
+
+    public required string CreatedAtUtc { get; set; }
+
+    public string? SealedAtUtc { get; set; }
+
+    public required string ConfigurationSha256 { get; set; }
+}
+
+internal sealed class ProviderBudgetOperationAllocationRow
+{
+    public required string EnvelopeId { get; set; }
+
+    public long ConfigurationRevision { get; set; }
+
+    public required string OperationClass { get; set; }
+
+    public long AllocationLimitUnits { get; set; }
+}
+
+internal sealed class ProviderBudgetLedgerRevisionRow
+{
+    public required string EnvelopeId { get; set; }
+
+    public long LedgerRevision { get; set; }
+
+    public required string StoreEpochId { get; set; }
+
+    public long? PreviousLedgerRevision { get; set; }
+
+    public long ConfigurationRevision { get; set; }
+
+    public long RearmRevision { get; set; }
+
+    public required string State { get; set; }
+
+    public string? RuntimeSessionId { get; set; }
+
+    public long AggregateLimitUnits { get; set; }
+
+    public long AggregateCommittedUnits { get; set; }
+
+    public long AggregateReservedUnits { get; set; }
+
+    public long AggregateIndeterminateUnits { get; set; }
+
+    public required string TransitionKind { get; set; }
+
+    public string? ProviderRequestId { get; set; }
+
+    public required string TransitionAuthorityReference { get; set; }
+
+    public required string OccurredAtUtc { get; set; }
+
+    public required string PreviousLedgerSha256 { get; set; }
+
+    public required string LedgerSha256 { get; set; }
+
+    public int IsComplete { get; set; }
+}
+
+internal sealed class ProviderBudgetOperationBalanceRevisionRow
+{
+    public required string EnvelopeId { get; set; }
+
+    public long LedgerRevision { get; set; }
+
+    public required string OperationClass { get; set; }
+
+    public long ConfigurationRevision { get; set; }
+
+    public long AllocationLimitUnits { get; set; }
+
+    public long CommittedUnits { get; set; }
+
+    public long ReservedUnits { get; set; }
+
+    public long IndeterminateUnits { get; set; }
+}
+
+internal sealed class ProviderBudgetReservationRow
+{
+    public required string ProviderRequestId { get; set; }
+
+    public required string EnvelopeId { get; set; }
+
+    public required string StoreEpochId { get; set; }
+
+    public long ConfigurationRevision { get; set; }
+
+    public required string OperationClass { get; set; }
+
+    public required string OperationAuthorityReference { get; set; }
+
+    public required string RequestPlanSha256 { get; set; }
+
+    public required string RequestSha256 { get; set; }
+
+    public required string MaximumChargeBasisSha256 { get; set; }
+
+    public required string CostScheduleSha256 { get; set; }
+
+    public required string BindingSha256 { get; set; }
+
+    public long MaximumChargeUnits { get; set; }
+
+    public required string AdmittedRuntimeSessionId { get; set; }
+
+    public long AdmissionLedgerRevision { get; set; }
+
+    public long CurrentReservationRevision { get; set; }
+
+    public int IsInitialised { get; set; }
+
+    public required string Status { get; set; }
+
+    public required string AdmittedAtUtc { get; set; }
+
+    public string? DispatchStartedAtUtc { get; set; }
+
+    public string? TerminalAtUtc { get; set; }
+
+    public long? TerminalLedgerRevision { get; set; }
+
+    public required string CurrentTransitionSha256 { get; set; }
+}
+
+internal sealed class ProviderBudgetReservationTransitionRow
+{
+    public required string ProviderRequestId { get; set; }
+
+    public long ReservationRevision { get; set; }
+
+    public required string EnvelopeId { get; set; }
+
+    public long LedgerRevision { get; set; }
+
+    public string? FromStatus { get; set; }
+
+    public required string ToStatus { get; set; }
+
+    public required string TransitionKind { get; set; }
+
+    public string? ProofSha256 { get; set; }
+
+    public string? OutcomeCode { get; set; }
+
+    public required string OccurredAtUtc { get; set; }
+
+    public required string PreviousTransitionSha256 { get; set; }
+
+    public required string TransitionSha256 { get; set; }
+}
+
+internal sealed class ProviderBudgetCommitmentRow
+{
+    public required string ProviderRequestId { get; set; }
+
+    public required string EnvelopeId { get; set; }
+
+    public long LedgerRevision { get; set; }
+
+    public required string CommitmentKind { get; set; }
+
+    public long CommittedUnits { get; set; }
+
+    public required string UsageEvidenceSha256 { get; set; }
+
+    public required string ProviderOutcomeCode { get; set; }
+
+    public long? ProviderDurationMilliseconds { get; set; }
+
+    public required string OccurredAtUtc { get; set; }
+
+    public required string CommitmentSha256 { get; set; }
+}
+
+internal sealed class ProviderBudgetReleaseRow
+{
+    public required string ProviderRequestId { get; set; }
+
+    public required string EnvelopeId { get; set; }
+
+    public long LedgerRevision { get; set; }
+
+    public required string ProofKind { get; set; }
+
+    public required string ProofSha256 { get; set; }
+
+    public required string AuthorityReference { get; set; }
+
+    public required string OccurredAtUtc { get; set; }
+
+    public required string ReleaseSha256 { get; set; }
+}
+
+internal sealed class ProviderBudgetReconciliationDispositionRow
+{
+    public required string DispositionId { get; set; }
+
+    public required string ProviderRequestId { get; set; }
+
+    public required string EnvelopeId { get; set; }
+
+    public long LedgerRevision { get; set; }
+
+    public required string DispositionKind { get; set; }
+
+    public long ConfirmedChargeUnits { get; set; }
+
+    public long RestoredUnits { get; set; }
+
+    public required string AuthorityReference { get; set; }
+
+    public required string ActorReference { get; set; }
+
+    public required string EvidenceSha256 { get; set; }
+
+    public required string OccurredAtUtc { get; set; }
+
+    public required string DispositionSha256 { get; set; }
+}
+
+internal sealed class ProviderBudgetRearmRow
+{
+    public required string EnvelopeId { get; set; }
+
+    public long RearmRevision { get; set; }
+
+    public required string StoreEpochId { get; set; }
+
+    public long ExpectedConfigurationRevision { get; set; }
+
+    public long ExpectedLedgerRevision { get; set; }
+
+    public long ExpectedRearmRevision { get; set; }
+
+    public long ResultingLedgerRevision { get; set; }
+
+    public required string NewRuntimeSessionId { get; set; }
+
+    public required string AuthorityReference { get; set; }
+
+    public required string ActorReference { get; set; }
+
+    public required string ReasonSha256 { get; set; }
+
+    public long AcknowledgedCommittedUnits { get; set; }
+
+    public long AcknowledgedReservedUnits { get; set; }
+
+    public long AcknowledgedIndeterminateUnits { get; set; }
+
+    public required string OperationBalancesSha256 { get; set; }
+
+    public required string ConfigurationSha256 { get; set; }
+
+    public required string OccurredAtUtc { get; set; }
+
+    public required string RearmSha256 { get; set; }
+}
+
+internal sealed class ProviderBudgetAuditEventRow
+{
+    public required string AuditEventId { get; set; }
+
+    public required string EnvelopeId { get; set; }
+
+    public long LedgerRevision { get; set; }
+
+    public string? ProviderRequestId { get; set; }
+
+    public string? OperationClass { get; set; }
+
+    public required string EventType { get; set; }
+
+    public string? AuthorityReference { get; set; }
+
+    public string? ActorReference { get; set; }
+
+    public string? RequestSha256 { get; set; }
+
+    public long? MaximumChargeUnits { get; set; }
+
+    public string? FromState { get; set; }
+
+    public string? ToState { get; set; }
+
+    public required string OutcomeCode { get; set; }
+
+    public required string OccurredAtUtc { get; set; }
+
+    public required string DetailsSha256 { get; set; }
+}
+
 internal sealed class AdminOperationRow
 {
     public required string OperationId { get; set; }
