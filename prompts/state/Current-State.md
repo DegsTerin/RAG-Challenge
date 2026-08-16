@@ -103,10 +103,20 @@ reports.
   107 orchestrator tests with zero failures and two host symlink-permission
   skips, and the language-policy suite passed 100/100. The real parser loaded
   all 16 permissions, and independent governance, security and result reviews
-  passed. The documentary and canonical offline gates remain pending before
-  local `main` can be updated. No provider call, credential use, external
-  action, Human Gate or lifecycle transition has occurred under this
-  authority.
+  passed. The documentary gate subsequently passed. At clean candidate
+  `311f115e5b080b1d5c1cc55f43dc91426e9fcdd2`, the canonical offline gate ran
+  exactly once in a closed child environment with MSBuild node reuse disabled
+  and passed in 279,679 ms with no stderr or failed stage. It passed 215 unit,
+  11 architecture, 294 integration and 45 web tests; merged .NET coverage was
+  95.41% of lines and 67.29% of branches. The orchestrator passed 105 of 107
+  tests with zero failures and two host symlink-permission skips, with 82.04%
+  line, 76.83% branch and 88.74% function coverage. The language-policy suite
+  passed 100/100, the language check covered 419 files with zero migration
+  findings, the repository audit passed for 419 non-ignored files and Git diff
+  hygiene passed. No connection to a previously reusable MSBuild node was
+  observed, and no reusable worker remained after the gate. No provider call,
+  credential use, external network, external action, Human Gate or lifecycle
+  transition occurred under this authority.
 - Position: `STATE-00 DISCOVERY` closed; `GATE-B01
   ARCHITECTURE_BOOTSTRAP_DECISION` approved and closed; `STATE-01
   PROJECT_SETUP` closed after a Human Gate approved without reservations on

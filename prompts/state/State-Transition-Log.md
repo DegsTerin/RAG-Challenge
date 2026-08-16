@@ -8619,3 +8619,47 @@ contém somente fatos cronológicos.
 - Append-only integrity: this entry preserves the complete previous file of
   548,144 bytes at SHA-256
   `fef88ce45058ad967bee2faaffc6cdc62ebe24356d9bf332d97ba00c0f3d9288`.
+
+## 2026-08-16 — Stage 0/1/2 canonical offline gate approved
+
+- Authority: `AUTH-STAGE012-CANONICAL-GATE-FRESH-NODE-001`, followed by
+  `AUTH-STAGE012-FINAL-RECONCILIATION-MAIN-001` for this factual record and
+  the separately gated local integration sequence.
+- Baseline: clean candidate
+  `codex/stage012-integration@311f115e5b080b1d5c1cc55f43dc91426e9fcdd2`;
+  local `main` remained clean at
+  `d9968cac893f70989553fe9b8ae07ad7a3dbdaae` during the recorded gate.
+- Runtime preflight: zero process proved to belong to RAG-Challenge, so no
+  process was stopped. Existing MSBuild workers were neither interrupted nor
+  deliberately reused.
+- Closed environment: the single canonical invocation preserved only the
+  approved non-secret Windows path inputs and set
+  `MSBUILDDISABLENODEREUSE=1`. No environment enumeration, credential read or
+  credential validation occurred.
+- Canonical gate: `pwsh -NoProfile -File eng/ci.ps1 -Offline` ran exactly once
+  and passed with exit code `0` in 279,679 ms. Sanitised capture contained
+  stdout, no stderr and no failed stage. It contained no marker of a connection
+  to a previously reusable node, and no reusable worker remained afterwards.
+- .NET evidence: Release build and all 215 unit, 11 architecture and 294
+  integration tests passed. Merged coverage was 95.41% of lines
+  (`50,227/52,642`) and 67.29% of branches (`5,197/7,723`).
+- Web and orchestrator evidence: all 45 Dashboard tests, lint, typecheck and
+  Vite build passed. The orchestrator passed 105 of 107 tests with zero
+  failures and two host symlink-permission skips; coverage was 82.04% of
+  lines, 76.83% of branches and 88.74% of functions.
+- Policy and repository evidence: the language-policy suite passed 100/100;
+  the immutable language check covered 419 files with zero accepted migration
+  findings and one commit message; coverage-policy and CI-policy tests passed;
+  the repository audit passed for 419 non-ignored files; and Git diff hygiene
+  passed.
+- Disposition: the Stage 0/1/2 governance, product-credential isolation,
+  en-GB migration and credential-identifier enforcement candidate satisfied
+  its authorised local documentary and canonical offline gates. This result
+  is local evidence and does not constitute an online dependency audit,
+  product homologation, Human Gate or lifecycle transition.
+- Negative scope: no provider call, credential use or inspection, external
+  network, billing, ADR, Human Gate, lifecycle transition, push, pull request,
+  release or deployment occurred.
+- Append-only integrity: this entry preserves the complete previous file of
+  550,227 bytes at SHA-256
+  `1a1c6317bdc126bf244cfa50f397e3d54aa24c3188dd7d1f01c1be6b2da13c38`.

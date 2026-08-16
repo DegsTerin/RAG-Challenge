@@ -16,7 +16,7 @@
   restricted to a closed classified allowlist and its orchestrator parser
   contract has passed independent reviews; the language baseline is
   `COMPLETE` with zero accepted debt; documentary and canonical offline gates
-  remain required before the local `main` may be updated; product
+  passed on the clean isolated candidate with fresh-node controls; product
   homologation, Human Gate and lifecycle change remain unexecuted
 - Scope: 13 active files under `prompts/`
 
@@ -64,6 +64,12 @@ Every change updates this file and, when necessary,
 - Preserves OpenAPI v1/v2 byte identities and introduces no provider call,
   credential use, external network, billing, Human Gate, lifecycle transition,
   push, release or deployment.
+- Records the approved fresh-node canonical offline gate on clean candidate
+  `311f115e5b080b1d5c1cc55f43dc91426e9fcdd2`: 520 .NET tests, 45 Dashboard
+  tests and 107 orchestrator tests passed with the two existing host
+  symlink-permission skips; merged .NET coverage was 95.41% of lines and
+  67.29% of branches; the language-policy suite passed 100/100; and the
+  419-file repository audit and Git diff hygiene passed.
 - Classification: `MINOR`, because the corpus gains governed multi-agent,
   credential-boundary and enforceable language capabilities without breaking
   the existing lifecycle or product contracts.
