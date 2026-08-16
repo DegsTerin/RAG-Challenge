@@ -219,8 +219,8 @@ for (const entry of bannedAmericanSpellings) {
 test("raw commit messages reject credential identifiers, secret shapes and invalid decoding without echoing", () => {
   const payload = policyPayload();
   const identifier = "OPENAI_API_KEY";
-  const token = "sk-proj-synthetic-not-a-real-secret";
-  for (const value of [identifier, token, "invalid \uFFFD message"]) {
+  const syntheticSecret = "sk-proj-synthetic-not-a-real-secret";
+  for (const value of [identifier, syntheticSecret, "invalid \uFFFD message"]) {
     assert.throws(() => assertSafeCommitMessage(value), (error) =>
       error instanceof Error && !error.message.includes(value));
   }

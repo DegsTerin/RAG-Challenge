@@ -237,7 +237,7 @@
         "classification": "SYNTHETIC_ENFORCEMENT_REGION",
         "startMarker": "// SYNTHETIC_LANGUAGE_SECRET_MESSAGES_START",
         "endMarker": "// SYNTHETIC_LANGUAGE_SECRET_MESSAGES_END",
-        "sha256": "19796ad0b31eee10a569435cafdd873d8d0c1683af0b97339b8cd1d03977fb17"
+        "sha256": "87f1ed95ce84a685df6d4b3d10d56e71bc387bc20e2f400da52308b2e994e277"
       },
       {
         "path": "eng/test-language-policy.mjs",
@@ -280,5 +280,5 @@
       { "path": "prompts/system/Prompt-System-Change-Log.md", "prefixBytes": 157982, "sha256": "15cc9ecb5b6d6a6de5e951e045fbde7ce6cec0cee0ab6631a5a15fb29bb699a4" }
     ]
   },
-  "digest": "sha256:141dd0da59df751dc2a754b60ab20f2b93fa5359dd35d54263edce1c172d244d"
+  "digest": "sha256:63da4a5ee450e99509c1467cd49b9464cc3dd1ed69d0c25665e5587431682846"
 }
