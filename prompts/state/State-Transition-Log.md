@@ -8535,3 +8535,53 @@ contém somente fatos cronológicos.
 - Integridade append-only: esta entrada preserva byte a byte o prefixo anterior
   de 541.704 bytes no SHA-256
   `fd577ffcea1eaa3bb78eca0247a79e23135e8b6ba7882874e5561c09eefaabb3`.
+
+## 2026-08-16 — Stage 0/1/2 governance, security and en-GB candidate reconciled
+
+- Authority: `AUTH-STAGE012-GOV-SEC-ENGB-IMPL-001` and the owner’s
+  supplemental decision for the instruction-system version ledger.
+- Baseline and integration: the work was isolated in exclusive branches and
+  worktrees, reviewed one candidate at a time and integrated sequentially on
+  `codex/stage012-integration`. Candidate
+  `6b2d95c98fc84835154e3d35bda78a2b684fade1` is clean and remains separate
+  from local `main` pending the final integrated gate.
+- Governance: the Stage 0/1/2 hand-off rule is normative only where a
+  copy-ready development hand-off is applicable. Its seven exceptions retain
+  simple and sequential work, Human Gate and purely decisional boundaries;
+  multi-agent readiness never grants continuous authority.
+- Product credential boundary: administrative indexing, query embedding and
+  grounded generation use distinct operation-specific request references and
+  independently trusted in-memory grants. Agents, the orchestrator, CI,
+  common tests and development tools receive closed environments and cannot
+  receive product credential material. Local launchers no longer read
+  `.env.local`; all verification used synthetic readers, maps, values and
+  fake handlers, with no provider call or credential use.
+- Language: current project-owned technical prose and new commit messages are
+  governed by en-GB enforcement over immutable Git objects, protected control
+  paths and structured exclusions. The migration baseline is `COMPLETE` with
+  zero findings. Owner-facing pt-BR, functional localisation, source and
+  citation languages, canonical contracts, Git history, historical evidence
+  and append-only records remain preserved.
+- Provenance: the three original Stage owner inputs were moved byte for byte
+  to ignored local paths under `reference-materials/governance-inputs/`.
+  Their tracked en-GB manifest records exact names, byte lengths, SHA-256
+  identities and lineage and classifies them as historical, inactive,
+  non-normative and local-only. No tracked translation or second authority was
+  created.
+- Version ledger: corpus `4.16.0` is a `MINOR` change. Only the current header
+  of `Prompt-System-Change-Log.md` remains mutable and new entries are inserted
+  newest-first. The complete `4.15.0` and earlier region is digest-bound and
+  unchanged; `State-Transition-Log.md` and every other formally append-only
+  region retain exact prefix protection.
+- Verification before final gate: focused implementation checks, language
+  tests, repository hygiene, protected OpenAPI identities and independent lane
+  reviews passed. Independent completion and security reviews of the version
+  decision also returned `MANUAL_PASS`. Final integrated governance,
+  architecture, security and result reviews and the canonical offline gate
+  remain required before local `main` may be updated.
+- Negative scope: no provider call, credential use or inspection, external
+  network, billing, ADR, Human Gate, lifecycle transition, push, pull request,
+  release or deployment was performed or authorised.
+- Append-only integrity: this entry preserves the complete previous prefix of
+  544,842 bytes at SHA-256
+  `8b9567ff3cec6bb79c220af0eacc669824485d717cf69df92bcc1ecb9875545e`.

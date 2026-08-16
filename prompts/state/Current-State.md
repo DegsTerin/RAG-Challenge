@@ -1,6 +1,6 @@
 # Current State
 
-This document is the current factual snapshot of the workspace on 2026-08-15. It
+This document is the current factual snapshot of the workspace on 2026-08-16. It
 grants no authority. Evolution and decisions in their original context belong in
 [`State-Transition-Log.md`](State-Transition-Log.md) and the owning
 reports.
@@ -72,20 +72,33 @@ reports.
 - Under `AUTH-STAGE012-GOV-SEC-ENGB-IMPL-001`, the isolated integration branch
   implemented and independently reviewed the permanent Stage hand-off rule,
   the product-provider credential boundary, trusted en-GB enforcement and the
-  approved migration of current project-owned technical prose. At integration
-  head `1226ca4429a3b6a1f9ed18a21ce6630bb5cd7ce6`, the language checker reported
-  zero actual migration findings; its transitional baseline remained
-  `IN_PROGRESS` pending the separately controlled completion reconciliation.
+  approved migration of current project-owned technical prose. The product
+  credential is separated from development tooling and agents; administrative
+  indexing, query embedding and grounded generation each require a distinct
+  operation-specific request reference and an independently trusted in-memory
+  grant immediately before credential lookup. Local product launchers no
+  longer read `.env.local`, and verification used synthetic values, maps,
+  readers and handlers only. The language checker validates immutable Git
+  objects, protected controls and structured exclusions; its migration
+  baseline is `COMPLETE` with zero findings.
   The three original Stage owner inputs were then moved byte for byte from the
   repository root to the ignored `reference-materials/governance-inputs/`
   directory. Their hashes, sizes, filenames and implementation lineage are
   recorded in
   [`Stage-0-1-2-Historical-Owner-Input-Manifest.md`](../../docs/Stage-0-1-2-Historical-Owner-Input-Manifest.md).
   They are local historical evidence, inactive and non-normative; no tracked
-  translation or second authority was created. Local `main` remained at
-  `d9968cac893f70989553fe9b8ae07ad7a3dbdaae` at this boundary, and no final
-  canonical gate, provider call, credential use, external action, Human Gate
-  or lifecycle transition had occurred.
+  translation or second authority was created. The owner’s supplemental
+  decision classifies only the instruction-system version ledger as a mutable
+  current header with newest-first entries; all entries from `4.15.0`
+  backwards are one digest-bound historical region. The complete prefix of
+  `State-Transition-Log.md` and every other formally append-only region remain
+  byte protected. At integration candidate
+  `6b2d95c98fc84835154e3d35bda78a2b684fade1`, the focused language tests,
+  repository audit, diff hygiene and independent completion and security
+  reviews passed. The final integrated reviews and canonical offline gate
+  remain pending before local `main` can be updated. No provider call,
+  credential use, external action, Human Gate or lifecycle transition has
+  occurred under this authority.
 - Position: `STATE-00 DISCOVERY` closed; `GATE-B01
   ARCHITECTURE_BOOTSTRAP_DECISION` approved and closed; `STATE-01
   PROJECT_SETUP` closed after a Human Gate approved without reservations on
@@ -1621,7 +1634,7 @@ reports.
   the language policy added the 21st public document through a versioned
   increment, and ADR-0003 added the 22nd.
 - The baseline approved at the `STATE-00` Human Gate remains `3.4.0`.
-- The current instruction corpus is version `4.15.0` and has 13 files under
+- The current instruction corpus is version `4.16.0` and has 13 files under
   `prompts/`.
 - Vision, requirements, architecture, RAG, security, quality, lifecycle,
   roadmap, backlog, state, history and templates are documented.

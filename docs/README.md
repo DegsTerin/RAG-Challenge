@@ -2,7 +2,7 @@
 
 ## Status
 
-This index describes the current `4.15.0` documentation corpus. `STATE-00`,
+This index describes the current `4.16.0` documentation corpus. `STATE-00`,
 `GATE-B01` and `STATE-01` through `STATE-06` are closed with their gates
 recorded. `STATE-07 TESTING_HOMOLOGATION` is active; local, offline,
 deterministic and synthetic increments have been executed and reconciled
@@ -26,6 +26,15 @@ credential. Contract tests, the canonical gate and one real read-only
 validation passed; tooling readiness is `MULTI_AGENT_READY`. Every future run
 remains subject to its own plan and authority without changing the product,
 Human Gate or lifecycle.
+
+Under `AUTH-STAGE012-GOV-SEC-ENGB-IMPL-001`, the isolated integration
+candidate now contains the permanent Stage hand-off rule, the product-only
+credential boundary, operation-specific trusted grants, closed development
+environments, verifiable en-GB enforcement, the approved technical-language
+migration and the historical owner-input manifest. The migration baseline is
+`COMPLETE` with zero findings. Independent lane and version-ledger reviews
+passed; final integrated reviews and the canonical offline gate remain
+required before local `main` can be updated.
 
 ## Start here
 
