@@ -8780,3 +8780,53 @@ contém somente fatos cronológicos.
 - Append-only integrity: this entry preserves the complete previous file of
   558,076 bytes at SHA-256
   `0436dfda55e5222320dc89e62649f422b32949f0f3b71f53598e4ed39d644093`.
+
+## 2026-08-16 — Repository-completion corrected canonical gate passed
+
+- Authority and baseline: the owner granted
+  `AUTH-ENGB-REPOSITORY-COMPLETION-CANONICAL-GATE-CORR-001` for exactly one
+  corrected sequential offline gate on exact clean
+  `codex/en-gb-repository-completion@6662aa02a7ee9be0f4d2dbe61cebfd7846462edf`.
+- Isolation and offline availability: exclusive task root
+  `C:\t\engb-corr-001` reduced the temporary path from 153 to 23 characters.
+  Seven NuGet lockfiles required 63 packages, all present in the copied
+  task-specific cache; the copied npm cache passed local integrity verification.
+  The child environment used an explicit variable allowlist, disabled MSBuild
+  node reuse and inherited no product credential identifier or value.
+- Preflight and postflight: each found zero process or listener proved to belong
+  to RAG-Challenge. The exact branch, HEAD and clean tracked tree were preserved
+  before and after the gate.
+- Auxiliary precheck: a cache-location query used an unsupported option and
+  exited `1` before the canonical command. It ran no gate stage and was
+  corrected without a CI retry. A sanitised certificate-store inspection
+  confirmed that the SDK first-run banner referred only to the pre-existing
+  development certificate dated 2026-07-27; no certificate was created.
+- Single command: `pwsh -NoProfile -File eng/ci.ps1 -Offline` ran exactly once
+  from `2026-08-16T15:16:46.4947443Z` to
+  `2026-08-16T15:21:24.1317617Z`, exited `0` after 277,634 ms and was not
+  retried.
+- Language and policy results: all 105 language-policy tests passed; the checker
+  covered 420 tracked files (418 text and two binary) with zero accepted
+  migration findings; coverage-policy and shared-CI-policy tests passed.
+- .NET results: locked offline restore, lockfile checks, format verification and
+  Release build passed with zero warnings and zero errors. All 215 unit, 11
+  architecture and 294 integration tests passed. Merged coverage was 95.41% of
+  lines (50,227/52,642) and 67.29% of branches (5,197/7,723).
+- Dashboard results: offline npm restore, lint, typecheck, all 45 tests and the
+  production build passed.
+- Orchestrator results: offline npm restore, lint, typecheck and build passed.
+  The suite passed 105 of 107 tests with zero failures and two host
+  symlink-permission skips; coverage was 82.12% of lines, 76.71% of branches and
+  88.78% of functions.
+- Closing checks and disposition: the repository audit passed for 420
+  non-ignored files and Git diff hygiene passed. Corrected canonical disposition
+  is `PASS`. The earlier `TEST_BASELINE_BROKEN` result remains historical for
+  its consumed authority and baseline.
+- Negative scope: no online dependency audit, provider, product credential
+  identifier or value, external network, billing, toolchain or system
+  installation, OCI, GitHub, push, pull request, merge, release, deploy, ADR,
+  Human Gate or lifecycle action occurred. Locked offline restores materialised
+  project dependencies only inside the exclusive worktree and task caches.
+- Append-only integrity: this entry preserves the complete previous file of
+  560,466 bytes at SHA-256
+  `ccbf45ddaa6438ae3cbed82f17bff4b685ce7a0162567cc0e5ba7409299f506f`.

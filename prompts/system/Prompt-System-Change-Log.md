@@ -2,7 +2,7 @@
 
 ## Current version
 
-- Version: `4.17.0`
+- Version: `4.17.1`
 - Date: 2026-08-16
 - Status: `STATE-07` active; ADR-0011 through ADR-0017 retain their recorded
   accepted dispositions and implemented or pending boundaries; PostgreSQL 18.4
@@ -17,10 +17,11 @@
   language baseline is `COMPLETE` with zero accepted debt; focused checks and
   corrective reviews passed after the attributable localisation and
   backticked-literal bypass corrections; integrated result and security
-  reviews and the 420-file documentary gate passed; the single canonical
+  reviews and the 420-file documentary gate passed; the initial canonical
   offline execution failed in the first language-policy stage because the
-  coordinator’s isolated temporary root produced overlong synthetic Git paths,
-  and a corrected run requires new explicit authority; product
+  coordinator’s isolated temporary root produced overlong synthetic Git paths;
+  one newly authorised corrected execution on exact clean `6662aa0` used a
+  short isolated temporary root and passed every offline stage; product
   homologation, Human Gate and lifecycle change remain unexecuted
 - Scope: 13 active files under `prompts/`
 
@@ -34,6 +35,27 @@ The corpus version is independent from the future software version.
 
 Every change updates this file and, when necessary,
 [`../Start-Here.md`](../Start-Here.md).
+
+## 4.17.1 — 2026-08-16
+
+- Records the newly authorised corrected canonical offline gate on exact clean
+  `codex/en-gb-repository-completion@6662aa02a7ee9be0f4d2dbe61cebfd7846462edf`.
+- Uses an exclusive 23-character temporary path, copied task-specific offline
+  caches, a closed child environment and disabled MSBuild node reuse. Preflight
+  and postflight found no RAG-Challenge-owned process or listener.
+- Records exactly one corrected `./eng/ci.ps1 -Offline` execution, exit `0` in
+  277,634 ms with no retry: 105 language-policy, 215 unit, 11 architecture, 294
+  integration and 45 Dashboard tests passed; the orchestrator passed 105 of 107
+  tests with zero failures and two host symlink-permission skips.
+- Records 95.41% .NET line and 67.29% branch coverage, 82.12% orchestrator line,
+  76.71% branch and 88.78% function coverage, a 420-file repository audit and
+  passing Git diff hygiene.
+- Preserves the initial `TEST_BASELINE_BROKEN` result as historical evidence;
+  the corrected canonical disposition is `PASS`. No online dependency audit,
+  provider, credential, external action, Human Gate or lifecycle transition is
+  inferred.
+- Classification: `PATCH`, because this revision records a corrected gate
+  result without changing authority, lifecycle, product contracts or controls.
 
 ## 4.17.0 — 2026-08-16
 

@@ -139,16 +139,33 @@ reports.
   prose. The originating read-only reviewer approved the second correction
   with zero residual P0–P3 findings. Focused checks and both integrated final
   reviews passed with zero P0–P3 findings; the documentary gate passed for 420
-  files. The single canonical offline gate ran on clean `2c2b80c`, exited `1`
-  after 6,085 ms and was not retried. The first language-policy stage passed
-  84 of 105 tests; 21 synthetic Git tests failed at `git add .` before any
-  restore, build, coverage or later stage. A bounded diagnostic reproduced the
-  failure only when the task-owned temporary path produced 264-character
-  fixture paths; the same closed Git add passed in a shorter task-owned path.
-  Disposition is `TEST_BASELINE_BROKEN`: the result is attributable to the
-  coordinator’s execution envelope, not evidence of a lane regression, but no
-  canonical PASS exists and any corrected execution requires new explicit
-  authority. The complete factual record is
+  files. The initial canonical offline gate ran on clean `2c2b80c`, exited `1`
+  after 6,085 ms and was not retried. The first language-policy stage passed 84
+  of 105 tests; 21 synthetic Git tests failed at `git add .` before any restore,
+  build, coverage or later stage. A bounded diagnostic reproduced the failure
+  only when the task-owned temporary path produced 264-character fixture paths;
+  the same closed Git add passed in a shorter task-owned path. Its disposition
+  remains historically `TEST_BASELINE_BROKEN`: the result was attributable to
+  the coordinator’s execution envelope, not evidence of a lane regression.
+  Under `AUTH-ENGB-REPOSITORY-COMPLETION-CANONICAL-GATE-CORR-001`, the owner
+  then authorised one corrected run on exact clean `6662aa0`. Exclusive short
+  temporary root `C:\t\engb-corr-001` reduced the temporary-path length from
+  153 to 23 characters; task-owned offline caches were complete, and preflight
+  and postflight each found zero RAG-Challenge-owned process or listener. The
+  command ran exactly once from `2026-08-16T15:16:46.4947443Z` to
+  `2026-08-16T15:21:24.1317617Z`, exited `0` after 277,634 ms and was not
+  retried. It passed 105/105 language-policy tests, inspected 420 tracked files
+  with zero migration findings, built Release with zero warnings or errors,
+  passed 215 unit, 11 architecture, 294 integration and 45 Dashboard tests,
+  and produced merged .NET coverage of 95.41% of lines and 67.29% of branches.
+  The orchestrator passed 105 of 107 tests with zero failures and two host
+  symlink-permission skips, with 82.12% line, 76.71% branch and 88.78% function
+  coverage. Dashboard and orchestrator lint, typecheck and builds passed; the
+  repository audit passed for 420 non-ignored files and Git diff hygiene
+  passed. The corrected canonical disposition is `PASS`; offline validation
+  does not substitute for an online dependency audit. No provider, credential,
+  network, external action, Human Gate or lifecycle transition occurred. The
+  complete factual record is
   [`En-GB-Repository-Completion-Report.md`](../../docs/En-GB-Repository-Completion-Report.md).
 - Position: `STATE-00 DISCOVERY` closed; `GATE-B01
   ARCHITECTURE_BOOTSTRAP_DECISION` approved and closed; `STATE-01
@@ -1685,7 +1702,7 @@ reports.
   the language policy added the 21st public document through a versioned
   increment, and ADR-0003 added the 22nd.
 - The baseline approved at the `STATE-00` Human Gate remains `3.4.0`.
-- The current instruction corpus is version `4.17.0` and has 13 files under
+- The current instruction corpus is version `4.17.1` and has 13 files under
   `prompts/`.
 - Vision, requirements, architecture, RAG, security, quality, lifecycle,
   roadmap, backlog, state, history and templates are documented.

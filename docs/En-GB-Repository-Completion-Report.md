@@ -11,6 +11,8 @@ authority.
 Conversation: RAG-Challenge — EN-GB — REPOSITORY COMPLETION
 Authority: AUTH-ENGB-REPOSITORY-COMPLETION-IMPL-001
 Mandatory baseline: main@8882ab8a58e1db58fb0148b967894f1b8388adc2
+Corrective authority: AUTH-ENGB-REPOSITORY-COMPLETION-CANONICAL-GATE-CORR-001
+Corrective baseline: codex/en-gb-repository-completion@6662aa02a7ee9be0f4d2dbe61cebfd7846462edf
 Coordinator branch: codex/en-gb-repository-completion
 Initial working tree: clean
 Lifecycle: STATE-07 TESTING_HOMOLOGATION active and unchanged
@@ -24,8 +26,10 @@ created only after the internal-identifier candidate had been reviewed and
 integrated. The coordinator integrated one commit at a time.
 
 No network, product provider, product credential identifier or value, billing,
-online audit, installation, OCI, GitHub, push, pull request, merge, release,
-deploy, Human Gate or lifecycle action was used or performed.
+online audit, toolchain or system installation, OCI, GitHub, push, pull request,
+merge, release, deploy, Human Gate or lifecycle action was used or performed.
+The canonical gate's locked offline restores materialised project dependencies
+only inside the exclusive worktree and task caches.
 
 ## 2. Binding canonical exceptions
 
@@ -157,12 +161,12 @@ append-only prefix was rewritten.
 
 ## 7. Documentary reconciliation
 
-Corpus `4.17.0` records the repository-completion capability without changing
+Corpus `4.17.1` records the repository-completion capability without changing
 the product lifecycle or any accepted architectural disposition. Current
 State records the integrated candidate; the append-only State Transition Log
 records the authority, implementation, completed independent reviews, passed
-documentary gate and failed canonical execution; and the instruction-system
-ledger records the new capability newest-first. Historical
+documentary gate, initial failed execution and corrected canonical PASS; and
+the instruction-system ledger records the new capability newest-first. Historical
 entries and protected prefixes remain byte-for-byte.
 
 ## 8. Gate results
@@ -173,14 +177,15 @@ Independent corrective reviews: PASS after both attributable P1 corrections
 Integrated final result review: PASS, zero P0–P3 findings
 Integrated final security review: PASS, zero P0–P3 findings
 Documentary gate: PASS for 420 non-ignored files
-Canonical ./eng/ci.ps1 -Offline: FAIL; exactly one execution consumed on 2c2b80c106be6a9b69884e2267c3d7a84d7c11f9
+Initial canonical ./eng/ci.ps1 -Offline: FAIL; exactly one execution consumed on 2c2b80c106be6a9b69884e2267c3d7a84d7c11f9
+Corrected canonical ./eng/ci.ps1 -Offline: PASS; exactly one execution consumed on 6662aa02a7ee9be0f4d2dbe61cebfd7846462edf
 ```
 
-Runtime preflight found no process or listener proved to belong to
-RAG-Challenge. The canonical command ran once in a closed child environment,
-with MSBuild node reuse disabled and task-owned offline package caches and
-temporaries. It exited `1` after 6,085 ms during the first language-policy
-stage. Of 105 tests, 84 passed and 21 failed with the same sanitised
+Under the initial authority, runtime preflight found no process or listener
+proved to belong to RAG-Challenge. The canonical command ran once in a closed
+child environment, with MSBuild node reuse disabled and task-owned offline
+package caches and temporaries. It exited `1` after 6,085 ms during the first
+language-policy stage. Of 105 tests, 84 passed and 21 failed with the same sanitised
 `Synthetic Git command failed closed` outcome at synthetic `git add .` calls.
 Restore, formatting, build, .NET tests, Dashboard checks, orchestrator checks,
 coverage aggregation and the repository-audit stage were therefore not
@@ -198,18 +203,49 @@ gate remains failed.
 
 Disposition is `TEST_BASELINE_BROKEN`. The single execution authorised by
 `AUTH-ENGB-REPOSITORY-COMPLETION-IMPL-001` has been consumed. A corrected
-canonical run requires new explicit authority, a new exact clean baseline and
-a shorter isolated task-specific temporary root. No result from the passing
-focused suites substitutes for that missing canonical PASS.
+canonical run at that boundary required new explicit authority, a new exact
+clean baseline and a shorter isolated task-specific temporary root. No result
+from the passing focused suites substituted for that then-missing canonical
+PASS.
+
+The owner then granted
+`AUTH-ENGB-REPOSITORY-COMPLETION-CANONICAL-GATE-CORR-001` on exact clean
+`codex/en-gb-repository-completion@6662aa02a7ee9be0f4d2dbe61cebfd7846462edf`.
+The corrective envelope used exclusive task root `C:\t\engb-corr-001`; its
+temporary path was 23 characters. Seven NuGet lockfiles resolved to 63 required
+packages, all present in the copied task-specific offline cache, and the copied
+npm cache passed local integrity verification. Preflight and postflight each
+found zero RAG-Challenge-owned process or listener.
+
+An auxiliary cache-location query used an unsupported option and exited `1`
+before the canonical command. It ran no gate stage and was corrected without a
+CI retry. The SDK first-run banner did not represent a new certificate: the
+sanitised store inspection found only the pre-existing development certificate
+dated 2026-07-27. The auxiliary query affected only the task-owned CLI home.
+
+The corrected canonical command ran exactly once from
+`2026-08-16T15:16:46.4947443Z` to `2026-08-16T15:21:24.1317617Z`, exited `0`
+after 277,634 ms and was not retried. The language-policy suite passed 105/105;
+the language check covered 420 tracked files with zero migration findings; the
+Release build completed with zero warnings and zero errors; 215 unit, 11
+architecture and 294 integration tests passed; and merged .NET coverage was
+95.41% of lines (50,227/52,642) and 67.29% of branches (5,197/7,723). The
+Dashboard passed lint, typecheck, 45 tests and production build. The
+orchestrator passed lint, typecheck and 105 of 107 tests with zero failures and
+two host symlink-permission skips; coverage was 82.12% of lines, 76.71% of
+branches and 88.78% of functions. The final repository audit passed for 420
+non-ignored files and Git diff hygiene passed.
+
+The corrected canonical disposition is `PASS`. The earlier
+`TEST_BASELINE_BROKEN` result remains historical evidence for its consumed
+authority and baseline; it is not rewritten or reclassified.
 
 ## 9. Limitations
 
 - Offline validation cannot substitute for an online dependency audit.
-- The canonical offline gate did not pass; all stages after the first
-  language-policy stage remain unexecuted on the integrated baseline.
 - Two orchestrator file-symlink tests remain conditional on a Windows host
-  permission not available in the focused lane checks; all other relevant
-  boundary tests passed.
+  permission not available in the canonical gate; all other relevant boundary
+  tests passed.
 - Lexical enforcement is necessary but not sufficient. Independent semantic
   review remains the control for audience, source, canonical and idiomatic
   language classification.
@@ -222,6 +258,7 @@ focused suites substitutes for that missing canonical PASS.
 Branch: codex/en-gb-repository-completion
 Integrated technical HEAD: 08a2c960bbf3e46e9b74276da73f8cb5a56157cc
 Failed canonical baseline: 2c2b80c106be6a9b69884e2267c3d7a84d7c11f9
+Corrected canonical baseline: 6662aa02a7ee9be0f4d2dbe61cebfd7846462edf
 Final factual documentation commit: reported in the owner hand-off because a commit cannot truthfully embed its own object identity
 Push, pull request, merge, release and deployment: NOT_PERFORMED
 ```
