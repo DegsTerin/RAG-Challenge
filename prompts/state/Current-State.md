@@ -1706,10 +1706,14 @@ reports.
   disarmed, and no external price was consulted. ADR-0019 assigns
   `SEC-CORR-002` to a dedicated, attested Windows and Linux ARM64 PDF renderer
   sandbox. The pre-existing `SEC-001` dependency-audit finding remains
-  unchanged. Acceptance establishes architecture authority only, accepts no
-  risk and authorises no semantic reconciliation, implementation, public
-  contract, schema, migration, dependency, provider, credential, network,
-  billing, Human Gate or lifecycle action.
+  unchanged. Acceptance establishes architecture authority only and accepts no
+  risk; it authorised no implementation, public contract, schema, migration,
+  dependency, provider, credential, network, billing, Human Gate or lifecycle
+  action. Under `SEC-CORR-ADR-RECONCILE-01` on clean
+  `main@a99bf6efbb9b627f2f9115050112c7d4726eb2b5`, corpus `4.17.3`, the
+  accepted controls were reconciled into Security-And-Access and the threat
+  model only. The operational budget remains zero and `Disarmed`; no risk,
+  implementation or platform evidence was accepted or created.
 
 ## Documentary baseline
 
@@ -1717,7 +1721,7 @@ reports.
   the language policy added the 21st public document through a versioned
   increment, and ADR-0003 added the 22nd.
 - The baseline approved at the `STATE-00` Human Gate remains `3.4.0`.
-- The current instruction corpus is version `4.17.3` and has 13 files under
+- The current instruction corpus is version `4.17.4` and has 13 files under
   `prompts/`.
 - Vision, requirements, architecture, RAG, security, quality, lifecycle,
   roadmap, backlog, state, history and templates are documented.
@@ -2485,20 +2489,24 @@ authorised.
    operational-recovery, Linux, OCI and production boundaries remain `NOT_RUN`.
 10. ADR-0018 and ADR-0019 are `accepted` through the owner's explicit decisions
     `ADR-0018: ACEITAR.` and `ADR-0019: ACEITAR.`. Acceptance establishes
-    architecture authority only and accepts no risk. Separate authorities
-    remain required for semantic reconciliation, persistence, schema,
-    migration, implementation, dependencies, platform-specific tests, budget
-    arming, provider access and operational evidence.
+    architecture authority only and accepts no risk. Their semantic
+    reconciliation into the security and threat-model owners is complete under
+    `SEC-CORR-ADR-RECONCILE-01`. Separate authorities remain required for
+    persistence, schema, migration, implementation, dependencies,
+    platform-specific tests, budget arming, provider access and operational
+    evidence.
 
 ## Next authority
 
-The owner explicitly accepted ADR-0018 and ADR-0019 as architecture authority
-only. No semantic reconciliation or implementation authority has been granted.
-The directly related next authority, if pursued, is a bounded documentary
-semantic reconciliation of both accepted decisions into their security and
-threat-model owners before implementation planning. It would not arm a
-provider budget, accept risk or authorise schema, migration, code, dependency,
-renderer, platform test, provider, network, Human Gate or lifecycle activity.
+ADR-0018 and ADR-0019 are accepted and semantically reconciled as architecture
+authority only. No implementation authority has been granted. The first
+directly related authority, if pursued, is a bounded design of ADR-0018
+implementation-sequence item 1: the exact internal persistence schema and
+migration, including crash-safe uniqueness and transaction semantics. That
+future authority must stop before changing schema, migration, code,
+dependencies, price, nonzero budget, provider, network, Human Gate or
+lifecycle. ADR-0019's dedicated worker implementation remains separate and
+unauthorised.
 
 Stage 2 is implemented and validated for deterministic coordination with
 `FakeAgentRunner` and the Codex App Server runner selected by ADR-0017. The

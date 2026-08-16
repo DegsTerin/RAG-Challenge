@@ -2,7 +2,7 @@
 
 ## Current version
 
-- Version: `4.17.3`
+- Version: `4.17.4`
 - Date: 2026-08-16
 - Status: `STATE-07` active; ADR-0011 through ADR-0017 retain their recorded
   accepted dispositions and implemented or pending boundaries; PostgreSQL 18.4
@@ -23,8 +23,8 @@
   one newly authorised corrected execution on exact clean `6662aa0` used a
   short isolated temporary root and passed every offline stage; product
   homologation, Human Gate and lifecycle change remain unexecuted; ADR-0018
-  and ADR-0019 are accepted as architecture authority only; no risk is
-  accepted, no semantic reconciliation or implementation is authorised, and
+  and ADR-0019 are accepted and semantically reconciled as architecture
+  authority only; no risk or implementation is accepted or authorised, and
   the operational provider budget remains zero and disarmed
 - Scope: 13 active files under `prompts/`
 
@@ -38,6 +38,34 @@ The corpus version is independent from the future software version.
 
 Every change updates this file and, when necessary,
 [`../Start-Here.md`](../Start-Here.md).
+
+## 4.17.4 — 2026-08-16
+
+- Records `SEC-CORR-ADR-RECONCILE-01` on clean
+  `main@a99bf6efbb9b627f2f9115050112c7d4726eb2b5`, corpus `4.17.3`, without
+  changing `STATE-07`, a Human Gate or lifecycle.
+- Reconciles accepted ADR-0018 into Security-And-Access: a durable
+  `ProviderBudgetEnvelopeV1`, aggregate and strict operation allocations,
+  serialisable maximum reservation before credential lookup, conservative
+  indeterminate commitment, explicit runtime-session rearming, sanitised
+  readiness and protected audit. No ledger is implemented; the budget remains
+  zero and `Disarmed`.
+- Reconciles accepted ADR-0019 into Security-And-Access: the dedicated minimal
+  worker, parent-established pre-input attestation, exact host-resource denial,
+  Windows suspended/Job Object/restricted-identity controls, Linux ARM64
+  namespace/seccomp/cgroup controls and no weaker fallback. Current containment
+  is not reclassified as the accepted sandbox.
+- Updates the threat model without accepting risk: `THR-S02-009`,
+  `THR-S02-014`, `THR-S02-016`, `THR-S02-017`, `THR-S02-027`,
+  `THR-S02-035` and `THR-S02-037` retain open implementation/evidence
+  boundaries; `SEC-BUD-01` and the strengthened `SEC-IMG-01` define future
+  verification only.
+- Changes no ADR, code, test, project, dependency, OpenAPI, schema, migration,
+  runtime, provider, credential, network, billing, deployment, Human Gate or
+  lifecycle. No external price or source was consulted.
+- Classification: `PATCH`, because this revision reconciles two already
+  accepted architecture decisions into their existing normative owners without
+  changing authority, public contracts or executable behaviour.
 
 ## 4.17.3 — 2026-08-16
 

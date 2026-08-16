@@ -23,6 +23,8 @@
 | Page PNGs and render manifests | Derived with the same classification as origin | Durable immutable content store outside Git/Git LFS; serve only through a validated active binding. |
 | `DerivativeObligationSetV1` and notice panel | Control and derived text with the same classification as origin | Immutable record bound to source, mapping, manifest and activation; untrusted text that is never executable. |
 | Embedding/index | Derived data | Protect like the source corpus. |
+| Provider budget envelope, reservations and usage ledger | Protected internal control plane | Durable, revisioned and sanitised; never contains secrets, questions, passages, answers or provider payloads. |
+| Renderer sandbox profile and attestation | Protected internal control plane | Bind exact profile, worker, asset and capability digests without host paths, user/device identity or security-token details. |
 | API key/token | Secret | Secret store; never log or persist in plaintext. |
 | Telemetry | Sanitised internal | Minimisation and retention. |
 
@@ -36,9 +38,11 @@ basis, authority and specific controls.
 - API ↔ Application.
 - Application ↔ document parser.
 - Application ↔ embedding provider.
+- Application ↔ persistent provider-budget control plane.
 - Application ↔ vector store.
 - Application ↔ document content store.
 - Application ↔ isolated and bounded PDF renderer.
+- PDF renderer worker ↔ host operating-system sandbox boundary.
 - Application ↔ language model.
 - Application ↔ catalogue/persistence.
 - Every registered external official source ↔ governed synchroniser.
@@ -126,6 +130,71 @@ not grant operational authority. Readiness and visual-evidence serving must not
 read the credential. Synthetic enforcement tests use injected readers, grant
 maps and fake handlers only; real provider calls require separate explicit
 authority.
+
+## Persistent provider budget admission
+
+[Accepted ADR-0018](../../docs/architecture/ADR-0018-Persistent-Provider-Budget-Admission-And-Explicit-Rearming.md)
+establishes the internal `ProviderBudgetEnvelopeV1` architecture. Acceptance
+arms no budget, selects no price or account fact and authorises no provider
+call. No operational envelope or ledger is implemented; the effective
+aggregate limit and all operation allocations therefore remain zero, and
+provider capability remains `Disarmed`.
+
+The durable closed states are `Disarmed`, `Armed`, `Tripped`, `Exhausted`,
+`ReconciliationRequired` and `Expired`. Absence, unreadability, corruption,
+incompatible version, scope mismatch, expired authority or an unknown state is
+equivalent to `Disarmed` and creates no replacement record. No state returns to
+`Armed` automatically.
+
+Any future provider attempt must satisfy all of these controls before
+credential lookup or network egress:
+
+- the exact environment, provider, non-secret billing scope, model, currency,
+  immutable cost-schedule identity and SHA-256 are bound to one durable
+  versioned envelope;
+- the aggregate authorised limit and the strict allocations for
+  `AdministrativeIndexEmbedding`, `QueryEmbedding` and
+  `GroundedGeneration` use non-negative integer accounting units; missing,
+  drifting, incompatible or overflowing cost data fails closed;
+- one stable opaque `providerRequestId` binds the exact operation authority,
+  request plan and conservative maximum charge;
+- one serialisable or compare-and-swap control-plane transaction verifies the
+  armed state, runtime-session identity, revision, expiry and remaining
+  aggregate/operation amounts, then persists a unique idempotent reservation;
+- durable readback of both reservation and envelope succeeds; and
+- the independently trusted operation-specific grant is revalidated
+  immediately before credential lookup and egress.
+
+A process-local counter, lock, cache or provider dashboard is not admission
+evidence. Concurrent instances share the durable envelope and cannot reserve
+against stale capacity. The same request ID with divergent authority, request,
+schedule or maximum-charge identity trips the envelope without egress.
+
+After an observed response, a second durable transaction commits the calculated
+charge within the reservation and records bounded usage evidence. Usage or
+charge above the admitted maximum trips the envelope, commits the full maximum
+reservation and stops further egress.
+
+Only a locally proven pre-send failure may release a reservation through a
+durable audited transition. Timeout or cancellation after send, connection
+loss after possible acceptance, response-parse failure, process crash during
+an attempt or missing completion readback commits the complete maximum amount,
+sets `ReconciliationRequired` and prohibits retry. Historical admission is not
+rewritten and capacity is not restored without separately authorised evidence.
+
+`Armed` is valid only for the exact runtime-session identity in the latest
+durable rearm record. Start-up, restart, elapsed time, credential availability,
+provider recovery or readiness never rearms automatically. Rearming requires
+an explicit local administrative authority and durable readback; it cannot
+increase a limit, move an allocation, change provider/model/schedule, extend
+expiry, reset committed use, release a reservation or resolve an indeterminate
+attempt. `Exhausted` requires a new budget-envelope authority rather than a
+rearm.
+
+Liveness is independent from the ledger. Readiness performs no provider call
+and exposes only a sanitised state from the closed set `Disarmed`, `Armed`,
+`Tripped`, `Exhausted`, `ReconciliationRequired` or `Expired`; it exposes no
+limit, remaining amount, account scope, schedule, actor or request identity.
 
 ## RAG threats
 
@@ -230,6 +299,52 @@ Public upload remains outside the MVP.
   compatibility is inferred from legacy rows; notice-bearing AQG, new A0 and
   operational homologation remain separate.
 
+### Operating-system sandbox target
+
+[Accepted ADR-0019](../../docs/architecture/ADR-0019-Cross-Platform-PDF-Renderer-Sandbox-Boundary.md)
+establishes `pdf-render-sandbox-v1` as an internal security profile independent
+from the pixel-affecting render profiles. Acceptance does not implement the
+profile or prove a platform. Current Windows Job Object and Linux
+`rlimit`/non-dumpable containment remain useful but are not a complete
+operating-system sandbox.
+
+The target boundary requires:
+
+- a dedicated minimal renderer worker with no API-host composition, provider,
+  administration, catalogue, persistence, HTTP or Dashboard capability;
+- a fresh sandbox per document or explicitly bounded page selection, created
+  and authoritatively attested by the parent before any untrusted PDF byte is
+  delivered;
+- no provider credential, ambient environment, user profile, secret store,
+  network capability (including loopback), product store, repository,
+  catalogue, arbitrary filesystem, registry, device, named pipe, inherited
+  handle or child-process escape;
+- read-only access only to exact worker/runtime/renderer/font assets, one
+  private bounded scratch area and the pre-created bounded standard-I/O
+  protocol handles;
+- parent-owned limits and complete-tree termination for CPU, memory, process
+  count, handles/file descriptors, output, dimensions, pages and elapsed time;
+  no core dump or debugger attachment; verified task-owned scratch clean-up
+  that preserves rather than broadly removes an uncertain path; and
+- parent verification of profile, platform/RID, worker, asset and capability
+  digests before input, followed by independent validation of every returned
+  descriptor and PNG.
+
+On Windows the worker must be created suspended, assigned to a fully configured
+Job Object before its first instruction and run in an AppContainer or
+equivalently proven restricted identity with no network capability, unrelated
+filesystem/registry/device access or unapproved handle. On Linux ARM64 a
+trusted minimal launcher must install an unprivileged user/mount/PID/network
+namespace boundary, drop all capabilities, set `no_new_privs`, apply a reviewed
+seccomp allowlist, cgroup v2 and supporting `rlimit` controls before renderer
+code receives control.
+
+Missing or partially effective primitives make visual rendering unavailable.
+The system never falls back to the current worker, in-process rendering, a
+weaker sandbox or a generic OCI boundary. Windows evidence does not prove
+Linux ARM64, static cross-publish does not prove native execution and sandbox
+success does not replace rights, manifest, activation or output validation.
+
 ## Persistent answer evidence
 
 - Implemented `AnswerEvidenceRecordV1` is an internal persistence contract,
@@ -278,7 +393,10 @@ destinations. For an accepted external provider:
 - secrets, local paths, unnecessary metadata and a complete file in one request
   are not sent;
 - timeout, cancellation, token/byte limit, budget and sanitised audit are
-  mandatory.
+  mandatory; and
+- credential lookup and every attempt additionally require the durable,
+  read-back reservation and matching operation-specific grant defined by the
+  persistent provider-budget boundary.
 
 Configuring a credential or provider alone does not grant egress authority.
 
@@ -404,7 +522,12 @@ May record:
 - canonical BCP 47 tag, render profile, image count/dimensions and hashes,
   without bytes or full text;
 - answer-evidence ID, corpus/activation/generation IDs/digests, counts,
-  duration, expiry and sanitised retention/cleanup outcome.
+  duration, expiry and sanitised retention/cleanup outcome;
+- provider budget envelope/revision, operation class, authority reference,
+  request digest, maximum reservation, state transition and sanitised outcome;
+  and
+- renderer sandbox profile/platform, worker/capability digests, policy
+  revision, bounded resource counts, exit class and typed failure.
 
 Must not record:
 
@@ -413,6 +536,8 @@ Must not record:
 - question, question hash or answer hash by default;
 - complete document text;
 - source/image bytes and raw renderer metadata;
+- provider payload, budget account scope, public cost details or renderer
+  security-token/kernel-object details;
 - absolute paths containing a user/host name;
 - stack trace or payload in a public response.
 
@@ -431,6 +556,10 @@ Minimum events:
 - rollback;
 - database, category, document, version or source change;
 - provider/model change;
+- provider-budget reservation, commitment, indeterminate outcome, trip,
+  reconciliation, rearm, expiry and closure;
+- renderer sandbox setup, attestation refusal, resource limit, escape attempt,
+  crash and incomplete clean-up;
 - official-source synchronisation, revalidation, staleness, withdrawal and
   failure;
 - MVP administrative access and, later, RBAC/user management.
@@ -445,6 +574,10 @@ metrics, not a named audit trail.
 - Provider exceptions are sanitised at the boundary.
 - Retry uses backoff/jitter only for transient idempotent failures.
 - Rate limits and budgets are not bypassed.
+- An uncertain provider outcome commits its admitted maximum, requires
+  reconciliation and is not retried or automatically rearmed.
+- An unavailable or incomplete renderer sandbox returns a typed failure and
+  never selects a weaker execution path.
 - A new-indexing failure does not deactivate the prior generation.
 - Ambiguous state returns `Unavailable` or `Failed`, never success.
 - P0/P1 incidents block progression until treatment or a formal decision.
@@ -481,11 +614,17 @@ metrics, not a named audit trail.
 - For the notice-bearing profile, immutable obligation, page-region fidelity,
   complete panel, composite ETag, accessible presentation and backup/cold
   restore bindings verified; absence or truncation fails closed.
+- `pdf-render-sandbox-v1` is installed and authoritatively attested before
+  input, denies network and unrelated host resources, has no weaker fallback
+  and is proved independently on Windows and native Linux ARM64.
 - `AnswerEvidenceRecordV1` remains `Answered`-only, atomic and minimised,
   expires in `P30D` without refresh and protects reachability from cleanup
   races; local evidence replaces neither a gate nor operational validation.
 - `AI_PROVIDER_EGRESS` is local or has explicitly authorised and tested
   provider, classification and endpoints.
+- Provider budget absence/corruption is `Disarmed`; concurrent reservations,
+  crash/restart, replay/conflict, indeterminate outcomes and explicit rearming
+  are proved against the durable envelope before any nonzero authority.
 - `VECTOR_STORE_EGRESS` remains empty for a local adapter or has explicitly
   approved endpoint, classification, residency, retention and credential.
 - `OFFICIAL_SOURCE_EGRESS` remains deny by default and, when authorised, is

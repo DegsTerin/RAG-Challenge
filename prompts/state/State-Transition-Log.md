@@ -8889,3 +8889,67 @@ contém somente fatos cronológicos.
   threat-model owners. That authority would not include risk acceptance,
   persistence, schema, migration, implementation, dependency, budget arming,
   provider, network, platform execution, Human Gate or lifecycle activity.
+
+## 2026-08-16 — Accepted security decisions semantically reconciled
+
+- Authority and baseline: `SEC-CORR-ADR-RECONCILE-01` authorised only
+  documentary semantic reconciliation of accepted ADR-0018 and ADR-0019 on
+  clean `main@a99bf6efbb9b627f2f9115050112c7d4726eb2b5`, corpus `4.17.3`,
+  with protected OpenAPI v1/v2 identities unchanged.
+- Previous and resulting state: `STATE-07 TESTING_HOMOLOGATION` remains active.
+  No Automatic Quality Gate, Human Gate or lifecycle transition was executed
+  or changed.
+- Security owner: Security-And-Access now records the accepted persistent
+  `ProviderBudgetEnvelopeV1`, aggregate and strict operation allocations,
+  serialisable maximum reservation/readback before credential lookup,
+  conservative treatment of uncertain outcomes, explicit runtime-session
+  rearming, sanitised readiness and protected audit.
+- Budget disposition: no operational envelope, ledger, cost schedule, price,
+  account fact or nonzero authority was created or selected. The effective
+  aggregate limit and all operation allocations remain zero; provider
+  capability remains `Disarmed`; no provider or external price was consulted.
+- Renderer owner: Security-And-Access now records `pdf-render-sandbox-v1`, a
+  dedicated minimal worker, parent-established pre-input attestation, exact
+  host-resource denial, Windows suspended/Job Object/restricted-identity
+  controls, Linux ARM64 namespace/seccomp/cgroup controls and no weaker
+  fallback.
+- Renderer disposition: current Windows Job Object and Linux
+  `rlimit`/non-dumpable containment remain incomplete against the accepted
+  sandbox. No worker, launcher, sandbox, OCI capability, platform execution or
+  native evidence was created or reclassified.
+- Threat owner: `THR-S02-009`, `THR-S02-014`, `THR-S02-016`, `THR-S02-017`,
+  `THR-S02-027`, `THR-S02-035` and `THR-S02-037` now reference the accepted
+  controls while retaining open implementation and evidence boundaries.
+  `SEC-BUD-01` and strengthened `SEC-IMG-01` define future verification only;
+  all 44 threat IDs and 22 security-test IDs remain unique.
+- Risk boundary: ADR-0018 and ADR-0019 are explicitly not additions to the
+  risk-acceptance list. Uncertain spend is not waived, current containment is
+  not a complete sandbox and Windows/static evidence does not prove native
+  Linux ARM64.
+- Closed documentary scope: only Security-And-Access, the STATE-02 threat
+  model, Current State, this append-only EOF and the Prompt System Change Log
+  are changed. ADRs, the architecture index, code, tests, projects,
+  dependencies, public contracts, schema and migrations remain unchanged.
+- Protected artefacts: OpenAPI v1 remains at SHA-256
+  `d6a686b94c926914beb28b437f464430a01de6560c2e2d476cf5c36025813e34` and
+  OpenAPI v2 remains at SHA-256
+  `f4dca8db7fb7bd453e580495bb1bb7760812d954344931063e8549ed8f036733`.
+- Documentary verification: `git diff --check` exited `0`; the repository
+  audit passed for 422 non-ignored files; the language policy passed for 422
+  tracked files with zero accepted migration findings; semantic checks passed
+  for the zero/disarmed budget, open risks, unique IDs, protected paths and
+  unchanged OpenAPI identities. Build, executable tests and Automatic Quality
+  Gate remain `NOT_RUN`.
+- Runtime preflight: `NOT_APPLICABLE`, because this reconciliation changes and
+  validates no executable RAG-Challenge behaviour.
+- Versioning: the instruction corpus advances by factual `PATCH` from
+  `4.17.3` to `4.17.4` without changing authority, public contracts, executable
+  behaviour, operational posture, gate or lifecycle.
+- Append-only integrity: this entry preserves the complete previous file of
+  567,534 bytes at SHA-256
+  `e996c15db7c3641835d150860ae60422d0060d5273233185e1583634b4583f16`.
+- Next condition: obtain separate bounded authority for ADR-0018
+  implementation-sequence item 1, beginning with the exact internal
+  persistence schema and migration design. That future authority must stop
+  before changing schema, migration, code, dependencies, price, nonzero
+  budget, provider, network, Human Gate or lifecycle.
