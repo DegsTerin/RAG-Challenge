@@ -1621,8 +1621,8 @@ reports.
 - The audit of corpus `4.1.0` confirmed 22 documents, 114 valid local links,
   20 RF, 14 RNF, 15 acceptance criteria, 31 backlog items, 8
   modules, 13 risks, consistent format and traceability. At that snapshot,
-  implementation was still limited to the scaffold delivered by the closed `STATE-01`.
-
+  implementation was still limited to the scaffold delivered by the closed
+  `STATE-01`.
 - Corpus `4.2.0` adds permanent decision-efficiency and proportionality rules to
   `AGENTS.md`: identify the deliverable before collection,
   separate decisive facts from context, calibrate depth to risk,
