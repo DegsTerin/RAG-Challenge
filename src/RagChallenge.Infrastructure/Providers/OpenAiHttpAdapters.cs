@@ -1,11 +1,12 @@
-// Purpose: Implements the approved direct-HTTP OpenAI embedding and grounded-response adapters with exact routes, bounded JSON and no SDK, retry, redirect, proxy or provider-owned state.
+// Purpose: Implements direct-HTTP OpenAI embedding and grounded-response adapters behind durable zero-budget admission, exact routes, bounded JSON and no SDK, retry, redirect, proxy or provider-owned state.
 using System.Net;
 using System.Net.Http.Headers;
-using System.Net.Http.Json;
+using System.Diagnostics;
 using System.Text;
 using System.Text.Json;
 
 using RagChallenge.Application.IndexingRetrieval;
+using RagChallenge.Application.ProviderBudget;
 using RagChallenge.Domain.CorpusCatalog;
 
 namespace RagChallenge.Infrastructure.Providers;
@@ -84,14 +85,25 @@ public sealed class OpenAiHttpEmbeddingProvider : IEmbeddingProvider
     private static readonly Uri Route = new("/v1/embeddings", UriKind.Relative);
     private readonly HttpClient httpClient;
     private readonly Func<CancellationToken, ValueTask<string>> credentialSource;
+    private readonly ProviderBudgetAdmissionGate budgetAdmissionGate;
+    private readonly ProviderBudgetOperationClass operationClass;
 
     public OpenAiHttpEmbeddingProvider(
         HttpClient httpClient,
-        Func<CancellationToken, ValueTask<string>> credentialSource)
+        Func<CancellationToken, ValueTask<string>> credentialSource,
+        ProviderBudgetAdmissionGate budgetAdmissionGate,
+        ProviderBudgetOperationClass operationClass)
     {
         this.httpClient = ValidateClient(httpClient);
         this.credentialSource = credentialSource ??
             throw new ArgumentNullException(nameof(credentialSource));
+        this.budgetAdmissionGate = budgetAdmissionGate ??
+            throw new ArgumentNullException(nameof(budgetAdmissionGate));
+        this.operationClass = operationClass is
+            ProviderBudgetOperationClass.AdministrativeIndexEmbedding or
+            ProviderBudgetOperationClass.QueryEmbedding
+                ? operationClass
+                : throw new ArgumentOutOfRangeException(nameof(operationClass));
     }
 
     public async Task<EmbeddingBatchResult> EmbedAsync(
@@ -99,53 +111,98 @@ public sealed class OpenAiHttpEmbeddingProvider : IEmbeddingProvider
         CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(request);
-        var key = await ReadCredentialAsync("embedding", credentialSource, cancellationToken)
-            .ConfigureAwait(false);
+        var payload = new
+        {
+            model = request.ExpectedDescriptor.ModelId,
+            input = request.Inputs,
+            dimensions = request.ExpectedDescriptor.Dimensions,
+            encoding_format = "float",
+        };
+        var exactRequestBytes = JsonSerializer.SerializeToUtf8Bytes(payload);
+        var lease = await budgetAdmissionGate.AdmitAsync(
+            operationClass,
+            exactRequestBytes,
+            cancellationToken).ConfigureAwait(false);
+        string key;
+
+        try
+        {
+            key = await ReadCredentialAsync("embedding", credentialSource, cancellationToken)
+                .ConfigureAwait(false);
+        }
+        catch
+        {
+            await lease.ReleaseConfirmedZeroRequestBytesAsync(CancellationToken.None)
+                .ConfigureAwait(false);
+            throw;
+        }
+
         using var message = new HttpRequestMessage(HttpMethod.Post, Route)
         {
-            Content = JsonContent.Create(new
-            {
-                model = request.ExpectedDescriptor.ModelId,
-                input = request.Inputs,
-                dimensions = request.ExpectedDescriptor.Dimensions,
-                encoding_format = "float",
-            }),
+            Content = new ByteArrayContent(exactRequestBytes),
         };
+        message.Content.Headers.ContentType = new MediaTypeHeaderValue("application/json");
         message.Headers.Authorization = new AuthenticationHeaderValue("Bearer", key);
-        using var response = await SendAsync(
-            "embedding",
-            httpClient,
-            message,
-            cancellationToken).ConfigureAwait(false);
-        var bytes = await ReadBoundedJsonAsync(
-            "embedding",
-            response,
-            2 * 1024 * 1024,
-            cancellationToken)
-            .ConfigureAwait(false);
+        var stopwatch = Stopwatch.StartNew();
 
+        try
+        {
+            await lease.MarkDispatchStartedAsync(cancellationToken).ConfigureAwait(false);
+            using var response = await SendAsync(
+                "embedding",
+                httpClient,
+                message,
+                cancellationToken).ConfigureAwait(false);
+            var bytes = await ReadBoundedJsonAsync(
+                "embedding",
+                response,
+                2 * 1024 * 1024,
+                cancellationToken).ConfigureAwait(false);
+            var result = ParseEmbeddingResult(request, bytes);
+            stopwatch.Stop();
+            await lease.CommitObservedZeroAsync(
+                "EMBEDDING_OK",
+                stopwatch.Elapsed,
+                CancellationToken.None).ConfigureAwait(false);
+            return result;
+        }
+        catch (Exception) when (!lease.IsTerminal)
+        {
+            if (lease.DispatchStarted)
+            {
+                await lease.CommitIndeterminateZeroAsync(
+                    "EMBEDDING_INDETERMINATE",
+                    CancellationToken.None).ConfigureAwait(false);
+            }
+            else
+            {
+                await lease.ReleaseConfirmedZeroRequestBytesAsync(CancellationToken.None)
+                    .ConfigureAwait(false);
+            }
+
+            throw;
+        }
+    }
+
+    private static EmbeddingBatchResult ParseEmbeddingResult(
+        EmbeddingBatchRequest request,
+        byte[] bytes)
+    {
         try
         {
             using var document = JsonDocument.Parse(bytes);
             var root = document.RootElement;
             var observedModel = ReadRequiredString(root, "model");
 
-            if (!string.Equals(
-                    observedModel,
-                    request.ExpectedDescriptor.ModelRevision,
-                    StringComparison.Ordinal))
-            {
-                throw new JsonException("Embedding model revision is unexpected.");
-            }
-
-            if (!root.TryGetProperty("data", out var dataElement) ||
+            if (!string.Equals(observedModel, request.ExpectedDescriptor.ModelRevision,
+                    StringComparison.Ordinal) ||
+                !root.TryGetProperty("data", out var dataElement) ||
                 dataElement.ValueKind != JsonValueKind.Array)
             {
-                throw new JsonException("Embedding data is missing.");
+                throw new JsonException("Embedding response is unexpected.");
             }
 
             var data = dataElement.EnumerateArray().ToArray();
-
             if (data.Length != request.Inputs.Count)
             {
                 throw new JsonException("Embedding result count is unexpected.");
@@ -153,7 +210,6 @@ public sealed class OpenAiHttpEmbeddingProvider : IEmbeddingProvider
 
             var vectors = new ReadOnlyMemory<float>[data.Length];
             var seen = new bool[data.Length];
-
             foreach (var element in data)
             {
                 if (element.ValueKind != JsonValueKind.Object ||
@@ -167,9 +223,7 @@ public sealed class OpenAiHttpEmbeddingProvider : IEmbeddingProvider
                 }
 
                 var values = embeddingElement.EnumerateArray()
-                    .Select(value => value.GetSingle())
-                    .ToArray();
-
+                    .Select(value => value.GetSingle()).ToArray();
                 if (values.Length != request.ExpectedDescriptor.Dimensions ||
                     values.Any(value => !float.IsFinite(value)))
                 {
@@ -185,9 +239,7 @@ public sealed class OpenAiHttpEmbeddingProvider : IEmbeddingProvider
                 throw new JsonException("Embedding indexes are incomplete.");
             }
 
-            return new EmbeddingBatchResult(
-                request.ExpectedDescriptor,
-                vectors);
+            return new EmbeddingBatchResult(request.ExpectedDescriptor, vectors);
         }
         catch (Exception exception) when (
             exception is JsonException or InvalidOperationException or FormatException or
@@ -349,30 +401,36 @@ public sealed class OpenAiHttpLanguageModel : ILanguageModel
     private readonly HttpClient httpClient;
     private readonly Func<CancellationToken, ValueTask<string>> credentialSource;
     private readonly OpenAiLanguageModelOptions options;
+    private readonly ProviderBudgetAdmissionGate budgetAdmissionGate;
 
     public OpenAiHttpLanguageModel(
         HttpClient httpClient,
         Func<CancellationToken, ValueTask<string>> credentialSource,
-        LanguageModelDescriptor expectedDescriptor)
+        LanguageModelDescriptor expectedDescriptor,
+        ProviderBudgetAdmissionGate budgetAdmissionGate)
         : this(
             httpClient,
             credentialSource,
             new OpenAiLanguageModelOptions(
                 expectedDescriptor,
                 OpenAiReasoningEffort.None,
-                OpenAiReasoningContext.CurrentTurn))
+                OpenAiReasoningContext.CurrentTurn),
+            budgetAdmissionGate)
     {
     }
 
     public OpenAiHttpLanguageModel(
         HttpClient httpClient,
         Func<CancellationToken, ValueTask<string>> credentialSource,
-        OpenAiLanguageModelOptions options)
+        OpenAiLanguageModelOptions options,
+        ProviderBudgetAdmissionGate budgetAdmissionGate)
     {
         this.httpClient = OpenAiHttpEmbeddingProvider.ValidateClient(httpClient);
         this.credentialSource = credentialSource ??
             throw new ArgumentNullException(nameof(credentialSource));
         this.options = options ?? throw new ArgumentNullException(nameof(options));
+        this.budgetAdmissionGate = budgetAdmissionGate ??
+            throw new ArgumentNullException(nameof(budgetAdmissionGate));
     }
 
     public async Task<GroundedGenerationResult> GenerateAsync(
@@ -380,10 +438,6 @@ public sealed class OpenAiHttpLanguageModel : ILanguageModel
         CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(request);
-        var key = await OpenAiHttpEmbeddingProvider.ReadCredentialAsync(
-            "generation",
-            credentialSource,
-            cancellationToken).ConfigureAwait(false);
         var evidence = request.Evidence.Select(item => new
         {
             chunkId = item.ChunkId,
@@ -396,65 +450,119 @@ public sealed class OpenAiHttpLanguageModel : ILanguageModel
             question = request.Question,
             evidence,
         });
+        var payload = new
+        {
+            model = options.ExpectedDescriptor.ModelId,
+            store = false,
+            max_output_tokens = ConvertCharacterBudgetToTokenBudget(
+                request.MaximumOutputCharacters),
+            reasoning = new
+            {
+                effort = options.ReasoningEffortApiValue,
+                context = options.ReasoningContextApiValue,
+            },
+            input = new object[]
+            {
+                new
+                {
+                    role = "developer",
+                    content = new[] { new { type = "input_text", text = request.TrustedInstructions } },
+                },
+                new
+                {
+                    role = "user",
+                    content = new[] { new { type = "input_text", text = userPayload } },
+                },
+            },
+            text = new
+            {
+                format = new
+                {
+                    type = "json_schema",
+                    name = "grounded_answer",
+                    strict = true,
+                    schema = ResponseSchema,
+                },
+            },
+        };
+        var exactRequestBytes = JsonSerializer.SerializeToUtf8Bytes(payload);
+        var lease = await budgetAdmissionGate.AdmitAsync(
+            ProviderBudgetOperationClass.GroundedGeneration,
+            exactRequestBytes,
+            cancellationToken).ConfigureAwait(false);
+        string key;
+
+        try
+        {
+            key = await OpenAiHttpEmbeddingProvider.ReadCredentialAsync(
+                "generation",
+                credentialSource,
+                cancellationToken).ConfigureAwait(false);
+        }
+        catch
+        {
+            await lease.ReleaseConfirmedZeroRequestBytesAsync(CancellationToken.None)
+                .ConfigureAwait(false);
+            throw;
+        }
+
         using var message = new HttpRequestMessage(HttpMethod.Post, Route)
         {
-            Content = JsonContent.Create(new
-            {
-                model = options.ExpectedDescriptor.ModelId,
-                store = false,
-                max_output_tokens = ConvertCharacterBudgetToTokenBudget(
-                    request.MaximumOutputCharacters),
-                reasoning = new
-                {
-                    effort = options.ReasoningEffortApiValue,
-                    context = options.ReasoningContextApiValue,
-                },
-                input = new object[]
-                {
-                    new
-                    {
-                        role = "developer",
-                        content = new[] { new { type = "input_text", text = request.TrustedInstructions } },
-                    },
-                    new
-                    {
-                        role = "user",
-                        content = new[] { new { type = "input_text", text = userPayload } },
-                    },
-                },
-                text = new
-                {
-                    format = new
-                    {
-                        type = "json_schema",
-                        name = "grounded_answer",
-                        strict = true,
-                        schema = ResponseSchema,
-                    },
-                },
-            }),
+            Content = new ByteArrayContent(exactRequestBytes),
         };
+        message.Content.Headers.ContentType = new MediaTypeHeaderValue("application/json");
         message.Headers.Authorization = new AuthenticationHeaderValue("Bearer", key);
-        using var response = await OpenAiHttpEmbeddingProvider.SendAsync(
-            "generation",
-            httpClient,
-            message,
-            cancellationToken).ConfigureAwait(false);
-        var bytes = await OpenAiHttpEmbeddingProvider.ReadBoundedJsonAsync(
-            "generation",
-            response,
-            2 * 1024 * 1024,
-            cancellationToken).ConfigureAwait(false);
+        var stopwatch = Stopwatch.StartNew();
 
+        try
+        {
+            await lease.MarkDispatchStartedAsync(cancellationToken).ConfigureAwait(false);
+            using var response = await OpenAiHttpEmbeddingProvider.SendAsync(
+                "generation",
+                httpClient,
+                message,
+                cancellationToken).ConfigureAwait(false);
+            var bytes = await OpenAiHttpEmbeddingProvider.ReadBoundedJsonAsync(
+                "generation",
+                response,
+                2 * 1024 * 1024,
+                cancellationToken).ConfigureAwait(false);
+            var result = ParseGenerationResult(request, bytes);
+            stopwatch.Stop();
+            await lease.CommitObservedZeroAsync(
+                "GENERATION_OK",
+                stopwatch.Elapsed,
+                CancellationToken.None).ConfigureAwait(false);
+            return result;
+        }
+        catch (Exception) when (!lease.IsTerminal)
+        {
+            if (lease.DispatchStarted)
+            {
+                await lease.CommitIndeterminateZeroAsync(
+                    "GENERATION_INDETERMINATE",
+                    CancellationToken.None).ConfigureAwait(false);
+            }
+            else
+            {
+                await lease.ReleaseConfirmedZeroRequestBytesAsync(CancellationToken.None)
+                    .ConfigureAwait(false);
+            }
+
+            throw;
+        }
+    }
+
+    private GroundedGenerationResult ParseGenerationResult(
+        GroundedGenerationRequest request,
+        byte[] bytes)
+    {
         try
         {
             using var document = JsonDocument.Parse(bytes);
             var root = document.RootElement;
             var observedModel = OpenAiHttpEmbeddingProvider.ReadRequiredString(root, "model");
-
-            if (!string.Equals(
-                    observedModel,
-                    options.ExpectedDescriptor.ModelRevision,
+            if (!string.Equals(observedModel, options.ExpectedDescriptor.ModelRevision,
                     StringComparison.Ordinal) ||
                 OpenAiHttpEmbeddingProvider.ReadRequiredString(root, "status") != "completed" ||
                 !root.TryGetProperty("output", out var outputElement) ||
@@ -463,17 +571,12 @@ public sealed class OpenAiHttpLanguageModel : ILanguageModel
                 throw new JsonException("The response model or output is unexpected.");
             }
 
-            var outputItems = outputElement.EnumerateArray()
-                .Select(item => new
-                {
-                    Element = item,
-                    Type = OpenAiHttpEmbeddingProvider.ReadRequiredString(item, "type"),
-                })
-                .ToArray();
-            var messageItems = outputItems
-                .Where(item => item.Type == "message")
-                .ToArray();
-
+            var outputItems = outputElement.EnumerateArray().Select(item => new
+            {
+                Element = item,
+                Type = OpenAiHttpEmbeddingProvider.ReadRequiredString(item, "type"),
+            }).ToArray();
+            var messageItems = outputItems.Where(item => item.Type == "message").ToArray();
             if (outputItems.Any(item => item.Type is not ("reasoning" or "message")) ||
                 messageItems.Length != 1 ||
                 OpenAiHttpEmbeddingProvider.ReadRequiredString(messageItems[0].Element, "role") != "assistant" ||
@@ -485,27 +588,20 @@ public sealed class OpenAiHttpLanguageModel : ILanguageModel
             }
 
             var contentItems = contentElement.EnumerateArray().ToArray();
-
             if (contentItems.Length != 1 ||
-                OpenAiHttpEmbeddingProvider.ReadRequiredString(contentItems[0], "type") !=
-                    "output_text")
+                OpenAiHttpEmbeddingProvider.ReadRequiredString(contentItems[0], "type") != "output_text")
             {
                 throw new JsonException("The structured response content is invalid.");
             }
 
-            var outputText = OpenAiHttpEmbeddingProvider.ReadRequiredString(
-                contentItems[0],
-                "text");
+            var outputText = OpenAiHttpEmbeddingProvider.ReadRequiredString(contentItems[0], "text");
             using var structured = JsonDocument.Parse(outputText);
             var structuredRoot = structured.RootElement;
             var propertyNames = structuredRoot.ValueKind == JsonValueKind.Object
-                ? structuredRoot.EnumerateObject()
-                    .Select(property => property.Name)
+                ? structuredRoot.EnumerateObject().Select(property => property.Name)
                     .ToHashSet(StringComparer.Ordinal)
                 : new HashSet<string>(StringComparer.Ordinal);
-
-            if (!propertyNames.SetEquals(
-                    ["answerLanguage", "answer", "citedChunkIds"]))
+            if (!propertyNames.SetEquals(["answerLanguage", "answer", "citedChunkIds"]))
             {
                 throw new JsonException("The structured answer schema is invalid.");
             }
@@ -518,12 +614,8 @@ public sealed class OpenAiHttpLanguageModel : ILanguageModel
                 "en-GB" => SupportedQueryLanguage.EnGb,
                 _ => throw new JsonException("Answer language is unsupported."),
             };
-            var answer = OpenAiHttpEmbeddingProvider.ReadRequiredString(
-                structuredRoot,
-                "answer");
-
-            if (answerLanguage != request.QuestionLanguage ||
-                string.IsNullOrWhiteSpace(answer) ||
+            var answer = OpenAiHttpEmbeddingProvider.ReadRequiredString(structuredRoot, "answer");
+            if (answerLanguage != request.QuestionLanguage || string.IsNullOrWhiteSpace(answer) ||
                 answer.Length > request.MaximumOutputCharacters ||
                 !structuredRoot.TryGetProperty("citedChunkIds", out var citedElement) ||
                 citedElement.ValueKind != JsonValueKind.Array)
@@ -532,17 +624,12 @@ public sealed class OpenAiHttpLanguageModel : ILanguageModel
             }
 
             var cited = citedElement.EnumerateArray()
-                .Select(item => item.ValueKind == JsonValueKind.String
-                    ? item.GetString()
-                    : null)
+                .Select(item => item.ValueKind == JsonValueKind.String ? item.GetString() : null)
                 .ToArray();
-            var allowedChunkIds = request.Evidence
-                .Select(item => item.ChunkId)
+            var allowedChunkIds = request.Evidence.Select(item => item.ChunkId)
                 .ToHashSet(StringComparer.Ordinal);
-
-            if (cited.Any(item => string.IsNullOrWhiteSpace(item) ||
-                    item!.Length > 128 || item.Any(char.IsControl) ||
-                    !allowedChunkIds.Contains(item)) ||
+            if (cited.Any(item => string.IsNullOrWhiteSpace(item) || item!.Length > 128 ||
+                    item.Any(char.IsControl) || !allowedChunkIds.Contains(item)) ||
                 cited.Distinct(StringComparer.Ordinal).Count() != cited.Length)
             {
                 throw new JsonException("The structured citations are invalid.");

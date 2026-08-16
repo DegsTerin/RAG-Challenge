@@ -9,6 +9,7 @@ using Microsoft.Extensions.Configuration;
 using RagChallenge.Application.Documents;
 using RagChallenge.Application.IndexingRetrieval;
 using RagChallenge.Application.Persistence;
+using RagChallenge.Application.ProviderBudget;
 using RagChallenge.Domain.CorpusCatalog;
 using RagChallenge.Domain.IndexingRetrieval;
 using RagChallenge.Infrastructure.Documents;
@@ -345,13 +346,26 @@ internal sealed class ProductQueryRuntime :
                 ProductProviderOperation.GroundedGeneration,
                 options.CredentialEnvironmentVariable,
                 credentialEnvironmentReader);
+            var queryBudgetAdmission = ProductProviderBudgetAdmission.CreateFailClosed(
+                stores,
+                options.QueryEmbeddingAuthority,
+                options.OperationalGrants,
+                ProductProviderOperation.QueryEmbedding);
+            var generationBudgetAdmission = ProductProviderBudgetAdmission.CreateFailClosed(
+                stores,
+                options.GroundedGenerationAuthority,
+                options.OperationalGrants,
+                ProductProviderOperation.GroundedGeneration);
             var embeddingProvider = new OpenAiHttpEmbeddingProvider(
                 embeddingClient,
-                queryCredentialSource.ReadAsync);
+                queryCredentialSource.ReadAsync,
+                queryBudgetAdmission,
+                ProviderBudgetOperationClass.QueryEmbedding);
             var languageModel = new OpenAiHttpLanguageModel(
                 languageModelClient,
                 generationCredentialSource.ReadAsync,
-                LanguageModelDescriptor);
+                LanguageModelDescriptor,
+                generationBudgetAdmission);
             var retrievalPolicyConfiguration = RetrievalPolicyConfiguration.CreateRetrievalV2(
                 ProductAdministrativeMaterialisationProfile.EmbeddingDescriptor,
                 ProductAdministrativeMaterialisationProfile.CompatibilityProfile.Key);

@@ -4,6 +4,7 @@ using System.Text;
 using System.Text.Json;
 
 using RagChallenge.Application.IndexingRetrieval;
+using RagChallenge.Application.ProviderBudget;
 using RagChallenge.Domain.CorpusCatalog;
 using RagChallenge.Infrastructure.Providers;
 
@@ -28,7 +29,7 @@ public sealed class OpenAiHttpAdapterContractTests
             "text-embedding-3-small",
             "text-embedding-3-small",
             dimensions: 3);
-        var adapter = new OpenAiHttpEmbeddingProvider(client, Credential);
+        var adapter = CreateEmbeddingAdapter(client);
 
         var result = await adapter.EmbedAsync(new EmbeddingBatchRequest(
             descriptor,
@@ -73,7 +74,11 @@ public sealed class OpenAiHttpAdapterContractTests
         var handler = new RecordingHandler(response);
         using var client = CreateClient(handler);
         var options = CreateLanguageModelOptions();
-        var adapter = new OpenAiHttpLanguageModel(client, Credential, options);
+        var adapter = new OpenAiHttpLanguageModel(
+            client,
+            Credential,
+            options,
+            CreateBudgetGate(ProviderBudgetOperationClass.GroundedGeneration));
 
         var result = await adapter.GenerateAsync(new GroundedGenerationRequest(
             "Trusted instruction.",
@@ -139,7 +144,8 @@ public sealed class OpenAiHttpAdapterContractTests
         var adapter = new OpenAiHttpLanguageModel(
             client,
             Credential,
-            CreateLanguageModelOptions());
+            CreateLanguageModelOptions(),
+            CreateBudgetGate(ProviderBudgetOperationClass.GroundedGeneration));
 
         var result = await adapter.GenerateAsync(CreateGenerationRequest());
 
@@ -156,7 +162,7 @@ public sealed class OpenAiHttpAdapterContractTests
     public async Task EmbeddingAdapterRejectsMalformedOrMisalignedResponses(string responseJson)
     {
         using var client = CreateClient(new RecordingHandler(responseJson));
-        var adapter = new OpenAiHttpEmbeddingProvider(client, Credential);
+        var adapter = CreateEmbeddingAdapter(client);
         var request = new EmbeddingBatchRequest(
             new EmbeddingProviderDescriptor(
                 "openai",
@@ -181,7 +187,9 @@ public sealed class OpenAiHttpAdapterContractTests
             new HttpRequestException("sensitive transport detail")));
         var transportAdapter = new OpenAiHttpEmbeddingProvider(
             transportClient,
-            Credential);
+            Credential,
+            CreateBudgetGate(ProviderBudgetOperationClass.QueryEmbedding),
+            ProviderBudgetOperationClass.QueryEmbedding);
         var request = new EmbeddingBatchRequest(
             new EmbeddingProviderDescriptor(
                 "openai",
@@ -199,7 +207,7 @@ public sealed class OpenAiHttpAdapterContractTests
         using var statusClient = CreateClient(new RecordingHandler(
             "{\"private\":\"response\"}",
             HttpStatusCode.TooManyRequests));
-        var statusAdapter = new OpenAiHttpEmbeddingProvider(statusClient, Credential);
+        var statusAdapter = CreateEmbeddingAdapter(statusClient);
         var statusFailure = await Assert.ThrowsAsync<ProviderStageUnavailableException>(
             () => statusAdapter.EmbedAsync(request));
         Assert.Equal("embedding", statusFailure.Stage);
@@ -228,7 +236,8 @@ public sealed class OpenAiHttpAdapterContractTests
         var adapter = new OpenAiHttpLanguageModel(
             client,
             Credential,
-            CreateLanguageModelOptions());
+            CreateLanguageModelOptions(),
+            CreateBudgetGate(ProviderBudgetOperationClass.GroundedGeneration));
         var request = new GroundedGenerationRequest(
             "Trusted instruction.",
             "prompt-v1",
@@ -270,7 +279,8 @@ public sealed class OpenAiHttpAdapterContractTests
         var adapter = new OpenAiHttpLanguageModel(
             client,
             Credential,
-            CreateLanguageModelOptions());
+            CreateLanguageModelOptions(),
+            CreateBudgetGate(ProviderBudgetOperationClass.GroundedGeneration));
 
         var failure = await Assert.ThrowsAsync<ProviderStageUnavailableException>(() =>
             adapter.GenerateAsync(CreateGenerationRequest()));
@@ -326,7 +336,84 @@ public sealed class OpenAiHttpAdapterContractTests
 
         Assert.Throws<ArgumentException>(() => new OpenAiHttpEmbeddingProvider(
             client,
-            Credential));
+            Credential,
+            CreateBudgetGate(ProviderBudgetOperationClass.QueryEmbedding),
+            ProviderBudgetOperationClass.QueryEmbedding));
+    }
+
+    [Fact]
+    public async Task MissingBudgetEnvelopeStopsBeforeCredentialLookupAndSyntheticHandler()
+    {
+        var credentialReads = 0;
+        var handler = new RecordingHandler("{}");
+        using var client = CreateClient(handler);
+        var gate = new ProviderBudgetAdmissionGate(
+            new FakeDeterministicProviderBudgetLedger(),
+            new ProviderBudgetAdmissionContext(
+                new ProviderBudgetEnvelopeId("PBE-MISSING"),
+                new ProviderRuntimeSessionId("PRS-MISSING"),
+                new ProviderBudgetAuthorityReference("AUTH-MISSING")),
+            _ => ValueTask.CompletedTask);
+        var adapter = new OpenAiHttpEmbeddingProvider(
+            client,
+            _ =>
+            {
+                credentialReads++;
+                return ValueTask.FromResult("<synthetic-credential>");
+            },
+            gate,
+            ProviderBudgetOperationClass.QueryEmbedding);
+
+        await Assert.ThrowsAsync<ProviderBudgetAdmissionUnavailableException>(() =>
+            adapter.EmbedAsync(new EmbeddingBatchRequest(
+                new EmbeddingProviderDescriptor(
+                    "openai",
+                    "text-embedding-3-small",
+                    "text-embedding-3-small",
+                    dimensions: 3),
+                ["synthetic"],
+                maximumUtf8Bytes: 4096)));
+
+        Assert.Equal(0, credentialReads);
+        Assert.Equal(0, handler.CallCount);
+    }
+
+    [Fact]
+    public async Task CredentialFailureReleasesReservationBeforeSyntheticHandler()
+    {
+        var envelope = CreateZeroEnvelope();
+        var ledger = new FakeDeterministicProviderBudgetLedger(envelope);
+        var providerRequestId = new ProviderRequestId("PBR-CREDENTIAL-FAILURE-001");
+        var gate = new ProviderBudgetAdmissionGate(
+            ledger,
+            new ProviderBudgetAdmissionContext(
+                envelope.EnvelopeId,
+                envelope.RuntimeSessionId!,
+                new ProviderBudgetAuthorityReference("AUTH-SYNTHETIC-QUERY"),
+                () => providerRequestId),
+            _ => ValueTask.CompletedTask);
+        var handler = new RecordingHandler("{}");
+        using var client = CreateClient(handler);
+        var adapter = new OpenAiHttpEmbeddingProvider(
+            client,
+            _ => ValueTask.FromResult(string.Empty),
+            gate,
+            ProviderBudgetOperationClass.QueryEmbedding);
+
+        await Assert.ThrowsAsync<ProviderStageUnavailableException>(() =>
+            adapter.EmbedAsync(new EmbeddingBatchRequest(
+                new EmbeddingProviderDescriptor(
+                    "openai",
+                    "text-embedding-3-small",
+                    "text-embedding-3-small",
+                    dimensions: 3),
+                ["synthetic"],
+                maximumUtf8Bytes: 4096)));
+
+        var reservation = Assert.IsType<ProviderBudgetReservation>(
+            await ledger.ReadReservationAsync(providerRequestId));
+        Assert.Equal(ProviderBudgetReservationStatus.ReleasedPreSend, reservation.Status);
+        Assert.Equal(0, handler.CallCount);
     }
 
     private static HttpClient CreateClient(HttpMessageHandler handler) =>
@@ -335,6 +422,64 @@ public sealed class OpenAiHttpAdapterContractTests
             BaseAddress = new Uri("https://api.openai.com/", UriKind.Absolute),
             Timeout = TimeSpan.FromSeconds(25),
         };
+
+    private static OpenAiHttpEmbeddingProvider CreateEmbeddingAdapter(HttpClient client) =>
+        new(
+            client,
+            Credential,
+            CreateBudgetGate(ProviderBudgetOperationClass.QueryEmbedding),
+            ProviderBudgetOperationClass.QueryEmbedding);
+
+    private static ProviderBudgetAdmissionGate CreateBudgetGate(
+        ProviderBudgetOperationClass operationClass)
+    {
+        var envelope = CreateZeroEnvelope();
+        var authority = new ProviderBudgetAuthorityReference($"AUTH-SYNTHETIC-{operationClass}");
+        return new ProviderBudgetAdmissionGate(
+            new FakeDeterministicProviderBudgetLedger(envelope),
+            new ProviderBudgetAdmissionContext(
+                envelope.EnvelopeId,
+                envelope.RuntimeSessionId!,
+                authority),
+            _ => ValueTask.CompletedTask);
+    }
+
+    private static ProviderBudgetEnvelopeV1 CreateZeroEnvelope()
+    {
+        var instant = DateTimeOffset.UtcNow;
+        return new ProviderBudgetEnvelopeV1(
+            new ProviderBudgetEnvelopeId($"PBE-SYNTHETIC-{Guid.NewGuid():N}"),
+            new ProviderBudgetStoreEpochId("PSE-SYNTHETIC-001"),
+            new ProviderBudgetScope(
+                new ProviderBudgetEnvironmentId("ENV-SYNTHETIC"),
+                new ProviderBudgetProviderId("openai"),
+                new ProviderBudgetBillingScopeReference("BILLING-SYNTHETIC"),
+                new ProviderBudgetModelId("MODEL-SYNTHETIC"),
+                new ProviderBudgetCurrencyCode("USD"),
+                new ProviderBudgetAccountingUnitId("UNIT-SYNTHETIC")),
+            new ProviderBudgetConfigurationRevision(1),
+            new ProviderBudgetLedgerRevision(1),
+            new ProviderBudgetRearmRevision(1),
+            ProviderBudgetState.Armed,
+            new ProviderRuntimeSessionId("PRS-SYNTHETIC-001"),
+            new ProviderBudgetCostScheduleId("PCS-SYNTHETIC-ZERO"),
+            new ProviderBudgetSha256(new string('1', 64)),
+            new ProviderBudgetUnits(0),
+            new ProviderBudgetUnits(0),
+            new ProviderBudgetUnits(0),
+            new ProviderBudgetUnits(0),
+            Enum.GetValues<ProviderBudgetOperationClass>().Select(value =>
+                new ProviderBudgetOperationBalance(
+                    value,
+                    new ProviderBudgetUnits(0),
+                    new ProviderBudgetUnits(0),
+                    new ProviderBudgetUnits(0),
+                    new ProviderBudgetUnits(0))),
+            instant.AddMinutes(-1),
+            instant.AddMinutes(10),
+            isClosed: false,
+            new ProviderBudgetSha256(new string('2', 64)));
+    }
 
     private static OpenAiLanguageModelOptions CreateLanguageModelOptions() =>
         new(

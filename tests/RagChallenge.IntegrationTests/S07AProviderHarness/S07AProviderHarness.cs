@@ -4,6 +4,7 @@ using System.Text;
 using System.Text.Json;
 
 using RagChallenge.Application.IndexingRetrieval;
+using RagChallenge.Application.ProviderBudget;
 using RagChallenge.Domain.CorpusCatalog;
 using RagChallenge.Infrastructure.Providers;
 
@@ -700,7 +701,52 @@ internal static class S07AProviderCandidateHarness
             descriptor,
             OpenAiReasoningEffort.None,
             OpenAiReasoningContext.CurrentTurn);
-        var adapter = new OpenAiHttpLanguageModel(client, credentialSource, options);
+        var instant = DateTimeOffset.UtcNow;
+        var envelope = new ProviderBudgetEnvelopeV1(
+            new ProviderBudgetEnvelopeId("PBE-S07-A-SYNTHETIC"),
+            new ProviderBudgetStoreEpochId("PSE-S07-A-SYNTHETIC"),
+            new ProviderBudgetScope(
+                new ProviderBudgetEnvironmentId("ENV-S07-A-SYNTHETIC"),
+                new ProviderBudgetProviderId("openai"),
+                new ProviderBudgetBillingScopeReference("BILLING-S07-A-SYNTHETIC"),
+                new ProviderBudgetModelId(S07AProviderHarnessDefinition.ModelId),
+                new ProviderBudgetCurrencyCode("USD"),
+                new ProviderBudgetAccountingUnitId("UNIT-S07-A-SYNTHETIC")),
+            new ProviderBudgetConfigurationRevision(1),
+            new ProviderBudgetLedgerRevision(1),
+            new ProviderBudgetRearmRevision(1),
+            ProviderBudgetState.Armed,
+            new ProviderRuntimeSessionId("PRS-S07-A-SYNTHETIC"),
+            new ProviderBudgetCostScheduleId("PCS-S07-A-ZERO"),
+            new ProviderBudgetSha256(new string('5', 64)),
+            new ProviderBudgetUnits(0),
+            new ProviderBudgetUnits(0),
+            new ProviderBudgetUnits(0),
+            new ProviderBudgetUnits(0),
+            Enum.GetValues<ProviderBudgetOperationClass>().Select(value =>
+                new ProviderBudgetOperationBalance(
+                    value,
+                    new ProviderBudgetUnits(0),
+                    new ProviderBudgetUnits(0),
+                    new ProviderBudgetUnits(0),
+                    new ProviderBudgetUnits(0))),
+            instant.AddMinutes(-1),
+            instant.AddHours(1),
+            isClosed: false,
+            new ProviderBudgetSha256(new string('6', 64)));
+        var budgetAdmission = new ProviderBudgetAdmissionGate(
+            new FakeDeterministicProviderBudgetLedger(envelope),
+            new ProviderBudgetAdmissionContext(
+                envelope.EnvelopeId,
+                envelope.RuntimeSessionId!,
+                new ProviderBudgetAuthorityReference(
+                    S07AProviderHarnessDefinition.AuthorityId)),
+            _ => ValueTask.CompletedTask);
+        var adapter = new OpenAiHttpLanguageModel(
+            client,
+            credentialSource,
+            options,
+            budgetAdmission);
         var results = new List<S07AProviderObservedResult>();
 
         foreach (var candidate in plan.Cases.Where(item => item.ProviderCallExpected))

@@ -12,6 +12,7 @@ using Microsoft.Extensions.DependencyInjection;
 using RagChallenge.Application.Administration;
 using RagChallenge.Application.IndexingRetrieval;
 using RagChallenge.Application.Persistence;
+using RagChallenge.Application.ProviderBudget;
 using RagChallenge.Domain.CorpusCatalog;
 using RagChallenge.Domain.IndexingRetrieval;
 using RagChallenge.Infrastructure.Persistence;
@@ -337,7 +338,14 @@ public sealed class ProductQueryRuntimeTests
                 credentialReads++;
                 return "synthetic-product-credential";
             });
-        var provider = new OpenAiHttpEmbeddingProvider(client, source.ReadAsync);
+        var provider = new OpenAiHttpEmbeddingProvider(
+            client,
+            source.ReadAsync,
+            CreateBudgetGate(
+                swappedAuthority,
+                trustedGrants,
+                ProductProviderOperation.QueryEmbedding),
+            ProviderBudgetOperationClass.QueryEmbedding);
 
         var exception = await Assert.ThrowsAsync<ProductProviderOperationalAuthorityException>(() =>
             provider.EmbedAsync(new EmbeddingBatchRequest(
@@ -403,7 +411,14 @@ public sealed class ProductQueryRuntimeTests
                     credentialReads++;
                     return "synthetic-product-credential";
                 });
-            var provider = new OpenAiHttpEmbeddingProvider(client, source.ReadAsync);
+            var provider = new OpenAiHttpEmbeddingProvider(
+                client,
+                source.ReadAsync,
+                CreateBudgetGate(
+                    options.QueryEmbeddingAuthority,
+                    options.OperationalGrants,
+                    ProductProviderOperation.QueryEmbedding),
+                ProviderBudgetOperationClass.QueryEmbedding);
 
             await Assert.ThrowsAsync<ProductProviderOperationalAuthorityException>(() =>
                 provider.EmbedAsync(new EmbeddingBatchRequest(
@@ -440,9 +455,10 @@ public sealed class ProductQueryRuntimeTests
         var differentTrustedGrant = ProductProviderOperationalAuthority.Parse(
             ProductProviderOperation.QueryEmbedding,
             "AUTH-QUERY-EMBEDDING-TRUSTED-OTHER-001");
+        var trustedGrants = new ProductProviderOperationalGrantSet([differentTrustedGrant]);
         var source = new ProductProviderCredentialSource(
             requested,
-            new ProductProviderOperationalGrantSet([differentTrustedGrant]),
+            trustedGrants,
             ProductProviderOperation.QueryEmbedding,
             "RAG_CHALLENGE_TEST_PRODUCT_CREDENTIAL",
             _ =>
@@ -450,7 +466,14 @@ public sealed class ProductQueryRuntimeTests
                 credentialReads++;
                 return "synthetic-product-credential";
             });
-        var provider = new OpenAiHttpEmbeddingProvider(client, source.ReadAsync);
+        var provider = new OpenAiHttpEmbeddingProvider(
+            client,
+            source.ReadAsync,
+            CreateBudgetGate(
+                requested,
+                trustedGrants,
+                ProductProviderOperation.QueryEmbedding),
+            ProviderBudgetOperationClass.QueryEmbedding);
 
         await Assert.ThrowsAsync<ProductProviderOperationalAuthorityException>(() =>
             provider.EmbedAsync(new EmbeddingBatchRequest(
@@ -511,6 +534,58 @@ public sealed class ProductQueryRuntimeTests
             ProductProviderOperationalAuthority.Parse(
                 ProductProviderOperation.GroundedGeneration,
                 query.Reference));
+    }
+
+    private static ProviderBudgetAdmissionGate CreateBudgetGate(
+        ProductProviderOperationalAuthority authority,
+        ProductProviderOperationalGrantSet trustedGrants,
+        ProductProviderOperation operation)
+    {
+        var instant = DateTimeOffset.UtcNow;
+        var envelope = new ProviderBudgetEnvelopeV1(
+            new ProviderBudgetEnvelopeId($"PBE-AUTHORITY-{Guid.NewGuid():N}"),
+            new ProviderBudgetStoreEpochId("PSE-AUTHORITY-001"),
+            new ProviderBudgetScope(
+                new ProviderBudgetEnvironmentId("ENV-AUTHORITY"),
+                new ProviderBudgetProviderId("openai"),
+                new ProviderBudgetBillingScopeReference("BILLING-AUTHORITY"),
+                new ProviderBudgetModelId("MODEL-AUTHORITY"),
+                new ProviderBudgetCurrencyCode("USD"),
+                new ProviderBudgetAccountingUnitId("UNIT-AUTHORITY")),
+            new ProviderBudgetConfigurationRevision(1),
+            new ProviderBudgetLedgerRevision(1),
+            new ProviderBudgetRearmRevision(1),
+            ProviderBudgetState.Armed,
+            new ProviderRuntimeSessionId("PRS-AUTHORITY-001"),
+            new ProviderBudgetCostScheduleId("PCS-AUTHORITY-ZERO"),
+            new ProviderBudgetSha256(new string('3', 64)),
+            new ProviderBudgetUnits(0),
+            new ProviderBudgetUnits(0),
+            new ProviderBudgetUnits(0),
+            new ProviderBudgetUnits(0),
+            Enum.GetValues<ProviderBudgetOperationClass>().Select(value =>
+                new ProviderBudgetOperationBalance(
+                    value,
+                    new ProviderBudgetUnits(0),
+                    new ProviderBudgetUnits(0),
+                    new ProviderBudgetUnits(0),
+                    new ProviderBudgetUnits(0))),
+            instant.AddMinutes(-1),
+            instant.AddMinutes(10),
+            isClosed: false,
+            new ProviderBudgetSha256(new string('4', 64)));
+        return new ProviderBudgetAdmissionGate(
+            new FakeDeterministicProviderBudgetLedger(envelope),
+            new ProviderBudgetAdmissionContext(
+                envelope.EnvelopeId,
+                envelope.RuntimeSessionId!,
+                new ProviderBudgetAuthorityReference(authority.Reference)),
+            cancellationToken =>
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                trustedGrants.Demand(authority, operation);
+                return ValueTask.CompletedTask;
+            });
     }
 
     private static async Task<long> ScalarAsync(string path, string sql)

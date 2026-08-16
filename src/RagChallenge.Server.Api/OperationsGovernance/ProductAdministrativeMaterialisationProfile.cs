@@ -6,6 +6,7 @@ using Microsoft.Extensions.Configuration;
 using RagChallenge.Application.Documents;
 using RagChallenge.Application.IndexingRetrieval;
 using RagChallenge.Application.Persistence;
+using RagChallenge.Application.ProviderBudget;
 using RagChallenge.Domain.CorpusCatalog;
 using RagChallenge.Infrastructure.Documents;
 using RagChallenge.Infrastructure.Persistence;
@@ -92,9 +93,16 @@ internal static class ProductAdministrativeMaterialisationProfile
             ProductProviderOperation.AdministrativeIndexEmbedding,
             credentialReference.EnvironmentVariableName,
             selectedDependencies.CredentialEnvironmentReader);
+        var budgetAdmission = ProductProviderBudgetAdmission.CreateFailClosed(
+            storeOptions,
+            operationalAuthority,
+            operationalGrants,
+            ProductProviderOperation.AdministrativeIndexEmbedding);
         var embeddingProvider = new OpenAiHttpEmbeddingProvider(
             embeddingClient,
-            credentialSource.ReadAsync);
+            credentialSource.ReadAsync,
+            budgetAdmission,
+            ProviderBudgetOperationClass.AdministrativeIndexEmbedding);
         var renderManifestStore = selectedDependencies.RenderManifestStoreFactory(storeOptions) ??
             throw new ArgumentException(
                 "The product render-manifest factory returned no store.",
