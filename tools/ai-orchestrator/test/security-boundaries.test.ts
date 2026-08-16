@@ -1,6 +1,6 @@
 // Purpose: Exercises duplicate JSON, bounded persistence, process denial and a disposable real Git worktree lifecycle.
 import assert from "node:assert/strict";
-import { randomUUID } from "node:crypto";
+import { createHash, randomUUID } from "node:crypto";
 import { access, mkdir, readFile, rm, symlink, unlink, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { delimiter, join, resolve } from "node:path";
@@ -27,7 +27,11 @@ import {
   removeProductCredentialFromEnvironment,
 } from "../src/security/secret-policy.js";
 import { assertNoExistingReparseBoundary } from "../src/security/path-policy.js";
-import { assertBritishCommitMessage, type TrustedLanguagePolicy } from "../src/security/language-policy.js";
+import {
+  assertBritishCommitMessage,
+  parseTrustedLanguagePolicy,
+  type TrustedLanguagePolicy,
+} from "../src/security/language-policy.js";
 import { baseline, instant, passingResult, task } from "./helpers.js";
 
 const trustedLanguagePolicy: TrustedLanguagePolicy = {
@@ -38,8 +42,53 @@ const trustedLanguagePolicy: TrustedLanguagePolicy = {
     { american: "normalize", british: "normalise" },
   ],
   portugueseTechnicalMarkers: ["implementação", "validação"],
+  productCredentialIdentifierAllowances: [
+    { path: "eng/check-language.mjs", classification: "EXECUTABLE_POLICY_ENFORCEMENT", sha256: null },
+  ],
 };
 const passingLanguageChecker = { check: async (): Promise<void> => undefined };
+
+function canonicalJsonForTest(value: unknown): string {
+  if (Array.isArray(value)) return `[${value.map(canonicalJsonForTest).join(",")}]`;
+  if (value !== null && typeof value === "object") {
+    const record = value as Readonly<Record<string, unknown>>;
+    return `{${Object.keys(record).sort().map((key) =>
+      `${JSON.stringify(key)}:${canonicalJsonForTest(record[key])}`).join(",")}}`;
+  }
+  return JSON.stringify(value);
+}
+
+function syntheticLanguagePolicyPayload(
+  allowances: readonly Readonly<Record<string, unknown>>[],
+): Readonly<Record<string, unknown>> {
+  return {
+    schemaVersion: 1,
+    policyId: "rag-challenge-language-policy-v1",
+    technicalLanguage: "en-GB",
+    ownerLanguage: "pt-BR",
+    bannedAmericanSpellings: [{ american: "behavior", british: "behaviour" }],
+    portugueseTechnicalMarkers: ["implementação"],
+    scannedExtensions: [".md"],
+    productCredentialIdentifierAllowances: allowances,
+    excludedPaths: [],
+    excludedRegions: [],
+    appendOnlyPrefixes: [{ path: "history.md", prefixBytes: 1, sha256: "a".repeat(64) }],
+  };
+}
+
+function parseSyntheticLanguagePolicy(
+  allowances: readonly Readonly<Record<string, unknown>>[],
+): TrustedLanguagePolicy {
+  const payload = syntheticLanguagePolicyPayload(allowances);
+  const schemaDigest = `sha256:${"b".repeat(64)}`;
+  const digest = createHash("sha256").update(canonicalJsonForTest(payload)).digest("hex");
+  return parseTrustedLanguagePolicy({
+    $schema: "./language-policy.schema.json",
+    schemaDigest,
+    payload,
+    digest: `sha256:${digest}`,
+  }, schemaDigest);
+}
 
 async function guidTempDirectory(prefix: string): Promise<string> {
   const root = join(tmpdir(), `${prefix}${randomUUID()}`);
@@ -170,6 +219,47 @@ test("trusted candidate language policy accepts British prose and external liter
     error instanceof OrchestratorStop && error.code === "OUT_OF_SCOPE_CHANGE_REQUIRED");
   assert.throws(() => assertBritishCommitMessage("fix(orchestrator): preserve candidate\n\nReject behavior drift.", trustedLanguagePolicy), (error: unknown) =>
     error instanceof OrchestratorStop && error.code === "OUT_OF_SCOPE_CHANGE_REQUIRED");
+});
+
+test("trusted language policy accepts closed credential identifier allowances", () => {
+  const policy = parseSyntheticLanguagePolicy([
+    { path: "eng/check-language.mjs", classification: "EXECUTABLE_POLICY_ENFORCEMENT", sha256: null },
+    {
+      path: "docs/historical-record.md",
+      classification: "PRESERVED_HISTORICAL_DOCUMENT",
+      sha256: "c".repeat(64),
+    },
+  ]);
+  assert.deepEqual(policy.productCredentialIdentifierAllowances, [
+    { path: "eng/check-language.mjs", classification: "EXECUTABLE_POLICY_ENFORCEMENT", sha256: null },
+    {
+      path: "docs/historical-record.md",
+      classification: "PRESERVED_HISTORICAL_DOCUMENT",
+      sha256: "c".repeat(64),
+    },
+  ]);
+});
+
+test("trusted language policy rejects invalid credential identifier allowances", () => {
+  const current = { path: "eng/check-language.mjs", classification: "EXECUTABLE_POLICY_ENFORCEMENT", sha256: null };
+  const invalidAllowances: readonly (readonly Readonly<Record<string, unknown>>[])[] = [
+    [],
+    [{ ...current, extra: "unexpected" }],
+    [{ ...current, path: "eng/*.mjs" }],
+    [{ ...current, path: "eng/" }],
+    [{ ...current, path: "../eng/check-language.mjs" }],
+    [current, current],
+    [{ ...current, classification: "UNKNOWN_CLASSIFICATION" }],
+    [{ path: "docs/history.md", classification: "PRESERVED_HISTORICAL_DOCUMENT", sha256: null }],
+    [{ path: "docs/history.md", classification: "PRESERVED_HISTORICAL_DOCUMENT", sha256: "invalid" }],
+    [{ ...current, sha256: "d".repeat(64) }],
+  ];
+  for (const allowances of invalidAllowances) {
+    assert.throws(
+      () => parseSyntheticLanguagePolicy(allowances),
+      (error: unknown) => error instanceof OrchestratorStop && error.code === "OUT_OF_SCOPE_CHANGE_REQUIRED",
+    );
+  }
 });
 
 test("candidate cannot relax the coordinator-owned language policy", async () => {

@@ -9,7 +9,29 @@ export interface TrustedLanguagePolicy {
   readonly technicalLanguage: "en-GB";
   readonly bannedAmericanSpellings: readonly Readonly<{ american: string; british: string }>[];
   readonly portugueseTechnicalMarkers: readonly string[];
+  readonly productCredentialIdentifierAllowances: readonly ProductCredentialIdentifierAllowance[];
 }
+
+export type ProductCredentialIdentifierAllowanceClassification =
+  | "PRODUCT_RUNTIME_OR_DEPLOYMENT_CONFIGURATION"
+  | "SECURITY_POLICY"
+  | "EXECUTABLE_POLICY_ENFORCEMENT"
+  | "SYNTHETIC_ENFORCEMENT"
+  | "PRESERVED_HISTORICAL_DOCUMENT";
+
+export interface ProductCredentialIdentifierAllowance {
+  readonly path: string;
+  readonly classification: ProductCredentialIdentifierAllowanceClassification;
+  readonly sha256: string | null;
+}
+
+const productCredentialIdentifierAllowanceClassifications = new Set<string>([
+  "PRODUCT_RUNTIME_OR_DEPLOYMENT_CONFIGURATION",
+  "SECURITY_POLICY",
+  "EXECUTABLE_POLICY_ENFORCEMENT",
+  "SYNTHETIC_ENFORCEMENT",
+  "PRESERVED_HISTORICAL_DOCUMENT",
+]);
 
 function canonicalJson(value: unknown): string {
   if (Array.isArray(value)) return `[${value.map(canonicalJson).join(",")}]`;
@@ -33,6 +55,14 @@ function asRecord(value: unknown): Readonly<Record<string, unknown>> {
   return value as Readonly<Record<string, unknown>>;
 }
 
+function isClosedRepositoryFilePath(value: string): boolean {
+  if (value.length === 0 || value.includes("\\") || value.includes("\0") || value.includes("*") || value.includes("?") ||
+      value.startsWith("/") || value.endsWith("/") || /^[A-Za-z]:/.test(value)) {
+    return false;
+  }
+  return value.split("/").every((segment) => segment.length > 0 && segment !== "." && segment !== "..");
+}
+
 export function parseTrustedLanguagePolicy(value: unknown, expectedSchemaDigest: string): TrustedLanguagePolicy {
   const document = asRecord(value);
   if (!exactKeys(document, ["$schema", "schemaDigest", "payload", "digest"]) || document.$schema !== "./language-policy.schema.json" ||
@@ -41,12 +71,14 @@ export function parseTrustedLanguagePolicy(value: unknown, expectedSchemaDigest:
   }
   const payload = asRecord(document.payload);
   if (!exactKeys(payload, ["schemaVersion", "policyId", "technicalLanguage", "ownerLanguage", "bannedAmericanSpellings",
-    "portugueseTechnicalMarkers", "scannedExtensions", "excludedPaths", "excludedRegions", "appendOnlyPrefixes"]) ||
+    "portugueseTechnicalMarkers", "scannedExtensions", "productCredentialIdentifierAllowances", "excludedPaths",
+    "excludedRegions", "appendOnlyPrefixes"]) ||
       payload.schemaVersion !== 1 || payload.policyId !== "rag-challenge-language-policy-v1" || payload.technicalLanguage !== "en-GB") {
     throw new OrchestratorStop("OUT_OF_SCOPE_CHANGE_REQUIRED", "The trusted coordinator language policy identity is invalid.");
   }
   if (!Array.isArray(payload.bannedAmericanSpellings) || !Array.isArray(payload.portugueseTechnicalMarkers) ||
-      payload.bannedAmericanSpellings.length === 0 || payload.portugueseTechnicalMarkers.length === 0) {
+      !Array.isArray(payload.productCredentialIdentifierAllowances) || payload.bannedAmericanSpellings.length === 0 ||
+      payload.portugueseTechnicalMarkers.length === 0 || payload.productCredentialIdentifierAllowances.length === 0) {
     throw new OrchestratorStop("OUT_OF_SCOPE_CHANGE_REQUIRED", "The trusted coordinator language rules are missing.");
   }
   const spellings = payload.bannedAmericanSpellings.map((entry) => {
@@ -60,6 +92,26 @@ export function parseTrustedLanguagePolicy(value: unknown, expectedSchemaDigest:
   if (payload.portugueseTechnicalMarkers.some((marker) => typeof marker !== "string" || marker.length < 2)) {
     throw new OrchestratorStop("OUT_OF_SCOPE_CHANGE_REQUIRED", "The trusted coordinator Portuguese marker is invalid.");
   }
+  const allowancePaths = new Set<string>();
+  const productCredentialIdentifierAllowances = payload.productCredentialIdentifierAllowances.map((entry) => {
+    const record = asRecord(entry);
+    if (!exactKeys(record, ["path", "classification", "sha256"]) || typeof record.path !== "string" ||
+        !isClosedRepositoryFilePath(record.path) || typeof record.classification !== "string" ||
+        !productCredentialIdentifierAllowanceClassifications.has(record.classification) || allowancePaths.has(record.path)) {
+      throw new OrchestratorStop("OUT_OF_SCOPE_CHANGE_REQUIRED", "The product credential identifier allowance is invalid.");
+    }
+    const isHistorical = record.classification === "PRESERVED_HISTORICAL_DOCUMENT";
+    if ((isHistorical && (typeof record.sha256 !== "string" || !/^[0-9a-f]{64}$/.test(record.sha256))) ||
+        (!isHistorical && record.sha256 !== null)) {
+      throw new OrchestratorStop("OUT_OF_SCOPE_CHANGE_REQUIRED", "The product credential identifier allowance digest is invalid.");
+    }
+    allowancePaths.add(record.path);
+    return {
+      path: record.path,
+      classification: record.classification as ProductCredentialIdentifierAllowanceClassification,
+      sha256: record.sha256 as string | null,
+    };
+  });
   const digest = createHash("sha256").update(canonicalJson(payload)).digest("hex");
   if (document.digest !== `sha256:${digest}`) {
     throw new OrchestratorStop("OUT_OF_SCOPE_CHANGE_REQUIRED", "The trusted coordinator language policy digest is invalid.");
@@ -69,6 +121,7 @@ export function parseTrustedLanguagePolicy(value: unknown, expectedSchemaDigest:
     technicalLanguage: "en-GB",
     bannedAmericanSpellings: spellings,
     portugueseTechnicalMarkers: payload.portugueseTechnicalMarkers as readonly string[],
+    productCredentialIdentifierAllowances,
   };
 }
 
