@@ -114,6 +114,7 @@
       { "path": "src/RagChallenge.Dashboard.Web/test/fixtures/query-v1.mjs", "classification": "SOURCE_OR_CITATION_DATA", "reason": "The fixture preserves bilingual question, answer and citation data." },
       { "path": "src/RagChallenge.Dashboard.Web/test/fixtures/query-v2.mjs", "classification": "SOURCE_OR_CITATION_DATA", "reason": "The fixture preserves bilingual question, answer and citation data." },
       { "path": "tools/ai-orchestrator/test/security-boundaries.test.ts", "classification": "EXTERNAL_CANONICAL_FORMAT", "reason": "The synthetic enforcement tests intentionally contain rejected language fixtures." },
+      { "path": "eng/test-language-policy.mjs", "classification": "EXTERNAL_CANONICAL_FORMAT", "reason": "The language-policy tests intentionally contain rejected American and Portuguese fixtures." },
       { "path": "docs/Ingestion-Hardening-Historical-Owner-Request.md", "classification": "HISTORICAL_EVIDENCE", "reason": "The original owner request remains historical evidence in its original language." },
       { "path": "docs/Multi-Agent-Readiness-Audit.md", "classification": "HISTORICAL_EVIDENCE", "reason": "The completed Stage 1 readiness audit remains historical implementation evidence." },
       { "path": "docs/Stage-2-Multi-Agent-Orchestrator-Report.md", "classification": "HISTORICAL_EVIDENCE", "reason": "The completed Stage 2 report remains historical implementation evidence." },
@@ -224,5 +225,5 @@
       { "path": "prompts/system/Prompt-System-Change-Log.md", "prefixBytes": 157982, "sha256": "15cc9ecb5b6d6a6de5e951e045fbde7ce6cec0cee0ab6631a5a15fb29bb699a4" }
     ]
   },
-  "digest": "sha256:e5853e3444fdaa369b1011af594f6d4a147fe9f9f3d549e8cda1be4bdffa8721"
+  "digest": "sha256:bdc7585c08801fa59149d6a8893f7801701983e87020196135dd198713b40703"
 }
