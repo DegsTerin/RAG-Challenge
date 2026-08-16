@@ -134,11 +134,14 @@ may remain; new or changed debt fails. A `COMPLETE` baseline must contain zero
 debt. The checker also protects accepted append-only prefixes and validates
 each new commit message without reinterpreting earlier Git history.
 Candidate inspection uses the coordinator repository as a separate trusted
-policy root and scans modes, paths and bounded bytes from the candidate's exact
-immutable commit tree. Protected controls include the checker, policy data,
+policy root. Every supplied commit boundary scans modes, paths and bounded
+bytes from the exact immutable HEAD tree; only the boundary-free developer mode
+reads the worktree. Protected controls include the checker, policy data,
 its direct and transitive security/process dependencies and their enforcement
-tests. Default, exact-HEAD and range modes reject commits that change any
-protected control. The Stage 0/1/2 language-enforcement
+tests. Default and exact-HEAD modes reject a merge commit or a protected-control
+change in HEAD. Range mode deterministically inspects every commit and rejects
+merges or protected-control changes even when later commits restore the bytes.
+The Stage 0/1/2 language-enforcement
 bootstrap is an exceptional manually reviewed policy update outside the
 ordinary candidate-range path. The checker contains no reusable authority flag
 or bypass for later candidates; consequently, applying the post-bootstrap rule

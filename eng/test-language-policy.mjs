@@ -348,6 +348,19 @@ test("immutable commit mode ignores adversarial worktree content and prefix muta
   } finally { await rm(root, { recursive: true, force: true }); }
 });
 
+test("commit range scans immutable HEAD bytes despite adversarial worktree content", async () => {
+  const root = await createRepository();
+  try {
+    const base = git(root, "rev-parse", "HEAD");
+    await writeFile(join(root, "technical.md"), "Committed British behaviour remains authorised.\n", "utf8");
+    git(root, "add", "technical.md");
+    git(root, "commit", "-m", "docs(language): preserve committed behaviour");
+    await writeFile(join(root, "technical.md"), "This dirty worktree introduces behavior.\n", "utf8");
+    await assert.doesNotReject(runCheck({ repositoryRoot: root, commitBase: base }));
+    await assert.rejects(runCheck({ repositoryRoot: root }), /new or changed/);
+  } finally { await rm(root, { recursive: true, force: true }); }
+});
+
 test("whole-file exclusions require exact regular tracked files", async () => {
   const root = await createRepository();
   try {
@@ -412,6 +425,57 @@ test("ordinary commit ranges reject language-control changes unconditionally", a
     await assert.rejects(runCheck({ repositoryRoot: root }), /exceptional manual review/);
     await assert.rejects(runCheck({ repositoryRoot: root, commitHead: head }), /exceptional manual review/);
     await assert.rejects(runCheck({ repositoryRoot: root, commitBase: base }), /exceptional manual review/);
+  } finally { await rm(root, { recursive: true, force: true }); }
+});
+
+test("commit ranges reject an intermediate protected edit that a later commit restores", async () => {
+  const root = await createRepository();
+  try {
+    const base = git(root, "rev-parse", "HEAD");
+    const policyPath = join(root, "eng", "language-policy.json");
+    const original = await readFile(policyPath, "utf8");
+    await writeFile(policyPath, `\n${original}`, "utf8");
+    git(root, "add", "eng/language-policy.json");
+    git(root, "commit", "-m", "test(language): alter reviewed policy bytes");
+    await writeFile(policyPath, original, "utf8");
+    git(root, "add", "eng/language-policy.json");
+    git(root, "commit", "-m", "test(language): restore reviewed policy bytes");
+    assert.equal(git(root, "diff", "--name-only", base, "HEAD"), "");
+    await assert.rejects(runCheck({ repositoryRoot: root, commitBase: base }), /exceptional manual review/);
+  } finally { await rm(root, { recursive: true, force: true }); }
+});
+
+test("exact and range checks reject merge commits", async () => {
+  const root = await createRepository();
+  try {
+    const base = git(root, "rev-parse", "HEAD");
+    git(root, "checkout", "-b", "synthetic-side");
+    await writeFile(join(root, "side.md"), "British side-branch prose.\n", "utf8");
+    git(root, "add", "side.md");
+    git(root, "commit", "-m", "docs(language): add side prose");
+    git(root, "checkout", "main");
+    await writeFile(join(root, "main.md"), "British main-branch prose.\n", "utf8");
+    git(root, "add", "main.md");
+    git(root, "commit", "-m", "docs(language): add main prose");
+    git(root, "merge", "--no-ff", "synthetic-side", "-m", "docs(language): merge synthetic histories");
+    const head = git(root, "rev-parse", "HEAD");
+    await assert.rejects(runCheck({ repositoryRoot: root, commitHead: head }), /Merge commits are not accepted/);
+    await assert.rejects(runCheck({ repositoryRoot: root, commitBase: base }), /Merge commits are not accepted/);
+  } finally { await rm(root, { recursive: true, force: true }); }
+});
+
+test("root commit semantics protect language-control paths", async () => {
+  const root = await guidTempDirectory("rag-challenge-language-root-");
+  try {
+    await mkdir(join(root, "eng"), { recursive: true });
+    await writeFile(join(root, "eng", "check-language.mjs"), "// Synthetic protected control.\n", "utf8");
+    git(root, "init", "--initial-branch=main");
+    git(root, "config", "user.name", "Language Fixture");
+    git(root, "config", "user.email", "language@example.invalid");
+    git(root, "add", ".");
+    git(root, "commit", "-m", "test(language): create protected root commit");
+    const head = git(root, "rev-parse", "HEAD");
+    await assert.rejects(runCheck({ repositoryRoot: root, commitHead: head }), /exceptional manual review/);
   } finally { await rm(root, { recursive: true, force: true }); }
 });
 

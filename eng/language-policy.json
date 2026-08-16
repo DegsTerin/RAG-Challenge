@@ -258,7 +258,7 @@
         "classification": "SYNTHETIC_ENFORCEMENT_REGION",
         "startMarker": "// SYNTHETIC_LANGUAGE_HISTORY_AND_COMMITS_START",
         "endMarker": "// SYNTHETIC_LANGUAGE_HISTORY_AND_COMMITS_END",
-        "sha256": "a68f08676f7a72b312f11f7a0e1508bf31f4e375dc32ee91e9d0b656e542160b"
+      "sha256": "e5a8a3a1033f181ee89cba4de985609dfb22df63a3eede86bf0b67898fb160ed"
       },
       {
         "path": "tools/ai-orchestrator/test/security-boundaries.test.ts",
@@ -280,5 +280,5 @@
       { "path": "prompts/system/Prompt-System-Change-Log.md", "prefixBytes": 157982, "sha256": "15cc9ecb5b6d6a6de5e951e045fbde7ce6cec0cee0ab6631a5a15fb29bb699a4" }
     ]
   },
-  "digest": "sha256:fc5bd2d45b0e98780c45c89ebedaeff84ba67df93ed82d02772d8fcfb196444e"
+  "digest": "sha256:02f38be2c91a8441e6a789de1371aa2de603156c4373a763a5461023fbd6dd01"
 }

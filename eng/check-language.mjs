@@ -582,13 +582,16 @@ export function assertDebtMatches(findings, baseline) {
   if (baseline.payload.status === "COMPLETE" && findings.length > 0) throw new Error("Language migration is COMPLETE but repository debt remains.");
 }
 
-function changedPaths(repositoryRoot, base, head = "HEAD") {
-  return git(repositoryRoot, ["diff", "--no-ext-diff", "--no-textconv", "--name-only", "-z", `${base}..${head}`, "--"])
-    .split("\0").filter(Boolean);
-}
-
 function exactCommitChangedPaths(repositoryRoot, commit) {
-  return git(repositoryRoot, ["diff-tree", "--root", "--no-commit-id", "--name-only", "-r", "-z", commit, "--"])
+  const identity = git(repositoryRoot, ["rev-list", "--parents", "-n", "1", commit]).trim().split(/\s+/);
+  if (identity.length === 0 || identity[0] !== commit || identity.some((entry) => !/^[0-9a-f]{40}$/.test(entry))) {
+    throw new Error("Commit ancestry is not a bounded full-SHA sequence.");
+  }
+  if (identity.length > 2) throw new Error("Merge commits are not accepted by language enforcement.");
+  const comparison = identity.length === 1 ? ["--root", commit] : [identity[1], commit];
+  return git(repositoryRoot, [
+    "diff-tree", "--no-commit-id", "--name-only", "--diff-filter=ACDMRTUXB", "-r", "-z", ...comparison, "--",
+  ])
     .split("\0").filter(Boolean);
 }
 
@@ -596,6 +599,10 @@ function assertNoLanguageControlChanges(paths) {
   if (paths.some((path) => isProtectedLanguageControlPath(path))) {
     throw new Error("Commit changes language controls and requires exceptional manual review.");
   }
+}
+
+function assertCommitHistoryHasNoLanguageControlChanges(repositoryRoot, commits) {
+  for (const commit of commits) assertNoLanguageControlChanges(exactCommitChangedPaths(repositoryRoot, commit));
 }
 
 function commitMessages(repositoryRoot, base, expectedHead) {
@@ -606,13 +613,13 @@ function commitMessages(repositoryRoot, base, expectedHead) {
       throw new Error("Commit head must be the exact non-zero repository HEAD.");
     }
     if (base !== null) throw new Error("Commit base and explicit commit head are mutually exclusive.");
-    assertNoLanguageControlChanges(exactCommitChangedPaths(repositoryRoot, head));
+    assertCommitHistoryHasNoLanguageControlChanges(repositoryRoot, [head]);
     const message = git(repositoryRoot, ["show", "-s", "--format=%B", head]);
     assertSafeCommitMessage(message);
     return [message];
   }
   if (base === null) {
-    assertNoLanguageControlChanges(exactCommitChangedPaths(repositoryRoot, head));
+    assertCommitHistoryHasNoLanguageControlChanges(repositoryRoot, [head]);
     const message = git(repositoryRoot, ["show", "-s", "--format=%B", head]);
     assertSafeCommitMessage(message);
     return [message];
@@ -620,9 +627,10 @@ function commitMessages(repositoryRoot, base, expectedHead) {
   if (!/^[0-9a-f]{40}$/.test(base) || /^0{40}$/.test(base)) throw new Error("Commit base must be a non-zero full SHA-1.");
   git(repositoryRoot, ["rev-parse", "--verify", `${base}^{commit}`]);
   git(repositoryRoot, ["merge-base", "--is-ancestor", base, "HEAD"]);
-  const commits = git(repositoryRoot, ["rev-list", "--reverse", `${base}..HEAD`]).trim().split(/\r?\n/).filter(Boolean);
+  const commits = git(repositoryRoot, ["rev-list", "--topo-order", "--reverse", `${base}..HEAD`]).trim().split(/\r?\n/).filter(Boolean);
   if (commits.length === 0) throw new Error("Commit range contains no new commit.");
-  assertNoLanguageControlChanges(changedPaths(repositoryRoot, base));
+  if (commits.some((commit) => !/^[0-9a-f]{40}$/.test(commit))) throw new Error("Commit range contains an invalid identity.");
+  assertCommitHistoryHasNoLanguageControlChanges(repositoryRoot, commits);
   return commits.map((commit) => {
     const message = git(repositoryRoot, ["show", "-s", "--format=%B", commit]);
     assertSafeCommitMessage(message);
@@ -647,7 +655,7 @@ export async function runCheck({ repositoryRoot, trustedPolicyRoot = repositoryR
       throw new Error("Commit head must be the exact non-zero repository HEAD.");
     }
   }
-  if (commitBase === null) assertNoLanguageControlChanges(exactCommitChangedPaths(repositoryRoot, currentHead));
+  if (commitBase === null) assertCommitHistoryHasNoLanguageControlChanges(repositoryRoot, [currentHead]);
   const policy = await loadPolicy(trustedPolicyRoot);
   const baselineSchemaDigest = await assertSchemaIdentity(
     trustedPolicyRoot,
@@ -655,9 +663,10 @@ export async function runCheck({ repositoryRoot, trustedPolicyRoot = repositoryR
     baselineSchemaId,
     "Language migration baseline",
   );
-  const source = await selectedSource(repositoryRoot, commitHead);
+  const sourceCommit = commitBase !== null || commitHead !== null ? currentHead : null;
+  const source = await selectedSource(repositoryRoot, sourceCommit);
   await verifyAppendOnlyPrefixes(source, policy.payload);
-  const findings = await inspectRepository(repositoryRoot, policy.payload, commitHead, source);
+  const findings = await inspectRepository(repositoryRoot, policy.payload, sourceCommit, source);
   const baselinePath = resolve(trustedPolicyRoot, "eng/language-migration-baseline.json");
   const baseline = validateBaselineDocument(
     await parseJsonFile(trustedPolicyRoot, baselinePath, "Language migration baseline"),

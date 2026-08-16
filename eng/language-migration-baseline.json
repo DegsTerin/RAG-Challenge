@@ -5,7 +5,7 @@
     "schemaVersion": 1,
     "baselineId": "rag-challenge-en-gb-migration-v1",
     "status": "IN_PROGRESS",
-    "policyDigest": "sha256:fc5bd2d45b0e98780c45c89ebedaeff84ba67df93ed82d02772d8fcfb196444e",
+    "policyDigest": "sha256:02f38be2c91a8441e6a789de1371aa2de603156c4373a763a5461023fbd6dd01",
     "findings": [
       {
         "path": "docs/MVP-Roadmap-And-Backlog.md",
@@ -3169,5 +3169,5 @@
       }
     ]
   },
-  "digest": "sha256:d8754300070932a4377a79f7742d862c21923008a89201b19c4282834bd91422"
+  "digest": "sha256:718d96d631827c1e909156f16376f7eeb33b8b6623ff32d83541c0d26a13cfbf"
 }

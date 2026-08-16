@@ -67,8 +67,9 @@ A batch is ready when:
 - Schema, policy digest, migration fingerprints, append-only identities,
   repository prose and applicable new commit messages pass the automated
   language check. Candidate checks use coordinator-owned policy bytes and the
-  exact candidate commit tree, and reject changes to the full transitive
-  enforcement boundary. This lexical result is
+  exact immutable HEAD tree for every supplied commit boundary, reject merges
+  and inspect each ranged commit for changes to the full transitive enforcement
+  boundary. This lexical result is
   necessary but never substitutes for
   independent semantic review of British English and the structured
   exclusions owned by the language policy.
