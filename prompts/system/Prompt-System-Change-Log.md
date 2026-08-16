@@ -1,99 +1,66 @@
-# Controle e Changelog do Sistema de Instruções
+# Instruction System Control and Change Log
 
-## Versão atual
+## Current version
 
-- Versão: `4.15.0`
-- Data: 2026-08-15
-- Status: `STATE-07` ativo; ADR-0011 `accepted`, reconciliado e com a correção
-  interna da política de serving implementada; o A0 candidato-específico
-  A0-003 dispõe as quatro operações visuais como `PERMITTED` somente sob o
-  mecanismo notice-bearing e preserva distribuição/publicação externa
-  `DENIED`; o primeiro documento foi materializado como `LocalAuthorised` em
-  uma geração text-first validada e ativada na revisão `1`, com imagem privada
-  publicada no GHCR e serviço Render Hobby/Free implantado uma vez, `Live` e
-  `Ready`, sem consulta de produto, Responses ou embeddings; o obligation set
-  determinístico de
-  `postgresql-18-reference-a4` está vinculado ao perfil visual sob demanda;
-  ADR-0012
-  `accepted`,
-  reconciliado, com revisão do contrato v2 congelada, schema/migrations e
-  comportamento notice-bearing implementados; o Automatic Quality Gate
-  notice-bearing foi `APROVADO` somente na fronteira local, offline,
-  determinística e sintética, sem achado P0, P1, P2 ou P3;
-  o reteste da composição administrativa de `synchronise-official` e
-  `build-index` pelo caminho de `Program` também foi `APROVADO`, sem achado,
-  somente na fronteira local, offline, determinística e sintética, sem
-  materialização ou ativação de produto;
-  ADR-0013 `accepted` e
-  reconciliado semanticamente, com compatibilidade do adaptador implementada e
-  Automatic Quality Gate específico aprovado somente na fronteira local,
-  offline e com handlers falsos; a campanha candidata de provider possui uma
-  revisão sucessora sintética congelada, com Automatic Quality Gate aprovado
-  somente na fronteira local, offline, determinística e com handlers falsos;
-  o preflight operacional inicial terminou `BLOQUEADO`, sem campanha real; o
-  fluxo experimental Coordinator/Docker/C3 foi revogado e não constitui
-  autoridade ou pendência; o caminho temporário da Admin key de provisionamento
-  está fechado, com
-  revogação, estado histórico somente Inactive e remoção verificada do target
-  local registradas de forma sanitizada; ADR-0014 `accepted`, com
-  `DR-2 — Determinism implementation` concluído no commit focal
-  `fabb24cad16201070e3b95fffb22467cd55963ab` e MultiQuery estacionado;
-  `DR-3 — Determinism Automatic Quality Gate` inicialmente `REPROVADO` sob
-  autoridade separada; ADR-0015 `accepted`, com semântica
-  `cosine-f32mul-f64acc-boundary-canonical-v1`, `retrieval-v2` e compatibilidade
-  sucessora implementadas no commit
-  `9addb166e82dd04581beee7b4276a74977fe04c5`; o reteste corretivo independente
-  de DR-3 foi `APROVADO`, sem novo P0, P1, P2 ou P3, e dispôs
-  `DR3-FIND-001` a `DR3-FIND-004` como `RESOLVED`; `RB-1 — Evaluation design
-  freeze` concluído documentalmente com a revisão imutável
-  `retrieval-v2-evaluation-design-v1` em estado
-  `frozen-unmaterialised-unscored`, 28 artefatos normativos e sete contadores
-  de materialização em zero; os artefatos `RB-2` e `RB-3` foram posteriormente
-  materializados e permanecem mecanicamente congelados sem pontuação sobre a
-  baseline `main@0dbc415`, com 252 casos e 252 vetores vinculados pelos
-  manifests SHA-256
-  `daede1db869f7daf784fa2f3fc3b55e037cf4f3bb59a22f94e2026175858bfe4` e
-  `ac7b5763bc9e571b6365449b340c8256790c5fe57ba79142b592b854cf25303c`.
-  A reauditoria de governança constatou ausência de atribuição humana e vinte
-  decisões de agente onde o checkpoint exigia revisão/adjudicação humana;
-  RB-2 não satisfaz atualmente seu gate, RB-3 fica indisponível para consumo e
-  `RB-4` permanece bloqueado e `NOT_RUN`;
-  o playbook multiagente, seis papéis project-scoped e stop conditions estão
-  formalizados; a corrida entre classes de integração que limpavam pools
-  SQLite process-wide foi contida por serialização da assembly, e o gate
-  offline limpo passou com 505 testes .NET, 45 testes web, 95,38% de linhas e
-  67,23% de branches; o proprietário selecionou quarentena histórica para os
-  freezes RB-2/RB-3, mantendo RB-2 inválido, RB-3 indisponível para RB-4 e
-  qualquer sucessor sob autoridade humana separada; ADR-0016 foi explicitamente
-  `accepted`; após o bloqueio histórico por ausência local do SDK, o
-  proprietário concedeu autoridade delimitada ao npm registry, o grafo exato
-  `@openai/codex-sdk` `0.147.0` foi locked e a Etapa 2 implementou e validou o
-  orchestrator determinístico de desenvolvimento. A limitação posterior de
-  identidade pré-turno da SDK foi resolvida por ADR-0017, explicitamente
-  `accepted`: os commits integrados `583c3b4` e `9512d6e` substituíram somente
-  o transporte real pela dependência direta `@openai/codex` `0.147.0` e pela
-  sequência App Server `thread/start` → checkpoint → `turn/start`. A sessão
-  local `chatgpt` foi validada sem `OPENAI_API_KEY`; testes, gate canônico e um
-  turn real read-only controlado passaram. A prontidão do tooling é agora
-  `MULTI_AGENT_READY`, mantendo `FakeAgentRunner` para CI e autoridade própria
-  obrigatória para cada execução;
-  a política de idioma exige explicitamente en-GB em subject, body e footer de
-  toda nova mensagem de commit pertencente ao projeto, sem transformar essa
-  regra em autoridade implícita para amend, rebase ou reescrita de histórico;
-  homologação de produto, Human Gate e mudança de lifecycle não executados
-- Escopo: 13 arquivos ativos em `prompts/`
+- Version: `4.16.0`
+- Date: 2026-08-16
+- Status: `STATE-07` active; ADR-0011 through ADR-0017 retain their recorded
+  accepted dispositions and implemented or pending boundaries; PostgreSQL 18.4
+  remains active at revision `1` in its validated text-first generation; the
+  notice-bearing, retrieval-determinism, provider-candidate and RB-1 through
+  RB-4 dispositions remain exactly as recorded in Current State; the
+  development orchestrator remains `MULTI_AGENT_READY` with separate authority
+  required for every execution; the Stage 0/1/2 governance,
+  product-credential isolation and en-GB migration implementation is complete
+  on the isolated integration candidate; the language baseline is `COMPLETE`
+  with zero accepted debt; final integrated gates remain required before the
+  local `main` may be updated; product homologation, Human Gate and lifecycle
+  change remain unexecuted
+- Scope: 13 active files under `prompts/`
 
-A versão do corpus é independente da versão futura do software.
+The corpus version is independent from the future software version.
 
-## Política SemVer
+## SemVer policy
 
-- `MAJOR`: mudança incompatível de autoridade, precedência, estados ou
-  estrutura.
-- `MINOR`: nova capacidade, módulo, playbook ou gate sem quebra do fluxo.
-- `PATCH`: clareza, correção ou referência sem mudança de autoridade.
+- `MAJOR`: incompatible change to authority, precedence, states or structure.
+- `MINOR`: new capability, module, playbook or gate without breaking the flow.
+- `PATCH`: clarity, correction or reference without an authority change.
 
-Toda alteração atualiza este arquivo e, quando necessário,
+Every change updates this file and, when necessary,
 [`../Start-Here.md`](../Start-Here.md).
+
+## 4.16.0 — 2026-08-16
+
+- Makes the Stage 0/1/2 hand-off rule normative while retaining the seven
+  approved exceptions and preventing multi-agent readiness from becoming
+  continuous authority.
+- Separates administrative indexing, query embedding and grounded generation
+  through exact operation-specific request references and independently trusted
+  in-memory grants. Product credential lookup and egress remain deny-all until
+  the matching grant is demanded immediately before use.
+- Removes local `.env.local` credential loading, closes agent, orchestrator,
+  CI, common-test and development-tool environments, and uses only synthetic
+  readers, maps, values and fake handlers in verification.
+- Enforces British English for current project-owned technical prose and new
+  commit messages through schema-bound policy, immutable Git-object scanning,
+  protected control paths and exact structured exclusions. The migration
+  baseline is `COMPLETE` with zero debt.
+- Migrates the approved technical corpus to en-GB while preserving owner-facing
+  pt-BR, functional localisation, source/citation languages, canonical
+  contracts, Git history, historical evidence and append-only records.
+- Preserves the three original Stage owner inputs byte for byte as ignored,
+  local, historical, inactive and non-normative evidence and tracks only their
+  en-GB provenance manifest.
+- Classifies this version ledger as the sole mutable-header/newest-first
+  exception. All entries from `4.15.0` backwards form one digest-bound
+  historical region; `State-Transition-Log.md` and every other formally
+  append-only region retain exact prefix protection.
+- Preserves OpenAPI v1/v2 byte identities and introduces no provider call,
+  credential use, external network, billing, Human Gate, lifecycle transition,
+  push, release or deployment.
+- Classification: `MINOR`, because the corpus gains governed multi-agent,
+  credential-boundary and enforceable language capabilities without breaking
+  the existing lifecycle or product contracts.
 
 ## 4.15.0 — 2026-08-15
 

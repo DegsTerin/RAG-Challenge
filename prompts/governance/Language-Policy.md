@@ -110,6 +110,12 @@ payload data or externally supplied content merely to apply `en-GB`.
 - Never rewrite Git history or amend previous commit messages for translation.
 - Preserve append-only records and their integrity-protected prefixes. New
   append-only entries follow this policy without translating earlier entries.
+- `Prompt-System-Change-Log.md` is the sole version-ledger exception: its
+  current-version header is mutable and each new en-GB entry is inserted in
+  newest-first order. Entries from earlier versions form a digest-bound
+  historical region and remain byte-for-byte unchanged. This exception does
+  not weaken the prefix protection of `State-Transition-Log.md` or any other
+  formally append-only region.
 - Preserve historical evidence and original owner inputs in their original
   language. An `en-GB` provenance record may describe them but does not replace,
   translate or reactivate them.

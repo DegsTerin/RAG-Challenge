@@ -273,12 +273,18 @@
         "startMarker": "## Contexto histórico preservado",
         "endMarker": null,
         "sha256": "1c9c731d965c8eee7f456d5074df6b2fb303d7cd071dfbfba77765b83663dd86"
+      },
+      {
+        "path": "prompts/system/Prompt-System-Change-Log.md",
+        "classification": "PRESERVED_HISTORICAL_REGION",
+        "startMarker": "## 4.15.0 — 2026-08-15",
+        "endMarker": null,
+        "sha256": "6bc87acd842738824c7a458119b8b964f2fd2228d2a03282df1af035402c8b80"
       }
     ],
     "appendOnlyPrefixes": [
-      { "path": "prompts/state/State-Transition-Log.md", "prefixBytes": 544842, "sha256": "8b9567ff3cec6bb79c220af0eacc669824485d717cf69df92bcc1ecb9875545e" },
-      { "path": "prompts/system/Prompt-System-Change-Log.md", "prefixBytes": 157982, "sha256": "15cc9ecb5b6d6a6de5e951e045fbde7ce6cec0cee0ab6631a5a15fb29bb699a4" }
+      { "path": "prompts/state/State-Transition-Log.md", "prefixBytes": 544842, "sha256": "8b9567ff3cec6bb79c220af0eacc669824485d717cf69df92bcc1ecb9875545e" }
     ]
   },
-  "digest": "sha256:02f38be2c91a8441e6a789de1371aa2de603156c4373a763a5461023fbd6dd01"
+  "digest": "sha256:f38bbfb9b3f6142aa77a2d98583dd78c83791f171ac268c3f62e90f801af5d3c"
 }
