@@ -2185,8 +2185,9 @@ reports.
 ## Workspace
 
 - `.gitignore` excludes `reference-materials/`.
-- `reference-materials/` preserves 24 local files: 23 original Challenge materials
-  and 1 generic governance prompt archived unchanged.
+- `reference-materials/` preserves 27 local files: 23 original Challenge
+  materials, 1 generic governance prompt archived unchanged and 3 historical
+  Stage owner inputs preserved under `governance-inputs/`.
 - `reference-materials/challenge-original/` retains 8 Markdown files, 14 PDFs and 1
   PNG.
 - The original materials are not the product corpus and will not be sent to
@@ -2239,9 +2240,9 @@ reports.
   removed those outputs. In the final snapshot, `bin/`, `obj/` and `TestResults/`
   are absent from all seven projects.
 - No active technical file or path retains the previous prefix or absolute
-  path. `reference-materials/` remained ignored and fully preserved
-  its 24 files; historical, external and provenance uses
-  remain deliberately unchanged.
+  path. At that historical path-migration boundary, `reference-materials/`
+  remained ignored and fully preserved its then-current 24 files; historical,
+  external and provenance uses remain deliberately unchanged.
 - The CI pipeline is defined with least privilege and without deployment. This audit
   did not query the remote GitHub run history; remote CI
   state was not revalidated.
