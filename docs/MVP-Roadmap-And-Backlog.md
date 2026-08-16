@@ -1,456 +1,457 @@
-# Roadmap e Backlog do MVP
+# MVP Roadmap and Backlog
 
-## Objetivo
+## Objective
 
-Entregar um agente RAG independente, reproduzível localmente e implantado em
-OCI, que responda sobre todos os documentos PDF/CSV ativos do catálogo de
-bancos, com proveniência explícita, citações e recusa segura.
+Deliver an independent RAG agent that is locally reproducible and deployed on
+OCI, and that answers questions about all active PDF/CSV documents in the
+database catalogue with explicit provenance, citations and safe refusal.
 
-Este documento planeja trabalho; não autoriza entrada em estado, código,
-consumo externo ou deploy.
+This document plans work; it does not authorise entry into a state, code,
+external consumption or deployment.
 
-## Definição do MVP
+## MVP definition
 
-Incluído:
+Included:
 
-- um corpus lógico;
-- catálogo inicial de 51 bancos, 9 categorias e 54 associações;
-- qualquer quantidade de documentos PDF/CSV por banco;
-- administração Candidate/Active/Deactivated/Removed sem hard-code;
-- fontes oficiais obtidas de URLs HTTPS individualmente allowlisted;
-- sincronização manual para snapshots versionados;
-- recuperação unificada de todos os documentos ativos, com proveniência
-  local/oficial e cobertura explícitas;
-- catálogo e versões imutáveis;
-- armazenamento imutável e reabrível do conteúdo bruto;
-- parsing e chunking versionados;
-- um embedding provider;
-- um vector store;
-- um LLM;
-- geração imutável de índice;
-- consulta com citações e `INSUFFICIENT_EVIDENCE`;
-- perguntas e respostas em `pt-BR` e `en-GB`, com resposta no idioma
-  declarado da pergunta e citações no idioma original;
-- interface localizável em `pt-BR` e `en-GB`, com seleção explícita e
-  independente do idioma da consulta;
-- interface com temas `Light` e `Dark`, selecionáveis independentemente do
-  idioma visual e da consulta;
-- API, artefato OpenAPI v1 versionado e interface web mínima;
-- execução local;
+- one logical corpus;
+- an initial catalogue of 51 databases, 9 categories and 54 associations;
+- any number of PDF/CSV documents per database;
+- Candidate/Active/Deactivated/Removed administration without hard-coding;
+- official sources obtained from individually allowlisted HTTPS URLs;
+- manual synchronisation into versioned snapshots;
+- unified retrieval across all active documents, with explicit local/official
+  provenance and coverage;
+- immutable catalogue and versions;
+- immutable, reopenable storage of raw content;
+- versioned parsing and chunking;
+- one embedding provider;
+- one vector store;
+- one LLM;
+- immutable index generations;
+- queries with citations and `INSUFFICIENT_EVIDENCE`;
+- questions and answers in `pt-BR` and `en-GB`, with the answer in the declared
+  question language and citations in their original language;
+- an interface localised in `pt-BR` and `en-GB`, with an explicit selection
+  independent of the query language;
+- `Light` and `Dark` interface themes, selected independently from the visual
+  and query languages;
+- an API, versioned OpenAPI v1 artefact and minimal web interface;
+- local execution;
 - CI;
-- deploy OCI e evidência;
-- documentação e testes.
+- OCI deployment and evidence; and
+- documentation and tests.
 
-Não incluído:
+Not included:
 
-- formatos além de PDF e CSV;
-- múltiplos acervos ativos;
-- sincronização incremental/agendada;
-- crawling, HTML genérico ou URL fornecida pelo usuário;
-- vários providers em produção;
-- autenticação corporativa;
-- microserviços;
-- integração executável ao DB-Notifier.
+- formats beyond PDF and CSV;
+- multiple active corpora;
+- incremental or scheduled synchronisation;
+- crawling, generic HTML or a user-provided URL;
+- several production providers;
+- corporate authentication;
+- microservices; or
+- executable DB-Notifier integration.
 
-## Roadmap por estado
+## Roadmap by state
 
-| Estado | Resultado incremental | Condição de saída |
+| State | Incremental result | Exit condition |
 |---|---|---|
-| `STATE-00` | Discovery, requisitos, arquitetura proposta, riscos, backlog e governança. | Quality Gate documental e Human Gate explícito. |
-| `GATE-B01` | ADR-0001, licença do repositório e mapa físico de projetos decididos. | Decisão humana registrada; nenhuma implementação autorizada. |
-| `STATE-01` | Repositório e scaffold reproduzível sem lógica RAG, conforme bootstrap aceito. | Clone limpo compila/testa e CI estrutural passa. |
-| `STATE-02` | ADR-0002, providers, catálogo/documentos/licenças/fontes, threat model e OCI decididos. | Decisões aceitas e riscos críticos tratados. |
-| `STATE-03` | Modelo de banco/categoria/documento/snapshot/índice, freshness, bindings, migrations e rollback. | Geração/ativação e isolamento são verificáveis sem serviço produtivo. |
-| `STATE-04` | Administração/ingestão PDF/CSV, sync oficial, pipeline RAG e API funcionais localmente. | Recuperação unificada, citações e falhas passam testes. |
-| `STATE-05` | Interface mínima com cobertura, proveniência e freshness. | Fluxos PDF/CSV local/oficial e citações validados humanamente. |
-| `STATE-06` | E2E offline, artefato, ensaio OCI não produtivo e README factualmente atual com exemplo local/sintético verificado. | Execução reproduzível sem corrupção, leak, secret ou sobredeclaração de evidência. |
-| `STATE-07` | Homologação RAG, SSRF, isolamento, carga, recuperação e acessibilidade. | Thresholds prévios atendidos e riscos aceitos. |
-| `STATE-08` | Deploy OCI, egress oficial, smoke, evidência e README final. | Entrega pública atende aos critérios oficiais. |
+| `STATE-00` | Discovery, requirements, proposed architecture, risks, backlog and governance. | Documentary Quality Gate and explicit Human Gate. |
+| `GATE-B01` | ADR-0001, repository licence and physical project map decided. | Recorded human decision; no implementation authorised. |
+| `STATE-01` | Reproducible repository and scaffold without RAG logic, following the accepted bootstrap. | A clean clone builds/tests and structural CI passes. |
+| `STATE-02` | ADR-0002, providers, catalogue/documents/licences/sources, threat model and OCI decided. | Decisions accepted and critical risks addressed. |
+| `STATE-03` | Database/category/document/snapshot/index model, freshness, bindings, migrations and rollback. | Generation/activation and isolation are verifiable without a production service. |
+| `STATE-04` | Local functional administration/PDF/CSV ingestion, official synchronisation, RAG pipeline and API. | Unified retrieval, citations and failures pass tests. |
+| `STATE-05` | Minimal interface with coverage, provenance and freshness. | Local/official PDF/CSV flows and citations validated by humans. |
+| `STATE-06` | Offline E2E, artefact, non-production OCI rehearsal and factually current README with a verified local/synthetic example. | Reproducible execution without corruption, leaks, secrets or overstated evidence. |
+| `STATE-07` | RAG homologation, SSRF, isolation, load, recovery and accessibility. | Predefined thresholds met and risks accepted. |
+| `STATE-08` | OCI deployment, official egress, smoke check, evidence and final README. | Public delivery satisfies the official criteria. |
 
-## Etapas pequenas de desenvolvimento
+## Small development increments
 
-### Lote S00-DOC — Baseline documental
+### Batch S00-DOC — Documentary baseline
 
-- Criar os 20 arquivos originalmente aprovados. Documentos normativos
-  acrescentados depois são incrementos versionados e não reescrevem esse
-  escopo histórico.
-- Validar links, formato, escopo e separação de autoridade.
-- Reconciliar a promoção da fonte oficial online ao MVP.
-- Produzir relatório automático.
-- Solicitar Human Gate somente do `STATE-00`.
+- Create the 20 originally approved files. Normative documents added later
+  are versioned increments and do not rewrite that historical scope.
+- Validate links, format, scope and separation of authority.
+- Reconcile promotion of the online official source into the MVP.
+- Produce the automatic report.
+- Request a Human Gate only for `STATE-00`.
 
-### GATE-B01 — Decisão de bootstrap
+### GATE-B01 — Bootstrap decision
 
-- Aceitar ou rejeitar explicitamente o ADR-0001.
-- Escolher a licença do repositório, separada da licença do corpus.
-- Confirmar se cada assembly candidato possui responsabilidade ou boundary de
-  dependência/teste suficiente; registrar o mapa físico aprovado.
-- Mapear `CH-MOD-*` para namespaces/pastas/projetos, dependências permitidas e
-  testes arquiteturais.
-- Escolher host principal em modo one-shot ou justificar um projeto
-  administrativo separado, sem ainda definir identidade/permissões.
-- Consolidar mapa, módulos e forma administrativa no ADR-0001 aceito; registrar
-  decisão/licença/evidência em entrada append-only do State Transition Log e
-  atualizar o Current State apenas como snapshot.
+- Explicitly accept or reject ADR-0001.
+- Select the repository licence separately from the corpus licence.
+- Confirm whether each candidate assembly has sufficient responsibility or a
+  dependency/test boundary, and record the approved physical map.
+- Map `CH-MOD-*` to namespaces/directories/projects, permitted dependencies
+  and architecture tests.
+- Select one-shot mode in the main host or justify a separate administrative
+  project, without yet defining identity or permissions.
+- Consolidate the map, modules and administrative form in accepted ADR-0001;
+  record decision/licence/evidence in an append-only State Transition Log
+  entry and update Current State only as a snapshot.
 
-Critério: decisão humana registrada. Este gate não inicializa Git, não cria
-scaffold, não aceita o ADR-0002 e não autoriza `STATE-01`.
+Criterion: recorded human decision. This gate does not initialise Git, create
+the scaffold, accept ADR-0002 or authorise `STATE-01`.
 
-### Lote S01-A — Fundação do repositório
+### Batch S01-A — Repository foundation
 
-- Inicializar Git somente após autorização.
-- Aplicar a licença de repositório já decidida, `.editorconfig` e
+- Initialise Git only after authority is granted.
+- Apply the previously selected repository licence, `.editorconfig` and
   `.gitattributes`.
-- Completar `.gitignore`.
-- Fixar as toolchains aceitas no ADR-0001.
-- Criar gestão central de pacotes e lockfiles.
+- Complete `.gitignore`.
+- Pin the toolchains accepted in ADR-0001.
+- Create central package management and lockfiles.
 
-Critério: nenhuma lógica funcional e nenhum secret.
+Criterion: no functional logic and no secret.
 
-### Lote S01-B — Fronteiras vazias
+### Batch S01-B — Empty boundaries
 
-- Criar solution e projetos.
-- Adicionar referências na direção aprovada.
-- Criar testes de arquitetura.
-- Adicionar hosts mínimos e health sem dependências externas.
+- Create the solution and projects.
+- Add references in the approved direction.
+- Create architecture tests.
+- Add minimal hosts and health without external dependencies.
 
-Critério: restore, build, format e testes locais aprovados.
+Criterion: local restore, build, format and tests pass.
 
-### Lote S01-C — CI inicial
+### Batch S01-C — Initial CI
 
 - Build/test/format.
-- Cobertura estrutural.
+- Structural coverage.
 - Dashboard lint/type/test/build.
-- Dependency e secret scans.
-- Links Markdown e higiene do diff.
+- Dependency and secret scans.
+- Markdown links and diff hygiene.
 
-Critério: pipeline localmente reproduzível; CI não faz deploy.
+Criterion: locally reproducible pipeline; CI does not deploy.
 
-### Lote S02-A — Decisões bloqueadoras
+### Batch S02-A — Blocking decisions
 
-- Aceitar/rejeitar ADR-0002 e decisões adicionais necessárias.
-- Escolher a licença do corpus; não reabrir silenciosamente a licença do
-  repositório.
-- Congelar o catálogo inicial 51/54/9 e o contrato PDF/CSV sem teto numérico.
-- Definir o ciclo administrativo e os registros de URLs oficiais,
-  termos/licenças, maxAge e limites por fonte.
-- Selecionar parser, embeddings, vector store e LLM.
-- Definir persistência durável e retenção de conteúdo bruto, catálogo e
-  índice, incluindo restart e armazenamento OCI.
-- Se o vector store for externo, definir e autorizar separadamente seu egress
-  e tratamento de dados; manter adapter local como alternativa simples.
-- Selecionar serviço/região OCI.
+- Accept/reject ADR-0002 and any necessary additional decisions.
+- Select the corpus licence without silently reopening the repository licence.
+- Freeze the initial 51/54/9 catalogue and the PDF/CSV contract without a
+  numerical cap.
+- Define the administrative cycle and records for official URLs,
+  terms/licences, `maxAge` and per-source limits.
+- Select parser, embeddings, vector store and LLM.
+- Define durable persistence and retention for raw content, catalogue and
+  index, including restart and OCI storage.
+- If the vector store is external, define and separately authorise its egress
+  and data handling; retain a local adapter as the simple alternative.
+- Select the OCI service/region.
 
-Critério: cada escolha tem alternativa, consequência e owner.
+Criterion: every choice has an alternative, consequence and owner.
 
-### Lote S02-B — Contratos e segurança
+### Batch S02-B — Contracts and security
 
-- Especificar entidades, ports, `VectorSearchRequest`,
-  `IDocumentContentStore`, `CorpusActivationRecord` e resultados.
-- Detalhar threat model e as políticas separadas
-  `AI_PROVIDER_EGRESS`, `VECTOR_STORE_EGRESS`, `OFFICIAL_SOURCE_EGRESS` e
-  `OCI_RUNTIME_EGRESS`.
-- Definir canonicalização e pinning DNS/IP por conexão, Host/SNI e redirects
-  desativados para a fonte oficial.
-- Exigir fonte pública sem credenciais e decidir trust, revogação, downloads de
-  cadeia e eventual provisão de material TLS sem egress auxiliar não
-  autorizado, com prova prevista em clone local limpo e OCI.
-- Escolher a superfície administrativa local não pública, sua identidade,
-  permissões, idempotência, motivo obrigatório e auditoria.
-- Definir configuração, tabela canônica de erros, readiness global/por scope,
-  logging e auditoria.
-- Definir ownership, schemas, metadados e política de compatibilidade do
-  OpenAPI v1.
-- Definir `questionLanguage`, `answerLanguage` e `contentLanguage` com os
-  valores canônicos `pt-BR` e `en-GB`, sem decidir o idioma da interface.
-- Definir dataset, rubrica e thresholds antes da execução.
-- Definir recuperação unificada, cobertura, proveniência, ausência de fallback
-  e autorização dos testes reais.
+- Specify entities, ports, `VectorSearchRequest`, `IDocumentContentStore`,
+  `CorpusActivationRecord` and outcomes.
+- Detail the threat model and the separate `AI_PROVIDER_EGRESS`,
+  `VECTOR_STORE_EGRESS`, `OFFICIAL_SOURCE_EGRESS` and `OCI_RUNTIME_EGRESS`
+  policies.
+- Define canonicalisation and per-connection DNS/IP pinning, Host/SNI and
+  disabled redirects for the official source.
+- Require a credential-free public source and decide trust, revocation, chain
+  downloads and possible TLS material provision without unauthorised
+  auxiliary egress, with evidence planned for a clean local clone and OCI.
+- Select the non-public local administrative surface, its identity,
+  permissions, idempotency, mandatory reason and audit.
+- Define configuration, canonical error table, global/per-scope readiness,
+  logging and audit.
+- Define ownership, schemas, metadata and the OpenAPI v1 compatibility policy.
+- Define `questionLanguage`, `answerLanguage` and `contentLanguage` with
+  canonical values `pt-BR` and `en-GB`, without deciding interface language.
+- Define the dataset, rubric and thresholds before execution.
+- Define unified retrieval, coverage, provenance, absence of fallback and
+  authority for real tests.
 
-Critério: implementação pode começar sem decisão material em aberto.
+Criterion: implementation can begin without an open material decision.
 
-### Lote S03-A — Modelo de catálogo
+### Batch S03-A — Catalogue model
 
-- Modelar corpus, banco, categoria muitos-para-muitos, documento, versão,
-  formato, estado e proveniência.
-- Modelar registros de fontes, snapshots oficiais imutáveis, observações de
-  revalidação e freshness.
-- Modelar especificação e manifesto final canônicos, staging não consultável,
-  digest/contagens dos artefatos lógicos, identidade determinística da geração
-  finalizada, `sourceBindingSetDigest` generation-bound sem observação e
-  separação entre snapshot selecionado e freshness.
-- Modelar estados de build e as projeções `Active`/`Retained` derivadas do
-  `CorpusActivationRecord` e de seu histórico completo.
-- Modelar `activationBindingSetDigest` para o binding completo com observação e
-  journal/revisão de observações separado de `catalogueRevision`.
-- Publicar vetores canônicos dos dois digests, com null/order/versionamento
-  inequívocos, e provar as três validações antes do compare-and-swap.
-- Definir constraints, índices, UTC e concorrência.
+- Model corpus, database, many-to-many category, document, version, format,
+  state and provenance.
+- Model source records, immutable official snapshots, revalidation observations
+  and freshness.
+- Model canonical final specification and manifest, non-queryable staging,
+  logical-artefact digest/counts, deterministic identity of the finalised
+  generation, observation-free generation-bound `sourceBindingSetDigest`, and
+  separation between selected snapshot and freshness.
+- Model build states and `Active`/`Retained` projections derived from the
+  `CorpusActivationRecord` and its complete history.
+- Model `activationBindingSetDigest` for the complete binding with observation
+  and a separate observation journal/revision from `catalogueRevision`.
+- Publish canonical vectors for both digests, with unambiguous
+  null/order/versioning semantics, and prove the three validations before
+  compare-and-swap.
+- Define constraints, indexes, UTC and concurrency.
 
-Critério: modelo não contém secret nem SDK/provider type.
+Criterion: the model contains no secret or SDK/provider type.
 
-### Lote S03-B — Persistência e rollback
+### Batch S03-B — Persistence and rollback
 
-- Criar migrations não produtivas.
-- Testar create/upgrade/failure/rollback.
-- Provar compare-and-swap atômico do registro completo de geração, bindings de
-  bancos/documentos/snapshots/observações e auditoria.
-- Testar append de observação, cálculo dos dois digests, auditoria e conflito em
-  cada fronteira; retry é idempotente e não seleciona “última observação”.
-- Rollback cria nova revisão para geração retida e validada, com observações
-  explicitamente selecionadas, compatíveis e atualmente elegíveis; nunca
-  restaura registro/freshness histórico byte a byte.
-- Preservar e reabrir bytes content-addressed alcançáveis; limpar somente
-  órfãos comprovados após retenção.
-- Preservar a geração ativa e ao menos uma geração anterior validada até
-  cleanup explícito após a janela de rollback aprovada.
+- Create non-production migrations.
+- Test create/upgrade/failure/rollback.
+- Prove atomic compare-and-swap of the complete generation record,
+  database/document/snapshot/observation bindings and audit.
+- Test observation append, both digest calculations, audit and conflict at
+  every boundary; retry is idempotent and does not select the “latest
+  observation”.
+- Rollback creates a new revision for a retained and validated generation with
+  explicitly selected, compatible and currently eligible observations; it
+  never restores a historical record/freshness byte for byte.
+- Preserve and reopen reachable content-addressed bytes; clean only proven
+  orphans after retention.
+- Preserve the active generation and at least one prior validated generation
+  until explicit cleanup after the approved rollback window.
 
-Critério: falha preserva geração anterior e o retorno ativação → geração
-anterior é testado.
+Criterion: failure preserves the previous generation, and the activation →
+previous-generation return is tested.
 
-### Lote S04-A — Administração, ingestão e sincronização oficial
+### Batch S04-A — Administration, ingestion and official synchronisation
 
-- Administrar bancos, categorias, documentos, versões e estados com auditoria.
-- Validar PDF/CSV local e raiz.
-- Validar cada URL allowlisted e sincronizar manualmente PDF/CSV oficial para
-  snapshot.
-- Persistir e reabrir por hash os bytes locais/oficiais antes de ativar e
-  registrar status e validators HTTP enviados/recebidos em cada observação.
-- Em `304` ou hash idêntico, registrar nova observação de revalidação sem
-  criar snapshot ou índice somente se ela nomear o mesmo registro imutável e
-  snapshot do manifesto ativo; criar nova revisão completa e
-  `activationBindingSetDigest`, preservar os campos generation-bound definidos
-  pelo ADR-0007 e rejeitar mismatch antes do compare-and-swap.
-- Extrair PDF e CSV por adapters próprios.
-- Normalizar e produzir chunks de forma determinística.
-- Persistir bytes brutos, metadados e hashes de forma idempotente.
+- Administer databases, categories, documents, versions and states with audit.
+- Validate local PDF/CSV and root.
+- Validate every allowlisted URL and manually synchronise official PDF/CSV into
+  a snapshot.
+- Persist and reopen local/official bytes by hash before activation and record
+  the status and sent/received HTTP validators in every observation.
+- On `304` or an identical hash, record a new revalidation observation without
+  creating a snapshot or index only when it names the same immutable record and
+  active-manifest snapshot; create a complete new revision and
+  `activationBindingSetDigest`, preserve the generation-bound fields defined
+  by ADR-0007, and reject mismatch before compare-and-swap.
+- Extract PDF and CSV through dedicated adapters.
+- Normalise and produce chunks deterministically.
+- Persist raw bytes, metadata and hashes idempotently.
 
-Critério: fixtures PDF/CSV local/HTTP geram chunks rastreáveis; falha de sync
-preserva snapshots, documentos e geração ativos.
+Criterion: local/HTTP PDF/CSV fixtures produce traceable chunks; a
+synchronisation failure preserves active snapshots, documents and generation.
 
-### Lote S04-B — Indexação
+### Batch S04-B — Indexing
 
-- Integrar embedding provider.
-- Construir staging inativo por `candidateBuildId`.
-- Incluir banco, documento, formato, origem e trust em identidade, digest e
-  metadados vetoriais.
-- Exigir `CorpusId` e `IndexGenerationId` no contrato de busca e provar
-  hard pre-filter desses IDs, dos bindings generation-bound elegíveis derivados
-  do registro resolvido e de filtros administrativos opcionais.
-- Finalizar digest/contagens/readback, derivar `IndexGenerationId`, validar o
-  manifesto final e ativar.
-- Reexecutar idempotentemente sem promover candidato parcial.
+- Integrate the embedding provider.
+- Build inactive staging by `candidateBuildId`.
+- Include database, document, format, origin and trust in identity, digest and
+  vector metadata.
+- Require `CorpusId` and `IndexGenerationId` in the search contract and prove
+  hard pre-filtering of those IDs, eligible generation-bound bindings derived
+  from the resolved record, and optional administrative filters.
+- Finalise digest/counts/readback, derive `IndexGenerationId`, validate the
+  final manifest and activate.
+- Rerun idempotently without promoting a partial candidate.
 
-Critério: conteúdo idêntico não cria inconsistência; falha não substitui ativo.
+Criterion: identical content creates no inconsistency; failure does not
+replace the active generation.
 
-### Lote S04-C — Recuperação e resposta
+### Batch S04-C — Retrieval and answer
 
-- Validar pergunta.
-- Validar `questionLanguage=pt-BR|en-GB` antes de qualquer provider e exigir
-  que a geração use esse mesmo idioma na resposta.
-- Resolver uma única revisão do registro, avaliar suas observações e aplicar os
-  bindings generation-bound elegíveis e filtros autorizados antes do top-k.
-- Recuperar evidências em todo o conjunto ativo e expor cobertura/proveniência.
-- Gerar resposta constrained.
-- Validar citações.
-- Retornar evidência insuficiente.
+- Validate the question.
+- Validate `questionLanguage=pt-BR|en-GB` before any provider and require the
+  generation to use that same language in the answer.
+- Resolve one record revision, evaluate its observations and apply eligible
+  generation-bound bindings and authorised filters before top-k.
+- Retrieve evidence across the active set and expose coverage/provenance.
+- Generate a constrained answer.
+- Validate citations.
+- Return insufficient evidence.
 
-Critério: testes cobrem bancos/documentos/formatos/origens, os quatro pares entre idioma da
-pergunta e idioma da evidência, preservação do idioma original nas citações,
-sem resposta, stale, indisponível, source leakage, provider down e injection.
+Criterion: tests cover databases/documents/formats/origins, all four pairs of
+question and evidence language, preservation of original citation language,
+no answer, stale, unavailable, source leakage, provider down and injection.
 
-### Lote S04-D — API
+### Batch S04-D — API
 
-- Implementar `/api/v1/questions`.
-- Rejeitar URL/domínio/adapter e campos públicos de autoridade sobre catálogo.
-- Exigir `questionLanguage=pt-BR|en-GB`, retornar `answerLanguage` igual e
-  expor `contentLanguage` nas citações.
-- Implementar liveness/readiness.
-- Mapear a taxonomia canônica para códigos `CH_*` e Problem Details.
-- Gerar e versionar o artefato OpenAPI v1 com schemas de consulta, resposta,
-  citações e falhas.
-- Incluir metadados não secretos de política, prompt e modelo e executar teste
-  de compatibilidade/breaking change.
-- Aplicar limites, timeout, cancelamento e rate limit.
+- Implement `/api/v1/questions`.
+- Reject URL/domain/adapter and public catalogue-authority fields.
+- Require `questionLanguage=pt-BR|en-GB`, return matching `answerLanguage` and
+  expose citation `contentLanguage`.
+- Implement liveness/readiness.
+- Map the canonical taxonomy to `CH_*` codes and Problem Details.
+- Generate and version the OpenAPI v1 artefact with query, answer, citation and
+  failure schemas.
+- Include non-secret policy, prompt and model metadata and run a
+  compatibility/breaking-change test.
+- Apply limits, timeout, cancellation and rate limiting.
 
-Critério: API não expõe secret, stack trace ou conteúdo indevido.
+Criterion: the API exposes no secret, stack trace or inappropriate content.
 
-### Lote S05-A — Interface mínima
+### Batch S05-A — Minimal interface
 
-- Formulário de pergunta.
-- Seletor explícito de `interfaceLanguage=pt-BR|en-GB`, independente de
+- Question form.
+- Explicit `interfaceLanguage=pt-BR|en-GB` selector, independent of
   `questionLanguage`.
-- Localizar labels, instruções, validações, loading, vazio, erro, stale,
-  indisponível, rate limit e sem evidência nos dois idiomas.
-- Seletor explícito de tema `Light`/`Dark`, sem alterar idioma, pergunta,
-  resposta, evidência ou citações.
-- Aplicar tokens acessíveis de fundo, superfície, texto, borda, foco e estado
-  nos dois temas, sem comunicar informação somente por cor.
-- Indicador de cobertura ativa e proveniência local/oficial, com degradação por
-  fonte/documento sem divisão silenciosa da consulta.
-- Resposta e lista de citações.
-- URL/snapshot/freshness nas citações oficiais.
-- Loading, vazio, erro, stale, indisponível e sem evidência.
-- Texto puro por padrão; qualquer Markdown usa subconjunto sanitizado, sem
-  HTML cru, com schemes de URL permitidos e CSP.
+- Localise labels, instructions, validation, loading, empty, error, stale,
+  unavailable, rate limit and no-evidence states in both languages.
+- Explicit `Light`/`Dark` theme selector that does not alter language,
+  question, answer, evidence or citations.
+- Apply accessible background, surface, text, border, focus and state tokens
+  in both themes without communicating information through colour alone.
+- Active-coverage and local/official-provenance indicator, with per-source or
+  per-document degradation and no silent query split.
+- Answer and citation list.
+- URL/snapshot/freshness in official citations.
+- Loading, empty, error, stale, unavailable and no-evidence states.
+- Plain text by default; any Markdown uses a sanitised subset without raw HTML,
+  with permitted URL schemes and CSP.
 
-Critério: fluxo funciona por teclado e viewport reduzido em `pt-BR` e
-`en-GB`; testes executam os quatro pares entre `interfaceLanguage` e
-`questionLanguage` em `Light` e `Dark`, totalizando oito combinações, sem
-mistura de textos do produto, perda de contraste nem tradução de citações.
+Criterion: the flow works by keyboard and on a narrow viewport in `pt-BR` and
+`en-GB`; tests run the four `interfaceLanguage`/`questionLanguage` pairs in
+`Light` and `Dark`, totalling eight combinations without mixed product text,
+lost contrast or translated citations.
 
-### Lote S06-A — E2E e artefato
+### Batch S06-A — E2E and artefact
 
-- Executar documento → índice → pergunta → resposta.
-- Executar sync por servidor HTTP falso; smoke real somente quando autorizado.
-- Validar restart/persistência de conteúdo bruto, catálogo, ativação e índice.
-- Produzir artefato reproduzível.
-- Preparar configuração de ambiente sem secret.
+- Run document → index → question → answer.
+- Run synchronisation through a fake HTTP server; real smoke only when
+  authorised.
+- Validate restart/persistence of raw content, catalogue, activation and index.
+- Produce a reproducible artefact.
+- Prepare environment configuration without a secret.
 
-Critério: clone limpo reproduz o caminho documentado.
+Criterion: a clean clone reproduces the documented path.
 
-### Lote S06-CORR-01 — Correção do Automatic Quality Gate
+### Batch S06-CORR-01 — Automatic Quality Gate correction
 
-- Produzir o plano de prontidão e o ensaio estático Linux ARM64 não produtivo,
-  sem contato com OCI.
-- Provar no host composto que cancelamento e falhas limitadas preservam a
-  geração ativa para consulta e reinicialização.
-- Manter o README factualmente atual com ao menos um comando e resultado
-  verificados no artefato integrado local/sintético, identificando essa
-  fronteira sem alegar corpus, provider, fonte oficial, Linux, OCI ou produção
-  reais.
+- Produce the readiness plan and non-production static Linux ARM64 rehearsal
+  without OCI contact.
+- Prove in the composed host that cancellation and bounded failures preserve
+  the active generation for query and restart.
+- Keep the README factually current with at least one command and result
+  verified in the local/synthetic integrated artefact, identifying that
+  boundary without claiming a real corpus, provider, official source, Linux,
+  OCI or production.
 
-Critério: os três achados de `STATE-06` possuem evidência corretiva local e
-permanecem pendentes de disposição por um novo Automatic Quality Gate; a
-finalização pública do README continua pertencendo a `S08-B`.
+Criterion: all three `STATE-06` findings have local corrective evidence and
+remain pending disposition by a new Automatic Quality Gate; public README
+finalisation remains owned by `S08-B`.
 
-### Lote S07-A — Avaliação e segurança
+### Batch S07-A — Evaluation and security
 
-- Executar dataset congelado.
-- Executar a matriz `pt-BR→pt-BR`, `en-GB→en-GB`, `pt-BR→en-GB` e
-  `en-GB→pt-BR` entre idioma da pergunta e idioma da evidência, verificando
-  resposta no idioma da pergunta e citação sem tradução.
-- Medir recuperação, groundedness, citações, latência e custo.
-- Testar prompt injection, abuso, rate limit e falhas.
-- Testar SSRF, DNS rebinding, respostas mistas, pinning IP/Host/SNI, redirect,
-  path, media type, bytes descomprimidos, autenticação recusada, ausência de
-  egress AIA/CRL/OCSP, stale e isolamento.
-- Testar crash em cada fronteira de append da observação, digest, auditoria,
-  ativação, rollback por novo registro e acessibilidade.
+- Run the frozen dataset.
+- Run the `pt-BR→pt-BR`, `en-GB→en-GB`, `pt-BR→en-GB` and `en-GB→pt-BR`
+  matrix between question and evidence languages, verifying an answer in the
+  question language and an untranslated citation.
+- Measure retrieval, groundedness, citations, latency and cost.
+- Test prompt injection, abuse, rate limiting and failures.
+- Test SSRF, DNS rebinding, mixed responses, IP/Host/SNI pinning, redirect,
+  path, media type, decompressed bytes, rejected authentication, absence of
+  AIA/CRL/OCSP egress, stale and isolation.
+- Test crash at every observation-append, digest, audit, activation,
+  new-record rollback and accessibility boundary.
 
-Critério: thresholds prévios e nenhum P0/P1 residual.
+Criterion: predefined thresholds and no residual P0/P1.
 
-### Lote S08-A — Deploy OCI
+### Batch S08-A — OCI deployment
 
-- Autorizar alvo e custos.
-- Restringir `OFFICIAL_SOURCE_EGRESS` à URL oficial exata e compor
-  `OCI_RUNTIME_EGRESS` somente com destinos separadamente autorizados.
-- Manter `VECTOR_STORE_EGRESS` vazio para adapter local ou validar sua
-  allowlist específica quando houver serviço gerenciado.
-- Provisionar/configurar secret.
-- Publicar artefato.
-- Executar smoke e health.
-- Ensaiar recuperação.
+- Authorise target and costs.
+- Restrict `OFFICIAL_SOURCE_EGRESS` to the exact official URL and compose
+  `OCI_RUNTIME_EGRESS` only from separately authorised destinations.
+- Keep `VECTOR_STORE_EGRESS` empty for the local adapter or validate its
+  specific allowlist when a managed service is used.
+- Provision/configure the secret.
+- Publish the artefact.
+- Run smoke and health checks.
+- Rehearse recovery.
 
-Critério: aplicação pública funcional e identificável.
+Criterion: functional, identifiable public application.
 
-### Lote S08-B — Evidência e entrega
+### Batch S08-B — Evidence and delivery
 
-- Registrar link/captura sanitizada.
-- Finalizar o README complementando ou substituindo os exemplos
-  locais/sintéticos por comandos e evidência separadamente verificados em OCI
-  e na execução real do produto.
-- Conferir histórico, licença e material versionado.
-- Submeter URL GitHub segundo as regras do Challenge.
+- Record a sanitised link/screenshot.
+- Finalise the README by supplementing or replacing local/synthetic examples
+  with commands and evidence separately verified on OCI and in real product
+  execution.
+- Check history, licence and versioned material.
+- Submit the GitHub URL under the Challenge rules.
 
-Critério: checklist oficial completo.
+Criterion: complete official checklist.
 
-## Backlog priorizado
+## Prioritised backlog
 
-### Must — obrigatório para o MVP
+### Must — mandatory for the MVP
 
-| ID | Item | Estado proprietário |
+| ID | Item | Owning state |
 |---|---|---|
-| `BL-M01` | Preservar o catálogo inicial 51/54/9 e verificar licença/proveniência dos documentos PDF/CSV. | S02–S04 |
-| `BL-M02` | Scaffold .NET 10 modular e CI. | S01 |
-| `BL-M03` | Catálogo, conteúdo bruto reabrível, documento, manifesto e índice versionados. | S03 |
-| `BL-M04` | Ingestão PDF/CSV local e oficial segura. | S04 |
-| `BL-M05` | Embeddings e geração imutável de índice. | S04 |
-| `BL-M06` | Recuperação, resposta grounded e citações. | S04 |
-| `BL-M07` | Resultado de evidência insuficiente. | S04 |
-| `BL-M08` | API com limites, health, erros sanitizados e artefato OpenAPI v1 versionado/testado. | S04 |
-| `BL-M09` | Interface web mínima e acessível. | S05 |
-| `BL-M10` | Testes e avaliação RAG. | S04/S07 |
-| `BL-M11` | Execução local reproduzível. | S06 |
-| `BL-M12` | Deploy em OCI e evidência. | S08 |
-| `BL-M13` | README público final com exemplos sustentados por evidência separadamente verificada em OCI e na execução real do produto. | S08 |
-| `BL-M14` | Preservar uma geração anterior elegível; testar os digests separados, rebinding de observação e ativação/rollback atômicos por novo `CorpusActivationRecord` em compare-and-swap, sem replay de freshness histórica. | S03/S04/S07 |
-| `BL-M15` | Sincronizar registros oficiais PDF/CSV allowlisted com pinning DNS/IP, snapshot, freshness e cobertura explícita. | S02–S08 |
-| `BL-M16` | Suportar e homologar perguntas/respostas em `pt-BR` e `en-GB`, inclusive recuperação cruzada e preservação do idioma original das citações. | S02/S04/S07 |
-| `BL-M17` | Localizar a interface em `pt-BR` e `en-GB`, com seletor explícito, independência da consulta e testes de acessibilidade nos dois idiomas. | S05/S07 |
-| `BL-M18` | Implementar e homologar temas `Light` e `Dark`, com seletor explícito, independência de idioma e matriz visual/acessível nos dois temas. | S05/S07 |
-| `BL-M19` | Administrar bancos, categorias e qualquer quantidade de documentos por registros Candidate/Active/Deactivated/Removed, sem hard-code ou ADR por item compatível. | S03/S04/S07 |
+| `BL-M01` | Preserve the initial 51/54/9 catalogue and verify licence/provenance of PDF/CSV documents. | S02–S04 |
+| `BL-M02` | Modular .NET 10 scaffold and CI. | S01 |
+| `BL-M03` | Versioned catalogue, reopenable raw content, document, manifest and index. | S03 |
+| `BL-M04` | Secure local and official PDF/CSV ingestion. | S04 |
+| `BL-M05` | Embeddings and immutable index generation. | S04 |
+| `BL-M06` | Retrieval, grounded answer and citations. | S04 |
+| `BL-M07` | Insufficient-evidence outcome. | S04 |
+| `BL-M08` | API with limits, health, sanitised errors and a versioned/tested OpenAPI v1 artefact. | S04 |
+| `BL-M09` | Minimal accessible web interface. | S05 |
+| `BL-M10` | RAG tests and evaluation. | S04/S07 |
+| `BL-M11` | Reproducible local execution. | S06 |
+| `BL-M12` | OCI deployment and evidence. | S08 |
+| `BL-M13` | Final public README with examples supported by evidence separately verified on OCI and in real product execution. | S08 |
+| `BL-M14` | Preserve one eligible prior generation; test the separate digests, observation rebinding and atomic activation/rollback through a new `CorpusActivationRecord` in compare-and-swap, without historical freshness replay. | S03/S04/S07 |
+| `BL-M15` | Synchronise allowlisted official PDF/CSV records with DNS/IP pinning, snapshot, freshness and explicit coverage. | S02–S08 |
+| `BL-M16` | Support and homologate questions/answers in `pt-BR` and `en-GB`, including cross-language retrieval and preservation of original citation language. | S02/S04/S07 |
+| `BL-M17` | Localise the interface in `pt-BR` and `en-GB` with an explicit selector, query independence and accessibility tests in both languages. | S05/S07 |
+| `BL-M18` | Implement and homologate `Light` and `Dark` themes with an explicit selector, language independence and a visual/accessibility matrix in both themes. | S05/S07 |
+| `BL-M19` | Administer databases, categories and any number of documents through Candidate/Active/Deactivated/Removed records, without hard-coding or an ADR per compatible item. | S03/S04/S07 |
 
-### Should — se não comprometer a entrega
+### Should — when delivery is not compromised
 
-| ID | Item | Observação |
+| ID | Item | Note |
 |---|---|---|
-| `BL-S02` | Cache seguro de embeddings por hash. | Somente após medir benefício. |
-| `BL-S03` | Métricas de custo/tokens. | Se provider expuser dados seguros. |
-| `BL-S04` | Interface de diagnóstico do corpus. | Read-only e sanitizada. |
-| `BL-S05` | Mapa de prontidão de implantação e preflight local, mantendo separados decidido, implementado, verificado localmente, verificado em OCI e implantado. | Preparar em S06; evidência real de OCI e deploy pertence a S08. |
+| `BL-S02` | Secure embedding cache by hash. | Only after measuring benefit. |
+| `BL-S03` | Cost/token metrics. | When the provider exposes safe data. |
+| `BL-S04` | Corpus diagnostic interface. | Read-only and sanitised. |
+| `BL-S05` | Deployment-readiness map and local preflight, keeping decided, implemented, locally verified, OCI-verified and deployed distinct. | Prepare in S06; real OCI and deployment evidence belongs to S08. |
 
-### Could — evolução
+### Could — evolution
 
 | ID | Item |
 |---|---|
-| `BL-C01` | Markdown, HTML, JSON e formatos Office além de PDF/CSV (`RF-018`). |
-| `BL-C02` | Múltiplos acervos e ativação individual. |
-| `BL-C03` | Sincronização incremental e scheduler. |
-| `BL-C04` | HTML/crawling, autenticação de fonte e sincronização agendada. |
-| `BL-C05` | Mais providers de embeddings, vetor e LLM. |
-| `BL-C06` | RBAC e escopo por corpus (`RF-019`). |
-| `BL-C07` | Frontend estático opcional no GitHub Pages. |
-| `BL-C08` | Adapter consumidor pertencente ao DB-Notifier, sob ADR e gates do repositório consumidor; o RAG-Challenge fornece somente OpenAPI versionado. |
+| `BL-C01` | Markdown, HTML, JSON and Office formats beyond PDF/CSV (`RF-018`). |
+| `BL-C02` | Multiple corpora and individual activation. |
+| `BL-C03` | Incremental synchronisation and scheduler. |
+| `BL-C04` | HTML/crawling, source authentication and scheduled synchronisation. |
+| `BL-C05` | More embedding, vector and LLM providers. |
+| `BL-C06` | RBAC and per-corpus scope (`RF-019`). |
+| `BL-C07` | Optional static frontend on GitHub Pages. |
+| `BL-C08` | Consuming adapter owned by DB-Notifier under the consumer repository's ADR and gates; RAG-Challenge supplies only versioned OpenAPI. |
 
-### Won't — não neste RAG-Challenge
+### Won't — not in this RAG-Challenge
 
 | ID | Item |
 |---|---|
-| `BL-W01` | Cobertura literal de todos os bancos de dados conhecidos. |
-| `BL-W02` | Microserviços e orquestração distribuída sem necessidade medida. |
-| `BL-W03` | Execução de SQL ou administração de banco pelo agente. |
-| `BL-W04` | Navegação livre na web durante perguntas. |
-| `BL-W05` | Dependência direta do repositório DB-Notifier. |
+| `BL-W01` | Literal coverage of every known database. |
+| `BL-W02` | Microservices and distributed orchestration without measured need. |
+| `BL-W03` | SQL execution or database administration by the agent. |
+| `BL-W04` | Unrestricted web browsing during questions. |
+| `BL-W05` | Direct dependency on the DB-Notifier repository. |
 
-## Riscos do roadmap
+## Roadmap risks
 
-- O corpus e sua licença são o primeiro bloqueio material.
-- Cada fonte oficial, seus termos/licença e estabilidade são bloqueios próprios.
-- Egress/SSRF e freshness exigem testes sem tornar a suíte padrão dependente
-  da internet.
-- Provider externo pode exigir conta, quota, região e custo.
-- Recuperação cruzada e geração em `pt-BR`/`en-GB` podem reprovar os providers
-  candidatos e exigir alternativa, sem reduzir o requisito para obter
-  aprovação.
-- Textos incompletos ou misturados entre `pt-BR` e `en-GB` podem degradar
-  acessibilidade e compreensão; a matriz de UI deve bloquear a homologação.
-- Tokens incompletos ou contraste inadequado em `Light` ou `Dark` podem
-  ocultar foco, estados e proveniência; a matriz de temas deve bloquear a
-  homologação.
-- Escolha tardia de dimensão/vector store pode forçar reindexação.
-- Vector store gerenciado pode expor chunks/embeddings sem política própria.
-- GitHub Pages pode ser confundido com backend; a documentação deve manter a
-  separação.
-- Novos formatos além de PDF/CSV ameaçam o prazo e exigem adapter/decisão
-  compatíveis.
-- O catálogo sem teto pode ultrapassar a capacidade do vector store candidato;
-  falha bloqueia ativação, não reduz silenciosamente bancos ou documentos.
-- Avaliação sem dataset congelado pode produzir sucesso não reproduzível.
+- The corpus and its licence are the first material blocker.
+- Every official source, its terms/licence and stability is a separate blocker.
+- Egress/SSRF and freshness require tests without making the standard suite
+  depend on the internet.
+- An external provider may require an account, quota, region and cost.
+- Cross-language retrieval and generation in `pt-BR`/`en-GB` may reject
+  candidate providers and require an alternative without reducing the
+  approval requirement.
+- Incomplete or mixed `pt-BR` and `en-GB` text may degrade accessibility and
+  comprehension; the UI matrix must block homologation.
+- Incomplete tokens or inadequate contrast in `Light` or `Dark` may hide
+  focus, states and provenance; the theme matrix must block homologation.
+- Late selection of vector dimension/store may force reindexing.
+- A managed vector store may expose chunks/embeddings without its own policy.
+- GitHub Pages may be mistaken for the backend; documentation must preserve
+  the distinction.
+- Formats beyond PDF/CSV threaten the schedule and require a compatible
+  adapter/decision.
+- The uncapped catalogue may exceed candidate vector-store capacity; failure
+  blocks activation and does not silently reduce databases or documents.
+- Evaluation without a frozen dataset may produce irreproducible success.
 
-## Regra de progressão
+## Progression rule
 
-Concluir um lote não autoriza o seguinte. Cada estado precisa dos gates
-descritos em
-[`Quality-Gates.md`](../prompts/governance/Quality-Gates.md), e toda ação
-externa conserva autorização própria.
+Completing one batch does not authorise the next. Every state requires the
+gates described in
+[`Quality-Gates.md`](../prompts/governance/Quality-Gates.md), and every external
+action retains its own authority.

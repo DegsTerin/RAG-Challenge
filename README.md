@@ -1,131 +1,129 @@
 # RAG-Challenge
 
-Assistente RAG independente para consultar documentação sobre bancos de dados
-em linguagem natural, com respostas fundamentadas e referências às fontes.
+Independent RAG assistant for querying database documentation in natural
+language, with grounded answers and source references.
 
-> Status em 2026-08-14: `STATE-07 TESTING_HOMOLOGATION` está ativo. O produto
-> local possui PostgreSQL 18.4 `LocalAuthorised` materializado e a geração
-> text-first
+> Status on 2026-08-14: `STATE-07 TESTING_HOMOLOGATION` is active. The local
+> product has PostgreSQL 18.4 `LocalAuthorised` materialised and the text-first
+> generation
 > `idxgen-ec39244b021c90fceea1b3a628fe793a99f74650cad451f16ffbcd414af636f6`
-> ativada na revisão `1`, com 3.282 chunks, 3.282 vetores e
-> `renderManifestId=null`. A imagem privada foi publicada no GitHub Container
-> Registry e implantada uma vez em um Render Web Service Free. Os endpoints
-> públicos de health e readiness confirmam o serviço `Live`, a geração ativa e
-> o catálogo PostgreSQL 18.4. Nenhuma consulta de produto, chamada Responses ou
-> nova solicitação de embedding foi executada durante a implantação. Isso é
-> evidência de homologação em `STATE-07`, não homologação de produção nem
-> substituição automática do alvo OCI aceito.
+> activated at revision `1`, with 3,282 chunks, 3,282 vectors and
+> `renderManifestId=null`. The private image was published to GitHub Container
+> Registry and deployed once to a Render Web Service Free. The public health
+> and readiness endpoints confirm the `Live` service, active generation and
+> PostgreSQL 18.4 catalogue. No product query, Responses call or new embedding
+> request was made during deployment. This is `STATE-07` homologation evidence,
+> not production homologation or automatic replacement of the accepted OCI
+> target.
 
-## Demonstração online
+## Online demonstration
 
-[Abrir o RAG-Challenge no Render](https://rag-challenge-ac09.onrender.com).
-A instância Free pode adormecer após inatividade; a primeira abertura pode
-levar 50 segundos ou mais.
+[Open RAG-Challenge on Render](https://rag-challenge-ac09.onrender.com).
+The Free instance may sleep after inactivity; the first load may take 50
+seconds or more.
 
-![Verificação animada e sanitizada da implantação Render Free](docs/assets/render/rag-challenge-deployment.gif)
+![Sanitised animated verification of the Render Free deployment](docs/assets/render/rag-challenge-deployment.gif)
 
-| Verificação | Resultado observado em 2026-08-14 |
+| Check | Result observed on 2026-08-14 |
 |---|---|
-| Plano e recursos | Render Hobby, Web Service `Free`, uma instância, autoscaling desligado, zero disco persistente e zero banco Render |
-| Imagem privada | `ghcr.io/degsterin/rag-challenge@sha256:536e431126470a51370bf9aeb4c769ff1d75313c67643c3922cf0fd2e2688c08` |
-| Liveness | [`GET /api/v1/health/live`](https://rag-challenge-ac09.onrender.com/api/v1/health/live) retornou HTTP `200` e `Live` |
-| Readiness | [`GET /api/v1/health/ready`](https://rag-challenge-ac09.onrender.com/api/v1/health/ready) retornou HTTP `200` e `Ready` |
-| Produto carregado | um banco ativo, um documento elegível, zero documento degradado e revisão `postgresql-18.4-product-v1` |
-| Geração ativa | `idxgen-ec39244b021c90fceea1b3a628fe793a99f74650cad451f16ffbcd414af636f6` |
-| Custo Render observado | serviços, total mensal e projeção em `USD 0.00`; nenhum cartão cadastrado |
-| Limite da evidência | nenhuma pergunta de produto nem chamada Responses ou embedding foi executada durante a verificação pública |
+| Plan and resources | Render Hobby, Web Service `Free`, one instance, autoscaling disabled, zero persistent disks and zero Render databases |
+| Private image | `ghcr.io/degsterin/rag-challenge@sha256:536e431126470a51370bf9aeb4c769ff1d75313c67643c3922cf0fd2e2688c08` |
+| Liveness | [`GET /api/v1/health/live`](https://rag-challenge-ac09.onrender.com/api/v1/health/live) returned HTTP `200` and `Live` |
+| Readiness | [`GET /api/v1/health/ready`](https://rag-challenge-ac09.onrender.com/api/v1/health/ready) returned HTTP `200` and `Ready` |
+| Loaded product | one active database, one eligible document, zero degraded documents and revision `postgresql-18.4-product-v1` |
+| Active generation | `idxgen-ec39244b021c90fceea1b3a628fe793a99f74650cad451f16ffbcd414af636f6` |
+| Observed Render cost | services, monthly total and forecast at `USD 0.00`; no card registered |
+| Evidence boundary | no product question, Responses call or embedding request was made during the public check |
 
-![Render Web Service Free com digest imutável e deploy Live](docs/assets/render/rag-challenge-render-live.png)
+![Render Web Service Free with immutable digest and Live deployment](docs/assets/render/rag-challenge-render-live.png)
 
-Os dois endpoints acima são a forma segura de verificar disponibilidade sem
-executar uma pergunta nem consumir o provider. Em PowerShell:
+The two endpoints above are the safe way to check availability without asking
+a question or consuming the provider. In PowerShell:
 
 ```powershell
 Invoke-RestMethod https://rag-challenge-ac09.onrender.com/api/v1/health/live
 Invoke-RestMethod https://rag-challenge-ac09.onrender.com/api/v1/health/ready
 ```
 
-O filesystem da instância Free é efêmero. O store ativado é restaurado de um
-seed privado e verificado em cada boot; evidências de resposta criadas depois
-do arranque são descartadas em restart, redeploy ou spin-down. A chave do
-provider permanece somente como secret do Render e o seu uso possui cobrança
-independente da hospedagem.
+The Free instance filesystem is ephemeral. The activated store is restored
+from a private seed and verified at every boot; answer evidence created after
+start-up is discarded on restart, redeploy or spin-down. The provider key
+remains only as a Render secret, and its use is billed independently from
+hosting.
 
-## Problema
+## Problem
 
-Documentação técnica costuma estar distribuída entre arquivos extensos e
-fontes diferentes. O RAG-Challenge pretende reduzir o tempo de busca oferecendo
-uma interface de perguntas e respostas que recupera trechos relevantes antes
-de solicitar uma resposta ao modelo de linguagem.
+Technical documentation is often distributed across long files and different
+sources. RAG-Challenge aims to reduce search time through a question-and-answer
+interface that retrieves relevant passages before asking the language model
+for an answer.
 
-O produto nasce independente para cumprir o Challenge da Alura/ONE. A
-arquitetura preserva compatibilidade conceitual e tecnológica com o
-DB-Notifier para uma possível integração futura, sem criar dependência entre
-os repositórios. O RAG-Challenge será proprietário do OpenAPI público; o
-futuro adapter consumidor pertencerá ao DB-Notifier e aos gates desse
-repositório.
+The product is independent by design to satisfy the Alura/ONE Challenge.
+The architecture preserves conceptual and technological compatibility with
+DB-Notifier for possible future integration without creating a dependency
+between the repositories. RAG-Challenge will own the public OpenAPI contract;
+the future consuming adapter will belong to DB-Notifier and that repository's
+gates.
 
-## Escopo do MVP
+## MVP scope
 
-O primeiro produto funcional deverá:
+The first functional product must:
 
-- manter o catálogo canônico inicial de 51 bancos de dados, com categorias
-  muitos-para-muitos e sem lista hard-coded no produto;
-- permitir ao administrador adicionar, versionar, ativar, desativar e remover
-  logicamente bancos e qualquer quantidade de documentos PDF/CSV associados;
-- exigir ao menos um documento ativo e validado para cada banco ativo;
-- sincronizar manualmente fontes oficiais allowlisted para snapshots
-  versionados e ingerir documentos locais autorizados com a mesma governança;
-- pesquisar, por padrão, todos os documentos ativos em um único espaço de
-  recuperação, preservando origem `LocalAuthorised` ou `OfficialExternal` nas
-  citações;
-- usar adapters próprios para PDF e CSV sem acoplar o núcleo aos parsers;
-- preservar bytes imutáveis reabríveis para rebuild e rollback;
-- dividir, vetorizar e indexar o conteúdo com estratégias versionadas;
-- responder perguntas usando somente evidências recuperadas;
-- aceitar perguntas em `pt-BR` e `en-GB` e responder no idioma declarado da
-  pergunta;
-- permitir alternar a interface entre `pt-BR` e `en-GB`, independentemente do
-  idioma da pergunta;
-- permitir alternar o tema da interface entre `Light` e `Dark`,
-  independentemente do idioma visual e da consulta;
-- apresentar documento e localização usados na resposta;
-- preservar nas citações o idioma original do conteúdo da fonte;
-- declarar evidência insuficiente quando o acervo não sustentar a resposta;
-- permitir versionar documentos, construir índices candidatos e ativá-los com
-  segurança, sem tornar staging parcial consultável;
-- executar no computador local;
-- ser publicável em OCI com evidência verificável;
-- possuir testes, configuração segura e documentação de execução;
-- publicar um contrato OpenAPI v1 versionado pertencente ao RAG-Challenge.
+- maintain the initial canonical catalogue of 51 databases, with many-to-many
+  categories and no hard-coded product list;
+- allow an administrator to add, version, activate, deactivate and logically
+  remove databases and any number of associated PDF/CSV documents;
+- require at least one active, validated document for every active database;
+- manually synchronise allowlisted official sources into versioned snapshots
+  and ingest authorised local documents under the same governance;
+- search all active documents in one retrieval space by default, preserving
+  `LocalAuthorised` or `OfficialExternal` origin in citations;
+- use dedicated PDF and CSV adapters without coupling the core to parsers;
+- preserve immutable, reopenable bytes for rebuild and rollback;
+- split, vectorise and index content with versioned strategies;
+- answer questions using only retrieved evidence;
+- accept questions in `pt-BR` and `en-GB` and answer in the declared question
+  language;
+- allow the interface to switch between `pt-BR` and `en-GB`, independently of
+  the question language;
+- allow the interface theme to switch between `Light` and `Dark`, independently
+  of the visual and query languages;
+- present the document and location used in the answer;
+- preserve the source content's original language in citations;
+- declare insufficient evidence when the corpus does not support the answer;
+- support document versioning, candidate-index construction and safe
+  activation without making partial staging queryable;
+- run on the local computer;
+- be publishable on OCI with verifiable evidence;
+- include tests, secure configuration and operating documentation; and
+- publish a versioned RAG-Challenge-owned OpenAPI v1 contract.
 
-O Dashboard implementa o idioma visual, o tema e o idioma da consulta como
-seleções independentes. As oito combinações de `pt-BR`/`en-GB` e
-`Light`/`Dark` possuem evidência local sintética do estado responsável pelo
-frontend; isso não constitui homologação do produto com corpus ou providers
-reais.
+The Dashboard implements visual language, theme and query language as
+independent selections. The eight `pt-BR`/`en-GB` and `Light`/`Dark`
+combinations have local synthetic evidence from the frontend-owning state;
+this does not constitute product homologation with a real corpus or providers.
 
-O acervo de referência fornecido pelo curso não é usado automaticamente: ele
-permanece em `reference-materials/`, fora do Git. Antes de qualquer ativação de
-produto, o proprietário deverá fornecer ou autorizar um acervo com direitos de
-uso, proveniência e idioma verificados.
+The reference corpus supplied by the course is not used automatically: it
+remains in `reference-materials/`, outside Git. Before any product activation,
+the owner must provide or authorise a corpus with verified usage rights,
+provenance and language.
 
-## Fora do MVP
+## Outside the MVP
 
-- múltiplos acervos ativos ao mesmo tempo;
-- sincronização incremental agendada;
-- crawling genérico ou URL fornecida pelo usuário;
-- navegação livre na internet durante uma pergunta;
-- formatos documentais além de PDF e CSV;
-- loader dinâmico de plug-ins;
-- múltiplos provedores ativos de embeddings, vetores ou modelos;
-- autenticação corporativa, RBAC completo e multi-tenancy;
-- integração executável com o DB-Notifier.
+- multiple active corpora at the same time;
+- scheduled incremental synchronisation;
+- generic crawling or a user-provided URL;
+- unrestricted internet browsing during a question;
+- document formats beyond PDF and CSV;
+- dynamic plug-in loading;
+- multiple active embedding, vector or model providers;
+- corporate authentication, complete RBAC and multi-tenancy; and
+- executable integration with DB-Notifier.
 
-Essas capacidades são previstas por contratos e fronteiras, mas não serão
-implementadas antecipadamente.
+Contracts and boundaries anticipate these capabilities, but they will not be
+implemented prematurely.
 
-## Arquitetura de bootstrap aceita
+## Accepted bootstrap architecture
 
 ```text
 Browser
@@ -148,14 +146,14 @@ Application use cases
    +--> retriever --> language model --> answer with citations
 ```
 
-A direção de dependências será voltada ao núcleo:
+Dependencies point towards the core:
 
 ```text
 RagChallenge.Domain
         ^
         |
 RagChallenge.Application
-(inclui RAG abstractions)
+(includes RAG abstractions)
         ^
         |
 Infrastructure / Persistence / API
@@ -163,26 +161,26 @@ Infrastructure / Persistence / API
 Dashboard -- versioned HTTP --> API
 ```
 
-O desenho detalhado está em
-[`Solution-Architecture-Document.md`](prompts/foundation/Solution-Architecture-Document.md)
-e as regras específicas de RAG em
+The detailed design is in
+[`Solution-Architecture-Document.md`](prompts/foundation/Solution-Architecture-Document.md),
+and the RAG-specific rules are in
 [`RAG-Module.md`](prompts/foundation/RAG-Module.md).
 
-## Execução local, GitHub e hospedagem
+## Local operation, GitHub and hosting
 
-As toolchains fixadas, os restores governados e os checks completos estão
-documentados em [`PROJECT-SETUP.md`](docs/PROJECT-SETUP.md). Um cache ausente
-não autoriza fallback para a rede.
+The pinned toolchains, governed restores and complete checks are documented in
+[`PROJECT-SETUP.md`](docs/PROJECT-SETUP.md). A missing cache does not authorise
+a network fallback.
 
-Com as dependências já restauradas, o exemplo integrado local é executado da
-raiz do repositório:
+With dependencies already restored, run the local integrated example from the
+repository root:
 
 ```powershell
 ./src/RagChallenge.Server.Api/Build-IntegrationArtifact.ps1
 ./src/RagChallenge.Server.Api/Test-IntegrationArtifact.ps1
 ```
 
-O resultado sanitizado verificado em `STATE-06` contém:
+The sanitised result verified in `STATE-06` contains:
 
 ```json
 {
@@ -195,70 +193,71 @@ O resultado sanitizado verificado em `STATE-06` contém:
 }
 ```
 
-Esse exemplo usa somente uma fixture CSV sintética, providers determinísticos,
-stores SQLite temporários e um listener loopback no Windows. Ele demonstra o
-fluxo local integrado e a reabertura da mesma geração após restart; não alega
-corpus, provider ou fonte oficial reais, execução Linux, OCI, suporte de
-produção ou deploy.
+This example uses only a synthetic CSV fixture, deterministic providers,
+temporary SQLite stores and a Windows loopback listener. It demonstrates the
+integrated local flow and reopening the same generation after restart; it does
+not claim a real corpus, provider or official source, Linux execution, OCI,
+production support or deployment.
 
-O rehearsal separado de empacotamento Linux ARM64 pode ser construído e
-verificado estaticamente, também sem restore:
+The separate Linux ARM64 packaging rehearsal can also be built and checked
+statically without a restore:
 
 ```powershell
 ./src/RagChallenge.Server.Api/Build-OciRehearsalArtifact.ps1
 ./src/RagChallenge.Server.Api/Test-OciRehearsalArtifact.ps1
 ```
 
-O verificador confere manifesto, hashes, configuração fail-closed e identidade
-ELF AArch64. O binário ARM64 não é executado no Windows e nenhuma operação OCI
-é realizada. O plano e as limitações estão em
+The checker validates the manifest, hashes, fail-closed configuration and ELF
+AArch64 identity. The ARM64 binary is not run on Windows, and no OCI operation
+is performed. The plan and limitations are in
 [`STATE-06-OCI-Readiness-And-Rehearsal.md`](docs/STATE-06-OCI-Readiness-And-Rehearsal.md).
 
-O pacote Render Hobby/Free prepara uma imagem privada com o snapshot PostgreSQL
-ativado e restaura um store efêmero verificado em cada boot. O PDF e o store
-permanecem fora do Git público; a imagem que contém o seed permanece privada no
-GHCR:
+The Render Hobby/Free package prepares a private image with the activated
+PostgreSQL snapshot and restores a verified ephemeral store at every boot. The
+PDF and store remain outside public Git; the image containing the seed remains
+private in GHCR:
 
 ```powershell
 ./eng/Build-RenderFreePackage.ps1
 ./eng/Test-RenderFreePackage.ps1
 ```
 
-O procedimento, as limitações de persistência, a publicação privada e a
-evidência da implantação estão em
-[`deploy/render-free/README.md`](deploy/render-free/README.md). A implantação
-Render é uma demonstração pública em homologação. Ela não substitui
-silenciosamente o requisito OCI registrado pelos materiais do Challenge; a
-seleção final do alvo de produção exige reconciliação arquitetural própria.
+The procedure, persistence limitations, private publication and deployment
+evidence are in
+[`deploy/render-free/README.md`](deploy/render-free/README.md). The Render
+deployment is a public homologation demonstration. It does not silently
+replace the OCI requirement recorded in the Challenge materials; final
+selection of the production target requires its own architectural
+reconciliation.
 
-O código poderá ser hospedado em um repositório público no GitHub. GitHub
-Pages, sozinho, hospeda apenas conteúdo estático e não executa o backend RAG
-nem protege credenciais de modelos. A entrega online deverá executar o
-backend em um serviço OCI autorizado. Uma interface estática em GitHub Pages
-poderá ser avaliada depois, desde que consuma uma API segura publicada
-separadamente; ela não substitui o requisito de OCI.
+The code may be hosted in a public GitHub repository. GitHub Pages alone hosts
+only static content: it neither runs the RAG backend nor protects model
+credentials. Online delivery must run the backend in an authorised OCI
+service. A static interface on GitHub Pages may be assessed later if it uses a
+separately published secure API; it does not replace the OCI requirement.
 
-## Requisitos de entrega conhecidos
+## Known delivery requirements
 
-Os materiais locais do Challenge estabelecem como resultado mínimo:
+The local Challenge materials define the minimum result as:
 
-- repositório público no GitHub, organizado e com histórico de commits;
-- agente funcional baseado em pelo menos um documento;
-- README com visão, arquitetura, tecnologias, execução e exemplos;
-- uso de pelo menos um serviço OCI;
-- link público ou captura de tela que comprove a execução online.
+- a public, organised GitHub repository with commit history;
+- a functional agent based on at least one document;
+- a README covering vision, architecture, technologies, operation and
+  examples;
+- use of at least one OCI service; and
+- a public link or screenshot proving online operation.
 
-Os mesmos materiais permitem PDF ou CSV e sugerem formatos adicionais. O MVP
-adota PDF e CSV como formatos iniciais; os demais ficam no roadmap até uma
-decisão explícita e adapter compatível.
+The same materials permit PDF or CSV and suggest additional formats. The MVP
+adopts PDF and CSV as its initial formats; other formats remain on the roadmap
+until an explicit decision and compatible adapter exist.
 
-## Organização atual
+## Current organisation
 
 ```text
 .
-├── .github/workflows/  # definição de CI, sem deploy
-├── deploy/render-free/ # pacote privado e fronteira Render Free
-├── eng/                # checks reproduzíveis do setup
+├── .github/workflows/  # CI definition, without deployment
+├── deploy/render-free/ # private package and Render Free boundary
+├── eng/                # reproducible setup checks
 ├── src/
 │   ├── RagChallenge.Domain/
 │   ├── RagChallenge.Application/
@@ -275,54 +274,53 @@ decisão explícita e adapter compatível.
 ├── README.md
 ├── docs/
 ├── prompts/
-├── reference-materials/   # conteúdo local ignorado pelo Git
+├── reference-materials/   # local content ignored by Git
 └── .gitignore
 ```
 
-Domain e Application contêm os modelos e casos de uso; Infrastructure contém
-migrations SQLite, stores persistentes, parsers PDF/CSV, adapters de provider e
-transporte governado. A API preserva health e consulta v1 e também implementa o
-fluxo v2, incluindo referências de página, serving PNG same-origin fail-closed
-e o perfil notice-bearing; o Dashboard consome os dois contratos e apresenta
-as obrigações acessíveis junto da imagem. O serviço Render reabre o produto
-PostgreSQL 18.4 materializado e confirma sua geração ativa por readiness. A
-consulta pública com provider, a homologação integral do produto e o alvo OCI
-de produção continuam separados. A administração permanece one-shot fora de
-HTTP.
+Domain and Application contain the models and use cases; Infrastructure
+contains SQLite migrations, persistent stores, PDF/CSV parsers, provider
+adapters and governed transport. The API preserves v1 health and query and
+also implements the v2 flow, including page references, fail-closed
+same-origin PNG serving and the notice-bearing profile; the Dashboard consumes
+both contracts and presents accessible obligations with the image. The Render
+service reopens the materialised PostgreSQL 18.4 product and confirms its
+active generation through readiness. Public provider-backed query, complete
+product homologation and the production OCI target remain separate.
+Administration remains one-shot and outside HTTP.
 
-## Governança
+## Governance
 
-Comece por [`AGENTS.md`](AGENTS.md) e
-[`prompts/Start-Here.md`](prompts/Start-Here.md). O estado factual está em
-[`Current-State.md`](prompts/state/Current-State.md), e o relatório da
-integração está em
+Start with [`AGENTS.md`](AGENTS.md) and
+[`prompts/Start-Here.md`](prompts/Start-Here.md). The factual state is in
+[`Current-State.md`](prompts/state/Current-State.md), and the integration report
+is in
 [`STATE-06-Integration-Report.md`](docs/STATE-06-Integration-Report.md).
-A comunicação com o proprietário e os novos artefatos seguem a
-[`política de idioma`](prompts/governance/Language-Policy.md).
+Owner communication and new artefacts follow the
+[`language policy`](prompts/governance/Language-Policy.md).
 
-## Segurança
+## Security
 
-- Segredos não serão versionados nem exibidos em logs.
-- Documentos, perguntas, trechos recuperados e respostas do modelo são dados
-  não confiáveis.
-- A resposta deverá citar evidências e falhar de forma explícita quando elas
-  forem insuficientes.
-- A fonte oficial do MVP será habilitada somente após aprovação do domínio,
-  URL canônica exata, termos/licença, allowlist, limites e proteção contra
-  SSRF e prompt injection.
-- Cada conexão oficial deverá usar somente um IP previamente resolvido e
-  autorizado, preservando Host/SNI; redirects permanecerão desativados no MVP.
-- Perguntas públicas selecionam um snapshot; não fornecem URL nem disparam
+- Secrets will not be versioned or displayed in logs.
+- Documents, questions, retrieved passages and model answers are untrusted
+  data.
+- Answers must cite evidence and fail explicitly when evidence is
+  insufficient.
+- The MVP official source will be enabled only after approval of the domain,
+  exact canonical URL, terms/licence, allowlist, limits and SSRF and prompt
+  injection protection.
+- Each official connection must use only one previously resolved and
+  authorised IP, preserving Host/SNI; redirects remain disabled in the MVP.
+- Public questions select a snapshot; they neither supply a URL nor trigger
   crawling.
 
-## Licença
+## Licence
 
-O `GATE-B01` selecionou a licença MIT para o conteúdo autoral do repositório,
-com o aviso
-`Copyright (c) 2026 Bruno Araújo - DegsTerin.`. O arquivo
-[`LICENSE`](LICENSE) foi materializado após a autorização de entrada em
-`STATE-01`.
+`GATE-B01` selected the MIT licence for the repository's original content,
+with the notice
+`Copyright (c) 2026 Bruno Araújo - DegsTerin.`. The [`LICENSE`](LICENSE) file
+was materialised after authority to enter `STATE-01` was granted.
 
-A licença não abrange o corpus, snapshots oficiais, materiais de terceiros ou
-`reference-materials/`. A licença e a proveniência do corpus são decisões
-separadas de `STATE-02`.
+The licence does not cover the corpus, official snapshots, third-party
+materials or `reference-materials/`. The repository licence and corpus
+licence/provenance are separate `STATE-02` decisions.

@@ -1,70 +1,68 @@
-# Documentação do RAG-Challenge
+# RAG-Challenge documentation
 
 ## Status
 
-Este índice descreve o corpus documental vigente `4.15.0`. `STATE-00`,
-`GATE-B01` e `STATE-01` a `STATE-06` estão encerrados com seus gates
-registrados. `STATE-07 TESTING_HOMOLOGATION` está ativo; incrementos locais,
-offline, determinísticos e sintéticos foram executados e reconciliados, sem
-constituir homologação de produto ou autorização geral de execução.
+This index describes the current `4.15.0` documentation corpus. `STATE-00`,
+`GATE-B01` and `STATE-01` through `STATE-06` are closed with their gates
+recorded. `STATE-07 TESTING_HOMOLOGATION` is active; local, offline,
+deterministic and synthetic increments have been executed and reconciled
+without constituting product homologation or general execution authority.
 
-O PostgreSQL 18.4 `LocalAuthorised` foi ativado e uma imagem privada foi
-implantada uma vez no Render Free, sem consulta de produto. Campanha pontuada,
-`RB-4`, Human Gate de `STATE-07`, produção e OCI permanecem sob fronteiras
-próprias. Pela quarentena histórica escolhida, RB-2 não satisfaz seu gate e
-RB-3 não pode ser consumido por RB-4; qualquer sucessor exige autoridade e
-revisão humanas separadas. Relatórios são evidência histórica; o presente
-factual pertence a
-[`Current-State.md`](../prompts/state/Current-State.md).
+PostgreSQL 18.4 `LocalAuthorised` was activated, and a private image was
+deployed once on Render Free without a product query. The scored campaign,
+`RB-4`, the `STATE-07` Human Gate, production and OCI remain within their own
+boundaries. Under the selected historical quarantine, RB-2 does not satisfy
+its gate and RB-3 cannot be consumed by RB-4; any successor requires separate
+human authority and review. Reports are historical evidence; present facts
+belong in [`Current-State.md`](../prompts/state/Current-State.md).
 
-A Etapa 2 implementou e validou o orchestrator determinístico de
-desenvolvimento aceito por ADR-0016. ADR-0017 foi explicitamente `accepted` e
-substituiu somente o transporte SDK pelo Codex App Server estável em
-`@openai/codex` `0.147.0`. A CLI agora oferece start e resume por
-`--runner codex`, persiste `thread.id` antes de `turn/start`, exige
-`--authority-reference`, usa a sessão ChatGPT local validada e não herda
-`OPENAI_API_KEY`. Testes contratuais, o gate canônico e uma única validação real
-read-only passaram; a prontidão do tooling é `MULTI_AGENT_READY`. Cada execução
-futura permanece sob plano e autoridade próprios, sem alterar produto, Human
-Gate ou lifecycle.
+Stage 2 implemented and validated the deterministic development orchestrator
+accepted by ADR-0016. ADR-0017 was explicitly `accepted` and replaced only the
+SDK transport with the stable Codex App Server in `@openai/codex` `0.147.0`.
+The CLI now offers start and resume through `--runner codex`, persists
+`thread.id` before `turn/start`, requires `--authority-reference`, uses the
+validated local ChatGPT session and does not inherit the product provider
+credential. Contract tests, the canonical gate and one real read-only
+validation passed; tooling readiness is `MULTI_AGENT_READY`. Every future run
+remains subject to its own plan and authority without changing the product,
+Human Gate or lifecycle.
 
-## Comece aqui
+## Start here
 
-1. [`../README.md`](../README.md): apresentação pública e limites atuais.
-2. [`../AGENTS.md`](../AGENTS.md): regras permanentes.
-3. [`../prompts/Start-Here.md`](../prompts/Start-Here.md): roteamento e
-   precedência.
+1. [`../README.md`](../README.md): public overview and current boundaries.
+2. [`../AGENTS.md`](../AGENTS.md): permanent rules.
+3. [`../prompts/Start-Here.md`](../prompts/Start-Here.md): routing and
+   precedence.
 4. [`../prompts/governance/Language-Policy.md`](../prompts/governance/Language-Policy.md):
-   idioma da comunicação e dos artefatos.
-5. [`STATE-00-Discovery-Report.md`](STATE-00-Discovery-Report.md): fatos,
-   achados e gate da descoberta.
-6. [`MVP-Roadmap-And-Backlog.md`](MVP-Roadmap-And-Backlog.md): evolução
-   incremental.
-7. [`PROJECT-SETUP.md`](PROJECT-SETUP.md): onboarding e checks do scaffold
-   autorizado.
+   language for communication and artefacts.
+5. [`STATE-00-Discovery-Report.md`](STATE-00-Discovery-Report.md): Discovery
+   facts, findings and gate.
+6. [`MVP-Roadmap-And-Backlog.md`](MVP-Roadmap-And-Backlog.md): incremental
+   evolution.
+7. [`PROJECT-SETUP.md`](PROJECT-SETUP.md): onboarding and checks for the
+   authorised scaffold.
 8. [`STATE-01-Project-Setup-Report.md`](STATE-01-Project-Setup-Report.md):
-   evidência factual e Automatic Quality Gate do setup.
+   factual evidence and the setup Automatic Quality Gate.
 9. [`STATE-02-Architecture-Report.md`](STATE-02-Architecture-Report.md):
-   execução factual, propostas e bloqueios do estado de arquitetura.
+   factual execution, proposals and Architecture-state blockers.
 10. [`STATE-03-Data-And-Index-Modeling-Report.md`](STATE-03-Data-And-Index-Modeling-Report.md):
-    execução factual parcial de `S03-A` e bloqueio explícito de `S03-B`.
+    partial factual execution of `S03-A` and the explicit `S03-B` blocker.
 11. [`STATE-07-S07-A-Evaluation-And-Security-Proposal.md`](STATE-07-S07-A-Evaluation-And-Security-Proposal.md):
-    baseline de planejamento confirmada para dataset, thresholds, matriz de
-    idioma, ambiente, verificações e limites do primeiro lote, sem autoridade
-    de execução.
-12. [`Multi-Agent-Readiness-Audit.md`](Multi-Agent-Readiness-Audit.md):
-    auditoria da Etapa 1, correções, ownership, isolamento, findings e gate da
-    futura implementação do orchestrator.
+    confirmed planning baseline for the dataset, thresholds, language matrix,
+    environment, checks and first-batch boundaries, without execution authority.
+12. [`Multi-Agent-Readiness-Audit.md`](Multi-Agent-Readiness-Audit.md): Stage 1
+    audit, corrections, ownership, isolation, findings and gate for the future
+    orchestrator implementation.
 13. [`Stage-2-Multi-Agent-Orchestrator-Report.md`](Stage-2-Multi-Agent-Orchestrator-Report.md):
-    implementação, validações, dry run, recovery, segurança, limitações e
-    prontidão operacional do orchestrator de desenvolvimento.
+    implementation, validations, dry run, recovery, security, limitations and
+    operational readiness of the development orchestrator.
 
-## Produto e arquitetura
+## Product and architecture
 
-- [Visão, escopo e requisitos](../prompts/foundation/Prompt-New-Project.md)
-- [Arquitetura da solução](../prompts/foundation/Solution-Architecture-Document.md)
-- [Módulo RAG](../prompts/foundation/RAG-Module.md)
-- [Índice de arquitetura](architecture/README.md)
+- [Vision, scope and requirements](../prompts/foundation/Prompt-New-Project.md)
+- [Solution architecture](../prompts/foundation/Solution-Architecture-Document.md)
+- [RAG module](../prompts/foundation/RAG-Module.md)
+- [Architecture index](architecture/README.md)
 - [ADR-0001 — Runtime Stack and Modular Monolith](architecture/ADR-0001-Runtime-Stack-And-Modular-Monolith.md)
 - [ADR-0002 — RAG Lifecycle, Provider Boundaries and Source Separation](architecture/ADR-0002-RAG-Lifecycle-Providers-And-Source-Separation.md)
 - [ADR-0003 — Product and Technical Naming](architecture/ADR-0003-Product-And-Technical-Naming.md)
@@ -74,12 +72,12 @@ Gate ou lifecycle.
 - [ADR-0007 — Generation Identity and Freshness Observation Rebinding](architecture/ADR-0007-Generation-Identity-And-Freshness-Observation-Rebinding.md)
   (`accepted`; semantic reconciliation applied; renewed audit approved)
 - [ADR-0008 — Product Corpus Storage and Page-Image Evidence](architecture/ADR-0008-Product-Corpus-Storage-And-Page-Image-Evidence.md)
-  (`accepted`; semantic reconciliation applied in corpus `4.9.5`;
-  local rendering, activation, v2 serving and notice-bearing increments later
+  (`accepted`; semantic reconciliation applied in corpus `4.9.5`; local
+  rendering, activation, v2 serving and notice-bearing increments later
   implemented; product homologation remains separate)
 - [ADR-0009 — Document, Evidence and Query Language Taxonomy](architecture/ADR-0009-Document-Evidence-And-Query-Language-Taxonomy.md)
-  (`accepted`; semantic reconciliation applied in corpus `4.9.5`;
-  internal split and v2 projection later implemented)
+  (`accepted`; semantic reconciliation applied in corpus `4.9.5`; internal
+  split and v2 projection later implemented)
 - [ADR-0010 — Persistent Answer-Evidence Records and Bounded Retention](architecture/ADR-0010-Persistent-Answer-Evidence-Records-And-Bounded-Retention.md)
   (`accepted`; local implementation and reconciliation completed under
   separate authority)
@@ -94,7 +92,7 @@ Gate ou lifecycle.
   its focused AQG completed; provider execution remains separately governed)
 - [ADR-0014 — Deterministic Retrieval Ranking and Retrieval-Only Baseline](architecture/ADR-0014-Deterministic-Retrieval-Ranking-And-Retrieval-Only-Baseline.md)
   (`accepted`; RB-2/RB-3 are mechanically intact but quarantined as historical
-  evidence, and are unavailable to RB-4)
+  evidence and are unavailable to RB-4)
 - [ADR-0015 — Versioned Cosine Numerical Semantics](architecture/ADR-0015-Versioned-Cosine-Numerical-Semantics.md)
   (`accepted`; implementation and corrective retest completed separately)
 - [ADR-0016 — Deterministic Development Orchestrator and Codex Runner Boundary](architecture/ADR-0016-Deterministic-Development-Orchestrator-And-Codex-Runner-Boundary.md)
@@ -102,38 +100,38 @@ Gate ou lifecycle.
   ADR-0017 replaces only the former SDK transport limitation)
 - [ADR-0017 — Codex App Server Pre-Turn Checkpoint Runner](architecture/ADR-0017-Codex-App-Server-Pre-Turn-Checkpoint-Runner.md)
   (`accepted` and implemented; one controlled real validation passed)
-- [Contratos canônicos de STATE-02](architecture/STATE-02-Canonical-Contracts.md)
-- [Dicionário lógico de dados e índice de S03-A](data/STATE-03-S03-A-Data-Dictionary.md)
-- [Threat model de STATE-02](security/STATE-02-Threat-Model.md)
+- [Canonical `STATE-02` contracts](architecture/STATE-02-Canonical-Contracts.md)
+- [`S03-A` logical data dictionary and index](data/STATE-03-S03-A-Data-Dictionary.md)
+- [`STATE-02` threat model](security/STATE-02-Threat-Model.md)
 
-## Governança
+## Governance
 
-- [Governança e estados](../prompts/governance/Governance.md)
+- [Governance and states](../prompts/governance/Governance.md)
 - [Lifecycle](../prompts/governance/Lifecycle.md)
-- [Qualidade e gates](../prompts/governance/Quality-Gates.md)
-- [Segurança e acesso](../prompts/governance/Security-And-Access.md)
-- [Política de idioma](../prompts/governance/Language-Policy.md)
-- [Estado factual](../prompts/state/Current-State.md)
-- [Histórico append-only](../prompts/state/State-Transition-Log.md)
+- [Quality and gates](../prompts/governance/Quality-Gates.md)
+- [Security and access](../prompts/governance/Security-And-Access.md)
+- [Language policy](../prompts/governance/Language-Policy.md)
+- [Factual state](../prompts/state/Current-State.md)
+- [Append-only history](../prompts/state/State-Transition-Log.md)
 - [Templates](../prompts/templates/Templates.md)
-- [Changelog do corpus](../prompts/system/Prompt-System-Change-Log.md)
+- [Corpus changelog](../prompts/system/Prompt-System-Change-Log.md)
 
-## Autoridade dos documentos
+## Document authority
 
-| Tipo | Autoridade |
+| Type | Authority |
 |---|---|
-| `AGENTS.md` | Regras permanentes e transversais. |
-| `prompts/foundation/` | Visão e contratos de alto nível. |
-| `prompts/governance/` | Estados, segurança, qualidade e execução. |
-| `prompts/governance/Language-Policy.md` | Autoridade temática única para idioma da comunicação e dos artefatos. |
-| `prompts/state/Current-State.md` | Presente factual. |
-| `prompts/state/State-Transition-Log.md` | História append-only. |
-| `docs/architecture/ADR-*` | Decisão conforme status próprio. |
-| `docs/STATE-*` | Evidência de uma execução específica. |
-| Roadmap e templates | Planejamento; não concedem execução. |
+| `AGENTS.md` | Permanent and cross-cutting rules. |
+| `prompts/foundation/` | Vision and high-level contracts. |
+| `prompts/governance/` | States, security, quality and execution. |
+| `prompts/governance/Language-Policy.md` | Single thematic authority for the language of communication and artefacts. |
+| `prompts/state/Current-State.md` | Factual present. |
+| `prompts/state/State-Transition-Log.md` | Append-only history. |
+| `docs/architecture/ADR-*` | A decision according to its own status. |
+| `docs/STATE-*` | Evidence from a specific execution. |
+| Roadmap and templates | Planning; they do not grant execution. |
 
-## Materiais locais
+## Local materials
 
-`reference-materials/` contém os arquivos originais recebidos e permanece
-ignorado pelo Git. A documentação pública não depende desses arquivos para
-resolver links ou executar o futuro produto.
+`reference-materials/` contains the original received files and remains
+ignored by Git. Public documentation does not depend on these files to resolve
+links or run the future product.
