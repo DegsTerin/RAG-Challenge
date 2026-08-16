@@ -2,9 +2,13 @@
 
 ## Status
 
-`proposed`
+`accepted`
 
 ## Date
+
+2026-08-16
+
+## Accepted
 
 2026-08-16
 
@@ -14,16 +18,20 @@
 - Architecture owner: RAG-Challenge
 - Technical owners: security, document rendering and runtime operations
 
-## Preparation authority and baseline
+## Preparation and decision authority and baseline
 
 - Preparation authority: `SEC-CORR-ADR-PREP-01`
 - Prior read-only design authority: `SEC-CORR-DESIGN-01`
-- Proposed permanent corrective identity: `SEC-CORR-002`
+- Permanent corrective identity: `SEC-CORR-002`
 - Branch: `main`
 - Commit: `334053e0101ce882767ccba29c69da7882917280`
 - Prompt corpus before preparation: `4.17.1`
+- Decision authority: explicit product-owner decision
+  `ADR-0019: ACEITAR.` on clean
+  `main@89be70aba4de556611c9bdda8da62d1d4f9a1e41`, corpus `4.17.2`
 - Lifecycle position: `STATE-07 TESTING_HOMOLOGATION`; unchanged
-- Runtime preflight: `NOT_APPLICABLE` for documentary preparation
+- Runtime preflight: `NOT_APPLICABLE` for documentary preparation and
+  acceptance recording
 - Protected OpenAPI v1 SHA-256:
   `d6a686b94c926914beb28b437f464430a01de6560c2e2d476cf5c36025813e34`
 - Protected OpenAPI v2 SHA-256:
@@ -31,15 +39,15 @@
 
 ## Identity and authority boundary
 
-`SEC-CORR-002` is reserved by this proposal for the cross-platform renderer
+`SEC-CORR-002` is assigned by this decision to the cross-platform renderer
 sandbox. It is independent from the existing `SEC-001` dependency-audit
-finding and from `SEC-CORR-001`, the proposed provider-budget boundary.
+finding and from `SEC-CORR-001`, the accepted provider-budget boundary.
 
-This proposal neither changes the renderer nor claims that a sandbox is
+This decision neither changes the renderer nor claims that a sandbox is
 currently implemented. It does not create a process, execute a PDF, add a
 project or dependency, alter a schema or migration, modify a public contract,
-or prove Windows, Linux ARM64 or OCI runtime behaviour. Acceptance would
-establish architecture authority only; every executable change and platform
+or prove Windows, Linux ARM64 or OCI runtime behaviour. Acceptance establishes
+architecture authority only; every executable change and platform
 proof would require separate authority.
 
 ## Context
@@ -91,7 +99,7 @@ no intentional renderer network call.
   unchanged.
 - Avoid treating a static cross-publish as runtime security evidence.
 
-## Proposed decision
+## Decision
 
 ### Versioned sandbox profile
 
@@ -141,7 +149,7 @@ implementation detail; Domain and Application do not depend on operating-
 system sandbox types.
 
 Creating the artefact would be a later project and implementation change. This
-proposal does not create it or select an additional third-party package.
+decision does not create it or select an additional third-party package.
 
 ### Pre-input bootstrap and attestation
 
@@ -267,12 +275,12 @@ real source or product homologation.
 
 ### Compatibility and implementation sequence
 
-The proposal preserves OpenAPI v1 and v2, render-profile IDs, manifest schemas,
+The decision preserves OpenAPI v1 and v2, render-profile IDs, manifest schemas,
 database schemas, migrations, content identities, rights mappings and public
 serving behaviour. The sandbox profile is an internal renderer descriptor and
 deployment compatibility input.
 
-If accepted, separate sequential authorities remain required for:
+Separate sequential authorities remain required for:
 
 1. the dedicated worker project and closed dependency graph;
 2. exact Windows launcher, identity and filesystem design;
@@ -285,7 +293,7 @@ If accepted, separate sequential authorities remain required for:
 8. product-data, recovery, load, OCI and operational homologation under their
    own authorities.
 
-Acceptance would not authorise any item in this sequence.
+Acceptance does not authorise any item in this sequence.
 
 ## Alternatives considered
 
@@ -327,9 +335,9 @@ boundary.
 
 ### Disable PDF visual rendering
 
-Retained as the safe fallback if this ADR is rejected, remains proposed or
-cannot be implemented on a target. Textual evidence remains subject to its
-existing independent controls; visual evidence is unavailable.
+Retained as the safe fallback whenever the accepted profile is unavailable or
+cannot be proven on a target. Textual evidence remains subject to its existing
+independent controls; visual evidence is unavailable.
 
 ## Consequences and risks
 
@@ -356,9 +364,12 @@ existing independent controls; visual evidence is unavailable.
 - Cross-platform tests require suitable Windows and native Linux ARM64 hosts;
   cross-publish alone is insufficient.
 
-## Acceptance and stop conditions
+## Acceptance record and implementation stop conditions
 
-Future acceptance must decide the complete proposed boundary, including:
+The owner accepted the complete recorded boundary through the exact decision
+`ADR-0019: ACEITAR.` on clean
+`main@89be70aba4de556611c9bdda8da62d1d4f9a1e41`, corpus `4.17.2`, with both
+protected OpenAPI identities unchanged. The accepted architecture includes:
 
 - the dedicated minimal worker artefact;
 - parent-established and attested sandbox before input;
@@ -367,18 +378,16 @@ Future acceptance must decide the complete proposed boundary, including:
 - no weaker fallback on an unsupported or partially controlled host; and
 - separate native runtime evidence for each supported platform.
 
-The decision remains pending. The permitted decision phrases are:
+This acceptance establishes architecture authority only. It accepts no risk
+and authorises no worker, process, project, dependency, launcher, public
+contract, schema, migration, implementation, executable test, OCI change or
+platform claim.
 
-```text
-ADR-0019: ACEITAR.
-ADR-0019: REJEITAR.
-```
-
-Preparation records neither phrase. Acceptance must stop if a required
-platform primitive cannot be established without broad host privilege, if a
-new helper or dependency has not received its own supply-chain decision, if
-the boundary would require a public contract, schema or migration change, or
-if Windows evidence would be used to infer Linux ARM64 behaviour.
+Any later design or implementation must stop if a required platform primitive
+cannot be established without broad host privilege, if a new helper or
+dependency has not received its own supply-chain decision, if the boundary
+would require a public contract, schema or migration change, or if Windows
+evidence would be used to infer Linux ARM64 behaviour.
 
 Implementation must later stop if any untrusted byte can reach renderer code
 before the sandbox is authoritatively installed and verified, or if the worker

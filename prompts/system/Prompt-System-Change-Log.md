@@ -2,7 +2,7 @@
 
 ## Current version
 
-- Version: `4.17.2`
+- Version: `4.17.3`
 - Date: 2026-08-16
 - Status: `STATE-07` active; ADR-0011 through ADR-0017 retain their recorded
   accepted dispositions and implemented or pending boundaries; PostgreSQL 18.4
@@ -23,7 +23,8 @@
   one newly authorised corrected execution on exact clean `6662aa0` used a
   short isolated temporary root and passed every offline stage; product
   homologation, Human Gate and lifecycle change remain unexecuted; ADR-0018
-  and ADR-0019 are `proposed` only, their owner decisions remain pending, and
+  and ADR-0019 are accepted as architecture authority only; no risk is
+  accepted, no semantic reconciliation or implementation is authorised, and
   the operational provider budget remains zero and disarmed
 - Scope: 13 active files under `prompts/`
 
@@ -37,6 +38,30 @@ The corpus version is independent from the future software version.
 
 Every change updates this file and, when necessary,
 [`../Start-Here.md`](../Start-Here.md).
+
+## 4.17.3 — 2026-08-16
+
+- Records the owner's explicit decisions `ADR-0018: ACEITAR.` and
+  `ADR-0019: ACEITAR.` on clean
+  `main@89be70aba4de556611c9bdda8da62d1d4f9a1e41`, corpus `4.17.2`, without
+  changing `STATE-07`, a Human Gate or lifecycle.
+- Changes ADR-0018 and ADR-0019 from `proposed` to `accepted` and establishes
+  `SEC-CORR-001` and `SEC-CORR-002` as their permanent corrective identities.
+  The pre-existing `SEC-001` dependency-audit identity remains unchanged.
+- Accepts the complete persistent provider-budget admission, conservative
+  uncertainty and explicit session-rearming boundary as architecture only.
+  The operational budget remains exactly zero and disarmed; no external price,
+  account, credential, billing surface or provider was consulted or used.
+- Accepts the complete dedicated and attested Windows and Linux ARM64 PDF
+  renderer sandbox boundary as architecture only. Existing containment and
+  static packaging evidence are not reclassified as a complete sandbox or
+  native runtime proof.
+- Accepts no risk and authorises no semantic reconciliation, code, test,
+  project, dependency, OpenAPI, schema, migration, runtime, provider,
+  credential, network, billing, deployment, Human Gate or lifecycle action.
+- Classification: `PATCH`, because this revision records two explicit
+  architecture decisions without changing public contracts, executable
+  behaviour, operational authority or lifecycle.
 
 ## 4.17.2 — 2026-08-16
 

@@ -8830,3 +8830,62 @@ contém somente fatos cronológicos.
 - Append-only integrity: this entry preserves the complete previous file of
   560,466 bytes at SHA-256
   `ccbf45ddaa6438ae3cbed82f17bff4b685ce7a0162567cc0e5ba7409299f506f`.
+
+## 2026-08-16 — ADR-0018 and ADR-0019 accepted as architecture authority
+
+- Previous and resulting state: `STATE-07 TESTING_HOMOLOGATION` remains active.
+  No Automatic Quality Gate, Human Gate or lifecycle transition was executed
+  or changed.
+- Decision and baseline: the owner explicitly declared
+  `ADR-0018: ACEITAR.` and `ADR-0019: ACEITAR.` on clean branch `main`, commit
+  `89be70aba4de556611c9bdda8da62d1d4f9a1e41`, corpus `4.17.2`, with both
+  protected OpenAPI identities unchanged.
+- Provider-budget architecture: ADR-0018 changes from `proposed` to `accepted`
+  and assigns permanent identity `SEC-CORR-001` to durable transactional
+  admission, conservative commitment of uncertain outcomes, strict operation
+  allocations and explicit rearming for every runtime session.
+- Renderer architecture: ADR-0019 changes from `proposed` to `accepted` and
+  assigns permanent identity `SEC-CORR-002` to a dedicated minimal worker,
+  parent-established pre-input attestation and equivalent fail-closed Windows
+  and Linux ARM64 sandbox invariants without a weaker fallback.
+- Identity preservation: the pre-existing `SEC-001` dependency-audit finding
+  and its historical fixtures remain unchanged. It is not reused or resolved
+  by either corrective decision.
+- Operational boundary: the provider budget remains exactly zero and disarmed.
+  No external price, account, credential, billing surface or provider was
+  consulted or used. Existing renderer containment and static AArch64
+  packaging are not reclassified as complete sandbox or native runtime proof.
+- Acceptance boundary: both decisions establish architecture authority only
+  and accept no risk. They grant no semantic reconciliation, public contract,
+  persistence, schema, migration, code, test, project, dependency, renderer,
+  launcher, platform execution, provider, credential, network, billing,
+  deployment or operational authority.
+- Protected artefacts: OpenAPI v1 remains at SHA-256
+  `d6a686b94c926914beb28b437f464430a01de6560c2e2d476cf5c36025813e34` and
+  OpenAPI v2 remains at SHA-256
+  `f4dca8db7fb7bd453e580495bb1bb7760812d954344931063e8549ed8f036733`.
+- Versioning: the instruction corpus advances by factual `PATCH` from
+  `4.17.2` to `4.17.3` without a public-contract, executable-behaviour,
+  operational-authority, gate or lifecycle change.
+- Closed documentary scope: only ADR-0018, ADR-0019, the architecture index,
+  Current State, this append-only EOF and the Prompt System Change Log are
+  changed.
+- Negative scope: no build, executable test, runtime process preflight,
+  provider preflight, Human Gate, transition, external action, GitHub action,
+  push, amend, rebase, publication, release or deployment occurred.
+- Documentary verification: `git diff --check` exited `0`; the repository
+  audit passed for 422 non-ignored files; the language policy passed for 422
+  tracked files with zero accepted migration findings; the semantic check
+  confirmed both accepted statuses, both permanent corrective identities,
+  corpus `4.17.3`, six authorised paths and no unexpected path. Build,
+  executable tests and Automatic Quality Gate remain `NOT_RUN`.
+- Runtime preflight: `NOT_APPLICABLE`, because acceptance recording is purely
+  documentary and validates no executable RAG-Challenge behaviour.
+- Append-only integrity: this entry preserves the complete previous file of
+  563,694 bytes at SHA-256
+  `fd0bd6347341bc286cf2c90738f9fa7671a10e2ecad10b68d7627761b07c58ef`.
+- Next condition: obtain separate bounded owner authority for documentary
+  semantic reconciliation of both accepted decisions into the security and
+  threat-model owners. That authority would not include risk acceptance,
+  persistence, schema, migration, implementation, dependency, budget arming,
+  provider, network, platform execution, Human Gate or lifecycle activity.

@@ -2,9 +2,13 @@
 
 ## Status
 
-`proposed`
+`accepted`
 
 ## Date
+
+2026-08-16
+
+## Accepted
 
 2026-08-16
 
@@ -14,16 +18,20 @@
 - Architecture owner: RAG-Challenge
 - Technical owners: security, operations governance and provider adapters
 
-## Preparation authority and baseline
+## Preparation and decision authority and baseline
 
 - Preparation authority: `SEC-CORR-ADR-PREP-01`
 - Prior read-only design authority: `SEC-CORR-DESIGN-01`
-- Proposed permanent corrective identity: `SEC-CORR-001`
+- Permanent corrective identity: `SEC-CORR-001`
 - Branch: `main`
 - Commit: `334053e0101ce882767ccba29c69da7882917280`
 - Prompt corpus before preparation: `4.17.1`
+- Decision authority: explicit product-owner decision
+  `ADR-0018: ACEITAR.` on clean
+  `main@89be70aba4de556611c9bdda8da62d1d4f9a1e41`, corpus `4.17.2`
 - Lifecycle position: `STATE-07 TESTING_HOMOLOGATION`; unchanged
-- Runtime preflight: `NOT_APPLICABLE` for documentary preparation
+- Runtime preflight: `NOT_APPLICABLE` for documentary preparation and
+  acceptance recording
 - Protected OpenAPI v1 SHA-256:
   `d6a686b94c926914beb28b437f464430a01de6560c2e2d476cf5c36025813e34`
 - Protected OpenAPI v2 SHA-256:
@@ -31,21 +39,21 @@
 
 ## Identity and authority boundary
 
-`SEC-CORR-001` is reserved by this proposal for the persistent provider-budget
+`SEC-CORR-001` is assigned by this decision to the persistent provider-budget
 boundary. It does not reuse `SEC-001`, which already identifies the distinct
 NuGet vulnerability-gate finding in the
 [Multi-Agent Readiness Audit](../Multi-Agent-Readiness-Audit.md). The existing
 identifier and its historical test fixtures remain unchanged.
 
-This proposal selects no price, provider account, spend limit or operational
+This decision selects no price, provider account, spend limit or operational
 budget. No external price source was consulted. The operational provider
 budget remains exactly zero and disarmed. Preparing or accepting this ADR
 would not arm a budget, validate a credential, enable egress or authorise a
 provider request.
 
-The proposal is an internal security and operations boundary. It does not
+The decision is an internal security and operations boundary. It does not
 change OpenAPI, public HTTP behaviour, the product credential policy, an
-existing campaign freeze, billing or lifecycle. Acceptance would establish
+existing campaign freeze, billing or lifecycle. Acceptance establishes
 architecture authority only. Persistence design, schema, migration,
 implementation, testing, operational values and any provider execution would
 retain separate authorities.
@@ -93,7 +101,7 @@ before credential access or egress.
   budget ledger and audit.
 - Preserve public contracts and existing campaign evidence byte for byte.
 
-## Proposed decision
+## Decision
 
 ### Persistent budget envelope
 
@@ -239,7 +247,7 @@ new budget-envelope authority rather than a rearm.
 
 No operational envelope is implemented. Its absence is therefore treated as
 `Disarmed`, with an effective aggregate limit of zero and zero operation
-allocations. Neither preparation nor possible acceptance of this ADR changes
+allocations. Neither preparation nor acceptance of this ADR changes
 that value.
 
 ### Readiness, audit and disclosure
@@ -259,10 +267,10 @@ identifiers beyond the approved local actor reference.
 ### Compatibility and implementation sequence
 
 The boundary is internal. OpenAPI v1 and v2, query payloads and public response
-semantics remain unchanged. The proposal does not reinterpret the frozen
+semantics remain unchanged. The decision does not reinterpret the frozen
 provider-candidate campaign or any provider-side account control.
 
-If accepted, separate sequential authorities remain required for:
+Separate sequential authorities remain required for:
 
 1. the exact internal persistence schema and migration, including crash-safe
    uniqueness and transaction semantics;
@@ -274,7 +282,7 @@ If accepted, separate sequential authorities remain required for:
 6. exact cost-schedule and zero-to-nonzero budget decisions; and
 7. any credential lookup, provider egress, billing or real execution.
 
-Acceptance would not authorise any item in this sequence.
+Acceptance does not authorise any item in this sequence.
 
 ## Alternatives considered
 
@@ -307,9 +315,9 @@ one aggregate limit preserve both least privilege and a complete ceiling.
 
 ### Keep all operational budgets at zero
 
-Retained as the current safe fallback if this ADR is rejected or remains
-proposed. Provider capability stays disarmed and no provider request is
-admitted.
+Retained as the current safe fallback until a nonzero operational envelope is
+separately authorised and implemented. Provider capability stays disarmed and
+no provider request is admitted.
 
 ## Consequences and risks
 
@@ -333,9 +341,12 @@ admitted.
 - Persistence corruption, clock drift and restore consistency require their
   own tests and operational recovery evidence.
 
-## Acceptance and stop conditions
+## Acceptance record and implementation stop conditions
 
-Future acceptance must decide the complete proposed boundary, including:
+The owner accepted the complete recorded boundary through the exact decision
+`ADR-0018: ACEITAR.` on clean
+`main@89be70aba4de556611c9bdda8da62d1d4f9a1e41`, corpus `4.17.2`, with both
+protected OpenAPI identities unchanged. The accepted architecture includes:
 
 - strict per-operation allocations under one aggregate limit;
 - conservative maximum reservation before egress;
@@ -343,17 +354,15 @@ Future acceptance must decide the complete proposed boundary, including:
 - explicit rearming for every new runtime session; and
 - the invariant that rearming does not restore or increase budget.
 
-The decision remains pending. The permitted decision phrases are:
+This acceptance establishes architecture authority only. It accepts no risk,
+arms no budget and authorises no price, account fact, nonzero operational
+value, credential, provider call, public contract change, persistence schema,
+migration, implementation or executable test. The operational provider budget
+remains exactly zero and disarmed. No external price was consulted.
 
-```text
-ADR-0018: ACEITAR.
-ADR-0018: REJEITAR.
-```
-
-Preparation records neither phrase. Acceptance must stop if it would require
-an inferred price, account fact, nonzero budget, credential, provider call,
-public contract change, automatic rearm, float-based money, unbounded retry or
-weaker treatment of an uncertain outcome.
+Any later design or implementation must stop if it would require an inferred
+price or account fact, automatic rearm, floating-point money, unbounded retry
+or weaker treatment of an uncertain outcome.
 
 Implementation must later stop if atomic reservation cannot be proved across
 the supported concurrency and restore boundaries, or if any path can reach
