@@ -27,6 +27,7 @@ jobs:
         with:
           persist-credentials: false
           fetch-depth: 0
+          ref: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.sha || github.sha }}
 
       - name: Resolve language-check commit boundary
         shell: pwsh
@@ -34,10 +35,21 @@ jobs:
           EVENT_NAME: ${{ github.event_name }}
           PULL_REQUEST_BASE: ${{ github.event.pull_request.base.sha }}
           PUSH_BEFORE: ${{ github.event.before }}
-          CHECKED_OUT_HEAD: ${{ github.sha }}
+          SELECTED_HEAD: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.sha || github.sha }}
         run: |
           $ErrorActionPreference = "Stop"
           $fullSha = '^[0-9a-f]{40}$'
+          if ($env:SELECTED_HEAD -notmatch $fullSha -or $env:SELECTED_HEAD -eq ('0' * 40)) {
+            throw "The event-selected head is missing or invalid."
+          }
+          $headOutput = & git rev-parse --verify HEAD
+          if ($LASTEXITCODE -ne 0) {
+            throw "The checked-out head could not be resolved."
+          }
+          $actualHead = $headOutput.Trim()
+          if ($actualHead -notmatch $fullSha -or $actualHead -cne $env:SELECTED_HEAD) {
+            throw "The checked-out head does not match the event-selected head."
+          }
           if ($env:EVENT_NAME -eq 'pull_request') {
             if ($env:PULL_REQUEST_BASE -notmatch $fullSha -or $env:PULL_REQUEST_BASE -eq ('0' * 40)) {
               throw "The pull-request base is missing or invalid."
@@ -51,10 +63,7 @@ jobs:
             "RAG_LANGUAGE_COMMIT_BASE=$env:PUSH_BEFORE" >> $env:GITHUB_ENV
           }
           elseif ($env:EVENT_NAME -eq 'workflow_dispatch') {
-            if ($env:CHECKED_OUT_HEAD -notmatch $fullSha -or $env:CHECKED_OUT_HEAD -eq ('0' * 40)) {
-              throw "The workflow-dispatch head is missing or invalid."
-            }
-            "RAG_LANGUAGE_COMMIT_HEAD=$env:CHECKED_OUT_HEAD" >> $env:GITHUB_ENV
+            "RAG_LANGUAGE_COMMIT_HEAD=$env:SELECTED_HEAD" >> $env:GITHUB_ENV
           }
           else {
             throw "The workflow event does not define a language-check boundary."

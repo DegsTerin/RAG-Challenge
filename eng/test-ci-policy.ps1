@@ -287,8 +287,82 @@ try {
         throw "The workflow must invoke the canonical CI entry point exactly once."
     }
 
+    $selectedHeadExpression = '${{ github.event_name == ''pull_request'' && github.event.pull_request.head.sha || github.sha }}'
+    $selectedHeadPattern = [regex]::Escape($selectedHeadExpression)
+    $checkoutHeadBindings = [regex]::Matches(
+        $workflow,
+        "(?m)^\s*ref:\s*$selectedHeadPattern\s*$").Count
+    $boundaryHeadBindings = [regex]::Matches(
+        $workflow,
+        "(?m)^\s*SELECTED_HEAD:\s*$selectedHeadPattern\s*$").Count
+    $actualHeadCommandIndex = $workflow.IndexOf(
+        '$headOutput = & git rev-parse --verify HEAD',
+        [System.StringComparison]::Ordinal)
+    $actualHeadBindingIndex = $workflow.IndexOf(
+        '$actualHead -notmatch $fullSha -or $actualHead -cne $env:SELECTED_HEAD',
+        [System.StringComparison]::Ordinal)
+    $firstLanguageBoundaryExport = $workflow.IndexOf(
+        'RAG_LANGUAGE_COMMIT_BASE=',
+        [System.StringComparison]::Ordinal)
+
+    if ($checkoutHeadBindings -ne 1 -or
+        $boundaryHeadBindings -ne 1 -or
+        $actualHeadCommandIndex -lt 0 -or
+        $actualHeadBindingIndex -lt $actualHeadCommandIndex -or
+        $firstLanguageBoundaryExport -lt $actualHeadBindingIndex) {
+        throw "The workflow must check out and verify the exact event-selected head before exporting a language boundary."
+    }
+
+    foreach ($forbiddenMergeBinding in @(
+            'refs/pull/',
+            'pull_request.merge_commit_sha',
+            'allow-merge',
+            'allow_merge',
+            '--first-parent')) {
+        if ($workflow.IndexOf(
+                $forbiddenMergeBinding,
+                [System.StringComparison]::OrdinalIgnoreCase) -ge 0) {
+            throw "The workflow must not bind or bypass a synthetic or general merge commit."
+        }
+    }
+
+    function Assert-SyntheticWorkflowHeadBinding {
+        [CmdletBinding()]
+        param(
+            [Parameter(Mandatory)]
+            [string]$SelectedHead,
+
+            [Parameter(Mandatory)]
+            [string]$ActualHead
+        )
+
+        if ($SelectedHead -notmatch '^[0-9a-f]{40}$' -or
+            $SelectedHead -eq ('0' * 40) -or
+            $ActualHead -notmatch '^[0-9a-f]{40}$' -or
+            $ActualHead -cne $SelectedHead) {
+            throw "Synthetic checked-out head mismatch."
+        }
+    }
+
+    $pullRequestHead = 'a' * 40
+    $syntheticMergeHead = 'b' * 40
+    Invoke-ExpectedSuccess -Name "pull-request-head-binding" -Action {
+        Assert-SyntheticWorkflowHeadBinding `
+            -SelectedHead $pullRequestHead `
+            -ActualHead $pullRequestHead
+    }
+    Invoke-ExpectedFailure `
+        -Name "pull-request-synthetic-merge-rejected" `
+        -Action {
+            Assert-SyntheticWorkflowHeadBinding `
+                -SelectedHead $pullRequestHead `
+                -ActualHead $syntheticMergeHead
+        } `
+        -ExpectedPattern "Synthetic checked-out head mismatch"
+
     if ($workflow -notmatch 'fetch-depth:\s*0' -or
         $workflow -notmatch 'github[.]event[.]pull_request[.]base[.]sha' -or
+        $workflow -notmatch 'github[.]event[.]pull_request[.]head[.]sha' -or
         $workflow -notmatch 'github[.]event[.]before' -or
         $workflow -notmatch 'github[.]sha' -or
         $workflow -notmatch 'RAG_LANGUAGE_COMMIT_BASE' -or
