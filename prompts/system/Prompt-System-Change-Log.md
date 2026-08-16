@@ -66,7 +66,7 @@ Every change updates this file and, when necessary,
   push, release or deployment.
 - Records the approved fresh-node canonical offline gate on clean candidate
   `311f115e5b080b1d5c1cc55f43dc91426e9fcdd2`: 520 .NET tests, 45 Dashboard
-  tests and 107 orchestrator tests passed with the two existing host
+  tests and 105 of 107 orchestrator tests passed, with two existing host
   symlink-permission skips; merged .NET coverage was 95.41% of lines and
   67.29% of branches; the language-policy suite passed 100/100; and the
   419-file repository audit and Git diff hygiene passed.
