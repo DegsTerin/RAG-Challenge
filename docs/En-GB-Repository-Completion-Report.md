@@ -160,8 +160,9 @@ append-only prefix was rewritten.
 Corpus `4.17.0` records the repository-completion capability without changing
 the product lifecycle or any accepted architectural disposition. Current
 State records the integrated candidate; the append-only State Transition Log
-records the authority, implementation and still-pending final gates; and the
-instruction-system ledger records the new capability newest-first. Historical
+records the authority, implementation, completed independent reviews, passed
+documentary gate and failed canonical execution; and the instruction-system
+ledger records the new capability newest-first. Historical
 entries and protected prefixes remain byte-for-byte.
 
 ## 8. Gate results
