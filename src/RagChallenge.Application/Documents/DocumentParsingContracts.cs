@@ -161,7 +161,7 @@ public sealed class ParsedDocumentArtifact
         if (materialisedUnits.Length == 0)
         {
             throw new ArgumentException(
-                "A parsed artifact must contain at least one unit.",
+                "A parsed artefact must contain at least one unit.",
                 nameof(units));
         }
 
