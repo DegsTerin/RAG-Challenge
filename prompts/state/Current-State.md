@@ -1695,6 +1695,17 @@ reports.
   control disposition, not primary evidence or a new legal
   conclusion. No deterministic identity, obligation set, manifest,
   generation, activation or bundle mutation was created or authorised.
+- Under `SEC-CORR-ADR-PREP-01`, ADR-0018 and ADR-0019 were prepared on clean
+  `main@334053e0101ce882767ccba29c69da7882917280`, corpus `4.17.1`, as
+  `proposed` architecture records only. ADR-0018 reserves `SEC-CORR-001` for
+  persistent provider budget admission and explicit runtime-session rearming;
+  the operational budget remains zero and disarmed, and no external price was
+  consulted. ADR-0019 reserves `SEC-CORR-002` for a dedicated, attested
+  Windows and Linux ARM64 PDF renderer sandbox. The pre-existing `SEC-001`
+  dependency-audit finding remains unchanged. Neither proposal nor risk was
+  accepted, and no implementation, public contract, schema, migration,
+  dependency, provider, credential, network, billing, Human Gate or lifecycle
+  action occurred.
 
 ## Documentary baseline
 
@@ -1702,7 +1713,7 @@ reports.
   the language policy added the 21st public document through a versioned
   increment, and ADR-0003 added the 22nd.
 - The baseline approved at the `STATE-00` Human Gate remains `3.4.0`.
-- The current instruction corpus is version `4.17.1` and has 13 files under
+- The current instruction corpus is version `4.17.2` and has 13 files under
   `prompts/`.
 - Vision, requirements, architecture, RAG, security, quality, lifecycle,
   roadmap, backlog, state, history and templates are documented.
@@ -2468,8 +2479,18 @@ authorised.
    `RESOLVIDO`. The real browser/assistive-technology, data, renderer,
    provider, source and network, load, comprehensive crash-injection,
    operational-recovery, Linux, OCI and production boundaries remain `NOT_RUN`.
+10. ADR-0018 and ADR-0019 remain `proposed`. Their explicit owner decisions
+    are pending; preparation accepts neither architecture nor risk. Any later
+    acceptance would still require separate authority for persistence,
+    schema, migration, implementation, dependencies, platform-specific tests,
+    budget arming, provider access and operational evidence.
 
 ## Next authority
+
+The directly related next authority is an explicit owner decision to accept,
+reject or revise ADR-0018 and ADR-0019. No acceptance phrase has been recorded.
+Acceptance, if granted, would establish architecture authority only and would
+not arm a provider budget or authorise renderer implementation.
 
 Stage 2 is implemented and validated for deterministic coordination with
 `FakeAgentRunner` and the Codex App Server runner selected by ADR-0017. The

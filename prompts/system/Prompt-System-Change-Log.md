@@ -2,7 +2,7 @@
 
 ## Current version
 
-- Version: `4.17.1`
+- Version: `4.17.2`
 - Date: 2026-08-16
 - Status: `STATE-07` active; ADR-0011 through ADR-0017 retain their recorded
   accepted dispositions and implemented or pending boundaries; PostgreSQL 18.4
@@ -22,7 +22,9 @@
   coordinator’s isolated temporary root produced overlong synthetic Git paths;
   one newly authorised corrected execution on exact clean `6662aa0` used a
   short isolated temporary root and passed every offline stage; product
-  homologation, Human Gate and lifecycle change remain unexecuted
+  homologation, Human Gate and lifecycle change remain unexecuted; ADR-0018
+  and ADR-0019 are `proposed` only, their owner decisions remain pending, and
+  the operational provider budget remains zero and disarmed
 - Scope: 13 active files under `prompts/`
 
 The corpus version is independent from the future software version.
@@ -35,6 +37,31 @@ The corpus version is independent from the future software version.
 
 Every change updates this file and, when necessary,
 [`../Start-Here.md`](../Start-Here.md).
+
+## 4.17.2 — 2026-08-16
+
+- Records `SEC-CORR-ADR-PREP-01` on clean
+  `main@334053e0101ce882767ccba29c69da7882917280`, corpus `4.17.1`, without
+  changing `STATE-07`, a Human Gate or lifecycle.
+- Prepares ADR-0018 as `proposed` and reserves `SEC-CORR-001` for persistent,
+  transactional provider-budget admission, conservative handling of uncertain
+  requests and explicit rearming for each runtime session. The budget remains
+  zero and disarmed; no external price, account, credential, billing surface or
+  provider was consulted or used.
+- Prepares ADR-0019 as `proposed` and reserves `SEC-CORR-002` for a dedicated,
+  attested PDF renderer sandbox with equivalent fail-closed invariants on
+  Windows and Linux ARM64. Current Job Object/`rlimit` evidence and static
+  AArch64 packaging are not reclassified as complete sandbox or native runtime
+  proof.
+- Preserves the existing `SEC-001` dependency-audit identity and its historical
+  fixtures; neither corrective proposal reuses nor resolves that finding.
+- Indexes both proposals and records only their present factual disposition.
+  Neither proposal nor risk is accepted, and no code, test, project, dependency,
+  OpenAPI, schema, migration, runtime, provider, credential, network, billing,
+  external resource or append-only history is changed.
+- Classification: `PATCH`, because this revision records two documentary
+  architecture proposals and their pending human decisions without changing
+  existing authority, public contracts, behaviour or lifecycle.
 
 ## 4.17.1 — 2026-08-16
 

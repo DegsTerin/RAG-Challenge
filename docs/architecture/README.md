@@ -124,6 +124,18 @@ gate and one bounded read-only real turn passed. Acceptance and implementation
 are not a Human Gate; every later run still requires its own plan and execution
 authority.
 
+ADR-0018 and ADR-0019 were prepared on 2026-08-16 under
+`SEC-CORR-ADR-PREP-01` on clean
+`main@334053e0101ce882767ccba29c69da7882917280`, corpus `4.17.1`.
+They remain `proposed`. ADR-0018 reserves `SEC-CORR-001` for durable provider
+budget admission, conservative reservations and explicit session rearming;
+the operational budget remains zero and disarmed, and no external price was
+consulted. ADR-0019 reserves `SEC-CORR-002` for a dedicated, attested Windows
+and Linux ARM64 PDF renderer sandbox. The existing `SEC-001` dependency-audit
+finding retains its identity. Preparation accepts neither proposal nor risk and
+authorises no schema, migration, implementation, dependency, provider,
+credential, network, billing, deployment, Human Gate or lifecycle action.
+
 The later combined audit failed on `AQG-S02-001`, an internal contradiction
 between observation-inclusive generation identity and observation-only
 freshness rebinding. The owner accepted ADR-0007 explicitly on 2026-08-02. It
@@ -320,6 +332,12 @@ Dashboard -- versioned HTTP --> API
 - [ADR-0017 — Codex App Server Pre-Turn Checkpoint Runner](ADR-0017-Codex-App-Server-Pre-Turn-Checkpoint-Runner.md)
   (`accepted` and implemented; preserves the deterministic core, supplies
   pre-turn identity and passed one controlled real validation)
+- [ADR-0018 — Persistent Provider Budget Admission and Explicit Rearming](ADR-0018-Persistent-Provider-Budget-Admission-And-Explicit-Rearming.md)
+  (`proposed`; `SEC-CORR-001`; operational budget remains zero and disarmed;
+  acceptance and implementation are separately governed)
+- [ADR-0019 — Cross-Platform PDF Renderer Sandbox Boundary](ADR-0019-Cross-Platform-PDF-Renderer-Sandbox-Boundary.md)
+  (`proposed`; `SEC-CORR-002`; Windows and Linux ARM64 implementation and
+  native runtime evidence are separately governed)
 
 ## STATE-02 design artefacts
 
@@ -343,6 +361,9 @@ Dashboard -- versioned HTTP --> API
   successor vector freeze, before any RB-4 execution can be authorised.
 - A new bounded authority and closed plan for each future orchestrator run;
   readiness does not provide standing execution authority.
+- Explicit owner decisions to accept, reject or revise proposed ADR-0018 and
+  ADR-0019. Any accepted decision would establish architecture authority only;
+  implementation and operational enablement would remain separate.
 - Product evaluation, provider, security, accessibility, operational recovery,
   load, OCI and production evidence that remains `NOT_RUN` or separately
   governed in Current State.
