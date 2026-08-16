@@ -221,47 +221,6 @@ test("trusted candidate language policy accepts British prose and external liter
     error instanceof OrchestratorStop && error.code === "OUT_OF_SCOPE_CHANGE_REQUIRED");
 });
 
-test("trusted language policy accepts closed credential identifier allowances", () => {
-  const policy = parseSyntheticLanguagePolicy([
-    { path: "eng/check-language.mjs", classification: "EXECUTABLE_POLICY_ENFORCEMENT", sha256: null },
-    {
-      path: "docs/historical-record.md",
-      classification: "PRESERVED_HISTORICAL_DOCUMENT",
-      sha256: "c".repeat(64),
-    },
-  ]);
-  assert.deepEqual(policy.productCredentialIdentifierAllowances, [
-    { path: "eng/check-language.mjs", classification: "EXECUTABLE_POLICY_ENFORCEMENT", sha256: null },
-    {
-      path: "docs/historical-record.md",
-      classification: "PRESERVED_HISTORICAL_DOCUMENT",
-      sha256: "c".repeat(64),
-    },
-  ]);
-});
-
-test("trusted language policy rejects invalid credential identifier allowances", () => {
-  const current = { path: "eng/check-language.mjs", classification: "EXECUTABLE_POLICY_ENFORCEMENT", sha256: null };
-  const invalidAllowances: readonly (readonly Readonly<Record<string, unknown>>[])[] = [
-    [],
-    [{ ...current, extra: "unexpected" }],
-    [{ ...current, path: "eng/*.mjs" }],
-    [{ ...current, path: "eng/" }],
-    [{ ...current, path: "../eng/check-language.mjs" }],
-    [current, current],
-    [{ ...current, classification: "UNKNOWN_CLASSIFICATION" }],
-    [{ path: "docs/history.md", classification: "PRESERVED_HISTORICAL_DOCUMENT", sha256: null }],
-    [{ path: "docs/history.md", classification: "PRESERVED_HISTORICAL_DOCUMENT", sha256: "invalid" }],
-    [{ ...current, sha256: "d".repeat(64) }],
-  ];
-  for (const allowances of invalidAllowances) {
-    assert.throws(
-      () => parseSyntheticLanguagePolicy(allowances),
-      (error: unknown) => error instanceof OrchestratorStop && error.code === "OUT_OF_SCOPE_CHANGE_REQUIRED",
-    );
-  }
-});
-
 test("candidate cannot relax the coordinator-owned language policy", async () => {
   const commit = "a".repeat(40);
   const tree = "b".repeat(40);
@@ -358,6 +317,47 @@ test("ordinary candidates cannot alter trusted language controls or bypass the t
   assert.equal(checkerCalls, 1);
 });
 // SYNTHETIC_ORCHESTRATOR_ENFORCEMENT_END
+
+test("trusted language policy accepts closed credential identifier allowances", () => {
+  const policy = parseSyntheticLanguagePolicy([
+    { path: "eng/check-language.mjs", classification: "EXECUTABLE_POLICY_ENFORCEMENT", sha256: null },
+    {
+      path: "docs/historical-record.md",
+      classification: "PRESERVED_HISTORICAL_DOCUMENT",
+      sha256: "c".repeat(64),
+    },
+  ]);
+  assert.deepEqual(policy.productCredentialIdentifierAllowances, [
+    { path: "eng/check-language.mjs", classification: "EXECUTABLE_POLICY_ENFORCEMENT", sha256: null },
+    {
+      path: "docs/historical-record.md",
+      classification: "PRESERVED_HISTORICAL_DOCUMENT",
+      sha256: "c".repeat(64),
+    },
+  ]);
+});
+
+test("trusted language policy rejects invalid credential identifier allowances", () => {
+  const current = { path: "eng/check-language.mjs", classification: "EXECUTABLE_POLICY_ENFORCEMENT", sha256: null };
+  const invalidAllowances: readonly (readonly Readonly<Record<string, unknown>>[])[] = [
+    [],
+    [{ ...current, extra: "unexpected" }],
+    [{ ...current, path: "eng/*.mjs" }],
+    [{ ...current, path: "eng/" }],
+    [{ ...current, path: "../eng/check-language.mjs" }],
+    [current, current],
+    [{ ...current, classification: "UNKNOWN_CLASSIFICATION" }],
+    [{ path: "docs/history.md", classification: "PRESERVED_HISTORICAL_DOCUMENT", sha256: null }],
+    [{ path: "docs/history.md", classification: "PRESERVED_HISTORICAL_DOCUMENT", sha256: "invalid" }],
+    [{ ...current, sha256: "d".repeat(64) }],
+  ];
+  for (const allowances of invalidAllowances) {
+    assert.throws(
+      () => parseSyntheticLanguagePolicy(allowances),
+      (error: unknown) => error instanceof OrchestratorStop && error.code === "OUT_OF_SCOPE_CHANGE_REQUIRED",
+    );
+  }
+});
 
 test("trusted candidate checker executes the coordinator script against the candidate root with a closed environment", async () => {
   const processAdapter = new RecordingGitProcess();
