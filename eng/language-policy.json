@@ -1,6 +1,6 @@
 {
   "$schema": "./language-policy.schema.json",
-  "schemaDigest": "sha256:557d0719e16105d7430aa83e7cd79260a4bb8640c56ebd37493d22a21756da99",
+  "schemaDigest": "sha256:0a6ab3b731e18c53cb0de3ecbe47d53dee648bf16130e88008750f50c5febb85",
   "payload": {
     "schemaVersion": 1,
     "policyId": "rag-challenge-language-policy-v1",
@@ -106,6 +106,88 @@
       ".tsx",
       ".yaml",
       ".yml"
+    ],
+    "productCredentialIdentifierAllowances": [
+      {
+        "path": "deploy/render-free/render.yaml.template",
+        "classification": "PRODUCT_RUNTIME_OR_DEPLOYMENT_CONFIGURATION",
+        "sha256": null
+      },
+      {
+        "path": "docs/architecture/ADR-0017-Codex-App-Server-Pre-Turn-Checkpoint-Runner.md",
+        "classification": "PRESERVED_HISTORICAL_DOCUMENT",
+        "sha256": "e8f5022f68181407209a14b479907fb202a408074b6c5896dbb3f271aabfad39"
+      },
+      {
+        "path": "docs/Stage-2-Multi-Agent-Orchestrator-Report.md",
+        "classification": "PRESERVED_HISTORICAL_DOCUMENT",
+        "sha256": "7a6b967ff2ecfecc17a40c301d707a911043d1b88303ee70791a2f077bd41892"
+      },
+      {
+        "path": "eng/Build-RenderFreePackage.ps1",
+        "classification": "PRODUCT_RUNTIME_OR_DEPLOYMENT_CONFIGURATION",
+        "sha256": null
+      },
+      {
+        "path": "eng/ci.ps1",
+        "classification": "EXECUTABLE_POLICY_ENFORCEMENT",
+        "sha256": null
+      },
+      {
+        "path": "eng/test-ci-policy.ps1",
+        "classification": "SYNTHETIC_ENFORCEMENT",
+        "sha256": null
+      },
+      {
+        "path": "eng/test-language-policy.mjs",
+        "classification": "SYNTHETIC_ENFORCEMENT",
+        "sha256": null
+      },
+      {
+        "path": "eng/Test-RenderFreePackage.ps1",
+        "classification": "SYNTHETIC_ENFORCEMENT",
+        "sha256": null
+      },
+      {
+        "path": "prompts/governance/Security-And-Access.md",
+        "classification": "SECURITY_POLICY",
+        "sha256": null
+      },
+      {
+        "path": "tests/RagChallenge.IntegrationTests/RenderFreePackageArtefactTests.cs",
+        "classification": "SYNTHETIC_ENFORCEMENT",
+        "sha256": null
+      },
+      {
+        "path": "tests/RagChallenge.IntegrationTests/S07ALocalHarness/S07ALocalHarnessTests.cs",
+        "classification": "SYNTHETIC_ENFORCEMENT",
+        "sha256": null
+      },
+      {
+        "path": "tools/ai-orchestrator/test/adapters.test.ts",
+        "classification": "SYNTHETIC_ENFORCEMENT",
+        "sha256": null
+      },
+      {
+        "path": "tools/ai-orchestrator/test/cli.test.ts",
+        "classification": "SYNTHETIC_ENFORCEMENT",
+        "sha256": null
+      },
+      {
+        "path": "tools/ai-orchestrator/test/codex-app-server.test.ts",
+        "classification": "SYNTHETIC_ENFORCEMENT",
+        "sha256": null
+      },
+      {
+        "path": "tools/ai-orchestrator/test/core.test.ts",
+        "classification": "SYNTHETIC_ENFORCEMENT",
+        "sha256": null
+      },
+      {
+        "path": "tools/ai-orchestrator/test/security-boundaries.test.ts",
+        "classification": "SYNTHETIC_ENFORCEMENT",
+        "sha256": null
+      }
     ],
     "excludedPaths": [
       { "path": "docs/api/openapi-v1.json", "classification": "FROZEN_PUBLIC_CONTRACT", "reason": "The accepted OpenAPI v1 bytes are frozen." },
@@ -216,14 +298,14 @@
         "classification": "SYNTHETIC_ENFORCEMENT_REGION",
         "startMarker": "// SYNTHETIC_LANGUAGE_POLICY_PAYLOAD_START",
         "endMarker": "// SYNTHETIC_LANGUAGE_POLICY_PAYLOAD_END",
-        "sha256": "6695cf9079c5f6e1ee651ca09a109e1c938ae5f48a48113a0b1cae7cf7589fd9"
+        "sha256": "05cba076bdedb5db1be42b3543518fedf4f0fde54f5c2781ac523fced96d5b02"
       },
       {
         "path": "eng/test-language-policy.mjs",
         "classification": "SYNTHETIC_ENFORCEMENT_REGION",
         "startMarker": "// SYNTHETIC_LANGUAGE_REPOSITORY_START",
         "endMarker": "// SYNTHETIC_LANGUAGE_REPOSITORY_END",
-        "sha256": "67963d08bdf49aef1aecd5e8cbd1ef5aa2bbbc189fa60790fe1978b7b068198c"
+        "sha256": "824a1277dcbbdcfe0ab1b4689e5e881abcfdf45180cc160592f2d938aa411fde"
       },
       {
         "path": "eng/test-language-policy.mjs",
@@ -237,7 +319,7 @@
         "classification": "SYNTHETIC_ENFORCEMENT_REGION",
         "startMarker": "// SYNTHETIC_LANGUAGE_SECRET_MESSAGES_START",
         "endMarker": "// SYNTHETIC_LANGUAGE_SECRET_MESSAGES_END",
-        "sha256": "24d9aafb6f77eba11d1784692920932b10085877db87b5924b15e37cb451cd9f"
+        "sha256": "9fd75d7fdd45dff7fa75da462fdcc2453bd3acf7407a64fd21ebfda485497cae"
       },
       {
         "path": "eng/test-language-policy.mjs",
@@ -286,5 +368,5 @@
       { "path": "prompts/state/State-Transition-Log.md", "prefixBytes": 544842, "sha256": "8b9567ff3cec6bb79c220af0eacc669824485d717cf69df92bcc1ecb9875545e" }
     ]
   },
-  "digest": "sha256:f38bbfb9b3f6142aa77a2d98583dd78c83791f171ac268c3f62e90f801af5d3c"
+  "digest": "sha256:42a753468c2ad94f32825b2e71baee08f3c8a677746517d0edcdc5effb705506"
 }

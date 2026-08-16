@@ -19,6 +19,7 @@
         "bannedAmericanSpellings",
         "portugueseTechnicalMarkers",
         "scannedExtensions",
+        "productCredentialIdentifierAllowances",
         "excludedPaths",
         "excludedRegions",
         "appendOnlyPrefixes"
@@ -50,6 +51,50 @@
           "type": "array",
           "minItems": 1,
           "items": { "type": "string", "pattern": "^[.][a-z0-9]+$" }
+        },
+        "productCredentialIdentifierAllowances": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["path", "classification", "sha256"],
+            "properties": {
+              "path": { "type": "string", "minLength": 1 },
+              "classification": {
+                "enum": [
+                  "PRODUCT_RUNTIME_OR_DEPLOYMENT_CONFIGURATION",
+                  "SECURITY_POLICY",
+                  "EXECUTABLE_POLICY_ENFORCEMENT",
+                  "SYNTHETIC_ENFORCEMENT",
+                  "PRESERVED_HISTORICAL_DOCUMENT"
+                ]
+              },
+              "sha256": {
+                "type": ["string", "null"],
+                "pattern": "^[0-9a-f]{64}$"
+              }
+            },
+            "allOf": [
+              {
+                "if": {
+                  "properties": {
+                    "classification": { "const": "PRESERVED_HISTORICAL_DOCUMENT" }
+                  }
+                },
+                "then": {
+                  "properties": {
+                    "sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" }
+                  }
+                },
+                "else": {
+                  "properties": {
+                    "sha256": { "const": null }
+                  }
+                }
+              }
+            ]
+          }
         },
         "excludedPaths": {
           "type": "array",

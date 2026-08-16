@@ -118,10 +118,11 @@ on the same date through `ADR-0017: ACEITAR.`. It preserves
 the accepted deterministic coordinator and replaces only the real Codex
 runner transport with the officially documented App Server sequence
 `thread/start` → durable checkpoint → `turn/start`. The implementation in
-`583c3b4` and `9512d6e` uses only the validated user-scoped ChatGPT session and
-excludes `OPENAI_API_KEY`. Contract tests, the canonical gate and one bounded
-read-only real turn passed. Acceptance and implementation are not a Human Gate;
-every later run still requires its own plan and execution authority.
+`583c3b4` and `9512d6e` uses only the validated user-scoped ChatGPT session
+and excludes the product provider credential. Contract tests, the canonical
+gate and one bounded read-only real turn passed. Acceptance and implementation
+are not a Human Gate; every later run still requires its own plan and execution
+authority.
 
 The later combined audit failed on `AQG-S02-001`, an internal contradiction
 between observation-inclusive generation identity and observation-only

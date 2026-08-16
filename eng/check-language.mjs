@@ -24,6 +24,7 @@ const languageControlPaths = new Set([
   "eng/test-language-policy.mjs",
   "prompts/governance/Language-Policy.md",
   "prompts/governance/Quality-Gates.md",
+  "prompts/governance/Security-And-Access.md",
   "tools/ai-orchestrator/src/adapters/git-candidate-inspector.ts",
   "tools/ai-orchestrator/src/adapters/bounded-process.ts",
   "tools/ai-orchestrator/src/cli-main.ts",
@@ -187,7 +188,8 @@ export function validatePolicyDocument(document, expectedSchemaDigest) {
   const payload = document.payload;
   assertExactKeys(payload, [
     "schemaVersion", "policyId", "technicalLanguage", "ownerLanguage", "bannedAmericanSpellings",
-    "portugueseTechnicalMarkers", "scannedExtensions", "excludedPaths", "excludedRegions", "appendOnlyPrefixes",
+    "portugueseTechnicalMarkers", "scannedExtensions", "productCredentialIdentifierAllowances",
+    "excludedPaths", "excludedRegions", "appendOnlyPrefixes",
   ], "Language policy payload");
   if (payload.schemaVersion !== 1 || payload.policyId !== "rag-challenge-language-policy-v1" ||
       payload.technicalLanguage !== "en-GB" || payload.ownerLanguage !== "pt-BR") {
@@ -195,6 +197,7 @@ export function validatePolicyDocument(document, expectedSchemaDigest) {
   }
   for (const [name, values] of [["bannedAmericanSpellings", payload.bannedAmericanSpellings],
     ["portugueseTechnicalMarkers", payload.portugueseTechnicalMarkers], ["scannedExtensions", payload.scannedExtensions],
+    ["productCredentialIdentifierAllowances", payload.productCredentialIdentifierAllowances],
     ["excludedPaths", payload.excludedPaths], ["excludedRegions", payload.excludedRegions], ["appendOnlyPrefixes", payload.appendOnlyPrefixes]]) {
     if (!Array.isArray(values) || (name !== "excludedRegions" && values.length === 0)) throw new Error(`Language policy '${name}' must be an array with the required entries.`);
   }
@@ -224,6 +227,32 @@ export function validatePolicyDocument(document, expectedSchemaDigest) {
     }
   }
   assertUnique(payload.excludedPaths, (entry) => entry.path, "Excluded paths");
+  const credentialAllowanceClasses = new Set([
+    "PRODUCT_RUNTIME_OR_DEPLOYMENT_CONFIGURATION",
+    "SECURITY_POLICY",
+    "EXECUTABLE_POLICY_ENFORCEMENT",
+    "SYNTHETIC_ENFORCEMENT",
+    "PRESERVED_HISTORICAL_DOCUMENT",
+  ]);
+  const historicalExclusions = new Map(payload.excludedPaths.map((entry) => [entry.path, entry.classification]));
+  for (const entry of payload.productCredentialIdentifierAllowances) {
+    assertExactKeys(entry, ["path", "classification", "sha256"], "Product credential identifier allowance");
+    assertRepositoryPath(entry.path, "Product credential identifier allowance path");
+    if (!credentialAllowanceClasses.has(entry.classification)) {
+      throw new Error("Product credential identifier allowances require a closed classification.");
+    }
+    const historical = entry.classification === "PRESERVED_HISTORICAL_DOCUMENT";
+    if (historical !== (typeof entry.sha256 === "string" && hashPattern.test(entry.sha256))) {
+      throw new Error("Historical product credential identifier allowances require an exact digest and current allowances require null.");
+    }
+    if (!historical && entry.sha256 !== null) {
+      throw new Error("Current product credential identifier allowances must not carry a historical digest.");
+    }
+    if (historical && !["ACCEPTED_ARCHITECTURE_HISTORY", "HISTORICAL_EVIDENCE"].includes(historicalExclusions.get(entry.path))) {
+      throw new Error("Historical product credential identifier allowances must bind an existing historical exclusion.");
+    }
+  }
+  assertUnique(payload.productCredentialIdentifierAllowances, (entry) => entry.path, "Product credential identifier allowances");
   for (const entry of payload.excludedRegions) {
     assertExactKeys(entry, ["path", "classification", "startMarker", "endMarker", "sha256"], "Excluded region");
     assertRepositoryPath(entry.path, "Excluded region path");
@@ -529,6 +558,70 @@ async function verifyAppendOnlyPrefixes(source, payload) {
   }
 }
 
+function credentialIdentifierOccurrences(bytes) {
+  const identifier = ["OPENAI", "API", "KEY"].join("_");
+  const matches = [];
+  const pattern = new RegExp(identifier, "ig");
+  const text = Buffer.from(bytes).toString("latin1");
+  for (const match of text.matchAll(pattern)) {
+    matches.push({ index: match.index, canonical: match[0] === identifier, length: match[0].length });
+  }
+  return matches;
+}
+
+function exactByteRange(bytes, startMarker, endMarker, path) {
+  const startBytes = Buffer.from(startMarker, "utf8");
+  const start = Buffer.from(bytes).indexOf(startBytes);
+  if (start < 0 || Buffer.from(bytes).indexOf(startBytes, start + startBytes.length) >= 0) {
+    throw new Error(`Protected credential-history marker is missing or ambiguous for '${path}'.`);
+  }
+  if (endMarker === null) return { start, end: bytes.length };
+  const endBytes = Buffer.from(endMarker, "utf8");
+  const end = Buffer.from(bytes).indexOf(endBytes, start + startBytes.length);
+  if (end < 0 || Buffer.from(bytes).indexOf(endBytes, end + endBytes.length) >= 0) {
+    throw new Error(`Protected credential-history end marker is missing or ambiguous for '${path}'.`);
+  }
+  return { start, end: end + endBytes.length };
+}
+
+export async function assertProductCredentialIdentifierAllowlist(source, payload) {
+  const tracked = new Set(source.paths);
+  const allowances = new Map(payload.productCredentialIdentifierAllowances.map((entry) => [entry.path, entry]));
+  const observedAllowances = new Set();
+  for (const entry of payload.productCredentialIdentifierAllowances) {
+    if (!tracked.has(entry.path)) throw new Error("A product credential identifier allowance is not a regular tracked file.");
+  }
+  for (const path of source.paths) {
+    const bytes = await source.read(path);
+    const occurrences = credentialIdentifierOccurrences(bytes);
+    if (occurrences.length === 0) continue;
+    const allowance = allowances.get(path);
+    if (occurrences.some((entry) => !entry.canonical) && allowance?.classification !== "SYNTHETIC_ENFORCEMENT") {
+      throw new Error(`A non-canonical product credential identifier appears in '${path}'.`);
+    }
+    if (allowance !== undefined) {
+      if (allowance.classification === "PRESERVED_HISTORICAL_DOCUMENT" && sha256(bytes) !== allowance.sha256) {
+        throw new Error(`A protected historical credential document changed for '${path}'.`);
+      }
+      observedAllowances.add(path);
+      continue;
+    }
+    const ranges = [];
+    const prefix = payload.appendOnlyPrefixes.find((entry) => entry.path === path);
+    if (prefix !== undefined) ranges.push({ start: 0, end: prefix.prefixBytes });
+    for (const region of payload.excludedRegions.filter((entry) =>
+      entry.path === path && entry.classification === "PRESERVED_HISTORICAL_REGION")) {
+      ranges.push(exactByteRange(bytes, region.startMarker, region.endMarker, path));
+    }
+    if (occurrences.some((occurrence) => !ranges.some((range) =>
+      occurrence.index >= range.start && occurrence.index + occurrence.length <= range.end))) {
+      throw new Error(`Product credential identifier appears outside its closed allowlist in '${path}'.`);
+    }
+  }
+  const unused = payload.productCredentialIdentifierAllowances.filter((entry) => !observedAllowances.has(entry.path));
+  if (unused.length > 0) throw new Error("Product credential identifier allowances contain an unused path.");
+}
+
 export async function inspectRepository(repositoryRoot, payload, commit = null, suppliedSource = null) {
   const source = suppliedSource ?? await selectedSource(repositoryRoot, commit);
   const tracked = source.paths;
@@ -543,6 +636,7 @@ export async function inspectRepository(repositoryRoot, payload, commit = null, 
   for (const region of payload.excludedRegions) {
     if (!trackedSet.has(region.path)) throw new Error("A required excluded region path is not tracked.");
   }
+  await assertProductCredentialIdentifierAllowlist(source, payload);
   for (const path of tracked) {
     if (excluded.has(path) || !extensions.has(extname(path).toLowerCase())) continue;
     const bytes = await source.read(path);

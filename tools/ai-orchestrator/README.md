@@ -148,9 +148,10 @@ only; its baseline must be replaced by the exact clean Git HEAD before a run.
 Non-dry-run CLI execution supports `--runner fake` by default and `--runner
 codex` only with `--authority-reference`. Both require absolute Git and
 PowerShell paths and verify an exact clean Git HEAD on a named `codex/` branch
-first. Real execution uses the existing local ChatGPT login and never inherits
-`OPENAI_API_KEY`; installing the package alone does not authorise a run. An
-explicit model additionally requires `--model <id> --permitted-models <id,...>`.
+first. Real execution uses the existing local ChatGPT login and never
+inherits the product provider credential; installing the package alone does
+not authorise a run. An explicit model additionally requires
+`--model <id> --permitted-models <id,...>`.
 `validate --quality-gate` invokes the repository's canonical
 `eng/ci.ps1 -Offline`; it does not substitute another gate.
 

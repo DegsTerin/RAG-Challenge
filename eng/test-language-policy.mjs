@@ -42,9 +42,18 @@ function policyPayload(overrides = {}) {
     bannedAmericanSpellings,
     portugueseTechnicalMarkers: ["alteração", "arquivo", "implementação", "segurança", "validação"],
     scannedExtensions: [".json", ".md", ".mjs", ".ts", ".yml"],
+    productCredentialIdentifierAllowances: [
+      { path: "security.md", classification: "SECURITY_POLICY", sha256: null },
+      {
+        path: "historical.md",
+        classification: "PRESERVED_HISTORICAL_DOCUMENT",
+        sha256: sha256("Historical OPENAI_API_KEY identifier.\n"),
+      },
+    ],
     excludedPaths: [
       { path: "locale.ts", classification: "FUNCTIONAL_LOCALISATION", reason: "Synthetic bilingual interface data." },
       { path: "citation.json", classification: "SOURCE_OR_CITATION_DATA", reason: "Synthetic source-language citation data." },
+      { path: "historical.md", classification: "HISTORICAL_EVIDENCE", reason: "Synthetic protected historical data." },
     ],
     excludedRegions: [{
       path: "preserved.md",
@@ -101,6 +110,8 @@ async function createRepository(initialMessage = "test(language): initialise syn
   await mkdir(join(root, "eng"), { recursive: true });
   await writeFile(join(root, "history.md"), "history\n", "utf8");
   await writeFile(join(root, "technical.md"), "British technical prose is authorised.\n", "utf8");
+  await writeFile(join(root, "security.md"), "The OPENAI_API_KEY identifier is synthetic policy data.\n", "utf8");
+  await writeFile(join(root, "historical.md"), "Historical OPENAI_API_KEY identifier.\n", "utf8");
   await writeFile(join(root, "preserved.md"), "## Historical\nImplementação preservada.\n", "utf8");
   await writeFile(join(root, "locale.ts"), "export const label = 'Alteração do arquivo';\n", "utf8");
   await writeFile(join(root, "citation.json"), '{"text":"Alteração citada pela fonte"}\n', "utf8");
@@ -131,6 +142,24 @@ test("policy and baseline manifests reject unknown fields, invalid schemas and d
   assert.doesNotThrow(() => validatePolicyDocument(policy, policySchemaDigest));
   assert.throws(() => validatePolicyDocument({ ...policy, unexpected: true }, policySchemaDigest), /missing or unexpected/);
   assert.throws(() => validatePolicyDocument({ ...policy, digest: `sha256:${"0".repeat(64)}` }, policySchemaDigest), /digest does not match/);
+  const unknownAllowancePayload = policyPayload({
+    productCredentialIdentifierAllowances: [
+      { path: "security.md", classification: "UNKNOWN", sha256: null },
+    ],
+  });
+  assert.throws(() => validatePolicyDocument(
+    digestDocument("./language-policy.schema.json", policySchemaDigest, unknownAllowancePayload),
+    policySchemaDigest,
+  ), /closed classification/);
+  const unhashedHistoricalPayload = policyPayload({
+    productCredentialIdentifierAllowances: [
+      { path: "preserved.md", classification: "PRESERVED_HISTORICAL_DOCUMENT", sha256: null },
+    ],
+  });
+  assert.throws(() => validatePolicyDocument(
+    digestDocument("./language-policy.schema.json", policySchemaDigest, unhashedHistoricalPayload),
+    policySchemaDigest,
+  ), /exact digest/);
   const baseline = digestDocument("./language-migration-baseline.schema.json", baselineSchemaDigest, baselinePayload(policy.digest));
   assert.doesNotThrow(() => validateBaselineDocument(baseline, policy.digest, baselineSchemaDigest));
   assert.throws(() => validateBaselineDocument({ ...baseline, $schema: "wrong" }, policy.digest, baselineSchemaDigest), /schema reference/);
@@ -235,6 +264,7 @@ test("every direct and transitive language-enforcement dependency is protected",
     "tools/ai-orchestrator/test/codex-app-server.test.ts",
     "tools/ai-orchestrator/test/core.test.ts",
     "tools/ai-orchestrator/test/security-boundaries.test.ts",
+    "prompts/governance/Security-And-Access.md",
   ]) assert.equal(isProtectedLanguageControlPath(path), true, path);
 });
 
@@ -284,6 +314,25 @@ test("CLI unknown-argument failures never echo synthetic secret-shape families",
     assert.match(result.stderr, /Unknown language-policy argument/);
   }
 });
+
+test("product credential identifier allowances are exact, canonical and fail closed", async () => {
+  const root = await createRepository();
+  const identifier = ["OPENAI", "API", "KEY"].join("_");
+  try {
+    await assert.doesNotReject(inspectRepository(root, policyPayload()));
+    await writeFile(join(root, "technical.md"), `The ${identifier} identifier is outside policy.\n`, "utf8");
+    await assert.rejects(inspectRepository(root, policyPayload()), (error) =>
+      error instanceof Error && /outside its closed allowlist/.test(error.message) && !error.message.includes(identifier));
+    await writeFile(join(root, "technical.md"), "British technical prose remains authorised.\n", "utf8");
+    await writeFile(join(root, "security.md"), "The openai_api_key identifier is not canonical.\n", "utf8");
+    await assert.rejects(inspectRepository(root, policyPayload()), /non-canonical product credential identifier/);
+    await writeFile(join(root, "security.md"), "British security policy contains no identifier.\n", "utf8");
+    await assert.rejects(inspectRepository(root, policyPayload()), /unused path/);
+    await writeFile(join(root, "security.md"), "The OPENAI_API_KEY identifier is synthetic policy data.\n", "utf8");
+    await writeFile(join(root, "historical.md"), "Historical OPENAI_API_KEY identifier changed.\n", "utf8");
+    await assert.rejects(inspectRepository(root, policyPayload()), /protected historical credential document changed/);
+  } finally { await rm(root, { recursive: true, force: true }); }
+});
 // SYNTHETIC_LANGUAGE_SECRET_MESSAGES_END
 
 // SYNTHETIC_LANGUAGE_OWNER_PAYLOAD_START
@@ -301,6 +350,7 @@ test("localisation and source or citation exclusions are closed exact paths", ()
   assert.deepEqual(payload.excludedPaths.map((entry) => [entry.path, entry.classification]), [
     ["locale.ts", "FUNCTIONAL_LOCALISATION"],
     ["citation.json", "SOURCE_OR_CITATION_DATA"],
+    ["historical.md", "HISTORICAL_EVIDENCE"],
   ]);
   assert.equal(payload.excludedPaths.some((entry) => /[*?]/.test(entry.path)), false);
 });

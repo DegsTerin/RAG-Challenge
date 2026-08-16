@@ -97,6 +97,15 @@ arguments, files, commits, logs, evidence and artefacts must contain neither
 the value nor secret-shaped substitutes. Agent and governed child-process
 environments are closed and exclude the product credential.
 
+The identifier itself may occur only in approved product runtime or deployment
+configuration, this security policy, executable enforcement that prevents the
+credential from entering development processes, synthetic enforcement tests,
+and immutable historical records already protected by an exact digest or
+append-only identity. Every permitted current path is an exact, classified
+allowance in the repository policy; wildcards, directory allowances and
+implicit exceptions are prohibited. An allowance neither permits a secret
+value nor grants credential lookup, provider egress or operational authority.
+
 The canonical CI entry point may name the identifier solely as executable
 enforcement of this policy: it removes that exact process-scope variable,
 without reading it, before invoking policy code or any child process. This
