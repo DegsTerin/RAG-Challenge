@@ -54,6 +54,150 @@ function Invoke-ExpectedFailure {
     Write-Output "PASS: $Name"
 }
 
+function Invoke-SyntheticGit {
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory)]
+        [string]$Repository,
+
+        [Parameter(Mandatory)]
+        [string[]]$Arguments,
+
+        [Parameter(Mandatory)]
+        [string]$TemporaryDirectory,
+
+        [switch]$AllowFailure
+    )
+
+    $gitExecutable = (Get-Command git -CommandType Application -ErrorAction Stop |
+            Select-Object -First 1).Source
+    $nullDevice = if ($IsWindows) { "NUL" } else { "/dev/null" }
+    $startInfo = [System.Diagnostics.ProcessStartInfo]::new()
+    $startInfo.FileName = $gitExecutable
+    $startInfo.WorkingDirectory = $Repository
+    $startInfo.UseShellExecute = $false
+    $startInfo.CreateNoWindow = $true
+    $startInfo.RedirectStandardInput = $true
+    $startInfo.RedirectStandardOutput = $true
+    $startInfo.RedirectStandardError = $true
+    $startInfo.Environment.Clear()
+    $startInfo.Environment["GIT_CONFIG_NOSYSTEM"] = "1"
+    $startInfo.Environment["GIT_CONFIG_GLOBAL"] = $nullDevice
+    $startInfo.Environment["GIT_ATTR_NOSYSTEM"] = "1"
+    $startInfo.Environment["GIT_TERMINAL_PROMPT"] = "0"
+    $startInfo.Environment["GCM_INTERACTIVE"] = "Never"
+    $startInfo.Environment["GIT_PAGER"] = "cat"
+    $startInfo.Environment["TEMP"] = $TemporaryDirectory
+    $startInfo.Environment["TMP"] = $TemporaryDirectory
+    if ($IsWindows) {
+        $startInfo.Environment["SystemRoot"] = [Environment]::GetFolderPath(
+            [Environment+SpecialFolder]::Windows)
+    }
+
+    foreach ($argument in @(
+            "--no-optional-locks",
+            "-c", "core.hooksPath=$nullDevice",
+            "-c", "core.attributesFile=$nullDevice",
+            "-c", "init.templateDir=$nullDevice",
+            "-c", "core.fsmonitor=false",
+            "-c", "credential.helper=",
+            "-c", "core.askPass=",
+            "-c", "protocol.allow=never",
+            "-c", "user.name=CI Policy Fixture",
+            "-c", "user.email=ci-policy@example.invalid",
+            "-C", $Repository) + $Arguments) {
+        $startInfo.ArgumentList.Add($argument)
+    }
+
+    $process = [System.Diagnostics.Process]::new()
+    $process.StartInfo = $startInfo
+    try {
+        if (-not $process.Start()) {
+            throw "Synthetic Git process did not start."
+        }
+        $process.StandardInput.Close()
+        $standardOutput = $process.StandardOutput.ReadToEnd()
+        $standardError = $process.StandardError.ReadToEnd()
+        if (-not $process.WaitForExit(30000)) {
+            $process.Kill($true)
+            throw "Synthetic Git process exceeded its time limit."
+        }
+        if ($standardOutput.Length -gt 65536 -or $standardError.Length -gt 65536) {
+            throw "Synthetic Git output exceeded its bounded limit."
+        }
+        if ($process.ExitCode -ne 0 -and -not $AllowFailure) {
+            throw "Synthetic Git command failed closed."
+        }
+        return [pscustomobject]@{
+            ExitCode = $process.ExitCode
+            StandardOutput = $standardOutput
+        }
+    }
+    finally {
+        $process.Dispose()
+    }
+}
+
+function Resolve-SyntheticPullRequestMergeBase {
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory)]
+        [string]$Repository,
+
+        [Parameter(Mandatory)]
+        [string]$EventBase,
+
+        [Parameter(Mandatory)]
+        [string]$SelectedHead,
+
+        [Parameter(Mandatory)]
+        [string]$TemporaryDirectory
+    )
+
+    $fullSha = '^[0-9a-f]{40}$'
+    if ($EventBase -notmatch $fullSha -or
+        $EventBase -eq ('0' * 40) -or
+        $SelectedHead -notmatch $fullSha -or
+        $SelectedHead -eq ('0' * 40)) {
+        throw "Synthetic pull-request identities are missing or invalid."
+    }
+
+    $mergeBaseResult = Invoke-SyntheticGit `
+        -Repository $Repository `
+        -Arguments @("merge-base", "--", $EventBase, $SelectedHead) `
+        -TemporaryDirectory $TemporaryDirectory `
+        -AllowFailure
+    $mergeBaseCandidates = @($mergeBaseResult.StandardOutput -split "`r?`n" | Where-Object { $_.Length -gt 0 })
+    if ($mergeBaseResult.ExitCode -ne 0 -or
+        $mergeBaseCandidates.Count -ne 1 -or
+        $mergeBaseCandidates[0] -notmatch $fullSha -or
+        $mergeBaseCandidates[0] -eq ('0' * 40)) {
+        throw "Synthetic pull-request merge base is missing or invalid."
+    }
+
+    $allMergeBaseResult = Invoke-SyntheticGit `
+        -Repository $Repository `
+        -Arguments @("merge-base", "--all", "--", $EventBase, $SelectedHead) `
+        -TemporaryDirectory $TemporaryDirectory `
+        -AllowFailure
+    $allMergeBaseCandidates = @($allMergeBaseResult.StandardOutput -split "`r?`n" | Where-Object { $_.Length -gt 0 })
+    if ($allMergeBaseResult.ExitCode -ne 0 -or
+        $allMergeBaseCandidates.Count -ne 1 -or
+        $allMergeBaseCandidates[0] -cne $mergeBaseCandidates[0]) {
+        throw "Synthetic pull-request merge base is ambiguous."
+    }
+
+    $ancestorResult = Invoke-SyntheticGit `
+        -Repository $Repository `
+        -Arguments @("merge-base", "--is-ancestor", "--", $mergeBaseCandidates[0], $SelectedHead) `
+        -TemporaryDirectory $TemporaryDirectory `
+        -AllowFailure
+    if ($ancestorResult.ExitCode -ne 0) {
+        throw "Synthetic pull-request merge base is not an ancestor."
+    }
+    return $mergeBaseCandidates[0]
+}
+
 $temporaryBase = [System.IO.Path]::GetFullPath(
     [System.IO.Path]::GetTempPath())
 $temporaryRoot = Join-Path $temporaryBase (
@@ -313,6 +457,29 @@ try {
         throw "The workflow must check out and verify the exact event-selected head before exporting a language boundary."
     }
 
+    $mergeBaseCommandIndex = $workflow.IndexOf(
+        '$mergeBaseOutput = @(& git merge-base -- $env:PULL_REQUEST_BASE $env:SELECTED_HEAD)',
+        [System.StringComparison]::Ordinal)
+    $completeMergeBaseCommandIndex = $workflow.IndexOf(
+        '$allMergeBaseOutput = @(& git merge-base --all -- $env:PULL_REQUEST_BASE $env:SELECTED_HEAD)',
+        [System.StringComparison]::Ordinal)
+    $ancestorCommandIndex = $workflow.IndexOf(
+        '& git merge-base --is-ancestor -- $mergeBase $env:SELECTED_HEAD',
+        [System.StringComparison]::Ordinal)
+    $mergeBaseExportIndex = $workflow.IndexOf(
+        'RAG_LANGUAGE_COMMIT_BASE=$mergeBase',
+        [System.StringComparison]::Ordinal)
+
+    if ($mergeBaseCommandIndex -lt $actualHeadBindingIndex -or
+        $completeMergeBaseCommandIndex -lt $mergeBaseCommandIndex -or
+        $ancestorCommandIndex -lt $completeMergeBaseCommandIndex -or
+        $mergeBaseExportIndex -lt $ancestorCommandIndex -or
+        $workflow.IndexOf(
+            'RAG_LANGUAGE_COMMIT_BASE=$env:PULL_REQUEST_BASE',
+            [System.StringComparison]::Ordinal) -ge 0) {
+        throw "The workflow must derive one verified pull-request merge-base boundary without exporting the event base directly."
+    }
+
     foreach ($forbiddenMergeBinding in @(
             'refs/pull/',
             'pull_request.merge_commit_sha',
@@ -359,6 +526,91 @@ try {
                 -ActualHead $syntheticMergeHead
         } `
         -ExpectedPattern "Synthetic checked-out head mismatch"
+
+    $divergedRepository = Join-Path $temporaryRoot "diverged-repository"
+    $null = New-Item -ItemType Directory -Path $divergedRepository
+    $utf8WithoutBom = [System.Text.UTF8Encoding]::new($false)
+    $null = Invoke-SyntheticGit `
+        -Repository $divergedRepository `
+        -Arguments @("init", "--initial-branch=main") `
+        -TemporaryDirectory $temporaryRoot
+    [System.IO.File]::WriteAllText(
+        (Join-Path $divergedRepository "common.txt"),
+        "common`n",
+        $utf8WithoutBom)
+    $null = Invoke-SyntheticGit -Repository $divergedRepository -Arguments @("add", "--", "common.txt") -TemporaryDirectory $temporaryRoot
+    $null = Invoke-SyntheticGit -Repository $divergedRepository -Arguments @("commit", "-m", "test(ci): create common ancestor") -TemporaryDirectory $temporaryRoot
+    $commonAncestor = (Invoke-SyntheticGit -Repository $divergedRepository -Arguments @("rev-parse", "HEAD") -TemporaryDirectory $temporaryRoot).StandardOutput.Trim()
+    $null = Invoke-SyntheticGit -Repository $divergedRepository -Arguments @("checkout", "-b", "event-base") -TemporaryDirectory $temporaryRoot
+    [System.IO.File]::WriteAllText((Join-Path $divergedRepository "base.txt"), "base`n", $utf8WithoutBom)
+    $null = Invoke-SyntheticGit -Repository $divergedRepository -Arguments @("add", "--", "base.txt") -TemporaryDirectory $temporaryRoot
+    $null = Invoke-SyntheticGit -Repository $divergedRepository -Arguments @("commit", "-m", "test(ci): advance event base") -TemporaryDirectory $temporaryRoot
+    $eventBase = (Invoke-SyntheticGit -Repository $divergedRepository -Arguments @("rev-parse", "HEAD") -TemporaryDirectory $temporaryRoot).StandardOutput.Trim()
+    $null = Invoke-SyntheticGit -Repository $divergedRepository -Arguments @("checkout", "-b", "pull-request-head", $commonAncestor) -TemporaryDirectory $temporaryRoot
+    [System.IO.File]::WriteAllText((Join-Path $divergedRepository "head.txt"), "head`n", $utf8WithoutBom)
+    $null = Invoke-SyntheticGit -Repository $divergedRepository -Arguments @("add", "--", "head.txt") -TemporaryDirectory $temporaryRoot
+    $null = Invoke-SyntheticGit -Repository $divergedRepository -Arguments @("commit", "-m", "test(ci): advance pull-request head") -TemporaryDirectory $temporaryRoot
+    $pullRequestDivergedHead = (Invoke-SyntheticGit -Repository $divergedRepository -Arguments @("rev-parse", "HEAD") -TemporaryDirectory $temporaryRoot).StandardOutput.Trim()
+
+    Invoke-ExpectedSuccess -Name "diverged-pull-request-merge-base" -Action {
+        $resolvedMergeBase = Resolve-SyntheticPullRequestMergeBase `
+            -Repository $divergedRepository `
+            -EventBase $eventBase `
+            -SelectedHead $pullRequestDivergedHead `
+            -TemporaryDirectory $temporaryRoot
+        if ($resolvedMergeBase -cne $commonAncestor -or $resolvedMergeBase -ceq $eventBase) {
+            throw "The diverged pull request did not select its common ancestor."
+        }
+    }
+    Invoke-ExpectedFailure `
+        -Name "invalid-pull-request-merge-base-input" `
+        -Action {
+            Resolve-SyntheticPullRequestMergeBase `
+                -Repository $divergedRepository `
+                -EventBase ('0' * 40) `
+                -SelectedHead $pullRequestDivergedHead `
+                -TemporaryDirectory $temporaryRoot
+        } `
+        -ExpectedPattern "identities are missing or invalid"
+    Invoke-ExpectedFailure `
+        -Name "missing-pull-request-merge-base" `
+        -Action {
+            Resolve-SyntheticPullRequestMergeBase `
+                -Repository $divergedRepository `
+                -EventBase ('f' * 40) `
+                -SelectedHead $pullRequestDivergedHead `
+                -TemporaryDirectory $temporaryRoot
+        } `
+        -ExpectedPattern "merge base is missing or invalid"
+
+    $null = Invoke-SyntheticGit `
+        -Repository $divergedRepository `
+        -Arguments @("checkout", "-b", "ambiguous-event-base", $eventBase) `
+        -TemporaryDirectory $temporaryRoot
+    $null = Invoke-SyntheticGit `
+        -Repository $divergedRepository `
+        -Arguments @("merge", "--no-ff", $pullRequestDivergedHead, "-m", "test(ci): merge pull-request side into event side") `
+        -TemporaryDirectory $temporaryRoot
+    $ambiguousEventBase = (Invoke-SyntheticGit -Repository $divergedRepository -Arguments @("rev-parse", "HEAD") -TemporaryDirectory $temporaryRoot).StandardOutput.Trim()
+    $null = Invoke-SyntheticGit `
+        -Repository $divergedRepository `
+        -Arguments @("checkout", "pull-request-head") `
+        -TemporaryDirectory $temporaryRoot
+    $null = Invoke-SyntheticGit `
+        -Repository $divergedRepository `
+        -Arguments @("merge", "--no-ff", $eventBase, "-m", "test(ci): merge event side into pull-request side") `
+        -TemporaryDirectory $temporaryRoot
+    $ambiguousSelectedHead = (Invoke-SyntheticGit -Repository $divergedRepository -Arguments @("rev-parse", "HEAD") -TemporaryDirectory $temporaryRoot).StandardOutput.Trim()
+    Invoke-ExpectedFailure `
+        -Name "ambiguous-pull-request-merge-base" `
+        -Action {
+            Resolve-SyntheticPullRequestMergeBase `
+                -Repository $divergedRepository `
+                -EventBase $ambiguousEventBase `
+                -SelectedHead $ambiguousSelectedHead `
+                -TemporaryDirectory $temporaryRoot
+        } `
+        -ExpectedPattern "merge base is ambiguous"
 
     if ($workflow -notmatch 'fetch-depth:\s*0' -or
         $workflow -notmatch 'github[.]event[.]pull_request[.]base[.]sha' -or

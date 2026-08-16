@@ -54,7 +54,31 @@ jobs:
             if ($env:PULL_REQUEST_BASE -notmatch $fullSha -or $env:PULL_REQUEST_BASE -eq ('0' * 40)) {
               throw "The pull-request base is missing or invalid."
             }
-            "RAG_LANGUAGE_COMMIT_BASE=$env:PULL_REQUEST_BASE" >> $env:GITHUB_ENV
+            $mergeBaseOutput = @(& git merge-base -- $env:PULL_REQUEST_BASE $env:SELECTED_HEAD)
+            if ($LASTEXITCODE -ne 0) {
+              throw "The pull-request merge base could not be resolved."
+            }
+            $mergeBaseCandidates = @($mergeBaseOutput | ForEach-Object { $_.Trim() } | Where-Object { $_.Length -gt 0 })
+            if ($mergeBaseCandidates.Count -ne 1 -or
+                $mergeBaseCandidates[0] -notmatch $fullSha -or
+                $mergeBaseCandidates[0] -eq ('0' * 40)) {
+              throw "The pull-request merge base is missing or invalid."
+            }
+            $allMergeBaseOutput = @(& git merge-base --all -- $env:PULL_REQUEST_BASE $env:SELECTED_HEAD)
+            if ($LASTEXITCODE -ne 0) {
+              throw "The complete pull-request merge-base set could not be resolved."
+            }
+            $allMergeBaseCandidates = @($allMergeBaseOutput | ForEach-Object { $_.Trim() } | Where-Object { $_.Length -gt 0 })
+            if ($allMergeBaseCandidates.Count -ne 1 -or
+                $allMergeBaseCandidates[0] -cne $mergeBaseCandidates[0]) {
+              throw "The pull-request merge base is ambiguous."
+            }
+            $mergeBase = $mergeBaseCandidates[0]
+            & git merge-base --is-ancestor -- $mergeBase $env:SELECTED_HEAD
+            if ($LASTEXITCODE -ne 0) {
+              throw "The pull-request merge base is not an ancestor of the selected head."
+            }
+            "RAG_LANGUAGE_COMMIT_BASE=$mergeBase" >> $env:GITHUB_ENV
           }
           elseif ($env:EVENT_NAME -eq 'push') {
             if ($env:PUSH_BEFORE -notmatch $fullSha -or $env:PUSH_BEFORE -eq ('0' * 40)) {
