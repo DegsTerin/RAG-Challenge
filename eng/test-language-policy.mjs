@@ -593,6 +593,8 @@ test("commit messages reject embedded legacy identifier spelling but preserve ba
   const payload = policyPayload();
   assert.equal(inspectCommitMessage("refactor(language): rename PrivateArtifact helper", payload).length > 0, true);
   assert.equal(inspectCommitMessage("refactor(language): rename private-artifact-helper", payload).length > 0, true);
+  assert.equal(inspectCommitMessage("refactor(language): rename `PrivateArtifactHelper`", payload).length > 0, true);
+  assert.equal(inspectCommitMessage("docs(language): describe `behavior`", payload).length > 0, true);
   assert.deepEqual(inspectCommitMessage("docs(language): preserve `LogicalArtifactDigest` contract", payload), []);
 });
 

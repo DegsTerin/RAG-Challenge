@@ -360,9 +360,10 @@ function normaliseRegion(value) {
   return value.normalize("NFC").trim().replace(/\s+/g, " ");
 }
 
-function cleanTechnicalText(value) {
+function cleanTechnicalText(value, canonicalInlineLiterals = null) {
   return value
-    .replace(/`[^`]*`/g, " ")
+    .replace(/`([^`\r\n]*)`/g, (_match, literal) =>
+      canonicalInlineLiterals === null || canonicalInlineLiterals.has(literal) ? " " : ` ${literal} `)
     .replace(/https?:\/\/\S+/gi, " ")
     .replace(/(?:^|\s)[A-Za-z0-9_.-]*(?:\/[A-Za-z0-9_.-]+)+(?=\s|$)/g, " ")
     .replace(/\b[A-Za-z0-9]+(?:[-_][A-Za-z0-9]+)+\b/g, " ")
@@ -371,9 +372,10 @@ function cleanTechnicalText(value) {
     .replace(/\b[A-Z][A-Za-z0-9]*(?:[._/:+-][A-Za-z0-9]+)+\b/g, " ");
 }
 
-function cleanCommitIdentifierText(value) {
+function cleanCommitIdentifierText(value, canonicalInlineLiterals) {
   return value
-    .replace(/`[^`]*`/g, " ")
+    .replace(/`([^`\r\n]*)`/g, (_match, literal) =>
+      canonicalInlineLiterals.has(literal) ? " " : ` ${literal} `)
     .replace(/https?:\/\/\S+/gi, " ")
     .replace(/\b[0-9a-f]{12,}\b/gi, " ");
 }
@@ -488,8 +490,15 @@ export function inspectRegions(path, regions, payload) {
 
 export function inspectCommitMessage(message, payload) {
   const lines = message.split(/\r?\n/);
-  const regions = lines.map((text, index) => ({ line: index + 1, text: cleanTechnicalText(text) }));
-  const identifierRegions = lines.map((text, index) => ({ line: index + 1, text: cleanCommitIdentifierText(text) }));
+  const canonicalInlineLiterals = new Set(payload.canonicalIdentifierAllowances.map((entry) => entry.value));
+  const regions = lines.map((text, index) => ({
+    line: index + 1,
+    text: cleanTechnicalText(text, canonicalInlineLiterals),
+  }));
+  const identifierRegions = lines.map((text, index) => ({
+    line: index + 1,
+    text: cleanCommitIdentifierText(text, canonicalInlineLiterals),
+  }));
   const findings = inspectRegions("<commit-message>", regions, payload);
   const legacyStem = ["arti", "fact"].join("");
   for (const region of identifierRegions) {

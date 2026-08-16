@@ -10,6 +10,7 @@ export interface TrustedLanguagePolicy {
   readonly bannedAmericanSpellings: readonly Readonly<{ american: string; british: string }>[];
   readonly portugueseTechnicalMarkers: readonly string[];
   readonly productCredentialIdentifierAllowances: readonly ProductCredentialIdentifierAllowance[];
+  readonly canonicalCommitLiterals: readonly string[];
 }
 
 export type ProductCredentialIdentifierAllowanceClassification =
@@ -31,6 +32,19 @@ const productCredentialIdentifierAllowanceClassifications = new Set<string>([
   "EXECUTABLE_POLICY_ENFORCEMENT",
   "SYNTHETIC_ENFORCEMENT",
   "PRESERVED_HISTORICAL_DOCUMENT",
+]);
+
+const canonicalIdentifierKinds = new Map<string, ReadonlySet<string>>([
+  ["CANONICAL_CONTRACT_IDENTIFIER", new Set(["IDENTIFIER"])],
+  ["CANONICAL_DOMAIN_LITERAL", new Set(["LITERAL"])],
+  ["CANONICAL_MANIFEST_LITERAL", new Set(["LITERAL"])],
+  ["CANONICAL_POLICY_LITERAL", new Set(["LITERAL"])],
+  ["CANONICAL_STORAGE_LITERAL", new Set(["LITERAL"])],
+  ["HASH_BOUND_LITERAL", new Set(["LITERAL"])],
+  ["PERSISTED_IDENTIFIER", new Set(["IDENTIFIER"])],
+  ["PUBLIC_API_IDENTIFIER", new Set(["IDENTIFIER"])],
+  ["PUBLIC_SCRIPT_NAME", new Set(["LITERAL", "PATH"])],
+  ["SYNTHETIC_ENFORCEMENT_IDENTIFIER", new Set(["IDENTIFIER"])],
 ]);
 
 function canonicalJson(value: unknown): string {
@@ -116,6 +130,39 @@ export function parseTrustedLanguagePolicy(value: unknown, expectedSchemaDigest:
       sha256: record.sha256 as string | null,
     };
   });
+  const canonicalAllowanceIdentities = new Set<string>();
+  const canonicalCommitLiterals = new Set<string>();
+  for (const entry of payload.canonicalIdentifierAllowances) {
+    const record = asRecord(entry);
+    const classification = record.classification;
+    const kind = record.kind;
+    const path = record.path;
+    const value = record.value;
+    const occurrences = record.occurrences;
+    const contextHashes = record.contextHashes;
+    if (!exactKeys(record, ["path", "classification", "kind", "value", "occurrences", "contextHashes"]) ||
+        typeof path !== "string" || !isClosedRepositoryFilePath(path) || typeof classification !== "string" ||
+        typeof kind !== "string" || !canonicalIdentifierKinds.get(classification)?.has(kind) ||
+        typeof value !== "string" || value.length === 0 || value.length > 512 ||
+        !new RegExp(["arti", "fact"].join(""), "i").test(value) ||
+        !Number.isSafeInteger(occurrences) || (occurrences as number) < 1 || !Array.isArray(contextHashes) ||
+        contextHashes.some((hash) => typeof hash !== "string" || !/^[0-9a-f]{64}$/.test(hash))) {
+      throw new OrchestratorStop("OUT_OF_SCOPE_CHANGE_REQUIRED", "A canonical commit literal allowance is invalid.");
+    }
+    if ((kind === "IDENTIFIER" && !/^[A-Za-z_][A-Za-z0-9_]*$/.test(value)) ||
+        (kind === "PATH" && (value !== path || occurrences !== 1)) ||
+        (kind === "PATH" && contextHashes.length !== 0) ||
+        (kind !== "PATH" && contextHashes.length !== occurrences) ||
+        (kind !== "PATH" && /[\r\n]/.test(value))) {
+      throw new OrchestratorStop("OUT_OF_SCOPE_CHANGE_REQUIRED", "A canonical commit literal allowance is inconsistent.");
+    }
+    const identity = `${path}\0${kind}\0${value}`;
+    if (canonicalAllowanceIdentities.has(identity)) {
+      throw new OrchestratorStop("OUT_OF_SCOPE_CHANGE_REQUIRED", "A canonical commit literal allowance is duplicated.");
+    }
+    canonicalAllowanceIdentities.add(identity);
+    canonicalCommitLiterals.add(value);
+  }
   const digest = createHash("sha256").update(canonicalJson(payload)).digest("hex");
   if (document.digest !== `sha256:${digest}`) {
     throw new OrchestratorStop("OUT_OF_SCOPE_CHANGE_REQUIRED", "The trusted coordinator language policy digest is invalid.");
@@ -126,6 +173,7 @@ export function parseTrustedLanguagePolicy(value: unknown, expectedSchemaDigest:
     bannedAmericanSpellings: spellings,
     portugueseTechnicalMarkers: payload.portugueseTechnicalMarkers as readonly string[],
     productCredentialIdentifierAllowances,
+    canonicalCommitLiterals: [...canonicalCommitLiterals].sort(),
   };
 }
 
@@ -161,9 +209,11 @@ export function assertBritishCommitMessage(message: string, policy: TrustedLangu
   if (message.includes("\uFFFD")) {
     throw new OrchestratorStop("OUT_OF_SCOPE_CHANGE_REQUIRED", "The candidate commit message is not valid UTF-8.", taskId);
   }
+  const canonicalInlineLiterals = new Set(policy.canonicalCommitLiterals);
   const normalised = message.normalize("NFC")
+    .replace(/`([^`\r\n]*)`/g, (_match, literal: string) =>
+      canonicalInlineLiterals.has(literal) ? " " : ` ${literal} `)
     .replace(/https?:\/\/\S+/gi, " ")
-    .replace(/`[^`]*`/g, " ")
     .replace(/\b[0-9a-f]{12,}\b/gi, " ");
   const legacyStem = ["arti", "fact"].join("");
   if (new RegExp(legacyStem, "i").test(normalised)) {

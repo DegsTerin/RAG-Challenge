@@ -45,6 +45,7 @@ const trustedLanguagePolicy: TrustedLanguagePolicy = {
   productCredentialIdentifierAllowances: [
     { path: "eng/check-language.mjs", classification: "EXECUTABLE_POLICY_ENFORCEMENT", sha256: null },
   ],
+  canonicalCommitLiterals: [["Logical", "Arti", "fact", "Digest"].join("")],
 };
 const passingLanguageChecker = { check: async (): Promise<void> => undefined };
 
@@ -229,6 +230,10 @@ test("trusted candidate language policy accepts British prose and external liter
     error instanceof OrchestratorStop && error.code === "OUT_OF_SCOPE_CHANGE_REQUIRED");
   assert.throws(() => assertBritishCommitMessage("refactor(orchestrator): rename PrivateArtifact helper", trustedLanguagePolicy), (error: unknown) =>
     error instanceof OrchestratorStop && error.code === "OUT_OF_SCOPE_CHANGE_REQUIRED");
+  assert.throws(() => assertBritishCommitMessage("refactor(orchestrator): rename `PrivateArtifactHelper`", trustedLanguagePolicy), (error: unknown) =>
+    error instanceof OrchestratorStop && error.code === "OUT_OF_SCOPE_CHANGE_REQUIRED");
+  assert.throws(() => assertBritishCommitMessage("docs(orchestrator): describe `behavior`", trustedLanguagePolicy), (error: unknown) =>
+    error instanceof OrchestratorStop && error.code === "OUT_OF_SCOPE_CHANGE_REQUIRED");
   assert.doesNotThrow(() => assertBritishCommitMessage("docs(orchestrator): preserve `LogicalArtifactDigest`", trustedLanguagePolicy));
 });
 
@@ -346,6 +351,7 @@ test("trusted language policy accepts closed credential identifier allowances", 
       sha256: "c".repeat(64),
     },
   ]);
+  assert.deepEqual(policy.canonicalCommitLiterals, [["Logical", "Arti", "fact", "Digest"].join("")]);
 });
 
 test("trusted language policy rejects invalid credential identifier allowances", () => {
