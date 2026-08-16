@@ -1,1588 +1,1588 @@
-# Estado Atual
+# Current State
 
-Este documento é o snapshot factual vigente do workspace em 2026-08-15. Ele
-não concede autoridade. Evolução e decisões no contexto original pertencem ao
-[`State-Transition-Log.md`](State-Transition-Log.md) e aos relatórios
-proprietários.
+This document is the current factual snapshot of the workspace on 2026-08-15. It
+grants no authority. Evolution and decisions in their original context belong in
+[`State-Transition-Log.md`](State-Transition-Log.md) and the owning
+reports.
 
-## Lifecycle e gates
+## Lifecycle and gates
 
-- A auditoria, as correções permitidas e a validação de prontidão multiagente
-  da Etapa 1 foram concluídas na branch `codex/stage1-multi-agent-readiness`,
-  partindo de `main@9f309e1b6a21a33cbd24b4b6498e840dd26585c9`, sem mudar o
-  lifecycle. O commit `1055934` formalizou envelopes, ownership, isolamento,
-  stop conditions, agentes project-scoped e o gate de cobertura fail-closed.
-  O primeiro gate limpo revelou interferência process-wide entre classes de
-  teste que limpavam pools SQLite; `b64291d` serializou as classes da assembly
-  de integração, preservando a mesma árvore da identidade local pré-reescrita
-  `a0def61`. A suíte focal passou 279/279 e `./eng/ci.ps1 -Offline` passou
-  em worktree limpa com 505 testes .NET, 45 testes web, 95,38% de linhas e
-  67,23% de branches. Em 2026-08-14, sobre
+- The audit, permitted corrections and multi-agent readiness validation
+  for Stage 1 were completed on branch `codex/stage1-multi-agent-readiness`,
+  starting from `main@9f309e1b6a21a33cbd24b4b6498e840dd26585c9`, without changing the
+  lifecycle. Commit `1055934` formalised envelopes, ownership, isolation,
+  stop conditions, project-scoped agents and the fail-closed coverage gate.
+  The first clean gate revealed process-wide interference between test
+  classes that cleared SQLite pools; `b64291d` serialised the integration
+  assembly classes, preserving the same tree as the pre-rewrite local identity
+  `a0def61`. The focused suite passed 279/279 and `./eng/ci.ps1 -Offline` passed
+  in a clean worktree with 505 .NET tests, 45 web tests, 95.38% line coverage and
+  67.23% branch coverage. On 2026-08-14, at
   `codex/stage1-multi-agent-readiness@355bd6cd731528bcdb8fccfe71ee93b70acb1d1e`,
-  o proprietário selecionou quarentena histórica para os freezes RB-2/RB-3 e
-  aceitou explicitamente ADR-0016. RB-2 continua sem satisfazer seu gate,
-  RB-3 continua indisponível para RB-4, e qualquer sucessor exige autoridade
-  separada, duas revisões humanas independentes e adjudicação humana real. A
-  arquitetura TypeScript/Node 24 e a fronteira `AgentRunner` foram aceitas sem
-  constituir Human Gate. Após o commit documental limpo `60ccbdc`, o preflight
-  de dependências da Etapa 2 encontrou zero pacote ou tarball local de
-  `@openai/codex-sdk` e refinou naquele momento a classificação para
-  `HUMAN_DECISION_REQUIRED`. O proprietário concedeu depois autoridade HTTPS
-  delimitada ao `registry.npmjs.org`; o grafo exato `0.147.0` foi adquirido
-  com scripts de lifecycle, audit e fund desabilitados, e as validações
-  posteriores usaram cache offline. A Etapa 2 implementou o orchestrator
-  determinístico isolado em `tools/ai-orchestrator/` nos commits `b10d8ac` a
-  `94ea9b7`. O gate canônico limpo passou 215 testes unitários, 11 de
-  arquitetura, 279 de integração, 45 web e 81 do orchestrator; dry run e E2E
-  controlado com `FakeAgentRunner` passaram. Naquela baseline, a disposição
-  operacional era `MULTI_AGENT_READY_WITH_CONDITIONS`: somente fake local
-  estava operacional; o
-  resume persistido está mapeado e testado por contrato, não exposto pelo CLI
-  e não exercitado contra Codex real. O SDK não fornece ID de nova thread
-  antes do primeiro turn, portanto um start Codex real retorna
-  `ARCHITECTURE_CHANGE_REQUIRED`. Nenhuma chamada Codex/provider, secret,
-  Human Gate ou mudança de lifecycle havia ocorrido naquele boundary. Após
-  avaliação documental local do SDK locked, o proprietário decidiu manter
-  ADR-0016 `accepted` e não
-  `superseded`, preservar `FakeAgentRunner` como a única baseline operacional
-  validada e manter `NEW_REAL_START` sob
-  `ARCHITECTURE_CHANGE_REQUIRED`. Naquela decisão, nenhum ADR-0017 foi criado
-  ou aceito, e nenhuma versão adicional do SDK foi verificada.
-- Sob `AUTH-MULTI-AGENT-REAL-RUNNER-PREP-001`, a solicitação posterior do
-  proprietário para tornar Stage 0, Stage 1 e Stage 2 operacionais autorizou a
-  preparação documental do sucessor ADR-0017. A consulta oficial e o registry
-  npm confirmaram que `@openai/codex-sdk` estável permanece `0.147.0`; a SDK
-  continua sem identidade pré-turno. ADR-0017 foi depois explicitamente
-  `accepted` e a implementação substituiu somente o transporte SDK pelo Codex
-  App Server `thread/start` → checkpoint durável → `turn/start` nos commits
-  técnicos `583c3b4` e `9512d6e`. A dependência direta está locked em
-  `@openai/codex` `0.147.0`; a CLI expõe `--runner codex` somente com
-  `--authority-reference`, valida `account/read` como sessão `chatgpt` e não
-  herda `OPENAI_API_KEY`. O primeiro preflight de execução parou antes de criar
-  thread ou turn porque dois campos exigiam `experimentalApi`; a correção os
-  removeu e manteve somente o protocolo estável. Uma única validação real,
-  read-only e controlada passou no run
-  `run-38b7dabe-491d-40f8-baaf-ce11906bd78e`: a revisão `4` já continha a
-  identidade durável enquanto a task permanecia `RUNNING`, as revisões `5` e
-  `6` registraram `PASS`, e locks finais foram zero. A classificação atual do
-  tooling é `MULTI_AGENT_READY` dentro do envelope de desenvolvimento; cada
-  execução futura continua exigindo plano, baseline limpa e autoridade
-  delimitada próprios. Produto, provider do produto, secret, Human Gate e
-  lifecycle não foram alterados.
-- Posição: `STATE-00 DISCOVERY` encerrado; `GATE-B01
-  ARCHITECTURE_BOOTSTRAP_DECISION` aprovado e encerrado; `STATE-01
-  PROJECT_SETUP` encerrado após Human Gate aprovado sem ressalvas em
-  2026-07-31; entrada em `STATE-02 ARCHITECTURE` autorizada em 2026-07-31,
-  com execução documental e local, sequencial, dos lotes `S02-A` e `S02-B`;
-  `STATE-02` encerrado após Human Gate aprovado sem ressalvas em 2026-08-02;
-  entrada em `STATE-03 DATA_AND_INDEX_MODELING` autorizada em 2026-08-02;
-  `S03-A` e `S03-B0` a `S03-B5` concluídos; Automatic Quality Gate de
-  `STATE-03` aprovado sem achados; `STATE-03` encerrado após Human Gate
-  aprovado sem ressalvas em 2026-08-02; entrada em `STATE-04
-  BACKEND_IMPLEMENTATION` autorizada e registrada em 2026-08-03. O
-  proprietário autorizou em 2026-08-04 o fechamento de `S04-A0`, o pin
-  offline dos dois parsers selecionados, a execução sequencial de `S04-A` a
-  `S04-D` e, depois, o Automatic Quality Gate de `STATE-04`. `S04-A0` foi
-  encerrado documentalmente. A precondição da fonte offline incompleta foi
-  resolvida por seed somente leitura e allowlisted para um cache isolado; os
-  pins foram aplicados, o restore locked passou e o primeiro gate runtime
-  sintético de `S04-A` foi aprovado. `S04-A` concluiu administração, ingestão
-  PDF/CSV, sync por transporte falso, snapshots, chunks e idempotência;
-  `S04-B` concluiu embeddings por port com fake determinístico, staging,
-  finalização canônica, commit, ativação CAS, hard pre-filter e replay
-  idempotente; `S04-C` concluiu recuperação sobre uma única revisão ativa,
-  elegibilidade/freshness, recusa, resposta grounded, citações e a matriz
-  `pt-BR`/`en-GB`; `S04-D` concluiu API pública v1, OpenAPI versionado,
-  health fail-closed, Problem Details, limites, cancelamento, rate limit e os
-  adapters OpenAI por HTTP direto exercitados somente com handler falso. Os
-  quatro lotes estão concluídos. O Automatic Quality Gate de `STATE-04` foi
-  aprovado sem achados abertos; `AQG-S04-001` (P2) foi resolvido por um teste
-  integrado do fluxo sintético completo. O Human Gate de `STATE-04` foi
-  aprovado com as ressalvas documentadas em 2026-08-04; `STATE-04` está
-  encerrado.
-- Uma auditoria local posterior ao Human Gate, sobre
-  `main@f71343291b942c66d0ff417a8764b032bbd63bff`, identificou os achados
-  `AUD-S04-001` a `AUD-S04-004`. O proprietário autorizou o incremento
-  corretivo consolidado `S04-CORR-01`: rebinding transacional de observações
-  em `304`/hash idêntico (`a674560ed1093e96d533012f1b11a292c3f641b5`),
-  chunking integral `paragraph-window-v1`
-  (`b875eac6e9ce4c72783d4e4bb72a59686ca58248`), administração one-shot
-  governada com journal durável (`ac34c085a499a34ea8ee1c9106675482e38790c3`)
-  e esta reconciliação documental. As correções executáveis estão
-  implementadas e os documentos factuais foram reconciliados. O Automatic
-  Quality Gate corretivo foi aprovado sobre
-  `main@114ea6f7f76936dac991553588660fc986bd0f10`; a disposição posterior dos
-  quatro achados integra o resultado consolidado abaixo. Isso não reabriu o
-  lifecycle, não alterou o Human Gate histórico e não autorizou `STATE-05`.
-- A retomada posterior da auditoria identificou `AUD-S04-005` a
-  `AUD-S04-009`. `S04-CORR-02` implementou alcance global antes da limpeza,
-  replay exato nos domínios persistidos, validação e falhas tipadas dos
-  adapters OpenAI, classificação administrativa por fase e reconciliação de
-  comentários. A nova passagem encontrou o residual `AUD-S04-005-R1` na
-  recuperação de uma reserva após crash. `S04-CORR-03`, no commit
-  `19889f560dad0f011006ff17fc7414c807838149`, adicionou o plano interno
-  versionado e a reconciliação transacional das reservas antes do planejamento
-  e da finalização. Seu Automatic Quality Gate foi aprovado com 169 testes,
-  92,04% de linhas e 66,46% de branches. A auditoria completa reiniciada foi
-  `APROVADA`, sem novo P0, P1, P2 ou P3, e dispôs `AUD-S04-001` a
-  `AUD-S04-009`, incluindo `AUD-S04-005-R1`, como `RESOLVIDOS`. O lifecycle e
-  o Human Gate histórico não foram alterados; `STATE-05` permaneceu sem
-  autorização naquele resultado.
-- Entrada em `STATE-05 FRONTEND_IMPLEMENTATION`: registrada documentalmente
-  em 2026-08-04. Depois, sobre
-  `main@cab336ada60866083f3e688fe1a13cff348a3335`, corpus `4.9.2` e working
-  tree limpa, o proprietário autorizou a execução local, offline, sequencial e
-  limitada de `S05-A0` a `S05-A4`. Os cinco lotes foram concluídos nos commits
+  the owner selected historical quarantine for the RB-2/RB-3 freezes and
+  explicitly accepted ADR-0016. RB-2 still does not satisfy its gate,
+  RB-3 remains unavailable for RB-4, and any successor requires separate
+  authority, two independent human reviews and genuine human adjudication. The
+  TypeScript/Node 24 architecture and `AgentRunner` boundary were accepted without
+  constituting a Human Gate. After clean documentation commit `60ccbdc`, the Stage 2
+  dependency preflight found no local package or tarball for
+  `@openai/codex-sdk` and at that time refined the classification to
+  `HUMAN_DECISION_REQUIRED`. The owner subsequently granted HTTPS authority
+  bounded to `registry.npmjs.org`; the exact `0.147.0` graph was acquired
+  with lifecycle, audit and fund scripts disabled, and subsequent
+  validations used the offline cache. Stage 2 implemented the isolated deterministic
+  orchestrator in `tools/ai-orchestrator/` through commits `b10d8ac` to
+  `94ea9b7`. The clean canonical gate passed 215 unit, 11
+  architecture, 279 integration, 45 web and 81 orchestrator tests; the dry run and
+  controlled E2E with `FakeAgentRunner` passed. On that baseline, the operational
+  disposition was `MULTI_AGENT_READY_WITH_CONDITIONS`: only the local fake
+  was operational; persisted
+  resume is mapped and contract-tested, not exposed through the CLI
+  and not exercised against real Codex. The SDK does not provide a new thread ID
+  before the first turn, so a real Codex start returns
+  `ARCHITECTURE_CHANGE_REQUIRED`. No Codex/provider call, secret,
+  Human Gate or lifecycle change had occurred at that boundary. After
+  local documentary assessment of the locked SDK, the owner decided to keep
+  ADR-0016 `accepted` rather than
+  `superseded`, preserve `FakeAgentRunner` as the only validated operational baseline
+  and keep `NEW_REAL_START` under
+  `ARCHITECTURE_CHANGE_REQUIRED`. Under that decision, no ADR-0017 was created
+  or accepted, and no additional SDK version was verified.
+- Under `AUTH-MULTI-AGENT-REAL-RUNNER-PREP-001`, the owner’s subsequent request
+  to make Stage 0, Stage 1 and Stage 2 operational authorised the
+  documentary preparation of successor ADR-0017. The official query and npm registry
+  confirmed that stable `@openai/codex-sdk` remains `0.147.0`; the SDK
+  still has no pre-turn identity. ADR-0017 was subsequently explicitly
+  `accepted`, and the implementation replaced only the SDK transport with Codex
+  App Server `thread/start` → durable checkpoint → `turn/start` in technical
+  commits `583c3b4` and `9512d6e`. The direct dependency is locked at
+  `@openai/codex` `0.147.0`; the CLI exposes `--runner codex` only with
+  `--authority-reference`, validates `account/read` as a `chatgpt` session and does not
+  inherit the product provider credential. The first execution preflight stopped before creating a
+  thread or turn because two fields required `experimentalApi`; the correction
+  removed them and retained only the stable protocol. One real,
+  read-only and controlled validation passed in run
+  `run-38b7dabe-491d-40f8-baaf-ce11906bd78e`: revision `4` already contained the
+  durable identity while the task remained `RUNNING`; revisions `5` and
+  `6` recorded `PASS`, and final locks were zero. The current tooling
+  classification is `MULTI_AGENT_READY` within the development envelope; every
+  future execution still requires its own plan, clean baseline and bounded
+  authority. The product, product provider, secret, Human Gate and
+  lifecycle were not changed.
+- Position: `STATE-00 DISCOVERY` closed; `GATE-B01
+  ARCHITECTURE_BOOTSTRAP_DECISION` approved and closed; `STATE-01
+  PROJECT_SETUP` closed after a Human Gate approved without reservations on
+  2026-07-31; entry into `STATE-02 ARCHITECTURE` authorised on 2026-07-31,
+  with local, sequential documentary execution of batches `S02-A` and `S02-B`;
+  `STATE-02` closed after a Human Gate approved without reservations on 2026-08-02;
+  entry into `STATE-03 DATA_AND_INDEX_MODELING` authorised on 2026-08-02;
+  `S03-A` and `S03-B0` through `S03-B5` completed; the Automatic Quality Gate for
+  `STATE-03` approved without findings; `STATE-03` closed after a Human Gate
+  approved without reservations on 2026-08-02; entry into `STATE-04
+  BACKEND_IMPLEMENTATION` authorised and recorded on 2026-08-03. The
+  owner authorised the closure of `S04-A0`, the offline pinning
+  of the two selected parsers, the sequential execution of `S04-A` through
+  `S04-D` and then the Automatic Quality Gate for `STATE-04` on 2026-08-04. `S04-A0` was
+  closed through documentation. The incomplete offline-source precondition was
+  resolved through a read-only allowlisted seed for an isolated cache; the
+  pins were applied, the locked restore passed and the first synthetic runtime gate
+  for `S04-A` was approved. `S04-A` completed administration, PDF/CSV ingestion,
+  synchronisation through a fake transport, snapshots, chunks and idempotency;
+  `S04-B` completed embeddings through a port with a deterministic fake, staging,
+  canonical finalisation, commit, CAS activation, hard pre-filtering and idempotent
+  replay; `S04-C` completed retrieval over a single active revision,
+  eligibility/freshness, refusal, grounded response, citations and the
+  `pt-BR`/`en-GB` matrix; `S04-D` completed the public v1 API, versioned OpenAPI,
+  fail-closed health, Problem Details, limits, cancellation, rate limiting and the
+  OpenAI adapters over direct HTTP exercised only with a fake handler. The
+  four batches are complete. The Automatic Quality Gate for `STATE-04` was
+  approved without open findings; `AQG-S04-001` (P2) was resolved by an
+  integrated test of the complete synthetic flow.
+  The Human Gate for `STATE-04` was approved with the documented reservations on 2026-08-04; `STATE-04` is
+  closed.
+- A local audit after the Human Gate, at
+  `main@f71343291b942c66d0ff417a8764b032bbd63bff`, identified findings
+  `AUD-S04-001` through `AUD-S04-004`. The owner authorised the consolidated
+  corrective increment `S04-CORR-01`: transactional rebinding of observations
+  on `304`/identical hash (`a674560ed1093e96d533012f1b11a292c3f641b5`),
+  complete `paragraph-window-v1` chunking
+  (`b875eac6e9ce4c72783d4e4bb72a59686ca58248`), governed one-shot administration
+  with a durable journal (`ac34c085a499a34ea8ee1c9106675482e38790c3`)
+  and this documentary reconciliation. The executable corrections are
+  implemented and the factual documents were reconciled. The corrective Automatic
+  Quality Gate was approved at
+  `main@114ea6f7f76936dac991553588660fc986bd0f10`; the subsequent disposition of the
+  four findings is part of the consolidated result below. This did not reopen the
+  lifecycle, alter the historical Human Gate or authorise `STATE-05`.
+- The subsequent resumption of the audit identified `AUD-S04-005` through
+  `AUD-S04-009`. `S04-CORR-02` implemented global reachability before clean-up,
+  exact replay in persisted domains, validation and typed failures for the
+  OpenAI adapters, administrative classification by phase and reconciliation of
+  comments. The new pass found residual `AUD-S04-005-R1` in
+  recovering a reservation after a crash. `S04-CORR-03`, in commit
+  `19889f560dad0f011006ff17fc7414c807838149`, added the internal
+  versioned plan and transactional reconciliation of reservations before planning
+  and finalisation. Its Automatic Quality Gate was approved with 169 tests,
+  92.04% line coverage and 66.46% branch coverage. The restarted complete audit was
+  `APROVADA`, with no new P0, P1, P2 or P3, and disposed of `AUD-S04-001` through
+  `AUD-S04-009`, including `AUD-S04-005-R1`, as `RESOLVIDOS`. The lifecycle and
+  historical Human Gate were not changed; `STATE-05` remained
+  unauthorised in that result.
+- Entry into `STATE-05 FRONTEND_IMPLEMENTATION`: recorded through documentation
+  on 2026-08-04. Subsequently, at
+  `main@cab336ada60866083f3e688fe1a13cff348a3335`, corpus `4.9.2` and a clean working
+  tree, the owner authorised the local, offline, sequential and
+  bounded execution of `S05-A0` through `S05-A4`. The five batches were completed in commits
   `9c27cc49442ff467486c93febf7144e6d3a652b7`,
   `2fd7526f0907361d6c03552379341b877e88c236`,
   `7a42d332ddf6646c575c7cae16cfe9085120e18d`,
-  `a8835b94ab485e542f7cfe23355283c92de17fc8` e
-  `5865a225cdab9bd92f9befa00c7ee581b2aa0877`. O Dashboard implementa o
-  contrato cliente v1 existente, estados, consulta same-origin, localização
-  `pt-BR`/`en-GB`, temas `Light`/`Dark`, cobertura, proveniência, citações,
-  falhas seguras e acessibilidade dentro do escopo aprovado. As verificações
-  finais aprovaram lint, typecheck, 28 testes offline e build. O Automatic
-  Quality Gate, o Human Gate e `STATE-06` não foram autorizados nem executados.
-- Automatic Quality Gate de `STATE-05`: autorizado e iniciado em 2026-08-05
-  sobre `main@f6df67a67657af891e4831a616b142d8da9fb584`, corpus `4.9.2` e
-  working tree limpa. A auditoria parou conforme a condição do proprietário e
-  resultou `REPROVADO` com `AQG-S05-001` (P1): o cliente aceita
-  `canonicalUrl` com scheme `javascript:` em citação `LocalAuthorised` e a
-  apresenta como link. A reprodução local em memória confirmou que o decoder
-  aceitou o payload e o SSR emitiu o `href` inseguro. Nenhuma correção, mudança
-  de produto, instalação ou ação externa foi executada; lint, typecheck,
-  testes, build e browser do gate não foram alcançados depois do achado. O
-  Human Gate e `STATE-06` permanecem sem autorização e sem execução.
-- Correção `S05-CORR-01`: autorizada e concluída em 2026-08-05 sobre
-  `main@7ee2241049dc68f16a38e85bd622928e64a317e7`, corpus `4.9.2` e working
-  tree limpa. O commit `654fce6e0a09d6e7196e434de0ff6f5d6ccd5b04`
-  rejeita qualquer URL de citação não HTTPS, exige `canonicalUrl` nula para
-  `LocalAuthorised`, limita links apresentados a `OfficialExternal` com HTTPS
-  validado e adiciona regressões de contrato e apresentação. Lint, typecheck,
-  29 testes e build passaram; package, lockfile, OpenAPI, contratos externos e
-  backend permaneceram inalterados. `AQG-S05-001` está
-  `CORRIGIDO_PENDENTE_DE_RETESTE_DO_GATE`; a correção não repetiu nem aprovou
-  o Automatic Quality Gate.
-- Reinício integral do Automatic Quality Gate de `STATE-05`: autorizado e
-  iniciado em 2026-08-05 sobre
-  `main@f7e7f4a9d4afd234c9f3fcc725e7093653bc3363`, corpus `4.9.2` e working
-  tree limpa. A inspeção estática confirmou a barreira implementada para
-  `AQG-S05-001`, mas a condição de parada ocorreu antes do reteste npm e sua
-  disposição permanece `CORRIGIDO_PENDENTE_DE_RETESTE_DO_GATE`. O reinício
-  resultou `REPROVADO` com `AQG-S05-002` (P2), porque o limite do corpo HTTP é
-  aplicado somente depois de `response.text()` materializar toda a resposta,
-  e `AQG-S05-003` (P2), porque o título visual do documento permanece fixo em
-  inglês quando `interfaceLanguage` é `pt-BR`. Preflight executável, lint,
-  typecheck, testes, build, cobertura percentual, browser, viewport estreito,
-  acessibilidade visual, teclado e matriz das oito combinações não foram
-  alcançados. Nenhum código, teste, listener ou configuração foi alterado.
-- Correção `S05-CORR-02`: autorizada e concluída em 2026-08-05 sobre
-  `main@651b4ad9edba79b3fc8a16e550fc2a357b6b85d2`, corpus `4.9.2` e working
-  tree limpa. O commit `ec5ecf41b113853fc2863a94cbfe77dbe4741828`
-  aplica o teto de 262.144 bytes durante a leitura da resposta, antecipa a
-  rejeição de `Content-Length` decimal excedido, interrompe no primeiro
-  overflow e preserva cancelamento. O commit
-  `20458c8189b132b775786b2fc8f9b44ee5c2f7b8` localiza o título visual por
-  `interfaceLanguage`, sem acoplamento ao idioma da pergunta ou ao tema.
-  Lint, typecheck, 34 testes e build passaram; a validação loopback confirmou
-  os títulos `pt-BR` e `en-GB`, e o listener foi encerrado. Package, lockfile,
-  OpenAPI, contratos externos e backend permaneceram inalterados.
-  `AQG-S05-001`, `AQG-S05-002` e `AQG-S05-003` estão corrigidos, mas pendem de
-  reteste e disposição por um reinício integral do Automatic Quality Gate
-  sob autoridade humana posterior e separada.
-- Reinício integral do Automatic Quality Gate após `S05-CORR-02`: autorizado
-  e iniciado em 2026-08-05 sobre
-  `main@3f120aaf3cbc199c821685b161ece95a1988a659`, corpus `4.9.2` e working
-  tree limpa. A inspeção estática confirmou as barreiras implementadas para
-  `AQG-S05-001`, `AQG-S05-002` e `AQG-S05-003`, mas encontrou
-  `AQG-S05-004` (P2): o backend canônico emite `sourceFreshness: "Local"` para
-  citações `LocalAuthorised`, enquanto o Dashboard não localiza `Local` e
-  apresenta o fallback de estado desconhecido; a fixture local usa
-  incorretamente `Current` e mascara a divergência. A condição de parada foi
-  acionada antes do preflight executável, lint, typecheck, testes, build,
-  cobertura e browser. Nenhum código, teste, processo, listener ou
-  configuração foi alterado. O gate foi `REPROVADO`; os quatro achados
-  permanecem sem disposição final por um gate completo aprovado.
-- Correção `S05-CORR-03`: autorizada e concluída em 2026-08-05 sobre
-  `main@800e6dc92d2a3555dbe92bc4e3b6b16e6411726b`, corpus `4.9.2` e working
-  tree limpa. O commit `9ef937744302044ee3cd9105c9a23ddd3557a861`
-  restringe `sourceFreshness` ao conjunto canônico, aceita
-  `LocalAuthorised` somente com `Local` e URL nula, rejeita `Local` para
-  `OfficialExternal`, localiza `Local` em `pt-BR` e `en-GB` e corrige a
-  fixture sintética. Lint, typecheck, 35 testes e build passaram; a validação
-  loopback confirmou a alternância localizada e terminou sem listener.
-  Package, lockfile, OpenAPI, contratos externos e backend permaneceram
-  inalterados. `AQG-S05-001` a `AQG-S05-004` estão corrigidos, mas pendem de
-  reteste e disposição por um reinício integral do Automatic Quality Gate sob
-  autoridade humana posterior e separada.
-- Reinício integral do Automatic Quality Gate após `S05-CORR-03`: autorizado
-  e iniciado em 2026-08-05 sobre
-  `main@b457970aed4564d5a654bb4e8d38439c98f29522`, corpus `4.9.2` e working
-  tree limpa. A inspeção estática confirmou as barreiras implementadas para
-  `AQG-S05-001` a `AQG-S05-004`, mas encontrou `AQG-S05-005` (P2): o cliente
-  aceita uma conclusão cujo `answerLanguage` é um idioma suportado diferente
-  do `questionLanguage` enviado. A condição de parada foi acionada antes do
-  preflight executável, lint, typecheck, testes, build, cobertura e browser.
-  Nenhum código, teste, processo, listener ou configuração foi alterado. O
-  gate foi `REPROVADO`; os quatro achados corrigidos continuam pendentes de
-  reteste executável e `AQG-S05-005` permanece aberto.
-- Correção `S05-CORR-04`: autorizada e concluída em 2026-08-05 sobre
-  `main@fb59861a8367749f2a11ac279add5007989d27e0`, corpus `4.9.2` e working
-  tree limpa. O commit `bed8ec03d670ed4e76a556f7df723c30db320a24`
-  exige que `answerLanguage` corresponda ao `questionLanguage` efetivamente
-  enviado e faz o cliente falhar fechado nas duas direções incompatíveis. As
-  fixtures e regressões de contrato e transporte cobrem conclusões válidas em
-  `pt-BR` e `en-GB`; o teste de limite exato não aceita mais a divergência.
-  Lint, typecheck, 37 testes e build passaram na instalação existente e
-  offline. Package, lockfile, OpenAPI, contratos externos e backend
-  permaneceram inalterados. `AQG-S05-001` a `AQG-S05-005` estão corrigidos,
-  mas pendem de reteste e disposição por um reinício integral do Automatic
-  Quality Gate sob autoridade humana posterior e separada.
-- Reinício integral do Automatic Quality Gate após `S05-CORR-04`: autorizado
-  e iniciado em 2026-08-05 sobre
-  `main@a58c4038fb14e656c95303d914e02c7f8ad75c17`, corpus `4.9.2` e working
-  tree limpa. Inspeção estática, lint, typecheck, 37 testes, build e repetição
-  byte a byte do build passaram; `AQG-S05-001` a `AQG-S05-005` foram
-  dispostos como `RESOLVIDOS`. A validação de teclado encontrou
-  `AQG-S05-006` (P2): o skip link recebe foco visível e altera o fragmento
-  para `#main-content`, mas não transfere o foco ao `<main>`; o elemento ativo
-  volta a ser `<body>`, sem oferecer bypass de foco confiável. A condição de
-  parada foi acionada antes de viewport estreito/reflow, alternância completa
-  Light/Dark e matriz browser das oito combinações. O gate foi `REPROVADO`.
-  O listener pertencente à tarefa escutou somente em `127.0.0.1:4173`, foi
-  identificado e encerrado; a porta terminou livre. Nenhuma correção, mudança
-  de frontend, código, teste, dependência, contrato ou backend foi executada.
-- Correção `S05-CORR-05`: autorizada e concluída em 2026-08-05 sobre
-  `main@3ff7002b394199bbf253139836827231c1988116`, corpus `4.9.2` e working
-  tree limpa. O commit `8b543eb85907b5aa4023f109dabb4bb11100da3e`
-  torna `main#main-content` programaticamente focável, transfere o foco ao
-  alvo quando o skip link é ativado e adiciona regressão focal de componente.
-  Lint, typecheck, 38 testes e build passaram na instalação existente e
-  offline. No build loopback, `Tab` focou o skip link, `Enter` focou o
-  `<main>` e o `Tab` seguinte avançou ao rádio selecionado de idioma da
-  pergunta dentro do conteúdo principal; não houve warning ou erro no console.
-  O listener pertencente à tarefa foi revalidado e encerrado, e a porta
-  terminou livre. `AQG-S05-006` está
-  `CORRIGIDO_PENDENTE_DE_RETESTE_DO_GATE`; a correção não reiniciou nem
-  aprovou o Automatic Quality Gate.
-- Reinício integral do Automatic Quality Gate após `S05-CORR-05`: autorizado
-  e executado em 2026-08-05 sobre
-  `main@8ee1213eed3522493204c68b4f843e9c438e0f69`, corpus `4.9.2` e working
-  tree limpa. Inspeção estática, lint, typecheck, 38 testes, build e repetição
-  byte a byte do build passaram; `AQG-S05-001` a `AQG-S05-006` foram
-  dispostos como `RESOLVIDOS`. A matriz browser padrão aprovou as oito
-  combinações de idioma da interface, idioma da pergunta e tema. Na matriz
-  estreita, as quatro combinações `pt-BR` produziram overflow horizontal a
-  320 CSS px (`scrollWidth` 355 para `clientWidth` 303), enquanto as quatro
-  combinações `en-GB` não produziram overflow. `AQG-S05-007` (P2) registra a
-  falha de reflow da interface portuguesa. A condição de parada foi acionada
-  sem correção. O gate foi `REPROVADO`, sem novo P0/P1. O listener pertencente
-  à tarefa escutou somente em `127.0.0.1:4173`, foi revalidado e encerrado, e
-  a porta terminou livre.
-- Correção `S05-CORR-06`: autorizada e concluída em 2026-08-05 sobre
-  `main@c32953eceb149efa3cfeb952f1dbfdbe0c00e2eb`, corpus `4.9.2` e working
-  tree limpa. O commit `e34e73c7bbe8fabf96d5a5683df35935a3266e37`
-  mantém reduzível a coluna única da hero e limita a escala tipográfica do H1
-  no breakpoint compacto. A regressão focal cobre as oito combinações de
-  idioma da interface, idioma da pergunta e tema. Lint, typecheck, 38 testes
-  e build passaram offline. Em Chrome temporário com extensões desativadas e
-  zero alvo de extensão, as oito combinações passaram a 320 CSS px com
-  `scrollWidth` e `clientWidth` iguais a 305; reflow visual, Light/Dark e a
-  sequência completa de foco e teclado foram preservados. Os listeners da
-  tarefa foram encerrados e as portas terminaram livres. `AQG-S05-007` está
-  `CORRIGIDO_PENDENTE_DE_RETESTE_DO_GATE`; o Automatic Quality Gate não foi
-  reiniciado nem aprovado.
-- Reinício integral do Automatic Quality Gate após `S05-CORR-06`: autorizado
-  e iniciado em 2026-08-05 sobre
-  `main@bc2ddd6bf64fc82f7d68eb518c3013d85655c16a`, corpus `4.9.2` e working
-  tree limpa. A inspeção estática repetiu autoridade, lifecycle, escopo,
-  contratos e segurança e encontrou `AQG-S05-008` (P2): resposta, título e
-  trecho de citação derivados da API aceitam tokens contínuos válidos pelo
-  contrato, mas suas superfícies de apresentação não permitem a quebra desses
-  tokens no viewport estreito. A condição de parada foi acionada antes do
-  preflight executável, checks npm, build e browser; nenhum processo ou
-  listener foi iniciado. `AQG-S05-001` a `AQG-S05-006` conservam a disposição
-  `RESOLVIDOS`; `AQG-S05-007` permanece
-  `CORRIGIDO_PENDENTE_DE_RETESTE_DO_GATE`, pois o reteste executável não foi
-  alcançado. O gate foi `REPROVADO`, sem novo P0/P1 e sem correção de produto
-  ou teste.
-- Correção `S05-CORR-07`: autorizada e concluída em 2026-08-05 sobre
-  `main@dfa31d02e8ba3fd171986ea2c1d06c70101d07a3`, corpus `4.9.2` e working
-  tree limpa. O commit `3f003b9db67eefeccc7e677c319ca37a26d49fa7`
-  aplica quebra segura, sem truncamento, à resposta, ao título e ao trecho de
-  citação e amplia a regressão das oito combinações com tokens contínuos
-  válidos pelo decoder. Lint, typecheck, 38 testes e build passaram offline.
-  A primeira tentativa headless ativou por erro do harness a URL oficial
-  sintética antes de confirmar o foco, gerando acesso externo não autorizado;
-  a tarefa parou, encerrou os runtimes e informou o proprietário. Após o
-  proprietário permitir a continuação headless, a repetição controlada usou
-  somente citação local sem URL, bloqueio de qualquer requisição não loopback
-  e guarda do elemento ativo antes de `Enter`. As oito combinações passaram a
-  320 CSS px com documento 305/305, tokens intactos e refluídos, foco, teclado,
-  idiomas e temas preservados, zero alvo de extensão e zero tentativa ou URL
-  externa. Chrome e preview foram encerrados e as portas ficaram livres. A
-  política recusou excluir quatro diretórios temporários; o primeiro perfil
-  pode conservar cache da navegação acidental. `AQG-S05-008` está
-  `CORRIGIDO_PENDENTE_DE_RETESTE_DO_GATE`; o gate não foi reiniciado.
-- Reinício integral do Automatic Quality Gate após `S05-CORR-07`: autorizado
-  e concluído em 2026-08-05 sobre
-  `main@97ea076da84d7afdb3330aa05dcb39fc7b44ce0f`, corpus `4.9.2` e working
-  tree limpa. Autoridade, lifecycle, escopo, contratos e segurança foram
-  reinspecionados; lint, typecheck, 38 testes, build e repetição byte a byte do
-  build passaram. Chrome headless `151.0.7922.75`, em perfil temporário sem
-  extensões, executou as oito combinações a 1280 CSS px e novamente a 320 CSS
-  px. A fixture continha somente citação local sem URL, a interceptação
-  bloqueava qualquer destino não loopback e cada `Enter` foi precedido pela
-  guarda do elemento ativo. Houve zero tentativa ou URL externa, zero exceção
-  runtime e zero achado novo P0, P1, P2 ou P3. Reflow, tokens contínuos,
-  escaping, foco, teclado, Light/Dark, `pt-BR`/`en-GB` e idioma original da
-  citação passaram; `AQG-S05-001` a `AQG-S05-008` estão `RESOLVIDOS` e o gate
-  está `APROVADO`. Os listeners da tarefa foram encerrados e as portas
-  terminaram livres. Percentuais de cobertura JavaScript, reprodução no Node
-  exato, engine externa de acessibilidade e browser em janela visível
-  permanecem limitações. O Human Gate não foi autorizado nem executado, e
-  `STATE-06` permanece sem autorização.
-- Reinício integral do Automatic Quality Gate após `S05-CORR-08`: autorizado
-  e concluído em 2026-08-05 sobre
-  `main@b68cf2d8a9a6c735781529f1f3fb63d5cd515f95`, corpus `4.9.2` e working
-  tree limpa. Autoridade, lifecycle, escopo, contratos e segurança foram
-  reinspecionados; lint, typecheck, 38 testes e dois builds idênticos byte a
-  byte passaram. Chrome headless `151.0.7922.75`, em perfil temporário sem
-  extensões, repetiu as oito combinações em 1280 e 320 CSS px com citação
-  local sem URL, interceptação não loopback e guarda antes de cada `Enter`.
-  Reflow, tokens contínuos, escaping, foco, teclado, Light/Dark,
-  `pt-BR`/`en-GB`, idioma original da citação e a hero simplificada passaram.
-  Houve zero tentativa ou URL externa, zero exceção runtime e zero novo P0,
-  P1, P2 ou P3. `AQG-S05-001` a `AQG-S05-008` estão `RESOLVIDOS` e o gate
-  está `APROVADO`. Preview e Chrome foram encerrados e as portas 4173, 5173 e
-  9230 ficaram livres. O Human Gate não foi executado, e `STATE-06` permanece
-  sem autorização.
-- Human Gate de `STATE-05`: `APROVADO` sem ressalvas em 2026-08-05 sobre
-  `main@192613364429a79ce82a208f072f5005209e6f52`, corpus `4.9.2` e working
-  tree limpa. O proprietário recebeu e revisou na mesma conversa o resumo
-  completo da baseline, do Automatic Quality Gate aprovado, de
-  `AQG-S05-001` a `AQG-S05-008`, de `S05-CORR-08`, das amostras críticas,
-  verificações, limitações, riscos residuais, escopo negativo e rollback, e
-  confirmou a frase canônica `Confirmo a decisão acima exclusivamente para
-  STATE-05`. Nenhum novo achado ou ressalva foi registrado. O preview humano
-  exclusivamente loopback foi encerrado, e as portas 4173, 5173 e 9230
-  terminaram livres. `STATE-05` está encerrado; `STATE-06` permanece sem
-  autorização e sem execução.
-- Entrada em `STATE-06 INTEGRATION`: autorizada e registrada em 2026-08-05
-  sobre `main@8fb3b93532a569af953cdf24e190b82998020464`, corpus `4.9.2` e
-  working tree limpa, depois de reconfirmar localização
+  `a8835b94ab485e542f7cfe23355283c92de17fc8` and
+  `5865a225cdab9bd92f9befa00c7ee581b2aa0877`. The Dashboard implements the
+  existing v1 client contract, states, same-origin query, `pt-BR`/`en-GB`
+  localisation, `Light`/`Dark` themes, coverage, provenance, citations,
+  safe failures and accessibility within the approved scope. Final checks
+  approved lint, typecheck, 28 offline tests and build. The Automatic
+  Quality Gate, Human Gate and `STATE-06` were neither authorised nor executed.
+- Automatic Quality Gate for `STATE-05`: authorised and started on 2026-08-05
+  at `main@f6df67a67657af891e4831a616b142d8da9fb584`, corpus `4.9.2` and a
+  clean working tree. The audit stopped in accordance with the owner’s condition and
+  resulted in `REPROVADO` with `AQG-S05-001` (P1): the client accepts a
+  `canonicalUrl` with the `javascript:` scheme in a `LocalAuthorised` citation and
+  presents it as a link. The local in-memory reproduction confirmed that the decoder
+  accepted the payload and SSR emitted the unsafe `href`. No correction, product
+  change, installation or external action was performed; lint, typecheck,
+  tests, build and the gate’s browser stage were not reached after the finding. The
+  Human Gate and `STATE-06` remain unauthorised and unexecuted.
+- Correction `S05-CORR-01`: authorised and completed on 2026-08-05 at
+  `main@7ee2241049dc68f16a38e85bd622928e64a317e7`, corpus `4.9.2` and a clean working
+  tree. Commit `654fce6e0a09d6e7196e434de0ff6f5d6ccd5b04`
+  rejects every non-HTTPS citation URL, requires a null `canonicalUrl` for
+  `LocalAuthorised`, limits presented links to `OfficialExternal` with validated HTTPS
+  and adds contract and presentation regressions. Lint, typecheck,
+  29 tests and build passed; package, lockfile, OpenAPI, external contracts and
+  backend remained unchanged. `AQG-S05-001` is
+  `CORRIGIDO_PENDENTE_DE_RETESTE_DO_GATE`; the correction neither repeated nor approved
+  the Automatic Quality Gate.
+- Complete restart of the Automatic Quality Gate for `STATE-05`: authorised and
+  started on 2026-08-05 at
+  `main@f7e7f4a9d4afd234c9f3fcc725e7093653bc3363`, corpus `4.9.2` and a clean working
+  tree. Static inspection confirmed the barrier implemented for
+  `AQG-S05-001`, but the stop condition occurred before the npm retest and its
+  disposition remains `CORRIGIDO_PENDENTE_DE_RETESTE_DO_GATE`. The restart
+  resulted in `REPROVADO` with `AQG-S05-002` (P2), because the HTTP body limit is
+  applied only after `response.text()` materialises the complete response,
+  and `AQG-S05-003` (P2), because the visual document title remains fixed in
+  English when `interfaceLanguage` is `pt-BR`. Executable preflight, lint,
+  typecheck, tests, build, percentage coverage, browser, narrow viewport,
+  visual accessibility, keyboard and the eight-combination matrix were not
+  reached. No code, test, listener or configuration was changed.
+- Correction `S05-CORR-02`: authorised and completed on 2026-08-05 at
+  `main@651b4ad9edba79b3fc8a16e550fc2a357b6b85d2`, corpus `4.9.2` and a clean working
+  tree. Commit `ec5ecf41b113853fc2863a94cbfe77dbe4741828`
+  applies the 262,144-byte ceiling while reading the response, brings forward
+  rejection of an excessive decimal `Content-Length`, stops at the first
+  overflow and preserves cancellation. Commit
+  `20458c8189b132b775786b2fc8f9b44ee5c2f7b8` localises the visual title by
+  `interfaceLanguage`, without coupling it to the question language or theme.
+  Lint, typecheck, 34 tests and build passed; loopback validation confirmed
+  the `pt-BR` and `en-GB` titles, and the listener was stopped. Package, lockfile,
+  OpenAPI, external contracts and backend remained unchanged.
+  `AQG-S05-001`, `AQG-S05-002` and `AQG-S05-003` are corrected, but await
+  retesting and disposition through a complete restart of the Automatic Quality Gate
+  under subsequent and separate human authority.
+- Complete restart of the Automatic Quality Gate after `S05-CORR-02`: authorised
+  and started on 2026-08-05 at
+  `main@3f120aaf3cbc199c821685b161ece95a1988a659`, corpus `4.9.2` and a clean working
+  tree. Static inspection confirmed the barriers implemented for
+  `AQG-S05-001`, `AQG-S05-002` and `AQG-S05-003`, but found
+  `AQG-S05-004` (P2): the canonical backend emits `sourceFreshness: "Local"` for
+  `LocalAuthorised` citations, while the Dashboard does not localise `Local` and
+  presents the unknown-state fallback; the local fixture incorrectly uses
+  `Current` and masks the divergence. The stop condition was
+  triggered before executable preflight, lint, typecheck, tests, build,
+  coverage and browser. No code, test, process, listener or
+  configuration was changed. The gate was `REPROVADO`; the four findings
+  remain without final disposition by an approved complete gate.
+- Correction `S05-CORR-03`: authorised and completed on 2026-08-05 at
+  `main@800e6dc92d2a3555dbe92bc4e3b6b16e6411726b`, corpus `4.9.2` and a clean working
+  tree. Commit `9ef937744302044ee3cd9105c9a23ddd3557a861`
+  restricts `sourceFreshness` to the canonical set, accepts
+  `LocalAuthorised` only with `Local` and a null URL, rejects `Local` for
+  `OfficialExternal`, localises `Local` in `pt-BR` and `en-GB` and corrects the
+  synthetic fixture. Lint, typecheck, 35 tests and build passed; loopback
+  validation confirmed the localised switch and ended without a listener.
+  Package, lockfile, OpenAPI, external contracts and backend remained
+  unchanged. `AQG-S05-001` through `AQG-S05-004` are corrected, but await
+  retesting and disposition through a complete restart of the Automatic Quality Gate under
+  subsequent and separate human authority.
+- Complete restart of the Automatic Quality Gate after `S05-CORR-03`: authorised
+  and started on 2026-08-05 at
+  `main@b457970aed4564d5a654bb4e8d38439c98f29522`, corpus `4.9.2` and a clean working
+  tree. Static inspection confirmed the barriers implemented for
+  `AQG-S05-001` through `AQG-S05-004`, but found `AQG-S05-005` (P2): the client
+  accepts a conclusion whose `answerLanguage` is a supported language different
+  from the submitted `questionLanguage`. The stop condition was triggered before
+  executable preflight, lint, typecheck, tests, build, coverage and browser.
+  No code, test, process, listener or configuration was changed. The
+  gate was `REPROVADO`; the four corrected findings continue to await
+  executable retesting and `AQG-S05-005` remains open.
+- Correction `S05-CORR-04`: authorised and completed on 2026-08-05 at
+  `main@fb59861a8367749f2a11ac279add5007989d27e0`, corpus `4.9.2` and a clean working
+  tree. Commit `bed8ec03d670ed4e76a556f7df723c30db320a24`
+  requires `answerLanguage` to match the `questionLanguage` actually
+  submitted and makes the client fail closed in both incompatible directions. The
+  contract and transport fixtures and regressions cover valid conclusions in
+  `pt-BR` and `en-GB`; the exact-boundary test no longer accepts the divergence.
+  Lint, typecheck, 37 tests and build passed in the existing installation and
+  offline. Package, lockfile, OpenAPI, external contracts and backend
+  remained unchanged. `AQG-S05-001` through `AQG-S05-005` are corrected,
+  but await retesting and disposition through a complete restart of the Automatic
+  Quality Gate under subsequent and separate human authority.
+- Complete restart of the Automatic Quality Gate after `S05-CORR-04`: authorised
+  and started on 2026-08-05 at
+  `main@a58c4038fb14e656c95303d914e02c7f8ad75c17`, corpus `4.9.2` and a clean working
+  tree. Static inspection, lint, typecheck, 37 tests, build and byte-for-byte
+  build repetition passed; `AQG-S05-001` through `AQG-S05-005` were
+  disposed of as `RESOLVIDOS`. Keyboard validation found
+  `AQG-S05-006` (P2): the skip link receives visible focus and changes the fragment
+  to `#main-content`, but does not transfer focus to `<main>`; the active element
+  returns to `<body>`, without providing a reliable focus bypass. The stop
+  condition was triggered before narrow-viewport/reflow, complete Light/Dark
+  switching and the browser matrix for the eight combinations. The gate was `REPROVADO`.
+  The task-owned listener listened only on `127.0.0.1:4173`, was
+  identified and stopped; the port ended free. No correction or frontend,
+  code, test, dependency, contract or backend change was performed.
+- Correction `S05-CORR-05`: authorised and completed on 2026-08-05 at
+  `main@3ff7002b394199bbf253139836827231c1988116`, corpus `4.9.2` and a clean working
+  tree. Commit `8b543eb85907b5aa4023f109dabb4bb11100da3e`
+  makes `main#main-content` programmatically focusable, transfers focus to the
+  target when the skip link is activated and adds a focused component regression.
+  Lint, typecheck, 38 tests and build passed in the existing installation and
+  offline. In the loopback build, `Tab` focused the skip link, `Enter` focused
+  `<main>`, and the next `Tab` advanced to the selected question-language radio
+  within the main content; there was no warning or error in the console.
+  The task-owned listener was revalidated and stopped, and the port
+  ended free. `AQG-S05-006` is
+  `CORRIGIDO_PENDENTE_DE_RETESTE_DO_GATE`; the correction neither restarted nor
+  approved the Automatic Quality Gate.
+- Complete restart of the Automatic Quality Gate after `S05-CORR-05`: authorised
+  and executed on 2026-08-05 at
+  `main@8ee1213eed3522493204c68b4f843e9c438e0f69`, corpus `4.9.2` and a clean working
+  tree. Static inspection, lint, typecheck, 38 tests, build and byte-for-byte
+  build repetition passed; `AQG-S05-001` through `AQG-S05-006` were
+  disposed of as `RESOLVIDOS`. The standard browser matrix approved all eight
+  combinations of interface language, question language and theme. In the
+  narrow matrix, all four `pt-BR` combinations produced horizontal overflow at
+  320 CSS px (`scrollWidth` 355 versus `clientWidth` 303), while all four
+  `en-GB` combinations produced no overflow. `AQG-S05-007` (P2) records the
+  reflow failure of the Portuguese interface. The stop condition was triggered
+  without correction. The gate was `REPROVADO`, with no new P0/P1. The task-owned
+  listener listened only on `127.0.0.1:4173`, was revalidated and stopped, and
+  the port ended free.
+- Correction `S05-CORR-06`: authorised and completed on 2026-08-05 at
+  `main@c32953eceb149efa3cfeb952f1dbfdbe0c00e2eb`, corpus `4.9.2` and a clean working
+  tree. Commit `e34e73c7bbe8fabf96d5a5683df35935a3266e37`
+  keeps the hero’s single column shrinkable and limits H1 typographic scaling
+  at the compact breakpoint. The focused regression covers all eight combinations of
+  interface language, question language and theme. Lint, typecheck, 38 tests
+  and build passed offline. In temporary Chrome with extensions disabled and
+  no extension target, all eight combinations passed at 320 CSS px with
+  `scrollWidth` and `clientWidth` both equal to 305; visual reflow, Light/Dark and the
+  complete focus and keyboard sequence were preserved. The task’s listeners
+  were stopped and the ports ended free. `AQG-S05-007` is
+  `CORRIGIDO_PENDENTE_DE_RETESTE_DO_GATE`; the Automatic Quality Gate was neither
+  restarted nor approved.
+- Complete restart of the Automatic Quality Gate after `S05-CORR-06`: authorised
+  and started on 2026-08-05 at
+  `main@bc2ddd6bf64fc82f7d68eb518c3013d85655c16a`, corpus `4.9.2` and a clean working
+  tree. Static inspection repeated authority, lifecycle, scope,
+  contract and security checks and found `AQG-S05-008` (P2): response, title and
+  citation excerpt derived from the API accept continuous tokens valid under the
+  contract, but their presentation surfaces do not permit those tokens to break
+  in the narrow viewport. The stop condition was triggered before
+  executable preflight, npm checks, build and browser; no process or
+  listener was started. `AQG-S05-001` through `AQG-S05-006` retain the
+  `RESOLVIDOS` disposition; `AQG-S05-007` remains
+  `CORRIGIDO_PENDENTE_DE_RETESTE_DO_GATE`, because executable retesting was not
+  reached. The gate was `REPROVADO`, with no new P0/P1 and without a product
+  or test correction.
+- Correction `S05-CORR-07`: authorised and completed on 2026-08-05 at
+  `main@dfa31d02e8ba3fd171986ea2c1d06c70101d07a3`, corpus `4.9.2` and a clean working
+  tree. Commit `3f003b9db67eefeccc7e677c319ca37a26d49fa7`
+  applies safe breaking without truncation to the response, title and citation
+  excerpt and extends the eight-combination regression with continuous tokens
+  valid under the decoder. Lint, typecheck, 38 tests and build passed offline.
+  The first headless attempt mistakenly activated the synthetic official URL through the harness
+  before confirming focus, generating unauthorised external access;
+  the task stopped, ended the runtimes and informed the owner. After the
+  owner permitted headless continuation, the controlled repetition used
+  only a local citation without a URL, blocking of every non-loopback request
+  and a guard on the active element before `Enter`. All eight combinations passed at
+  320 CSS px with a 305/305 document, intact and reflowed tokens, focus, keyboard,
+  languages and themes preserved, no extension target and no external attempt
+  or URL. Chrome and preview were stopped and the ports were left free. The
+  policy refused to delete four temporary directories; the first profile
+  may retain a cache of the accidental navigation. `AQG-S05-008` is
+  `CORRIGIDO_PENDENTE_DE_RETESTE_DO_GATE`; the gate was not restarted.
+- Complete restart of the Automatic Quality Gate after `S05-CORR-07`: authorised
+  and completed on 2026-08-05 at
+  `main@97ea076da84d7afdb3330aa05dcb39fc7b44ce0f`, corpus `4.9.2` and a clean working
+  tree. Authority, lifecycle, scope, contracts and security were
+  reinspected; lint, typecheck, 38 tests, build and byte-for-byte build
+  repetition passed. Headless Chrome `151.0.7922.75`, in a temporary profile without
+  extensions, executed all eight combinations at 1280 CSS px and again at 320 CSS
+  px. The fixture contained only a local citation without a URL; interception
+  blocked every non-loopback destination, and each `Enter` was preceded by an
+  active-element guard. There was no external attempt or URL, no runtime
+  exception and no new P0, P1, P2 or P3 finding. Reflow, continuous tokens,
+  escaping, focus, keyboard, Light/Dark, `pt-BR`/`en-GB` and the citation’s original
+  language passed; `AQG-S05-001` through `AQG-S05-008` are `RESOLVIDOS` and the gate
+  is `APROVADO`. The task’s listeners were stopped and the ports
+  were left free. JavaScript percentage coverage, reproduction on the exact Node
+  version, an external accessibility engine and browser in a visible window
+  remain limitations. The Human Gate was neither authorised nor executed, and
+  `STATE-06` remains unauthorised.
+- Complete restart of the Automatic Quality Gate after `S05-CORR-08`: authorised
+  and completed on 2026-08-05 at
+  `main@b68cf2d8a9a6c735781529f1f3fb63d5cd515f95`, corpus `4.9.2` and a clean working
+  tree. Authority, lifecycle, scope, contracts and security were
+  reinspected; lint, typecheck, 38 tests and two byte-for-byte identical builds
+  passed. Headless Chrome `151.0.7922.75`, in a temporary profile without
+  extensions, repeated all eight combinations at 1280 and 320 CSS px with a local
+  citation without a URL, non-loopback interception and a guard before each `Enter`.
+  Reflow, continuous tokens, escaping, focus, keyboard, Light/Dark,
+  `pt-BR`/`en-GB`, the citation’s original language and the simplified hero passed.
+  There was no external attempt or URL, no runtime exception and no new P0,
+  P1, P2 or P3. `AQG-S05-001` through `AQG-S05-008` are `RESOLVIDOS` and the gate
+  is `APROVADO`. Preview and Chrome were stopped, and ports 4173, 5173 and
+  9230 were left free. The Human Gate was not executed, and `STATE-06` remains
+  unauthorised.
+- Human Gate for `STATE-05`: `APROVADO` without reservations on 2026-08-05 at
+  `main@192613364429a79ce82a208f072f5005209e6f52`, corpus `4.9.2` and a clean working
+  tree. In the same conversation, the owner received and reviewed the complete
+  summary of the baseline, the approved Automatic Quality Gate,
+  `AQG-S05-001` through `AQG-S05-008`, `S05-CORR-08`, the critical samples,
+  checks, limitations, residual risks, negative scope and rollback, and
+  confirmed the canonical phrase `Confirmo a decisão acima exclusivamente para
+  STATE-05`. No new finding or reservation was recorded. The exclusively loopback human
+  preview was stopped, and ports 4173, 5173 and 9230
+  were left free. `STATE-05` is closed; `STATE-06` remains
+  unauthorised and unexecuted.
+- Entry into `STATE-06 INTEGRATION`: authorised and recorded on 2026-08-05
+  at `main@8fb3b93532a569af953cdf24e190b82998020464`, corpus `4.9.2` and a
+  clean working tree, after reconfirming location
   `C:\Projects\RAG-Challenge`, Git top-level `C:/Projects/RAG-Challenge`,
-  Git directory `.git`, branch `main`, HEAD e corpus. A autoridade permite,
-  depois deste registro, executar localmente, offline e sequencialmente apenas
-  `S06-A`: fluxo sintético documento → índice → pergunta → resposta entre
-  backend e frontend; sincronização oficial somente por servidor HTTP falso
-  e loopback; restart e persistência; configuração não secreta por ambiente;
-  artefato local reproduzível; reprodução em baseline limpa; checks .NET/npm,
-  integração/E2E, build, higiene, documentação e commits locais focais.
-  Dependências, manifests/lockfiles, contratos, OpenAPI, ADRs, rede externa,
-  providers/contas reais, secrets, corpus/fonte oficial reais, GitHub, OCI
-  real, publicação, deploy, DB-Notifier, Automatic Quality Gate, Human Gate e
-  `STATE-07` permanecem fora da autoridade. `STATE-06` está ativo; `S06-A`
-  está autorizado e ainda não executado neste registro.
-- Lote `S06-A`: concluído localmente, offline e sequencialmente em 2026-08-05.
-  O registro de entrada está no commit
-  `ad218b58210e41d0c3a2c76ef81b5886498fd01a`; a composição executável, os
-  testes E2E/loopback e os scripts de artefato estão no commit
-  `8041e25a554a7cc47ecebf4abe1fc8b94b12d12d`. O perfil explicitamente
-  habilitado no ambiente `Integration` usa stores SQLite e conteúdo imutável
-  existentes, fixture CSV sintética e providers determinísticos locais para
-  documento → índice → pergunta → resposta. O Dashboard publicado e a API v1
-  funcionam na mesma origem; respostas `pt-BR` e `en-GB`, citação, cobertura,
-  restart, catálogo, ativação, índice e conteúdo bruto persistido passaram. A
-  sincronização oficial foi exercitada somente por servidor HTTP falso em
-  loopback, com proxy e redirects desativados. O artefato local de 58 arquivos
-  foi produzido duas vezes sobre a baseline rastreada limpa
-  `main@8041e25a554a7cc47ecebf4abe1fc8b94b12d12d` com SHA-256 idêntico
+  Git directory `.git`, branch `main`, HEAD and corpus. After this record, the authority permits
+  only `S06-A` to be executed locally, offline and sequentially:
+  synthetic document → index → question → response flow between
+  backend and frontend; official synchronisation only through a fake HTTP server
+  and loopback; restart and persistence; non-secret configuration by environment;
+  reproducible local artefact; reproduction on a clean baseline; .NET/npm checks,
+  integration/E2E, build, hygiene, documentation and focused local commits.
+  Dependencies, manifests/lockfiles, contracts, OpenAPI, ADRs, external network,
+  real providers/accounts, secrets, real corpus/official source, GitHub, real OCI,
+  publication, deployment, DB-Notifier, Automatic Quality Gate, Human Gate and
+  `STATE-07` remain outside the authority. `STATE-06` is active; `S06-A`
+  is authorised and not yet executed in this record.
+- Batch `S06-A`: completed locally, offline and sequentially on 2026-08-05.
+  The entry record is in commit
+  `ad218b58210e41d0c3a2c76ef81b5886498fd01a`; the executable composition,
+  E2E/loopback tests and artefact scripts are in commit
+  `8041e25a554a7cc47ecebf4abe1fc8b94b12d12d`. The explicitly
+  enabled profile in the `Integration` environment uses the existing SQLite stores and immutable
+  content, a synthetic CSV fixture and local deterministic providers for
+  document → index → question → response. The published Dashboard and v1 API
+  run on the same origin; `pt-BR` and `en-GB` responses, citation, coverage,
+  restart, catalogue, activation, index and persisted raw content passed. The
+  official synchronisation was exercised only through a fake HTTP server on
+  loopback, with proxy and redirects disabled. The local 58-file artefact
+  was produced twice over the clean tracked baseline
+  `main@8041e25a554a7cc47ecebf4abe1fc8b94b12d12d` with an identical SHA-256
   `b2b6f50352c29a89f91640870564df263a2a5888f2009a94dc9a0ec1bb33b3c4`,
-  e a segunda cópia foi reproduzida com a mesma geração ativa após restart.
-  Format, build Release, 174 testes .NET, cobertura .NET aplicável, lint,
-  typecheck, 38 testes npm, build Vite e submissão pela UI publicada em
-  Chrome passaram. Ports 5086/5096 e runtimes temporários terminaram limpos.
-  O relatório proprietário é
+  and the second copy was reproduced with the same active generation after restart.
+  Format, Release build, 174 .NET tests, applicable .NET coverage, lint,
+  typecheck, 38 npm tests, Vite build and submission through the published UI in
+  Chrome passed. Ports 5086/5096 and temporary runtimes ended clean.
+  The owning report is
   [`STATE-06-Integration-Report.md`](../../docs/STATE-06-Integration-Report.md).
-  `STATE-06` permanece ativo; Automatic Quality Gate, Human Gate, `STATE-07`
-  e ações externas não foram autorizados nem executados.
-- Correção focal da política de toolchain do Dashboard: autorizada e concluída
-  em 2026-08-05 no commit
-  `a7d50d8e72d5f5600ae41e3fdd313f4f1e502188`. `engines` e `devEngines`
-  agora aceitam e impõem Node.js `>=24.18.0 <25` e npm `>=11.16.0 <12`, com
-  `onFail: "error"`; o `packageManager` exato não aplicado foi removido e o
-  metadata raiz do lockfile foi reconciliado. `.nvmrc` conserva `24.18.0`
-  como seletor opcional do limite inferior, sem restringir o intervalo
-  suportado. Na instalação já atualizada para Node.js `24.19.0` e npm
-  `11.17.0`, lint, typecheck, 38 testes e build passaram offline. Duas
-  construções sobre a baseline limpa do commit produziram o mesmo ZIP de 58
-  arquivos e SHA-256
+  `STATE-06` remains active; Automatic Quality Gate, Human Gate, `STATE-07`
+  and external actions were neither authorised nor executed.
+- Focused correction of the Dashboard toolchain policy: authorised and completed
+  on 2026-08-05 in commit
+  `a7d50d8e72d5f5600ae41e3fdd313f4f1e502188`. `engines` and `devEngines`
+  now accept and enforce Node.js `>=24.18.0 <25` and npm `>=11.16.0 <12`, with
+  `onFail: "error"`; the unapplied exact `packageManager` was removed and the
+  lockfile root metadata was reconciled. `.nvmrc` retains `24.18.0`
+  as an optional lower-bound selector, without restricting the supported
+  range. On the installation already updated to Node.js `24.19.0` and npm
+  `11.17.0`, lint, typecheck, 38 tests and build passed offline. Two
+  builds over the commit’s clean baseline produced the same 58-file ZIP
+  and SHA-256
   `65b405c690a1c66c374296745613217717d7fd38f04cbefb15994323da1ffc98`;
-  a reprodução loopback e o restart passaram. Nenhuma dependência, instalação,
-  contrato, OpenAPI, ADR, lifecycle ou ação externa mudou.
-- Automatic Quality Gate de `STATE-06`: autorizado e executado localmente,
-  offline e de forma sequencial em 2026-08-06 sobre
-  `main@a6f0480b7f229b63c5ac24d65e61f55de1c6483a`, corpus `4.9.2` e working
-  tree limpa. Format, build Release, 174 testes .NET, cobertura combinada de
-  92,38% de linhas e 66,59% de branches, lint, typecheck, 38 testes npm,
-  build Vite, E2E/restart, sync por HTTP falso loopback, configuração sem
-  secret, duas construções idênticas do ZIP e reprodução do artefato passaram.
-  O gate foi `REPROVADO` por três achados P2 abertos: `AQG-S06-001`, ausência
-  do plano/ensaio não produtivo de OCI pertencente ao estado;
-  `AQG-S06-002`, cobertura integrada parcial de resiliência e cancelamento; e
-  `AQG-S06-003`, ausência dos exemplos reais no README, seu estado factual
-  obsoleto e a divergência entre Lifecycle (`STATE-06`) e roadmap
-  (`S08-B`/`BL-M13`). Nenhum P0, P1 ou P3 foi identificado. A auditoria não
-  corrigiu produto, testes, README, Lifecycle, roadmap, ADRs ou contratos e
-  não executou Human Gate, OCI, ação externa ou `STATE-07`. `STATE-06`
-  permanece ativo e o Human Gate é prematuro. Processos, listeners e stores
-  temporários da tarefa terminaram ausentes; a política de execução recusou a
-  remoção recursiva do diretório de cobertura ignorado sob `TestResults/`, que
-  conserva somente evidência gerada.
-- Correção `S06-CORR-01`: autorizada pelo proprietário em 2026-08-06 sobre
-  `main@140c0516e4dbfc02808a90f0496550eb6b09da1b`, corpus `4.9.2` e working
-  tree limpa. A decisão `NORM-S06-001` mantém em `STATE-06` um README
-  factualmente atual com exemplo local/sintético realmente verificado e
-  reserva para `STATE-08` sua finalização pública com evidência própria de OCI
-  e execução real do produto; a reconciliação normativa está registrada como
-  corpus `4.9.3`. A supply chain dos três runtime packs Linux ARM64 `10.0.10`
-  aprovou identidade, versão, SHA-512 de catálogo, assinaturas
-  author/repository em revogação offline, licença MIT, fechamento sem
-  dependências e zero advisory aplicável. Depois das ampliações explícitas de
-  autoridade, os quatro lockfiles de produção registraram somente esse RID e
-  esses três packs no commit
-  `4b808319b0c1abf0970f9f41c77fb1e08d295585`; o rehearsal ARM64, as provas
-  compostas de cancelamento/resiliência e o README local/sintético foram
-  implementados nos commits
+  loopback reproduction and restart passed. No dependency, installation,
+  contract, OpenAPI, ADR, lifecycle or external action changed.
+- Automatic Quality Gate for `STATE-06`: authorised and executed locally,
+  offline and sequentially on 2026-08-06 at
+  `main@a6f0480b7f229b63c5ac24d65e61f55de1c6483a`, corpus `4.9.2` and a clean working
+  tree. Format, Release build, 174 .NET tests, combined coverage of
+  92.38% of lines and 66.59% of branches, lint, typecheck, 38 npm tests,
+  Vite build, E2E/restart, synchronisation over fake loopback HTTP, secret-free
+  configuration, two identical ZIP builds and artefact reproduction passed.
+  The gate was `REPROVADO` because of three open P2 findings: `AQG-S06-001`, absence
+  of the state-owned non-production OCI plan/rehearsal;
+  `AQG-S06-002`, partial integrated coverage of resilience and cancellation; and
+  `AQG-S06-003`, absence of real examples in the README, its obsolete factual
+  state and the divergence between Lifecycle (`STATE-06`) and roadmap
+  (`S08-B`/`BL-M13`). No P0, P1 or P3 was identified. The audit did not
+  correct the product, tests, README, Lifecycle, roadmap, ADRs or contracts and
+  did not execute a Human Gate, OCI, external action or `STATE-07`. `STATE-06`
+  remains active and the Human Gate is premature. Task processes, listeners and temporary
+  stores ended absent; execution policy refused the recursive
+  removal of the ignored coverage directory under `TestResults/`, which
+  retains only generated evidence.
+- Correction `S06-CORR-01`: authorised by the owner on 2026-08-06 at
+  `main@140c0516e4dbfc02808a90f0496550eb6b09da1b`, corpus `4.9.2` and a clean working
+  tree. Decision `NORM-S06-001` keeps a factually current README in `STATE-06`
+  with a genuinely verified local/synthetic example and
+  reserves its public finalisation with its own OCI evidence
+  and real product execution for `STATE-08`; normative reconciliation is recorded as
+  corpus `4.9.3`. The supply chain for the three Linux ARM64 `10.0.10` runtime packs
+  approved identity, version, catalogue SHA-512, author/repository
+  signatures under offline revocation, MIT licence, dependency-free
+  closure and no applicable advisory. After the explicit authority
+  extensions, the four production lockfiles recorded only that RID and
+  those three packs in commit
+  `4b808319b0c1abf0970f9f41c77fb1e08d295585`; the ARM64 rehearsal, the composite
+  cancellation/resilience proofs and the local/synthetic README were
+  implemented in commits
   `405ab20d3e76a75f1a0f50fd625ec71831b9134b`,
-  `801f77625e68692fe7b4691798694b4e8d92433a` e
-  `9d72a1bb93325f6303516592fb4ff352a0a531ca`. `AUTH-S06-DEP-002` adicionou
-  somente `linux-arm64` aos quatro projetos de produção e completou o cache
-  isolado com os 13 packages de teste já locked; o commit
-  `f1a02cd7c7acb50bcd3fa8b00e69e6c3f59b88c3` materializa as quatro
-  declarações de projeto. O restore locked da solução aprovou somente com a
-  fonte local verificada e o cache isolado, sem mudar qualquer lockfile ou
-  grafo. C4 aprovou format, build Release sem warning, 179 testes .NET,
-  cobertura de 92,40% de linhas e 66,60% de branches, lint, typecheck, 38
-  testes npm, build Vite, auditoria de 198 arquivos, duas reproduções ARM64
-  idênticas, verificação estática e os comandos do README. O fluxo local
-  preservou a mesma geração após restart; os processos e listeners terminaram
-  ausentes. `AQG-S06-001` a `AQG-S06-003` estão
-  `CORRECTED_PENDING_GATE_RETEST`; o Automatic Quality Gate histórico permanece
-  `REPROVADO` e não foi repetido. Human Gate, `STATE-07`, execução Linux, OCI
-  real e demais ações externas permanecem não autorizados.
-- Reinício integral do Automatic Quality Gate de `STATE-06`: autorizado por
-  `AUTH-S06-AQG-RETEST-001` e executado localmente, offline e de forma
-  sequencial em 2026-08-06 sobre
-  `main@9d7c4ce816eca049ba09942ab7fe8b1148aa73c9`, corpus `4.9.3` e working
-  tree limpa. O preflight encontrou zero processo pertencente ao produto e
-  zero listener nas portas da tarefa. A auditoria repetiu desde o início a
-  supply chain dos três runtime packs ARM64, restore locked com fonte local
-  verificada e cache isolado, inspeções estáticas, o gate técnico completo,
-  cobertura, testes focais de integração/cancelamento/resiliência, duas
-  reproduções ARM64, o verificador estático, os comandos publicados no README
-  e a higiene de segurança. Format e build Release sem warning, 179 testes
-  .NET, cobertura de 92,40% de linhas e 66,60% de branches, lint, typecheck,
-  38 testes npm e build Vite passaram. As duas reproduções ARM64 foram
-  idênticas, com SHA-256
-  `d539f0dd27553859966fe45f373363d32ffd34c61cd59618fe7cf61dcd9b2369`, e o
-  verificador aprovou 17 payloads ELF64 AArch64 sem executar Linux nem contatar
-  OCI. Os comandos do README produziram e reproduziram localmente o artefato
-  sintético, inclusive a mesma geração ativa após restart. O gate foi
-  `APROVADO`, sem novo P0, P1, P2 ou P3; `AQG-S06-001` a `AQG-S06-003` estão
-  `RESOLVIDOS`. `STATE-06` permanece ativo. Human Gate, `STATE-07`, execução
-  Linux, OCI real e demais ações externas não foram autorizados nem executados.
-- Auditoria técnica estática posterior ao gate: os achados `AST-001`,
-  `AST-002` e `AST-003` foram confirmados e corrigidos sequencialmente sobre o
-  anchor pré-correção
-  `main@bfc3aefc3a731b1b49b47458374cb903860faf6f`. O commit
-  `0b3c5be2c80f0f1ee83af82d2158e87360c33ea7` vincula a resolução de registro
-  oficial à revisão imutável do snapshot; o commit
-  `d3fa9d77863092918dbef6fa7afee12992c2053f` exige e valida a autoridade
-  generation-bound completa na busca vetorial; o commit
-  `cfb93892571bec1beae3087b1f5ff44932d24693` valida transacionalmente o
-  conjunto completo de bindings ativos; e o commit
-  `dc3dde2437ad3cbb50b397358fcda043c9d6f4b3` adiciona a migration local de
-  integridade referencial pós-snapshot. A verificação consolidada na última
-  baseline aprovou build Release sem warning/erro, 87 testes unitários, 10 de
-  arquitetura e 109 de integração, total 206 sem falha ou skip, format,
-  ausência de mudança pendente no modelo EF e higiene Git. A revisão
-  pós-correção sobre `main@dc3dde2437ad3cbb50b397358fcda043c9d6f4b3`,
-  corpus `4.9.3` e working tree limpa dispôs `AST-001` a `AST-003` como
-  `RESOLVIDOS`. Contrato canônico v1, API pública e OpenAPI permaneceram
-  inalterados. Nenhum banco real foi migrado ou reparado. Essa disposição
-  pertence à auditoria AST e não repetiu nem substituiu o Automatic Quality
-  Gate aprovado na baseline anterior; `STATE-06` permanece ativo, sem Human
-  Gate, `STATE-07` ou ação externa.
-- Novo reinício integral do Automatic Quality Gate de `STATE-06`: autorizado
-  pelo proprietário e iniciado localmente, offline e de forma sequencial em
-  2026-08-06 sobre
-  `main@f92e26c7008a2d124bd10edb2e3f03c0c9ad2bf6`, corpus `4.9.3` e working
-  tree limpa. A reconciliação inventariou os oito commits e 25 arquivos após
-  `bfc3aefc3a731b1b49b47458374cb903860faf6f`; o preflight encontrou zero
-  processo do produto e zero listener nas portas da tarefa. A inspeção
-  estática identificou `AQG-S06-005` (P2): os dois únicos testes PowerShell
-  dos controles fail-closed, `eng/test-assert-coverage.ps1` e
-  `eng/test-ci-policy.ps1`, não são invocados por nenhum entry point; o
-  workflow chama somente `eng/ci.ps1`, que também não os executa. Portanto, a
-  CI canônica pode aprovar sem testar o agregador de cobertura ou a política
-  que afirma impor. O gate parou sem correção silenciosa antes de restore,
-  build, suítes, coverage, migration, ARM64 ou comandos do README e está
-  `REPROVADO`. `AQG-S06-005` permanece `ABERTO`; Human Gate continua
-  prematuro, e `STATE-07` e ações externas permanecem não autorizados.
-- Correção focal de `AQG-S06-005`: autorizada pelo proprietário em 2026-08-06
-  sobre `main@000dca0210e220a9f247159178c6d97d9fc4fd55`, corpus `4.9.3` e
-  working tree limpa. `eng/ci-policy.ps1` agora fornece uma invocação
-  obrigatória que falha quando o script não existe e propaga qualquer exceção
-  com contexto; `eng/ci.ps1` executa os testes de cobertura e política uma vez
-  cada, antes de restore; e `eng/test-ci-policy.ps1` prova sucesso, propagação
-  de falha, script ausente, invocação única dos dois testes e consumo único do
-  entry point canônico pelo workflow. O workflow permaneceu inalterado. A
-  verificação focal aprovou parsing dos três scripts, 11 casos de coverage, 14
-  controles de política/integração, `git diff --check` e auditoria de 203
-  arquivos. O Automatic Quality Gate completo não foi reiniciado e nenhuma
-  outra suíte foi executada. `AQG-S06-005` está
-  `CORRECTED_PENDING_GATE_RETEST`; Human Gate permanece prematuro.
-- Reinício integral posterior à correção de `AQG-S06-005`: autorizado pelo
-  proprietário e executado localmente, offline e de forma sequencial em
-  2026-08-06 sobre
-  `main@616bef4e2ae8c0b26c10781cd728dc6089136a60`, corpus `4.9.3` e working
-  tree limpa. A fonte local dos três runtime packs ARM64 `10.0.10`, suas
-  assinaturas e o restore locked isolado foram revalidados sem mudança de
-  lockfile. O entry point automático executou e aprovou os 11 casos de
-  coverage e os 14 controles de política antes do gate técnico. Build Release,
-  206 testes .NET, cobertura de 93,11% de linhas e 66,89% de branches, 38
-  testes npm, persistência/migration, EF sem mudança pendente,
-  cancelamento/resiliência, duas reproduções ARM64 idênticas, verificador
-  estático, comandos do README, segurança e higiene passaram. O gate está
-  `APROVADO`, sem novo P0, P1, P2 ou P3; `AQG-S06-005` está `RESOLVIDO` e
-  `AQG-S06-001` a `AQG-S06-005` permanecem `RESOLVIDOS`. `STATE-06` continua
-  ativo; Human Gate, `STATE-07`, rede externa e OCI não foram executados.
-- Human Gate de `STATE-06`: o proprietário recebeu e revisou na mesma
-  conversa o resumo completo sobre
-  `main@2f70705dcbe293b22ccd039d0764b2b9ca4b2e8a`, corpus `4.9.3` e working
-  tree limpa, incluindo entregáveis, Automatic Quality Gate, achados
-  históricos, amostras técnicas, limitações, rollback e escopo negativo. A
-  decisão foi `APROVADO COM RESSALVAS` após a confirmação canônica
-  `Confirmo a decisão acima exclusivamente para STATE-06`. As ressalvas
-  preservam a ausência de execução Linux ARM64, OCI real, providers, corpus e
-  fontes reais, armazenamento operacional, cobertura percentual JavaScript,
-  observação de rede em nível de pacotes e migration em banco real.
-  `STATE-06 INTEGRATION` está encerrado. A decisão não autorizou nem iniciou
-  `STATE-07`, rede, OCI, publicação ou deploy.
-- Entrada documental em `STATE-07 TESTING_HOMOLOGATION`: autorizada e
-  registrada em 2026-08-06 sobre
-  `main@3240a4b13acd82a1cf5815ac64f6997b2a7f89bf`, corpus `4.9.3` e working
-  tree limpa. A autoridade abrange somente o snapshot factual, o histórico
-  append-only, os blocos de status público estritamente necessários e um
-  commit local focal. `STATE-07` está ativo sem lote autorizado ou executado.
-  Dataset, avaliação RAG, testes, carga, segurança dinâmica, browser,
-  providers, fontes reais, rede, OCI, GitHub, publicação, deploy, `STATE-08`
-  e qualquer ação externa permanecem não autorizados e não executados.
-- Baseline de planejamento de `S07-A`: a proposta documental
+  `801f77625e68692fe7b4691798694b4e8d92433a` and
+  `9d72a1bb93325f6303516592fb4ff352a0a531ca`. `AUTH-S06-DEP-002` added
+  only `linux-arm64` to the four production projects and completed the isolated
+  cache with the 13 already-locked test packages; commit
+  `f1a02cd7c7acb50bcd3fa8b00e69e6c3f59b88c3` materialises the four
+  project declarations. The locked solution restore passed only with the
+  verified local source and isolated cache, without changing any lockfile or
+  graph. C4 approved format, warning-free Release build, 179 .NET tests,
+  92.40% line coverage and 66.60% branch coverage, lint, typecheck, 38
+  npm tests, Vite build, audit of 198 files, two identical ARM64
+  reproductions, static verification and the README commands. The local flow
+  preserved the same generation after restart; processes and listeners ended
+  absent. `AQG-S06-001` through `AQG-S06-003` are
+  `CORRECTED_PENDING_GATE_RETEST`; the historical Automatic Quality Gate remains
+  `REPROVADO` and was not repeated. Human Gate, `STATE-07`, Linux execution, real
+  OCI and other external actions remain unauthorised.
+- Complete restart of the Automatic Quality Gate for `STATE-06`: authorised by
+  `AUTH-S06-AQG-RETEST-001` and executed locally, offline and
+  sequentially on 2026-08-06 at
+  `main@9d7c4ce816eca049ba09942ab7fe8b1148aa73c9`, corpus `4.9.3` and a clean working
+  tree. The preflight found no product-owned process and
+  no listener on the task ports. The audit repeated from the beginning the
+  supply chain for the three ARM64 runtime packs, locked restore with a verified local
+  source and isolated cache, static inspections, the complete technical gate,
+  coverage, focused integration/cancellation/resilience tests, two
+  ARM64 reproductions, the static verifier, the published README commands
+  and security hygiene. Format and warning-free Release build, 179
+  .NET tests, 92.40% line coverage and 66.60% branch coverage, lint, typecheck,
+  38 npm tests and Vite build passed. The two ARM64 reproductions were
+  identical, with SHA-256
+  `d539f0dd27553859966fe45f373363d32ffd34c61cd59618fe7cf61dcd9b2369`, and the
+  verifier approved 17 ELF64 AArch64 payloads without executing Linux or contacting
+  OCI. The README commands locally produced and reproduced the synthetic
+  artefact, including the same active generation after restart. The gate was
+  `APROVADO`, with no new P0, P1, P2 or P3; `AQG-S06-001` through `AQG-S06-003` are
+  `RESOLVIDOS`. `STATE-06` remains active. Human Gate, `STATE-07`, Linux
+  execution, real OCI and other external actions were neither authorised nor executed.
+- Static technical audit after the gate: findings `AST-001`,
+  `AST-002` and `AST-003` were confirmed and corrected sequentially over the
+  pre-correction anchor
+  `main@bfc3aefc3a731b1b49b47458374cb903860faf6f`. Commit
+  `0b3c5be2c80f0f1ee83af82d2158e87360c33ea7` binds official-record resolution
+  to the immutable snapshot revision; commit
+  `d3fa9d77863092918dbef6fa7afee12992c2053f` requires and validates complete
+  generation-bound authority in vector search; commit
+  `cfb93892571bec1beae3087b1f5ff44932d24693` transactionally validates the
+  complete set of active bindings; and commit
+  `dc3dde2437ad3cbb50b397358fcda043c9d6f4b3` adds the local post-snapshot
+  referential-integrity migration. Consolidated verification on the latest
+  baseline approved a warning/error-free Release build, 87 unit, 10
+  architecture and 109 integration tests, 206 in total without failure or skip, format,
+  no pending change in the EF model and Git hygiene. The
+  post-correction review at `main@dc3dde2437ad3cbb50b397358fcda043c9d6f4b3`,
+  corpus `4.9.3` and a clean working tree disposed of `AST-001` through `AST-003` as
+  `RESOLVIDOS`. The canonical v1 contract, public API and OpenAPI remained
+  unchanged. No real database was migrated or repaired. This disposition
+  belongs to the AST audit and neither repeated nor replaced the approved Automatic Quality
+  Gate at the previous baseline; `STATE-06` remains active, without a Human
+  Gate, `STATE-07` or external action.
+- New complete restart of the Automatic Quality Gate for `STATE-06`: authorised
+  by the owner and started locally, offline and sequentially on
+  2026-08-06 at
+  `main@f92e26c7008a2d124bd10edb2e3f03c0c9ad2bf6`, corpus `4.9.3` and a clean working
+  tree. The reconciliation inventoried the eight commits and 25 files after
+  `bfc3aefc3a731b1b49b47458374cb903860faf6f`; the preflight found no
+  product process and no listener on the task ports. Static
+  inspection identified `AQG-S06-005` (P2): the only two PowerShell tests
+  for the fail-closed controls, `eng/test-assert-coverage.ps1` and
+  `eng/test-ci-policy.ps1`, are not invoked by any entry point; the
+  workflow calls only `eng/ci.ps1`, which also does not execute them. Therefore, the
+  canonical CI can pass without testing the coverage aggregator or the policy
+  it claims to enforce. The gate stopped without a silent correction before restore,
+  build, suites, coverage, migration, ARM64 or README commands and is
+  `REPROVADO`. `AQG-S06-005` remains `ABERTO`; the Human Gate remains
+  premature, and `STATE-07` and external actions remain unauthorised.
+- Focused correction of `AQG-S06-005`: authorised by the owner on 2026-08-06
+  at `main@000dca0210e220a9f247159178c6d97d9fc4fd55`, corpus `4.9.3` and a
+  clean working tree. `eng/ci-policy.ps1` now provides a mandatory invocation
+  that fails when the script does not exist and propagates any exception
+  with context; `eng/ci.ps1` executes the coverage and policy tests once
+  each, before restore; and `eng/test-ci-policy.ps1` proves success, failure
+  propagation, missing script, single invocation of both tests and single consumption of the
+  canonical entry point by the workflow. The workflow remained unchanged. The
+  focused verification approved parsing of the three scripts, 11 coverage cases, 14
+  policy/integration controls, `git diff --check` and an audit of 203
+  files. The complete Automatic Quality Gate was not restarted and no
+  other suite was executed. `AQG-S06-005` is
+  `CORRECTED_PENDING_GATE_RETEST`; the Human Gate remains premature.
+- Complete restart after the correction of `AQG-S06-005`: authorised by the
+  owner and executed locally, offline and sequentially on
+  2026-08-06 at
+  `main@616bef4e2ae8c0b26c10781cd728dc6089136a60`, corpus `4.9.3` and a clean working
+  tree. The local source for the three ARM64 `10.0.10` runtime packs, their
+  signatures and the isolated locked restore were revalidated without a
+  lockfile change. The automatic entry point executed and approved the 11
+  coverage cases and 14 policy controls before the technical gate. Release build,
+  206 .NET tests, 93.11% line coverage and 66.89% branch coverage, 38
+  npm tests, persistence/migration, EF without a pending change,
+  cancellation/resilience, two identical ARM64 reproductions, static
+  verifier, README commands, security and hygiene passed. The gate is
+  `APROVADO`, with no new P0, P1, P2 or P3; `AQG-S06-005` is `RESOLVIDO` and
+  `AQG-S06-001` through `AQG-S06-005` remain `RESOLVIDOS`. `STATE-06` remains
+  active; Human Gate, `STATE-07`, external network and OCI were not executed.
+- Human Gate for `STATE-06`: the owner received and reviewed in the same
+  conversation the complete summary at
+  `main@2f70705dcbe293b22ccd039d0764b2b9ca4b2e8a`, corpus `4.9.3` and a clean working
+  tree, including deliverables, Automatic Quality Gate, historical
+  findings, technical samples, limitations, rollback and negative scope. The
+  decision was `APROVADO COM RESSALVAS` after the canonical confirmation
+  `Confirmo a decisão acima exclusivamente para STATE-06`. The reservations
+  preserve the absence of Linux ARM64 execution, real OCI, providers, real corpus and
+  sources, operational storage, JavaScript percentage coverage,
+  packet-level network observation and migration on a real database.
+  `STATE-06 INTEGRATION` is closed. The decision neither authorised nor started
+  `STATE-07`, network, OCI, publication or deployment.
+- Documentary entry into `STATE-07 TESTING_HOMOLOGATION`: authorised and
+  recorded on 2026-08-06 at
+  `main@3240a4b13acd82a1cf5815ac64f6997b2a7f89bf`, corpus `4.9.3` and a clean working
+  tree. The authority covers only the factual snapshot, append-only
+  history, strictly necessary public-status blocks and one
+  focused local commit. `STATE-07` is active without an authorised or executed batch.
+  Dataset, RAG evaluation, tests, load, dynamic security, browser,
+  providers, real sources, network, OCI, GitHub, publication, deployment, `STATE-08`
+  and any external action remain unauthorised and unexecuted.
+- Planning baseline for `S07-A`: documentary proposal
   [`STATE-07-S07-A-Evaluation-And-Security-Proposal.md`](../../docs/STATE-07-S07-A-Evaluation-And-Security-Proposal.md)
-  foi criada no commit `183c8cd9fe303096a355ab731e72dc81748eb626` e
-  confirmada pelo proprietário em 2026-08-07 exclusivamente como baseline de
-  planejamento. A confirmação não concedeu `AUTH-S07-A-DATASET-001`,
-  `AUTH-S07-A-RUN-001`, materialização de dataset, avaliação, testes, carga,
-  segurança dinâmica, browser, providers, fontes reais, rede ou ação externa.
-- Execução factual de `S07-A` A1-A5: A1 foi materializado no commit
-  `968f69c2d9c37959d617742af5ac48aee5ca09d5`; a preparação do harness e sua
-  correção freeze-safe estão em `ae8d96487fe719d89741aa33e5607e532301d60e` e
-  `18994db15d963b321ace93b0069436ffc4813b53`; A2 foi congelado em
-  `43ddc0de4a6c10b32a657f3c1e471a743cb42b5f`; A3 executou 11 casos sintéticos
-  com sucesso sob `AUTH-S07-A-RUN-001`, preservando oito arquivos ignorados e o
-  resultado no SHA-256
-  `9efc2eef05388433af58e01242a1b1589556c43620eeec509f583fba0c2073bc`; e A4
-  foi reconciliado em `760bbcf4626b7890ffdfb0eeb0a8c5419b5feec7`. As correções
-  focais da validação do workspace retido e das terminações de linha de futuras
-  evidências estão em `275becfb04a4d0f7a1703c3be3f4c59d87550cc2` e
-  `6cd939849909a8abf2c5dd0534244da5f19be833`. A5 foi `APROVADO` sob
-  `AUTH-S07-A-A5-RETEST-002`: os três comandos autorizados terminaram com exit
-  code `0`; passaram 146 testes unitários, 164 de integração, 10 de arquitetura
-  e 38 do Dashboard; a cobertura foi 94,91% de linhas e 67,42% de branches.
-  Todos os digests e agregados congelados foram recalculados e conferiram.
-  `S07-A-FIND-001` permanece `OPEN`; `S07-A-FIND-004` permanece `OPEN`
-  histórico, com causa corrigida somente para futuras evidências; e
-  `S07-A-FIND-002`, `S07-A-FIND-003` e `S07-A-FIND-005` estão `RESOLVIDOS`.
-  A evidência A3 histórica permanece imutável. A5 não foi Automatic Quality
-  Gate, Human Gate ou mudança de lifecycle e não amplia a homologação além da
-  fronteira sintética local, offline, determinística e sequencial.
-- Automatic Quality Gate de `S07-A`: reiniciado integralmente e `APROVADO` em
-  2026-08-09 sob `AUTH-S07-A-AQG-RETEST-003`, sobre
-  `main@a6626a363713b4fbcf83387b7b2104eae1f3e918`, corpus `4.10.1`, working
-  tree inicialmente limpa e OpenAPI v1 no SHA-256 protegido. A auditoria
-  estática confirmou A1-A5, commits, estado factual, histórico append-only,
-  manifests congelados, oito arquivos ignorados sem reparse point, todos os
-  digests e os sete agregados sintéticos em `1.000000`. O preflight encontrou
-  zero processo e zero listener pertencente ao RAG-Challenge. Os três comandos
-  autorizados terminaram com exit code `0`: auditoria de 244 arquivos,
-  `Validate` com 6 de 6 testes e CI offline com 146 testes unitários, 164 de
-  integração, 10 de arquitetura e 38 do Dashboard; cobertura de 94,91% de
-  linhas e 67,42% de branches, build sem avisos ou erros. `AQG-S07-001` a
-  `AQG-S07-004` estão `RESOLVIDOS`; nenhum novo achado surgiu.
-  `S07-A-FIND-001` e `S07-A-FIND-004` permanecem `OPEN`, enquanto
-  `S07-A-FIND-002`, `S07-A-FIND-003` e `S07-A-FIND-005` permanecem
-  `RESOLVIDOS`. A aprovação vale somente para a fronteira sintética local;
-  thresholds de produto, provider, fonte, browser, segurança dinâmica, carga,
-  recuperação, acessibilidade, Linux, OCI e produção permanecem `NOT_RUN`.
-  Nenhum Human Gate ou avanço de lifecycle é inferido.
-- Contrato HTTP/OpenAPI v2 e serving visual same-origin: o contrato foi
-  congelado no commit `54bab1aa5f25b778093bea62ffecf7c479557f9a`, implementado
-  localmente no commit `c01abf525f4cc113baa389982da3b419d07556b6` e corrigido
-  focalmente no commit `5505a85253aa4a8a7a3690caf3dd7a762175cab9`. O Automatic
-  Quality Gate reiniciado sob `AUTH-STATE07-V2-SERVING-AQG-RETEST-001` foi
-  `APROVADO` sobre essa última baseline limpa, corpus `4.10.1`. A auditoria
-  estática confirmou os 33 paths da implementação, a correção do roteamento de
-  `pageNumber` malformado, as fronteiras públicas e a preservação byte a byte
-  de OpenAPI v1 e v2. O preflight encontrou zero processo ou listener
-  pertencente ao produto. Todos os comandos focais e a CI offline terminaram
-  com exit code `0`; passaram 147 testes unitários, 171 de integração, 11 de
-  arquitetura e 42 do Dashboard, com cobertura de 94,80% de linhas e 67,14% de
-  branches. `AQG-S07-V2-001` e `AQG-S07-V2-002` estão `RESOLVIDOS`, sem novo
-  achado. Browser/tecnologia assistiva, dado, renderer, provider, fonte e rede
-  reais, carga, crash/recovery, Linux, OCI e produção permanecem `NOT_RUN`.
-  Nenhum Human Gate ou avanço de lifecycle é inferido.
-- Integração, restart e recuperação fria do runtime composto v2: autorizados
-  sob `AUTH-STATE07-V2-INTEGRATION-RECOVERY-IMPL-001` sobre a baseline limpa
-  `main@a47bd40b1873920c7660abb14acd68de45a7dde4`, corpus `4.10.1`, e
-  concluídos no commit `e5dae7ee5a786417fba2c6ef0555686816b0b330`. A
-  composição permanece fail-closed fora do perfil `Integration`; dentro dele,
-  a mesma instância sintética atende query, readiness e o reader visual
-  verificado sobre PDF/PNG project-owned em memória. Passaram 52 de 52 testes
-  focais. O harness publicado em `127.0.0.1:5086` resultou `Passed`: serving
-  PNG `200`, revalidação `304`, mesma geração após restart e cold restore,
-  fingerprints idênticos das cópias confinadas, teto visual de 64 MiB e token
-  bucket com dez acessos aceitos e o décimo primeiro rejeitado por `429`. Dois
-  builds offline produziram o mesmo ZIP SHA-256
+  was created in commit `183c8cd9fe303096a355ab731e72dc81748eb626` and
+  confirmed by the owner on 2026-08-07 exclusively as a planning
+  baseline. The confirmation did not grant `AUTH-S07-A-DATASET-001`,
+  `AUTH-S07-A-RUN-001`, dataset materialisation, evaluation, tests, load,
+  dynamic security, browser, providers, real sources, network or external action.
+- Factual execution of `S07-A` A1-A5: A1 was materialised in commit
+  `968f69c2d9c37959d617742af5ac48aee5ca09d5`; harness preparation and its
+  freeze-safe correction are in `ae8d96487fe719d89741aa33e5607e532301d60e` and
+  `18994db15d963b321ace93b0069436ffc4813b53`; A2 was frozen in
+  `43ddc0de4a6c10b32a657f3c1e471a743cb42b5f`; A3 successfully executed 11 synthetic cases
+  under `AUTH-S07-A-RUN-001`, preserving eight ignored files and the
+  result at SHA-256
+  `9efc2eef05388433af58e01242a1b1589556c43620eeec509f583fba0c2073bc`; and A4
+  was reconciled in `760bbcf4626b7890ffdfb0eeb0a8c5419b5feec7`. The focused corrections
+  to retained-workspace validation and line endings for future
+  evidence are in `275becfb04a4d0f7a1703c3be3f4c59d87550cc2` and
+  `6cd939849909a8abf2c5dd0534244da5f19be833`. A5 was `APROVADO` under
+  `AUTH-S07-A-A5-RETEST-002`: the three authorised commands ended with exit
+  code `0`; 146 unit, 164 integration, 10 architecture
+  and 38 Dashboard tests passed; coverage was 94.91% of lines and 67.42% of branches.
+  All frozen digests and aggregates were recalculated and matched.
+  `S07-A-FIND-001` remains `OPEN`; `S07-A-FIND-004` remains historically `OPEN`,
+  with its cause corrected only for future evidence; and
+  `S07-A-FIND-002`, `S07-A-FIND-003` and `S07-A-FIND-005` are `RESOLVIDOS`.
+  The historical A3 evidence remains immutable. A5 was not an Automatic Quality
+  Gate, Human Gate or lifecycle change and does not extend homologation beyond the
+  local, offline, deterministic and sequential synthetic boundary.
+- Automatic Quality Gate for `S07-A`: restarted in full and `APROVADO` on
+  2026-08-09 under `AUTH-S07-A-AQG-RETEST-003`, at
+  `main@a6626a363713b4fbcf83387b7b2104eae1f3e918`, corpus `4.10.1`, an initially clean
+  working tree and OpenAPI v1 at the protected SHA-256. The static audit
+  confirmed A1-A5, commits, factual state, append-only history,
+  frozen manifests, eight ignored files without reparse points, all
+  digests and the seven synthetic aggregates at `1.000000`. The preflight found
+  no RAG-Challenge-owned process or listener. The three authorised commands
+  ended with exit code `0`: an audit of 244 files,
+  `Validate` with 6 of 6 tests and offline CI with 146 unit, 164
+  integration, 10 architecture and 38 Dashboard tests; coverage of 94.91% of
+  lines and 67.42% of branches, with a build without warnings or errors. `AQG-S07-001` through
+  `AQG-S07-004` are `RESOLVIDOS`; no new finding arose.
+  `S07-A-FIND-001` and `S07-A-FIND-004` remain `OPEN`, while
+  `S07-A-FIND-002`, `S07-A-FIND-003` and `S07-A-FIND-005` remain
+  `RESOLVIDOS`. Approval applies only to the local synthetic boundary;
+  product thresholds, provider, source, browser, dynamic security, load,
+  recovery, accessibility, Linux, OCI and production remain `NOT_RUN`.
+  No Human Gate or lifecycle advance is inferred.
+- HTTP/OpenAPI v2 contract and same-origin visual serving: the contract was
+  frozen in commit `54bab1aa5f25b778093bea62ffecf7c479557f9a`, implemented
+  locally in commit `c01abf525f4cc113baa389982da3b419d07556b6` and corrected
+  focally in commit `5505a85253aa4a8a7a3690caf3dd7a762175cab9`. The Automatic
+  Quality Gate restarted under `AUTH-STATE07-V2-SERVING-AQG-RETEST-001` was
+  `APROVADO` on that latest clean baseline, corpus `4.10.1`. The static
+  audit confirmed the implementation’s 33 paths, correction of malformed
+  `pageNumber` routing, public boundaries and byte-for-byte preservation
+  of OpenAPI v1 and v2. The preflight found no product-owned process or
+  listener. All focused commands and offline CI ended
+  with exit code `0`; 147 unit, 171 integration, 11
+  architecture and 42 Dashboard tests passed, with 94.80% line coverage and 67.14%
+  branch coverage. `AQG-S07-V2-001` and `AQG-S07-V2-002` are `RESOLVIDOS`, with no new
+  finding. Real browser/assistive technology, data, renderer, provider, source and network,
+  load, crash/recovery, Linux, OCI and production remain `NOT_RUN`.
+  No Human Gate or lifecycle advance is inferred.
+- Integration, restart and cold recovery of the composed v2 runtime: authorised
+  under `AUTH-STATE07-V2-INTEGRATION-RECOVERY-IMPL-001` on clean baseline
+  `main@a47bd40b1873920c7660abb14acd68de45a7dde4`, corpus `4.10.1`, and
+  completed in commit `e5dae7ee5a786417fba2c6ef0555686816b0b330`. The
+  composition remains fail-closed outside the `Integration` profile; within it,
+  the same synthetic instance serves query, readiness and the verified visual
+  reader over in-memory project-owned PDF/PNG. 52 of 52 focused tests
+  passed. The harness published on `127.0.0.1:5086` resulted in `Passed`: PNG serving
+  `200`, revalidation `304`, the same generation after restart and cold restore,
+  identical fingerprints for the confined copies, a 64 MiB visual ceiling and a token
+  bucket with ten accepted accesses and the eleventh rejected with `429`. Two
+  offline builds produced the same ZIP SHA-256
   `e27c64571b63538e4cba21f552df500c24a4bab3a6365e6229e2d9dd033f2f7d`.
-  O cleanup removeu runtime, stores, backup, restore e temporários task-owned;
-  nenhum host ou listener permaneceu. OpenAPI v1/v2, contrato, schema,
-  migration, ADR, dependência e lockfile não mudaram. Essa verificação focal
-  não foi Automatic Quality Gate, Human Gate ou lifecycle; a evidência não
-  homologa produto, dado/renderer/provider/fonte real, browser, tecnologia
-  assistiva, carga, crash injection abrangente, recuperação operacional,
-  Linux, OCI ou produção.
-- Correção factual da ordem de dependência de `STATE-07` em Lifecycle:
-  autorizada sob `AUTH-STATE07-V2-INTEGRATION-RECOVERY-LIFECYCLE-CORR-001`
-  sobre `main@de40a93e0023f854fec840a93934c199c294f9c6`, corpus `4.10.2` e
-  working tree limpa. Somente as anotações de estado foram reconciliadas:
-  `S04-CORR-04-E` possui Automatic Quality Gate corretivo aprovado;
-  contrato/serving v2 estão implementados e possuem Automatic Quality Gate
-  aprovado; integração, restart, cold backup/restore confinado e limites foram
-  implementados e verificados focalmente no commit
-  `e5dae7ee5a786417fba2c6ef0555686816b0b330`; naquele registro, seu Automatic
-  Quality Gate permanecia `NOT_RUN`. Dataset e homologação continuavam
-  posteriores e não autorizados. A ordem normativa, os estados e os critérios
-  não mudaram; nenhum runtime, teste, gate ou lifecycle foi executado nessa
-  correção documental.
-- Automatic Quality Gate da integração e recuperação v2: reiniciado
-  integralmente e `APROVADO` em 2026-08-09 sob
-  `AUTH-STATE07-V2-INTEGRATION-RECOVERY-AQG-RETEST-001`, sobre
-  `main@f6c648c40cf8d0280cfceca5509a381bddb9fc8f`, corpus `4.10.3`, working
-  tree inicialmente limpa e OpenAPI v1/v2 protegidas. A auditoria de 255
-  arquivos passou; o preflight encontrou zero processo e zero listener
-  pertencente ao RAG-Challenge; e 53 de 53 testes focais passaram. Dois builds
-  determinísticos produziram o mesmo ZIP SHA-256
+  Clean-up removed the runtime, stores, backup, restore and task-owned temporaries;
+  no host or listener remained. OpenAPI v1/v2, contract, schema,
+  migration, ADR, dependency and lockfile did not change. This focused verification
+  was not an Automatic Quality Gate, Human Gate or lifecycle; the evidence does not
+  homologate the product, real data/renderer/provider/source, browser, assistive
+  technology, load, comprehensive crash injection, operational recovery,
+  Linux, OCI or production.
+- Factual correction to the `STATE-07` dependency order in Lifecycle:
+  authorised under `AUTH-STATE07-V2-INTEGRATION-RECOVERY-LIFECYCLE-CORR-001`
+  at `main@de40a93e0023f854fec840a93934c199c294f9c6`, corpus `4.10.2` and a
+  clean working tree. Only state annotations were reconciled:
+  `S04-CORR-04-E` has an approved corrective Automatic Quality Gate;
+  the v2 contract/serving are implemented and have an approved Automatic Quality Gate;
+  integration, restart, confined cold backup/restore and limits were
+  implemented and verified focally in commit
+  `e5dae7ee5a786417fba2c6ef0555686816b0b330`; in that record, its Automatic
+  Quality Gate remained `NOT_RUN`. Dataset and homologation remained
+  subsequent and unauthorised. The normative order, states and criteria
+  did not change; no runtime, test, gate or lifecycle was executed in this
+  documentary correction.
+- Automatic Quality Gate for v2 integration and recovery: restarted
+  in full and `APROVADO` on 2026-08-09 under
+  `AUTH-STATE07-V2-INTEGRATION-RECOVERY-AQG-RETEST-001`, at
+  `main@f6c648c40cf8d0280cfceca5509a381bddb9fc8f`, corpus `4.10.3`, an initially clean
+  working tree and protected OpenAPI v1/v2. The audit of 255
+  files passed; the preflight found no RAG-Challenge-owned process or listener;
+  and 53 of 53 focused tests passed. Two deterministic builds
+  produced the same ZIP SHA-256
   `ab5e450efe1b606f2b8e50e2f5885a3c1ae19bf4ad90dd96d096e00506daec28`.
-  O harness publicado resultou `Passed`, com três readiness `Ready`, geração
-  preservada após restart e cold restore, serving PNG e `304`, teto de 64 MiB
-  e token bucket com dez acessos aceitos e o décimo primeiro rejeitado. A CI
-  offline aprovou 147 testes unitários, 174 de integração, 11 de arquitetura e
-  42 do Dashboard, cobertura de 94,81% de linhas e 67,24% de branches, e build
-  sem avisos ou erros. O cleanup foi concluído sem runtime ou listener
-  remanescente. O gate foi aprovado sem novo achado e
-  `AQG-S07-V2-IR-001` está `RESOLVIDO`. A aprovação permanece sintética e não
-  constitui homologação de produto, Human Gate ou mudança de lifecycle.
-- Correção factual subsequente de Lifecycle: autorizada sob
-  `AUTH-STATE07-V2-INTEGRATION-RECOVERY-LIFECYCLE-CORR-002` sobre
-  `main@7ad6bae369eb1efbf6429902a2fd1f4441b60a32`, corpus `4.10.4` e working
-  tree limpa. As duas claims correntes desatualizadas foram reconciliadas para
-  registrar somente o Automatic Quality Gate da integração e recuperação v2
-  `APROVADO` sob `AUTH-STATE07-V2-INTEGRATION-RECOVERY-AQG-RETEST-001`, sem
-  novo achado, e `AQG-S07-V2-IR-001` `RESOLVIDO`. A ordem normativa, os
-  estados e os critérios não mudaram; dataset e homologação de produto
-  permanecem posteriores, `NOT_RUN` e não autorizados. Nenhum runtime, teste,
-  gate, Human Gate ou lifecycle foi executado nessa correção documental.
-- A0 de prontidão do primeiro documento de produto: executado localmente,
-  offline, sequencialmente e sem comportamento de produto sob
-  `AUTH-S07-A-PRODUCT-A0-001`, sobre
-  `main@78d49e135d7b517c7ff89a9e5edcbcc7839e4043`, corpus `4.10.5`, working
-  tree inicialmente limpa e OpenAPI v1/v2 protegidas. O candidato ignorado
-  `postgresql-18-reference-a4`, PostgreSQL `18.4`, permaneceu confinado ao
-  intake autorizado, como arquivo regular não rastreado e sem reparse point.
-  Os `15.771.040` bytes, `%PDF-1.4`, EOF e SHA-256
+  The published harness resulted in `Passed`, with three `Ready` readiness results, generation
+  preserved after restart and cold restore, PNG serving and `304`, a 64 MiB ceiling
+  and a token bucket with ten accepted accesses and the eleventh rejected. Offline
+  CI approved 147 unit, 174 integration, 11 architecture and
+  42 Dashboard tests, 94.81% line coverage and 67.24% branch coverage, and a build
+  without warnings or errors. Clean-up was completed without a remaining runtime or
+  listener. The gate was approved without a new finding and
+  `AQG-S07-V2-IR-001` is `RESOLVIDO`. Approval remains synthetic and does not
+  constitute product homologation, a Human Gate or a lifecycle change.
+- Subsequent factual correction to Lifecycle: authorised under
+  `AUTH-STATE07-V2-INTEGRATION-RECOVERY-LIFECYCLE-CORR-002` at
+  `main@7ad6bae369eb1efbf6429902a2fd1f4441b60a32`, corpus `4.10.4` and a clean working
+  tree. The two outdated current claims were reconciled to
+  record only the v2 integration and recovery Automatic Quality Gate
+  `APROVADO` under `AUTH-STATE07-V2-INTEGRATION-RECOVERY-AQG-RETEST-001`, with no
+  new finding, and `AQG-S07-V2-IR-001` `RESOLVIDO`. The normative order,
+  states and criteria did not change; dataset and product homologation
+  remain subsequent, `NOT_RUN` and unauthorised. No runtime, test,
+  gate, Human Gate or lifecycle was executed in this documentary correction.
+- Readiness A0 for the first product document: executed locally,
+  offline, sequentially and without product behaviour under
+  `AUTH-S07-A-PRODUCT-A0-001`, at
+  `main@78d49e135d7b517c7ff89a9e5edcbcc7839e4043`, corpus `4.10.5`, an initially clean
+  working tree and protected OpenAPI v1/v2. Ignored candidate
+  `postgresql-18-reference-a4`, PostgreSQL `18.4`, remained confined to the
+  authorised intake, as an untracked regular file without a reparse point.
+  The `15,771,040` bytes, `%PDF-1.4`, EOF and SHA-256
   `cea7b845568095eb56dee1b51bfa145c6c6637bc4377c986019971577efefae4`
-  conferiram com o registro. Proveniência, `contentLanguage=en`,
-  `sourceDeclaredLanguage=en`, publisher e atribuição permaneceram
-  consistentes. Parsing, indexing, source-byte retention, quotation e citation
-  possuem disposição explícita; page rendering, derivative-image creation,
-  derivative-image retention, runtime derivative display e a intended source
-  or derivative distribution boundary permanecem `UNPROVEN`. Sem inferir
-  direitos a partir da permissão geral, a disposição factual foi
-  `BLOCKED/EXCLUDED`, não `READY_FOR_PRODUCT_ACTIVATION`. Nenhum dataset,
-  manifest, derivado, indexação, ativação, parser, renderer, runtime, teste,
-  gate, Human Gate ou lifecycle foi executado ou alterado.
-- Decisão arquitetural de mapeamento de direitos: preparada sob
-  `AUTH-S07-A-RIGHTS-POLICY-CORR-PREP-001` sobre
-  `main@17c41a78cbe853473860403d476797064b77c78a`, corpus `4.10.7` e working
-  tree inicialmente limpa e aceita explicitamente pelo proprietário mediante
-  `ADR-0011: ACEITAR.` sobre
-  `main@09f6760cb1a41d907da42b8c01cb34a7425030b9`, corpus `4.10.8`. O
+  matched the record. Provenance, `contentLanguage=en`,
+  `sourceDeclaredLanguage=en`, publisher and attribution remained
+  consistent. Parsing, indexing, source-byte retention, quotation and citation
+  have an explicit disposition; page rendering, derivative-image creation,
+  derivative-image retention, runtime derivative display and the intended source
+  or derivative distribution boundary remain `UNPROVEN`. Without inferring
+  rights from the general permission, the factual disposition was
+  `BLOCKED/EXCLUDED`, not `READY_FOR_PRODUCT_ACTIVATION`. No dataset,
+  manifest, derivative, indexing, activation, parser, renderer, runtime, test,
+  gate, Human Gate or lifecycle was executed or changed.
+- Architectural decision on rights mapping: prepared under
+  `AUTH-S07-A-RIGHTS-POLICY-CORR-PREP-001` at
+  `main@17c41a78cbe853473860403d476797064b77c78a`, corpus `4.10.7` and an initially clean
+  working tree and explicitly accepted by the owner through
+  `ADR-0011: ACEITAR.` at
+  `main@09f6760cb1a41d907da42b8c01cb34a7425030b9`, corpus `4.10.8`. The
   [ADR-0011](../../docs/architecture/ADR-0011-Source-Rights-Evidence-Mapping-And-Same-Origin-Derivative-Display-Boundary.md)
-  está `accepted`: preserva as dez decisões independentes e o
-  fail-closed, estabelece mapeamento explícito, auditável e condicionado de
-  concessões primárias amplas e separa a exibição same-origin no runtime da
-  distribuição/publicação externa de bytes. A decisão registra a
-  incompatibilidade estática entre o contrato v2, que exige reavaliar a
-  intended distribution boundary, e
-  `DocumentRightsEligibilityPolicy.PdfVisualEvidence`, que não avalia
-  `SourceAndDerivativeByteDistributionOrPublication`. A aceitação estabelece
-  somente autoridade arquitetural: não alterou contrato público ou
-  comportamento e não reclassificou os cinco direitos `UNPROVEN` nem a
-  disposição `BLOCKED/EXCLUDED` do PostgreSQL. A aceitação por si só não
-  autorizou reconciliação semântica, correção interna ou novo A0; a
-  reconciliação posterior está registrada abaixo, e as duas etapas executáveis
-  continuam separadamente autorizadas.
-- Reconciliação semântica do ADR-0011: autorizada sob
-  `AUTH-S07-A-RIGHTS-POLICY-CORR-RECONCILE-001` sobre
-  `main@6fc81b973ca217693a286479df3ff6db0f4577e9`, corpus `4.10.9`, working
-  tree inicialmente limpa e OpenAPI v1/v2 protegidas. ADR-0004, ADR-0008, o
-  registro de elegibilidade e o contrato documental v2 agora aplicam o
-  mapeamento explícito, auditável e condicionado, preservam as dez decisões e
-  o fail-closed, distinguem same-origin runtime display da distribuição ou
-  publicação externa e vinculam attribution, notices, disclaimers, trademark
-  e change marking à linhagem de cada derivado. Nenhum contrato público ou
-  comportamento mudou. `postgresql-18-reference-a4` permanece
-  `BLOCKED/EXCLUDED`, com os cinco direitos `UNPROVEN`; nenhum novo A0 foi
-  executado. Naquela baseline, a incompatibilidade executável ainda permanecia;
-  a correção interna posterior está registrada abaixo.
-- Correção interna da política de serving do ADR-0011: implementada sob
-  `AUTH-S07-A-RIGHTS-POLICY-CORR-IMPL-001` no commit
-  `b9c3e5f3a72c2dd7762c256198452ae2c217b2d2` e reconciliada
-  documentalmente sob `AUTH-S07-A-RIGHTS-POLICY-CORR-IMPL-RECONCILE-001`, a
-  partir desse `main`, corpus `4.10.10`, working tree limpa e OpenAPI v1/v2
-  protegidas. O gate interno `PdfVisualEvidenceServing` avalia as dez decisões:
-  `RuntimeDerivativeImageDisplay` deve estar `Permitted`;
-  `SourceAndDerivativeByteDistributionOrPublication` `Unproven` bloqueia; e
-  `Denied` é compatível somente com `RuntimeDerivativeImageDisplay`
-  `Permitted` na fronteira same-origin aceita. A verificação focal aprovou 19
-  testes da política, 23 regressões dos gates existentes, três testes do leitor
-  real e seis testes contratuais v1/v2. Nenhum runtime ou listener permaneceu.
-  Naquela baseline, nenhum novo A0 ou gate havia sido executado e
-  `postgresql-18-reference-a4` permanecia `BLOCKED/EXCLUDED` com os cinco
-  direitos `UNPROVEN`; a reavaliação posterior está registrada abaixo.
-- Reavaliação A0 candidato-específica sob ADR-0011: executada localmente,
-  offline, sequencialmente e sem comportamento de produto sob
-  `AUTH-S07-A-PRODUCT-A0-002`, sobre
-  `main@f21cdea2052d28de1e2ffb86b1629c1c10bc6b6a`, corpus `4.10.11`, working
-  tree inicialmente limpa e OpenAPI v1/v2 protegidas. O PDF ignorado permaneceu
-  arquivo regular, sem reparse point, com `15.771.040` bytes e SHA-256
+  is `accepted`: it preserves the ten independent decisions and the
+  fail-closed posture, establishes explicit, auditable and conditional mapping of
+  broad primary grants and separates same-origin runtime display from
+  external byte distribution/publication. The decision records the
+  static incompatibility between the v2 contract, which requires reassessment of the
+  intended distribution boundary, and
+  `DocumentRightsEligibilityPolicy.PdfVisualEvidence`, which does not assess
+  `SourceAndDerivativeByteDistributionOrPublication`. Acceptance establishes
+  architectural authority only: it changed no public contract or
+  behaviour and did not reclassify the five `UNPROVEN` rights or the
+  PostgreSQL `BLOCKED/EXCLUDED` disposition. Acceptance alone did not
+  authorise semantic reconciliation, internal correction or a new A0; the
+  subsequent reconciliation is recorded below, and the two executable stages
+  continue to require separate authority.
+- Semantic reconciliation of ADR-0011: authorised under
+  `AUTH-S07-A-RIGHTS-POLICY-CORR-RECONCILE-001` at
+  `main@6fc81b973ca217693a286479df3ff6db0f4577e9`, corpus `4.10.9`, an initially clean
+  working tree and protected OpenAPI v1/v2. ADR-0004, ADR-0008, the
+  eligibility record and v2 documentary contract now apply the
+  explicit, auditable and conditional mapping, preserve the ten decisions and
+  fail-closed posture, distinguish same-origin runtime display from external distribution or
+  publication and bind attribution, notices, disclaimers, trade mark
+  and change marking to each derivative’s lineage. No public contract or
+  behaviour changed. `postgresql-18-reference-a4` remains
+  `BLOCKED/EXCLUDED`, with the five rights `UNPROVEN`; no new A0 was
+  executed. At that baseline, the executable incompatibility still remained;
+  the subsequent internal correction is recorded below.
+- Internal correction of the ADR-0011 serving policy: implemented under
+  `AUTH-S07-A-RIGHTS-POLICY-CORR-IMPL-001` in commit
+  `b9c3e5f3a72c2dd7762c256198452ae2c217b2d2` and reconciled
+  through documentation under `AUTH-S07-A-RIGHTS-POLICY-CORR-IMPL-RECONCILE-001`,
+  from that `main`, corpus `4.10.10`, a clean working tree and protected OpenAPI v1/v2.
+  Internal gate `PdfVisualEvidenceServing` assesses the ten decisions:
+  `RuntimeDerivativeImageDisplay` must be `Permitted`;
+  `SourceAndDerivativeByteDistributionOrPublication` `Unproven` blocks; and
+  `Denied` is compatible only with `RuntimeDerivativeImageDisplay`
+  `Permitted` at the accepted same-origin boundary. Focused verification approved 19
+  policy tests, 23 regressions of the existing gates, three real-reader tests
+  and six v1/v2 contract tests. No runtime or listener remained.
+  At that baseline, no new A0 or gate had been executed and
+  `postgresql-18-reference-a4` remained `BLOCKED/EXCLUDED` with the five
+  `UNPROVEN` rights; the subsequent reassessment is recorded below.
+- Candidate-specific A0 reassessment under ADR-0011: executed locally,
+  offline, sequentially and without product behaviour under
+  `AUTH-S07-A-PRODUCT-A0-002`, at
+  `main@f21cdea2052d28de1e2ffb86b1629c1c10bc6b6a`, corpus `4.10.11`, an initially clean
+  working tree and protected OpenAPI v1/v2. The ignored PDF remained a
+  regular file, without a reparse point, with `15,771,040` bytes and SHA-256
   `cea7b845568095eb56dee1b51bfa145c6c6637bc4377c986019971577efefae4`.
-  A concessão oficial já registrada é relevante às cinco operações, mas exige
-  copyright, permission notice e dois disclaimers em todas as cópias. O
-  contrato atual não oferece mecanismo determinado para esses textos no PNG ou
-  na citação pública. Page rendering, derivative-image creation,
-  derivative-image retention e `RuntimeDerivativeImageDisplay` permanecem
-  `UNPROVEN`; `SourceAndDerivativeByteDistributionOrPublication` está `DENIED`
-  fora da fronteira de runtime-display por exclusão deliberada de download,
-  hosting público, CORS permissivo, CDN, export, bundles, Git/Git LFS e
-  republicação. A disposição permanece `BLOCKED/EXCLUDED`, não
-  `READY_FOR_PRODUCT_ACTIVATION`. Nenhum dataset, manifest, derivado, parser,
-  renderer, indexação, ativação, teste, runtime, gate, Human Gate ou lifecycle
-  foi executado ou alterado.
-- Decisão arquitetural de imagem derivada autocontida: preparada sob
-  `AUTH-S07-A-NOTICE-BEARING-PROFILE-ADR-PREP-001` sobre
-  `main@1b64ca88a0efebd7ab450f5bdc22004a72f3dc53`, corpus `4.10.12`, working
-  tree inicialmente limpa e aceita explicitamente pelo proprietário mediante
-  `ADR-0012: ACEITAR.` sobre
-  `main@243a448823a114190f68a25f9d521e1849eddacf`, corpus `4.10.13`, working
-  tree limpa e OpenAPI v1/v2 protegidas. O
+  The already-recorded official grant is relevant to the five operations, but requires
+  copyright, permission notice and two disclaimers in all copies. The
+  current contract offers no determined mechanism for these texts in the PNG or
+  public citation. Page rendering, derivative-image creation,
+  derivative-image retention and `RuntimeDerivativeImageDisplay` remain
+  `UNPROVEN`; `SourceAndDerivativeByteDistributionOrPublication` is `DENIED`
+  outside the runtime-display boundary through deliberate exclusion of download,
+  public hosting, permissive CORS, CDN, export, bundles, Git/Git LFS and
+  republication. The disposition remains `BLOCKED/EXCLUDED`, not
+  `READY_FOR_PRODUCT_ACTIVATION`. No dataset, manifest, derivative, parser,
+  renderer, indexing, activation, test, runtime, gate, Human Gate or lifecycle
+  was executed or changed.
+- Architectural decision on a self-contained derivative image: prepared under
+  `AUTH-S07-A-NOTICE-BEARING-PROFILE-ADR-PREP-001` at
+  `main@1b64ca88a0efebd7ab450f5bdc22004a72f3dc53`, corpus `4.10.12`, an initially clean
+  working tree and explicitly accepted by the owner through
+  `ADR-0012: ACEITAR.` at
+  `main@243a448823a114190f68a25f9d521e1849eddacf`, corpus `4.10.13`, a clean working
+  tree and protected OpenAPI v1/v2. The
   [ADR-0012](../../docs/architecture/ADR-0012-Notice-Bearing-Page-Image-Profile-And-Derivative-Obligation-Delivery.md)
-  está `accepted`: define um único perfil versionado de PNG composto, no
-  qual a região da página preserva cada pixel e um painel separado carrega os
-  avisos completos. A decisão também define `DerivativeObligationSetV1`, seu
-  vínculo imutável ao render manifest, armazenamento, backup/cold restore,
-  serving same-origin, apresentação acessível e os impactos necessários de
-  schema, migration e contrato v2. A aceitação concede somente autoridade
-  arquitetural: não reclassifica o PostgreSQL, altera OpenAPI, código, schema,
-  migration, dataset ou comportamento; nenhum renderer, runtime, teste, gate,
-  Human Gate ou lifecycle foi executado.
-- Reconciliação semântica do ADR-0012: autorizada sob
-  `AUTH-S07-A-NOTICE-BEARING-PROFILE-RECONCILE-001` sobre
-  `main@5c2cea66e45f13479486a345552e5cc3cd47fefe`, corpus `4.10.14`, working
-  tree inicialmente limpa e OpenAPI v1/v2 protegidas. ADR-0008, o contrato
-  documental v2, data dictionary, Security-And-Access, threat model e registro
-  de elegibilidade agora aplicam `pdf-page-png-notice-v1`, o
-  `DerivativeObligationSetV1`, vínculo ao manifest, storage/reachability,
-  backup/cold restore, serving same-origin e apresentação acessível. A
-  reconciliação identifica como futuros obrigatórios a revisão protegida do
-  contrato v2, schema e migration, sem executá-los. As dez decisões e o
-  fail-closed permanecem independentes; `postgresql-18-reference-a4` continua
-  `BLOCKED/EXCLUDED`, com quatro operações visuais `UNPROVEN` e distribuição/
-  publicação externa `DENIED`. Nenhum novo A0, código, teste, renderer,
-  runtime, gate, Human Gate ou lifecycle foi executado.
-- Revisão protegida do contrato v2 notice-bearing: congelada sob
-  `AUTH-S07-A-NOTICE-BEARING-V2-CONTRACT-001` sobre
-  `main@6982b0643468aee0a97c3bea6b5bbe9018f0804c`, corpus `4.10.15`, working
-  tree inicialmente limpa e OpenAPI v1/v2 protegidas. OpenAPI v1 permaneceu
-  byte a byte no SHA-256
-  `d6a686b94c926914beb28b437f464430a01de6560c2e2d476cf5c36025813e34` e blob
-  `a5fb3602fbab33bda6aa56cc4caaa9fdc37c8160`; a nova revisão OpenAPI v2 possui
+  is `accepted`: it defines one versioned composite PNG profile in
+  which the page region preserves every pixel and a separate panel carries the
+  complete notices. The decision also defines `DerivativeObligationSetV1`, its
+  immutable binding to the render manifest, storage, backup/cold restore,
+  same-origin serving, accessible presentation and the necessary impacts on
+  schema, migration and the v2 contract. Acceptance grants architectural
+  authority only: it does not reclassify PostgreSQL or change OpenAPI, code, schema,
+  migration, dataset or behaviour; no renderer, runtime, test, gate,
+  Human Gate or lifecycle was executed.
+- Semantic reconciliation of ADR-0012: authorised under
+  `AUTH-S07-A-NOTICE-BEARING-PROFILE-RECONCILE-001` at
+  `main@5c2cea66e45f13479486a345552e5cc3cd47fefe`, corpus `4.10.14`, an initially clean
+  working tree and protected OpenAPI v1/v2. ADR-0008, the v2 documentary
+  contract, data dictionary, Security-And-Access, threat model and eligibility
+  record now apply `pdf-page-png-notice-v1`,
+  `DerivativeObligationSetV1`, manifest binding, storage/reachability,
+  backup/cold restore, same-origin serving and accessible presentation. The
+  reconciliation identifies the protected revision of the v2 contract,
+  schema and migration as mandatory future work, without executing them. The ten decisions and
+  fail-closed posture remain independent; `postgresql-18-reference-a4` remains
+  `BLOCKED/EXCLUDED`, with four visual operations `UNPROVEN` and external
+  distribution/publication `DENIED`. No new A0, code, test, renderer,
+  runtime, gate, Human Gate or lifecycle was executed.
+- Protected revision of the notice-bearing v2 contract: frozen under
+  `AUTH-S07-A-NOTICE-BEARING-V2-CONTRACT-001` at
+  `main@6982b0643468aee0a97c3bea6b5bbe9018f0804c`, corpus `4.10.15`, an initially clean
+  working tree and protected OpenAPI v1/v2. OpenAPI v1 remained
+  byte-for-byte at SHA-256
+  `d6a686b94c926914beb28b437f464430a01de6560c2e2d476cf5c36025813e34` and blob
+  `a5fb3602fbab33bda6aa56cc4caaa9fdc37c8160`; the new OpenAPI v2 revision has
   SHA-256 `f4dca8db7fb7bd453e580495bb1bb7760812d954344931063e8549ed8f036733`
-  e blob `5ed6a47631653dd0c137b6ea1e979ae2c14bf8a8`. O contrato acrescenta somente
-  `obligationSetId` às imagens e `DerivativeObligationPresentationV1` à citação
-  PDF: valores `null` preservam a projeção legada, enquanto páginas
-  notice-bearing exigem um único ID e apresentação completa coincidentes. Os
-  tipos C# e o decoder estrito do Dashboard foram atualizados. Cinco testes do
-  decoder e seis testes contratuais .NET passaram focalmente. Ao fim daquele
-  incremento, schema, migration, renderer, armazenamento e comportamento
-  notice-bearing ainda não estavam implementados. O PostgreSQL continua
-  `BLOCKED/EXCLUDED`; nenhum novo A0, runtime, gate, Human Gate ou lifecycle foi
-  executado.
-- Schema e migrations notice-bearing: implementados sob
-  `AUTH-S07-A-NOTICE-BEARING-SCHEMA-MIGRATION-001` no commit
-  `98036f3c8c496544f4532d1fe48c981f836a1871`, sobre
-  `main@564d9efd72285bb41545a5e60b63fcd44f9705fd`, corpus `4.10.16`, working
-  tree inicialmente limpa e OpenAPI v1/v2 protegidas. O Control schema agora
-  persiste `DerivativeObligationSetV1` imutável e seus blocos ordenados, aceita
-  `pdf-page-png-notice-v1` junto ao perfil legado e vincula
-  `obligationSetId`/digest e dimensões source/notice ao render manifest. As
-  migrations `20260810033026_AddNoticeBearingObligationSchema` e
-  `20260810034537_SealNoticeBearingObligationBindings` aplicam constraints,
-  foreign keys e sealing triggers fail-closed sem backfill inferido ou mutação
-  de registros, manifests, hashes ou ativações legados. Sete de sete testes
-  focais passaram; não havia pending model changes; `foreign_key_check`,
-  upgrade e rollback/reapply foram aprovados em stores SQLite temporários
-  task-owned. O cleanup foi concluído. Renderer, PNG, comportamento
-  notice-bearing, dataset, novo A0, gate, Human Gate e lifecycle não foram
-  executados; o PostgreSQL permanece `BLOCKED/EXCLUDED`.
-- Decisão arquitetural de armazenamento do corpus e evidência visual:
+  and blob `5ed6a47631653dd0c137b6ea1e979ae2c14bf8a8`. The contract adds only
+  `obligationSetId` to images and `DerivativeObligationPresentationV1` to the PDF
+  citation: `null` values preserve the legacy projection, while notice-bearing
+  pages require one matching ID and complete presentation. The
+  C# types and strict Dashboard decoder were updated. Five decoder
+  tests and six .NET contract tests passed focally. At the end of that
+  increment, schema, migration, renderer, storage and notice-bearing
+  behaviour were not yet implemented. PostgreSQL remains
+  `BLOCKED/EXCLUDED`; no new A0, runtime, gate, Human Gate or lifecycle was
+  executed.
+- Notice-bearing schema and migrations: implemented under
+  `AUTH-S07-A-NOTICE-BEARING-SCHEMA-MIGRATION-001` in commit
+  `98036f3c8c496544f4532d1fe48c981f836a1871`, at
+  `main@564d9efd72285bb41545a5e60b63fcd44f9705fd`, corpus `4.10.16`, an initially clean
+  working tree and protected OpenAPI v1/v2. The Control schema now
+  persists immutable `DerivativeObligationSetV1` and its ordered blocks, accepts
+  `pdf-page-png-notice-v1` alongside the legacy profile and binds
+  `obligationSetId`/digest and source/notice dimensions to the render manifest. Migrations
+  `20260810033026_AddNoticeBearingObligationSchema` and
+  `20260810034537_SealNoticeBearingObligationBindings` apply fail-closed constraints,
+  foreign keys and sealing triggers without inferred backfill or mutation
+  of legacy records, manifests, hashes or activations. Seven of seven focused tests
+  passed; there were no pending model changes; `foreign_key_check`,
+  upgrade and rollback/reapply were approved in temporary task-owned SQLite
+  stores. Clean-up was completed. Renderer, PNG, notice-bearing
+  behaviour, dataset, new A0, gate, Human Gate and lifecycle were not
+  executed; PostgreSQL remains `BLOCKED/EXCLUDED`.
+- Architectural decision on corpus storage and visual evidence:
   [ADR-0008](../../docs/architecture/ADR-0008-Product-Corpus-Storage-And-Page-Image-Evidence.md)
-  foi aceita explicitamente pelo proprietário em 2026-08-07 sobre
-  `main@5c151c64ae4d3049d68fee6788502d439aa25251`, corpus `4.9.4` e working
-  tree limpa. A aceitação estabelece autoridade arquitetural somente; não
-  reconcilia ADR-0002, ADR-0004, segurança, módulo RAG, contratos, data
-  dictionary, threat model, OpenAPI ou outro documento normativo, e não
-  autoriza implementação, movimentação do PDF, geração de PNGs, dataset,
-  indexação, ativação, testes, providers, rede, publicação ou ação externa.
-- Decisão arquitetural de taxonomia de idiomas documentais:
+  was explicitly accepted by the owner on 2026-08-07 at
+  `main@5c151c64ae4d3049d68fee6788502d439aa25251`, corpus `4.9.4` and a clean working
+  tree. Acceptance establishes architectural authority only; it does not
+  reconcile ADR-0002, ADR-0004, security, the RAG module, contracts, data
+  dictionary, threat model, OpenAPI or another normative document, and does not
+  authorise implementation, moving the PDF, PNG generation, dataset,
+  indexing, activation, tests, providers, network, publication or external action.
+- Architectural decision on document-language taxonomy:
   [ADR-0009](../../docs/architecture/ADR-0009-Document-Evidence-And-Query-Language-Taxonomy.md)
-  foi aceita explicitamente pelo proprietário em 2026-08-07 sobre
-  `main@89994e82d246b1cc0a240e99a2d09942e316f7cc`, corpus `4.9.4` e working
-  tree limpa. `SupportedQueryLanguage` permanece restrito a `pt-BR` e
-  `en-GB`; `DocumentContentLanguage` é um domínio BCP 47 distinto; o `en`
-  declarado pelo PDF PostgreSQL não é inferido como `en-GB`; citações
-  preservam o idioma original; e OpenAPI v1 permanece inalterada. A aceitação
-  removeu somente o bloqueio decisório. Naquele registro, a reconciliação
-  semântica da ADR-0008 ainda não havia sido executada; contratos, corpus
-  normativo, dataset e runtime permaneceram inalterados, e a implementação
-  continuou não autorizada.
-- Reconciliação semântica conjunta de ADR-0008/0009: autorizada pelo
-  proprietário em 2026-08-07 sobre
-  `main@3d15ad4f2726f715c8dcf880491927ad0ff37b2f`, corpus `4.9.4` e working
-  tree limpa. O corpus `4.9.5` alinha os 18 documentos canônicos confirmados
-  confirmados para armazenamento permanente de fonte/PNG, content addressing,
-  render lifecycle e direitos; separa `SupportedQueryLanguage=pt-BR|en-GB` de
-  `DocumentContentLanguage` BCP 47; preserva `en`, citações no idioma original
-  e estratos exatos de avaliação. OpenAPI v1 foi preservada byte a byte; v2 é
-  somente contrato planejado e não implementado. O lote não alterou código,
-  testes, schema, migrations, dados, dataset, registro de elegibilidade,
-  dependências, lockfiles ou PDF; não gerou PNGs, indexou, ativou, executou
-  provider/browser/rede nem realizou ação externa.
-- Implementação corretiva `S03-CORR-01`: autorizada por
-  `AUTH-S03-CORR-001` em 2026-08-07 sobre
-  `main@ffc7bef913dda2699b072ef172188291f6ac0500`, corpus `4.9.5` e working
-  tree limpa, com owner técnico de `STATE-03`. O runtime preflight dirigido
-  encontrou zero processo e zero listener comprovadamente pertencente ao
-  RAG-Challenge e nada encerrou. O commit
-  `5fdbbc36d8eee29fdeec4b179564bd1eff322558` separa
-  `SupportedQueryLanguage` de `DocumentContentLanguage`, preserva
-  `SourceDeclaredLanguage` observado, mantém `en` distinto de `en-GB`, modela
-  `DocumentPageImage`/`DocumentRenderManifest`, adiciona a única migration
-  Control `20260807161323_AddDocumentLanguageAndRenderManifestModel`, propaga
-  a separação por ingestão, indexação, consulta, provider, metadados vetoriais
-  e Server, e protege fontes/imagens alcançadas por manifestos na limpeza.
-- Verificação de `S03-CORR-01`: 19 testes unitários e 6 casos de integração
-  focais passaram; `eng/ci.ps1 -Offline` aprovou 106 testes unitários, 116 de
-  integração, 10 de arquitetura, 38 do Dashboard, cobertura de 93,74% de
-  linhas e 67,11% de branches e auditoria de 212 arquivos. Upgrade legado,
-  rollback/reapply, `foreign_key_check`, leitura vetorial e os dois pending
-  model checks passaram somente em SQLite descartável. OpenAPI v1 permanece
-  byte a byte no SHA-256
-  `d6a686b94c926914beb28b437f464430a01de6560c2e2d476cf5c36025813e34` e blob
-  Git `a5fb3602fbab33bda6aa56cc4caaa9fdc37c8160`. As novas tabelas ficaram
-  vazias; não houve renderer, PNG, import, alteração do candidato PostgreSQL,
-  dataset, ativação, serving, v2, dependência, lockfile, rede, ação externa,
-  Automatic Quality Gate, Human Gate ou mudança de lifecycle.
-- Implementação corretiva `S04-CORR-04-A`: autorizada por
-  `AUTH-S04-CORR-04-A-001` em 2026-08-07 sobre
-  `main@ea7fc582f991bb9290e26a7e2d4e074abc46bf3c`, corpus `4.9.7` e working
-  tree limpa, com owner técnico de `STATE-04`. O runtime preflight dirigido
-  encontrou zero processo de produto e zero listener do RAG-Challenge; nada
-  foi encerrado antes da implementação. O commit
-  `26f2e154b736687693b31ab02ca59cfb8ba86655` substitui o resultado mínimo do
-  store por descritores tipados, implementa escrita bounded, idempotente,
-  atômica e verificada por reabertura, exige hash/comprimento na reabertura e
-  migra ingestão, composição e validação do control plane para o novo port.
-  `IStorageMaintenance`, `cleanup-plan-v1` e o protocolo de reserva/finalização
-  permanecem como única autoridade existente de exclusão física.
-- Verificação de `S04-CORR-04-A`: 3 testes unitários e 57 casos de integração
-  focais passaram; `eng/ci.ps1 -Offline` aprovou 109 testes unitários, 118 de
-  integração, 10 de arquitetura, 38 do Dashboard, cobertura de 93,76% de
-  linhas e 67,15% de branches e auditoria de 213 arquivos. OpenAPI v1
-  permaneceu byte a byte no SHA-256
+  was explicitly accepted by the owner on 2026-08-07 at
+  `main@89994e82d246b1cc0a240e99a2d09942e316f7cc`, corpus `4.9.4` and a clean working
+  tree. `SupportedQueryLanguage` remains restricted to `pt-BR` and
+  `en-GB`; `DocumentContentLanguage` is a distinct BCP 47 domain; the `en`
+  declared by the PostgreSQL PDF is not inferred as `en-GB`; citations
+  preserve the original language; and OpenAPI v1 remains unchanged. Acceptance
+  removed only the decision blocker. In that record, semantic reconciliation
+  of ADR-0008 had not yet been executed; contracts, normative
+  corpus, dataset and runtime remained unchanged, and implementation
+  remained unauthorised.
+- Joint semantic reconciliation of ADR-0008/0009: authorised by the
+  owner on 2026-08-07 at
+  `main@3d15ad4f2726f715c8dcf880491927ad0ff37b2f`, corpus `4.9.4` and a clean working
+  tree. Corpus `4.9.5` aligns the 18 confirmed canonical documents
+  for permanent source/PNG storage, content addressing,
+  render lifecycle and rights; separates `SupportedQueryLanguage=pt-BR|en-GB` from
+  BCP 47 `DocumentContentLanguage`; preserves `en`, citations in their original language
+  and exact evaluation strata. OpenAPI v1 was preserved byte-for-byte; v2 is
+  only a planned, unimplemented contract. The batch did not change code,
+  tests, schema, migrations, data, dataset, eligibility record,
+  dependencies, lockfiles or PDF; it did not generate PNGs, index, activate or execute
+  a provider/browser/network operation or perform an external action.
+- Corrective implementation `S03-CORR-01`: authorised by
+  `AUTH-S03-CORR-001` on 2026-08-07 at
+  `main@ffc7bef913dda2699b072ef172188291f6ac0500`, corpus `4.9.5` and a clean working
+  tree, with the `STATE-03` technical owner. The directed runtime preflight
+  found no process or listener proven to belong to
+  RAG-Challenge and stopped nothing. Commit
+  `5fdbbc36d8eee29fdeec4b179564bd1eff322558` separates
+  `SupportedQueryLanguage` from `DocumentContentLanguage`, preserves the observed
+  `SourceDeclaredLanguage`, keeps `en` distinct from `en-GB`, models
+  `DocumentPageImage`/`DocumentRenderManifest`, adds the sole Control migration
+  `20260807161323_AddDocumentLanguageAndRenderManifestModel`, propagates
+  the separation through ingestion, indexing, query, provider, vector metadata
+  and Server, and protects sources/images reached by manifests during clean-up.
+- Verification of `S03-CORR-01`: 19 unit tests and 6 focused integration cases
+  passed; `eng/ci.ps1 -Offline` approved 106 unit, 116
+  integration, 10 architecture and 38 Dashboard tests, 93.74%
+  line coverage and 67.11% branch coverage and an audit of 212 files. Legacy upgrade,
+  rollback/reapply, `foreign_key_check`, vector reading and the two pending
+  model checks passed only in disposable SQLite. OpenAPI v1 remains
+  byte-for-byte at SHA-256
+  `d6a686b94c926914beb28b437f464430a01de6560c2e2d476cf5c36025813e34` and Git blob
+  `a5fb3602fbab33bda6aa56cc4caaa9fdc37c8160`. The new tables remained
+  empty; there was no renderer, PNG, import, change to the PostgreSQL candidate,
+  dataset, activation, serving, v2, dependency, lockfile, network, external action,
+  Automatic Quality Gate, Human Gate or lifecycle change.
+- Corrective implementation `S04-CORR-04-A`: authorised by
+  `AUTH-S04-CORR-04-A-001` on 2026-08-07 at
+  `main@ea7fc582f991bb9290e26a7e2d4e074abc46bf3c`, corpus `4.9.7` and a clean working
+  tree, with the `STATE-04` technical owner. The directed runtime preflight
+  found no product process or RAG-Challenge listener; nothing
+  was stopped before implementation. Commit
+  `26f2e154b736687693b31ab02ca59cfb8ba86655` replaces the store’s minimal
+  result with typed descriptors, implements bounded, idempotent,
+  atomic writing verified through reopening, requires hash/length upon reopening and
+  migrates ingestion, composition and control-plane validation to the new port.
+  `IStorageMaintenance`, `cleanup-plan-v1` and the reservation/finalisation protocol
+  remain the sole existing authority for physical deletion.
+- Verification of `S04-CORR-04-A`: 3 unit tests and 57 focused integration cases
+  passed; `eng/ci.ps1 -Offline` approved 109 unit, 118
+  integration, 10 architecture and 38 Dashboard tests, 93.76%
+  line coverage and 67.15% branch coverage and an audit of 213 files. OpenAPI v1
+  remained byte-for-byte at SHA-256
   `d6a686b94c926914beb28b437f464430a01de6560c2e2d476cf5c36025813e34`.
-  Packages, lockfiles, schema, migrations, renderer, PNG, direitos, manifestos
-  persistidos, digests de ativação, v2, dados reais e ações externas não foram
-  alterados. O corpus `4.9.8` registra somente esse fato; `STATE-07` permanece
-  ativo, sem gate ou transição, e nenhum incremento posterior foi iniciado.
-- Implementação corretiva `S04-CORR-04-B`: autorizada por
-  `AUTH-S04-CORR-04-B-001` em 2026-08-07 sobre
-  `main@196bbcafcb493ce4e45a2c9e784965ff933f124d`, corpus `4.9.8` e working
-  tree limpa, com owner técnico corretivo de `STATE-04`. O runtime preflight
-  dirigido encontrou zero processo de produto e zero listener do
-  RAG-Challenge; nada foi encerrado. O commit
-  `a886a944ecd1ce485eee9c072385e96210e90520` introduz o registro tipado
-  `DocumentRightsEligibilityRecordV1`, as dez decisões independentes de
-  ADR-0008, os estados fechados `Permitted`, `Denied` e `Unproven`, referências
-  estáveis de evidência e gates fixos textual/visual que aceitam somente
-  permissões explícitas. Distribuição/publicação permanece decisão separada e
-  não é inferida dos demais direitos.
-- Verificação de `S04-CORR-04-B`: 14 casos unitários sintéticos focais passaram;
-  `eng/ci.ps1 -Offline` aprovou 123 testes unitários, 118 de integração, 10 de
-  arquitetura, 38 do Dashboard, cobertura de 93,72% de linhas e 67,20% de
-  branches e auditoria de 216 arquivos. OpenAPI v1 permaneceu byte a byte no
+  Packages, lockfiles, schema, migrations, renderer, PNG, rights, persisted
+  manifests, activation digests, v2, real data and external actions were not
+  changed. Corpus `4.9.8` records only this fact; `STATE-07` remains
+  active, without a gate or transition, and no subsequent increment was started.
+- Corrective implementation `S04-CORR-04-B`: authorised by
+  `AUTH-S04-CORR-04-B-001` on 2026-08-07 at
+  `main@196bbcafcb493ce4e45a2c9e784965ff933f124d`, corpus `4.9.8` and a clean working
+  tree, with the `STATE-04` corrective technical owner. The directed runtime preflight
+  found no product process or
+  RAG-Challenge listener; nothing was stopped. Commit
+  `a886a944ecd1ce485eee9c072385e96210e90520` introduces typed record
+  `DocumentRightsEligibilityRecordV1`, ADR-0008’s ten independent
+  decisions, closed states `Permitted`, `Denied` and `Unproven`, stable
+  evidence references and fixed textual/visual gates that accept only
+  explicit permissions. Distribution/publication remains a separate decision and
+  is not inferred from the other rights.
+- Verification of `S04-CORR-04-B`: 14 focused synthetic unit cases passed;
+  `eng/ci.ps1 -Offline` approved 123 unit, 118 integration, 10
+  architecture and 38 Dashboard tests, 93.72% line coverage and 67.20%
+  branch coverage and an audit of 216 files. OpenAPI v1 remained byte-for-byte at
   SHA-256
   `d6a686b94c926914beb28b437f464430a01de6560c2e2d476cf5c36025813e34`.
-  Packages, lockfiles, schema, migrations, renderer, PNG, persistência de
-  direitos/manifests, ativação, v2, fonte/licença/direito/dado real, rede e
-  ações externas não mudaram. O corpus `4.9.9` registra somente esse fato;
-  `STATE-07` permanece ativo, sem gate ou transição, e `S04-CORR-04-C` ou
-  incremento posterior não foi iniciado.
-- Implementação corretiva `S04-CORR-04-C`: autorizada por
-  `AUTH-S04-CORR-04-C-001` em 2026-08-07 sobre
-  `main@75475c391c7fc1fb5ff298492a5d1da4c4f99fbb`, corpus `4.9.9` e working
-  tree limpa, com owner técnico corretivo de `STATE-04`. O runtime preflight
-  dirigido encontrou zero processo de produto e zero listener comprovadamente
-  pertencente ao RAG-Challenge; nada foi encerrado. O gate de supply chain
-  usou caches, CLI home e artefactos isolados, verificou as oito identidades e
-  versões selecionadas, assinaturas, hashes, licenças, commits upstream,
-  grafo, ausência de advisory/depreciação material e assets nativos Windows e
-  Linux AArch64 antes da implementação. A evidência temporária permanece fora
-  do Git, sem cleanup material.
-- O commit `981e61c3308ee3407769d10ab1fa554007f12799` implementa o port de renderer,
-  política explícita de limites, worker interno de um documento antes do host
-  HTTP, framing binário privado, contenção por Job Object no Windows e
-  `rlimit`/`prctl` no Linux, o perfil determinístico `pdf-page-png-v1`,
-  validação estrutural fail-closed dos PNGs e finalização verificada,
-  idempotente e atômica de `DocumentRenderManifest` nas tabelas existentes.
-  O gate visual de direitos, a reabertura verificada da fonte e de cada PNG e
-  a validação completa de todas as páginas precedem a persistência do manifest.
-  `IStorageMaintenance`, `cleanup-plan-v1` e o protocolo de
-  reserva/finalização permanecem a única autoridade de exclusão física.
-- Verificação de `S04-CORR-04-C`: 7 casos unitários focais e 10 casos de
-  integração focais passaram com bytes PDF/PNG sintéticos. O publish
-  framework-dependent `linux-arm64` em modo locked/offline selecionou
-  `libpdfium.so` e `libSkiaSharp.so` ELF64 AArch64 (`e_machine=183`). O
-  `eng/ci.ps1 -Offline` aprovou 130 testes unitários, 128 de integração, 10 de
-  arquitetura e 38 do Dashboard, com 93,53% de linhas e 66,80% de branches,
-  build Release sem aviso e auditoria de 223 arquivos. Somente quatro
-  lockfiles previstos mudaram; não houve projeto, schema, migration, model
-  snapshot, endpoint ou contrato v2. OpenAPI v1 permaneceu byte a byte no
+  Packages, lockfiles, schema, migrations, renderer, PNG, persistence of
+  rights/manifests, activation, v2, real source/licence/right/data, network and
+  external actions did not change. Corpus `4.9.9` records only this fact;
+  `STATE-07` remains active, without a gate or transition, and `S04-CORR-04-C` or a
+  subsequent increment was not started.
+- Corrective implementation `S04-CORR-04-C`: authorised by
+  `AUTH-S04-CORR-04-C-001` on 2026-08-07 at
+  `main@75475c391c7fc1fb5ff298492a5d1da4c4f99fbb`, corpus `4.9.9` and a clean working
+  tree, with the `STATE-04` corrective technical owner. The directed runtime preflight
+  found no product process or listener proven to
+  belong to RAG-Challenge; nothing was stopped. The supply-chain gate
+  used isolated caches, CLI home and artefacts, verified the eight selected identities and
+  versions, signatures, hashes, licences, upstream commits,
+  graph, absence of a material advisory/deprecation and native Windows and
+  Linux AArch64 assets before implementation. The temporary evidence remains outside
+  Git, without material clean-up.
+- Commit `981e61c3308ee3407769d10ab1fa554007f12799` implements the renderer port,
+  explicit limit policy, internal single-document worker before the HTTP
+  host, private binary framing, containment through a Job Object on Windows and
+  `rlimit`/`prctl` on Linux, deterministic `pdf-page-png-v1` profile,
+  fail-closed structural validation of PNGs and verified, idempotent
+  and atomic finalisation of `DocumentRenderManifest` in the existing tables.
+  The visual-rights gate, verified reopening of the source and every PNG and
+  complete validation of every page precede manifest persistence.
+  `IStorageMaintenance`, `cleanup-plan-v1` and the reservation/finalisation
+  protocol remain the sole authority for physical deletion.
+- Verification of `S04-CORR-04-C`: 7 focused unit cases and 10 focused
+  integration cases passed with synthetic PDF/PNG bytes. Framework-dependent
+  `linux-arm64` publish in locked/offline mode selected
+  `libpdfium.so` and `libSkiaSharp.so` ELF64 AArch64 (`e_machine=183`).
+  `eng/ci.ps1 -Offline` approved 130 unit, 128 integration, 10
+  architecture and 38 Dashboard tests, with 93.53% line coverage and 66.80% branch coverage,
+  warning-free Release build and audit of 223 files. Only four expected
+  lockfiles changed; there was no project, schema, migration, model
+  snapshot, endpoint or v2-contract change. OpenAPI v1 remained byte-for-byte at
   SHA-256
   `d6a686b94c926914beb28b437f464430a01de6560c2e2d476cf5c36025813e34`.
-  Nenhum dado, fonte, licença ou direito real foi usado; não houve import,
-  indexação, ativação, serving, cleanup, provider, ação externa, Automatic
-  Quality Gate, Human Gate ou mudança de lifecycle. O corpus `4.9.10` registra
-  somente esses fatos; `STATE-07` permanece ativo e `S04-CORR-04-D` ou
-  incremento posterior não foi iniciado.
-- Implementação corretiva `S04-CORR-04-D`: autorizada por
-  `AUTH-S04-CORR-04-D-001` em 2026-08-07 sobre
-  `main@548a817e2db4d9bad2d1a63e7dc9e9bb9ace418c`, corpus `4.9.10` e working
-  tree limpa, com owner técnico corretivo de `STATE-04`. O runtime preflight
-  dirigido encontrou zero processo de produto e zero listener comprovadamente
-  pertencente ao RAG-Challenge; nada foi encerrado. O commit
-  `d18224e46f559229a58e82b097abbf16ea9f359a` persiste por revisão o binding
-  documental/fonte exato, snapshot imutável schema-v1 das dez decisões de
-  direitos e render manifest obrigatório para PDF/ausente para CSV; exige os
-  vínculos em Initial, Replacement e Rollback; revalida rollback e restringe
-  ObservationRebind à mudança exclusiva de observação com evidência idêntica.
-- O pre-CAS agora confere identidade completa, idioma documental suportado,
-  gate textual/visual, geração finalizada, fonte reaberta e, para PDF, manifest
-  finalizado, páginas físicas consecutivas e todos os PNGs reabertos. Replay
-  compara os novos vínculos e direitos. Uma transação Control persiste revisão,
-  bindings, evidência/direitos, retenção, head, auditoria e completion do
-  journal aplicável; o readback de consulta falha fechado diante de revisão
-  corrente incompleta ou divergente.
-- A única migration Control
-  `20260808004846_AddDocumentRightsAndActivationEvidenceBindings` cria somente
-  `activation_evidence_bindings` e `activation_rights_decisions`, sem operação
-  de dados ou backfill. O histórico conserva os campos existentes e não recebe
-  direitos/manifests inferidos; a base Vector e os domínios de
-  `sourceBindingSetDigest`/`activationBindingSetDigest` permanecem inalterados.
-- Verificação de `S04-CORR-04-D`: seleções unitárias focais e 15 casos de
-  integração focais passaram. Upgrade, rollback/reapply,
-  `foreign_key_check`, compatibilidade histórica e os dois pending model checks
-  passaram em SQLite descartável. `eng/ci.ps1 -Offline` aprovou 135 testes
-  unitários, 137 de integração, 10 de arquitetura e 38 do Dashboard, com
-  94,34% de linhas e 67,25% de branches, build Release e auditoria de 226
-  arquivos aprovados. OpenAPI v1 permaneceu byte a byte no SHA-256
-  `d6a686b94c926914beb28b437f464430a01de6560c2e2d476cf5c36025813e34` e
-  blob Git `a5fb3602fbab33bda6aa56cc4caaa9fdc37c8160`. Nenhum dado/direito real,
-  v2, serving, `AnswerEvidenceRecord`, rede, ação externa, gate ou mudança de
-  lifecycle ocorreu. O corpus `4.9.11` registra somente esses fatos;
-  `S04-CORR-04-E` não foi iniciado.
-- Decisão arquitetural de evidência persistente de resposta:
+  No real data, source, licence or right was used; there was no import,
+  indexing, activation, serving, clean-up, provider, external action, Automatic
+  Quality Gate, Human Gate or lifecycle change. Corpus `4.9.10` records
+  only these facts; `STATE-07` remains active and `S04-CORR-04-D` or a
+  subsequent increment was not started.
+- Corrective implementation `S04-CORR-04-D`: authorised by
+  `AUTH-S04-CORR-04-D-001` on 2026-08-07 at
+  `main@548a817e2db4d9bad2d1a63e7dc9e9bb9ace418c`, corpus `4.9.10` and a clean working
+  tree, with the `STATE-04` corrective technical owner. The directed runtime preflight
+  found no product process or listener proven to
+  belong to RAG-Challenge; nothing was stopped. Commit
+  `d18224e46f559229a58e82b097abbf16ea9f359a` persists per revision the exact
+  document/source binding, immutable schema-v1 snapshot of the ten rights
+  decisions and mandatory render manifest for PDF/absent for CSV; requires the
+  bindings in Initial, Replacement and Rollback; revalidates rollback and restricts
+  ObservationRebind to an observation-only change with identical evidence.
+- Pre-CAS now checks complete identity, supported document language,
+  textual/visual gate, finalised generation, reopened source and, for PDF, finalised
+  manifest, consecutive physical pages and all reopened PNGs. Replay
+  compares the new bindings and rights. A Control transaction persists revision,
+  bindings, evidence/rights, retention, head, audit and applicable journal
+  completion; query readback fails closed when faced with an incomplete
+  or divergent current revision.
+- The sole Control migration
+  `20260808004846_AddDocumentRightsAndActivationEvidenceBindings` creates only
+  `activation_evidence_bindings` and `activation_rights_decisions`, without a data
+  operation or backfill. History retains the existing fields and receives no
+  inferred rights/manifests; the Vector database and the
+  `sourceBindingSetDigest`/`activationBindingSetDigest` domains remain unchanged.
+- Verification of `S04-CORR-04-D`: focused unit selections and 15 focused
+  integration cases passed. Upgrade, rollback/reapply,
+  `foreign_key_check`, historical compatibility and the two pending model checks
+  passed in disposable SQLite. `eng/ci.ps1 -Offline` approved 135 unit,
+  137 integration, 10 architecture and 38 Dashboard tests, with
+  94.34% line coverage and 67.25% branch coverage, Release build and an approved audit of 226
+  files. OpenAPI v1 remained byte-for-byte at SHA-256
+  `d6a686b94c926914beb28b437f464430a01de6560c2e2d476cf5c36025813e34` and
+  Git blob `a5fb3602fbab33bda6aa56cc4caaa9fdc37c8160`. No real data/right,
+  v2, serving, `AnswerEvidenceRecord`, network, external action, gate or lifecycle
+  change occurred. Corpus `4.9.11` records only these facts;
+  `S04-CORR-04-E` was not started.
+- Architectural decision on persistent answer evidence:
   [ADR-0010](../../docs/architecture/ADR-0010-Persistent-Answer-Evidence-Records-And-Bounded-Retention.md)
-  foi aceita explicitamente pelo proprietário em 2026-08-07 e registrada sob
-  autoridade documental local, offline e sequencial sobre
-  `main@745304051c113c86f5ebbaaaf625fbde74c50c6a`, corpus `4.9.11` e working
-  tree limpa. A decisão fixa `S04-CORR-04-E` como o contrato interno persistente
-  `AnswerEvidenceRecordV1`, somente para `Answered`, com retenção `P30D` sem
-  refresh e participação em reachability. O corpus `4.10.0` registra somente a
-  autoridade arquitetural e reconcilia fatos atuais; não implementa E, não cria
-  migration/teste, não altera OpenAPI v1 e não inicia v2, serving, dado real,
-  gate, lifecycle, rede ou ação externa.
-- Implementação corretiva de evidência persistente de resposta: em 2026-08-08,
-  sobre `main@fc83e1ea6922a519baf527efc3f0a219e2674453`, corpus `4.10.0`, working
-  tree limpa e OpenAPI v1 no SHA-256 protegido, o proprietário autorizou
-  exclusivamente a implementação local, offline e sequencial de
-  `S04-CORR-04-E`. O runtime preflight dirigido encontrou zero processo ou
-  listener comprovadamente pertencente ao produto. O incremento materializa o
-  modelo/serialização canônica, o port e store Control `Answered`-only, commit e
-  readback antes da resposta v1, replay/conflito, auditoria allowlisted e a
-  migration vazia `20260808033247_AddAnswerEvidenceRecords`, sem backfill ou
-  inferência histórica. `P30D` sem refresh participa do `cleanup-plan-v1`, da
-  reserva, revalidação, finalização e reachability de fonte/PNGs. Build Release
-  sem aviso, 146 testes unitários, 153 de integração, 10 de arquitetura e os
-  dois pending-model checks passaram com fixtures e stores descartáveis. Essas
-  verificações diretas não executaram Automatic Quality Gate. O corpus
-  `4.10.1` registra somente esses fatos; OpenAPI v1 permanece byte a byte no
-  SHA-256 protegido e v2, serving, dados reais, gates, lifecycle, rede e ações
-  externas permanecem fora do escopo.
-- Automatic Quality Gate corretivo de `S04-CORR-04-E`: executado localmente,
-  offline e de forma sequencial em 2026-08-08 sobre
-  `main@990d14172954567456d9ad90b6a767f6b6e0da78`, corpus `4.10.1`, working
-  tree limpa e OpenAPI v1 no SHA-256 protegido. A auditoria estática identificou
-  `AQG-S04-002` (P2): o contrato canônico afirma nas linhas 12–13 que a
-  persistência de evidência permanece não implementada, mas o mesmo documento
-  registra nas linhas 537 e 597–600 que `S04-CORR-04-E` a implementou
-  localmente. O achado permanece `ABERTO` e o gate é `REPROVADO`. Pela parada
-  obrigatória, runtime preflight, `eng/ci.ps1 -Offline` e os checks executáveis
-  de build, testes, coverage, migration, restart, concorrência, falhas,
-  retenção, cleanup, privacidade e reachability não foram iniciados. Nenhuma
-  correção, Human Gate, mudança de lifecycle, rede ou ação externa ocorreu.
-- Correção documental focal de `AQG-S04-002`: autorizada pelo proprietário e
-  executada em 2026-08-08 sobre
-  `main@3f42214c5c3554b6b341ab4c75a0a8e3cdb93f2a`, corpus `4.10.1`, working
-  tree limpa e OpenAPI v1 no SHA-256 protegido. O parágrafo de finalidade do
-  contrato canônico agora registra que a evidência persistente de resposta foi
-  implementada localmente pelo incremento separadamente autorizado
-  `S04-CORR-04-E`; image serving e v2 permanecem não implementados. A semântica
-  aceita da ADR-0010 e a implementação não mudaram. `AQG-S04-002` está
-  `CORRECTED_PENDING_GATE_RETEST`; o Automatic Quality Gate histórico permanece
-  `REPROVADO` e não foi reiniciado. Nenhum source, teste, comportamento, schema,
-  migration, ADR, OpenAPI, Human Gate, lifecycle, rede ou ação externa mudou.
-- Reinício integral do Automatic Quality Gate corretivo após a correção de
-  `AQG-S04-002`: autorizado e iniciado em 2026-08-08 sobre
-  `main@da569d8dae6990db72e43df69f1ff0bb8861ac54`, corpus `4.10.1`, working
-  tree completamente limpa e OpenAPI v1 no SHA-256 protegido. O runtime
-  preflight dirigido encontrou zero processo ou listener comprovadamente
-  pertencente ao produto; nada foi encerrado. A inspeção estática confirmou a
-  correção e dispôs `AQG-S04-002` como `RESOLVIDO`, mas identificou
-  `AQG-S04-003` (P2): a seção de verificações obrigatórias do contrato canônico
-  ainda descreve nas linhas 788–791 os testes de answer-evidence como futuros,
-  enquanto o baseline contém e registra as suítes unitárias e de integração já
-  implementadas e diretamente executadas. A condição de parada foi acionada;
-  `eng/ci.ps1 -Offline`, build, testes, coverage, migration, restart,
-  concorrência, falhas, retenção, cleanup, privacidade e reachability não foram
-  executados neste reinício. O gate é `REPROVADO`, `AQG-S04-003` permanece
-  `ABERTO` e nenhuma correção, Human Gate, mudança de lifecycle, rede ou ação
-  externa ocorreu.
-- Correção documental focal de `AQG-S04-003`: autorizada pelo proprietário e
-  executada em 2026-08-08 sobre
-  `main@cb67c7f752521f416f46d9cb4f2bb6a189ca1a48`, corpus `4.10.1`, working
-  tree completamente limpa e OpenAPI v1 no SHA-256 protegido. A seção de
-  verificações obrigatórias do contrato canônico agora classifica os testes de
-  answer-evidence como requisitos, não como trabalho futuro, sem converter o
-  documento arquitetural em evidência de implementação ou execução. O escopo e
-  a cobertura descritos não mudaram. `AQG-S04-003` está
-  `CORRECTED_PENDING_GATE_RETEST`; o Automatic Quality Gate histórico permanece
-  `REPROVADO` e não foi reiniciado. Nenhum source, teste, comportamento, schema,
-  migration, ADR-0010, OpenAPI, v2, serving, Human Gate, lifecycle, rede ou ação
-  externa mudou.
-- Reinício integral do Automatic Quality Gate corretivo após a correção de
-  `AQG-S04-003`: autorizado e iniciado em 2026-08-08 sobre
-  `main@baa85553f9d48c7c833b1e875699817849360bab`, corpus `4.10.1`, working
-  tree completamente limpa e OpenAPI v1 no SHA-256 protegido. A inspeção
-  estática confirmou a correção e dispôs `AQG-S04-003` como `RESOLVIDO`, mas
-  identificou `AQG-S04-004` (P2): ADR-0010 exige testes diretos de rejeição para
-  mismatches de citação, fonte, ativação, manifest e página, enquanto a suíte
-  focal de persistência testa somente um mismatch do digest no header de
-  ativação. O teste de domínio das páginas verifica ausência/excesso contra o
-  próprio registro, sem confrontar valores divergentes com a autoridade Control
-  persistida. Os ramos fail-closed existem na implementação, mas a matriz de
-  regressão exigida está incompleta. A condição de parada foi acionada antes do
-  runtime preflight, `eng/ci.ps1 -Offline`, build, testes, coverage, migration,
-  restart, concorrência, falhas, retenção, cleanup, privacidade e reachability.
-  O gate é `REPROVADO`, `AQG-S04-004` permanece `ABERTO` e nenhuma correção,
-  Human Gate, mudança de lifecycle, rede ou ação externa ocorreu.
-- Correção focal de `AQG-S04-004`: autorizada e executada em 2026-08-08 sobre
-  `main@fd2e164ef1d8b1a90d867f4e77beea0e43fba9c3`, corpus `4.10.1`, working
-  tree completamente limpa e OpenAPI v1 no SHA-256 protegido. A suíte focal de
-  persistência SQLite agora confronta, um valor por caso, mismatches de
-  citação, fonte, ativação, manifest e página com a autoridade Control
-  persistida. Os cinco casos rejeitam com `InvalidDataException` e comprovam
-  ausência de header, citações, páginas, operação administrativa e auditoria
-  de criação de answer-evidence. O arquivo focal aprovou 14 casos e o projeto
-  de integração afetado aprovou 157 casos em Release, sem restore. Nenhum
-  defeito de implementação foi demonstrado e nenhuma mudança de produto foi
-  necessária. `AQG-S04-004` está `CORRECTED_PENDING_GATE_RETEST`; o Automatic
-  Quality Gate histórico permanece `REPROVADO` e não foi reiniciado. Nenhum
-  source, comportamento, schema, migration, ADR-0010, OpenAPI, v2, serving,
-  Human Gate, lifecycle, rede ou ação externa mudou.
-- Reinício integral do Automatic Quality Gate corretivo após a correção de
-  `AQG-S04-004`: autorizado e executado em 2026-08-08 sobre
-  `main@5a2dcbafdc0a3925338043b079f9eacc9e70ca1b`, corpus `4.10.1`, working
-  tree completamente limpa e OpenAPI v1 no SHA-256 protegido. A inspeção
-  estática dispôs `AQG-S04-004` como `RESOLVIDO`; o preflight dirigido encontrou
-  zero processo e zero listener TCP comprovadamente pertencentes ao produto e
-  não parou nada. `eng/ci.ps1 -Offline` aprovou restore locked, formato, build
-  Release sem aviso ou erro, 146 testes unitários, 157 de integração, 10 de
-  arquitetura e 38 do Dashboard. A cobertura .NET foi 94,91% de linhas e
-  67,42% de branches; lint, typecheck, build web e auditoria dos 235 arquivos
-  também passaram. O gate está `APROVADO`, `AQG-S04-002` a `AQG-S04-004` estão
-  `RESOLVIDOS` e nenhum novo P0, P1, P2 ou P3 foi identificado. A baseline
-  protegida permaneceu intacta e sem runtime residual. Nenhum source, teste,
-  comportamento, schema, migration, ADR-0010, OpenAPI, v2, serving, Human Gate,
-  lifecycle, rede ou ação externa mudou.
-- Fechamento de `S04-A0`: `PdfPig` `0.1.15` e `CsvHelper` `33.1.0` foram
-  selecionados condicionalmente para desenvolvimento local;
-  `Sylvan.Data.Csv` `1.4.4` permanece fallback não selecionado e não
-  autorizável por substituição automática. O adapter OpenAI é HTTP direto,
-  sem package `OpenAI` ou `System.ClientModel`. Hashes, gates, limitações,
-  evidências, resolução do bloqueio pré-pin e gate runtime estão registrados no
-  [relatório de STATE-04](../../docs/STATE-04-Backend-Implementation-Report.md).
-  A assinatura dos parsers permanece
-  `CONDITIONAL_REVOCATION_NOT_CURRENT`, e a semântica incompleta dos domínios
-  de hash NuGet foi aceita somente para desenvolvimento local em `STATE-04`.
-- Escopo concluído de `STATE-01`: registrar a entrada e executar localmente,
-  de forma sequencial, os lotes `S01-A`, `S01-B` e `S01-C`, sem lógica RAG ou
-  funcional. A autoridade adicional de 2026-07-30 permite exclusivamente
-  acesso HTTPS a `https://registry.npmjs.org/` e
-  `https://api.nuget.org/v3/index.json`, instalação local das dependências
-  fixadas, lockfile npm, auditorias npm/.NET e loopback para smoke de health.
-- Automatic Quality Gate documental: `APROVADO` para a baseline `3.4.0` que
-  encerrou `STATE-00` e para o incremento transversal `3.5.0`, sem reabertura
-  do gate; correções `3.5.1` a `3.5.4` também `APROVADAS`; migração de
-  identidade `4.0.0`, correção factual `4.0.1` e padrão copiável `4.1.0`
-  também `APROVADOS`. O incremento normativo de eficiência decisória foi
-  registrado como `4.2.0` (`MINOR`), e sua reorganização semanticamente
-  equivalente como `4.2.1` (`PATCH`), em 2026-08-01. A decisão de suporte
-  bilíngue para consulta foi formalizada como corpus `4.3.0` (`MINOR`) na
-  mesma data, e a decisão separada de suporte visual a `pt-BR` e `en-GB` foi
-  formalizada como corpus `4.4.0` (`MINOR`). A seleção posterior dos temas
-  `Light` e `Dark` foi formalizada como corpus `4.5.0` (`MINOR`); as auditorias
-  incrementais foram `APROVADAS`. A remoção posterior dos tetos de 12 sistemas
-  e 120 páginas foi formalizada como corpus `4.6.0` (`MINOR`), com validação
-  documental direcionada. A reconciliação posterior do catálogo inicial de 51
-  bancos, 9 categorias, 54 associações, PDF/CSV e recuperação unificada foi
-  formalizada como corpus `4.7.0` (`MINOR`). A aceitação humana explícita e
-  independente de ADR-0002 e ADR-0004 a ADR-0006 foi registrada como corpus
-  `4.8.0` (`MINOR`). A auditoria combinada posterior foi executada sobre
-  `main@a01a765d177efb6c4013c6846c5f54c8adbe7e0f` e resultou
-  `REPROVADA`, com um achado P1, um P2 e um P3. Depois da aceitação e
-  reconciliação do ADR-0007, a nova auditoria combinada sobre
-  `main@3978a17201cf5f6ac4ddc189862736fc3646457b`, corpus `4.9.1`, resultou
-  `APROVADA`, dispôs os três achados como `RESOLVIDOS` e não encontrou novo
-  P0, P1, P2 ou P3. Nenhum desses incrementos transitou o lifecycle ou aceitou
-  ADR por implicação.
-- Human Gate de `STATE-00`: `APROVADO` sem ressalvas em 2026-07-30.
-- `GATE-B01`: `APROVADO` sem ressalvas em 2026-07-30.
-- Transição para `STATE-01 PROJECT_SETUP`: autorizada em 2026-07-30.
-- Automatic Quality Gate de `STATE-01`: `APROVADO`; lockfiles, restore,
-  format, build, testes, cobertura, Dashboard, auditorias, health em loopback,
-  higiene e reprodução em clone limpo foram validados em 2026-07-30. O gate
-  offline, o health smoke e a reprodução limpa foram repetidos sobre a
-  baseline renomeada.
-- Human Gate de `STATE-01`: `APROVADO` sem ressalvas em 2026-07-31.
-- Transição para `STATE-02 ARCHITECTURE`: autorizada em 2026-07-31,
-  exclusivamente nos limites, entregáveis, verificações, riscos, rollback e
-  escopo negativo do resumo completo apresentado na conversa coordenadora.
-  A autorização não aceita ADR por implicação nem concede rede, instalação,
-  serviço pago, GitHub, OCI, publicação, deploy ou mudança no DB-Notifier.
-- Execução de `STATE-02`: pacote documental sequencial de `S02-A` e `S02-B`
-  preparado no commit `979677fa1f4d7324340b8be15d88eb8b5b802a1a` em
-  2026-07-31, com contratos canônicos, threat model e relatório factual. A
-  verificação pública
-  autorizada foi registrada nos commits
+  was explicitly accepted by the owner on 2026-08-07 and recorded under
+  local, offline and sequential documentary authority at
+  `main@745304051c113c86f5ebbaaaf625fbde74c50c6a`, corpus `4.9.11` and a clean working
+  tree. The decision fixes `S04-CORR-04-E` as the internal persistent contract
+  `AnswerEvidenceRecordV1`, only for `Answered`, with `P30D` retention without
+  refresh and participation in reachability. Corpus `4.10.0` records only the
+  architectural authority and reconciles current facts; it does not implement E, create a
+  migration/test, alter OpenAPI v1 or start v2, serving, real data,
+  gate, lifecycle, network or external action.
+- Corrective implementation of persistent answer evidence: on 2026-08-08,
+  at `main@fc83e1ea6922a519baf527efc3f0a219e2674453`, corpus `4.10.0`, a clean working
+  tree and OpenAPI v1 at the protected SHA-256, the owner authorised exclusively
+  the local, offline and sequential implementation of
+  `S04-CORR-04-E`. The directed runtime preflight found no process or
+  listener proven to belong to the product. The increment materialises the
+  canonical model/serialisation, `Answered`-only Control port and store, commit and
+  readback before the v1 response, replay/conflict, allowlisted audit and the
+  empty migration `20260808033247_AddAnswerEvidenceRecords`, without backfill or
+  historical inference. `P30D` without refresh participates in `cleanup-plan-v1`,
+  reservation, revalidation, finalisation and source/PNG reachability. Warning-free Release build,
+  146 unit, 153 integration and 10 architecture tests and the
+  two pending-model checks passed with disposable fixtures and stores. These
+  direct checks did not execute an Automatic Quality Gate. Corpus
+  `4.10.1` records only these facts; OpenAPI v1 remains byte-for-byte at the
+  protected SHA-256, and v2, serving, real data, gates, lifecycle, network and
+  external actions remain out of scope.
+- Corrective Automatic Quality Gate for `S04-CORR-04-E`: executed locally,
+  offline and sequentially on 2026-08-08 at
+  `main@990d14172954567456d9ad90b6a767f6b6e0da78`, corpus `4.10.1`, a clean working
+  tree and OpenAPI v1 at the protected SHA-256. The static audit identified
+  `AQG-S04-002` (P2): the canonical contract states on lines 12–13 that
+  evidence persistence remains unimplemented, but the same document
+  records on lines 537 and 597–600 that `S04-CORR-04-E` implemented it
+  locally. The finding remains `ABERTO` and the gate is `REPROVADO`. Because of the mandatory
+  stop, runtime preflight, `eng/ci.ps1 -Offline` and the executable checks for
+  build, tests, coverage, migration, restart, concurrency, failures,
+  retention, clean-up, privacy and reachability were not started. No
+  correction, Human Gate, lifecycle change, network or external action occurred.
+- Focused documentary correction of `AQG-S04-002`: authorised by the owner and
+  executed on 2026-08-08 at
+  `main@3f42214c5c3554b6b341ab4c75a0a8e3cdb93f2a`, corpus `4.10.1`, a clean working
+  tree and OpenAPI v1 at the protected SHA-256. The purpose paragraph of the
+  canonical contract now records that persistent answer evidence was
+  implemented locally by the separately authorised increment
+  `S04-CORR-04-E`; image serving and v2 remain unimplemented. The accepted
+  semantics of ADR-0010 and the implementation did not change. `AQG-S04-002` is
+  `CORRECTED_PENDING_GATE_RETEST`; the historical Automatic Quality Gate remains
+  `REPROVADO` and was not restarted. No source, test, behaviour, schema,
+  migration, ADR, OpenAPI, Human Gate, lifecycle, network or external action changed.
+- Complete restart of the corrective Automatic Quality Gate after correction of
+  `AQG-S04-002`: authorised and started on 2026-08-08 at
+  `main@da569d8dae6990db72e43df69f1ff0bb8861ac54`, corpus `4.10.1`, a completely clean
+  working tree and OpenAPI v1 at the protected SHA-256. The directed runtime
+  preflight found no process or listener proven to
+  belong to the product; nothing was stopped. Static inspection confirmed the
+  correction and disposed of `AQG-S04-002` as `RESOLVIDO`, but identified
+  `AQG-S04-003` (P2): the mandatory-verification section of the canonical contract
+  still describes the answer-evidence tests on lines 788–791 as future,
+  while the baseline contains and records the unit and integration suites already
+  implemented and directly executed. The stop condition was triggered;
+  `eng/ci.ps1 -Offline`, build, tests, coverage, migration, restart,
+  concurrency, failures, retention, clean-up, privacy and reachability were not
+  executed in this restart. The gate is `REPROVADO`, `AQG-S04-003` remains
+  `ABERTO` and no correction, Human Gate, lifecycle change, network or
+  external action occurred.
+- Focused documentary correction of `AQG-S04-003`: authorised by the owner and
+  executed on 2026-08-08 at
+  `main@cb67c7f752521f416f46d9cb4f2bb6a189ca1a48`, corpus `4.10.1`, a completely clean
+  working tree and OpenAPI v1 at the protected SHA-256. The mandatory-
+  verification section of the canonical contract now classifies the answer-evidence tests as
+  requirements, rather than future work, without converting the
+  architectural document into implementation or execution evidence. The described scope and
+  coverage did not change. `AQG-S04-003` is
+  `CORRECTED_PENDING_GATE_RETEST`; the historical Automatic Quality Gate remains
+  `REPROVADO` and was not restarted. No source, test, behaviour, schema,
+  migration, ADR-0010, OpenAPI, v2, serving, Human Gate, lifecycle, network or
+  external action changed.
+- Complete restart of the corrective Automatic Quality Gate after correction of
+  `AQG-S04-003`: authorised and started on 2026-08-08 at
+  `main@baa85553f9d48c7c833b1e875699817849360bab`, corpus `4.10.1`, a completely clean
+  working tree and OpenAPI v1 at the protected SHA-256. Static inspection
+  confirmed the correction and disposed of `AQG-S04-003` as `RESOLVIDO`, but
+  identified `AQG-S04-004` (P2): ADR-0010 requires direct rejection tests for
+  citation, source, activation, manifest and page mismatches, while the focused
+  persistence suite tests only one digest mismatch in the activation
+  header. The page-domain test checks absence/excess against the
+  record itself, without comparing divergent values with the persisted Control
+  authority. The fail-closed branches exist in the implementation, but the required
+  regression matrix is incomplete. The stop condition was triggered before
+  runtime preflight, `eng/ci.ps1 -Offline`, build, tests, coverage, migration,
+  restart, concurrency, failures, retention, clean-up, privacy and reachability.
+  The gate is `REPROVADO`, `AQG-S04-004` remains `ABERTO` and no correction,
+  Human Gate, lifecycle change, network or external action occurred.
+- Focused correction of `AQG-S04-004`: authorised and executed on 2026-08-08 at
+  `main@fd2e164ef1d8b1a90d867f4e77beea0e43fba9c3`, corpus `4.10.1`, a completely clean
+  working tree and OpenAPI v1 at the protected SHA-256. The focused SQLite
+  persistence suite now compares, one value per case, citation,
+  source, activation, manifest and page mismatches with the persisted Control
+  authority. The five cases reject with `InvalidDataException` and prove the
+  absence of a header, citations, pages, administrative operation and answer-evidence
+  creation audit. The focused file approved 14 cases and the affected integration
+  project approved 157 Release cases, without restore. No
+  implementation defect was demonstrated and no product change was
+  necessary. `AQG-S04-004` is `CORRECTED_PENDING_GATE_RETEST`; the historical Automatic
+  Quality Gate remains `REPROVADO` and was not restarted. No
+  source, behaviour, schema, migration, ADR-0010, OpenAPI, v2, serving,
+  Human Gate, lifecycle, network or external action changed.
+- Complete restart of the corrective Automatic Quality Gate after correction of
+  `AQG-S04-004`: authorised and executed on 2026-08-08 at
+  `main@5a2dcbafdc0a3925338043b079f9eacc9e70ca1b`, corpus `4.10.1`, a completely clean
+  working tree and OpenAPI v1 at the protected SHA-256. Static inspection
+  disposed of `AQG-S04-004` as `RESOLVIDO`; the directed preflight found
+  no product-owned process or TCP listener and
+  stopped nothing. `eng/ci.ps1 -Offline` approved locked restore, format, warning-
+  and error-free Release build, 146 unit, 157 integration, 10
+  architecture and 38 Dashboard tests. .NET coverage was 94.91% of lines and
+  67.42% of branches; lint, typecheck, web build and audit of the 235 files
+  also passed. The gate is `APROVADO`, `AQG-S04-002` through `AQG-S04-004` are
+  `RESOLVIDOS` and no new P0, P1, P2 or P3 was identified. The protected
+  baseline remained intact and without a residual runtime. No source, test,
+  behaviour, schema, migration, ADR-0010, OpenAPI, v2, serving, Human Gate,
+  lifecycle, network or external action changed.
+- Closure of `S04-A0`: `PdfPig` `0.1.15` and `CsvHelper` `33.1.0` were
+  selected conditionally for local development;
+  `Sylvan.Data.Csv` `1.4.4` remains an unselected fallback and cannot be
+  authorised through automatic substitution. The OpenAI adapter uses direct HTTP,
+  without an `OpenAI` or `System.ClientModel` package. Hashes, gates, limitations,
+  evidence, resolution of the pre-pin blocker and runtime gate are recorded in the
+  [STATE-04 report](../../docs/STATE-04-Backend-Implementation-Report.md).
+  The parser signature remains
+  `CONDITIONAL_REVOCATION_NOT_CURRENT`, and the incomplete semantics of the NuGet hash
+  domains were accepted only for local development in `STATE-04`.
+- Completed scope of `STATE-01`: record entry and execute locally,
+  sequentially, batches `S01-A`, `S01-B` and `S01-C`, without RAG or
+  functional logic. The additional authority of 2026-07-30 permits exclusively
+  HTTPS access to `https://registry.npmjs.org/` and
+  `https://api.nuget.org/v3/index.json`, local installation of pinned
+  dependencies, npm lockfile, npm/.NET audits and loopback for a health smoke test.
+- Documentary Automatic Quality Gate: `APROVADO` for baseline `3.4.0`, which
+  closed `STATE-00`, and for cross-cutting increment `3.5.0`, without reopening
+  the gate; corrections `3.5.1` through `3.5.4` also `APROVADAS`; identity
+  migration `4.0.0`, factual correction `4.0.1` and copy-ready pattern `4.1.0`
+  also `APROVADOS`. The normative decision-efficiency increment was
+  recorded as `4.2.0` (`MINOR`), and its semantically
+  equivalent reorganisation as `4.2.1` (`PATCH`), on 2026-08-01. The bilingual
+  query-support decision was formalised as corpus `4.3.0` (`MINOR`) on the
+  same date, and the separate decision for visual `pt-BR` and `en-GB` support was
+  formalised as corpus `4.4.0` (`MINOR`). The subsequent selection of
+  `Light` and `Dark` themes was formalised as corpus `4.5.0` (`MINOR`); the incremental
+  audits were `APROVADAS`. The subsequent removal of the 12-system
+  and 120-page ceilings was formalised as corpus `4.6.0` (`MINOR`), with targeted
+  documentary validation. The subsequent reconciliation of the initial catalogue of 51
+  databases, 9 categories, 54 associations, PDF/CSV and unified retrieval was
+  formalised as corpus `4.7.0` (`MINOR`). The explicit and
+  independent human acceptance of ADR-0002 and ADR-0004 through ADR-0006 was recorded as corpus
+  `4.8.0` (`MINOR`). The subsequent combined audit was executed at
+  `main@a01a765d177efb6c4013c6846c5f54c8adbe7e0f` and resulted in
+  `REPROVADA`, with one P1, one P2 and one P3 finding. After acceptance and
+  reconciliation of ADR-0007, the new combined audit at
+  `main@3978a17201cf5f6ac4ddc189862736fc3646457b`, corpus `4.9.1`, resulted in
+  `APROVADA`, disposed of the three findings as `RESOLVIDOS` and found no new
+  P0, P1, P2 or P3. None of these increments transitioned the lifecycle or accepted
+  an ADR by implication.
+- Human Gate for `STATE-00`: `APROVADO` without reservations on 2026-07-30.
+- `GATE-B01`: `APROVADO` without reservations on 2026-07-30.
+- Transition to `STATE-01 PROJECT_SETUP`: authorised on 2026-07-30.
+- Automatic Quality Gate for `STATE-01`: `APROVADO`; lockfiles, restore,
+  format, build, tests, coverage, Dashboard, audits, loopback health,
+  hygiene and reproduction in a clean clone were validated on 2026-07-30. The offline
+  gate, health smoke test and clean reproduction were repeated on the
+  renamed baseline.
+- Human Gate for `STATE-01`: `APROVADO` without reservations on 2026-07-31.
+- Transition to `STATE-02 ARCHITECTURE`: authorised on 2026-07-31,
+  exclusively within the limits, deliverables, checks, risks, rollback and
+  negative scope of the complete summary presented in the coordinating conversation.
+  The authority does not accept an ADR by implication or grant network, installation,
+  paid-service, GitHub, OCI, publication, deployment or DB-Notifier-change authority.
+- Execution of `STATE-02`: sequential documentary package for `S02-A` and `S02-B`
+  prepared in commit `979677fa1f4d7324340b8be15d88eb8b5b802a1a` on
+  2026-07-31, with canonical contracts, threat model and factual report. The
+  authorised public
+  verification was recorded in commits
   `f1066c3509f5f48d4fe6e21c9e36403e642c1431`,
-  `e80f8c41bea3f28deff3d8cdccafccbca5dcc016` e
-  `9cc62746ea2ba861676a2d5bfee317eaf66dad7c`: nenhum item de fonte primária
-  pública permanece pendente no escopo autorizado. Fatos dependentes de
-  conta, entitlement, capacidade ou execução continuam não verificados e
-  exigem autoridade futura própria. Em 2026-08-01, o proprietário aceitou
-  explicitamente e de forma independente ADR-0002 e ADR-0004 a ADR-0006 sobre
-  `main@39e2f803bf73cb4e2b59e56a0596e2858a3aed51`, corpus `4.7.0`; nenhuma
-  escolha decorreu de outra e nada foi implementado por implicação.
-- Automatic Quality Gate de `STATE-02`: `APROVADO` após nova auditoria
-  combinada da baseline reconciliada
+  `e80f8c41bea3f28deff3d8cdccafccbca5dcc016` and
+  `9cc62746ea2ba861676a2d5bfee317eaf66dad7c`: no public primary-source item
+  remains pending within the authorised scope. Facts dependent on
+  an account, entitlement, capacity or execution remain unverified and
+  require their own future authority. On 2026-08-01, the owner explicitly
+  and independently accepted ADR-0002 and ADR-0004 through ADR-0006 at
+  `main@39e2f803bf73cb4e2b59e56a0596e2858a3aed51`, corpus `4.7.0`; no
+  choice followed from another and nothing was implemented by implication.
+- Automatic Quality Gate for `STATE-02`: `APROVADO` after a new combined
+  audit of reconciled baseline
   `main@3978a17201cf5f6ac4ddc189862736fc3646457b`, corpus `4.9.1`.
-  `AQG-S02-001` (P1), `AQG-S02-002` (P2) e `AQG-S02-003` (P3), registrados
-  historicamente pela auditoria anterior, foram dispostos como `RESOLVIDOS`;
-  a nova auditoria não encontrou novo P0, P1, P2 ou P3.
-- Human Gate de `STATE-02`: `APROVADO` sem ressalvas em 2026-08-02 sobre
-  `main@6e61c4cf4429e2a62145d43bec3783146f01e37f`, corpus `4.9.1`, após
-  revisão do relatório automático, das amostras críticas, limitações, riscos
-  residuais, condições pendentes e escopo negativo. A decisão encerra somente
-  `STATE-02` e não autoriza entrada em `STATE-03`.
-- Transição para `STATE-03 DATA_AND_INDEX_MODELING`: autorizada em 2026-08-02
-  sobre `main@35b67c194f6ea2459833420b8bc2143fadfe75df`, corpus `4.9.1` e
-  working tree limpa. A autoridade permite registrar a entrada e executar
-  localmente, de forma sequencial, somente `S03-A`: modelo e dicionário,
-  identidades, estados, relações, constraints, revisões, serialização
-  canônica, vetores de referência dos dois domínios de digest, três validações
-  pré-CAS, invariantes de ativação/retenção/rollback e fixtures
-  determinísticas. `S03-B`, migrations, stores persistentes, novas
-  dependências e instalação permanecem sem autorização.
-- Execução de `S03-A`: concluída localmente no commit
-  `ace780a25edb2749046e9897b8af36e0719e3e54` com modelo lógico em Domain,
-  construção e validação pré-CAS em Application, dicionário permanente,
-  vetores canônicos executáveis, fixtures 51/54/9 e invariantes de staging,
-  ativação, observação, retenção e rollback. Infrastructure, projetos,
-  dependências e lockfiles não foram alterados; não existem migration ou
-  store persistente.
-- Verificação de `S03-A`: format e build Release sem restore aprovados; 68
-  testes aprovados (53 unitários, 10 de arquitetura e 5 de integração), com
-  cobertura de 95,55% de linhas e 89,93% de branches; lint, typecheck, 2
-  testes e build do Dashboard também aprovados sobre a instalação existente;
-  auditoria aprovada para 104 arquivos não ignorados e diff hygiene aprovado.
-  O proprietário aceitou explicitamente Node.js `24.18.1` somente como
-  variação local de verificação; os pins do repositório permanecem em
-  `24.18.0`/npm `11.16.0`. O agregado `eng/ci.ps1 -Offline` não foi executado
-  porque faria restore e `npm ci`, ações bloqueadas com `S03-B`.
-- Autoridade de `S03-B`: registrada no commit
-  `381d1cd297580476e461a242ce5b66c4884e521b` após repetição aprovada de
-  `S03-B0`. O conjunto conservador de supply chain contém 42 nupkgs, todos
-  verificados por SHA-512 do catálogo, repository signature, advisory e
-  licença. O asset Linux ARM64 é ELF64 AArch64 e contém SQLite `3.53.3`.
-- Reconciliação do fechamento: o restore real de `net10.0` materializou 40
-  packages no `project.assets.json` e instalou separadamente a ferramenta
-  local `dotnet-ef 10.0.10`, totalizando 41 itens. `System.Memory 4.5.3`,
-  declarado somente no grupo `.NETStandard2.0` de `SQLitePCLRaw.core 2.1.12`,
-  permaneceu evidência conservadora verificada e não foi pinado, referenciado
-  ou materializado. O proprietário aceitou explicitamente essa distinção e
-  autorizou retomar `S03-B1` na working tree interrompida.
-- Execução de `S03-B1` a `S03-B4`: `S03-B1` concluiu locked restore com 40
-  packages materializados, ferramenta `dotnet-ef 10.0.10`, ausência de
-  `System.Memory` e exatamente quatro lockfiles afetados. `S03-B2` registrou
-  os modelos físicos e migrations iniciais separados de `control.db` e
-  `vectors.db`. `S03-B3` implementou ports em Application e stores locais em
-  Infrastructure para autoridade de controle, vetores derivados, conteúdo
-  imutável, CAS, retenção, cleanup e recuperação. `S03-B4` adicionou fixtures
-  e testes determinísticos, inclusive concorrência, rollback, corrupção,
-  recuperação e o caso funcional sintético de 10.000 vetores por 1.536
-  dimensões. A finalização canônica calcula digests de especificação,
-  artefatos lógicos e manifesto completo a partir do readback do SQLite.
-- Execução de `S03-B5`: a divergência anterior de descoberta da migration de
-  Control não se reproduziu após clean e build Release novos sobre
-  `main@c72c8b967667f72e8971f4887174585d3640a36e`. A evidência é compatível
-  com output incremental stale usado por `--no-build`, sem provar causa
-  histórica mais profunda e sem exigir alteração de model, migration,
-  snapshot ou contrato. Control e Vector passaram list, apply, rollback para
-  zero, reapply e pending-model check em stores temporários separados, depois
-  removidos. O agregado offline passou 82 testes .NET, cobertura de 94,83% de
-  linhas e 72,34% de branches, lint, typecheck, dois testes e build do
-  Dashboard, auditoria de 130 arquivos e diff hygiene. A consulta NuGet
-  vigente não encontrou package vulnerável. `S03-B5` e S03-B estão concluídos;
-  isso não executa Automatic Quality Gate nem Human Gate.
-- Automatic Quality Gate de `STATE-03`: `APROVADO` sobre
-  `main@3d0731fdf3f5004fb185dc760b5f74e4d73b4aa5`, corpus `4.9.1`, com zero
-  achados P0, P1, P2 ou P3. Preflight encontrou zero processos/listeners do
-  produto. O gate local e offline confirmou catálogo 51/54/9, dois domínios de
-  digest, três validações pré-CAS, fronteiras arquiteturais, conteúdo
-  reabrível, staging não consultável, CAS, retenção, rollback por nova revisão,
-  recuperação, 40 packages materializados em Infrastructure sem
-  `System.Memory`, migrations Control/Vector e baseline limpa. O agregado
-  aprovou 82 testes, 94,83% de linhas, 72,34% de branches, Dashboard e
-  auditoria de 130 arquivos. Nenhum arquivo rastreado foi alterado durante a
-  coleta; os stores temporários foram removidos. Human Gate não foi executado.
-- Automatic Quality Gate de `STATE-04`: `APROVADO` sobre
-  `main@7f236542133719481a02f507cf802a1dd385f328`, corpus `4.9.2`, com zero
-  achados abertos. `AQG-S04-001` (P2), ausência inicial de uma prova única do
-  fluxo sintético ingestão→ativação→consulta, foi `RESOLVIDO`. O gate offline
-  aprovou format, build Release sem warnings, 119 testes, 92,37% de linhas,
-  65,73% de branches, arquitetura,
-  contratos, integração, parsers, hashes, lockfiles, OpenAPI, falhas, health,
-  segurança e higiene. Dashboard e validações externas foram `NÃO
-  APLICÁVEIS` pelo escopo negativo explícito. O resultado automático não
-  executou o Human Gate.
-- Human Gate de `STATE-04`: `APROVADO COM RESSALVAS` em 2026-08-04 sobre
-  `main@6d141decdf5f40661bb9f408d6aa97f9f322cfcf`, corpus `4.9.2` e working
-  tree limpa, após a apresentação do resumo completo do gate, entregáveis,
-  amostras críticas, limitações, riscos, rollback e escopo negativo. A frase
-  canônica foi `Confirmo a decisão acima exclusivamente para STATE-04`. A
-  decisão encerra somente `STATE-04`; não autoriza entrada ou execução de
-  `STATE-05`, produção, ação externa ou limpeza das evidências temporárias.
-- Auditoria corretiva posterior de `STATE-04`: a primeira passagem, iniciada
-  sobre `main@f71343291b942c66d0ff417a8764b032bbd63bff`, identificou
-  `AUD-S04-001` a `AUD-S04-004` e foi interrompida conforme sua condição de
-  parada. `S04-CORR-01` implementou C1, C2 e C3 nos commits focais
+  `AQG-S02-001` (P1), `AQG-S02-002` (P2) and `AQG-S02-003` (P3), historically
+  recorded by the previous audit, were disposed of as `RESOLVIDOS`;
+  the new audit found no new P0, P1, P2 or P3.
+- Human Gate for `STATE-02`: `APROVADO` without reservations on 2026-08-02 at
+  `main@6e61c4cf4429e2a62145d43bec3783146f01e37f`, corpus `4.9.1`, after
+  review of the automatic report, critical samples, limitations, residual
+  risks, pending conditions and negative scope. The decision closes only
+  `STATE-02` and does not authorise entry into `STATE-03`.
+- Transition to `STATE-03 DATA_AND_INDEX_MODELING`: authorised on 2026-08-02
+  at `main@35b67c194f6ea2459833420b8bc2143fadfe75df`, corpus `4.9.1` and a
+  clean working tree. The authority permits recording the entry and executing
+  locally and sequentially only `S03-A`: model and dictionary,
+  identities, states, relations, constraints, revisions, canonical
+  serialisation, reference vectors for the two digest domains, three
+  pre-CAS validations, activation/retention/rollback invariants and deterministic
+  fixtures. `S03-B`, migrations, persistent stores, new
+  dependencies and installation remain unauthorised.
+- Execution of `S03-A`: completed locally in commit
+  `ace780a25edb2749046e9897b8af36e0719e3e54` with the logical model in Domain,
+  pre-CAS construction and validation in Application, permanent dictionary,
+  executable canonical vectors, 51/54/9 fixtures and staging,
+  activation, observation, retention and rollback invariants. Infrastructure, projects,
+  dependencies and lockfiles were not changed; there is no migration or
+  persistent store.
+- Verification of `S03-A`: format and Release build without restore passed; 68
+  tests passed (53 unit, 10 architecture and 5 integration), with
+  95.55% line coverage and 89.93% branch coverage; lint, typecheck, 2
+  tests and Dashboard build also passed on the existing installation;
+  audit approved for 104 non-ignored files and diff hygiene approved.
+  The owner explicitly accepted Node.js `24.18.1` only as a
+  local verification variation; the repository pins remain at
+  `24.18.0`/npm `11.16.0`. The aggregate `eng/ci.ps1 -Offline` was not executed
+  because it would perform restore and `npm ci`, actions blocked with `S03-B`.
+- Authority for `S03-B`: recorded in commit
+  `381d1cd297580476e461a242ce5b66c4884e521b` after an approved repetition of
+  `S03-B0`. The conservative supply-chain set contains 42 nupkgs, all
+  verified by catalogue SHA-512, repository signature, advisory and
+  licence. The Linux ARM64 asset is ELF64 AArch64 and contains SQLite `3.53.3`.
+- Closure reconciliation: the real `net10.0` restore materialised 40
+  packages in `project.assets.json` and separately installed local tool
+  `dotnet-ef 10.0.10`, totalling 41 items. `System.Memory 4.5.3`,
+  declared only in the `.NETStandard2.0` group of `SQLitePCLRaw.core 2.1.12`,
+  remained verified conservative evidence and was not pinned, referenced
+  or materialised. The owner explicitly accepted this distinction and
+  authorised resuming `S03-B1` in the interrupted working tree.
+- Execution of `S03-B1` through `S03-B4`: `S03-B1` completed locked restore with 40
+  materialised packages, tool `dotnet-ef 10.0.10`, absence of
+  `System.Memory` and exactly four affected lockfiles. `S03-B2` recorded
+  the separate physical models and initial migrations for `control.db` and
+  `vectors.db`. `S03-B3` implemented ports in Application and local stores in
+  Infrastructure for control authority, derived vectors, immutable
+  content, CAS, retention, clean-up and recovery. `S03-B4` added deterministic
+  fixtures and tests, including concurrency, rollback, corruption,
+  recovery and the synthetic functional case of 10,000 vectors by 1,536
+  dimensions. Canonical finalisation calculates specification digests,
+  logical artefacts and complete manifest from SQLite readback.
+- Execution of `S03-B5`: the previous Control migration-discovery divergence
+  did not reproduce after a new clean and Release build at
+  `main@c72c8b967667f72e8971f4887174585d3640a36e`. The evidence is consistent
+  with stale incremental output used by `--no-build`, without proving a deeper
+  historical cause and without requiring a change to model, migration,
+  snapshot or contract. Control and Vector passed list, apply, rollback to
+  zero, reapply and pending-model check in separate temporary stores, which were then
+  removed. The offline aggregate passed 82 .NET tests, 94.83% line
+  coverage and 72.34% branch coverage, lint, typecheck, two tests and Dashboard
+  build, audit of 130 files and diff hygiene. The current NuGet query
+  found no vulnerable package. `S03-B5` and S03-B are complete;
+  this does not execute an Automatic Quality Gate or Human Gate.
+- Automatic Quality Gate for `STATE-03`: `APROVADO` at
+  `main@3d0731fdf3f5004fb185dc760b5f74e4d73b4aa5`, corpus `4.9.1`, with no
+  P0, P1, P2 or P3 findings. Preflight found no product processes/listeners.
+  The local offline gate confirmed the 51/54/9 catalogue, two digest
+  domains, three pre-CAS validations, architectural boundaries, reopenable
+  content, non-queryable staging, CAS, retention, rollback through a new revision,
+  recovery, 40 packages materialised in Infrastructure without
+  `System.Memory`, Control/Vector migrations and a clean baseline. The aggregate
+  approved 82 tests, 94.83% line coverage, 72.34% branch coverage, Dashboard and
+  audit of 130 files. No tracked file was changed during
+  collection; the temporary stores were removed. A Human Gate was not executed.
+- Automatic Quality Gate for `STATE-04`: `APROVADO` at
+  `main@7f236542133719481a02f507cf802a1dd385f328`, corpus `4.9.2`, with no
+  open findings. `AQG-S04-001` (P2), the initial absence of one proof of the
+  synthetic ingestion→activation→query flow, was `RESOLVIDO`. The offline gate
+  approved format, warning-free Release build, 119 tests, 92.37% line coverage,
+  65.73% branch coverage, architecture,
+  contracts, integration, parsers, hashes, lockfiles, OpenAPI, failures, health,
+  security and hygiene. Dashboard and external validations were `NÃO
+  APLICÁVEIS` under the explicit negative scope. The automatic result did not
+  execute the Human Gate.
+- Human Gate for `STATE-04`: `APROVADO COM RESSALVAS` on 2026-08-04 at
+  `main@6d141decdf5f40661bb9f408d6aa97f9f322cfcf`, corpus `4.9.2` and a clean working
+  tree, after presentation of the complete summary of the gate, deliverables,
+  critical samples, limitations, risks, rollback and negative scope. The canonical
+  phrase was `Confirmo a decisão acima exclusivamente para STATE-04`. The
+  decision closes only `STATE-04`; it does not authorise entry into or execution of
+  `STATE-05`, production, external action or clean-up of temporary evidence.
+- Subsequent corrective audit of `STATE-04`: the first pass, started
+  at `main@f71343291b942c66d0ff417a8764b032bbd63bff`, identified
+  `AUD-S04-001` through `AUD-S04-004` and was interrupted in accordance with its stop
+  condition. `S04-CORR-01` implemented C1, C2 and C3 in focused commits
   `a674560ed1093e96d533012f1b11a292c3f641b5`,
-  `b875eac6e9ce4c72783d4e4bb72a59686ca58248` e
-  `ac34c085a499a34ea8ee1c9106675482e38790c3`; C4 reconcilia os registros
-  factuais. O Automatic Quality Gate corretivo foi `APROVADO` sobre
-  `main@114ea6f7f76936dac991553588660fc986bd0f10`, com 150 testes aplicáveis,
-  92,26% de linhas e 65,07% de branches; a auditoria completa permanece
-  pendente e obrigatória antes da disposição dos achados. Nenhum novo Human
-  Gate foi executado.
-- Human Gate de `STATE-03`: `APROVADO` sem ressalvas em 2026-08-02 sobre
-  `main@a88dc1f296bb9117dd8e869b83d1665cee99634f`, corpus `4.9.1`, após
-  revisão, na mesma conversa, do resumo completo da baseline vigente, dos
-  entregáveis, resultados automáticos, limitações, riscos residuais, escopo
-  negativo e rollback. A frase canônica foi `Confirmo a decisão acima
-  exclusivamente para STATE-03`. A decisão encerra somente `STATE-03` e não
-  autoriza entrada em `STATE-04` nem qualquer ação externa.
-- Transição para `STATE-04 BACKEND_IMPLEMENTATION`: autorizada e registrada
-  em 2026-08-03 sobre `main@e62fbc4da7e580dc1f5449689699374e42ea8ab4`,
-  corpus `4.9.2` e working tree limpa. A autoridade permite somente atualizar
-  o snapshot factual e o histórico append-only e criar o commit local focal
-  desse registro. `S04-A`, `S04-B`, `S04-C` e `S04-D`, código, dependências,
-  packages, lockfiles, migrations, contratos, ADRs, rede, providers, contas,
-  secrets, corpus real, fontes oficiais, armazenamento operacional, Dashboard,
-  GitHub, OCI, publicação, deploy e DB-Notifier permanecem sem autorização.
-- Lote corretivo de `STATE-02`: sobre
-  `main@9707b87d75a6acb14c8993ff0283a4221bc6c762`, corpus `4.8.0`, foi
-  preparado o ADR-0007, recomendando separar identidade de geração
-  e identidade do registro de ativação. As fontes de `AQG-S02-002` e
-  `AQG-S02-003` foram reconciliadas factualmente, sem registrar aceitação do
-  ADR, alterar os contratos semânticos aceitos ou repetir o Automatic Quality
-  Gate. Nesse lote, o resultado do gate permaneceu `REPROVADO`.
-- Decisão corretiva de `STATE-02`: em 2026-08-02, sobre
-  `main@664187c6926be5ce4bef3734603f8d936626d535`, corpus `4.8.1`, o
-  proprietário aceitou explicitamente o ADR-0007 com a decisão
-  `ADR-0007: ACEITAR.`. A aceitação corrige a autoridade arquitetural de
-  identidade/freshness e rollback, mas não autoriza nem executa a
-  reconciliação semântica rastreada, não dispôs `AQG-S02-001` naquele registro
-  e não repetiu o Automatic Quality Gate.
-- Reconciliação semântica de `STATE-02`: em 2026-08-02, a partir de
-  `main@9aa90c012e3bc973330f5a79678fc358c81809df`, corpus `4.9.0`, a
-  semântica aceita do ADR-0007 foi aplicada transversalmente ao baseline
-  documental como corpus `4.9.1`. Esse lote não repetiu o Automatic Quality
-  Gate; o resultado então permaneceu `REPROVADO` e os achados ainda não
-  receberam nova disposição.
-- Nova auditoria combinada de `STATE-02`: em 2026-08-02, sobre a baseline limpa
-  `main@3978a17201cf5f6ac4ddc189862736fc3646457b`, corpus `4.9.1`, todas as
-  áreas documentais aplicáveis foram `APROVADAS`. Os dois domínios de digest,
-  três validações pré-CAS, revalidação, hard pre-filter, rollback, proveniência,
-  riscos e documentos roteados convergem; `AQG-S02-001` a `AQG-S02-003` estão
-  `RESOLVIDOS`, sem novo achado classificado. O trabalho não implementou nem
-  executou comportamento, não solicitou Human Gate e não autorizou `STATE-03`.
-- ADR-0001: `superseded` pelo ADR-0003, após aceitação original no
-  `GATE-B01`; ADR-0002: `accepted`; ADR-0003: `accepted` pela solicitação
-  humana explícita de renomear o projeto para `RAG-Challenge`, incorporando
-  sem alteração todas as decisões não relacionadas a nomenclatura do
-  ADR-0001; ADR-0004, ADR-0005 e ADR-0006: `accepted` por decisões humanas
-  explícitas e independentes em 2026-08-01; ADR-0007: `accepted` por decisão
-  humana explícita em 2026-08-02; ADR-0008 e ADR-0009: `accepted` por decisões
-  humanas explícitas e independentes em 2026-08-07, com reconciliação semântica
-  conjunta aplicada no corpus `4.9.5`; ADR-0010: `accepted` por decisão humana
-  explícita em 2026-08-07, com registro e reconciliação documental no corpus
-  `4.10.0`. A aceitação de ADR não substitui as autoridades de implementação:
-  `S04-CORR-04-A` a `S04-CORR-04-E` estão concluídos na fronteira local,
-  offline e sintética autorizada; isso não constitui gate ou homologação.
-- ADR-0011: `accepted` pela decisão humana explícita
-  `ADR-0011: ACEITAR.` em 2026-08-09. A decisão refina o mapeamento de
-  evidência de ADR-0004/ADR-0008; sua reconciliação semântica nos proprietários
-  documentais nomeados foi aplicada no corpus `4.10.10`. A correção interna do
-  serving foi implementada no commit
-  `b9c3e5f3a72c2dd7762c256198452ae2c217b2d2`; A0-003 posteriormente tornou as
-  quatro operações visuais `PERMITTED` somente sob o mecanismo notice-bearing
-  e preservou distribuição externa `DENIED`, sem comportamento com dado de
-  produto.
-- ADR-0012: `accepted` pela decisão humana explícita
-  `ADR-0012: ACEITAR.` em 2026-08-09. A decisão estabelece a imagem composta
-  autocontida e as mudanças necessárias de schema, migration e contrato v2.
-  Sua reconciliação semântica nos seis proprietários documentais foi aplicada
-  no corpus `4.10.15`, e a revisão protegida do contrato v2 foi congelada no
-  corpus `4.10.16`. Schema e migrations foram implementados no commit
-  `98036f3c8c496544f4532d1fe48c981f836a1871`; o comportamento notice-bearing
-  foi implementado no commit
-  `f682827d1a26b08fa8c450a1fadb3bd0e1fa1700`. Seu Automatic Quality Gate
-  próprio foi `APROVADO` sob
-  `AUTH-S07-A-NOTICE-BEARING-PROFILE-AQG-RETEST-001` somente na fronteira
-  local, offline, determinística e sintética, sem achado P0, P1, P2 ou P3.
-  O A0-003 posterior removeu o bloqueio de direitos sem renderizar, materializar
-  ou ativar o PostgreSQL.
-- ADR-0013: `accepted` pela decisão humana explícita
-  `ADR-0013: ACEITAR.` em 2026-08-10 sobre
-  `main@f03162bad0fc166a597739b22e55fbc46ec59535`, corpus `4.10.17`. A decisão
-  seleciona `gpt-5.4-mini-2026-03-17` como único candidato de LLM do MVP,
-  substitui somente a seleção anterior de LLM do ADR-0005 e mantém
-  `gpt-5.6-sol` inativo para avaliação futura. Sua reconciliação semântica no
-  ADR-0005, no relatório arquitetural de `STATE-02` e no índice de arquitetura
-  foi aplicada no corpus `4.10.19`. O incremento local, offline e
-  determinístico de compatibilidade do adaptador foi implementado sob
-  `AUTH-STATE07-LLM-ADAPTER-COMPAT-001` no commit
-  `b6d6f9102ecf0ea93309f8080acebad02cf16584` e reconciliado factualmente no
-  corpus `4.10.20`. O Automatic Quality Gate específico foi `APROVADO`, sem
-  achado P0, P1, P2 ou P3, sob
-  `AUTH-STATE07-LLM-ADAPTER-COMPAT-AQG-001` na baseline
-  `main@6e6fdabb91e2fb4c5186c464ce08f5da390d727a`, corpus `4.10.20`. A evidência
-  permanece limitada a Infrastructure, testes locais offline e handlers
-  falsos; não houve configuração operacional, conta, credencial, chamada ao
-  provider, corpus real, OCI, deploy, avaliação real, Human Gate ou mudança de
-  lifecycle. A preparação local, offline e determinística da campanha
-  `s07-a-provider-gpt54m-candidate-001` foi concluída sob
-  `AUTH-S07-A-PROVIDER-PREP-001` no commit
-  `422286863e7a3c213e96db18144769bd0458a75b` e reconciliada factualmente no
-  corpus `4.10.22`. Ela materializa uma revisão sucessora sintética, imutável e
-  não pontuada, com harness limitado a handlers falsos; não executa ou homologa
-  o provider. O Automatic Quality Gate específico da preparação foi
-  `APROVADO`, sem achado P0, P1, P2 ou P3, sob
-  `AUTH-S07-A-PROVIDER-PREP-AQG-001` na baseline
-  `main@5d74c9c9190b0b3465b11dc6864e3dd519cc88f9`, corpus `4.10.22`, somente na
-  fronteira local, offline, determinística e com handlers falsos.
-- ADR-0014: `accepted` pela decisão humana explícita `ADR-0014: ACEITAR.` em
-  2026-08-11 sobre `main@52e1ac7d9bc61be196549a8ee61399fde477b8fb`, corpus
-  `4.10.26`, working tree limpa e OpenAPI v1/v2 protegidas. A decisão registra
-  a ordenação existente `Score DESC, global ChunkOrdinal ASC`, preserva
-  `retrieval-v1` para entradas válidas, define a porta Application retrieval-
-  only tipada e fail-closed e estabelece o desenho governado da baseline de
-  retrieval. `retrieval-multi-query-v1-candidate` permanece estacionado. O
-  corpus `4.10.27` reconcilia somente essa autoridade arquitetural sob
-  `AUTH-STATE07-RETRIEVAL-DETERMINISM-ADR-RECONCILE-001`. Sob autoridade humana
-  posterior e separada, concedida sobre
-  `main@ade89d737975f65c38e88b35758f8c6091e57406`, corpus `4.10.27`, o
-  `DR-2 — Determinism implementation` foi concluído no commit focal
-  `fabb24cad16201070e3b95fffb22467cd55963ab`. O corpus `4.10.28` reconcilia
-  factualmente a porta Application retrieval-only tipada, a configuração fixa
-  integral, as validações finitas e de ordem total e os outcomes fail-closed.
-  A evidência focal registrada — build sem avisos ou erros, 74 testes unitários
-  focais, 8 de integração locais/SQLite, 11 de arquitetura e auditoria de 279
-  arquivos — não constituía `DR-3` ou Automatic Quality Gate. Posteriormente,
-  sob autoridade humana separada sobre
-  `main@272a868c2f2a90eba21ee422ba5a2c34aa2337d5`, corpus `4.10.28`, o
-  `DR-3 — Determinism Automatic Quality Gate` foi executado localmente, offline
-  e de forma determinística e terminou `REPROVADO`, com `DR3-FIND-001` P1 e
-  `DR3-FIND-002`, `DR3-FIND-003` e `DR3-FIND-004` P2. Os checks focais e a CI
-  offline completa passaram, mas não superam o defeito numérico P1 nem as três
-  lacunas de prova P2. Dataset, campanha, provider, rede, chamada paga, OpenAPI,
-  schema, migration, Human Gate e lifecycle não foram executados ou alterados;
-  MultiQuery continua estacionado. Após a correção versionada e sua
-  reconciliação, o reteste corretivo independente autorizado por
-  `AUTH-DR3-NUMERIC-SEMANTICS-AQG-RETEST-001` foi `APROVADO` sobre
-  `main@bf8a156e7c5eea801f29fb6e7742cac880783bc0`, corpus `4.10.32`, sem novo
-  achado P0, P1, P2 ou P3; `DR3-FIND-001` a `DR3-FIND-004` estão `RESOLVED`.
-- `RB-1 — Evaluation design freeze`: concluído documentalmente sob
-  `AUTH-RB1-EVALUATION-DESIGN-FREEZE-001` sobre a baseline limpa
-  `main@45cbcf2624262572abf8180498ac63709a9130e4`, corpus `4.10.33`, com as
-  quatro identidades protegidas de OpenAPI preservadas. A revisão imutável
-  `retrieval-v2-evaluation-design-v1` está
-  `frozen-unmaterialised-unscored` em 28 artefatos normativos — oito instâncias
-  de desenho e 20 schemas Draft 2020-12 — vinculados por inventário fechado e
-  SHA-256. O contrato-raiz possui self-digest
+  `b875eac6e9ce4c72783d4e4bb72a59686ca58248` and
+  `ac34c085a499a34ea8ee1c9106675482e38790c3`; C4 reconciles the factual
+  records. The corrective Automatic Quality Gate was `APROVADO` at
+  `main@114ea6f7f76936dac991553588660fc986bd0f10`, with 150 applicable tests,
+  92.26% line coverage and 65.07% branch coverage; the complete audit remains
+  pending and mandatory before disposition of the findings. No new Human
+  Gate was executed.
+- Human Gate for `STATE-03`: `APROVADO` without reservations on 2026-08-02 at
+  `main@a88dc1f296bb9117dd8e869b83d1665cee99634f`, corpus `4.9.1`, after
+  review, in the same conversation, of the complete summary of the current baseline,
+  deliverables, automatic results, limitations, residual risks, negative
+  scope and rollback. The canonical phrase was `Confirmo a decisão acima
+  exclusivamente para STATE-03`. The decision closes only `STATE-03` and does not
+  authorise entry into `STATE-04` or any external action.
+- Transition to `STATE-04 BACKEND_IMPLEMENTATION`: authorised and recorded
+  on 2026-08-03 at `main@e62fbc4da7e580dc1f5449689699374e42ea8ab4`,
+  corpus `4.9.2` and a clean working tree. The authority permits only updating
+  the factual snapshot and append-only history and creating the focused local commit
+  for that record. `S04-A`, `S04-B`, `S04-C` and `S04-D`, code, dependencies,
+  packages, lockfiles, migrations, contracts, ADRs, network, providers, accounts,
+  secrets, real corpus, official sources, operational storage, Dashboard,
+  GitHub, OCI, publication, deployment and DB-Notifier remain unauthorised.
+- Corrective batch for `STATE-02`: at
+  `main@9707b87d75a6acb14c8993ff0283a4221bc6c762`, corpus `4.8.0`,
+  ADR-0007 was prepared, recommending separation of generation identity
+  from activation-record identity. The sources of `AQG-S02-002` and
+  `AQG-S02-003` were factually reconciled, without recording acceptance of the
+  ADR, altering the accepted semantic contracts or repeating the Automatic Quality
+  Gate. In that batch, the gate result remained `REPROVADO`.
+- Corrective decision for `STATE-02`: on 2026-08-02, at
+  `main@664187c6926be5ce4bef3734603f8d936626d535`, corpus `4.8.1`, the
+  owner explicitly accepted ADR-0007 with decision
+  `ADR-0007: ACEITAR.`. Acceptance corrects the architectural authority for
+  identity/freshness and rollback, but neither authorises nor executes the
+  tracked semantic reconciliation, did not dispose of `AQG-S02-001` in that record
+  and did not repeat the Automatic Quality Gate.
+- Semantic reconciliation of `STATE-02`: on 2026-08-02, starting from
+  `main@9aa90c012e3bc973330f5a79678fc358c81809df`, corpus `4.9.0`, the
+  accepted semantics of ADR-0007 were applied across the documentary baseline
+  as corpus `4.9.1`. That batch did not repeat the Automatic Quality
+  Gate; the result therefore remained `REPROVADO` and the findings had not yet
+  received a new disposition.
+- New combined audit of `STATE-02`: on 2026-08-02, at clean baseline
+  `main@3978a17201cf5f6ac4ddc189862736fc3646457b`, corpus `4.9.1`, all
+  applicable documentary areas were `APROVADAS`. The two digest domains,
+  three pre-CAS validations, revalidation, hard pre-filtering, rollback, provenance,
+  risks and routed documents converge; `AQG-S02-001` through `AQG-S02-003` are
+  `RESOLVIDOS`, with no new classified finding. The work neither implemented nor
+  executed behaviour, requested no Human Gate and did not authorise `STATE-03`.
+- ADR-0001: `superseded` by ADR-0003, after original acceptance at
+  `GATE-B01`; ADR-0002: `accepted`; ADR-0003: `accepted` by the explicit human
+  request to rename the project to `RAG-Challenge`, incorporating
+  unchanged all ADR-0001 decisions unrelated to naming;
+  ADR-0004, ADR-0005 and ADR-0006: `accepted` by explicit and independent human
+  decisions on 2026-08-01; ADR-0007: `accepted` by an explicit human decision
+  on 2026-08-02; ADR-0008 and ADR-0009: `accepted` by explicit and independent
+  human decisions on 2026-08-07, with joint semantic reconciliation
+  applied in corpus `4.9.5`; ADR-0010: `accepted` by an explicit human
+  decision on 2026-08-07, with recording and documentary reconciliation in corpus
+  `4.10.0`. ADR acceptance does not replace implementation authorities:
+  `S04-CORR-04-A` through `S04-CORR-04-E` are complete at the authorised local,
+  offline and synthetic boundary; this does not constitute a gate or homologation.
+- ADR-0011: `accepted` by explicit human decision
+  `ADR-0011: ACEITAR.` on 2026-08-09. The decision refines the evidence mapping
+  of ADR-0004/ADR-0008; its semantic reconciliation in the named documentary
+  owners was applied in corpus `4.10.10`. The internal serving correction
+  was implemented in commit
+  `b9c3e5f3a72c2dd7762c256198452ae2c217b2d2`; A0-003 subsequently made the
+  four visual operations `PERMITTED` only under the notice-bearing mechanism
+  and preserved external distribution as `DENIED`, without behaviour involving product
+  data.
+- ADR-0012: `accepted` by explicit human decision
+  `ADR-0012: ACEITAR.` on 2026-08-09. The decision establishes the self-contained
+  composite image and the necessary schema, migration and v2-contract changes.
+  Its semantic reconciliation in the six documentary owners was applied
+  in corpus `4.10.15`, and the protected revision of the v2 contract was frozen in
+  corpus `4.10.16`. Schema and migrations were implemented in commit
+  `98036f3c8c496544f4532d1fe48c981f836a1871`; notice-bearing behaviour
+  was implemented in commit
+  `f682827d1a26b08fa8c450a1fadb3bd0e1fa1700`. Its own Automatic Quality Gate
+  was `APROVADO` under
+  `AUTH-S07-A-NOTICE-BEARING-PROFILE-AQG-RETEST-001` only at the
+  local, offline, deterministic and synthetic boundary, with no P0, P1, P2 or P3 finding.
+  Subsequent A0-003 removed the rights blocker without rendering, materialising
+  or activating PostgreSQL.
+- ADR-0013: `accepted` by explicit human decision
+  `ADR-0013: ACEITAR.` on 2026-08-10 at
+  `main@f03162bad0fc166a597739b22e55fbc46ec59535`, corpus `4.10.17`. The decision
+  selects `gpt-5.4-mini-2026-03-17` as the sole MVP LLM candidate,
+  replaces only the previous LLM selection in ADR-0005 and keeps
+  `gpt-5.6-sol` inactive for future evaluation. Its semantic reconciliation in
+  ADR-0005, the `STATE-02` architecture report and architecture index
+  was applied in corpus `4.10.19`. The local, offline and
+  deterministic adapter-compatibility increment was implemented under
+  `AUTH-STATE07-LLM-ADAPTER-COMPAT-001` in commit
+  `b6d6f9102ecf0ea93309f8080acebad02cf16584` and factually reconciled in
+  corpus `4.10.20`. The specific Automatic Quality Gate was `APROVADO`, with no
+  P0, P1, P2 or P3 finding, under
+  `AUTH-STATE07-LLM-ADAPTER-COMPAT-AQG-001` at baseline
+  `main@6e6fdabb91e2fb4c5186c464ce08f5da390d727a`, corpus `4.10.20`. The evidence
+  remains limited to Infrastructure, local offline tests and fake
+  handlers; there was no operational configuration, account, credential, call to the
+  provider, real corpus, OCI, deployment, real evaluation, Human Gate or lifecycle
+  change. The local, offline and deterministic preparation of campaign
+  `s07-a-provider-gpt54m-candidate-001` was completed under
+  `AUTH-S07-A-PROVIDER-PREP-001` in commit
+  `422286863e7a3c213e96db18144769bd0458a75b` and factually reconciled in
+  corpus `4.10.22`. It materialises a synthetic, immutable and
+  unscored successor revision, with a harness limited to fake handlers; it neither executes nor homologates
+  the provider. The preparation-specific Automatic Quality Gate was
+  `APROVADO`, with no P0, P1, P2 or P3 finding, under
+  `AUTH-S07-A-PROVIDER-PREP-AQG-001` at baseline
+  `main@5d74c9c9190b0b3465b11dc6864e3dd519cc88f9`, corpus `4.10.22`, only at the
+  local, offline, deterministic boundary with fake handlers.
+- ADR-0014: `accepted` by explicit human decision `ADR-0014: ACEITAR.` on
+  2026-08-11 at `main@52e1ac7d9bc61be196549a8ee61399fde477b8fb`, corpus
+  `4.10.26`, a clean working tree and protected OpenAPI v1/v2. The decision records
+  the existing ordering `Score DESC, global ChunkOrdinal ASC`, preserves
+  `retrieval-v1` for valid inputs, defines the typed and fail-closed Application
+  retrieval-only port and establishes the governed design of the retrieval
+  baseline. `retrieval-multi-query-v1-candidate` remains parked. Corpus
+  `4.10.27` reconciles only that architectural authority under
+  `AUTH-STATE07-RETRIEVAL-DETERMINISM-ADR-RECONCILE-001`. Under subsequent and separate human
+  authority, granted at
+  `main@ade89d737975f65c38e88b35758f8c6091e57406`, corpus `4.10.27`,
+  `DR-2 — Determinism implementation` was completed in focused commit
+  `fabb24cad16201070e3b95fffb22467cd55963ab`. Corpus `4.10.28` factually reconciles
+  the typed Application retrieval-only port, complete fixed configuration,
+  finite and total-order validations and fail-closed outcomes.
+  The recorded focused evidence — build without warnings or errors, 74 focused unit
+  tests, 8 local/SQLite integration tests, 11 architecture tests and an audit of 279
+  files — did not constitute `DR-3` or an Automatic Quality Gate. Subsequently,
+  under separate human authority at
+  `main@272a868c2f2a90eba21ee422ba5a2c34aa2337d5`, corpus `4.10.28`,
+  `DR-3 — Determinism Automatic Quality Gate` was executed locally, offline
+  and deterministically and ended `REPROVADO`, with `DR3-FIND-001` P1 and
+  `DR3-FIND-002`, `DR3-FIND-003` and `DR3-FIND-004` P2. The focused checks and full offline
+  CI passed, but do not overcome the P1 numerical defect or the three
+  P2 proof gaps. Dataset, campaign, provider, network, paid call, OpenAPI,
+  schema, migration, Human Gate and lifecycle were neither executed nor changed;
+  MultiQuery remains parked. After the versioned correction and its
+  reconciliation, the independent corrective retest authorised by
+  `AUTH-DR3-NUMERIC-SEMANTICS-AQG-RETEST-001` was `APROVADO` at
+  `main@bf8a156e7c5eea801f29fb6e7742cac880783bc0`, corpus `4.10.32`, with no new
+  P0, P1, P2 or P3 finding; `DR3-FIND-001` through `DR3-FIND-004` are `RESOLVED`.
+- `RB-1 — Evaluation design freeze`: completed through documentation under
+  `AUTH-RB1-EVALUATION-DESIGN-FREEZE-001` at clean baseline
+  `main@45cbcf2624262572abf8180498ac63709a9130e4`, corpus `4.10.33`, with the
+  four protected OpenAPI identities preserved. Immutable revision
+  `retrieval-v2-evaluation-design-v1` is
+  `frozen-unmaterialised-unscored` across 28 normative artefacts — eight design
+  instances and 20 Draft 2020-12 schemas — bound by a closed inventory and
+  SHA-256. The root contract has self-digest
   `0e8d928aee055211773d83eb33f2d54485033c81cfad15dd95b0fdd551f8ed08`,
-  38 células contratuais e 10 células de elegibilidade somente definidas e os
-  sete contadores de materialização em zero. Nenhum documento/caso de produto,
-  pergunta, qrel, vetor, geração, resultado ou pontuação foi criado. Build,
-  testes executáveis, scorer, campanha, Automatic Quality Gate, Human Gate,
-  lifecycle e ação externa permaneceram `NOT_RUN`. Naquela baseline, `RB-2`
-  permanecia sem autorização.
-- `RB-2 — Dataset materialisation readiness` e `RB-3 — Campaign-input freeze`:
-  materializados e mecanicamente congelados posteriormente sobre a baseline
-  rastreada limpa
-  `main@0dbc415bad6532842aa6c4d1bb45ecd915bf5022`, corpus `4.10.41`, sem
-  resultado pontuado. A revisão RB-2
-  `rag-eval-catalogue-v1-postgresql-18-rb2-20260814-001` está
-  `frozen-unscored-rb2-complete`, vinculada ao materialisation-freeze manifest
+  38 contract cells and 10 eligibility cells that are defined only, and all
+  seven materialisation counters at zero. No product document/case,
+  question, qrel, vector, generation, result or score was created. Build,
+  executable tests, scorer, campaign, Automatic Quality Gate, Human Gate,
+  lifecycle and external action remained `NOT_RUN`. At that baseline, `RB-2`
+  remained unauthorised.
+- `RB-2 — Dataset materialisation readiness` and `RB-3 — Campaign-input freeze`:
+  subsequently materialised and mechanically frozen on the
+  clean tracked baseline
+  `main@0dbc415bad6532842aa6c4d1bb45ecd915bf5022`, corpus `4.10.41`, without a
+  scored result. RB-2 revision
+  `rag-eval-catalogue-v1-postgresql-18-rb2-20260814-001` is
+  `frozen-unscored-rb2-complete`, bound to the materialisation-freeze manifest
   SHA-256 `daede1db869f7daf784fa2f3fc3b55e037cf4f3bb59a22f94e2026175858bfe4`,
-  com 252 casos únicos: 200 positivos, 52 negativos e divisão de 126 perguntas
-  `pt-BR`/126 `en-GB`. O tier `REPRESENTATIVE_HOMOLOGATION` qualifica somente
-  o denominador congelado não pontuado; não é homologação de produto. O
-  campaign-input freeze RB-3
-  `rag-eval-catalogue-v1-postgresql-18-rb3-20260814-001` está
-  `frozen-unscored-rb3-complete`, vinculado ao SHA-256
+  with 252 unique cases: 200 positive, 52 negative and a split of 126 `pt-BR`/
+  126 `en-GB` questions. Tier `REPRESENTATIVE_HOMOLOGATION` qualifies only
+  the unscored frozen denominator; it is not product homologation. The
+  RB-3 campaign-input freeze
+  `rag-eval-catalogue-v1-postgresql-18-rb3-20260814-001` is
+  `frozen-unscored-rb3-complete`, bound to SHA-256
   `ac7b5763bc9e571b6365449b340c8256790c5fe57ba79142b592b854cf25303c`,
-  com exatamente um vetor original por caso, 252 vetores de 1.536 componentes
-  `float32` little-endian e 6.144 bytes cada. O receipt registra uma
-  materialização de embeddings concluída sem retry e stores protegidos
-  idênticos antes/depois. Esses fatos de integridade mecânica permanecem.
-  Porém, a auditoria posterior constatou que o checkpoint exigia duas revisões
-  humanas independentes e adjudicação humana sem decisões de agente, enquanto
-  o pacote retido registra `humanAttribution=false`, vinte decisões de
-  adjudicação de agente, zero decisões humanas e, contraditoriamente,
-  `no agent-authored adjudication`. Os bytes e hashes não foram alterados, mas
-  o literal `frozen-unscored-rb2-complete` não prova satisfação do gate. O
-  proprietário selecionou quarentena histórica: RB-2 fica permanentemente
-  inválido nessa revisão, RB-3 fica indisponível como input de RB-4 e ambos
-  permanecem intactos apenas como evidência histórica. Qualquer sucessor
-  exige autoridade separada, duas revisões humanas independentes e
-  adjudicação humana real. `RB-4` permanece `NOT_RUN` e bloqueado.
-- ADR-0015: `accepted` pela decisão humana explícita `ADR-0015: ACEITAR.` em
-  2026-08-11 sobre `main@46de807148d5b547f56a0f7265b32428b232100f`, corpus
-  `4.10.30`, working tree limpa e OpenAPI v1/v2 protegidas. A decisão seleciona
-  `cosine-f32mul-f64acc-boundary-canonical-v1`, `retrieval-v2` e o descritor
-  `/2`, com novo `IndexCompatibilityKey`, geração e baseline de avaliação antes
-  de servir; corredor exato de 1 ULP e aritmética escalada em binary64
-  permanecem alternativas não selecionadas. Posteriormente, sob
-  `AUTH-DR3-NUMERIC-SEMANTICS-IMPLEMENTATION-001`, o commit
-  `9addb166e82dd04581beee7b4276a74977fe04c5` implementou a semântica, a política,
-  a compatibilidade fail-closed e as quatro correções de prova. A implementação
-  não criou nem ativou geração de produto e, naquele incremento, não repetiu o
-  gate: `DR-3` continuou `REPROVADO`, com os quatro achados
-  `CORRECTED_PENDING_GATE_RETEST`. O reteste independente posterior foi
-  `APROVADO` e dispôs os quatro achados como `RESOLVED`, preservando a evidência
-  histórica anterior.
-- Fechamento sanitizado da chave administrativa de provisionamento: o cleanup
-  concluído sob `AUTH-S07-A-PROVIDER-ADMIN-KEY-CLEANUP-002` foi reconciliado
-  documentalmente sob
-  `AUTH-S07-A-PROVIDER-ADMIN-KEY-CLEANUP-RECONCILE-001`, sobre
-  `main@b2654088d11ab94c23cdf19e2aa57d89f0b3ae49`, corpus `4.10.24`, working
-  tree inicialmente limpa e OpenAPI v1/v2 protegidas. Segundo o registro de
-  fechamento sanitizado fornecido pelo proprietário, a Admin key com label
-  exato `s07-a-provider-gpt54m-candidate-001-admin-provisioning` foi revogada,
-  está ausente do inventário Active e aparece historicamente somente como
-  Inactive; `Last used` permaneceu `Never` e o gasto permaneceu `USD 0.00`. O
-  target `RAG-Challenge/OpenAI/AdminKey/s07-a-provider-gpt54m-candidate-001`
-  foi removido do Windows Credential Manager e sua ausência foi verificada no
-  cleanup autorizado. Esta reconciliação não reacessou esses sistemas e não
-  reteve secret, fragmento, fingerprint ou representação mascarada. Não houve
-  chamada de provider ou `/v1/responses`, custo novo, alteração de billing,
-  limites, allowlist ou projeto, Human Gate ou lifecycle.
-- Reauditoria das fronteiras de preflight e homologação: o preflight operacional
-  inicial de `s07-a-provider-gpt54m-candidate-001` foi finalizado como
-  `BLOQUEADO`, sem campanha real, chamada de provider ou `/v1/responses`. O
-  cleanup posterior da Admin key e de sua credencial local está encerrado. O
-  fluxo experimental posterior de Coordinator/Docker/C3 foi revogado e não
-  constitui autoridade vigente nem pendência canônica. O mecanismo
-  notice-bearing existe desde o commit
-  `f682827d1a26b08fa8c450a1fadb3bd0e1fa1700`, mas não reclassifica
-  retroativamente o A0: o Automatic Quality Gate notice-bearing foi
-  `APROVADO` na fronteira local, offline, determinística e sintética e seu
-  resultado foi reconciliado no corpus `4.10.35`, sem achado P0, P1, P2 ou P3.
-  O A0-003 dispõe as quatro operações visuais como `PERMITTED` somente sob o
-  perfil notice-bearing e mantém distribuição/publicação externa `DENIED`; o
-  candidato permanece `ELIGIBLE_CANDIDATE`, sem materialização ou ativação.
-- Composição administrativa de produto: o reteste integral autorizado sob
-  `AUTH-S07-A-PRODUCT-ADMIN-COMPOSITION-AQG-RETEST-001`, sobre
-  `main@e63f061d0bce4e48cd3b32294c20e29727cd7156`, corpus `4.10.36` e árvore
-  limpa, foi `APROVADO` sem achado P0, P1, P2 ou P3. A inspeção seguiu o
-  caminho efetivamente chamado por `Program`; a seleção por seis nomes
-  totalmente qualificados executou exatamente 6/6 testes, com fail-on-zero, e
-  `eng/ci.ps1 -Offline` foi executado exatamente uma vez somente depois desse
-  resultado positivo. A CI aprovou 202 testes unitários, 208 de integração,
-  11 de arquitetura e 45 do Dashboard, com 95,58% de linhas e 68,07% de
-  branches, build sem aviso ou erro e auditoria de 311 arquivos. A aprovação é
-  exclusivamente local, offline, determinística e sintética; nenhuma
-  materialização ou ativação de produto, dataset, RB-2, provider, rede, Human
-  Gate ou lifecycle ocorreu.
-- Disposição project-owned notice-bearing: o proprietário aprovou exatamente,
-  sob
+  with exactly one original vector per case, 252 vectors of 1,536 `float32`
+  little-endian components and 6,144 bytes each. The receipt records one
+  embedding materialisation completed without a retry and protected stores
+  identical before/after. These mechanical integrity facts remain.
+  However, the subsequent audit found that the checkpoint required two independent
+  human reviews and human adjudication without agent decisions, while
+  the retained package records `humanAttribution=false`, twenty agent
+  adjudication decisions, no human decisions and, contradictorily,
+  `no agent-authored adjudication`. The bytes and hashes were not changed, but
+  literal `frozen-unscored-rb2-complete` does not prove gate satisfaction. The
+  owner selected historical quarantine: RB-2 is permanently
+  invalid in that revision, RB-3 is unavailable as RB-4 input and both
+  remain intact only as historical evidence. Any successor
+  requires separate authority, two independent human reviews and
+  genuine human adjudication. `RB-4` remains `NOT_RUN` and blocked.
+- ADR-0015: `accepted` by explicit human decision `ADR-0015: ACEITAR.` on
+  2026-08-11 at `main@46de807148d5b547f56a0f7265b32428b232100f`, corpus
+  `4.10.30`, a clean working tree and protected OpenAPI v1/v2. The decision selects
+  `cosine-f32mul-f64acc-boundary-canonical-v1`, `retrieval-v2` and descriptor
+  `/2`, with a new `IndexCompatibilityKey`, generation and evaluation baseline before
+  serving; an exact 1 ULP corridor and binary64 scaled arithmetic
+  remain unselected alternatives. Subsequently, under
+  `AUTH-DR3-NUMERIC-SEMANTICS-IMPLEMENTATION-001`, commit
+  `9addb166e82dd04581beee7b4276a74977fe04c5` implemented the semantics, policy,
+  fail-closed compatibility and four proof corrections. The implementation
+  neither created nor activated a product generation and, in that increment, did not repeat the
+  gate: `DR-3` remained `REPROVADO`, with the four findings
+  `CORRECTED_PENDING_GATE_RETEST`. The subsequent independent retest was
+  `APROVADO` and disposed of the four findings as `RESOLVED`, preserving the previous
+  historical evidence.
+- Sanitised closure of the administrative provisioning key: clean-up
+  completed under `AUTH-S07-A-PROVIDER-ADMIN-KEY-CLEANUP-002` was reconciled
+  through documentation under
+  `AUTH-S07-A-PROVIDER-ADMIN-KEY-CLEANUP-RECONCILE-001`, at
+  `main@b2654088d11ab94c23cdf19e2aa57d89f0b3ae49`, corpus `4.10.24`, an initially clean
+  working tree and protected OpenAPI v1/v2. According to the sanitised closure
+  record provided by the owner, the Admin key with exact label
+  `s07-a-provider-gpt54m-candidate-001-admin-provisioning` was revoked,
+  is absent from the Active inventory and appears historically only as
+  Inactive; `Last used` remained `Never` and spend remained `USD 0.00`. Target
+  `RAG-Challenge/OpenAI/AdminKey/s07-a-provider-gpt54m-candidate-001`
+  was removed from Windows Credential Manager and its absence was verified in the
+  authorised clean-up. This reconciliation did not re-access those systems and did not
+  retain a secret, fragment, fingerprint or masked representation. There was no
+  provider or `/v1/responses` call, new cost, billing,
+  limit, allowlist or project change, Human Gate or lifecycle.
+- Reaudit of preflight and homologation boundaries: the initial operational preflight
+  for `s07-a-provider-gpt54m-candidate-001` was finalised as
+  `BLOQUEADO`, without a real campaign, provider or `/v1/responses` call. The
+  subsequent clean-up of the Admin key and its local credential is closed. The
+  subsequent experimental Coordinator/Docker/C3 flow was revoked and does not
+  constitute current authority or a canonical pending item. The notice-bearing
+  mechanism has existed since commit
+  `f682827d1a26b08fa8c450a1fadb3bd0e1fa1700`, but does not retrospectively
+  reclassify A0: the notice-bearing Automatic Quality Gate was
+  `APROVADO` at the local, offline, deterministic and synthetic boundary and its
+  result was reconciled in corpus `4.10.35`, with no P0, P1, P2 or P3 finding.
+  A0-003 disposes of the four visual operations as `PERMITTED` only under the
+  notice-bearing profile and keeps external distribution/publication `DENIED`; the
+  candidate remains `ELIGIBLE_CANDIDATE`, without materialisation or activation.
+- Product administrative composition: the complete retest authorised under
+  `AUTH-S07-A-PRODUCT-ADMIN-COMPOSITION-AQG-RETEST-001`, at
+  `main@e63f061d0bce4e48cd3b32294c20e29727cd7156`, corpus `4.10.36` and a clean
+  tree, was `APROVADO` with no P0, P1, P2 or P3 finding. Inspection followed the
+  path actually called by `Program`; selection by six fully qualified
+  names executed exactly 6/6 tests, with fail-on-zero, and
+  `eng/ci.ps1 -Offline` was executed exactly once only after that positive
+  result. CI approved 202 unit, 208 integration,
+  11 architecture and 45 Dashboard tests, with 95.58% line coverage and 68.07%
+  branch coverage, a build without warnings or errors and an audit of 311 files. Approval is
+  exclusively local, offline, deterministic and synthetic; no product
+  materialisation or activation, dataset, RB-2, provider, network, Human
+  Gate or lifecycle occurred.
+- Project-owned notice-bearing disposition: the owner approved exactly,
+  under
   `AUTH-S07-A-PRODUCT-ADMIN-NOTICE-BEARING-PROJECT-OWNED-DISPOSITION-PROPOSAL-001`,
-  os seis valores candidatos de `postgresql-18-reference-a4`:
+  the six candidate values for `postgresql-18-reference-a4`:
   `attributionText="Source: The PostgreSQL Global Development Group; document:
   PostgreSQL 18.4 Documentation; version: 18.4; source reference:
   https://www.postgresql.org/files/documentation/pdf/18/postgresql-18-A4.pdf"`,
@@ -1592,813 +1592,813 @@ proprietários.
   `changeMarkingText="The composite PNG is a marked derivative, not a claim
   that its complete canvas is an unmodified publisher page. The source-page
   region nevertheless remains pixel-identical visual evidence."`,
-  `assessedAt=2026-08-12T04:05:14.0000000+00:00` e
-  `assessorId=assessor:auth-s07-a-product-a0-003`. Esses valores são disposição
-  de controle pertencente ao projeto, não evidência primária nem conclusão
-  jurídica nova. Nenhuma identidade determinística, obligation set, manifest,
-  geração, ativação ou mutação do bundle foi criada ou autorizada.
+  `assessedAt=2026-08-12T04:05:14.0000000+00:00` and
+  `assessorId=assessor:auth-s07-a-product-a0-003`. These values are a project-owned
+  control disposition, not primary evidence or a new legal
+  conclusion. No deterministic identity, obligation set, manifest,
+  generation, activation or bundle mutation was created or authorised.
 
-## Baseline documental
+## Documentary baseline
 
-- Os 20 arquivos da estrutura originalmente aprovada permanecem preservados;
-  a política de idioma acrescentou o 21º documento público por incremento
-  versionado, e o ADR-0003 acrescentou o 22º.
-- A baseline aprovada no Human Gate de `STATE-00` permanece `3.4.0`.
-- O corpus de instruções vigente possui versão `4.15.0` e 13 arquivos em
+- The 20 files in the originally approved structure remain preserved;
+  the language policy added the 21st public document through a versioned
+  increment, and ADR-0003 added the 22nd.
+- The baseline approved at the `STATE-00` Human Gate remains `3.4.0`.
+- The current instruction corpus is version `4.15.0` and has 13 files under
   `prompts/`.
-- Visão, requisitos, arquitetura, RAG, segurança, qualidade, lifecycle,
-  roadmap, backlog, estado, histórico e templates estão documentados.
-- `STATE-02` acrescentou sete artefatos técnicos: quatro novos ADRs, um
-  contrato canônico, um threat model e um relatório de execução. ADR-0002 e
-  ADR-0004 a ADR-0007 estão aceitos. Os artefatos não são evidência de
-  implementação.
-- A auditoria do pacote proposto confirmou 83 arquivos não ignorados, 30
-  Markdown, links e formato válidos, quatro ADRs com status `proposed`, 30 IDs
-  de ameaça e 12 grupos de testes de segurança. As verificações posteriores
-  reconciliaram os fatos públicos de fonte oficial, parser/package,
-  provider/model e OCI sem resolver fatos dependentes de conta ou runtime e
-  sem substituir decisões humanas.
-- A auditoria do corpus `4.1.0` confirmou 22 documentos, 114 links locais
-  válidos, 20 RF, 14 RNF, 15 critérios de aceitação, 31 itens de backlog, 8
-  módulos, 13 riscos, formato consistente e rastreabilidade. Naquele snapshot,
-  a implementação ainda estava limitada ao scaffold entregue pelo `STATE-01`
-  encerrado.
-- O corpus `4.2.0` acrescenta a `AGENTS.md` regras permanentes de eficiência
-  decisória e proporcionalidade: identificar a entrega antes da coleta,
-  separar fatos decisivos de contexto, calibrar profundidade ao risco,
-  verificar candidatos em duas etapas, preferir autoridade limitada completa,
-  parar por valor decrescente e preservar integralmente segurança, qualidade,
-  lifecycle e autoridade explícita.
-- O corpus `4.2.1` consolida ownership normativo sem alterar comportamento:
-  Governance conserva a semântica de handoff, continuidade, raciocínio e
-  paralelismo; Templates conserva o formato; Quality Gates conserva os
-  resultados auditáveis; AGENTS mantém enforcement transversal mínimo; Start
-  Here mantém roteamento; Language Policy conserva somente convenções de
-  idioma.
-- O corpus `4.10.7` registra a instrução permanente do proprietário de receber
-  primeiro uma explicação prática, concisa e em linguagem simples, adequada a
-  quem não possui conhecimento técnico especializado. Termos técnicos
-  necessários passam a exigir significado e consequência explicados em
-  `pt-BR`, sem ocultar incerteza, risco, limite de autoridade ou fato não
-  verificado.
-- O corpus `4.10.8` registra somente a preparação do ADR-0011 como proposta.
-  A mudança documenta o mapeamento condicionado de evidência primária, a
-  fronteira entre serving same-origin e distribuição/publicação, as obrigações
-  que acompanham derivados e a incompatibilidade estática entre o contrato v2
-  e a política interna. Não aceita o ADR, muda direitos, contrato público ou
-  comportamento de produto.
-- O corpus `4.10.9` registra a decisão explícita `ADR-0011: ACEITAR.` somente
-  como autoridade arquitetural. A aceitação não executa a reconciliação
-  semântica, a correção interna da política, novo A0 ou qualquer mudança de
-  direito, contrato público, comportamento, gate ou lifecycle.
-- O corpus `4.10.10` aplica a reconciliação documental autorizada do ADR-0011
-  a ADR-0004, ADR-0008, ao registro de elegibilidade e ao contrato documental
-  v2. A reconciliação preserva o candidato PostgreSQL bloqueado, não altera
-  OpenAPI ou comportamento e mantém a correção interna e o novo A0 sob
-  autoridades posteriores.
-- O corpus `4.10.11` registra a correção interna posteriormente implementada no
-  commit `b9c3e5f3a72c2dd7762c256198452ae2c217b2d2`. A política de serving
-  passa a avaliar as dez decisões e a falhar fechado diante de distribution
-  boundary `Unproven`, sem alterar OpenAPI, contrato público, candidato ou
-  lifecycle. Novo A0 permanece posterior e separadamente autorizado.
-- O corpus `4.10.12` registra o A0 candidato-específico autorizado sob
-  `AUTH-S07-A-PRODUCT-A0-002`. Quatro operações visuais permanecem `UNPROVEN`
-  por ausência de mecanismo determinado para os avisos exigidos em todas as
-  cópias, a distribuição/publicação externa está `DENIED` pela fronteira
-  interna excluída e o candidato permanece `BLOCKED/EXCLUDED`.
-- O corpus `4.10.13` registra somente a preparação do ADR-0012 como proposta.
-  O novo perfil preserva a região da página pixel a pixel e acrescenta um
-  painel autocontido de obrigações, com registro imutável, manifest, recovery,
-  serving e apresentação acessível. A proposta identifica mudanças futuras de
-  schema, migration e contrato v2, preserva v1 e o fail-closed e não aceita o
-  ADR, reclassifica o candidato ou altera comportamento.
-- O corpus `4.10.14` registra a decisão explícita `ADR-0012: ACEITAR.` somente
-  como autoridade arquitetural. A aceitação não executa reconciliação,
-  revisão do contrato v2, schema, migration, implementação, novo A0, renderer,
-  dataset, gate ou lifecycle e mantém OpenAPI v1/v2 protegidas.
-- O corpus `4.10.15` aplica a reconciliação semântica autorizada do ADR-0012
-  aos seis proprietários documentais. Registra o perfil notice-bearing, o
-  obligation set, seus vínculos de manifest/storage/reachability/recovery/
-  serving/acessibilidade e as futuras revisões obrigatórias de contrato v2,
-  schema e migration. Não altera OpenAPI, implementação, direitos do candidato,
-  gate ou lifecycle.
-- O corpus `4.10.16` registra o contrato público v2 notice-bearing congelado.
-  OpenAPI v2 e seus tipos/decoders estritos acrescentam somente a identidade do
-  obligation set e sua apresentação completa; a rota e todos os campos
-  anteriores permanecem. A compatibilidade legada usa valores `null`, enquanto
-  o caso notice-bearing falha fechado em mistura, ausência ou divergência.
-  OpenAPI v1, schema, migration, direitos, dataset, gate e lifecycle não mudam.
-- O corpus `4.10.17` reconcilia a implementação do schema e das duas migrations
-  notice-bearing no commit `98036f3c8c496544f4532d1fe48c981f836a1871`.
-  Registra obrigação imutável e blocos ordenados, coexistência dos perfis,
-  vínculo e digest do obligation set, dimensões source/notice, constraints,
-  foreign keys e sealing triggers fail-closed, sem backfill ou mutação legada.
-  Renderer, PNG, serving notice-bearing, Dashboard, direitos, dataset, novo A0,
-  gate e lifecycle permanecem inalterados ou `NOT_RUN`.
-- O corpus `4.10.18` registra a decisão explícita `ADR-0013: ACEITAR.` somente
-  como autoridade arquitetural. `gpt-5.4-mini-2026-03-17` passa a ser o único
-  candidato de LLM do MVP e `gpt-5.6-sol` permanece inativo para avaliação
-  futura, com risco de identificador móvel registrado. A aceitação não executa
-  reconciliação semântica, implementação, acesso a conta, credencial, provider,
-  chamada paga, corpus real, OCI, deploy, gate ou lifecycle e mantém OpenAPI
-  v1/v2 protegidas.
-- O corpus `4.10.19` aplica sob
-  `AUTH-STATE07-LLM-CANDIDATE-ADR-RECONCILE-001` a reconciliação semântica
-  documental do ADR-0013 aceito. ADR-0005 e o relatório arquitetural de
-  `STATE-02` agora selecionam `gpt-5.4-mini-2026-03-17`, preservam a seleção
-  anterior como fato histórico e mantêm `gpt-5.6-sol` somente como candidato
-  futuro inativo. Nenhuma outra decisão do ADR-0005 muda; código, testes,
-  OpenAPI, configuração, provider, conta, credencial, chamada paga, corpus
-  real, OCI, deploy, gate e lifecycle permanecem inalterados ou `NOT_RUN`.
-- O corpus `4.10.20` reconcilia sob
-  `AUTH-STATE07-LLM-ADAPTER-COMPAT-RECONCILE-001` o incremento implementado no
-  commit `b6d6f9102ecf0ea93309f8080acebad02cf16584`. O adaptador exige o snapshot
-  exato `gpt-5.4-mini-2026-03-17`, usa configuração tipada e imutável para
-  `reasoning.effort=none` e `reasoning.context=current_turn`, preserva
-  `store=false`, não emite `tools` nem parâmetros não comprovados e valida
-  estritamente a mensagem estruturada final. Os testes locais com handler
-  falso aprovaram 18 de 18 casos, e os 11 testes de arquitetura também
-  passaram. Esses resultados não constituem chamada ao provider, avaliação
-  bilíngue ou de qualidade, homologação, Automatic Quality Gate, Human Gate,
-  deploy ou mudança de lifecycle.
-- O corpus `4.10.21` reconcilia sob
-  `AUTH-STATE07-LLM-ADAPTER-COMPAT-AQG-RECONCILE-001` o Automatic Quality Gate
-  aprovado sem achados na baseline
-  `main@6e6fdabb91e2fb4c5186c464ce08f5da390d727a`. A auditoria confirmou os sete
-  requisitos do ADR-0013, 18 de 18 testes focais, 11 de 11 testes de
-  arquitetura e a CI offline completa com 154 testes unitários, 191 de
-  integração, 11 de arquitetura e 45 do Dashboard; cobertura de 95,63% de
-  linhas e 67,65% de branches; build sem avisos ou erros. A aprovação vale
-  somente para compatibilidade local, offline, determinística e com handlers
-  falsos. Provider real, avaliação bilíngue, groundedness, citações,
-  insuficiência de evidência, prompt injection, latência, custo, corpus real,
-  OCI, deploy, Human Gate e lifecycle permanecem `NOT_RUN`.
-- O corpus `4.10.22` reconcilia sob
-  `AUTH-STATE07-S07-A-PROVIDER-PREP-RECONCILE-001` a preparação concluída no
-  commit `422286863e7a3c213e96db18144769bd0458a75b`. A revisão sucessora
-  `rag-eval-catalogue-v1-provider-gpt54m-candidate-001` preserva a revisão
-  congelada anterior e registra dois documentos sintéticos, 60 casos, 40
-  casos respondíveis distribuídos em dez por cada direção obrigatória
-  `pt-BR`/`en-GB`, 20 casos de insuficiência e 12 casos de prompt injection.
-  Prompt, schema, snapshot `gpt-5.4-mini-2026-03-17`, configuração, limites,
-  agenda máxima de 109 chamadas, orçamento operacional de `USD 16` e teto
-  absoluto de `USD 20` estão congelados. O harness e os testes usaram somente
-  handlers falsos; provider real, qualidade bilíngue, groundedness, citações,
-  insuficiência de evidência real, resistência a prompt injection, latência,
-  custo observado, Automatic Quality Gate, Human Gate e lifecycle permanecem
+- Vision, requirements, architecture, RAG, security, quality, lifecycle,
+  roadmap, backlog, state, history and templates are documented.
+- `STATE-02` added seven technical artefacts: four new ADRs, one
+  canonical contract, one threat model and one execution report. ADR-0002 and
+  ADR-0004 through ADR-0007 are accepted. The artefacts are not implementation
+  evidence.
+- The audit of the proposed package confirmed 83 non-ignored files, 30
+  Markdown files, valid links and format, four ADRs with `proposed` status, 30 threat
+  IDs and 12 security-test groups. Subsequent checks
+  reconciled public facts about official sources, parser/package,
+  provider/model and OCI without resolving account- or runtime-dependent facts and
+  without replacing human decisions.
+- The audit of corpus `4.1.0` confirmed 22 documents, 114 valid local links,
+  20 RF, 14 RNF, 15 acceptance criteria, 31 backlog items, 8
+  modules, 13 risks, consistent format and traceability. At that snapshot,
+  implementation was still limited to the scaffold delivered by the closed `STATE-01`.
+
+- Corpus `4.2.0` adds permanent decision-efficiency and proportionality rules to
+  `AGENTS.md`: identify the deliverable before collection,
+  separate decisive facts from context, calibrate depth to risk,
+  verify candidates in two stages, prefer complete bounded authority,
+  stop at diminishing value and fully preserve security, quality,
+  lifecycle and explicit authority.
+- Corpus `4.2.1` consolidates normative ownership without changing behaviour:
+  Governance retains hand-off, continuity, reasoning and
+  parallelism semantics; Templates retains the format; Quality Gates retains the
+  auditable outcomes; AGENTS maintains minimum cross-cutting enforcement; Start
+  Here maintains routing; Language Policy retains only language
+  conventions.
+- Corpus `4.10.7` records the owner’s permanent instruction to receive
+  first a practical, concise explanation in plain language, suitable for
+  someone without specialist technical knowledge. Necessary technical
+  terms now require their meaning and consequence to be explained in
+  `pt-BR`, without hiding uncertainty, risk, an authority boundary or an unverified
+  fact.
+- Corpus `4.10.8` records only the preparation of ADR-0011 as a proposal.
+  The change documents the conditional mapping of primary evidence, the
+  boundary between same-origin serving and distribution/publication, the obligations
+  that accompany derivatives and the static incompatibility between the v2 contract
+  and internal policy. It does not accept the ADR or change rights, public contract or
+  product behaviour.
+- Corpus `4.10.9` records explicit decision `ADR-0011: ACEITAR.` only
+  as architectural authority. Acceptance does not execute semantic
+  reconciliation, the internal policy correction, a new A0 or any change to
+  rights, public contract, behaviour, gate or lifecycle.
+- Corpus `4.10.10` applies the authorised documentary reconciliation of ADR-0011
+  to ADR-0004, ADR-0008, the eligibility record and the v2 documentary
+  contract. Reconciliation preserves the blocked PostgreSQL candidate, does not alter
+  OpenAPI or behaviour and keeps the internal correction and new A0 under
+  subsequent authorities.
+- Corpus `4.10.11` records the internal correction subsequently implemented in
+  commit `b9c3e5f3a72c2dd7762c256198452ae2c217b2d2`. The serving policy
+  now assesses the ten decisions and fails closed when the distribution
+  boundary is `Unproven`, without changing OpenAPI, public contract, candidate or
+  lifecycle. A new A0 remains subsequent and separately authorised.
+- Corpus `4.10.12` records the candidate-specific A0 authorised under
+  `AUTH-S07-A-PRODUCT-A0-002`. Four visual operations remain `UNPROVEN`
+  because no determined mechanism exists for the notices required in all
+  copies, external distribution/publication is `DENIED` by the excluded
+  internal boundary and the candidate remains `BLOCKED/EXCLUDED`.
+- Corpus `4.10.13` records only preparation of ADR-0012 as a proposal.
+  The new profile preserves the page region pixel-for-pixel and adds a
+  self-contained obligations panel, with immutable record, manifest, recovery,
+  serving and accessible presentation. The proposal identifies future
+  schema, migration and v2-contract changes, preserves v1 and fail-closed behaviour and does not accept the
+  ADR, reclassify the candidate or alter behaviour.
+- Corpus `4.10.14` records explicit decision `ADR-0012: ACEITAR.` only
+  as architectural authority. Acceptance does not execute reconciliation,
+  v2-contract revision, schema, migration, implementation, new A0, renderer,
+  dataset, gate or lifecycle and keeps OpenAPI v1/v2 protected.
+- Corpus `4.10.15` applies the authorised semantic reconciliation of ADR-0012
+  to the six documentary owners. It records the notice-bearing profile, the
+  obligation set, its manifest/storage/reachability/recovery/
+  serving/accessibility bindings and the mandatory future revisions to the v2 contract,
+  schema and migration. It does not alter OpenAPI, implementation, candidate rights,
+  gate or lifecycle.
+- Corpus `4.10.16` records the frozen public notice-bearing v2 contract.
+  OpenAPI v2 and its strict types/decoders add only the identity of the
+  obligation set and its complete presentation; the route and all previous
+  fields remain. Legacy compatibility uses `null` values, while
+  the notice-bearing case fails closed on mixing, absence or divergence.
+  OpenAPI v1, schema, migration, rights, dataset, gate and lifecycle do not change.
+- Corpus `4.10.17` reconciles implementation of the schema and two notice-bearing
+  migrations in commit `98036f3c8c496544f4532d1fe48c981f836a1871`.
+  It records immutable obligation and ordered blocks, profile coexistence,
+  obligation-set binding and digest, source/notice dimensions, constraints,
+  foreign keys and fail-closed sealing triggers, without backfill or legacy mutation.
+  Renderer, PNG, notice-bearing serving, Dashboard, rights, dataset, new A0,
+  gate and lifecycle remain unchanged or `NOT_RUN`.
+- Corpus `4.10.18` records explicit decision `ADR-0013: ACEITAR.` only
+  as architectural authority. `gpt-5.4-mini-2026-03-17` becomes the sole
+  MVP LLM candidate and `gpt-5.6-sol` remains inactive for future
+  evaluation, with the moving-identifier risk recorded. Acceptance does not execute
+  semantic reconciliation, implementation, account access, credential, provider,
+  paid call, real corpus, OCI, deployment, gate or lifecycle and keeps OpenAPI
+  v1/v2 protected.
+- Corpus `4.10.19` applies under
+  `AUTH-STATE07-LLM-CANDIDATE-ADR-RECONCILE-001` the documentary semantic
+  reconciliation of accepted ADR-0013. ADR-0005 and the `STATE-02`
+  architecture report now select `gpt-5.4-mini-2026-03-17`, preserve the previous
+  selection as a historical fact and keep `gpt-5.6-sol` only as an inactive future
+  candidate. No other ADR-0005 decision changes; code, tests,
+  OpenAPI, configuration, provider, account, credential, paid call, real
+  corpus, OCI, deployment, gate and lifecycle remain unchanged or `NOT_RUN`.
+- Corpus `4.10.20` reconciles under
+  `AUTH-STATE07-LLM-ADAPTER-COMPAT-RECONCILE-001` the increment implemented in
+  commit `b6d6f9102ecf0ea93309f8080acebad02cf16584`. The adapter requires exact snapshot
+  `gpt-5.4-mini-2026-03-17`, uses typed immutable configuration for
+  `reasoning.effort=none` and `reasoning.context=current_turn`, preserves
+  `store=false`, emits neither `tools` nor unproven parameters and strictly validates
+  the final structured message. Local tests with a fake
+  handler approved 18 of 18 cases, and the 11 architecture tests also
+  passed. These results do not constitute a provider call, bilingual
+  or quality evaluation, homologation, Automatic Quality Gate, Human Gate,
+  deployment or lifecycle change.
+- Corpus `4.10.21` reconciles under
+  `AUTH-STATE07-LLM-ADAPTER-COMPAT-AQG-RECONCILE-001` the Automatic Quality Gate
+  approved without findings at baseline
+  `main@6e6fdabb91e2fb4c5186c464ce08f5da390d727a`. The audit confirmed all seven
+  ADR-0013 requirements, 18 of 18 focused tests, 11 of 11
+  architecture tests and complete offline CI with 154 unit, 191
+  integration, 11 architecture and 45 Dashboard tests; 95.63% line
+  coverage and 67.65% branch coverage; build without warnings or errors. Approval applies
+  only to local, offline, deterministic compatibility with fake
+  handlers. Real provider, bilingual evaluation, groundedness, citations,
+  insufficient evidence, prompt injection, latency, cost, real corpus,
+  OCI, deployment, Human Gate and lifecycle remain `NOT_RUN`.
+- Corpus `4.10.22` reconciles under
+  `AUTH-STATE07-S07-A-PROVIDER-PREP-RECONCILE-001` the preparation completed in
+  commit `422286863e7a3c213e96db18144769bd0458a75b`. Successor revision
+  `rag-eval-catalogue-v1-provider-gpt54m-candidate-001` preserves the previous
+  frozen revision and records two synthetic documents, 60 cases, 40
+  answerable cases distributed as ten for each required `pt-BR`/`en-GB`
+  direction, 20 insufficiency cases and 12 prompt-injection cases.
+  Prompt, schema, snapshot `gpt-5.4-mini-2026-03-17`, configuration, limits,
+  maximum schedule of 109 calls, operational budget of `USD 16` and absolute
+  ceiling of `USD 20` are frozen. The harness and tests used only
+  fake handlers; real provider, bilingual quality, groundedness, citations,
+  real insufficient evidence, prompt-injection resistance, latency,
+  observed cost, Automatic Quality Gate, Human Gate and lifecycle remain
   `NOT_RUN`.
-- O corpus `4.10.23` reconcilia sob
-  `AUTH-STATE07-S07-A-PROVIDER-PREP-AQG-RECONCILE-001` o Automatic Quality Gate
-  aprovado sem achados na baseline
-  `main@5d74c9c9190b0b3465b11dc6864e3dd519cc88f9`. A auditoria preservou a
-  predecessora, confirmou os cinco manifests e seus digests, os 60 casos, 12
-  casos de prompt injection, 20 casos de insuficiência, agenda máxima de 109
-  chamadas e orçamento congelado de `USD 16`/`USD 20`. Passaram 2 de 2 testes
-  focais, 20 de 20 testes combinados e a CI offline completa com 154 testes
-  unitários, 193 de integração, 11 de arquitetura e 45 do Dashboard; cobertura
-  de 95,63% de linhas e 67,66% de branches; build sem avisos ou erros. A
-  aprovação vale somente para preparação local, offline, determinística e com
-  handlers falsos. Conta, credencial, provider, chamada paga, corpus/fonte real,
-  avaliação real, qualidade bilíngue, groundedness, citações, insuficiência de
-  evidência real, resistência a prompt injection, latência, custo observado,
-  OCI, deploy, Human Gate e lifecycle permanecem `NOT_RUN`.
-- O corpus `4.10.24` reconcilia sob
-  `AUTH-S07-A-NOTICE-BEARING-PROFILE-IMPL-RECONCILE-001` a implementação
-  notice-bearing do commit
-  `f682827d1a26b08fa8c450a1fadb3bd0e1fa1700`. O obligation set imutável, o
-  compositor PNG com região da página preservada, os vínculos de manifest,
-  persistence/reachability, readback/serving v2 fail-closed e a apresentação
-  acessível do Dashboard estão implementados. A evidência focal observada foi
-  build Release limpo, 47 testes unitários, 40 de integração/contrato, 11 de
-  arquitetura e 45 do Dashboard, além de build e lint do Dashboard. Isso não é
-  Automatic Quality Gate. Novo A0, dado de produto, browser/tecnologia
-  assistiva, Human Gate e lifecycle permanecem `NOT_RUN`; o PostgreSQL continua
+- Corpus `4.10.23` reconciles under
+  `AUTH-STATE07-S07-A-PROVIDER-PREP-AQG-RECONCILE-001` the Automatic Quality Gate
+  approved without findings at baseline
+  `main@5d74c9c9190b0b3465b11dc6864e3dd519cc88f9`. The audit preserved the
+  predecessor, confirmed the five manifests and their digests, the 60 cases, 12
+  prompt-injection cases, 20 insufficiency cases, maximum schedule of 109
+  calls and frozen `USD 16`/`USD 20` budget. 2 of 2 focused tests,
+  20 of 20 combined tests and complete offline CI passed, with 154 unit,
+  193 integration, 11 architecture and 45 Dashboard tests; coverage
+  of 95.63% of lines and 67.66% of branches; build without warnings or errors. The
+  approval applies only to local, offline, deterministic preparation with
+  fake handlers. Account, credential, provider, paid call, real corpus/source,
+  real evaluation, bilingual quality, groundedness, citations, real insufficient
+  evidence, prompt-injection resistance, latency, observed cost,
+  OCI, deployment, Human Gate and lifecycle remain `NOT_RUN`.
+- Corpus `4.10.24` reconciles under
+  `AUTH-S07-A-NOTICE-BEARING-PROFILE-IMPL-RECONCILE-001` the notice-bearing
+  implementation from commit
+  `f682827d1a26b08fa8c450a1fadb3bd0e1fa1700`. The immutable obligation set,
+  PNG compositor with preserved page region, manifest
+  bindings, persistence/reachability, fail-closed v2 readback/serving and the
+  accessible Dashboard presentation are implemented. The observed focused evidence was
+  a clean Release build, 47 unit, 40 integration/contract, 11
+  architecture and 45 Dashboard tests, as well as Dashboard build and lint. This is not an
+  Automatic Quality Gate. A new A0, product data, browser/assistive
+  technology, Human Gate and lifecycle remain `NOT_RUN`; PostgreSQL remains
   `BLOCKED/EXCLUDED`.
-- O corpus `4.10.25` reconcilia sob
-  `AUTH-S07-A-PROVIDER-ADMIN-KEY-CLEANUP-RECONCILE-001` o fechamento concluído
-  sob `AUTH-S07-A-PROVIDER-ADMIN-KEY-CLEANUP-002`. O registro sanitizado
-  documenta revogação e estado histórico Inactive da Admin key nomeada,
-  `Last used` `Never`, gasto `USD 0.00` e remoção verificada do target do
-  Windows Credential Manager. Nenhum secret é retido. A reconciliação não
-  reacessa OpenAI, Credential Manager, provider, billing ou projeto e não
-  executa chamada, custo, mudança de configuração, gate ou lifecycle.
-- O corpus `4.10.26` reconcilia sob
-  `AUTH-STATE07-PREFLIGHT-BOUNDARY-REAUDIT-RECONCILE-001` as reauditorias das
-  tarefas “Preflight operacional GPT-5.4-mini” e “Next Homologation Boundary”.
-  O preflight inicial permanece encerrado como `BLOQUEADO`, sem campanha real;
-  o cleanup administrativo e local está encerrado; e o fluxo experimental
-  Coordinator/Docker/C3 está revogado, sem autoridade ou pendência canônica.
-  O mecanismo notice-bearing implementado em `f682827d` não altera o A0
-  histórico. Automatic Quality Gate notice-bearing, eventual reconciliação de
-  seu resultado e novo A0 permanecem separados e `NOT_RUN`.
-- O corpus `4.10.27` registra sob
-  `AUTH-STATE07-RETRIEVAL-DETERMINISM-ADR-RECONCILE-001` a decisão explícita
-  `ADR-0014: ACEITAR.` somente como autoridade arquitetural. A ordenação
-  `Score DESC, global ChunkOrdinal ASC` torna-se contrato explícito sem alterar
-  resultados válidos de `retrieval-v1`. Naquela reconciliação, a porta tipada,
-  as falhas fail-closed, o `retrieval-evaluation-scorer-v1` e os freezes de
-  design, dataset e `campaign-input` permaneciam requisitos futuros não
-  implementados; implementação, teste executável, dataset, campanha, provider,
-  rede, chamada paga, OpenAPI, schema, migration, gate, Human Gate e lifecycle
-  estavam `NOT_RUN`. MultiQuery continuava estacionado.
-- O corpus `4.10.28` reconcilia factualmente o
-  `DR-2 — Determinism implementation`, autorizado separadamente sobre
-  `main@ade89d737975f65c38e88b35758f8c6091e57406` e implementado no commit
-  `fabb24cad16201070e3b95fffb22467cd55963ab`. A porta Application retrieval-
-  only tipada, as identidades fixas de política e geração, a validação de query,
-  vetores, normas, scores finitos em `[-1, 1]`, ordinal global, identidades e
-  ordem `Score DESC, global ChunkOrdinal ASC`, além dos outcomes fail-closed,
-  estão implementados. `retrieval-v1` preserva top-k `8`, mínimo inclusivo
-  `0.25`, máximo de seis evidências, orçamento de 16.000 escalares e score `0`
-  para stored zero-vector. A evidência focal observada foi build sem avisos ou
-  erros, 74 testes unitários focais, 8 de integração locais/SQLite, 11 de
-  arquitetura e auditoria documental aprovada para 279 arquivos. Isso não
-  executa nem aprova `DR-3`.
-  Dataset, `retrieval-evaluation-scorer-v1`, campanha, provider, corpus real,
-  rede, chamada paga, OpenAPI, schema, migration, Human Gate e lifecycle
-  permanecem `NOT_RUN`; MultiQuery continua não canônico e estacionado.
-- O corpus `4.10.29` reconcilia factualmente o
-  `DR-3 — Determinism Automatic Quality Gate`, executado sob autoridade humana
-  separada sobre `main@272a868c2f2a90eba21ee422ba5a2c34aa2337d5`, corpus
-  `4.10.28`, e encerrado `REPROVADO`. `DR3-FIND-001` P1 registra que vetores
-  admissíveis idênticos `[1f, 1f, 1f]` produzem score
-  `1.0000000000000002`, convertido em `InvalidIndexData` e
-  `CH_INDEX_UNAVAILABLE`. `DR3-FIND-002` P2 registra que o teste de
-  determinismo não prova adversarialmente o sort completo antes de `Take(k)`;
-  `DR3-FIND-003` P2 registra ausência de prova dos filtros antes de score/top-k
-  com hits elegíveis e inelegíveis concorrentes; e `DR3-FIND-004` P2 registra
-  ausência de regressão executável para `ChunkOrdinal < 0`. A implementação
-  observada aplica filtros e depois `OrderByDescending(Score)`,
-  `ThenBy(ChunkOrdinal)` e `Take(k)`; os três P2 são lacunas de prova, não
-  defeitos comportamentais observados.
-  O gate registrou build Release sem avisos ou erros; 74/74 testes unitários
-  focais, 35/35 de integração focais e 11/11 de arquitetura; 3/3 execuções
-  independentes do caso de empate/reopen; e CI offline completa com 201 testes
-  unitários, 197 de integração, 11 de arquitetura e 45 do Dashboard, cobertura
-  de 95,53% de linhas e 68,34% de branches e auditoria de 279 arquivos. Esses
-  checks aprovados não superam os quatro achados. Nenhum arquivo rastreado,
-  dataset, contrato ou configuração foi alterado pelo gate; somente outputs
-  ignorados dos checks foram materializados. Nenhuma semântica numérica ou
-  correção foi definida; dataset, scorer, campanha, provider, corpus real,
-  rede, chamada paga, OpenAPI, schema, migration, MultiQuery, Human Gate e
-  lifecycle não foram executados ou alterados.
-- O corpus `4.10.30` materializa somente a proposta arquitetural ADR-0015 sob
-  `AUTH-DR3-NUMERIC-SEMANTICS-PROPOSAL-001`. A alternativa recomendada, ainda
-  não aceita, preserva multiplicação binary32, acumulação serial binary64 e
-  scores internos bit a bit, mas canoniza quocientes finitos fora do codomínio
-  para `-1` ou `+1`; ela exigiria `retrieval-v2`, descritor de vector store
-  avançado, novo `IndexCompatibilityKey`, nova geração e nova baseline de
-  avaliação. O ADR preserva corredor exato de 1 ULP e aritmética escalada em
-  binary64 como alternativas condicionais e define provas executáveis futuras
-  para os quatro achados. `DR-3` permanece `REPROVADO`; decisão, implementação,
-  reteste, dataset, scorer, campanha, provider, rede, chamada paga, OpenAPI,
-  schema, migration, MultiQuery, Human Gate e lifecycle continuam separados e
-  `NOT_RUN` neste incremento.
-- O corpus `4.10.31` registra a decisão explícita `ADR-0015: ACEITAR.` somente
-  como autoridade arquitetural. A semântica
-  `cosine-f32mul-f64acc-boundary-canonical-v1` canoniza todo quociente finito
-  fora do codomínio para o endpoint exato e preserva os bits internos; a
-  política sucessora é `retrieval-v2` e o descritor selecionado é
+- Corpus `4.10.25` reconciles under
+  `AUTH-S07-A-PROVIDER-ADMIN-KEY-CLEANUP-RECONCILE-001` the closure completed
+  under `AUTH-S07-A-PROVIDER-ADMIN-KEY-CLEANUP-002`. The sanitised record
+  documents revocation and historical Inactive state of the named Admin key,
+  `Last used` `Never`, spend `USD 0.00` and verified removal of the target from
+  Windows Credential Manager. No secret is retained. The reconciliation does not
+  re-access OpenAI, Credential Manager, provider, billing or project and does not
+  execute a call, cost, configuration change, gate or lifecycle.
+- Corpus `4.10.26` reconciles under
+  `AUTH-STATE07-PREFLIGHT-BOUNDARY-REAUDIT-RECONCILE-001` the reaudits of
+  tasks “Preflight operacional GPT-5.4-mini” and “Next Homologation Boundary”.
+  The initial preflight remains closed as `BLOQUEADO`, without a real campaign;
+  administrative and local clean-up is closed; and the experimental
+  Coordinator/Docker/C3 flow is revoked, without authority or a canonical pending item.
+  The notice-bearing mechanism implemented in `f682827d` does not alter historical
+  A0. The notice-bearing Automatic Quality Gate, any reconciliation of
+  its result and a new A0 remain separate and `NOT_RUN`.
+- Corpus `4.10.27` records under
+  `AUTH-STATE07-RETRIEVAL-DETERMINISM-ADR-RECONCILE-001` explicit decision
+  `ADR-0014: ACEITAR.` only as architectural authority. Ordering
+  `Score DESC, global ChunkOrdinal ASC` becomes an explicit contract without altering
+  valid `retrieval-v1` results. In that reconciliation, the typed port,
+  fail-closed failures, `retrieval-evaluation-scorer-v1` and the design,
+  dataset and `campaign-input` freezes remained unimplemented future
+  requirements; implementation, executable test, dataset, campaign, provider,
+  network, paid call, OpenAPI, schema, migration, gate, Human Gate and lifecycle
+  were `NOT_RUN`. MultiQuery remained parked.
+- Corpus `4.10.28` factually reconciles
+  `DR-2 — Determinism implementation`, separately authorised at
+  `main@ade89d737975f65c38e88b35758f8c6091e57406` and implemented in commit
+  `fabb24cad16201070e3b95fffb22467cd55963ab`. The typed Application retrieval-
+  only port, fixed policy and generation identities, validation of query,
+  vectors, norms, finite scores in `[-1, 1]`, global ordinal, identities and
+  `Score DESC, global ChunkOrdinal ASC` ordering, as well as fail-closed outcomes,
+  are implemented. `retrieval-v1` preserves top-k `8`, inclusive minimum
+  `0.25`, maximum of six evidence items, budget of 16,000 scalars and score `0`
+  for a stored zero-vector. The observed focused evidence was a build without warnings or
+  errors, 74 focused unit tests, 8 local/SQLite integration tests, 11
+  architecture tests and an approved documentary audit of 279 files. This does not
+  execute or approve `DR-3`.
+  Dataset, `retrieval-evaluation-scorer-v1`, campaign, provider, real corpus,
+  network, paid call, OpenAPI, schema, migration, Human Gate and lifecycle
+  remain `NOT_RUN`; MultiQuery remains non-canonical and parked.
+- Corpus `4.10.29` factually reconciles
+  `DR-3 — Determinism Automatic Quality Gate`, executed under separate human
+  authority at `main@272a868c2f2a90eba21ee422ba5a2c34aa2337d5`, corpus
+  `4.10.28`, and closed `REPROVADO`. `DR3-FIND-001` P1 records that identical
+  admissible vectors `[1f, 1f, 1f]` produce score
+  `1.0000000000000002`, converted to `InvalidIndexData` and
+  `CH_INDEX_UNAVAILABLE`. `DR3-FIND-002` P2 records that the determinism
+  test does not adversarially prove complete sorting before `Take(k)`;
+  `DR3-FIND-003` P2 records absence of proof of filters before score/top-k
+  with concurrent eligible and ineligible hits; and `DR3-FIND-004` P2 records
+  absence of executable regression for `ChunkOrdinal < 0`. The observed
+  implementation applies filters and then `OrderByDescending(Score)`,
+  `ThenBy(ChunkOrdinal)` and `Take(k)`; the three P2 items are proof gaps, not
+  observed behavioural defects.
+  The gate recorded a Release build without warnings or errors; 74/74 focused unit,
+  35/35 focused integration and 11/11 architecture tests; 3/3 independent
+  executions of the tie/reopen case; and complete offline CI with 201 unit,
+  197 integration, 11 architecture and 45 Dashboard tests, coverage
+  of 95.53% of lines and 68.34% of branches and an audit of 279 files. These
+  passing checks do not overcome the four findings. No tracked file,
+  dataset, contract or configuration was changed by the gate; only ignored check
+  outputs were materialised. No numerical semantics or
+  correction was defined; dataset, scorer, campaign, provider, real corpus,
+  network, paid call, OpenAPI, schema, migration, MultiQuery, Human Gate and
+  lifecycle were neither executed nor changed.
+- Corpus `4.10.30` materialises only architectural proposal ADR-0015 under
+  `AUTH-DR3-NUMERIC-SEMANTICS-PROPOSAL-001`. The recommended alternative, not yet
+  accepted, preserves binary32 multiplication, serial binary64 accumulation and
+  bit-for-bit internal scores, but canonicalises finite quotients outside the codomain
+  to `-1` or `+1`; it would require `retrieval-v2`, an advanced vector-store
+  descriptor, new `IndexCompatibilityKey`, new generation and new evaluation
+  baseline. The ADR preserves an exact 1 ULP corridor and scaled binary64 arithmetic as
+  conditional alternatives and defines future executable proofs
+  for the four findings. `DR-3` remains `REPROVADO`; decision, implementation,
+  retest, dataset, scorer, campaign, provider, network, paid call, OpenAPI,
+  schema, migration, MultiQuery, Human Gate and lifecycle remain separate and
+  `NOT_RUN` in this increment.
+- Corpus `4.10.31` records explicit decision `ADR-0015: ACEITAR.` only
+  as architectural authority. Semantics
+  `cosine-f32mul-f64acc-boundary-canonical-v1` canonicalises every finite quotient
+  outside the codomain to the exact endpoint and preserves the internal bits; the
+  successor policy is `retrieval-v2` and the selected descriptor is
   `sqlite-exact-vector-store/2;schema=1;distance=cosine;algorithm=exact-scan;vector=float32;score=cosine-f32mul-f64acc-boundary-canonical-v1`.
-  Novo `IndexCompatibilityKey`, nova geração e nova baseline de avaliação são
-  obrigatórios antes de servir. As alternativas de 1 ULP e binary64 escalado
-  não foram selecionadas. A aceitação não implementou código ou testes, não
-  criou geração, dataset, scorer ou campanha e não executou provider, rede,
-  chamada paga, OpenAPI, schema, migration, MultiQuery, Automatic Quality Gate,
-  Human Gate ou lifecycle; `DR-3` permanece `REPROVADO` com os quatro achados
-  abertos.
-- O corpus `4.10.32` reconcilia factualmente o incremento implementado sob
-  `AUTH-DR3-NUMERIC-SEMANTICS-IMPLEMENTATION-001`, na baseline limpa
-  `main@9735ff5bc243d9a517b2cceb7ca8bfe16f24b438`, pelo commit
-  `9addb166e82dd04581beee7b4276a74977fe04c5`. A implementação materializa
-  `cosine-f32mul-f64acc-boundary-canonical-v1`, `retrieval-v2` e o descritor
+  A new `IndexCompatibilityKey`, new generation and new evaluation baseline are
+  mandatory before serving. The 1 ULP and scaled binary64 alternatives
+  were not selected. Acceptance did not implement code or tests, did not
+  create a generation, dataset, scorer or campaign and did not execute provider, network,
+  paid call, OpenAPI, schema, migration, MultiQuery, Automatic Quality Gate,
+  Human Gate or lifecycle; `DR-3` remains `REPROVADO` with the four findings
+  open.
+- Corpus `4.10.32` factually reconciles the increment implemented under
+  `AUTH-DR3-NUMERIC-SEMANTICS-IMPLEMENTATION-001`, at clean baseline
+  `main@9735ff5bc243d9a517b2cceb7ca8bfe16f24b438`, by commit
+  `9addb166e82dd04581beee7b4276a74977fe04c5`. The implementation materialises
+  `cosine-f32mul-f64acc-boundary-canonical-v1`, `retrieval-v2` and descriptor
   `sqlite-exact-vector-store/2;schema=1;distance=cosine;algorithm=exact-scan;vector=float32;score=cosine-f32mul-f64acc-boundary-canonical-v1`;
-  avança a chave interna de compatibilidade e falha fechado para geração ou
-  `IndexCompatibilityKey` `/1`; preserva multiplicação binary32, acumulação
-  serial binary64, comparação exata e desempate por ordinal; e canoniza somente
-  quocientes finitos fora do codomínio para `-1` ou `+1` exatos. A prova
-  corretiva inclui limites bit a bit e reopen, top-k adversarial com nove chunks
-  e duas permutações, filtros concorrentes antes de score/top-k e ordinal
-  negativo nas fronteiras Application e SQLite task-owned. O turno de
-  implementação registrou build Release sem avisos ou erros e 416 testes
-  locais/offline aprovados — 202 unitários, 203 de integração e 11 de
-  arquitetura —, sem falhas ou skips; essa evidência não é Automatic Quality
-  Gate. `DR3-FIND-001` a `DR3-FIND-004` estão
-  `CORRECTED_PENDING_GATE_RETEST`; `DR-3` permanece `REPROVADO` até reteste
-  independente e disposição explícita. Nenhuma geração de produto, dataset,
-  scorer, campanha, provider, credencial, rede, chamada paga, corpus real,
-  OpenAPI, schema, migration, MultiQuery, Human Gate ou lifecycle foi criada,
-  ativada, executada ou alterada.
-- O corpus `4.10.33` reconcilia sob
-  `AUTH-DR3-NUMERIC-SEMANTICS-AQG-RETEST-RECONCILE-001` o hand-off aprovado do
-  reteste corretivo independente executado sob
-  `AUTH-DR3-NUMERIC-SEMANTICS-AQG-RETEST-001` na baseline limpa
+  advances the internal compatibility key and fails closed for generation or
+  `IndexCompatibilityKey` `/1`; preserves binary32 multiplication, serial
+  binary64 accumulation, exact comparison and ordinal tie-breaking; and canonicalises only
+  finite quotients outside the codomain to exact `-1` or `+1`. The corrective
+  proof includes bit-for-bit boundaries and reopen, adversarial top-k with nine chunks
+  and two permutations, concurrent filters before score/top-k and negative
+  ordinal at the Application and task-owned SQLite boundaries. The implementation
+  turn recorded a Release build without warnings or errors and 416 passing
+  local/offline tests — 202 unit, 203 integration and 11
+  architecture — without failures or skips; that evidence is not an Automatic Quality
+  Gate. `DR3-FIND-001` through `DR3-FIND-004` are
+  `CORRECTED_PENDING_GATE_RETEST`; `DR-3` remains `REPROVADO` until an independent
+  retest and explicit disposition. No product generation, dataset,
+  scorer, campaign, provider, credential, network, paid call, real corpus,
+  OpenAPI, schema, migration, MultiQuery, Human Gate or lifecycle was created,
+  activated, executed or changed.
+- Corpus `4.10.33` reconciles under
+  `AUTH-DR3-NUMERIC-SEMANTICS-AQG-RETEST-RECONCILE-001` the approved hand-off from the
+  independent corrective retest executed under
+  `AUTH-DR3-NUMERIC-SEMANTICS-AQG-RETEST-001` at clean baseline
   `main@bf8a156e7c5eea801f29fb6e7742cac880783bc0`, corpus `4.10.32`. `DR-3`
-  está `APROVADO`, `DR3-FIND-001` a `DR3-FIND-004` estão `RESOLVED` e nenhum
-  novo achado P0, P1, P2 ou P3 foi identificado. Build Release, testes focais,
-  três execuções independentes da matriz SQLite, os 416 testes da solução e a
-  CI offline completa passaram; a CI registrou mais 45 testes do Dashboard,
-  95,53% de cobertura de linhas, 68,47% de branches e auditoria de 280 arquivos.
-  A evidência permanece local, offline, sintética e Windows x64. Nenhum arquivo
-  rastreado foi alterado pelo reteste; geração de produto, dataset, scorer,
-  campanha, provider, rede, chamada paga, corpus real, OpenAPI, schema,
-  migration, MultiQuery, Human Gate e lifecycle não foram criados, ativados,
-  executados ou alterados.
-- O corpus `4.10.34` registra sob
-  `AUTH-RB1-EVALUATION-DESIGN-FREEZE-001` a conclusão exclusivamente documental
-  de `RB-1 — Evaluation design freeze`. A revisão imutável
-  `retrieval-v2-evaluation-design-v1` congela o desenho não materializado e não
-  pontuado em 28 artefatos normativos, com oito instâncias, 20 schemas Draft
-  2020-12, 27 companions vinculados por SHA-256, self-digest determinístico,
-  fórmulas, thresholds, quotas, matrizes, versionamento, retenção, gates, stop
-  conditions e escopo negativo. Os sete contadores permanecem em zero. Nenhum
-  dado/caso de produto, pergunta, qrel, vetor, geração, resultado, métrica
-  observada, scorer, campanha, provider, rede, MultiQuery, Automatic Quality
-  Gate, Human Gate ou lifecycle foi criado, executado ou alterado. `RB-2`
-  permanece `NOT_RUN` e não autorizado.
-- O corpus `4.10.35` reconcilia sob
-  `AUTH-S07-A-NOTICE-BEARING-PROFILE-AQG-RECONCILE-001` o resultado
-  `APROVADO` de
-  `AUTH-S07-A-NOTICE-BEARING-PROFILE-AQG-RETEST-001`. A auditoria de 308
-  arquivos, o build Release, dois testes unitários, dez de integração, um de
-  arquitetura, 45 do Dashboard, lint, typecheck e build web passaram. A CI
-  offline integral aprovou 202 testes unitários, 203 de integração, 11 de
-  arquitetura e 45 do Dashboard, com 95,53% de linhas e 68,47% de branches. O
-  preflight encontrou zero processo e zero listener do projeto; o gate começou
-  e terminou na mesma baseline limpa, sem achado P0, P1, P2 ou P3. A aprovação
-  é somente local, offline, determinística e sintética. A reconciliação
-  documental passou `git diff --check` e a auditoria de 308 arquivos, sem
-  repetir build, testes ou gate; não executa novo A0, dado de produto, RB-2,
-  provider, rede, Human Gate ou lifecycle.
-- O corpus `4.10.36` registra sob `AUTH-S07-A-PRODUCT-A0-003` o novo A0
-  candidato-específico de `postgresql-18-reference-a4`. A identidade local
-  conferiu em 15.771.040 bytes e SHA-256
+  is `APROVADO`, `DR3-FIND-001` through `DR3-FIND-004` are `RESOLVED` and no
+  new P0, P1, P2 or P3 finding was identified. Release build, focused tests,
+  three independent executions of the SQLite matrix, the solution’s 416 tests and
+  complete offline CI passed; CI recorded another 45 Dashboard tests,
+  95.53% line coverage, 68.47% branch coverage and an audit of 280 files.
+  The evidence remains local, offline, synthetic and Windows x64. No tracked
+  file was changed by the retest; product generation, dataset, scorer,
+  campaign, provider, network, paid call, real corpus, OpenAPI, schema,
+  migration, MultiQuery, Human Gate and lifecycle were not created, activated,
+  executed or changed.
+- Corpus `4.10.34` records under
+  `AUTH-RB1-EVALUATION-DESIGN-FREEZE-001` the exclusively documentary completion
+  of `RB-1 — Evaluation design freeze`. Immutable revision
+  `retrieval-v2-evaluation-design-v1` freezes the unmaterialised and
+  unscored design in 28 normative artefacts, with eight instances, 20 Draft
+  2020-12 schemas, 27 companions bound by SHA-256, deterministic self-digest,
+  formulae, thresholds, quotas, matrices, versioning, retention, gates, stop
+  conditions and negative scope. The seven counters remain at zero. No
+  product data/case, question, qrel, vector, generation, result, observed
+  metric, scorer, campaign, provider, network, MultiQuery, Automatic Quality
+  Gate, Human Gate or lifecycle was created, executed or changed. `RB-2`
+  remains `NOT_RUN` and unauthorised.
+- Corpus `4.10.35` reconciles under
+  `AUTH-S07-A-NOTICE-BEARING-PROFILE-AQG-RECONCILE-001` the `APROVADO`
+  result of
+  `AUTH-S07-A-NOTICE-BEARING-PROFILE-AQG-RETEST-001`. The audit of 308
+  files, Release build, two unit, ten integration, one
+  architecture and 45 Dashboard tests, lint, typecheck and web build passed. Complete
+  offline CI approved 202 unit, 203 integration, 11
+  architecture and 45 Dashboard tests, with 95.53% line coverage and 68.47% branch coverage. The
+  preflight found no project process or listener; the gate started
+  and ended at the same clean baseline, with no P0, P1, P2 or P3 finding. Approval
+  is only local, offline, deterministic and synthetic. The documentary
+  reconciliation passed `git diff --check` and the audit of 308 files, without
+  repeating build, tests or gate; it does not execute a new A0, product data, RB-2,
+  provider, network, Human Gate or lifecycle.
+- Corpus `4.10.36` records under `AUTH-S07-A-PRODUCT-A0-003` the new
+  candidate-specific A0 for `postgresql-18-reference-a4`. The local identity
+  matched at 15,771,040 bytes and SHA-256
   `cea7b845568095eb56dee1b51bfa145c6c6637bc4377c986019971577efefae4`. Page
-  rendering, derivative-image creation, derivative-image retention e
-  `RuntimeDerivativeImageDisplay` são `PERMITTED` somente pelo perfil
-  `pdf-page-png-notice-v1`, com avisos completos dentro de cada PNG e todas as
-  ligações fail-closed; a distribuição/publicação externa continua `DENIED`.
-  O candidato deixa o bloqueio de direitos e permanece `ELIGIBLE_CANDIDATE`,
-  mas nenhum artefato de produto, RB-2, Human Gate ou lifecycle foi executado.
-  A reconciliação documental passou `git diff --check` e a auditoria de 308
-  arquivos, sem executar build, testes ou `eng/ci.ps1`.
-- O corpus `4.10.37` reconcilia sob
-  `AUTH-S07-A-PRODUCT-ADMIN-COMPOSITION-AQG-RETEST-RECONCILE-001` o resultado
-  `APROVADO` do reteste de composição administrativa executado sob
-  `AUTH-S07-A-PRODUCT-ADMIN-COMPOSITION-AQG-RETEST-001`. A seleção por nomes
-  totalmente qualificados executou exatamente 6/6 testes com fail-on-zero; a
-  única execução posterior de `eng/ci.ps1 -Offline` aprovou 202 testes
-  unitários, 208 de integração, 11 de arquitetura e 45 do Dashboard, cobertura
-  de 95,58% de linhas e 68,07% de branches, build sem aviso ou erro e auditoria
-  de 311 arquivos. Nenhum achado P0, P1, P2 ou P3 foi identificado; OpenAPI
-  v1/v2 e a baseline permaneceram íntegras. A reconciliação não repetiu build,
-  testes, gate ou CI e não executou materialização/ativação de produto,
-  dataset, RB-2, Human Gate ou lifecycle.
-- O corpus `4.10.38` registra sob
+  rendering, derivative-image creation, derivative-image retention and
+  `RuntimeDerivativeImageDisplay` are `PERMITTED` only through profile
+  `pdf-page-png-notice-v1`, with complete notices inside every PNG and all
+  fail-closed bindings; external distribution/publication remains `DENIED`.
+  The candidate leaves the rights blocker and remains `ELIGIBLE_CANDIDATE`,
+  but no product artefact, RB-2, Human Gate or lifecycle was executed.
+  The documentary reconciliation passed `git diff --check` and the audit of 308
+  files, without executing build, tests or `eng/ci.ps1`.
+- Corpus `4.10.37` reconciles under
+  `AUTH-S07-A-PRODUCT-ADMIN-COMPOSITION-AQG-RETEST-RECONCILE-001` the
+  `APROVADO` result of the administrative-composition retest executed under
+  `AUTH-S07-A-PRODUCT-ADMIN-COMPOSITION-AQG-RETEST-001`. Selection by fully
+  qualified names executed exactly 6/6 tests with fail-on-zero; the
+  single subsequent execution of `eng/ci.ps1 -Offline` approved 202 unit,
+  208 integration, 11 architecture and 45 Dashboard tests, coverage
+  of 95.58% of lines and 68.07% of branches, a build without warnings or errors and an audit
+  of 311 files. No P0, P1, P2 or P3 finding was identified; OpenAPI
+  v1/v2 and the baseline remained intact. The reconciliation did not repeat build,
+  tests, gate or CI and did not execute product materialisation/activation,
+  dataset, RB-2, Human Gate or lifecycle.
+- Corpus `4.10.38` records under
   `AUTH-S07-A-PRODUCT-ADMIN-NOTICE-BEARING-PROJECT-OWNED-DISPOSITION-RECONCILE-001`
-  somente a disposição project-owned exata dos seis campos necessários ao
-  futuro `DerivativeObligationSetV1` de `postgresql-18-reference-a4`. A
-  decisão preserva separadamente evidência primária e redação de controle,
-  congela a âncora UTC e a identidade estável do assessor e não calcula
-  `rightsMappingRevision`, `obligationSetId` ou `canonicalSha256`. Bundle,
-  materialização, renderização, embeddings, indexação, ativação, AQG, Human
-  Gate e lifecycle permanecem inalterados ou `NOT_RUN`.
-- O corpus `4.10.39` reconcilia sob
+  only the exact project-owned disposition of the six fields necessary for the
+  future `DerivativeObligationSetV1` of `postgresql-18-reference-a4`. The
+  decision keeps primary evidence and control wording separate,
+  freezes the UTC anchor and stable assessor identity and does not calculate
+  `rightsMappingRevision`, `obligationSetId` or `canonicalSha256`. Bundle,
+  materialisation, rendering, embeddings, indexing, activation, AQG, Human
+  Gate and lifecycle remain unchanged or `NOT_RUN`.
+- Corpus `4.10.39` reconciles under
   `AUTH-S07-LOCAL-PRODUCT-TEXT-FIRST-CONTRACT-RECONCILIATION-PREFLIGHT-001`,
-  sobre a baseline limpa
-  `main@87f191c733715198451ee63da21ef24e121b0ac8`, o contrato RAG ativo com o
-  pipeline text-first já implementado. PDF pode integrar uma ativação com
-  `renderManifestId=null` mediante `TextualEvidence`; o modo visual completo
-  permanece suportado mediante `PdfVisualEvidence`, e manifestos esparsos de
-  uma a cinco páginas físicas citadas pertencem somente ao
-  `AnswerEvidenceRecordV1` persistido. A geração PostgreSQL 18.4
+  at clean baseline
+  `main@87f191c733715198451ee63da21ef24e121b0ac8`, the active RAG contract with the
+  already-implemented text-first pipeline. PDF may join an activation with
+  `renderManifestId=null` through `TextualEvidence`; complete visual mode
+  remains supported through `PdfVisualEvidence`, and sparse manifests of
+  one to five cited physical pages belong only to the persisted
+  `AnswerEvidenceRecordV1`. PostgreSQL 18.4 generation
   `idxgen-ec39244b021c90fceea1b3a628fe793a99f74650cad451f16ffbcd414af636f6`
-  está validada com 3.282 chunks e 3.282 vetores, zero render manifest e entrada
-  `07-activate-generation.runtime.json` preparada com
-  `renderManifestId=null`. A execução posterior e única de
-  `activate-generation` aplicou a revisão ativa `1`; consulta e Responses não
-  foram executados.
-- O corpus `4.10.41` preserva a reconciliação da ativação PostgreSQL e registra
-  a publicação privada e a implantação única do candidato Render Hobby/Free.
-  A imagem privada GHCR está fixada pelo digest
+  is validated with 3,282 chunks and 3,282 vectors, no render manifest and entry
+  `07-activate-generation.runtime.json` prepared with
+  `renderManifestId=null`. The subsequent single execution of
+  `activate-generation` applied active revision `1`; query and Responses were not
+  executed.
+- Corpus `4.10.41` preserves reconciliation of PostgreSQL activation and records
+  private publication and the single deployment of the Render Hobby/Free candidate.
+  The private GHCR image is fixed by digest
   `sha256:536e431126470a51370bf9aeb4c769ff1d75313c67643c3922cf0fd2e2688c08`.
-  O serviço `rag-challenge` usa plano `Free`, uma instância, autoscaling
-  desligado, zero disco persistente e zero banco Render. O deploy único está
-  `Live`; liveness e readiness públicos retornaram HTTP 200, com a geração
-  PostgreSQL esperada, um banco ativo, um documento elegível e zero degradado.
-  Nenhuma consulta nem chamada Responses ou embedding foi executada. Billing
-  permaneceu sem cartão, serviços, total mensal e projeção em `USD 0.00`. A implantação é
-  evidência pública de homologação em `STATE-07`; não substitui ADR-0005, não
-  satisfaz sozinha o requisito OCI e não autoriza `STATE-08`.
-- O corpus `4.10.42` reconcilia factualmente os freezes RB-2 e RB-3 já
-  concluídos sobre `main@0dbc415bad6532842aa6c4d1bb45ecd915bf5022`, corpus
-  `4.10.41`. Registra a revisão RB-2 de 252 casos e seu
+  Service `rag-challenge` uses the `Free` plan, one instance, autoscaling
+  disabled, no persistent disk and no Render database. The single deployment is
+  `Live`; public liveness and readiness returned HTTP 200, with the expected
+  PostgreSQL generation, one active database, one eligible document and none degraded.
+  No query, Responses or embedding call was executed. Billing
+  remained without a card or services, with monthly total and projection at `USD 0.00`. The deployment is
+  public homologation evidence in `STATE-07`; it does not replace ADR-0005, does not
+  satisfy the OCI requirement by itself and does not authorise `STATE-08`.
+- Corpus `4.10.42` factually reconciles the RB-2 and RB-3 freezes already
+  completed at `main@0dbc415bad6532842aa6c4d1bb45ecd915bf5022`, corpus
+  `4.10.41`. It records the 252-case RB-2 revision and its
   materialisation-freeze manifest SHA-256
   `daede1db869f7daf784fa2f3fc3b55e037cf4f3bb59a22f94e2026175858bfe4`,
-  além do campaign-input freeze RB-3 SHA-256
+  as well as the RB-3 campaign-input freeze SHA-256
   `ac7b5763bc9e571b6365449b340c8256790c5fe57ba79142b592b854cf25303c`
-  com 252 vetores. Preserva zero resultado, scorer, campanha Responses,
-  `RB-4` e Human Gate; a qualificação do denominador não é homologação de
-  produto e não muda lifecycle.
-- O corpus `4.13.1` registra a decisão humana posterior à avaliação documental
-  do SDK locked: ADR-0016 permanece `accepted` e não `superseded`,
-  `FakeAgentRunner` permanece a única baseline operacional validada, nenhum
-  ADR-0017 foi criado ou aceito e `NEW_REAL_START` continua
-  `ARCHITECTURE_CHANGE_REQUIRED`. A avaliação não verificou versão adicional
-  do SDK e não executou rede, Codex, provider, credencial, billing, Human Gate,
-  lifecycle, produção, push, merge ou release.
-- O corpus `4.13.0` registra a autoridade delimitada posterior, a aquisição
-  exata do grafo `@openai/codex-sdk` `0.147.0`, a implementação e a validação
-  da Etapa 2. O orchestrator permanece tooling de desenvolvimento fora da
-  solução e do runtime de produto. O gate limpo, dry run, E2E controlado e
-  revisões independentes passaram; a prontidão é
-  `MULTI_AGENT_READY_WITH_CONDITIONS` somente para fake local neste host; o
-  resume Codex é evidência de contrato não operacional e nova thread Codex
-  real permanece `ARCHITECTURE_CHANGE_REQUIRED`. Em host com criação de file
-  symlink permitida, os dois testes leaf-symlink precisam passar antes de
-  transportar a mesma classificação para esse host.
-- O corpus `4.12.1` registrou historicamente o preflight de dependências sobre
-  `60ccbdc`: Node `24.19.0` e npm `11.17.0` estavam disponíveis, mas o cache e
-  o inventário local continham zero `@openai/codex-sdk`. Sem autoridade então
-  vigente para aquisição no npm registry, o lockfile e os testes do runner não
-  podiam ser produzidos; a readiness naquele boundary era
-  `HUMAN_DECISION_REQUIRED`. A autoridade posterior satisfez essa condição
-  sem reescrever o fato histórico.
-- O corpus `4.12.0` registra a quarentena histórica escolhida para os freezes
-  RB-2/RB-3, sem edição in-place, e a aceitação arquitetural explícita da
-  ADR-0016. RB-2 permanece inválido, RB-3 indisponível para RB-4 e qualquer
-  sucessor exige autoridade separada, duas revisões humanas independentes e
-  adjudicação humana real. A reavaliação objetiva resulta em
-  `READY_FOR_STAGE_2` somente para a implementação local e offline-first do
-  orchestrator sob a autoridade original e a retomada explícita do
-  proprietário; não autoriza RB-4, provider, secret, network, billing,
-  produção, release, Human Gate ou lifecycle.
-- O corpus `4.11.1` torna explícita a obrigatoriedade de British English
-  (`en-GB`) em toda nova mensagem de commit pertencente ao projeto, incluindo
-  subject, body e footer. Tipos/scopes, identificadores e literais externos
-  preservam sua grafia exigida. A regra deve ser verificada antes do commit e
-  não concede amend, rebase ou reescrita de histórico por implicação.
-- O corpus `4.11.0` acrescenta o playbook verificável de desenvolvimento
-  multiagente, configura seis papéis project-scoped, corrige o fail-open de
-  cobertura sem branches, prepara o ADR-0016 como `proposed` e registra a
-  reauditoria de autoridade do RB-2. Preserva integralmente os freezes e não
-  aceita ADR, executa Stage 2, altera produto, Human Gate ou lifecycle.
-- O corpus `4.3.0` formaliza a decisão explícita do proprietário de aceitar
-  perguntas e respostas em `pt-BR` e `en-GB`: cada consulta declara o idioma,
-  a resposta usa o mesmo idioma, textos derivados da fonte permanecem no
-  idioma original da citação e a matriz de testes cobre os pares iguais e as
-  duas direções cruzadas. A decisão não define o idioma da interface e não
-  aceita os ADRs ainda propostos.
-- O corpus `4.4.0` formaliza a decisão posterior e independente de suportar a
-  interface em `pt-BR` e `en-GB`, com escolha visual explícita e localização
-  dos textos pertencentes ao produto. O idioma visual não altera nem é
-  inferido de `questionLanguage`, `answerLanguage` ou `contentLanguage`; as
-  citações continuam no idioma original da fonte. Idioma inicial,
-  persistência da preferência e fallback permanecem para decisão futura de
-  frontend. A decisão não aceita os ADRs ainda propostos.
-- O corpus `4.5.0` formaliza a decisão posterior de suportar os temas `Light`
-  e `Dark`, com escolha explícita e independente dos idiomas da interface e da
-  consulta. A matriz de quatro combinações entre `interfaceLanguage` e
-  `questionLanguage` deve ser executada nos dois temas. Tema inicial,
-  preferência do sistema, persistência e fallback permanecem para decisão
-  futura de frontend. A decisão não aceita os ADRs ainda propostos.
-- O corpus `4.6.0` formaliza a decisão independente de não impor teto de
-  produto à quantidade de sistemas ou de páginas do corpus. Cada versão
-  permanece finita e registra as contagens observadas; controles de segurança
-  e capacidade são condicionais ao corpus e ao ambiente, não um recorte fixo
-  de cobertura. A decisão não aceita o ADR-0004.
-- O corpus `4.7.0` formaliza a decisão posterior de usar os 51 nomes exatos
-  fornecidos pelo proprietário como catálogo inicial canônico, em 9 categorias
-  e 54 associações muitos-para-muitos. Cada banco ativo exige ao menos um
-  documento ativo PDF e/ou CSV; não há teto de documentos. Todos os documentos
-  ativos/current participam da recuperação unificada, enquanto origem
-  local/oficial permanece proveniência. Itens compatíveis são administráveis
-  sem hard-code, código ou ADR por item; novas classes de integração conservam
-  decisão própria. Nada foi implementado, ingerido, indexado ou ativado; nesse
-  incremento, os quatro ADRs ainda permaneceram propostos.
-- O corpus `4.8.0` registra a aceitação explícita e independente dos quatro
-  ADRs sobre a baseline reconciliada. ADR-0005 conserva OCI, versões de
-  packages e metas operacionais como condicionais, com backup consistente,
-  instance principal somente-leitura, divulgação limitada à OpenAI e bloqueio
-  de nova indexação diante de drift do alias mutável. A aceitação não instala,
-  executa, testa ou autoriza nenhum desses componentes.
-- A auditoria combinada autorizada de `STATE-02` confirmou a baseline
-  mecânica — 83 arquivos não ignorados, 30 Markdown, 13 arquivos em
-  `prompts/`, catálogo idêntico 51/54/9, 25 RF, 18 RNF, 20 critérios, 19 itens
-  Must, 36 ameaças e 15 grupos de testes —, mas reprovou o gate por
-  `AQG-S02-001` (P1), `AQG-S02-002` (P2) e `AQG-S02-003` (P3). Nenhum achado
-  foi corrigido silenciosamente.
-- O corpus `4.8.1` registra o pacote corretivo sem nova decisão arquitetural:
-  ADR-0007 compara modelos de identidade e recomenda excluir
-  `sourceObservationId` da geração, protegendo o binding completo por
-  `activationBindingSetDigest`. Threat model, visão, arquitetura e segurança
-  foram reconciliados com os fatos já aceitos para `AQG-S02-002` e
-  `AQG-S02-003`. Nesse snapshot, a decisão ainda estava pendente; o gate não
-  foi repetido e seus achados históricos não foram reclassificados por
-  inferência.
-- O corpus `4.9.0` registra a aceitação explícita do ADR-0007. A decisão torna
-  autoritativa a separação entre identidade de geração e identidade do
-  registro de ativação e substitui somente as cláusulas conflitantes de
-  identidade e rollback do ADR-0002. Nesse snapshot, a reconciliação semântica
-  ainda estava pendente e o gate continuava reprovado.
-- O corpus `4.9.1` aplica a reconciliação aceita: `sourceBindingSetDigest`
-  exclui `sourceObservationId`; `activationBindingSetDigest` protege o binding
-  completo; `catalogueRevision` fica separado do journal de observações;
-  `304`/hash idêntico preserva manifesto e geração; consulta filtra bindings
-  elegíveis antes do top-k; rollback constrói registro novo com observações
-  compatíveis e atualmente elegíveis. ADR-0002, contratos canônicos,
-  arquitetura da solução, módulo RAG, requisitos, lifecycle, Quality Gates,
-  roadmap, threat model e registros factuais agora convergem. A validação
-  dirigida não repetiu o gate nem comprovou implementação. A nova auditoria
-  combinada posterior dispôs `AQG-S02-001`, `AQG-S02-002` e `AQG-S02-003`
-  como `RESOLVIDOS` e aprovou a baseline documental, sem comprovar
-  implementação.
-- O corpus `4.9.2` corrige o isolamento temático das respostas e handoffs:
-  confirmação, esclarecimento ou follow-up restrito permanece dentro do pedido
-  atual; `Próximo trabalho recomendado` não importa lifecycle, backlog ou
-  melhoria opcional sem relação direta e usa ausência canônica quando não
-  existir trabalho adicional pertinente. A correção não altera produto,
-  lifecycle, autoridade ou estado executável.
-- O corpus `4.9.3` registra `NORM-S06-001`: `STATE-06` conserva o README
-  factualmente atual e ao menos um exemplo realmente verificado no artefato
-  integrado local/sintético, enquanto `STATE-08` conserva sua finalização
-  pública com evidência separadamente verificada de OCI e execução real do
-  produto. A mudança elimina a divergência de ownership sem alterar a ordem do
-  lifecycle, dispor os achados ou repetir o gate.
-- O corpus `4.9.4` corrige o enforcement do próximo trabalho recomendado:
-  todo handoff informa exatamente uma ação concreta, priorizada, diretamente
-  relacionada, com responsável e condição/autoridade. Solicitação concluída,
-  projeto em espera ou falta de autoridade não justificam omissão quando dado,
-  documento, decisão ou autorização ainda puder desbloquear a continuidade.
-  A ausência canônica fica restrita à inexistência real de continuação
-  acionável e não permite importar lifecycle ou backlog sem relação.
-- O corpus `4.9.7` corrige uma recorrência posterior: revisão genérica de
-  commits ou resultados concluídos não pode substituir o primeiro item ainda
-  não concluído de uma ordem de dependência. Quando faltar autoridade para
-  esse item, obtê-la do proprietário é a próxima ação e o handoff fornece o
-  payload delimitado. Perguntas diretas sobre o próximo passo recebem a ação
-  antes da recapitulação.
-- O Human Gate de `STATE-02` foi confirmado na mesma conversa que apresentou
-  o resumo completo da baseline vigente `main@6e61c4c`, corpus `4.9.1`. A
-  decisão aceitou a arquitetura documental sem ressalvas, preservou todas as
-  limitações e riscos residuais declarados e não autorizou `STATE-03` ou ação
-  externa.
-- A arquitetura adota princípios compatíveis com o DB-Notifier sem criar
-  referência ou dependência entre os projetos.
-- O Human Gate de `STATE-00` foi confirmado na conversa coordenadora que
-  continha o resumo completo da baseline `3.4.0`; a decisão não aceita ADR,
-  não decide `GATE-B01` e não autoriza `STATE-01`.
-- O `GATE-B01` foi confirmado na conversa coordenadora que continha o resumo
-  completo vigente. A decisão aceitou o ADR-0001, selecionou a licença MIT
-  com o aviso exato
-  `Copyright (c) 2026 Bruno Araújo - DegsTerin.`, consolidou RAG abstractions
-  em Application e persistence em Infrastructure, aprovou o mapa
-  `CH-MOD-*`, as dependências/testes arquiteturais e o modo administrativo
-  one-shot no host principal.
-- A aprovação de `GATE-B01` não criou licença, solution ou projetos, não
-  aceitou o ADR-0002 e não autorizou `STATE-01`.
-- Git local existe. A reorganização de governança `4.2.1` foi executada
-  sequencialmente na conversa coordenadora, sem lanes paralelas; aquela
-  execução foi exclusivamente documental e seu runtime preflight permaneceu
+  with 252 vectors. It preserves no result, scorer or Responses campaign,
+  `RB-4` and Human Gate; denominator qualification is not product
+  homologation and does not change lifecycle.
+- Corpus `4.13.1` records the human decision after documentary assessment
+  of the locked SDK: ADR-0016 remains `accepted` and not `superseded`,
+  `FakeAgentRunner` remains the only validated operational baseline, no
+  ADR-0017 was created or accepted and `NEW_REAL_START` remains
+  `ARCHITECTURE_CHANGE_REQUIRED`. The assessment did not verify an additional SDK
+  version and did not execute network, Codex, provider, credential, billing, Human Gate,
+  lifecycle, production, push, merge or release.
+- Corpus `4.13.0` records the subsequent bounded authority, acquisition
+  of the exact `@openai/codex-sdk` `0.147.0` graph, implementation and validation
+  of Stage 2. The orchestrator remains development tooling outside the
+  solution and product runtime. The clean gate, dry run, controlled E2E and
+  independent reviews passed; readiness is
+  `MULTI_AGENT_READY_WITH_CONDITIONS` only for the local fake on this host; Codex
+  resume is non-operational contract evidence and a new real Codex thread
+  remains `ARCHITECTURE_CHANGE_REQUIRED`. On a host where file symlink creation
+  is permitted, both leaf-symlink tests must pass before
+  carrying the same classification to that host.
+- Corpus `4.12.1` historically recorded the dependency preflight at
+  `60ccbdc`: Node `24.19.0` and npm `11.17.0` were available, but the local cache and
+  inventory contained no `@openai/codex-sdk`. Without authority then
+  current for acquisition from the npm registry, the lockfile and runner tests could not
+  be produced; readiness at that boundary was
+  `HUMAN_DECISION_REQUIRED`. Subsequent authority satisfied that condition
+  without rewriting the historical fact.
+- Corpus `4.12.0` records the selected historical quarantine for the
+  RB-2/RB-3 freezes, without in-place editing, and the explicit architectural acceptance of
+  ADR-0016. RB-2 remains invalid, RB-3 unavailable for RB-4 and any
+  successor requires separate authority, two independent human reviews and
+  genuine human adjudication. Objective reassessment results in
+  `READY_FOR_STAGE_2` only for local, offline-first implementation of the
+  orchestrator under the original authority and the owner’s explicit
+  resumption; it does not authorise RB-4, provider, secret, network, billing,
+  production, release, Human Gate or lifecycle.
+- Corpus `4.11.1` makes British English
+  (`en-GB`) mandatory in every new project-owned commit message, including
+  subject, body and footer. Types/scopes, identifiers and external literals
+  preserve their required spelling. The rule must be checked before the commit and
+  does not grant amend, rebase or history-rewrite authority by implication.
+- Corpus `4.11.0` adds the verifiable multi-agent development
+  playbook, configures six project-scoped roles, corrects fail-open
+  coverage without branches, prepares ADR-0016 as `proposed` and records the
+  RB-2 authority reaudit. It fully preserves the freezes and does not
+  accept an ADR, execute Stage 2, alter the product, Human Gate or lifecycle.
+- Corpus `4.3.0` formalises the owner’s explicit decision to accept
+  questions and answers in `pt-BR` and `en-GB`: each query declares its language,
+  the answer uses the same language, source-derived text remains in the
+  citation’s original language and the test matrix covers matching pairs and the
+  two cross-directions. The decision does not define the interface language and does not
+  accept the still-proposed ADRs.
+- Corpus `4.4.0` formalises the subsequent and independent decision to support the
+  interface in `pt-BR` and `en-GB`, with an explicit visual choice and localisation
+  of product-owned text. The visual language neither alters nor is
+  inferred from `questionLanguage`, `answerLanguage` or `contentLanguage`; the
+  citations remain in the source’s original language. Initial language,
+  preference persistence and fallback remain for a future frontend
+  decision. The decision does not accept the still-proposed ADRs.
+- Corpus `4.5.0` formalises the subsequent decision to support `Light`
+  and `Dark` themes, with an explicit choice independent of interface and query
+  languages. The four-combination matrix between `interfaceLanguage` and
+  `questionLanguage` must be executed in both themes. Initial theme,
+  system preference, persistence and fallback remain for a future
+  frontend decision. The decision does not accept the still-proposed ADRs.
+- Corpus `4.6.0` formalises the independent decision not to impose a product
+  ceiling on the number of systems or corpus pages. Each version
+  remains finite and records the observed counts; security and
+  capacity controls are conditional on the corpus and environment, not a fixed
+  coverage subset. The decision does not accept ADR-0004.
+- Corpus `4.7.0` formalises the subsequent decision to use the 51 exact names
+  provided by the owner as the canonical initial catalogue, in 9 categories
+  and 54 many-to-many associations. Each active database requires at least one
+  active PDF and/or CSV document; there is no document ceiling. All active/current
+  documents participate in unified retrieval, while local/official
+  origin remains provenance. Compatible items are administrable
+  without hard-coding, code or an ADR per item; new integration classes retain
+  their own decision. Nothing was implemented, ingested, indexed or activated; in that
+  increment, all four ADRs still remained proposed.
+- Corpus `4.8.0` records the explicit and independent acceptance of the four
+  ADRs on the reconciled baseline. ADR-0005 keeps OCI, package
+  versions and operational targets conditional, with consistent backup,
+  read-only primary instance, disclosure limited to OpenAI and blocking
+  of new indexing when the mutable alias drifts. Acceptance does not install,
+  execute, test or authorise any of those components.
+- The authorised combined audit of `STATE-02` confirmed the mechanical
+  baseline — 83 non-ignored files, 30 Markdown files, 13 files under
+  `prompts/`, identical 51/54/9 catalogue, 25 RF, 18 RNF, 20 criteria, 19 Must
+  items, 36 threats and 15 test groups — but rejected the gate because of
+  `AQG-S02-001` (P1), `AQG-S02-002` (P2) and `AQG-S02-003` (P3). No finding
+  was silently corrected.
+- Corpus `4.8.1` records the corrective package without a new architectural decision:
+  ADR-0007 compares identity models and recommends excluding
+  `sourceObservationId` from the generation, protecting the complete binding with
+  `activationBindingSetDigest`. Threat model, vision, architecture and security
+  were reconciled with the already-accepted facts for `AQG-S02-002` and
+  `AQG-S02-003`. At that snapshot, the decision was still pending; the gate was not
+  repeated and its historical findings were not reclassified by
+  inference.
+- Corpus `4.9.0` records the explicit acceptance of ADR-0007. The decision makes
+  authoritative the separation between generation identity and activation-record
+  identity and replaces only the conflicting identity and rollback clauses of
+  ADR-0002. At that snapshot, semantic reconciliation was
+  still pending and the gate remained rejected.
+- Corpus `4.9.1` applies the accepted reconciliation: `sourceBindingSetDigest`
+  excludes `sourceObservationId`; `activationBindingSetDigest` protects the complete
+  binding; `catalogueRevision` remains separate from the observation journal;
+  `304`/identical hash preserves manifest and generation; query filters eligible
+  bindings before top-k; rollback builds a new record with compatible
+  and currently eligible observations. ADR-0002, canonical contracts,
+  solution architecture, RAG module, requirements, lifecycle, Quality Gates,
+  roadmap, threat model and factual records now converge. The directed
+  validation neither repeated the gate nor proved implementation. The subsequent new combined
+  audit disposed of `AQG-S02-001`, `AQG-S02-002` and `AQG-S02-003`
+  as `RESOLVIDOS` and approved the documentary baseline, without proving
+  implementation.
+- Corpus `4.9.2` corrects thematic isolation of responses and hand-offs:
+  confirmation, clarification or a bounded follow-up remains within the current
+  request; `Próximo trabalho recomendado` does not import lifecycle, backlog or an
+  optional improvement without a direct relationship and uses canonical absence when no
+  pertinent additional work exists. The correction does not alter the product,
+  lifecycle, authority or executable state.
+- Corpus `4.9.3` records `NORM-S06-001`: `STATE-06` retains the factually
+  current README and at least one genuinely verified example in the local/synthetic
+  integrated artefact, while `STATE-08` retains its public
+  finalisation with separately verified OCI evidence and real product
+  execution. The change eliminates the ownership divergence without altering the
+  lifecycle order, disposing of the findings or repeating the gate.
+- Corpus `4.9.4` corrects enforcement of the next recommended work:
+  every hand-off reports exactly one concrete, prioritised and directly
+  related action, with an owner and condition/authority. A completed request,
+  waiting project or lack of authority does not justify omission when a datum,
+  document, decision or authority can still unblock continuity.
+  Canonical absence is restricted to a genuine lack of actionable
+  continuation and does not permit importing unrelated lifecycle or backlog.
+- Corpus `4.9.7` corrects a subsequent recurrence: generic review of
+  commits or completed results cannot replace the first still-incomplete
+  item in a dependency order. When authority for
+  that item is absent, obtaining it from the owner is the next action and the hand-off provides the
+  bounded payload. Direct questions about the next step receive the action
+  before the recap.
+- The `STATE-02` Human Gate was confirmed in the same conversation that presented
+  the complete summary of current baseline `main@6e61c4c`, corpus `4.9.1`. The
+  decision accepted the documentary architecture without reservations, preserved all
+  stated limitations and residual risks and did not authorise `STATE-03` or an external
+  action.
+- The architecture adopts principles compatible with DB-Notifier without creating a
+  reference or dependency between the projects.
+- The `STATE-00` Human Gate was confirmed in the coordinating conversation that
+  contained the complete summary of baseline `3.4.0`; the decision does not accept an ADR,
+  decide `GATE-B01` or authorise `STATE-01`.
+- `GATE-B01` was confirmed in the coordinating conversation that contained the complete
+  current summary. The decision accepted ADR-0001, selected the MIT licence
+  with the exact notice
+  `Copyright (c) 2026 Bruno Araújo - DegsTerin.`, consolidated RAG abstractions
+  in Application and persistence in Infrastructure, approved the
+  `CH-MOD-*` map, architectural dependencies/tests and one-shot administrative
+  mode in the primary host.
+- Approval of `GATE-B01` did not create the licence, solution or projects, did not
+  accept ADR-0002 and did not authorise `STATE-01`.
+- Local Git exists. Governance reorganisation `4.2.1` was executed
+  sequentially in the coordinating conversation, without parallel lanes; that
+  execution was exclusively documentary and its runtime preflight remained
   `NÃO APLICÁVEL`.
-- A política, o enforcement, o roteamento, os critérios e os templates de
-  continuidade permanecem vigentes em suas autoridades temáticas; o snapshot
-  não os redefine.
+- The continuity policy, enforcement, routing, criteria and templates
+  remain current in their thematic authorities; the snapshot
+  does not redefine them.
 
 ## Workspace
 
-- `.gitignore` exclui `reference-materials/`.
-- `reference-materials/` preserva 24 arquivos locais: 23 materiais originais
-  do Challenge e 1 prompt genérico de governança arquivado sem alteração.
-- `reference-materials/challenge-original/` mantém 8 Markdown, 14 PDFs e 1
+- `.gitignore` excludes `reference-materials/`.
+- `reference-materials/` preserves 24 local files: 23 original Challenge materials
+  and 1 generic governance prompt archived unchanged.
+- `reference-materials/challenge-original/` retains 8 Markdown files, 14 PDFs and 1
   PNG.
-- Os materiais originais não são o corpus do produto e não serão enviados ao
+- The original materials are not the product corpus and will not be sent to
   GitHub.
-- Existe repositório Git local inicializado na branch `main`; o scaffold está
-  no commit `16aec5f8586f07c9a9d89165e330335b460d6fbf` e o lockfile npm no
-  commit `8a604ceaa34162673aea6b7ce3267bc9d3f8b83a`; a migração técnica de
-  identidade está no commit
+- An initialised local Git repository exists on branch `main`; the scaffold is
+  in commit `16aec5f8586f07c9a9d89165e330335b460d6fbf` and the npm lockfile in
+  commit `8a604ceaa34162673aea6b7ce3267bc9d3f8b83a`; the technical identity
+  migration is in commit
   `8c347c0fa73fead3e03a1eb979deba9fe3617379`.
-- Existem `RAG-Challenge.sln`, quatro projetos .NET de produção sob o prefixo
-  `RagChallenge`, um boundary React/TypeScript para o Dashboard e três
-  projetos .NET de testes, conforme o ADR-0003. Domain e Application contêm o
-  modelo, as identidades canônicas e os ports de persistência; Infrastructure
-  contém a persistência SQLite local, conteúdo imutável, catálogo, snapshots,
-  observações, gerações, ativações, leases e journal administrativo. O backend
-  local de `STATE-04` implementa administração one-shot, ingestão PDF/CSV,
-  sincronização por transporte controlado, chunking, indexação, recuperação,
-  geração grounded e API pública v1; os caminhos externos permanecem
-  fail-closed e foram exercitados somente com fakes e fixtures sintéticas.
-- SDK .NET `10.0.302` e C# `14.0` estão fixados. O Dashboard suporta Node.js
-  `>=24.18.0 <25` e npm `>=11.16.0 <12`, com enforcement por `devEngines`;
-  `.nvmrc` seleciona o limite inferior `24.18.0`. NuGet usa gestão central e
-  sete lockfiles reproduzidos offline.
-- O gate histórico de setup aprovou restore .NET offline locked, format,
-  build Release, 15 testes e cobertura de 88% de linhas/100% de branches.
-  `S03-A` foi verificado sem restore ou instalação: 68 testes aprovados e
-  cobertura de 95,55% de linhas/89,93% de branches.
-- `S03-B5` repetiu o agregado offline com 82 testes aprovados, cobertura de
-  94,83% de linhas/72,34% de branches e migrations Control/Vector sem mudança
-  pendente. O CI normaliza explicitamente para LF somente os sete lockfiles
-  NuGet rastreados que o restore pode reserializar no Windows.
-- O Dashboard possui `package-lock.json` v3 e passou clean install sem
-  lifecycle scripts, lint, dois testes estruturais, typecheck e build Vite.
-- As auditorias npm e .NET não encontraram vulnerabilidades nas fontes atuais.
-- O clone limpo da baseline renomeada, sem `reference-materials/`, reproduziu
-  restore locked, format, build, 15 testes, cobertura, Dashboard e higiene;
-  liveness e readiness responderam `200` em loopback, e o listener pertencente
-  ao projeto foi encerrado.
-- O clone temporário dessa reprodução permanece no diretório temporário do
-  sistema porque a política de execução recusou sua remoção recursiva. Ele não
-  contém `reference-materials/`, secret ou mudança não rastreada.
-- O diretório físico do checkout, externo ao Git, foi renomeado manualmente
-  para `RAG-Challenge`; não existe um diretório irmão `Challenge`.
-- As sete árvores técnicas legadas, que continham zero arquivos, foram
-  removidas após validação dos alvos. As 15 raízes ignoradas de build e teste
-  que conservavam o path absoluto anterior também foram removidas como
-  artefatos reproduzíveis.
-- Verificações .NET posteriores recriaram transitoriamente 14 raízes
-  canônicas `bin/` e `obj/`, sem o path anterior; uma segunda passagem
-  removeu essas saídas. No snapshot final, `bin/`, `obj/` e `TestResults/`
-  estão ausentes nos sete projetos.
-- Nenhum arquivo ou path técnico ativo conserva o prefixo ou o path absoluto
-  anterior. `reference-materials/` permaneceu ignorado e preservou
-  integralmente seus 24 arquivos; usos históricos, externos e de proveniência
-  permanecem deliberadamente inalterados.
-- O pipeline CI está definido com menor privilégio e sem deploy. Esta auditoria
-  não consultou o histórico remoto de execuções do GitHub; o estado de CI
-  remota não foi revalidado.
-- O arquivo `LICENSE` materializa a licença MIT aprovada.
-- Existem API, ingestão, recuperação, persistência SQLite e vector store exato
-  funcionais. O PostgreSQL 18.4 `LocalAuthorised` está ativo na revisão `1` e
-  a imagem privada foi publicada no GHCR e implantada uma vez no serviço
-  Render Free descrito acima. Isso não constitui produção, não satisfaz
-  sozinho o requisito OCI e não autoriza `STATE-08`.
-- O package privado GHCR e o serviço Render Free são recursos externos já
-  observados; nenhuma ação remota foi executada por esta auditoria.
-- O DB-Notifier permaneceu somente leitura.
+- `RAG-Challenge.sln`, four production .NET projects under the
+  `RagChallenge` prefix, a React/TypeScript boundary for the Dashboard and three
+  .NET test projects exist, in accordance with ADR-0003. Domain and Application contain the
+  model, canonical identities and persistence ports; Infrastructure
+  contains local SQLite persistence, immutable content, catalogue, snapshots,
+  observations, generations, activations, leases and administrative journal. The
+  local `STATE-04` backend implements one-shot administration, PDF/CSV ingestion,
+  synchronisation through a controlled transport, chunking, indexing, retrieval,
+  grounded generation and public v1 API; the external paths remain
+  fail-closed and were exercised only with fakes and synthetic fixtures.
+- .NET SDK `10.0.302` and C# `14.0` are pinned. The Dashboard supports Node.js
+  `>=24.18.0 <25` and npm `>=11.16.0 <12`, with enforcement through `devEngines`;
+  `.nvmrc` selects lower bound `24.18.0`. NuGet uses central management and
+  seven lockfiles reproduced offline.
+- The historical setup gate approved locked offline .NET restore, format,
+  Release build, 15 tests and coverage of 88% of lines/100% of branches.
+  `S03-A` was verified without restore or installation: 68 tests passed and
+  coverage was 95.55% of lines/89.93% of branches.
+- `S03-B5` repeated the offline aggregate with 82 passing tests and coverage of
+  94.83% of lines/72.34% of branches and Control/Vector migrations without a pending
+  change. CI explicitly normalises to LF only the seven tracked NuGet
+  lockfiles that restore can reserialise on Windows.
+- The Dashboard has `package-lock.json` v3 and passed clean install without
+  lifecycle scripts, lint, two structural tests, typecheck and Vite build.
+- npm and .NET audits found no vulnerabilities in the current sources.
+- The clean clone of the renamed baseline, without `reference-materials/`, reproduced
+  locked restore, format, build, 15 tests, coverage, Dashboard and hygiene;
+  liveness and readiness returned `200` on loopback, and the project-owned listener
+  was stopped.
+- The temporary clone from that reproduction remains in the system temporary
+  directory because execution policy refused its recursive removal. It does not
+  contain `reference-materials/`, a secret or an untracked change.
+- The checkout’s physical directory, external to Git, was manually renamed
+  to `RAG-Challenge`; no sibling `Challenge` directory exists.
+- The seven legacy technical trees, which contained no files, were
+  removed after target validation. The 15 ignored build and test roots
+  that retained the previous absolute path were also removed as
+  reproducible artefacts.
+- Subsequent .NET checks transiently recreated 14 canonical
+  `bin/` and `obj/` roots, without the previous path; a second pass
+  removed those outputs. In the final snapshot, `bin/`, `obj/` and `TestResults/`
+  are absent from all seven projects.
+- No active technical file or path retains the previous prefix or absolute
+  path. `reference-materials/` remained ignored and fully preserved
+  its 24 files; historical, external and provenance uses
+  remain deliberately unchanged.
+- The CI pipeline is defined with least privilege and without deployment. This audit
+  did not query the remote GitHub run history; remote CI
+  state was not revalidated.
+- The `LICENSE` file materialises the approved MIT licence.
+- Functional API, ingestion, retrieval, SQLite persistence and exact vector store
+  exist. PostgreSQL 18.4 `LocalAuthorised` is active at revision `1`, and
+  the private image was published to GHCR and deployed once to the
+  Render Free service described above. This does not constitute production, does not by
+  itself satisfy the OCI requirement and does not authorise `STATE-08`.
+- The private GHCR package and Render Free service are already-observed external
+  resources; no remote action was executed by this audit.
+- DB-Notifier remained read-only.
 
-## Escopo corrente do produto
+## Current product scope
 
-- Aplicação RAG independente para documentação de bancos de dados.
-- MVP com um corpus lógico, catálogo inicial de 51 bancos, 9 categorias e 54
-  associações, administrável por registros e sem hard-code.
-- Cada banco ativo possui ao menos um documento ativo PDF/CSV e pode possuir
-  qualquer quantidade adicional.
-- Nenhum teto de produto para quantidade de sistemas ou páginas do corpus;
-  cada versão finita registra suas contagens e precisa caber com segurança no
-  ambiente homologado sem redução silenciosa do catálogo aprovado.
-- Recuperação unificada de todos os documentos ativos/current; origem local ou
-  oficial permanece explícita em proveniência, cobertura e citações.
-- Sincronização manual e governada de cada fonte oficial registrada para
-  snapshot versionado.
-- Fontes oficiais públicas sem credenciais, egress deny-by-default por URL
-  exata e validação TLS sem destinos laterais não autorizados.
-- Resposta grounded com citações e evidência insuficiente explícita.
-- Perguntas e respostas com idioma explícito `pt-BR` ou `en-GB`, resposta no
-  idioma da pergunta e citações preservadas no idioma original da fonte.
-- Arquitetura aceita separa `SupportedQueryLanguage` fechado em `pt-BR` e
-  `en-GB` de `DocumentContentLanguage` BCP 47; preserva a declaração exata
-  `sourceDeclaredLanguage` e não converte `en` em `en-GB`. O runtime v1 ainda
-  conserva o modelo fechado implementado.
-- Interface com seleção explícita entre `pt-BR` e `en-GB`, independente do
-  idioma da pergunta, da resposta e da evidência.
-- Interface com seleção explícita entre `Light` e `Dark`, independente dos
-  idiomas da interface, da pergunta, da resposta e da evidência.
-- Ciclo Candidate/Active/Deactivated/Removed para bancos e documentos,
-  versionamento manual e nova geração candidata.
-- Conteúdo bruto imutável/reabrível, staging não consultável, manifesto final
-  íntegro, digest generation-bound separado do digest completo de ativação e
-  ativação/rollback por nova revisão do registro completo versionado.
-- Arquitetura aceita torna `IDocumentContentStore` a autoridade permanente para
-  fonte e PNGs content-addressed, exige render manifest PDF completo, direitos
-  específicos e serving visual vinculado à citação. A fronteira executável do
-  content store, os contratos/gates de direitos, o renderer/PNG, a finalização
-  de manifest e os vínculos atômicos de ativação estão implementados em
-  incrementos corretivos separados. `AnswerEvidenceRecordV1`, sua retenção e
-  reachability também estão implementados localmente. O contrato HTTP/OpenAPI
-  v2 e o serving visual same-origin foram implementados e aprovados pelo
-  Automatic Quality Gate na fronteira local, offline, determinística e
-  sintética registrada acima.
-- Contrato HTTP/OpenAPI v1 versionado pertencente ao RAG-Challenge; adapters
-  consumidores permanecem fora deste repositório.
-- Contratos HTTP/OpenAPI v1 e v2 coexistem. V2 projeta o idioma documental BCP
-  47 e a evidência visual same-origin; ambos os artefatos OpenAPI permanecem
-  preservados byte a byte.
-- Execução local e futuro deploy OCI.
-- GitHub Pages somente como frontend estático opcional.
+- Independent RAG application for database documentation.
+- MVP with one logical corpus, initial catalogue of 51 databases, 9 categories and 54
+  associations, administrable through records and without hard-coding.
+- Each active database has at least one active PDF/CSV document and may have
+  any additional number.
+- No product ceiling on the number of systems or corpus pages;
+  each finite version records its counts and must fit safely within the
+  homologated environment without silently reducing the approved catalogue.
+- Unified retrieval of all active/current documents; local or official
+  origin remains explicit in provenance, coverage and citations.
+- Manual and governed synchronisation of each registered official source into a
+  versioned snapshot.
+- Public official sources without credentials, deny-by-default egress by exact
+  URL and TLS validation without unauthorised lateral destinations.
+- Grounded response with citations and explicit insufficient evidence.
+- Questions and answers with explicit `pt-BR` or `en-GB` language, answer in the
+  question language and citations preserved in the source’s original language.
+- The accepted architecture separates closed `SupportedQueryLanguage` in `pt-BR` and
+  `en-GB` from BCP 47 `DocumentContentLanguage`; preserves the exact
+  `sourceDeclaredLanguage` declaration and does not convert `en` to `en-GB`. The v1 runtime still
+  retains the implemented closed model.
+- Interface with explicit choice between `pt-BR` and `en-GB`, independent of the
+  question, answer and evidence languages.
+- Interface with explicit choice between `Light` and `Dark`, independent of the
+  interface, question, answer and evidence languages.
+- Candidate/Active/Deactivated/Removed lifecycle for databases and documents,
+  manual versioning and a new candidate generation.
+- Immutable/reopenable raw content, non-queryable staging, intact final
+  manifest, generation-bound digest separate from the complete activation digest, and
+  activation/rollback through a new revision of the complete versioned record.
+- The accepted architecture makes `IDocumentContentStore` the permanent authority for
+  content-addressed source and PNGs, requires a complete PDF render manifest, specific
+  rights and visual serving bound to the citation. The executable content-store
+  boundary, rights contracts/gates, renderer/PNG, manifest finalisation
+  and atomic activation bindings are implemented in
+  separate corrective increments. `AnswerEvidenceRecordV1`, its retention and
+  reachability are also implemented locally. The HTTP/OpenAPI v2
+  contract and same-origin visual serving were implemented and approved by the
+  Automatic Quality Gate at the local, offline, deterministic and
+  synthetic boundary recorded above.
+- Versioned RAG-Challenge-owned HTTP/OpenAPI v1 contract; consuming
+  adapters remain outside this repository.
+- HTTP/OpenAPI v1 and v2 contracts coexist. V2 projects BCP 47 document
+  language and same-origin visual evidence; both OpenAPI artefacts remain
+  preserved byte-for-byte.
+- Local execution and future OCI deployment.
+- GitHub Pages only as an optional static frontend.
 
-## Capacidades futuras inativas
+## Inactive future capabilities
 
-- múltiplos acervos;
-- formatos além de PDF e CSV;
-- sincronização incremental agendada;
-- crawling genérico e novas classes de fonte/autenticação;
-- múltiplos providers;
+- multiple corpora;
+- formats beyond PDF and CSV;
+- scheduled incremental synchronisation;
+- generic crawling and new source/authentication classes;
+- multiple providers;
 - RBAC/multi-tenancy;
-- integração ao DB-Notifier.
+- DB-Notifier integration.
 
-Nenhuma dessas capacidades está implementada, testada, implantada ou
-autorizada.
+None of these capabilities is implemented, tested, deployed or
+authorised.
 
-## Evidências e decisões futuras pendentes
+## Pending future evidence and decisions
 
-1. O A0-003 de `postgresql-18-reference-a4` confirmou identidade, proveniência,
-   idiomas e a concessão já registrada sob ADR-0011. O mecanismo ADR-0012,
-   implementado em `f682827d1a26b08fa8c450a1fadb3bd0e1fa1700` e aprovado no
-   gate notice-bearing, carrega copyright notice, permission paragraph e os
-   dois disclaimers completos dentro de cada PNG. Page rendering,
-   derivative-image creation/retention e runtime display são `PERMITTED`
-   somente sob esse perfil e suas condições fail-closed; distribuição externa
-   permanece `DENIED`. O documento foi importado e a geração text-first
+1. A0-003 for `postgresql-18-reference-a4` confirmed identity, provenance,
+   languages and the grant already recorded under ADR-0011. The ADR-0012 mechanism,
+   implemented in `f682827d1a26b08fa8c450a1fadb3bd0e1fa1700` and approved at the
+   notice-bearing gate, carries the copyright notice, permission paragraph and the
+   two complete disclaimers inside every PNG. Page rendering,
+   derivative-image creation/retention and runtime display are `PERMITTED`
+   only under that profile and its fail-closed conditions; external distribution
+   remains `DENIED`. The document was imported and text-first generation
    `idxgen-ec39244b021c90fceea1b3a628fe793a99f74650cad451f16ffbcd414af636f6`
-   foi materializada, validada e ativada na revisão `1`, com 3.282 chunks,
-   3.282 vetores e zero render manifest. A ativação preserva
-   `renderManifestId=null`. Cada documento posterior mantém seu próprio gate
-   independente de direitos, proveniência e idioma.
-2. Validar e ativar individualmente novos registros de fonte oficial; a
-   aceitação arquitetural não autoriza URL, rede, download ou crawling.
-3. `S07-A` A1-A5 e seu Automatic Quality Gate foram concluídos e aprovados na
-   fronteira local, offline, determinística e sintética autorizada. A
-   integração v2, restart, cold backup/restore confinado e limites também foram
-   implementados; seu Automatic Quality Gate posterior foi `APROVADO` na
-   fronteira sintética correspondente, e `AQG-S07-V2-IR-001` está `RESOLVIDO`.
-   Homologação de produto e as fronteiras de provider, fonte, browser,
-   segurança dinâmica, carga, recuperação operacional, acessibilidade, Linux,
-   OCI e produção permanecem `NOT_RUN`; qualquer outro lote de `STATE-07`
-   continua não executado e não autorizado.
-4. A preparação sintética da campanha
-   `s07-a-provider-gpt54m-candidate-001` está congelada no commit
-   `422286863e7a3c213e96db18144769bd0458a75b`; seu Automatic Quality Gate foi
-   `APROVADO` sem achados somente na fronteira local, offline, determinística e
-   com handlers falsos. Não houve chamada real ou resultado pontuado. Ainda é
-   necessário verificar tier, entitlement, spend limit e controles da conta
-   OpenAI, além da recuperação/geração bilíngue, antes de usar ou anunciar os
+   was materialised, validated and activated at revision `1`, with 3,282 chunks,
+   3,282 vectors and no render manifest. Activation preserves
+   `renderManifestId=null`. Each subsequent document maintains its own independent
+   rights, provenance and language gate.
+2. Individually validate and activate new official-source records; architectural
+   acceptance does not authorise a URL, network, download or crawling.
+3. `S07-A` A1-A5 and its Automatic Quality Gate were completed and approved at the
+   authorised local, offline, deterministic and synthetic boundary. The
+   v2 integration, restart, confined cold backup/restore and limits were also
+   implemented; their subsequent Automatic Quality Gate was `APROVADO` at the
+   corresponding synthetic boundary, and `AQG-S07-V2-IR-001` is `RESOLVIDO`.
+   Product homologation and the provider, source, browser,
+   dynamic-security, load, operational-recovery, accessibility, Linux,
+   OCI and production boundaries remain `NOT_RUN`; every other `STATE-07` batch
+   remains unexecuted and unauthorised.
+4. Synthetic preparation of campaign
+   `s07-a-provider-gpt54m-candidate-001` is frozen in commit
+   `422286863e7a3c213e96db18144769bd0458a75b`; its Automatic Quality Gate was
+   `APROVADO` without findings only at the local, offline, deterministic boundary
+   with fake handlers. There was no real call or scored result. It is still
+   necessary to verify tier, entitlement, spend limit and OpenAI account
+   controls, as well as bilingual retrieval/generation, before using or announcing the
    providers.
-5. Homologar desempenho e capacidade do `SqliteExactVectorStore`; a fixture
-   funcional de 10.000 × 1.536 passou, mas não é benchmark, SLA ou teto de
-   produto.
-6. Testar process-crash boundaries abrangentes no `STATE-07`; restart e cold
-   backup/restore do store v2 task-owned já possuem evidência local sintética e
-   confinada, sem representar armazenamento ou recuperação operacional.
-7. Verificar capacidade, entitlement, IAM, restore, custo e cobrança reais da
-   tenancy OCI; as fontes públicas ainda divergem sobre a franquia gratuita.
-8. Os bytes, hashes, 252 casos e 252 vetores dos freezes RB-2/RB-3 permanecem
-   preservados e não pontuados. A reauditoria encontrou incompatibilidade entre
-   a exigência de revisão/adjudicação humana e os atores/decisões registrados.
-   Pela quarentena histórica escolhida, completude mecânica não satisfaz o
-   gate: RB-2 permanece inválido, RB-3 não pode alimentar `RB-4` e um eventual
-   sucessor coerente exige autoridade separada, duas revisões humanas
-   independentes e adjudicação humana real.
-9. `S03-CORR-01` concluiu o primeiro item da ordem de dependência.
-   `S04-CORR-04-A` concluiu descritores verificados do content store e
-   `S04-CORR-04-B` concluiu contratos/gates de direitos;
-   `S04-CORR-04-C` concluiu renderização determinística e finalização
-   verificada da candidata; `S04-CORR-04-D` concluiu persistência e ativação
-   atômica dos vínculos de fonte, direitos, geração e manifest; e
-   `S04-CORR-04-E` concluiu `AnswerEvidenceRecordV1`, retenção fixa `P30D` e
-   reachability na fronteira local/offline. O contrato v2 foi congelado, sua
-   implementação e o serving visual same-origin foram concluídos e o Automatic
-   Quality Gate correspondente foi `APROVADO` na fronteira local, offline,
-   determinística e sintética. OpenAPI v1 e v2 permanecem protegidas. As
-   integração v2, restart, cold backup/restore confinado e limites foram
-   concluídos no commit `e5dae7ee5a786417fba2c6ef0555686816b0b330`; a
-   correção focal está no commit
-   `f6c648c40cf8d0280cfceca5509a381bddb9fc8f`, e o Automatic Quality Gate
-   próprio foi `APROVADO` sem novo achado, com `AQG-S07-V2-IR-001`
-   `RESOLVIDO`. As fronteiras de browser/tecnologia assistiva, dados, renderer,
-   provider, fonte e rede reais, carga, crash injection abrangente,
-   recuperação operacional, Linux, OCI e produção continuam `NOT_RUN`.
+5. Homologate performance and capacity of `SqliteExactVectorStore`; the
+   functional 10,000 × 1,536 fixture passed, but is not a benchmark, SLA or product
+   ceiling.
+6. Test comprehensive process-crash boundaries in `STATE-07`; restart and cold
+   backup/restore of the task-owned v2 store already have local, synthetic and
+   confined evidence, without representing operational storage or recovery.
+7. Verify real capacity, entitlement, IAM, restore, cost and billing for the
+   OCI tenancy; public sources still diverge on the free allowance.
+8. The bytes, hashes, 252 cases and 252 vectors in the RB-2/RB-3 freezes remain
+   preserved and unscored. The reaudit found an incompatibility between
+   the human review/adjudication requirement and the recorded actors/decisions.
+   Under the selected historical quarantine, mechanical completeness does not satisfy the
+   gate: RB-2 remains invalid, RB-3 cannot feed `RB-4`, and any coherent
+   successor requires separate authority, two independent human
+   reviews and genuine human adjudication.
+9. `S03-CORR-01` completed the first item in the dependency order.
+   `S04-CORR-04-A` completed verified content-store descriptors and
+   `S04-CORR-04-B` completed rights contracts/gates;
+   `S04-CORR-04-C` completed deterministic rendering and verified
+   candidate finalisation; `S04-CORR-04-D` completed persistence and atomic
+   activation of the source, rights, generation and manifest bindings; and
+   `S04-CORR-04-E` completed `AnswerEvidenceRecordV1`, fixed `P30D` retention and
+   reachability at the local/offline boundary. The v2 contract was frozen, its
+   implementation and same-origin visual serving were completed and the corresponding Automatic
+   Quality Gate was `APROVADO` at the local, offline,
+   deterministic and synthetic boundary. OpenAPI v1 and v2 remain protected. The
+   v2 integration, restart, confined cold backup/restore and limits were
+   completed in commit `e5dae7ee5a786417fba2c6ef0555686816b0b330`; the
+   focused correction is in commit
+   `f6c648c40cf8d0280cfceca5509a381bddb9fc8f`, and its own Automatic Quality Gate
+   was `APROVADO` without a new finding, with `AQG-S07-V2-IR-001`
+   `RESOLVIDO`. The real browser/assistive-technology, data, renderer,
+   provider, source and network, load, comprehensive crash-injection,
+   operational-recovery, Linux, OCI and production boundaries remain `NOT_RUN`.
 
-## Próxima autoridade
+## Next authority
 
-A Etapa 2 está implementada e validada para coordenação determinística com
-`FakeAgentRunner` e com o runner Codex App Server selecionado por ADR-0017. O
-CLI expõe start e resume reais sob `--runner codex`, mas continua deny-by-default:
-cada execução exige um plano fechado, baseline Git limpa em branch `codex/`,
-`--authority-reference`, sandbox por task, approval `never`, rede de agente
-negada e estado ChatGPT local válido. `OPENAI_API_KEY` permanece fora dessa
-fronteira.
+Stage 2 is implemented and validated for deterministic coordination with
+`FakeAgentRunner` and the Codex App Server runner selected by ADR-0017. The
+CLI exposes real start and resume under `--runner codex`, but remains deny-by-default:
+each execution requires a closed plan, a clean Git baseline on a `codex/` branch,
+`--authority-reference`, sandbox per task, `never` approval, agent network
+denied and valid local ChatGPT state. The product provider credential remains outside this
+boundary.
 
-Em 2026-08-15, ADR-0017 foi aceito pela frase explícita
-`ADR-0017: ACEITAR.` e implementado com o App Server estável. A autenticação
-sanitizada confirmou somente o modo `chatgpt`; `thread/start` devolveu a
-identidade antes de `turn/start`; o checkpoint foi persistido antes do turn; o
-resultado estruturado foi validado; e a execução real controlada terminou
-`PASS`. A antiga condição `ARCHITECTURE_CHANGE_REQUIRED` para
-`NEW_REAL_START` está resolvida por ADR-0017 e não se aplica ao runner atual.
+On 2026-08-15, ADR-0017 was accepted with the explicit phrase
+`ADR-0017: ACEITAR.` and implemented with the stable App Server. Sanitised
+authentication confirmed only `chatgpt` mode; `thread/start` returned the
+identity before `turn/start`; the checkpoint was persisted before the turn; the
+structured result was validated; and the controlled real execution ended
+`PASS`. The previous `ARCHITECTURE_CHANGE_REQUIRED` condition for
+`NEW_REAL_START` is resolved by ADR-0017 and does not apply to the current runner.
 
-Não há implementação restante diretamente relacionada à ativação de Stage 0,
-Stage 1 e Stage 2. A próxima execução do orchestrator, quando houver trabalho
-de desenvolvimento concreto, deve receber um novo envelope delimitado do
-proprietário e um plano fechado; a prontidão não concede autoridade contínua.
-Provider de produto, produção, push, merge, release, Human Gate e mudança de
-lifecycle continuam fora dessa ativação.
+No implementation remains directly related to activating Stage 0,
+Stage 1 and Stage 2. The next orchestrator execution, when concrete development
+work exists, must receive a new bounded envelope from the
+owner and a closed plan; readiness does not grant continuous authority.
+Product provider, production, push, merge, release, Human Gate and lifecycle
+change remain outside this activation.
 
-Um sucessor de RB-2/RB-3 continua fora dessa execução e exige autoridade
-separada, duas revisões humanas independentes e adjudicação humana real. Os
-freezes atuais não podem ser editados nem consumidos por RB-4; `RB-4` permanece
-bloqueado e `NOT_RUN`.
+A successor to RB-2/RB-3 remains outside this execution and requires separate
+authority, two independent human reviews and genuine human adjudication. The
+current freezes cannot be edited or consumed by RB-4; `RB-4` remains
+blocked and `NOT_RUN`.
 
 ## Contexto histórico preservado
 
