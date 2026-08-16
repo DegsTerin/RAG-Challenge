@@ -2164,7 +2164,7 @@
         "classification": "SYNTHETIC_ENFORCEMENT_REGION",
         "startMarker": "// SYNTHETIC_LANGUAGE_OWNER_PAYLOAD_START",
         "endMarker": "// SYNTHETIC_LANGUAGE_OWNER_PAYLOAD_END",
-        "sha256": "b08357d0b88e7cb5d95ce445a865ec034943c0edb5590a467bbdadfb6457fa5f"
+        "sha256": "96f68baf9262c86a9961ca396e33ca0d0b5c913d0181380f03f9abb8ff3528bc"
       },
       {
         "path": "eng/test-language-policy.mjs",
@@ -2216,6 +2216,20 @@
         "sha256": "d56182715c4564f0579457a16def060a73219912067d4642eef96bebb8ed6f3a"
       },
       {
+        "path": "src/RagChallenge.Dashboard.Web/test/dashboard-shell.test.mjs",
+        "classification": "FUNCTIONAL_LOCALISATION_REGION",
+        "startMarker": "  const expectedHeroHeadings = {\n    \"pt-BR\": \"Consulte a documentação ativa de bancos de dados e acompanhe a cobertura, a origem e a localização de cada evidência.\",",
+        "endMarker": "    \"en-GB\": \"Query the active database documentation and inspect the coverage, origin, and location of every piece of evidence.\",\n  };",
+        "sha256": "5db082961e446e44c30bae71050124d3e0f4a1b7b9b4cb252d97579a203421cc"
+      },
+      {
+        "path": "src/RagChallenge.Dashboard.Web/test/experience-matrix.test.mjs",
+        "classification": "FUNCTIONAL_LOCALISATION_REGION",
+        "startMarker": "  const expectedTitles = {\n    \"pt-BR\": \"RAG-Challenge — Documentação de bancos de dados\",",
+        "endMarker": "    \"en-GB\": \"RAG-Challenge — Database documentation\",\n  };",
+        "sha256": "02b4fa4650d18fa3820566744a2088f225311785113a427f3441427080251aca"
+      },
+      {
         "path": "prompts/templates/Templates.md",
         "classification": "OWNER_FACING_PT_BR_REGION",
         "startMarker": "### Text for `CONTINUE_CURRENT`\n\n```text",
@@ -2245,5 +2259,5 @@
       }
     ]
   },
-  "digest": "sha256:23f16352a82bd2177cfe1002050fb4351d1e1fd1868544165a963b82c43b878d"
+  "digest": "sha256:ce57a1ffb6b2ec286962bbed2a4e3fecb055ff4812ea1b3b39ac0be2f30b60ef"
 }

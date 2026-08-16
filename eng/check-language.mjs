@@ -427,7 +427,6 @@ function codeRegions(text) {
     }
     const comment = line.match(/^\s*(?:\/\/|#)\s?(.*)$/);
     if (comment) result.push({ line: index + 1, text: cleanTechnicalText(comment[1]) });
-    if (/["']pt-BR["']\s*:/.test(line)) continue;
     for (const match of line.matchAll(/(["'])([^"'\r\n]{4,})\1/g)) {
       const candidate = match[2];
       if (/\s/.test(candidate) && !/^[A-Za-z0-9_./:+-]+$/.test(candidate)) {

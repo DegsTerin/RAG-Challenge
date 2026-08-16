@@ -511,6 +511,14 @@ test("unclassified owner-facing text fences and Portuguese technical prose fail"
   const findings = inspectRegions("technical.md", extractProse("technical.md", "A implementação exige validação técnica."), payload);
   assert.equal(findings.some((finding) => finding.ruleId === "PORTUGUESE_TECHNICAL_PROSE"), true);
 });
+
+test("unclassified pt-BR dictionary content remains in scope", () => {
+  const payload = policyPayload();
+  const source = 'export const injected = { "pt-BR": "A implementação documents behavior." };\n';
+  const findings = inspectRegions("injected.ts", extractProse("injected.ts", source), payload);
+  assert.equal(findings.some((finding) => finding.ruleId === "PORTUGUESE_TECHNICAL_PROSE"), true);
+  assert.equal(findings.some((finding) => finding.ruleId === "US_SPELLING"), true);
+});
 // SYNTHETIC_LANGUAGE_OWNER_PAYLOAD_END
 
 test("localisation regions and immutable source data are closed exact classifications", () => {
