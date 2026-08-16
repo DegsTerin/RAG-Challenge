@@ -1,84 +1,300 @@
 {
   "$schema": "./language-policy.schema.json",
-  "schemaDigest": "sha256:0a6ab3b731e18c53cb0de3ecbe47d53dee648bf16130e88008750f50c5febb85",
+  "schemaDigest": "sha256:ae8637a9e77c71492a4adaf4fc65987f17b98cee42502bbce662a9a78509ef54",
   "payload": {
-    "schemaVersion": 1,
-    "policyId": "rag-challenge-language-policy-v1",
+    "schemaVersion": 2,
+    "policyId": "rag-challenge-language-policy-v2",
     "technicalLanguage": "en-GB",
     "ownerLanguage": "pt-BR",
     "bannedAmericanSpellings": [
-      { "american": "acknowledgment", "british": "acknowledgement" },
-      { "american": "acknowledgments", "british": "acknowledgements" },
-      { "american": "analyze", "british": "analyse" },
-      { "american": "analyzed", "british": "analysed" },
-      { "american": "analyzer", "british": "analyser" },
-      { "american": "analyzers", "british": "analysers" },
-      { "american": "artifact", "british": "artefact" },
-      { "american": "artifacts", "british": "artefacts" },
-      { "american": "authorization", "british": "authorisation" },
-      { "american": "authorizations", "british": "authorisations" },
-      { "american": "authorize", "british": "authorise" },
-      { "american": "authorized", "british": "authorised" },
-      { "american": "behavior", "british": "behaviour" },
-      { "american": "behavioral", "british": "behavioural" },
-      { "american": "behaviors", "british": "behaviours" },
-      { "american": "canceled", "british": "cancelled" },
-      { "american": "canceling", "british": "cancelling" },
-      { "american": "canonicalization", "british": "canonicalisation" },
-      { "american": "canonicalize", "british": "canonicalise" },
-      { "american": "canonicalized", "british": "canonicalised" },
-      { "american": "center", "british": "centre" },
-      { "american": "color", "british": "colour" },
-      { "american": "colors", "british": "colours" },
-      { "american": "favorite", "british": "favourite" },
-      { "american": "finalization", "british": "finalisation" },
-      { "american": "finalize", "british": "finalise" },
-      { "american": "finalized", "british": "finalised" },
-      { "american": "honor", "british": "honour" },
-      { "american": "initialization", "british": "initialisation" },
-      { "american": "initialize", "british": "initialise" },
-      { "american": "labeled", "british": "labelled" },
-      { "american": "localization", "british": "localisation" },
-      { "american": "localize", "british": "localise" },
-      { "american": "localized", "british": "localised" },
-      { "american": "materialization", "british": "materialisation" },
-      { "american": "materialize", "british": "materialise" },
-      { "american": "materialized", "british": "materialised" },
-      { "american": "maximization", "british": "maximisation" },
-      { "american": "maximize", "british": "maximise" },
-      { "american": "maximized", "british": "maximised" },
-      { "american": "minimization", "british": "minimisation" },
-      { "american": "minimize", "british": "minimise" },
-      { "american": "minimized", "british": "minimised" },
-      { "american": "modeled", "british": "modelled" },
-      { "american": "normalization", "british": "normalisation" },
-      { "american": "normalize", "british": "normalise" },
-      { "american": "optimize", "british": "optimise" },
-      { "american": "organization", "british": "organisation" },
-      { "american": "prioritization", "british": "prioritisation" },
-      { "american": "prioritize", "british": "prioritise" },
-      { "american": "prioritized", "british": "prioritised" },
-      { "american": "recognize", "british": "recognise" },
-      { "american": "sanitization", "british": "sanitisation" },
-      { "american": "sanitize", "british": "sanitise" },
-      { "american": "sanitized", "british": "sanitised" },
-      { "american": "serialization", "british": "serialisation" },
-      { "american": "serialize", "british": "serialise" },
-      { "american": "serialized", "british": "serialised" },
-      { "american": "standardization", "british": "standardisation" },
-      { "american": "standardize", "british": "standardise" },
-      { "american": "standardized", "british": "standardised" },
-      { "american": "summarization", "british": "summarisation" },
-      { "american": "summarize", "british": "summarise" },
-      { "american": "summarized", "british": "summarised" },
-      { "american": "synchronization", "british": "synchronisation" },
-      { "american": "synchronize", "british": "synchronise" },
-      { "american": "synchronized", "british": "synchronised" },
-      { "american": "traveled", "british": "travelled" },
-      { "american": "unauthorized", "british": "unauthorised" },
-      { "american": "utilization", "british": "utilisation" },
-      { "american": "utilize", "british": "utilise" },
-      { "american": "utilized", "british": "utilised" }
+      {
+        "american": "acknowledgment",
+        "british": "acknowledgement"
+      },
+      {
+        "american": "acknowledgments",
+        "british": "acknowledgements"
+      },
+      {
+        "american": "analyze",
+        "british": "analyse"
+      },
+      {
+        "american": "analyzed",
+        "british": "analysed"
+      },
+      {
+        "american": "analyzer",
+        "british": "analyser"
+      },
+      {
+        "american": "analyzers",
+        "british": "analysers"
+      },
+      {
+        "american": "artifact",
+        "british": "artefact"
+      },
+      {
+        "american": "artifacts",
+        "british": "artefacts"
+      },
+      {
+        "american": "authorization",
+        "british": "authorisation"
+      },
+      {
+        "american": "authorizations",
+        "british": "authorisations"
+      },
+      {
+        "american": "authorize",
+        "british": "authorise"
+      },
+      {
+        "american": "authorized",
+        "british": "authorised"
+      },
+      {
+        "american": "behavior",
+        "british": "behaviour"
+      },
+      {
+        "american": "behavioral",
+        "british": "behavioural"
+      },
+      {
+        "american": "behaviors",
+        "british": "behaviours"
+      },
+      {
+        "american": "canceled",
+        "british": "cancelled"
+      },
+      {
+        "american": "canceling",
+        "british": "cancelling"
+      },
+      {
+        "american": "canonicalization",
+        "british": "canonicalisation"
+      },
+      {
+        "american": "canonicalize",
+        "british": "canonicalise"
+      },
+      {
+        "american": "canonicalized",
+        "british": "canonicalised"
+      },
+      {
+        "american": "center",
+        "british": "centre"
+      },
+      {
+        "american": "color",
+        "british": "colour"
+      },
+      {
+        "american": "colors",
+        "british": "colours"
+      },
+      {
+        "american": "favorite",
+        "british": "favourite"
+      },
+      {
+        "american": "finalization",
+        "british": "finalisation"
+      },
+      {
+        "american": "finalize",
+        "british": "finalise"
+      },
+      {
+        "american": "finalized",
+        "british": "finalised"
+      },
+      {
+        "american": "honor",
+        "british": "honour"
+      },
+      {
+        "american": "initialization",
+        "british": "initialisation"
+      },
+      {
+        "american": "initialize",
+        "british": "initialise"
+      },
+      {
+        "american": "labeled",
+        "british": "labelled"
+      },
+      {
+        "american": "localization",
+        "british": "localisation"
+      },
+      {
+        "american": "localize",
+        "british": "localise"
+      },
+      {
+        "american": "localized",
+        "british": "localised"
+      },
+      {
+        "american": "materialization",
+        "british": "materialisation"
+      },
+      {
+        "american": "materialize",
+        "british": "materialise"
+      },
+      {
+        "american": "materialized",
+        "british": "materialised"
+      },
+      {
+        "american": "maximization",
+        "british": "maximisation"
+      },
+      {
+        "american": "maximize",
+        "british": "maximise"
+      },
+      {
+        "american": "maximized",
+        "british": "maximised"
+      },
+      {
+        "american": "minimization",
+        "british": "minimisation"
+      },
+      {
+        "american": "minimize",
+        "british": "minimise"
+      },
+      {
+        "american": "minimized",
+        "british": "minimised"
+      },
+      {
+        "american": "modeled",
+        "british": "modelled"
+      },
+      {
+        "american": "normalization",
+        "british": "normalisation"
+      },
+      {
+        "american": "normalize",
+        "british": "normalise"
+      },
+      {
+        "american": "optimize",
+        "british": "optimise"
+      },
+      {
+        "american": "organization",
+        "british": "organisation"
+      },
+      {
+        "american": "prioritization",
+        "british": "prioritisation"
+      },
+      {
+        "american": "prioritize",
+        "british": "prioritise"
+      },
+      {
+        "american": "prioritized",
+        "british": "prioritised"
+      },
+      {
+        "american": "recognize",
+        "british": "recognise"
+      },
+      {
+        "american": "sanitization",
+        "british": "sanitisation"
+      },
+      {
+        "american": "sanitize",
+        "british": "sanitise"
+      },
+      {
+        "american": "sanitized",
+        "british": "sanitised"
+      },
+      {
+        "american": "serialization",
+        "british": "serialisation"
+      },
+      {
+        "american": "serialize",
+        "british": "serialise"
+      },
+      {
+        "american": "serialized",
+        "british": "serialised"
+      },
+      {
+        "american": "standardization",
+        "british": "standardisation"
+      },
+      {
+        "american": "standardize",
+        "british": "standardise"
+      },
+      {
+        "american": "standardized",
+        "british": "standardised"
+      },
+      {
+        "american": "summarization",
+        "british": "summarisation"
+      },
+      {
+        "american": "summarize",
+        "british": "summarise"
+      },
+      {
+        "american": "summarized",
+        "british": "summarised"
+      },
+      {
+        "american": "synchronization",
+        "british": "synchronisation"
+      },
+      {
+        "american": "synchronize",
+        "british": "synchronise"
+      },
+      {
+        "american": "synchronized",
+        "british": "synchronised"
+      },
+      {
+        "american": "traveled",
+        "british": "travelled"
+      },
+      {
+        "american": "unauthorized",
+        "british": "unauthorised"
+      },
+      {
+        "american": "utilization",
+        "british": "utilisation"
+      },
+      {
+        "american": "utilize",
+        "british": "utilise"
+      },
+      {
+        "american": "utilized",
+        "british": "utilised"
+      }
     ],
     "portugueseTechnicalMarkers": [
       "alteração",
@@ -95,17 +311,621 @@
       "validação",
       "verificação"
     ],
-    "scannedExtensions": [
-      ".cs",
-      ".json",
-      ".md",
-      ".mjs",
-      ".ps1",
-      ".toml",
-      ".ts",
-      ".tsx",
-      ".yaml",
-      ".yml"
+    "binaryPaths": [
+      {
+        "path": "docs/assets/render/rag-challenge-deployment.gif",
+        "classification": "HISTORICAL_VISUAL_EVIDENCE",
+        "reason": "The accepted deployment animation is binary historical visual evidence.",
+        "sha256": "9fd244cb859d99da420ce5540ac0bba56cc254ea17db24ae772898705dc662b4"
+      },
+      {
+        "path": "docs/assets/render/rag-challenge-render-live.png",
+        "classification": "HISTORICAL_VISUAL_EVIDENCE",
+        "reason": "The accepted deployment screenshot is binary historical visual evidence.",
+        "sha256": "703bdcec24a9b4dce33edd4182d2cbeff35ba5fb406f978db9ccd83d7187056c"
+      }
+    ],
+    "immutableTextPaths": [
+      {
+        "path": "docs/api/openapi-v1.json",
+        "classification": "FROZEN_PUBLIC_CONTRACT",
+        "reason": "The accepted OpenAPI v1 bytes are frozen.",
+        "sha256": "d6a686b94c926914beb28b437f464430a01de6560c2e2d476cf5c36025813e34"
+      },
+      {
+        "path": "docs/api/openapi-v2.json",
+        "classification": "FROZEN_PUBLIC_CONTRACT",
+        "reason": "The accepted OpenAPI v2 bytes are frozen.",
+        "sha256": "f4dca8db7fb7bd453e580495bb1bb7760812d954344931063e8549ed8f036733"
+      },
+      {
+        "path": "src/RagChallenge.Dashboard.Web/test/fixtures/query-v1.mjs",
+        "classification": "SOURCE_OR_CITATION_DATA",
+        "reason": "The fixture preserves bilingual question, answer and citation data.",
+        "sha256": "a8eefdbba8814b8183dff233b2b5c55160313362c08db6015761f593844f8834"
+      },
+      {
+        "path": "src/RagChallenge.Dashboard.Web/test/fixtures/query-v2.mjs",
+        "classification": "SOURCE_OR_CITATION_DATA",
+        "reason": "The fixture preserves bilingual question, answer and citation data.",
+        "sha256": "8a7d0509566b28b8da5554e53fe93cba897dc24177c7b6b57626fa4b11dff3ad"
+      },
+      {
+        "path": "docs/Ingestion-Hardening-Historical-Owner-Request.md",
+        "classification": "OWNER_FACING_PT_BR",
+        "reason": "The original owner request remains historical evidence in its original language.",
+        "sha256": "b829265528dc4c312ceb78345955842f7863c6c282eebda593345e064fae6cce"
+      },
+      {
+        "path": "docs/Multi-Agent-Readiness-Audit.md",
+        "classification": "HISTORICAL_EVIDENCE",
+        "reason": "The completed Stage 1 readiness audit remains historical implementation evidence.",
+        "sha256": "6688bad5a696ad5e5288db5174438dbb8865b73fbc1beb6e7843c9afe8f70aae"
+      },
+      {
+        "path": "docs/Stage-2-Multi-Agent-Orchestrator-Report.md",
+        "classification": "HISTORICAL_EVIDENCE",
+        "reason": "The completed Stage 2 report remains historical implementation evidence.",
+        "sha256": "7a6b967ff2ecfecc17a40c301d707a911043d1b88303ee70791a2f077bd41892"
+      },
+      {
+        "path": "docs/architecture/ADR-0001-Runtime-Stack-And-Modular-Monolith.md",
+        "classification": "ACCEPTED_ARCHITECTURE_HISTORY",
+        "reason": "The accepted or superseded decision record is preserved as architectural history.",
+        "sha256": "8915454767cafa7a13f36f1a0fff355ec7f9274822bed7ecf08530f584d0fd24"
+      },
+      {
+        "path": "docs/architecture/ADR-0002-RAG-Lifecycle-Providers-And-Source-Separation.md",
+        "classification": "ACCEPTED_ARCHITECTURE_HISTORY",
+        "reason": "The accepted decision record is preserved as architectural history.",
+        "sha256": "b33cb4cb6c271aec4671814f5ec43d7f11dbae32cfb2b589ffc949ef38b0665f"
+      },
+      {
+        "path": "docs/architecture/ADR-0003-Product-And-Technical-Naming.md",
+        "classification": "ACCEPTED_ARCHITECTURE_HISTORY",
+        "reason": "The accepted decision record is preserved as architectural history.",
+        "sha256": "4383fd13489890325e3e7d89173fa468cd7b7f46ec7a2d16e639b550fbfa0ea7"
+      },
+      {
+        "path": "docs/architecture/ADR-0004-MVP-Corpus-Official-Source-And-Evaluation.md",
+        "classification": "ACCEPTED_ARCHITECTURE_HISTORY",
+        "reason": "The accepted decision record is preserved as architectural history.",
+        "sha256": "c64f2c1ea6220ab5d9b7287c301635b5f14ec4ed73ec0886a9455952c0abba3e"
+      },
+      {
+        "path": "docs/architecture/ADR-0005-MVP-Providers-Persistence-And-OCI-Deployment.md",
+        "classification": "ACCEPTED_ARCHITECTURE_HISTORY",
+        "reason": "The accepted decision record is preserved as architectural history.",
+        "sha256": "e8701c1e10e7a1cca73e1f872ce8756fc2b6e5684ed7f6b0e2e21d8864564289"
+      },
+      {
+        "path": "docs/architecture/ADR-0006-Security-Egress-Administration-And-HTTP-Contracts.md",
+        "classification": "ACCEPTED_ARCHITECTURE_HISTORY",
+        "reason": "The accepted decision record is preserved as architectural history.",
+        "sha256": "027e64d371648f3e0e8147e868eaaf0a1d779183c93f3bf1a001722d32d3eada"
+      },
+      {
+        "path": "docs/architecture/ADR-0007-Generation-Identity-And-Freshness-Observation-Rebinding.md",
+        "classification": "ACCEPTED_ARCHITECTURE_HISTORY",
+        "reason": "The accepted decision record is preserved as architectural history.",
+        "sha256": "4ef1ffce4d295a03f328fb67708c61d5ff04f462ecf5cafb8d34fc140c5dba38"
+      },
+      {
+        "path": "docs/architecture/ADR-0008-Product-Corpus-Storage-And-Page-Image-Evidence.md",
+        "classification": "ACCEPTED_ARCHITECTURE_HISTORY",
+        "reason": "The accepted decision record is preserved as architectural history.",
+        "sha256": "1f45fc1f3a0778820edc02a291a377018fde2c6f08418d37bd516b57398adfc0"
+      },
+      {
+        "path": "docs/architecture/ADR-0009-Document-Evidence-And-Query-Language-Taxonomy.md",
+        "classification": "ACCEPTED_ARCHITECTURE_HISTORY",
+        "reason": "The accepted decision record is preserved as architectural history.",
+        "sha256": "b0ed65eec57bf8ed47ef1613447d84215cdbe25f0482cc9f378ffe524587f43b"
+      },
+      {
+        "path": "docs/architecture/ADR-0010-Persistent-Answer-Evidence-Records-And-Bounded-Retention.md",
+        "classification": "ACCEPTED_ARCHITECTURE_HISTORY",
+        "reason": "The accepted decision record is preserved as architectural history.",
+        "sha256": "52bbb870f4c6fbe1c1b8af93feb557390ef8b039ccf8255eadf9e1d30fb5f094"
+      },
+      {
+        "path": "docs/architecture/ADR-0011-Source-Rights-Evidence-Mapping-And-Same-Origin-Derivative-Display-Boundary.md",
+        "classification": "ACCEPTED_ARCHITECTURE_HISTORY",
+        "reason": "The accepted decision record is preserved as architectural history.",
+        "sha256": "7140b2279546b26ce9dfd1ea0324b85388259132d01852eec4e41d87f789f5d9"
+      },
+      {
+        "path": "docs/architecture/ADR-0012-Notice-Bearing-Page-Image-Profile-And-Derivative-Obligation-Delivery.md",
+        "classification": "ACCEPTED_ARCHITECTURE_HISTORY",
+        "reason": "The accepted decision record is preserved as architectural history.",
+        "sha256": "5dffb6667b02efbb00e183953422b9b6106b4a68341bf2258757837e06615fcd"
+      },
+      {
+        "path": "docs/architecture/ADR-0013-MVP-Language-Model-Candidate-And-Deferred-Frontier-Evaluation.md",
+        "classification": "ACCEPTED_ARCHITECTURE_HISTORY",
+        "reason": "The accepted decision record is preserved as architectural history.",
+        "sha256": "501469ed11cf528c4d6847f5cd1d531cc52aa8f4a07be6e2d926225c78f0bcfb"
+      },
+      {
+        "path": "docs/architecture/ADR-0014-Deterministic-Retrieval-Ranking-And-Retrieval-Only-Baseline.md",
+        "classification": "ACCEPTED_ARCHITECTURE_HISTORY",
+        "reason": "The accepted decision record is preserved as architectural history.",
+        "sha256": "8374bb541c9dd7b52ef2feb91db5c50c15472516093697b18728dd11c4eff373"
+      },
+      {
+        "path": "docs/architecture/ADR-0015-Versioned-Cosine-Numerical-Semantics.md",
+        "classification": "ACCEPTED_ARCHITECTURE_HISTORY",
+        "reason": "The accepted decision record is preserved as architectural history.",
+        "sha256": "7c891759f08845d942b5a6c80d26f6744988d55b431feff353704356d51470a0"
+      },
+      {
+        "path": "docs/architecture/ADR-0016-Deterministic-Development-Orchestrator-And-Codex-Runner-Boundary.md",
+        "classification": "ACCEPTED_ARCHITECTURE_HISTORY",
+        "reason": "The accepted decision record is preserved as architectural history.",
+        "sha256": "284fac2dd4c200f0d58cb9b1a16f692ea5045e5048f8e98adacd2d6895c65bfa"
+      },
+      {
+        "path": "docs/architecture/ADR-0017-Codex-App-Server-Pre-Turn-Checkpoint-Runner.md",
+        "classification": "ACCEPTED_ARCHITECTURE_HISTORY",
+        "reason": "The accepted decision record is preserved as architectural history.",
+        "sha256": "e8f5022f68181407209a14b479907fb202a408074b6c5896dbb3f271aabfad39"
+      },
+      {
+        "path": "docs/STATE-00-Discovery-Report.md",
+        "classification": "HISTORICAL_EVIDENCE",
+        "reason": "The state report is accepted historical evidence.",
+        "sha256": "a0356e0bfecbb2f8d1729d61a9f885e125fe373743aabdfac1bc2cd62159063b"
+      },
+      {
+        "path": "docs/STATE-01-Project-Setup-Report.md",
+        "classification": "HISTORICAL_EVIDENCE",
+        "reason": "The state report is accepted historical evidence.",
+        "sha256": "5ccccd1fc90f4a3e473c452791ea02b4ae939ad653d2b5292a43b6b9ece03703"
+      },
+      {
+        "path": "docs/STATE-02-Architecture-Report.md",
+        "classification": "HISTORICAL_EVIDENCE",
+        "reason": "The state report is accepted historical evidence.",
+        "sha256": "e7aeb585ed043ef3776ec75dc152eba3e1eb774a849566210a8e2896711c488d"
+      },
+      {
+        "path": "docs/STATE-03-Data-And-Index-Modeling-Report.md",
+        "classification": "HISTORICAL_EVIDENCE",
+        "reason": "The state report is accepted historical evidence.",
+        "sha256": "526795891fc84966a9e3bce05aa1d3facf481793ca9985cd2d8b25c6bafaeec3"
+      },
+      {
+        "path": "docs/STATE-04-Backend-Implementation-Report.md",
+        "classification": "HISTORICAL_EVIDENCE",
+        "reason": "The state report is accepted historical evidence.",
+        "sha256": "e0fa78d8066aad5fe9deb56e3f11e058677df885c200115882bce860a259b63e"
+      },
+      {
+        "path": "docs/STATE-05-Frontend-Implementation-Report.md",
+        "classification": "HISTORICAL_EVIDENCE",
+        "reason": "The state report is accepted historical evidence.",
+        "sha256": "d8068c45f7d261d3a41081c1e7f0a6083cd96f973d08574f2c0463a9f7e12a8a"
+      },
+      {
+        "path": "docs/STATE-06-Automatic-Quality-Gate-Corrective-Proposal.md",
+        "classification": "HISTORICAL_EVIDENCE",
+        "reason": "The state proposal is preserved with its historical evidence.",
+        "sha256": "203f27bcb98346553f7463becb1f5d6c47d04e074eb6d554028f2f36df2754aa"
+      },
+      {
+        "path": "docs/STATE-06-Integration-Report.md",
+        "classification": "HISTORICAL_EVIDENCE",
+        "reason": "The state report is accepted historical evidence.",
+        "sha256": "33203156bc28b5e1aa0f2da5edfafa0eef7fb6fbe381b3f0ab366922192bc084"
+      },
+      {
+        "path": "docs/STATE-06-OCI-Readiness-And-Rehearsal.md",
+        "classification": "HISTORICAL_EVIDENCE",
+        "reason": "The state report is accepted historical evidence.",
+        "sha256": "526e6e354d59a1f41dc60e9c51ce9c90ee0acee55ffc8f4e85eda7d5e70aa3da"
+      },
+      {
+        "path": "docs/STATE-07-Oracle-Database-19c-Original-Corpus-Proposal.md",
+        "classification": "HISTORICAL_EVIDENCE",
+        "reason": "The state proposal is preserved with its historical evidence.",
+        "sha256": "8df47de172d123ce7bbb4f9f74f4687a423b494cfa9d2252a63763f1a61765db"
+      },
+      {
+        "path": "docs/STATE-07-S07-A-Document-Eligibility-Register.md",
+        "classification": "HISTORICAL_EVIDENCE",
+        "reason": "The state register is accepted historical evidence.",
+        "sha256": "a4936da585251009d98722f499ba7cf244d2406ce5d41bb92b1b39ab1cfdd6f3"
+      },
+      {
+        "path": "docs/STATE-07-S07-A-Evaluation-And-Security-Proposal.md",
+        "classification": "HISTORICAL_EVIDENCE",
+        "reason": "The state proposal is preserved with its historical evidence.",
+        "sha256": "df6a317a3a2cf6a23330b1991d6381fc63912a48e2e1846c54c6845380e2b63d"
+      },
+      {
+        "path": "docs/STATE-07-Testing-Homologation-Report.md",
+        "classification": "HISTORICAL_EVIDENCE",
+        "reason": "The state report is accepted historical evidence.",
+        "sha256": "0961875d0e413bee17ef99b6f37ae4c49b3f3ece70dd07be9c0946b48b4a995f"
+      },
+      {
+        "path": "docs/STATE-07-V2-Serving-Contract-Proposal.md",
+        "classification": "HISTORICAL_EVIDENCE",
+        "reason": "The state proposal is preserved with its historical evidence.",
+        "sha256": "23e20ff382c06ac45c8d676b3f16494c7b1d99975764f14dfe8a228833187a5b"
+      },
+      {
+        "path": "docs/evaluation/rag-eval-catalogue-v1/case-inventory.json",
+        "classification": "FROZEN_EVALUATION_DATA",
+        "reason": "The frozen evaluation record preserves its accepted identity.",
+        "sha256": "549474bbdc75100e37fe17af7d691f805c7362e523c9ec9abd2e354d0570a0be"
+      },
+      {
+        "path": "docs/evaluation/rag-eval-catalogue-v1/dataset-manifest.json",
+        "classification": "FROZEN_EVALUATION_DATA",
+        "reason": "The frozen evaluation record preserves its accepted identity.",
+        "sha256": "7275056bac4c3d545df0502494f36739704e21714f9499e9497250d3dd31261a"
+      },
+      {
+        "path": "docs/evaluation/rag-eval-catalogue-v1/document-manifest.json",
+        "classification": "FROZEN_EVALUATION_DATA",
+        "reason": "The frozen evaluation record preserves its accepted identity.",
+        "sha256": "4dc91aa62d84d0c4acb4cc03b7fb11c25b3621c9b063f67c37c5ca062bad4dfd"
+      },
+      {
+        "path": "docs/evaluation/rag-eval-catalogue-v1/revisions/rag-eval-catalogue-v1-provider-gpt54m-candidate-001/call-schedule.json",
+        "classification": "FROZEN_EVALUATION_DATA",
+        "reason": "The frozen evaluation record preserves its accepted identity.",
+        "sha256": "6ace9c204e44ab997d1a57ec122609e7aa1dae012e5645e430d5271efe5553e7"
+      },
+      {
+        "path": "docs/evaluation/rag-eval-catalogue-v1/revisions/rag-eval-catalogue-v1-provider-gpt54m-candidate-001/campaign-contract.json",
+        "classification": "FROZEN_EVALUATION_DATA",
+        "reason": "The frozen evaluation record preserves its accepted identity.",
+        "sha256": "1b5f50e2d9885ffc4a3a4f84df5081574c940045ac2744e07ada84373b11b2ae"
+      },
+      {
+        "path": "docs/evaluation/rag-eval-catalogue-v1/revisions/rag-eval-catalogue-v1-provider-gpt54m-candidate-001/case-inventory.json",
+        "classification": "FROZEN_EVALUATION_DATA",
+        "reason": "The frozen evaluation record preserves its accepted identity.",
+        "sha256": "e8801e964f3026ea15ffe6b6806ea7e1546e7ab0e18df53ba75e769f24ad2c3b"
+      },
+      {
+        "path": "docs/evaluation/rag-eval-catalogue-v1/revisions/rag-eval-catalogue-v1-provider-gpt54m-candidate-001/dataset-manifest.json",
+        "classification": "FROZEN_EVALUATION_DATA",
+        "reason": "The frozen evaluation record preserves its accepted identity.",
+        "sha256": "60c58571fd8c15c6313d7ca6997be1fb8d06d82611096a363474144aafb8def0"
+      },
+      {
+        "path": "docs/evaluation/rag-eval-catalogue-v1/revisions/rag-eval-catalogue-v1-provider-gpt54m-candidate-001/document-manifest.json",
+        "classification": "FROZEN_EVALUATION_DATA",
+        "reason": "The frozen evaluation record preserves its accepted identity.",
+        "sha256": "18e2771fafa5cf2b54266031d3676ababb609312826a159babaa0bc7a38b473e"
+      },
+      {
+        "path": "docs/evaluation/retrieval-v2-evaluation-design-v1/canonicalisation-manifest.json",
+        "classification": "FROZEN_EVALUATION_DATA",
+        "reason": "The frozen evaluation design preserves its accepted identity.",
+        "sha256": "e100aab91831ae76a8e641983e8b04a9d8ce403d3a598fd10886a116d7df7ff2"
+      },
+      {
+        "path": "docs/evaluation/retrieval-v2-evaluation-design-v1/contract-fixture-matrix.json",
+        "classification": "FROZEN_EVALUATION_DATA",
+        "reason": "The frozen evaluation design preserves its accepted identity.",
+        "sha256": "eb3660a09885fe29c882e890198745c6edd0d01c9b18a0116793d8a71de6b0ce"
+      },
+      {
+        "path": "docs/evaluation/retrieval-v2-evaluation-design-v1/eligibility-fixture-matrix.json",
+        "classification": "FROZEN_EVALUATION_DATA",
+        "reason": "The frozen evaluation design preserves its accepted identity.",
+        "sha256": "bbb0c92c02fb04e91cf2fdcdaf48dc1489005ebc935cc0ff9479dda854eaaccf"
+      },
+      {
+        "path": "docs/evaluation/retrieval-v2-evaluation-design-v1/evaluation-design-contract.json",
+        "classification": "FROZEN_EVALUATION_DATA",
+        "reason": "The frozen evaluation design preserves its accepted identity.",
+        "sha256": "e6fa1763adaf4454feab836c7bb36fe5183be06fc3052f9fffbddaf434385fc0"
+      },
+      {
+        "path": "docs/evaluation/retrieval-v2-evaluation-design-v1/question-normalisation-manifest.json",
+        "classification": "FROZEN_EVALUATION_DATA",
+        "reason": "The frozen evaluation design preserves its accepted identity.",
+        "sha256": "6e40a3013a2636a92ce47f7b52d80401f56f2311127d5e25c14180313a8a48d3"
+      },
+      {
+        "path": "docs/evaluation/retrieval-v2-evaluation-design-v1/rubric.json",
+        "classification": "FROZEN_EVALUATION_DATA",
+        "reason": "The frozen evaluation design preserves its accepted identity.",
+        "sha256": "15dc19c8d374505fa14cc65cc848d4175a6e1f12fe343d241855eeb7ea920d8c"
+      },
+      {
+        "path": "docs/evaluation/retrieval-v2-evaluation-design-v1/sampling-plan.json",
+        "classification": "FROZEN_EVALUATION_DATA",
+        "reason": "The frozen evaluation design preserves its accepted identity.",
+        "sha256": "013b4a4977b1310266db2d65af22712e121aacce50c156164c0912442c0b2c17"
+      },
+      {
+        "path": "docs/evaluation/retrieval-v2-evaluation-design-v1/scorer-manifest.json",
+        "classification": "FROZEN_EVALUATION_DATA",
+        "reason": "The frozen evaluation design preserves its accepted identity.",
+        "sha256": "11f9db88863bb9c26a3e9c6ffcd825701d59419cbcba9406e789c7bef099db0b"
+      },
+      {
+        "path": "docs/evaluation/retrieval-v2-evaluation-design-v1/schemas/campaign-input-freeze-manifest.schema.json",
+        "classification": "FROZEN_EVALUATION_DATA",
+        "reason": "The frozen evaluation schema preserves its accepted identity.",
+        "sha256": "a330cd11ada323d0bbc27e0d5916edea16ae779db257153798c042898f32d25a"
+      },
+      {
+        "path": "docs/evaluation/retrieval-v2-evaluation-design-v1/schemas/campaign-input-manifest.schema.json",
+        "classification": "FROZEN_EVALUATION_DATA",
+        "reason": "The frozen evaluation schema preserves its accepted identity.",
+        "sha256": "547f3d72fedd49211281a01853890d971669d258c087a5d0d49c1759c9113ea0"
+      },
+      {
+        "path": "docs/evaluation/retrieval-v2-evaluation-design-v1/schemas/canonicalisation-manifest.schema.json",
+        "classification": "FROZEN_EVALUATION_DATA",
+        "reason": "The frozen evaluation schema preserves its accepted identity.",
+        "sha256": "6f7f16fa9ad22278c57f40d86cffad2f272edee5ac7a83aada1e52533fb089d3"
+      },
+      {
+        "path": "docs/evaluation/retrieval-v2-evaluation-design-v1/schemas/case-inventory.schema.json",
+        "classification": "FROZEN_EVALUATION_DATA",
+        "reason": "The frozen evaluation schema preserves its accepted identity.",
+        "sha256": "3c0d785b34b2a46f2bfb2390128e013b6feb2958258ee51f078466a288a4e635"
+      },
+      {
+        "path": "docs/evaluation/retrieval-v2-evaluation-design-v1/schemas/contract-fixture-matrix.schema.json",
+        "classification": "FROZEN_EVALUATION_DATA",
+        "reason": "The frozen evaluation schema preserves its accepted identity.",
+        "sha256": "f612d8e599237bb7b46a590e797f89e0e3fcd7b008a3db6ecd1cf3c451babbde"
+      },
+      {
+        "path": "docs/evaluation/retrieval-v2-evaluation-design-v1/schemas/dataset-manifest.schema.json",
+        "classification": "FROZEN_EVALUATION_DATA",
+        "reason": "The frozen evaluation schema preserves its accepted identity.",
+        "sha256": "9dd9d4ee9a4e71297d725de2f9e9ab90e05ef552ebc4317394a0b03c7b1a45b5"
+      },
+      {
+        "path": "docs/evaluation/retrieval-v2-evaluation-design-v1/schemas/document-manifest.schema.json",
+        "classification": "FROZEN_EVALUATION_DATA",
+        "reason": "The frozen evaluation schema preserves its accepted identity.",
+        "sha256": "6895b3ae088acf67a42c0d530bcd2ac5053728ef27c685844cc8afa7c1aa0951"
+      },
+      {
+        "path": "docs/evaluation/retrieval-v2-evaluation-design-v1/schemas/eligibility-fixture-matrix.schema.json",
+        "classification": "FROZEN_EVALUATION_DATA",
+        "reason": "The frozen evaluation schema preserves its accepted identity.",
+        "sha256": "316922faeae3036dcf8aaea262c452a6a5237a4f2900c9c26f3509775fd323ef"
+      },
+      {
+        "path": "docs/evaluation/retrieval-v2-evaluation-design-v1/schemas/evaluation-design-contract.schema.json",
+        "classification": "FROZEN_EVALUATION_DATA",
+        "reason": "The frozen evaluation schema preserves its accepted identity.",
+        "sha256": "07a3c15feca8b504db7d481e690bb50d22528d4d77ab9fc9e3be386903f45aa6"
+      },
+      {
+        "path": "docs/evaluation/retrieval-v2-evaluation-design-v1/schemas/materialisation-freeze-manifest.schema.json",
+        "classification": "FROZEN_EVALUATION_DATA",
+        "reason": "The frozen evaluation schema preserves its accepted identity.",
+        "sha256": "0c70e896e5135493522b316bde8830014e8d5e22a1146fb731c63be4dba7ae6b"
+      },
+      {
+        "path": "docs/evaluation/retrieval-v2-evaluation-design-v1/schemas/metrics.schema.json",
+        "classification": "FROZEN_EVALUATION_DATA",
+        "reason": "The frozen evaluation schema preserves its accepted identity.",
+        "sha256": "3d46af61304990bed7416e3d30987e12edee1899fd2101ea7e91d32024a7fb44"
+      },
+      {
+        "path": "docs/evaluation/retrieval-v2-evaluation-design-v1/schemas/ordered-retrieval-result.schema.json",
+        "classification": "FROZEN_EVALUATION_DATA",
+        "reason": "The frozen evaluation schema preserves its accepted identity.",
+        "sha256": "43ceaa3d03eb73fd571a3f06399c416966e73d3ac00aadcd6d6dcbe486aa1f24"
+      },
+      {
+        "path": "docs/evaluation/retrieval-v2-evaluation-design-v1/schemas/qrels-record.schema.json",
+        "classification": "FROZEN_EVALUATION_DATA",
+        "reason": "The frozen evaluation schema preserves its accepted identity.",
+        "sha256": "aaad054dd98154552a3eed9dc38e74e3fffd4b75c9ce7e50b34b29d3cc5c0683"
+      },
+      {
+        "path": "docs/evaluation/retrieval-v2-evaluation-design-v1/schemas/query-vector-manifest.schema.json",
+        "classification": "FROZEN_EVALUATION_DATA",
+        "reason": "The frozen evaluation schema preserves its accepted identity.",
+        "sha256": "e95bffc011f4fd4abcb4490fe5a9039cce52b474db8dce1092b7784ae6225037"
+      },
+      {
+        "path": "docs/evaluation/retrieval-v2-evaluation-design-v1/schemas/question-normalisation-manifest.schema.json",
+        "classification": "FROZEN_EVALUATION_DATA",
+        "reason": "The frozen evaluation schema preserves its accepted identity.",
+        "sha256": "9d5f0a4c910bb6543a253d7d7adeb4f10fd42b4a53950f47266e082a214e3732"
+      },
+      {
+        "path": "docs/evaluation/retrieval-v2-evaluation-design-v1/schemas/retrieval-policy-manifest.schema.json",
+        "classification": "FROZEN_EVALUATION_DATA",
+        "reason": "The frozen evaluation schema preserves its accepted identity.",
+        "sha256": "21db9c862eefffec11e86e78d9f21d81549ed7ff972e55f65e108930e83888d4"
+      },
+      {
+        "path": "docs/evaluation/retrieval-v2-evaluation-design-v1/schemas/rubric.schema.json",
+        "classification": "FROZEN_EVALUATION_DATA",
+        "reason": "The frozen evaluation schema preserves its accepted identity.",
+        "sha256": "4ee3422695c132d83a7f9e125266552496e0b8bd60ac42c7c43843a1cf8fa0e0"
+      },
+      {
+        "path": "docs/evaluation/retrieval-v2-evaluation-design-v1/schemas/run-manifest.schema.json",
+        "classification": "FROZEN_EVALUATION_DATA",
+        "reason": "The frozen evaluation schema preserves its accepted identity.",
+        "sha256": "c13f831dd5625745a44466206e055e73758cff86db15a8332ff094df4de5ca63"
+      },
+      {
+        "path": "docs/evaluation/retrieval-v2-evaluation-design-v1/schemas/sampling-plan.schema.json",
+        "classification": "FROZEN_EVALUATION_DATA",
+        "reason": "The frozen evaluation schema preserves its accepted identity.",
+        "sha256": "ea014be8a65fac93bcdc4d7d8bfe16137e51740d39125103ab22f5d1c1d96103"
+      },
+      {
+        "path": "docs/evaluation/retrieval-v2-evaluation-design-v1/schemas/scorer-manifest.schema.json",
+        "classification": "FROZEN_EVALUATION_DATA",
+        "reason": "The frozen evaluation schema preserves its accepted identity.",
+        "sha256": "e2ea276e05cf63eb9e71fe6def8fc806fe3431ef728b256a035860f4a72d8452"
+      },
+      {
+        "path": "src/RagChallenge.Infrastructure/Persistence/Migrations/Control/20260802171743_InitialControlPlane.cs",
+        "classification": "GENERATED_MIGRATION",
+        "reason": "Accepted generated migration identity is preserved.",
+        "sha256": "266def37af5cd759089cf8243e62aedcfc03edb9708df000ab5e0d0085464ae7"
+      },
+      {
+        "path": "src/RagChallenge.Infrastructure/Persistence/Migrations/Control/20260802171743_InitialControlPlane.Designer.cs",
+        "classification": "GENERATED_MIGRATION",
+        "reason": "Accepted generated migration identity is preserved.",
+        "sha256": "d128ca331d337ebf6526d61a981e5f6cb1c0134cebf9a41297258315210ea163"
+      },
+      {
+        "path": "src/RagChallenge.Infrastructure/Persistence/Migrations/Control/20260804184753_AddAdministrationLease.cs",
+        "classification": "GENERATED_MIGRATION",
+        "reason": "Accepted generated migration identity is preserved.",
+        "sha256": "2bce23aec98c1837cb3447985e09b08eb31c5aa8e052438e71fab875b889fc66"
+      },
+      {
+        "path": "src/RagChallenge.Infrastructure/Persistence/Migrations/Control/20260804184753_AddAdministrationLease.Designer.cs",
+        "classification": "GENERATED_MIGRATION",
+        "reason": "Accepted generated migration identity is preserved.",
+        "sha256": "f7a5436c8a2949a6444f42c4f159afb4aaab59107487b5d807d2b29b96ec4355"
+      },
+      {
+        "path": "src/RagChallenge.Infrastructure/Persistence/Migrations/Control/20260804184939_AddAdministrationCommandJournal.cs",
+        "classification": "GENERATED_MIGRATION",
+        "reason": "Accepted generated migration identity is preserved.",
+        "sha256": "4e6bc9f0846de4e3415f42991f337ae0719072633f70ac3933f798b1c743e9f6"
+      },
+      {
+        "path": "src/RagChallenge.Infrastructure/Persistence/Migrations/Control/20260804184939_AddAdministrationCommandJournal.Designer.cs",
+        "classification": "GENERATED_MIGRATION",
+        "reason": "Accepted generated migration identity is preserved.",
+        "sha256": "b5a57f688421e87d87a2f5dc1ab5be9b9030ebca1b7b66f1e22b0670763e87f5"
+      },
+      {
+        "path": "src/RagChallenge.Infrastructure/Persistence/Migrations/Control/20260806193919_StrengthenOfficialBindingReferences.cs",
+        "classification": "GENERATED_MIGRATION",
+        "reason": "Accepted generated migration identity is preserved.",
+        "sha256": "8d73b14930186b0278e33ae21190bf1bab642eb2c541f48f191f288ec140b2f1"
+      },
+      {
+        "path": "src/RagChallenge.Infrastructure/Persistence/Migrations/Control/20260806193919_StrengthenOfficialBindingReferences.Designer.cs",
+        "classification": "GENERATED_MIGRATION",
+        "reason": "Accepted generated migration identity is preserved.",
+        "sha256": "5468356a8de0c1d3544347d3defb40fb2ba38c1dc63f8458c2ccc232e20bc67a"
+      },
+      {
+        "path": "src/RagChallenge.Infrastructure/Persistence/Migrations/Control/20260807161323_AddDocumentLanguageAndRenderManifestModel.cs",
+        "classification": "GENERATED_MIGRATION",
+        "reason": "Accepted generated migration identity is preserved.",
+        "sha256": "de86cb429710ebc2947bf14a5580a81f5e60c7931d5aa077c5ae778142e9e65d"
+      },
+      {
+        "path": "src/RagChallenge.Infrastructure/Persistence/Migrations/Control/20260807161323_AddDocumentLanguageAndRenderManifestModel.Designer.cs",
+        "classification": "GENERATED_MIGRATION",
+        "reason": "Accepted generated migration identity is preserved.",
+        "sha256": "0e1d316f8b2d8b51fcfa57bbf131927207a3994a2661607d9ebe3b2bbd17ff51"
+      },
+      {
+        "path": "src/RagChallenge.Infrastructure/Persistence/Migrations/Control/20260808004846_AddDocumentRightsAndActivationEvidenceBindings.cs",
+        "classification": "GENERATED_MIGRATION",
+        "reason": "Accepted generated migration identity is preserved.",
+        "sha256": "b4d055dbe65f3278e955c3e9e77186e544f96ed4ec31aefceba46da202057a23"
+      },
+      {
+        "path": "src/RagChallenge.Infrastructure/Persistence/Migrations/Control/20260808004846_AddDocumentRightsAndActivationEvidenceBindings.Designer.cs",
+        "classification": "GENERATED_MIGRATION",
+        "reason": "Accepted generated migration identity is preserved.",
+        "sha256": "9a80de71f3df91f01d2f47d2ad4ec5f1b1cb3b098ff58b58d1a723015f39300f"
+      },
+      {
+        "path": "src/RagChallenge.Infrastructure/Persistence/Migrations/Control/20260808033247_AddAnswerEvidenceRecords.cs",
+        "classification": "GENERATED_MIGRATION",
+        "reason": "Accepted generated migration identity is preserved.",
+        "sha256": "d9615fc28c37492df15467c8e05b8633d01a709d667f6b7a60c8051ca5b14d17"
+      },
+      {
+        "path": "src/RagChallenge.Infrastructure/Persistence/Migrations/Control/20260808033247_AddAnswerEvidenceRecords.Designer.cs",
+        "classification": "GENERATED_MIGRATION",
+        "reason": "Accepted generated migration identity is preserved.",
+        "sha256": "3eacbf6ddbda377fdf3ec6adb55882dabf183ba4aab0714c405fb987098a82f3"
+      },
+      {
+        "path": "src/RagChallenge.Infrastructure/Persistence/Migrations/Control/20260810033026_AddNoticeBearingObligationSchema.cs",
+        "classification": "GENERATED_MIGRATION",
+        "reason": "Accepted generated migration identity is preserved.",
+        "sha256": "f901a45dcbcc1d1582ee5aae78e0bc5a82c79bc1bacb2dc330ccd49a51fffa69"
+      },
+      {
+        "path": "src/RagChallenge.Infrastructure/Persistence/Migrations/Control/20260810033026_AddNoticeBearingObligationSchema.Designer.cs",
+        "classification": "GENERATED_MIGRATION",
+        "reason": "Accepted generated migration identity is preserved.",
+        "sha256": "6b770b36d7ddea1d6bb1e30fa778d18095748ec8f71919f9ff834860b7568016"
+      },
+      {
+        "path": "src/RagChallenge.Infrastructure/Persistence/Migrations/Control/20260810034537_SealNoticeBearingObligationBindings.cs",
+        "classification": "GENERATED_MIGRATION",
+        "reason": "Accepted generated migration identity is preserved.",
+        "sha256": "5d7d43c93077fabb6db61a13cb953a0b89f4ac1f04ddd2fd099e45e5e5e81e35"
+      },
+      {
+        "path": "src/RagChallenge.Infrastructure/Persistence/Migrations/Control/20260810034537_SealNoticeBearingObligationBindings.Designer.cs",
+        "classification": "GENERATED_MIGRATION",
+        "reason": "Accepted generated migration identity is preserved.",
+        "sha256": "1745f53a26708162754b4398431bee340c96a7e6ef3c026cf51e182352f5395a"
+      },
+      {
+        "path": "src/RagChallenge.Infrastructure/Persistence/Migrations/Control/20260813004642_AllowAnswerEvidenceCitationBcp47Language.cs",
+        "classification": "GENERATED_MIGRATION",
+        "reason": "Accepted generated migration identity is preserved.",
+        "sha256": "852dc835b35ae07a96b00b14b548c0cbaaaaae2dbf8637b70be85c358720f66f"
+      },
+      {
+        "path": "src/RagChallenge.Infrastructure/Persistence/Migrations/Control/20260813004642_AllowAnswerEvidenceCitationBcp47Language.Designer.cs",
+        "classification": "GENERATED_MIGRATION",
+        "reason": "Accepted generated migration identity is preserved.",
+        "sha256": "4d1b73521cde5e0b8751b091f5efb4f3e2f69ffbec3c6be3efce2a7c077b71bf"
+      },
+      {
+        "path": "src/RagChallenge.Infrastructure/Persistence/Migrations/Control/20260814012801_AllowTextFirstPdfVisualEvidence.cs",
+        "classification": "GENERATED_MIGRATION",
+        "reason": "Accepted generated migration identity is preserved.",
+        "sha256": "e74d5d25558909716687cb4a183570acfceaf7a0e9273a8093396dc76f3114a6"
+      },
+      {
+        "path": "src/RagChallenge.Infrastructure/Persistence/Migrations/Control/20260814012801_AllowTextFirstPdfVisualEvidence.Designer.cs",
+        "classification": "GENERATED_MIGRATION",
+        "reason": "Accepted generated migration identity is preserved.",
+        "sha256": "40163edb072d716065fecccfd466c291f0e0a38a8d76fb4994577806a8bb4023"
+      },
+      {
+        "path": "src/RagChallenge.Infrastructure/Persistence/Migrations/Control/ControlPlaneDbContextModelSnapshot.cs",
+        "classification": "GENERATED_MIGRATION",
+        "reason": "Accepted generated model snapshot identity is preserved.",
+        "sha256": "e43da4fa8a37fcaa133d1a2cdd5c85f0a174e22596fec7728fde1a2550838455"
+      },
+      {
+        "path": "src/RagChallenge.Infrastructure/Persistence/Migrations/Vector/20260802171400_InitialVectorStore.cs",
+        "classification": "GENERATED_MIGRATION",
+        "reason": "Accepted generated migration identity is preserved.",
+        "sha256": "36ef116c404835faebce59fed8835c53191952c0467abb817e9ffc356af56b4c"
+      },
+      {
+        "path": "src/RagChallenge.Infrastructure/Persistence/Migrations/Vector/20260802171400_InitialVectorStore.Designer.cs",
+        "classification": "GENERATED_MIGRATION",
+        "reason": "Accepted generated migration identity is preserved.",
+        "sha256": "7e32f0c5f01da923031c1991ea6c58860fb4aa8972e43b2dbfad61c6b61a8397"
+      },
+      {
+        "path": "src/RagChallenge.Infrastructure/Persistence/Migrations/Vector/VectorStoreDbContextModelSnapshot.cs",
+        "classification": "GENERATED_MIGRATION",
+        "reason": "Accepted generated model snapshot identity is preserved.",
+        "sha256": "1f992ac5d0df8fe466434a102bb68d7f36c5c7da2ae434a0b15b8359c03229ae"
+      }
     ],
     "productCredentialIdentifierAllowances": [
       {
@@ -189,144 +1009,1162 @@
         "sha256": null
       }
     ],
-    "excludedPaths": [
-      { "path": "docs/api/openapi-v1.json", "classification": "FROZEN_PUBLIC_CONTRACT", "reason": "The accepted OpenAPI v1 bytes are frozen." },
-      { "path": "docs/api/openapi-v2.json", "classification": "FROZEN_PUBLIC_CONTRACT", "reason": "The accepted OpenAPI v2 bytes are frozen." },
-      { "path": "src/RagChallenge.Dashboard.Web/src/i18n.ts", "classification": "FUNCTIONAL_LOCALISATION", "reason": "The file owns the functional pt-BR and en-GB interface dictionaries." },
-      { "path": "src/RagChallenge.Dashboard.Web/test/fixtures/query-v1.mjs", "classification": "SOURCE_OR_CITATION_DATA", "reason": "The fixture preserves bilingual question, answer and citation data." },
-      { "path": "src/RagChallenge.Dashboard.Web/test/fixtures/query-v2.mjs", "classification": "SOURCE_OR_CITATION_DATA", "reason": "The fixture preserves bilingual question, answer and citation data." },
-      { "path": "docs/Ingestion-Hardening-Historical-Owner-Request.md", "classification": "HISTORICAL_EVIDENCE", "reason": "The original owner request remains historical evidence in its original language." },
-      { "path": "docs/Multi-Agent-Readiness-Audit.md", "classification": "HISTORICAL_EVIDENCE", "reason": "The completed Stage 1 readiness audit remains historical implementation evidence." },
-      { "path": "docs/Stage-2-Multi-Agent-Orchestrator-Report.md", "classification": "HISTORICAL_EVIDENCE", "reason": "The completed Stage 2 report remains historical implementation evidence." },
-      { "path": "docs/architecture/ADR-0001-Runtime-Stack-And-Modular-Monolith.md", "classification": "ACCEPTED_ARCHITECTURE_HISTORY", "reason": "The accepted or superseded decision record is preserved as architectural history." },
-      { "path": "docs/architecture/ADR-0002-RAG-Lifecycle-Providers-And-Source-Separation.md", "classification": "ACCEPTED_ARCHITECTURE_HISTORY", "reason": "The accepted decision record is preserved as architectural history." },
-      { "path": "docs/architecture/ADR-0003-Product-And-Technical-Naming.md", "classification": "ACCEPTED_ARCHITECTURE_HISTORY", "reason": "The accepted decision record is preserved as architectural history." },
-      { "path": "docs/architecture/ADR-0004-MVP-Corpus-Official-Source-And-Evaluation.md", "classification": "ACCEPTED_ARCHITECTURE_HISTORY", "reason": "The accepted decision record is preserved as architectural history." },
-      { "path": "docs/architecture/ADR-0005-MVP-Providers-Persistence-And-OCI-Deployment.md", "classification": "ACCEPTED_ARCHITECTURE_HISTORY", "reason": "The accepted decision record is preserved as architectural history." },
-      { "path": "docs/architecture/ADR-0006-Security-Egress-Administration-And-HTTP-Contracts.md", "classification": "ACCEPTED_ARCHITECTURE_HISTORY", "reason": "The accepted decision record is preserved as architectural history." },
-      { "path": "docs/architecture/ADR-0007-Generation-Identity-And-Freshness-Observation-Rebinding.md", "classification": "ACCEPTED_ARCHITECTURE_HISTORY", "reason": "The accepted decision record is preserved as architectural history." },
-      { "path": "docs/architecture/ADR-0008-Product-Corpus-Storage-And-Page-Image-Evidence.md", "classification": "ACCEPTED_ARCHITECTURE_HISTORY", "reason": "The accepted decision record is preserved as architectural history." },
-      { "path": "docs/architecture/ADR-0009-Document-Evidence-And-Query-Language-Taxonomy.md", "classification": "ACCEPTED_ARCHITECTURE_HISTORY", "reason": "The accepted decision record is preserved as architectural history." },
-      { "path": "docs/architecture/ADR-0010-Persistent-Answer-Evidence-Records-And-Bounded-Retention.md", "classification": "ACCEPTED_ARCHITECTURE_HISTORY", "reason": "The accepted decision record is preserved as architectural history." },
-      { "path": "docs/architecture/ADR-0011-Source-Rights-Evidence-Mapping-And-Same-Origin-Derivative-Display-Boundary.md", "classification": "ACCEPTED_ARCHITECTURE_HISTORY", "reason": "The accepted decision record is preserved as architectural history." },
-      { "path": "docs/architecture/ADR-0012-Notice-Bearing-Page-Image-Profile-And-Derivative-Obligation-Delivery.md", "classification": "ACCEPTED_ARCHITECTURE_HISTORY", "reason": "The accepted decision record is preserved as architectural history." },
-      { "path": "docs/architecture/ADR-0013-MVP-Language-Model-Candidate-And-Deferred-Frontier-Evaluation.md", "classification": "ACCEPTED_ARCHITECTURE_HISTORY", "reason": "The accepted decision record is preserved as architectural history." },
-      { "path": "docs/architecture/ADR-0014-Deterministic-Retrieval-Ranking-And-Retrieval-Only-Baseline.md", "classification": "ACCEPTED_ARCHITECTURE_HISTORY", "reason": "The accepted decision record is preserved as architectural history." },
-      { "path": "docs/architecture/ADR-0015-Versioned-Cosine-Numerical-Semantics.md", "classification": "ACCEPTED_ARCHITECTURE_HISTORY", "reason": "The accepted decision record is preserved as architectural history." },
-      { "path": "docs/architecture/ADR-0016-Deterministic-Development-Orchestrator-And-Codex-Runner-Boundary.md", "classification": "ACCEPTED_ARCHITECTURE_HISTORY", "reason": "The accepted decision record is preserved as architectural history." },
-      { "path": "docs/architecture/ADR-0017-Codex-App-Server-Pre-Turn-Checkpoint-Runner.md", "classification": "ACCEPTED_ARCHITECTURE_HISTORY", "reason": "The accepted decision record is preserved as architectural history." },
-      { "path": "docs/STATE-00-Discovery-Report.md", "classification": "HISTORICAL_EVIDENCE", "reason": "The state report is accepted historical evidence." },
-      { "path": "docs/STATE-01-Project-Setup-Report.md", "classification": "HISTORICAL_EVIDENCE", "reason": "The state report is accepted historical evidence." },
-      { "path": "docs/STATE-02-Architecture-Report.md", "classification": "HISTORICAL_EVIDENCE", "reason": "The state report is accepted historical evidence." },
-      { "path": "docs/STATE-03-Data-And-Index-Modeling-Report.md", "classification": "HISTORICAL_EVIDENCE", "reason": "The state report is accepted historical evidence." },
-      { "path": "docs/STATE-04-Backend-Implementation-Report.md", "classification": "HISTORICAL_EVIDENCE", "reason": "The state report is accepted historical evidence." },
-      { "path": "docs/STATE-05-Frontend-Implementation-Report.md", "classification": "HISTORICAL_EVIDENCE", "reason": "The state report is accepted historical evidence." },
-      { "path": "docs/STATE-06-Automatic-Quality-Gate-Corrective-Proposal.md", "classification": "HISTORICAL_EVIDENCE", "reason": "The state proposal is preserved with its historical evidence." },
-      { "path": "docs/STATE-06-Integration-Report.md", "classification": "HISTORICAL_EVIDENCE", "reason": "The state report is accepted historical evidence." },
-      { "path": "docs/STATE-06-OCI-Readiness-And-Rehearsal.md", "classification": "HISTORICAL_EVIDENCE", "reason": "The state report is accepted historical evidence." },
-      { "path": "docs/STATE-07-Oracle-Database-19c-Original-Corpus-Proposal.md", "classification": "HISTORICAL_EVIDENCE", "reason": "The state proposal is preserved with its historical evidence." },
-      { "path": "docs/STATE-07-S07-A-Document-Eligibility-Register.md", "classification": "HISTORICAL_EVIDENCE", "reason": "The state register is accepted historical evidence." },
-      { "path": "docs/STATE-07-S07-A-Evaluation-And-Security-Proposal.md", "classification": "HISTORICAL_EVIDENCE", "reason": "The state proposal is preserved with its historical evidence." },
-      { "path": "docs/STATE-07-Testing-Homologation-Report.md", "classification": "HISTORICAL_EVIDENCE", "reason": "The state report is accepted historical evidence." },
-      { "path": "docs/STATE-07-V2-Serving-Contract-Proposal.md", "classification": "HISTORICAL_EVIDENCE", "reason": "The state proposal is preserved with its historical evidence." },
-      { "path": "docs/evaluation/rag-eval-catalogue-v1/case-inventory.json", "classification": "FROZEN_EVALUATION_DATA", "reason": "The frozen evaluation record preserves its accepted identity." },
-      { "path": "docs/evaluation/rag-eval-catalogue-v1/dataset-manifest.json", "classification": "FROZEN_EVALUATION_DATA", "reason": "The frozen evaluation record preserves its accepted identity." },
-      { "path": "docs/evaluation/rag-eval-catalogue-v1/document-manifest.json", "classification": "FROZEN_EVALUATION_DATA", "reason": "The frozen evaluation record preserves its accepted identity." },
-      { "path": "docs/evaluation/rag-eval-catalogue-v1/revisions/rag-eval-catalogue-v1-provider-gpt54m-candidate-001/call-schedule.json", "classification": "FROZEN_EVALUATION_DATA", "reason": "The frozen evaluation record preserves its accepted identity." },
-      { "path": "docs/evaluation/rag-eval-catalogue-v1/revisions/rag-eval-catalogue-v1-provider-gpt54m-candidate-001/campaign-contract.json", "classification": "FROZEN_EVALUATION_DATA", "reason": "The frozen evaluation record preserves its accepted identity." },
-      { "path": "docs/evaluation/rag-eval-catalogue-v1/revisions/rag-eval-catalogue-v1-provider-gpt54m-candidate-001/case-inventory.json", "classification": "FROZEN_EVALUATION_DATA", "reason": "The frozen evaluation record preserves its accepted identity." },
-      { "path": "docs/evaluation/rag-eval-catalogue-v1/revisions/rag-eval-catalogue-v1-provider-gpt54m-candidate-001/dataset-manifest.json", "classification": "FROZEN_EVALUATION_DATA", "reason": "The frozen evaluation record preserves its accepted identity." },
-      { "path": "docs/evaluation/rag-eval-catalogue-v1/revisions/rag-eval-catalogue-v1-provider-gpt54m-candidate-001/document-manifest.json", "classification": "FROZEN_EVALUATION_DATA", "reason": "The frozen evaluation record preserves its accepted identity." },
-      { "path": "docs/evaluation/retrieval-v2-evaluation-design-v1/canonicalisation-manifest.json", "classification": "FROZEN_EVALUATION_DATA", "reason": "The frozen evaluation design preserves its accepted identity." },
-      { "path": "docs/evaluation/retrieval-v2-evaluation-design-v1/contract-fixture-matrix.json", "classification": "FROZEN_EVALUATION_DATA", "reason": "The frozen evaluation design preserves its accepted identity." },
-      { "path": "docs/evaluation/retrieval-v2-evaluation-design-v1/eligibility-fixture-matrix.json", "classification": "FROZEN_EVALUATION_DATA", "reason": "The frozen evaluation design preserves its accepted identity." },
-      { "path": "docs/evaluation/retrieval-v2-evaluation-design-v1/evaluation-design-contract.json", "classification": "FROZEN_EVALUATION_DATA", "reason": "The frozen evaluation design preserves its accepted identity." },
-      { "path": "docs/evaluation/retrieval-v2-evaluation-design-v1/question-normalisation-manifest.json", "classification": "FROZEN_EVALUATION_DATA", "reason": "The frozen evaluation design preserves its accepted identity." },
-      { "path": "docs/evaluation/retrieval-v2-evaluation-design-v1/rubric.json", "classification": "FROZEN_EVALUATION_DATA", "reason": "The frozen evaluation design preserves its accepted identity." },
-      { "path": "docs/evaluation/retrieval-v2-evaluation-design-v1/sampling-plan.json", "classification": "FROZEN_EVALUATION_DATA", "reason": "The frozen evaluation design preserves its accepted identity." },
-      { "path": "docs/evaluation/retrieval-v2-evaluation-design-v1/scorer-manifest.json", "classification": "FROZEN_EVALUATION_DATA", "reason": "The frozen evaluation design preserves its accepted identity." },
-      { "path": "docs/evaluation/retrieval-v2-evaluation-design-v1/schemas/campaign-input-freeze-manifest.schema.json", "classification": "FROZEN_EVALUATION_DATA", "reason": "The frozen evaluation schema preserves its accepted identity." },
-      { "path": "docs/evaluation/retrieval-v2-evaluation-design-v1/schemas/campaign-input-manifest.schema.json", "classification": "FROZEN_EVALUATION_DATA", "reason": "The frozen evaluation schema preserves its accepted identity." },
-      { "path": "docs/evaluation/retrieval-v2-evaluation-design-v1/schemas/canonicalisation-manifest.schema.json", "classification": "FROZEN_EVALUATION_DATA", "reason": "The frozen evaluation schema preserves its accepted identity." },
-      { "path": "docs/evaluation/retrieval-v2-evaluation-design-v1/schemas/case-inventory.schema.json", "classification": "FROZEN_EVALUATION_DATA", "reason": "The frozen evaluation schema preserves its accepted identity." },
-      { "path": "docs/evaluation/retrieval-v2-evaluation-design-v1/schemas/contract-fixture-matrix.schema.json", "classification": "FROZEN_EVALUATION_DATA", "reason": "The frozen evaluation schema preserves its accepted identity." },
-      { "path": "docs/evaluation/retrieval-v2-evaluation-design-v1/schemas/dataset-manifest.schema.json", "classification": "FROZEN_EVALUATION_DATA", "reason": "The frozen evaluation schema preserves its accepted identity." },
-      { "path": "docs/evaluation/retrieval-v2-evaluation-design-v1/schemas/document-manifest.schema.json", "classification": "FROZEN_EVALUATION_DATA", "reason": "The frozen evaluation schema preserves its accepted identity." },
-      { "path": "docs/evaluation/retrieval-v2-evaluation-design-v1/schemas/eligibility-fixture-matrix.schema.json", "classification": "FROZEN_EVALUATION_DATA", "reason": "The frozen evaluation schema preserves its accepted identity." },
-      { "path": "docs/evaluation/retrieval-v2-evaluation-design-v1/schemas/evaluation-design-contract.schema.json", "classification": "FROZEN_EVALUATION_DATA", "reason": "The frozen evaluation schema preserves its accepted identity." },
-      { "path": "docs/evaluation/retrieval-v2-evaluation-design-v1/schemas/materialisation-freeze-manifest.schema.json", "classification": "FROZEN_EVALUATION_DATA", "reason": "The frozen evaluation schema preserves its accepted identity." },
-      { "path": "docs/evaluation/retrieval-v2-evaluation-design-v1/schemas/metrics.schema.json", "classification": "FROZEN_EVALUATION_DATA", "reason": "The frozen evaluation schema preserves its accepted identity." },
-      { "path": "docs/evaluation/retrieval-v2-evaluation-design-v1/schemas/ordered-retrieval-result.schema.json", "classification": "FROZEN_EVALUATION_DATA", "reason": "The frozen evaluation schema preserves its accepted identity." },
-      { "path": "docs/evaluation/retrieval-v2-evaluation-design-v1/schemas/qrels-record.schema.json", "classification": "FROZEN_EVALUATION_DATA", "reason": "The frozen evaluation schema preserves its accepted identity." },
-      { "path": "docs/evaluation/retrieval-v2-evaluation-design-v1/schemas/query-vector-manifest.schema.json", "classification": "FROZEN_EVALUATION_DATA", "reason": "The frozen evaluation schema preserves its accepted identity." },
-      { "path": "docs/evaluation/retrieval-v2-evaluation-design-v1/schemas/question-normalisation-manifest.schema.json", "classification": "FROZEN_EVALUATION_DATA", "reason": "The frozen evaluation schema preserves its accepted identity." },
-      { "path": "docs/evaluation/retrieval-v2-evaluation-design-v1/schemas/retrieval-policy-manifest.schema.json", "classification": "FROZEN_EVALUATION_DATA", "reason": "The frozen evaluation schema preserves its accepted identity." },
-      { "path": "docs/evaluation/retrieval-v2-evaluation-design-v1/schemas/rubric.schema.json", "classification": "FROZEN_EVALUATION_DATA", "reason": "The frozen evaluation schema preserves its accepted identity." },
-      { "path": "docs/evaluation/retrieval-v2-evaluation-design-v1/schemas/run-manifest.schema.json", "classification": "FROZEN_EVALUATION_DATA", "reason": "The frozen evaluation schema preserves its accepted identity." },
-      { "path": "docs/evaluation/retrieval-v2-evaluation-design-v1/schemas/sampling-plan.schema.json", "classification": "FROZEN_EVALUATION_DATA", "reason": "The frozen evaluation schema preserves its accepted identity." },
-      { "path": "docs/evaluation/retrieval-v2-evaluation-design-v1/schemas/scorer-manifest.schema.json", "classification": "FROZEN_EVALUATION_DATA", "reason": "The frozen evaluation schema preserves its accepted identity." },
-      { "path": "src/RagChallenge.Infrastructure/Persistence/Migrations/Control/20260802171743_InitialControlPlane.cs", "classification": "GENERATED_MIGRATION", "reason": "Accepted generated migration identity is preserved." },
-      { "path": "src/RagChallenge.Infrastructure/Persistence/Migrations/Control/20260802171743_InitialControlPlane.Designer.cs", "classification": "GENERATED_MIGRATION", "reason": "Accepted generated migration identity is preserved." },
-      { "path": "src/RagChallenge.Infrastructure/Persistence/Migrations/Control/20260804184753_AddAdministrationLease.cs", "classification": "GENERATED_MIGRATION", "reason": "Accepted generated migration identity is preserved." },
-      { "path": "src/RagChallenge.Infrastructure/Persistence/Migrations/Control/20260804184753_AddAdministrationLease.Designer.cs", "classification": "GENERATED_MIGRATION", "reason": "Accepted generated migration identity is preserved." },
-      { "path": "src/RagChallenge.Infrastructure/Persistence/Migrations/Control/20260804184939_AddAdministrationCommandJournal.cs", "classification": "GENERATED_MIGRATION", "reason": "Accepted generated migration identity is preserved." },
-      { "path": "src/RagChallenge.Infrastructure/Persistence/Migrations/Control/20260804184939_AddAdministrationCommandJournal.Designer.cs", "classification": "GENERATED_MIGRATION", "reason": "Accepted generated migration identity is preserved." },
-      { "path": "src/RagChallenge.Infrastructure/Persistence/Migrations/Control/20260806193919_StrengthenOfficialBindingReferences.cs", "classification": "GENERATED_MIGRATION", "reason": "Accepted generated migration identity is preserved." },
-      { "path": "src/RagChallenge.Infrastructure/Persistence/Migrations/Control/20260806193919_StrengthenOfficialBindingReferences.Designer.cs", "classification": "GENERATED_MIGRATION", "reason": "Accepted generated migration identity is preserved." },
-      { "path": "src/RagChallenge.Infrastructure/Persistence/Migrations/Control/20260807161323_AddDocumentLanguageAndRenderManifestModel.cs", "classification": "GENERATED_MIGRATION", "reason": "Accepted generated migration identity is preserved." },
-      { "path": "src/RagChallenge.Infrastructure/Persistence/Migrations/Control/20260807161323_AddDocumentLanguageAndRenderManifestModel.Designer.cs", "classification": "GENERATED_MIGRATION", "reason": "Accepted generated migration identity is preserved." },
-      { "path": "src/RagChallenge.Infrastructure/Persistence/Migrations/Control/20260808004846_AddDocumentRightsAndActivationEvidenceBindings.cs", "classification": "GENERATED_MIGRATION", "reason": "Accepted generated migration identity is preserved." },
-      { "path": "src/RagChallenge.Infrastructure/Persistence/Migrations/Control/20260808004846_AddDocumentRightsAndActivationEvidenceBindings.Designer.cs", "classification": "GENERATED_MIGRATION", "reason": "Accepted generated migration identity is preserved." },
-      { "path": "src/RagChallenge.Infrastructure/Persistence/Migrations/Control/20260808033247_AddAnswerEvidenceRecords.cs", "classification": "GENERATED_MIGRATION", "reason": "Accepted generated migration identity is preserved." },
-      { "path": "src/RagChallenge.Infrastructure/Persistence/Migrations/Control/20260808033247_AddAnswerEvidenceRecords.Designer.cs", "classification": "GENERATED_MIGRATION", "reason": "Accepted generated migration identity is preserved." },
-      { "path": "src/RagChallenge.Infrastructure/Persistence/Migrations/Control/20260810033026_AddNoticeBearingObligationSchema.cs", "classification": "GENERATED_MIGRATION", "reason": "Accepted generated migration identity is preserved." },
-      { "path": "src/RagChallenge.Infrastructure/Persistence/Migrations/Control/20260810033026_AddNoticeBearingObligationSchema.Designer.cs", "classification": "GENERATED_MIGRATION", "reason": "Accepted generated migration identity is preserved." },
-      { "path": "src/RagChallenge.Infrastructure/Persistence/Migrations/Control/20260810034537_SealNoticeBearingObligationBindings.cs", "classification": "GENERATED_MIGRATION", "reason": "Accepted generated migration identity is preserved." },
-      { "path": "src/RagChallenge.Infrastructure/Persistence/Migrations/Control/20260810034537_SealNoticeBearingObligationBindings.Designer.cs", "classification": "GENERATED_MIGRATION", "reason": "Accepted generated migration identity is preserved." },
-      { "path": "src/RagChallenge.Infrastructure/Persistence/Migrations/Control/20260813004642_AllowAnswerEvidenceCitationBcp47Language.cs", "classification": "GENERATED_MIGRATION", "reason": "Accepted generated migration identity is preserved." },
-      { "path": "src/RagChallenge.Infrastructure/Persistence/Migrations/Control/20260813004642_AllowAnswerEvidenceCitationBcp47Language.Designer.cs", "classification": "GENERATED_MIGRATION", "reason": "Accepted generated migration identity is preserved." },
-      { "path": "src/RagChallenge.Infrastructure/Persistence/Migrations/Control/20260814012801_AllowTextFirstPdfVisualEvidence.cs", "classification": "GENERATED_MIGRATION", "reason": "Accepted generated migration identity is preserved." },
-      { "path": "src/RagChallenge.Infrastructure/Persistence/Migrations/Control/20260814012801_AllowTextFirstPdfVisualEvidence.Designer.cs", "classification": "GENERATED_MIGRATION", "reason": "Accepted generated migration identity is preserved." },
-      { "path": "src/RagChallenge.Infrastructure/Persistence/Migrations/Control/ControlPlaneDbContextModelSnapshot.cs", "classification": "GENERATED_MIGRATION", "reason": "Accepted generated model snapshot identity is preserved." },
-      { "path": "src/RagChallenge.Infrastructure/Persistence/Migrations/Vector/20260802171400_InitialVectorStore.cs", "classification": "GENERATED_MIGRATION", "reason": "Accepted generated migration identity is preserved." },
-      { "path": "src/RagChallenge.Infrastructure/Persistence/Migrations/Vector/20260802171400_InitialVectorStore.Designer.cs", "classification": "GENERATED_MIGRATION", "reason": "Accepted generated migration identity is preserved." },
-      { "path": "src/RagChallenge.Infrastructure/Persistence/Migrations/Vector/VectorStoreDbContextModelSnapshot.cs", "classification": "GENERATED_MIGRATION", "reason": "Accepted generated model snapshot identity is preserved." }
+    "canonicalIdentifierAllowances": [
+      {
+        "path": ".gitignore",
+        "classification": "CANONICAL_STORAGE_LITERAL",
+        "kind": "LITERAL",
+        "value": "/artifacts/",
+        "occurrences": 1,
+        "contextHashes": [
+          "ff32e65939bb7dbfefee07c0657d23cae5a4c415b382e8aace4b83b02b46796f"
+        ]
+      },
+      {
+        "path": ".gitignore",
+        "classification": "CANONICAL_STORAGE_LITERAL",
+        "kind": "LITERAL",
+        "value": "artifacts-local",
+        "occurrences": 1,
+        "contextHashes": [
+          "c74a3beff03b73576415a0f24d9846c4b72f71e5f8b9624455cfe7831d1975b8"
+        ]
+      },
+      {
+        "path": "deploy/render-free/README.md",
+        "classification": "CANONICAL_STORAGE_LITERAL",
+        "kind": "LITERAL",
+        "value": "artifacts-local",
+        "occurrences": 2,
+        "contextHashes": [
+          "e94f408edf5efb6102e3d2bcfd357ea4d922a5adc1fcd905e62ae22579cbf02c",
+          "b44364d37b8412b93d77a987422225d40e5b5c92fc235631d12c50be93dbf3bd"
+        ]
+      },
+      {
+        "path": "docs/architecture/STATE-02-Canonical-Contracts.md",
+        "classification": "CANONICAL_CONTRACT_IDENTIFIER",
+        "kind": "IDENTIFIER",
+        "value": "FinalisedGenerationArtifacts",
+        "occurrences": 1,
+        "contextHashes": [
+          "2f1b6e692141fcfdc58398f32fb00153c091233d9252b81e9968796bd5e34cb1"
+        ]
+      },
+      {
+        "path": "docs/architecture/STATE-02-Canonical-Contracts.md",
+        "classification": "CANONICAL_CONTRACT_IDENTIFIER",
+        "kind": "IDENTIFIER",
+        "value": "ParsedDocumentArtifact",
+        "occurrences": 2,
+        "contextHashes": [
+          "82b218697026b929e256c75ec600b33ea8a2c89341f5cce8c0732200e8dda84c",
+          "3c838c03174f2394645a29d6b43b6a7f2bcd6389abb3a90c3c1c470a5daf67d6"
+        ]
+      },
+      {
+        "path": "docs/data/STATE-03-S03-A-Data-Dictionary.md",
+        "classification": "CANONICAL_CONTRACT_IDENTIFIER",
+        "kind": "IDENTIFIER",
+        "value": "logicalArtifactDigest",
+        "occurrences": 1,
+        "contextHashes": [
+          "a5acae35c77627a4bb66370d4357f8747db35bf1a741e7d75fb0f2e5eba42463"
+        ]
+      },
+      {
+        "path": "docs/data/STATE-03-S03-A-Data-Dictionary.md",
+        "classification": "CANONICAL_CONTRACT_IDENTIFIER",
+        "kind": "IDENTIFIER",
+        "value": "LogicalArtifactDigest",
+        "occurrences": 1,
+        "contextHashes": [
+          "a5acae35c77627a4bb66370d4357f8747db35bf1a741e7d75fb0f2e5eba42463"
+        ]
+      },
+      {
+        "path": "eng/Build-RenderFreePackage.ps1",
+        "classification": "CANONICAL_STORAGE_LITERAL",
+        "kind": "LITERAL",
+        "value": "artifacts-local",
+        "occurrences": 4,
+        "contextHashes": [
+          "4792a26cf3183e9779ad3bfd6dfb08e38a419a98d7b6f5270d47bbc80a15cdd4",
+          "5a83f82e7056fe2ed87a270c35e416eb6790f55586c7bebc6712ac4b72c85f7a",
+          "1242bec5a056e6cca64d6583bf0fe54a7b06a2d05ce1f2560fc24d24e0b2bccd",
+          "a963759eb10b8390864e10f38aa4f08c4babd197aa9f533fc6345b60c018b4a4"
+        ]
+      },
+      {
+        "path": "eng/language-policy.json",
+        "classification": "SYNTHETIC_ENFORCEMENT_IDENTIFIER",
+        "kind": "IDENTIFIER",
+        "value": "artifact",
+        "occurrences": 1,
+        "contextHashes": [
+          "1a1019fc6f61a839f5910b2e89597f25a7f2cf8757b65db85ce4ca63e2fc3f9f"
+        ]
+      },
+      {
+        "path": "eng/language-policy.json",
+        "classification": "SYNTHETIC_ENFORCEMENT_IDENTIFIER",
+        "kind": "IDENTIFIER",
+        "value": "artifacts",
+        "occurrences": 1,
+        "contextHashes": [
+          "766713111c622bac9a3b0a6e41665b4b95d3309c8e542e2bb99f03c874a13a53"
+        ]
+      },
+      {
+        "path": "eng/Start-Oracle19Product.ps1",
+        "classification": "CANONICAL_STORAGE_LITERAL",
+        "kind": "LITERAL",
+        "value": "artifacts-local",
+        "occurrences": 1,
+        "contextHashes": [
+          "e733795a2002c9f7a1126710d579dc14224bef555e483a29e86d86ee8ac3b289"
+        ]
+      },
+      {
+        "path": "eng/Start-PostgreSql18Product.ps1",
+        "classification": "CANONICAL_STORAGE_LITERAL",
+        "kind": "LITERAL",
+        "value": "artifacts-local",
+        "occurrences": 1,
+        "contextHashes": [
+          "e3f4ed91bf70d90bf0022e74db61bd2518176e90370607e2e9c44ca80ce43a98"
+        ]
+      },
+      {
+        "path": "eng/Test-RenderFreePackage.ps1",
+        "classification": "CANONICAL_STORAGE_LITERAL",
+        "kind": "LITERAL",
+        "value": "artifacts-local",
+        "occurrences": 3,
+        "contextHashes": [
+          "4792a26cf3183e9779ad3bfd6dfb08e38a419a98d7b6f5270d47bbc80a15cdd4",
+          "5a83f82e7056fe2ed87a270c35e416eb6790f55586c7bebc6712ac4b72c85f7a",
+          "7bbfc88330de5d9b330df94bc7954ffbf75e9f91701dcd745c7cd7f8409b36f8"
+        ]
+      },
+      {
+        "path": "prompts/foundation/RAG-Module.md",
+        "classification": "CANONICAL_CONTRACT_IDENTIFIER",
+        "kind": "IDENTIFIER",
+        "value": "logicalArtifactDigest",
+        "occurrences": 2,
+        "contextHashes": [
+          "f26669d92dac700ddea8fadee0823ddb63035dc258e91e611273ba286ab2b667",
+          "52bb4d9fb5f01daf387d386bf0c62ad948465c3865f77a7b7808c41afe9053bf"
+        ]
+      },
+      {
+        "path": "prompts/foundation/RAG-Module.md",
+        "classification": "CANONICAL_STORAGE_LITERAL",
+        "kind": "LITERAL",
+        "value": "artifacts-local",
+        "occurrences": 1,
+        "contextHashes": [
+          "ff7590730eb2ec4ebb27c46d2a61ad23e16673a382fec69ad11bbf2c07f48f7e"
+        ]
+      },
+      {
+        "path": "README.md",
+        "classification": "PUBLIC_SCRIPT_NAME",
+        "kind": "LITERAL",
+        "value": "Build-IntegrationArtifact.ps1",
+        "occurrences": 1,
+        "contextHashes": [
+          "cce82c720d4359cccc0e1fc43f007635e86d67a521845e61c52d5af809d3b1d1"
+        ]
+      },
+      {
+        "path": "README.md",
+        "classification": "PUBLIC_SCRIPT_NAME",
+        "kind": "LITERAL",
+        "value": "Build-OciRehearsalArtifact.ps1",
+        "occurrences": 1,
+        "contextHashes": [
+          "990ef716eea211bff193b2cd513ba1d043c8316de0bfebb7d0a820b749937ab5"
+        ]
+      },
+      {
+        "path": "README.md",
+        "classification": "PUBLIC_SCRIPT_NAME",
+        "kind": "LITERAL",
+        "value": "Test-IntegrationArtifact.ps1",
+        "occurrences": 1,
+        "contextHashes": [
+          "2e288d93fb665fc153a59680e6f48846cbef308d573423a5ab4287cd5435d795"
+        ]
+      },
+      {
+        "path": "README.md",
+        "classification": "PUBLIC_SCRIPT_NAME",
+        "kind": "LITERAL",
+        "value": "Test-OciRehearsalArtifact.ps1",
+        "occurrences": 1,
+        "contextHashes": [
+          "878d381916697403474742f8ae41a0674260584ddbc64121a455645086073665"
+        ]
+      },
+      {
+        "path": "src/RagChallenge.Application/Documents/DocumentIngestion.cs",
+        "classification": "PUBLIC_API_IDENTIFIER",
+        "kind": "IDENTIFIER",
+        "value": "artifact",
+        "occurrences": 5,
+        "contextHashes": [
+          "71b1cbc96a040d6ebb0603b76ea1e5eee16bb04889fe17ae249ff2c27b06f590",
+          "930bde50e8633915a8b96d661da529d09914351fee6752fbd76cbe1a3d91bcb0",
+          "9d89c5e5b28138fb75ccfa74d8923accd76507780236457c7d19f19a45d1c86d",
+          "1cd2818b38a72a7868f906eef0a6fe83a665f4b64ac656f1dcea1c191a667f83",
+          "81fd0103d25f8e18a582351e603f1cb671dcf90979bf3780e25d64c12cc8b0ca"
+        ]
+      },
+      {
+        "path": "src/RagChallenge.Application/Documents/DocumentIngestion.cs",
+        "classification": "CANONICAL_CONTRACT_IDENTIFIER",
+        "kind": "IDENTIFIER",
+        "value": "LogicalArtifactDigest",
+        "occurrences": 3,
+        "contextHashes": [
+          "6bafb13590c77b8388787da0638dccf291ca8bf0e98bfbae98946f597f73b4d2",
+          "a8e3d0c450d5950b569617ed57624833b7dc66068e9382aa46a45bf3a8951d52",
+          "ce463de5f266e3418b03f284631552b571f65700c730740051dcd8ce009303af"
+        ]
+      },
+      {
+        "path": "src/RagChallenge.Application/Documents/DocumentIngestion.cs",
+        "classification": "PUBLIC_API_IDENTIFIER",
+        "kind": "IDENTIFIER",
+        "value": "parsedArtifact",
+        "occurrences": 2,
+        "contextHashes": [
+          "22a4f8e25cd965e7b4ef98c4b1421161685f8b9d3d294d08f98ea861f788e198",
+          "c79114d3338cba0d9e91fe5dca9e4e8287b18f185a7497a580bb9fbc7da7b185"
+        ]
+      },
+      {
+        "path": "src/RagChallenge.Application/Documents/DocumentIngestion.cs",
+        "classification": "PUBLIC_API_IDENTIFIER",
+        "kind": "IDENTIFIER",
+        "value": "ParsedArtifact",
+        "occurrences": 2,
+        "contextHashes": [
+          "c79114d3338cba0d9e91fe5dca9e4e8287b18f185a7497a580bb9fbc7da7b185",
+          "97dd818ec063f9149bfdbebd4b2fc10abc5b6a18e9526712fd0a33a42331cced"
+        ]
+      },
+      {
+        "path": "src/RagChallenge.Application/Documents/DocumentIngestion.cs",
+        "classification": "CANONICAL_CONTRACT_IDENTIFIER",
+        "kind": "IDENTIFIER",
+        "value": "ParsedDocumentArtifact",
+        "occurrences": 4,
+        "contextHashes": [
+          "71b1cbc96a040d6ebb0603b76ea1e5eee16bb04889fe17ae249ff2c27b06f590",
+          "930bde50e8633915a8b96d661da529d09914351fee6752fbd76cbe1a3d91bcb0",
+          "22a4f8e25cd965e7b4ef98c4b1421161685f8b9d3d294d08f98ea861f788e198",
+          "97dd818ec063f9149bfdbebd4b2fc10abc5b6a18e9526712fd0a33a42331cced"
+        ]
+      },
+      {
+        "path": "src/RagChallenge.Application/Documents/DocumentParsingContracts.cs",
+        "classification": "CANONICAL_CONTRACT_IDENTIFIER",
+        "kind": "IDENTIFIER",
+        "value": "ParsedDocumentArtifact",
+        "occurrences": 3,
+        "contextHashes": [
+          "3bd00b82e9407114212e96097858d6f4f33368932c8a85406bb3e6deb89946c5",
+          "56e1a887c8001ff59a18f7bcd034404133fb8ac368c257002172f9ab7c12aff5",
+          "7fa601a1d1601ef59ec8a404d00c0908e388390f1bf01b2fce898207816500f7"
+        ]
+      },
+      {
+        "path": "src/RagChallenge.Application/IndexingRetrieval/RetrievalPolicy.cs",
+        "classification": "CANONICAL_CONTRACT_IDENTIFIER",
+        "kind": "IDENTIFIER",
+        "value": "LogicalArtifactDigest",
+        "occurrences": 1,
+        "contextHashes": [
+          "33c0b8b4c6ad3ca80ee72331cf0fb61056e531c395b1e64da19e0bf6753e98b8"
+        ]
+      },
+      {
+        "path": "src/RagChallenge.Application/Persistence/PersistenceContracts.cs",
+        "classification": "CANONICAL_CONTRACT_IDENTIFIER",
+        "kind": "IDENTIFIER",
+        "value": "LogicalArtifactDigest",
+        "occurrences": 2,
+        "contextHashes": [
+          "ebacac58d726f4e7b8624687b85fa0d91f6f0daa02e2ca718bb031e9d5ba48a9",
+          "d0d661847dea016437183558be93e23e48fcea96b1188423a98c358963e1d4dc"
+        ]
+      },
+      {
+        "path": "src/RagChallenge.Domain/CorpusCatalog/CatalogueIdentifiers.cs",
+        "classification": "CANONICAL_CONTRACT_IDENTIFIER",
+        "kind": "IDENTIFIER",
+        "value": "LogicalArtifactDigest",
+        "occurrences": 2,
+        "contextHashes": [
+          "8c147fcd99eb488e44efff6c910c191917390a5fa9e582821335fda9ee18fc26",
+          "3f6133444e98bc8a5f30d8b7151dba31b3b2ffb609ad51052d43975fabe4a578"
+        ]
+      },
+      {
+        "path": "src/RagChallenge.Domain/IndexingRetrieval/IndexGenerationCanonicalizer.cs",
+        "classification": "PUBLIC_API_IDENTIFIER",
+        "kind": "IDENTIFIER",
+        "value": "artifacts",
+        "occurrences": 10,
+        "contextHashes": [
+          "f7617157592e393523a8aeba30a544a11b247dd2f1b085cb6d950ea70c9463bf",
+          "b1b0dbd308b1995e654dd97bbaf569f987042f7610f35f85616a3ae1f0ebe6f1",
+          "25d604ddf1aae26cd15dc4ccc0532e842cecd937392a0faa8580209ba3189d38",
+          "3fe4f89808a32e2e859286ac6ed36d52388a1df611075e5fccdd874857458ef3",
+          "c81fbe9ecffc5de937b465ac7647eabb273587be5d70e01bb49d1cbf7c3bdc6e",
+          "a1e8170462d82583bad1a79fadad30155ac4e9244233d0195d60d719ef289c57",
+          "d1a432b25a7e042f1e027afeb707a0aecae457632507a1ce790461082c0db4a0",
+          "2a7c3e299e508a620d0d0173b13e6061646933664912355bfc889a60d276b521",
+          "a1e8170462d82583bad1a79fadad30155ac4e9244233d0195d60d719ef289c57",
+          "3606d166ed0d890da059b203f4e893960405dbcd6a65ba9ad43c1824b849b9ba"
+        ]
+      },
+      {
+        "path": "src/RagChallenge.Domain/IndexingRetrieval/IndexGenerationCanonicalizer.cs",
+        "classification": "CANONICAL_CONTRACT_IDENTIFIER",
+        "kind": "IDENTIFIER",
+        "value": "ComputeLogicalArtifactDigest",
+        "occurrences": 2,
+        "contextHashes": [
+          "d67012129225f51fcc56df5a846a8334ada3025ae31fa0a09c2e06d3b8756c9d",
+          "f3137b0abee37d4251a117801f3349c94881339ac72b52b02467e5819be02c49"
+        ]
+      },
+      {
+        "path": "src/RagChallenge.Domain/IndexingRetrieval/IndexGenerationCanonicalizer.cs",
+        "classification": "CANONICAL_CONTRACT_IDENTIFIER",
+        "kind": "IDENTIFIER",
+        "value": "logicalArtifactDigest",
+        "occurrences": 2,
+        "contextHashes": [
+          "c1f6e05c0bb45ce3337b905d093047f8113d988db6474681668a4f86fef8eeb9",
+          "b106b377232b057e5dd8628c6b6872ce6c5e89f649f0f52ad25ca305c998d2ff"
+        ]
+      },
+      {
+        "path": "src/RagChallenge.Domain/IndexingRetrieval/IndexGenerationCanonicalizer.cs",
+        "classification": "CANONICAL_CONTRACT_IDENTIFIER",
+        "kind": "IDENTIFIER",
+        "value": "LogicalArtifactDigest",
+        "occurrences": 7,
+        "contextHashes": [
+          "015c27458202659b8bb0e1e3088567d5bd2c5b3bae48918dbbeec4a3bd2486f7",
+          "46226ca08ca10b233fb61c75cead0716fed00160da02d30c1c083740649cef72",
+          "d67012129225f51fcc56df5a846a8334ada3025ae31fa0a09c2e06d3b8756c9d",
+          "e8e8ba83fbe4917c119cfba6b7eeeb557f1b995a37ef33d76db495b72dc0e52d",
+          "2d11bd7ee9fb6d1d85a8d0b7814b2e3e664918faf772dc85a15fda2e63a6e709",
+          "2d11bd7ee9fb6d1d85a8d0b7814b2e3e664918faf772dc85a15fda2e63a6e709",
+          "c1f6e05c0bb45ce3337b905d093047f8113d988db6474681668a4f86fef8eeb9"
+        ]
+      },
+      {
+        "path": "src/RagChallenge.Domain/IndexingRetrieval/IndexGenerationCanonicalizer.cs",
+        "classification": "CANONICAL_CONTRACT_IDENTIFIER",
+        "kind": "IDENTIFIER",
+        "value": "LogicalArtifactDomain",
+        "occurrences": 2,
+        "contextHashes": [
+          "dc64b90629b0e64918fdb7875c8bb4f212787d03c1c2dbd273632a68d05d65d2",
+          "9e0e1881d8118bc64c09438bdc2336d4471754a64ddaad3f54a82f17378722fe"
+        ]
+      },
+      {
+        "path": "src/RagChallenge.Domain/IndexingRetrieval/IndexGenerationCanonicalizer.cs",
+        "classification": "CANONICAL_CONTRACT_IDENTIFIER",
+        "kind": "IDENTIFIER",
+        "value": "LogicalIndexArtifact",
+        "occurrences": 5,
+        "contextHashes": [
+          "5bca7333c108ad28e18dbaad1505537c9c77965340d8e6f0e20aad02d6ccb62e",
+          "dfc38922f5df0abf58783e8ac8b4c37134af2b081867c2340569f681824bed85",
+          "f7617157592e393523a8aeba30a544a11b247dd2f1b085cb6d950ea70c9463bf",
+          "a1e8170462d82583bad1a79fadad30155ac4e9244233d0195d60d719ef289c57",
+          "a1e8170462d82583bad1a79fadad30155ac4e9244233d0195d60d719ef289c57"
+        ]
+      },
+      {
+        "path": "src/RagChallenge.Domain/IndexingRetrieval/IndexGenerationCanonicalizer.cs",
+        "classification": "CANONICAL_DOMAIN_LITERAL",
+        "kind": "LITERAL",
+        "value": "rag-challenge/logical-index-artifacts/v1",
+        "occurrences": 1,
+        "contextHashes": [
+          "9fcacc77fb77a94e32957334e8695611ccf537265902475277e6b6e0551ad95f"
+        ]
+      },
+      {
+        "path": "src/RagChallenge.Domain/IndexingRetrieval/IndexGenerationModel.cs",
+        "classification": "CANONICAL_CONTRACT_IDENTIFIER",
+        "kind": "IDENTIFIER",
+        "value": "logicalArtifactDigest",
+        "occurrences": 3,
+        "contextHashes": [
+          "8c0e7e87a70be47e6deeaed765d3e91ddd029d839cf91e9d6fe6bb54fb665c92",
+          "1b432915f8ff6c77690b06c5fa3a0d127e0772bd2c97d3ab3e352e3b8db785fe",
+          "ddd92197091b89d4ccfa1a7266cc73fbd4cf3042939ee6f5e11c9b9d18b15793"
+        ]
+      },
+      {
+        "path": "src/RagChallenge.Domain/IndexingRetrieval/IndexGenerationModel.cs",
+        "classification": "CANONICAL_CONTRACT_IDENTIFIER",
+        "kind": "IDENTIFIER",
+        "value": "LogicalArtifactDigest",
+        "occurrences": 4,
+        "contextHashes": [
+          "8c0e7e87a70be47e6deeaed765d3e91ddd029d839cf91e9d6fe6bb54fb665c92",
+          "ddd92197091b89d4ccfa1a7266cc73fbd4cf3042939ee6f5e11c9b9d18b15793",
+          "9699dca182ef032cc7abf3a5a89d34e33f545005265deedd4c388eab04e68653",
+          "9699dca182ef032cc7abf3a5a89d34e33f545005265deedd4c388eab04e68653"
+        ]
+      },
+      {
+        "path": "src/RagChallenge.Infrastructure/Documents/CsvHelperDocumentParser.cs",
+        "classification": "CANONICAL_CONTRACT_IDENTIFIER",
+        "kind": "IDENTIFIER",
+        "value": "ParsedDocumentArtifact",
+        "occurrences": 2,
+        "contextHashes": [
+          "c3a9e01f0b4d7923233d21f8e0cfb4cfb72d1246162b21d5849eada50d694cb9",
+          "5e301973cb593cfa01540a68eb6fcfa9d79ed4e4220422b1629733bb5d0f59f0"
+        ]
+      },
+      {
+        "path": "src/RagChallenge.Infrastructure/Documents/PdfPigDocumentParser.cs",
+        "classification": "CANONICAL_CONTRACT_IDENTIFIER",
+        "kind": "IDENTIFIER",
+        "value": "ParsedDocumentArtifact",
+        "occurrences": 2,
+        "contextHashes": [
+          "c3a9e01f0b4d7923233d21f8e0cfb4cfb72d1246162b21d5849eada50d694cb9",
+          "a89e3bd5245a5cd5eb4ad04ed5dec238c1db608e3eaa67dfc05cfc312e22fc55"
+        ]
+      },
+      {
+        "path": "src/RagChallenge.Infrastructure/Persistence/ControlPlaneDbContext.cs",
+        "classification": "PERSISTED_IDENTIFIER",
+        "kind": "IDENTIFIER",
+        "value": "logical_artifact_digest",
+        "occurrences": 1,
+        "contextHashes": [
+          "1aa66376d0d2f87acba8f7aa99a72952bf3e1ba08579fb19365da26508a796af"
+        ]
+      },
+      {
+        "path": "src/RagChallenge.Infrastructure/Persistence/ControlPlaneMapping.cs",
+        "classification": "CANONICAL_CONTRACT_IDENTIFIER",
+        "kind": "IDENTIFIER",
+        "value": "LogicalArtifactDigest",
+        "occurrences": 4,
+        "contextHashes": [
+          "a36d062a8a8b78eec51f1f229139ab965d5b5200c1503cf0303ec15330eafd60",
+          "a36d062a8a8b78eec51f1f229139ab965d5b5200c1503cf0303ec15330eafd60",
+          "e6ebacd30a583edad880b6b0d9f7002e0bca5edd20f708351b164f64d321903f",
+          "e6ebacd30a583edad880b6b0d9f7002e0bca5edd20f708351b164f64d321903f"
+        ]
+      },
+      {
+        "path": "src/RagChallenge.Infrastructure/Persistence/ControlPlaneRows.cs",
+        "classification": "CANONICAL_CONTRACT_IDENTIFIER",
+        "kind": "IDENTIFIER",
+        "value": "LogicalArtifactDigest",
+        "occurrences": 1,
+        "contextHashes": [
+          "8f9e92fb4b70a80d14c5d1dbabea89539df183a769748937f84b4d173fad94da"
+        ]
+      },
+      {
+        "path": "src/RagChallenge.Infrastructure/Persistence/SqliteControlPlaneStore.cs",
+        "classification": "CANONICAL_CONTRACT_IDENTIFIER",
+        "kind": "IDENTIFIER",
+        "value": "LogicalArtifactDigest",
+        "occurrences": 2,
+        "contextHashes": [
+          "b80f46ae7a7947588bb5c4527de3edeb5171ec2efe3e561f126e67c06b6fe4a2",
+          "b80f46ae7a7947588bb5c4527de3edeb5171ec2efe3e561f126e67c06b6fe4a2"
+        ]
+      },
+      {
+        "path": "src/RagChallenge.Infrastructure/Persistence/SqliteRecoverySnapshotService.cs",
+        "classification": "PERSISTED_IDENTIFIER",
+        "kind": "IDENTIFIER",
+        "value": "logical_artifact_digest",
+        "occurrences": 1,
+        "contextHashes": [
+          "b92bb1609d4399f75b17ef9273ce0984470b76ba67fb39b7093b076b2f9fb2fd"
+        ]
+      },
+      {
+        "path": "src/RagChallenge.Infrastructure/Persistence/SqliteRecoverySnapshotService.cs",
+        "classification": "CANONICAL_CONTRACT_IDENTIFIER",
+        "kind": "IDENTIFIER",
+        "value": "LogicalArtifactDigest",
+        "occurrences": 2,
+        "contextHashes": [
+          "697de11db9daf7e7bc5d109e5214c2d3f9c8bdf01727e728844202fc9bf73691",
+          "4ec732a96ed25d9ca2ca09b60a727dd55bb08d773eb3d2a59214bc4feef67fe5"
+        ]
+      },
+      {
+        "path": "src/RagChallenge.Infrastructure/Persistence/SqliteRecoverySnapshotService.cs",
+        "classification": "CANONICAL_CONTRACT_IDENTIFIER",
+        "kind": "IDENTIFIER",
+        "value": "LogicalIndexArtifact",
+        "occurrences": 2,
+        "contextHashes": [
+          "2dcd35a1b287c16d0e7d40a42d9cb76bfd01f003cd8b4a74b6f1609d220ef774",
+          "acbfe67462f35b2890bbfe68305ce2880d946c0b2dba0f7928c671aa42c9fd8e"
+        ]
+      },
+      {
+        "path": "src/RagChallenge.Infrastructure/Persistence/SqliteVectorIndexStore.cs",
+        "classification": "CANONICAL_CONTRACT_IDENTIFIER",
+        "kind": "IDENTIFIER",
+        "value": "LogicalArtifactDigest",
+        "occurrences": 2,
+        "contextHashes": [
+          "08f0ce638c52cf046b45daf85e4a88e06cfc2bb039aa0ecfb24768477328040b",
+          "843efefefc4a1475de635c8dc3256a2f8d5f7f1b40abc641f8f3558608532c7d"
+        ]
+      },
+      {
+        "path": "src/RagChallenge.Infrastructure/Persistence/SqliteVectorIndexStore.cs",
+        "classification": "CANONICAL_CONTRACT_IDENTIFIER",
+        "kind": "IDENTIFIER",
+        "value": "LogicalIndexArtifact",
+        "occurrences": 2,
+        "contextHashes": [
+          "0ab57822071bff968a71c0242f6621e62879d5f23f50a84d6d0ce31d75e8d89f",
+          "4ee633787ec5909f356fcc79dda1ff870803ec5a92bc685861762279ce92aa5d"
+        ]
+      },
+      {
+        "path": "src/RagChallenge.Server.Api/Build-IntegrationArtifact.ps1",
+        "classification": "CANONICAL_MANIFEST_LITERAL",
+        "kind": "LITERAL",
+        "value": "artifact-manifest.sha256",
+        "occurrences": 1,
+        "contextHashes": [
+          "5dad0b66101bf02f13f1c5ffd40aef0690dd81358a3a82b67f5f8a277a499e23"
+        ]
+      },
+      {
+        "path": "src/RagChallenge.Server.Api/Build-IntegrationArtifact.ps1",
+        "classification": "CANONICAL_STORAGE_LITERAL",
+        "kind": "LITERAL",
+        "value": "artifacts-local",
+        "occurrences": 3,
+        "contextHashes": [
+          "28c5c0f8eca9d8e85ea96ae675ac7df71fea3eda0b9edbd2cf0b35ada8e5543d",
+          "c95002cc787c4ebf6d6757011430b9b477ab0ec627d2902eb3a0dde2e8aa5d90",
+          "37e00dfed28a8dfc14a2ed5743f96c96a236bea57334d6f5156171b02ab25a85"
+        ]
+      },
+      {
+        "path": "src/RagChallenge.Server.Api/Build-IntegrationArtifact.ps1",
+        "classification": "PUBLIC_SCRIPT_NAME",
+        "kind": "PATH",
+        "value": "src/RagChallenge.Server.Api/Build-IntegrationArtifact.ps1",
+        "occurrences": 1,
+        "contextHashes": []
+      },
+      {
+        "path": "src/RagChallenge.Server.Api/Build-OciRehearsalArtifact.ps1",
+        "classification": "CANONICAL_MANIFEST_LITERAL",
+        "kind": "LITERAL",
+        "value": "artifact-manifest.sha256",
+        "occurrences": 1,
+        "contextHashes": [
+          "1cd29cfcd2d9ddf3c2d8416676b6a0b4ecbf42a0d80151b4d852ba043aa9391e"
+        ]
+      },
+      {
+        "path": "src/RagChallenge.Server.Api/Build-OciRehearsalArtifact.ps1",
+        "classification": "CANONICAL_STORAGE_LITERAL",
+        "kind": "LITERAL",
+        "value": "artifacts-local",
+        "occurrences": 3,
+        "contextHashes": [
+          "83f797cf94c9805a860434f3e0a73eff5235b88a67bc87394912384e1d209a39",
+          "c95002cc787c4ebf6d6757011430b9b477ab0ec627d2902eb3a0dde2e8aa5d90",
+          "0835a4b7999f94a9b310012005ae0a9ad653603e98262cc4675a24794778b113"
+        ]
+      },
+      {
+        "path": "src/RagChallenge.Server.Api/Build-OciRehearsalArtifact.ps1",
+        "classification": "PUBLIC_SCRIPT_NAME",
+        "kind": "PATH",
+        "value": "src/RagChallenge.Server.Api/Build-OciRehearsalArtifact.ps1",
+        "occurrences": 1,
+        "contextHashes": []
+      },
+      {
+        "path": "src/RagChallenge.Server.Api/OperationsGovernance/AdministrativeMaterialisationCommands.cs",
+        "classification": "PUBLIC_API_IDENTIFIER",
+        "kind": "IDENTIFIER",
+        "value": "ParsedArtifact",
+        "occurrences": 1,
+        "contextHashes": [
+          "789a27395a0c8f4251526b871055809770143894f244971ea58732a0845e9c66"
+        ]
+      },
+      {
+        "path": "src/RagChallenge.Server.Api/OperationsGovernance/IntegrationRuntime.cs",
+        "classification": "PUBLIC_API_IDENTIFIER",
+        "kind": "IDENTIFIER",
+        "value": "ParsedArtifact",
+        "occurrences": 1,
+        "contextHashes": [
+          "ccc974c91d6414001f0bf2c1ed14200ae6c9cee84eea45b5f205b98e99ca6bf6"
+        ]
+      },
+      {
+        "path": "src/RagChallenge.Server.Api/OperationsGovernance/NoticeBearingAdministrativeMaterialisation.cs",
+        "classification": "CANONICAL_CONTRACT_IDENTIFIER",
+        "kind": "IDENTIFIER",
+        "value": "logicalArtifactDigest",
+        "occurrences": 1,
+        "contextHashes": [
+          "642da1ad4bdb9fa67119ffb0bee5fd609ad36d6c0043177814b771361aa7a18c"
+        ]
+      },
+      {
+        "path": "src/RagChallenge.Server.Api/OperationsGovernance/NoticeBearingAdministrativeMaterialisation.cs",
+        "classification": "CANONICAL_CONTRACT_IDENTIFIER",
+        "kind": "IDENTIFIER",
+        "value": "LogicalArtifactDigest",
+        "occurrences": 1,
+        "contextHashes": [
+          "642da1ad4bdb9fa67119ffb0bee5fd609ad36d6c0043177814b771361aa7a18c"
+        ]
+      },
+      {
+        "path": "src/RagChallenge.Server.Api/OperationsGovernance/SqliteAdministrativeCommandExecutor.cs",
+        "classification": "CANONICAL_CONTRACT_IDENTIFIER",
+        "kind": "IDENTIFIER",
+        "value": "LogicalArtifactDigest",
+        "occurrences": 3,
+        "contextHashes": [
+          "f16497cfb4278ed9546dc7bfabb015e871285d648828f6cafcda29e1dae7dc8b",
+          "5fe3c912bbc4befd99390d23fc947228e2d813f7d7893be4e4b0b6a6b513b472",
+          "5fe3c912bbc4befd99390d23fc947228e2d813f7d7893be4e4b0b6a6b513b472"
+        ]
+      },
+      {
+        "path": "src/RagChallenge.Server.Api/Test-IntegrationArtifact.ps1",
+        "classification": "CANONICAL_STORAGE_LITERAL",
+        "kind": "LITERAL",
+        "value": "artifacts-local",
+        "occurrences": 3,
+        "contextHashes": [
+          "d3671bd8d3d1fc0f7f8365550ea9d7e6701433ff174450c4f2c9468c112a132a",
+          "9a158e4733c4c2fc4c6b574cc81ed27f9ea390b52603b59e0e4ee03a9e6d8b53",
+          "cb1f7d1e24032e1bd275dd850d0ac5771c919c1e98da7de5dcb1f14d2d2b475b"
+        ]
+      },
+      {
+        "path": "src/RagChallenge.Server.Api/Test-IntegrationArtifact.ps1",
+        "classification": "PUBLIC_SCRIPT_NAME",
+        "kind": "PATH",
+        "value": "src/RagChallenge.Server.Api/Test-IntegrationArtifact.ps1",
+        "occurrences": 1,
+        "contextHashes": []
+      },
+      {
+        "path": "src/RagChallenge.Server.Api/Test-OciRehearsalArtifact.ps1",
+        "classification": "CANONICAL_MANIFEST_LITERAL",
+        "kind": "LITERAL",
+        "value": "artifact-manifest.sha256",
+        "occurrences": 3,
+        "contextHashes": [
+          "52c666f8fd7fbdeca01b607c2a91df5afe4fd53875631d56cefd00b6fc76ea69",
+          "6e7da0ebe392b276f3afbabc75b225d8110c767d04f1933ef72f34ae0082d8cd",
+          "16f96b00ab402e15022e447120bda681ec573546b2bb800f7677bffe7f31664b"
+        ]
+      },
+      {
+        "path": "src/RagChallenge.Server.Api/Test-OciRehearsalArtifact.ps1",
+        "classification": "CANONICAL_STORAGE_LITERAL",
+        "kind": "LITERAL",
+        "value": "artifacts-local",
+        "occurrences": 3,
+        "contextHashes": [
+          "83f797cf94c9805a860434f3e0a73eff5235b88a67bc87394912384e1d209a39",
+          "9a158e4733c4c2fc4c6b574cc81ed27f9ea390b52603b59e0e4ee03a9e6d8b53",
+          "20dfafed4be0ccf407e4f759c86b9f305f719d63c6c5cd5bc70008e07b0dee76"
+        ]
+      },
+      {
+        "path": "src/RagChallenge.Server.Api/Test-OciRehearsalArtifact.ps1",
+        "classification": "PUBLIC_SCRIPT_NAME",
+        "kind": "PATH",
+        "value": "src/RagChallenge.Server.Api/Test-OciRehearsalArtifact.ps1",
+        "occurrences": 1,
+        "contextHashes": []
+      },
+      {
+        "path": "tests/RagChallenge.IntegrationTests/BackendEndToEndWorkflowTests.cs",
+        "classification": "PUBLIC_API_IDENTIFIER",
+        "kind": "IDENTIFIER",
+        "value": "ParsedArtifact",
+        "occurrences": 1,
+        "contextHashes": [
+          "553daebd54654790c57ef3ed2f4d773361cd624aab0a8ef036f712d4baf517e5"
+        ]
+      },
+      {
+        "path": "tests/RagChallenge.IntegrationTests/BackendIndexingWorkflowTests.cs",
+        "classification": "CANONICAL_CONTRACT_IDENTIFIER",
+        "kind": "IDENTIFIER",
+        "value": "LogicalArtifactDigest",
+        "occurrences": 3,
+        "contextHashes": [
+          "a79895dfebf7df4dcd766e93000b1ced48afff6fdd7c07d22e98868396abede4",
+          "4e4bf1dcdd5a8d48ba61f3cc3855e6e498f99a6adac4fdfd393609a88a68cdfd",
+          "b0e3e00bc6d21fbada89b7425571cd763dcfa7332a44281613868e2613e20649"
+        ]
+      },
+      {
+        "path": "tests/RagChallenge.IntegrationTests/OfficialObservationRebindingTests.cs",
+        "classification": "CANONICAL_CONTRACT_IDENTIFIER",
+        "kind": "IDENTIFIER",
+        "value": "LogicalArtifactDigest",
+        "occurrences": 1,
+        "contextHashes": [
+          "1f80e5fe909b361903fd1a0044665a9c3fdf55df2e5a9a2a905d60707ea87b8c"
+        ]
+      },
+      {
+        "path": "tests/RagChallenge.IntegrationTests/OneShotAdministrationTests.cs",
+        "classification": "CANONICAL_CONTRACT_IDENTIFIER",
+        "kind": "IDENTIFIER",
+        "value": "logicalArtifactDigest",
+        "occurrences": 1,
+        "contextHashes": [
+          "43c3267e14fb6949cb81b7c51e4807d2b3e7e02d11a78a8dfe2ce9dc08ced888"
+        ]
+      },
+      {
+        "path": "tests/RagChallenge.IntegrationTests/OneShotAdministrationTests.cs",
+        "classification": "CANONICAL_CONTRACT_IDENTIFIER",
+        "kind": "IDENTIFIER",
+        "value": "LogicalArtifactDigest",
+        "occurrences": 2,
+        "contextHashes": [
+          "df0474ea9601bcbd9169c372e23838083e9f51606bba23963bc0e246609a51bb",
+          "43c3267e14fb6949cb81b7c51e4807d2b3e7e02d11a78a8dfe2ce9dc08ced888"
+        ]
+      },
+      {
+        "path": "tests/RagChallenge.IntegrationTests/PdfRenderingIntegrationTests.cs",
+        "classification": "CANONICAL_CONTRACT_IDENTIFIER",
+        "kind": "IDENTIFIER",
+        "value": "LogicalArtifactDigest",
+        "occurrences": 1,
+        "contextHashes": [
+          "2ab4ff63a1afea7614b51b4ad2ab078aff3159441971764c0af449fdca3ad4ec"
+        ]
+      },
+      {
+        "path": "tests/RagChallenge.IntegrationTests/ProductQueryRuntimeTests.cs",
+        "classification": "CANONICAL_CONTRACT_IDENTIFIER",
+        "kind": "IDENTIFIER",
+        "value": "LogicalArtifactDigest",
+        "occurrences": 1,
+        "contextHashes": [
+          "82109c9e11c96c57a003172dbf26dfdfdcd65419646f6be86242e7231ce64a80"
+        ]
+      },
+      {
+        "path": "tests/RagChallenge.IntegrationTests/RenderFreePackageArtefactTests.cs",
+        "classification": "CANONICAL_STORAGE_LITERAL",
+        "kind": "LITERAL",
+        "value": "artifacts-local",
+        "occurrences": 1,
+        "contextHashes": [
+          "ccc256640649a143e61fdd3096c96cf8cbcf23849f13125d149c61733b06c8b7"
+        ]
+      },
+      {
+        "path": "tests/RagChallenge.IntegrationTests/S07ALocalHarness/S07ALocalHarness.cs",
+        "classification": "CANONICAL_STORAGE_LITERAL",
+        "kind": "LITERAL",
+        "value": "artifacts-local",
+        "occurrences": 2,
+        "contextHashes": [
+          "214d8600ed303e1043c129b6051e15cdbe64436559e982896ba97365ed80c40b",
+          "b0d5d2ac61a9e45e97e65046fe015069bf1a4ff27021147af398c65c1ef22cca"
+        ]
+      },
+      {
+        "path": "tests/RagChallenge.IntegrationTests/S07ALocalHarness/S07ALocalHarness.cs",
+        "classification": "CANONICAL_POLICY_LITERAL",
+        "kind": "LITERAL",
+        "value": "task-owned-artifacts-local-v1",
+        "occurrences": 1,
+        "contextHashes": [
+          "52b712290df60d79a5109cd1f32b50c9140380b52906934e1c0011b979bf8b0e"
+        ]
+      },
+      {
+        "path": "tests/RagChallenge.IntegrationTests/S07ALocalHarness/S07ALocalHarnessTests.cs",
+        "classification": "CANONICAL_STORAGE_LITERAL",
+        "kind": "LITERAL",
+        "value": "artifacts-local",
+        "occurrences": 1,
+        "contextHashes": [
+          "5b1272a07e614a15eb89cec197e0e52462bc67a32c6cb3fbc068ae16e5e873f0"
+        ]
+      },
+      {
+        "path": "tests/RagChallenge.IntegrationTests/S07AProviderHarness/New-S07AProviderCampaignRevision.ps1",
+        "classification": "CANONICAL_STORAGE_LITERAL",
+        "kind": "LITERAL",
+        "value": "artifacts-local",
+        "occurrences": 1,
+        "contextHashes": [
+          "de39d284573b312d005d5dc68b33bab7ae544ba877a41d092cfc4aa77925cb2a"
+        ]
+      },
+      {
+        "path": "tests/RagChallenge.IntegrationTests/SetupHostArtefactTests.cs",
+        "classification": "CANONICAL_MANIFEST_LITERAL",
+        "kind": "LITERAL",
+        "value": "artifact-manifest.sha256",
+        "occurrences": 1,
+        "contextHashes": [
+          "6fd110bea0939f26f6b39f3e090fc0d32cfac8d487185bee832706eee8f15f65"
+        ]
+      },
+      {
+        "path": "tests/RagChallenge.IntegrationTests/SetupHostArtefactTests.cs",
+        "classification": "CANONICAL_STORAGE_LITERAL",
+        "kind": "LITERAL",
+        "value": "artifacts-local",
+        "occurrences": 2,
+        "contextHashes": [
+          "e6ad5e7e386d9d67cc1214120a8b2c797f5d00166377284b9484e01d5296d367",
+          "fa411daf5ddd088dbc2fb0b8448f7de8bafba0746092b29272ea3364f7f74d48"
+        ]
+      },
+      {
+        "path": "tests/RagChallenge.IntegrationTests/SetupHostArtefactTests.cs",
+        "classification": "PUBLIC_SCRIPT_NAME",
+        "kind": "LITERAL",
+        "value": "Build-OciRehearsalArtifact.ps1",
+        "occurrences": 1,
+        "contextHashes": [
+          "c28a6fa7579d1c002efbf9ece73565acb0b3aa8329c1f9ab6f6d9b4a4206720f"
+        ]
+      },
+      {
+        "path": "tests/RagChallenge.IntegrationTests/SetupHostArtefactTests.cs",
+        "classification": "PUBLIC_SCRIPT_NAME",
+        "kind": "LITERAL",
+        "value": "Test-IntegrationArtifact.ps1",
+        "occurrences": 1,
+        "contextHashes": [
+          "4070894f37fee3c4ad284f0f5c70e78069382a2a3cfb3dba120b045585c6dccc"
+        ]
+      },
+      {
+        "path": "tests/RagChallenge.IntegrationTests/SetupHostArtefactTests.cs",
+        "classification": "PUBLIC_SCRIPT_NAME",
+        "kind": "LITERAL",
+        "value": "Test-OciRehearsalArtifact.ps1",
+        "occurrences": 2,
+        "contextHashes": [
+          "9c463a724eb44f606c40ef39aa07dc8fc1b8968bec3123dace8be80aa5abb59f",
+          "efb3e7e1671fa5d2f97b408e81eaba0c439d7c500a14528d21f17d9d3f977698"
+        ]
+      },
+      {
+        "path": "tests/RagChallenge.IntegrationTests/SqlitePersistenceBoundaryTests.cs",
+        "classification": "CANONICAL_CONTRACT_IDENTIFIER",
+        "kind": "IDENTIFIER",
+        "value": "LogicalArtifactDigest",
+        "occurrences": 3,
+        "contextHashes": [
+          "90d7367f79380ac6028bd848582e8df26ebcbe5417b22e35cc4cd1de7147b84c",
+          "55a30196e5b00841b3206f6637fe88f5af6cb465542e227ba8cada4d30e33cb6",
+          "d92b4a49a72f734730163a0b9bdc97ae95bcf5e3920b7526f7240586e12da1b1"
+        ]
+      },
+      {
+        "path": "tests/RagChallenge.IntegrationTests/SqlitePersistenceFixture.cs",
+        "classification": "CANONICAL_CONTRACT_IDENTIFIER",
+        "kind": "IDENTIFIER",
+        "value": "LogicalArtifactDigest",
+        "occurrences": 1,
+        "contextHashes": [
+          "332af065c30d86e1c6b2806437029b3fdbe5bcc3164d4427ed22767008ec0717"
+        ]
+      },
+      {
+        "path": "tests/RagChallenge.IntegrationTests/SqliteVectorRetrievalDeterminismTests.cs",
+        "classification": "CANONICAL_CONTRACT_IDENTIFIER",
+        "kind": "IDENTIFIER",
+        "value": "LogicalArtifactDigest",
+        "occurrences": 6,
+        "contextHashes": [
+          "4f0a494355d918959e07c1450acdabe2bd6d6975b32b48af9c48091c1e373d71",
+          "193b13bc233dad13c844b1b926eefe27ea40842487c47f7025fa81ce7f1631eb",
+          "c52a8cf9ed827776ae698985601b54e365522330d12ea3c26a2a6f0bae76e8e3",
+          "7291f5157878cf1244e6db1da932f32ff94770ca0ae01a28f321198a07708971",
+          "6943e01f44eaa8a61eaa6039e39150360d6bd6b87928edff0038a774b4b0a1ac",
+          "241237133fb67a872c48a8abac5cd5aaf2e77232ca58cb3222c64d8227d514be"
+        ]
+      },
+      {
+        "path": "tests/RagChallenge.IntegrationTests/SqliteVectorScaleTests.cs",
+        "classification": "CANONICAL_CONTRACT_IDENTIFIER",
+        "kind": "IDENTIFIER",
+        "value": "LogicalArtifactDigest",
+        "occurrences": 1,
+        "contextHashes": [
+          "a61f92ff38c031e64bd1383648aebd86bd7893b71ebaca522fe0ecf955be9066"
+        ]
+      },
+      {
+        "path": "tests/RagChallenge.UnitTests/ActivationRecordPolicyTests.cs",
+        "classification": "CANONICAL_CONTRACT_IDENTIFIER",
+        "kind": "IDENTIFIER",
+        "value": "LogicalArtifactDigest",
+        "occurrences": 2,
+        "contextHashes": [
+          "d42e727cbf5854e9af9919f88644a48706cb944e46a4568004126db4ed0f7b4f",
+          "944bbbd637b5fa7d67dff4e3c7909b7feb8c54e857eb2b024c5932bdff367009"
+        ]
+      },
+      {
+        "path": "tests/RagChallenge.UnitTests/DeterministicChunkingStrategyTests.cs",
+        "classification": "CANONICAL_CONTRACT_IDENTIFIER",
+        "kind": "IDENTIFIER",
+        "value": "ParsedDocumentArtifact",
+        "occurrences": 4,
+        "contextHashes": [
+          "b1065845c5c67a5802f52c1e711dae8259da3e5566100d9e83c14d50733e0fe6",
+          "612cf4367b5a943ef62122039428c5e06d4b86bdad54c82d6b84565a427559e5",
+          "f5961bc9fbfa074d5e3ec56925a7b73fa4797c43a7313fdb6194259dd266dc18",
+          "cc6cdd9c4a87d2ae02c043df5d0ab5b67d7c2b4d70e7f26289bfc8726664fc8e"
+        ]
+      },
+      {
+        "path": "tests/RagChallenge.UnitTests/DocumentLanguageAndRenderingTests.cs",
+        "classification": "CANONICAL_CONTRACT_IDENTIFIER",
+        "kind": "IDENTIFIER",
+        "value": "LogicalArtifactDigest",
+        "occurrences": 1,
+        "contextHashes": [
+          "8acb5fda8bb8cd19f185f47069fe8bd2cdb10de7814395a6f763784ea60662e2"
+        ]
+      },
+      {
+        "path": "tests/RagChallenge.UnitTests/DocumentParsingContractTests.cs",
+        "classification": "CANONICAL_CONTRACT_IDENTIFIER",
+        "kind": "IDENTIFIER",
+        "value": "ParsedDocumentArtifact",
+        "occurrences": 3,
+        "contextHashes": [
+          "1ed7681051469772ac4f3ceb79c9b4e4aa139355e4533dc6eb4e8885a7c28151",
+          "5e867d11cb50dac6be3d767232c6277f3645caa9367de5cc160076bd5e854ef4",
+          "a969c8f0b2ca7c748580c89414d277f6c47d5f49fa2442c18796c8592ee5c31c"
+        ]
+      },
+      {
+        "path": "tests/RagChallenge.UnitTests/IndexGenerationAndRetentionTests.cs",
+        "classification": "CANONICAL_CONTRACT_IDENTIFIER",
+        "kind": "IDENTIFIER",
+        "value": "LogicalArtifactDigest",
+        "occurrences": 1,
+        "contextHashes": [
+          "a68f706593b4d35aeca539215a83ed4aa899f7e35c6036c92994a0753060c99a"
+        ]
+      },
+      {
+        "path": "tests/RagChallenge.UnitTests/IndexGenerationCanonicalizerTests.cs",
+        "classification": "CANONICAL_CONTRACT_IDENTIFIER",
+        "kind": "IDENTIFIER",
+        "value": "ComputeLogicalArtifactDigest",
+        "occurrences": 1,
+        "contextHashes": [
+          "c798af3af463e93ebdb5004e28e1eafee17388638e89dfbd20ca9079511fbcf2"
+        ]
+      },
+      {
+        "path": "tests/RagChallenge.UnitTests/IndexGenerationCanonicalizerTests.cs",
+        "classification": "CANONICAL_CONTRACT_IDENTIFIER",
+        "kind": "IDENTIFIER",
+        "value": "LogicalArtifactDigest",
+        "occurrences": 7,
+        "contextHashes": [
+          "6fe6f95ba487046cc74d98d6c5fdbe09288cbad3edc052805e9e3eb100c508c1",
+          "6fe6f95ba487046cc74d98d6c5fdbe09288cbad3edc052805e9e3eb100c508c1",
+          "631f3847c6d0939f37346e9e07ca2a12454490f2a9931e6b577637dd1f2bb980",
+          "631f3847c6d0939f37346e9e07ca2a12454490f2a9931e6b577637dd1f2bb980",
+          "d879bc0e7ebd95ba9e9a340762881d4633800e887e111344502ae33516c21862",
+          "d879bc0e7ebd95ba9e9a340762881d4633800e887e111344502ae33516c21862",
+          "ee334a784dc21bea01007bd3f03af06580e8909e6070c170be402c91bec1b9e5"
+        ]
+      },
+      {
+        "path": "tests/RagChallenge.UnitTests/IndexGenerationCanonicalizerTests.cs",
+        "classification": "CANONICAL_CONTRACT_IDENTIFIER",
+        "kind": "IDENTIFIER",
+        "value": "LogicalIndexArtifact",
+        "occurrences": 1,
+        "contextHashes": [
+          "52f987ec20336384681f2e96b81e52925f04a9df9a631f7d4e50e444cb4be4a6"
+        ]
+      },
+      {
+        "path": "tests/RagChallenge.UnitTests/QuestionAnsweringServiceTests.cs",
+        "classification": "CANONICAL_CONTRACT_IDENTIFIER",
+        "kind": "IDENTIFIER",
+        "value": "LogicalArtifactDigest",
+        "occurrences": 2,
+        "contextHashes": [
+          "2056c2a0bd7210ae0a3a2cded25c63c0e90c7a9e890894219bf5abbcb8d93443",
+          "f49274e650d2ac5df1ddd0714512758764969cbb89f8da372e02e94d2f5eda78"
+        ]
+      },
+      {
+        "path": "tests/RagChallenge.UnitTests/QuestionAnsweringServiceTests.cs",
+        "classification": "HASH_BOUND_LITERAL",
+        "kind": "LITERAL",
+        "value": "query-logical-artifact",
+        "occurrences": 1,
+        "contextHashes": [
+          "2056c2a0bd7210ae0a3a2cded25c63c0e90c7a9e890894219bf5abbcb8d93443"
+        ]
+      },
+      {
+        "path": "tests/RagChallenge.UnitTests/RetrievalPolicyExecutorTests.cs",
+        "classification": "CANONICAL_CONTRACT_IDENTIFIER",
+        "kind": "IDENTIFIER",
+        "value": "LogicalArtifactDigest",
+        "occurrences": 2,
+        "contextHashes": [
+          "f28ceb98e4bd9433b34ecb6e855470da95bf37fceba3c8f0adc479b285058ae8",
+          "c21456de40829dde53ba3d5205ac2dba025226826b75a76174693fb94cce249a"
+        ]
+      },
+      {
+        "path": "tests/RagChallenge.UnitTests/RetrievalPolicyExecutorTests.cs",
+        "classification": "HASH_BOUND_LITERAL",
+        "kind": "LITERAL",
+        "value": "retrieval-policy-artifacts",
+        "occurrences": 1,
+        "contextHashes": [
+          "f28ceb98e4bd9433b34ecb6e855470da95bf37fceba3c8f0adc479b285058ae8"
+        ]
+      },
+      {
+        "path": "tests/RagChallenge.UnitTests/TestModelFactory.cs",
+        "classification": "CANONICAL_CONTRACT_IDENTIFIER",
+        "kind": "IDENTIFIER",
+        "value": "LogicalArtifactDigest",
+        "occurrences": 1,
+        "contextHashes": [
+          "b724270fa10106c792e09272bf40524a5483ba642a892a7128ae53d01c8945d7"
+        ]
+      },
+      {
+        "path": "tools/ai-orchestrator/README.md",
+        "classification": "CANONICAL_STORAGE_LITERAL",
+        "kind": "LITERAL",
+        "value": "artifacts-local",
+        "occurrences": 1,
+        "contextHashes": [
+          "8c82e9492bd3b8105874712853ccdd77a7585d10759086ea3ee6b3c45fb72303"
+        ]
+      },
+      {
+        "path": "tools/ai-orchestrator/src/cli-main.ts",
+        "classification": "CANONICAL_STORAGE_LITERAL",
+        "kind": "LITERAL",
+        "value": "artifacts-local",
+        "occurrences": 2,
+        "contextHashes": [
+          "658566ab46fbc10d99a5dccb71c1ffe428c7893d3c723a0947dca73cbc7fd60d",
+          "c9bf7fc32fed4c573ba4fbb7f611dd6c75443ed9653b32ef024ccad5f3009855"
+        ]
+      },
+      {
+        "path": "tools/ai-orchestrator/test/cli.test.ts",
+        "classification": "CANONICAL_STORAGE_LITERAL",
+        "kind": "LITERAL",
+        "value": "artifacts-local",
+        "occurrences": 1,
+        "contextHashes": [
+          "72681fa672bba5cfd15b1868457722946e644d87ed06e3a4dec1769138c597e4"
+        ]
+      },
+      {
+        "path": "tools/ai-orchestrator/test/security-boundaries.test.ts",
+        "classification": "CANONICAL_STORAGE_LITERAL",
+        "kind": "LITERAL",
+        "value": "artifacts-local",
+        "occurrences": 1,
+        "contextHashes": [
+          "09046ef2e2e53097effa2aa488033852ac46c318dd733a66d8afeac4f13779dc"
+        ]
+      }
     ],
     "excludedRegions": [
+      {
+        "path": "eng/language-policy.json",
+        "classification": "SYNTHETIC_ENFORCEMENT_REGION",
+        "startMarker": "    \"canonicalIdentifierAllowances\": [",
+        "endMarker": "    ],\n    \"excludedRegions\": [",
+        "sha256": "b168f3b066ee06b70572048ebc9662aa5c7fe71181c124ce6cad537632b3d5b2"
+      },
       {
         "path": "eng/test-language-policy.mjs",
         "classification": "SYNTHETIC_ENFORCEMENT_REGION",
         "startMarker": "// SYNTHETIC_LANGUAGE_POLICY_PAYLOAD_START",
         "endMarker": "// SYNTHETIC_LANGUAGE_POLICY_PAYLOAD_END",
-        "sha256": "05cba076bdedb5db1be42b3543518fedf4f0fde54f5c2781ac523fced96d5b02"
+        "sha256": "3202f17105a91fae052ef9cfc4e9a2e535a0a88faeec4e4d7d5f0a1ca21f5428"
       },
       {
         "path": "eng/test-language-policy.mjs",
         "classification": "SYNTHETIC_ENFORCEMENT_REGION",
         "startMarker": "// SYNTHETIC_LANGUAGE_REPOSITORY_START",
         "endMarker": "// SYNTHETIC_LANGUAGE_REPOSITORY_END",
-        "sha256": "824a1277dcbbdcfe0ab1b4689e5e881abcfdf45180cc160592f2d938aa411fde"
+        "sha256": "8f56f1324336c75eb33c29bd66352e97fc2576fcb0e4dd52360829ea422b5fc4"
       },
       {
         "path": "eng/test-language-policy.mjs",
         "classification": "SYNTHETIC_ENFORCEMENT_REGION",
         "startMarker": "// SYNTHETIC_LANGUAGE_TRUST_TAMPER_START",
         "endMarker": "// SYNTHETIC_LANGUAGE_TRUST_TAMPER_END",
-        "sha256": "e4e6ab34e27aed6113125d6e8d7fc35994010d93854cb814442600549589d56f"
+        "sha256": "71cf37bc26f0c015dfcb061d6df6bc9d62d3fb23ab9fed378ed43ba70084dbc8"
       },
       {
         "path": "eng/test-language-policy.mjs",
         "classification": "SYNTHETIC_ENFORCEMENT_REGION",
         "startMarker": "// SYNTHETIC_LANGUAGE_SECRET_MESSAGES_START",
         "endMarker": "// SYNTHETIC_LANGUAGE_SECRET_MESSAGES_END",
-        "sha256": "9fd75d7fdd45dff7fa75da462fdcc2453bd3acf7407a64fd21ebfda485497cae"
+        "sha256": "f3189f71d9e3e82ec94ec4fa3d8c7521dee8e228c7020c794f7049ed92a5db4e"
       },
       {
         "path": "eng/test-language-policy.mjs",
         "classification": "SYNTHETIC_ENFORCEMENT_REGION",
         "startMarker": "// SYNTHETIC_LANGUAGE_OWNER_PAYLOAD_START",
         "endMarker": "// SYNTHETIC_LANGUAGE_OWNER_PAYLOAD_END",
-        "sha256": "8947a202bbfae6b0c4979bfd713a17a33f57abf05c567c7f79f3b1c3caceb848"
+        "sha256": "b08357d0b88e7cb5d95ce445a865ec034943c0edb5590a467bbdadfb6457fa5f"
       },
       {
         "path": "eng/test-language-policy.mjs",
@@ -340,14 +2178,14 @@
         "classification": "SYNTHETIC_ENFORCEMENT_REGION",
         "startMarker": "// SYNTHETIC_LANGUAGE_HISTORY_AND_COMMITS_START",
         "endMarker": "// SYNTHETIC_LANGUAGE_HISTORY_AND_COMMITS_END",
-      "sha256": "e5a8a3a1033f181ee89cba4de985609dfb22df63a3eede86bf0b67898fb160ed"
+        "sha256": "fb8f37e519ccf2d1d1c2301cf07436ee7307b5847c060e69350b268c4a9c01ee"
       },
       {
         "path": "tools/ai-orchestrator/test/security-boundaries.test.ts",
         "classification": "SYNTHETIC_ENFORCEMENT_REGION",
         "startMarker": "// SYNTHETIC_ORCHESTRATOR_ENFORCEMENT_START",
         "endMarker": "// SYNTHETIC_ORCHESTRATOR_ENFORCEMENT_END",
-        "sha256": "597567640cead55e7557283bf50f2bda97194a507f3d45ac5f4fc5229f61a322"
+        "sha256": "3ba6c44e272d98dc534604b444b8092a227f992305b2e637c4413404f437d38e"
       },
       {
         "path": "prompts/state/Current-State.md",
@@ -362,11 +2200,50 @@
         "startMarker": "## 4.15.0 — 2026-08-15",
         "endMarker": null,
         "sha256": "6bc87acd842738824c7a458119b8b964f2fd2228d2a03282df1af035402c8b80"
+      },
+      {
+        "path": "src/RagChallenge.Dashboard.Web/src/i18n.ts",
+        "classification": "FUNCTIONAL_LOCALISATION_REGION",
+        "startMarker": "  \"pt-BR\": {\n    brandEyebrow: \"Catálogo de documentação\",",
+        "endMarker": "  \"en-GB\": {\n    brandEyebrow: \"Documentation catalogue\",",
+        "sha256": "e1ee35d8f64c82d9b5055b0d56a5de10156fe4a191b556341e28050af0a9bbb1"
+      },
+      {
+        "path": "src/RagChallenge.Dashboard.Web/src/i18n.ts",
+        "classification": "FUNCTIONAL_LOCALISATION_REGION",
+        "startMarker": "  \"pt-BR\": {\n    Local: \"Local\",\n    Current: \"Atual\",",
+        "endMarker": "  \"en-GB\": {\n    Local: \"Local\",\n    Current: \"Current\",",
+        "sha256": "d56182715c4564f0579457a16def060a73219912067d4642eef96bebb8ed6f3a"
+      },
+      {
+        "path": "prompts/templates/Templates.md",
+        "classification": "OWNER_FACING_PT_BR_REGION",
+        "startMarker": "### Text for `CONTINUE_CURRENT`\n\n```text",
+        "endMarker": "divergência, mudança externa ou falta de autoridade, pare e informe.\n```",
+        "sha256": "7c69b32dd46b6cdb24271d2af50c8daefd512fb9b54b1768874675d6f1627a4c"
+      },
+      {
+        "path": "prompts/templates/Templates.md",
+        "classification": "OWNER_FACING_PT_BR_REGION",
+        "startMarker": "### Text for `START_NEW`",
+        "endMarker": "avance estado, aceite ADR, execute ação externa ou amplie escopo por\ninferência. Se houver divergência ou bloqueio, pare e informe.\n```",
+        "sha256": "005c2782398e47e0af48246da30f80f8ee596d87a8b4b0b869891233b39fe25f"
+      },
+      {
+        "path": "prompts/templates/Templates.md",
+        "classification": "OWNER_FACING_PT_BR_REGION",
+        "startMarker": "### Text for `RETURN_TO_EXISTING`",
+        "endMarker": "conflitar com o estado atual, pare e recomende uma nova conversa sem inventar\nreferência.\n```",
+        "sha256": "5a5545438430bbe6e72919ddc3ee8d682b4b16ddf28b39ab66a8c468f9e930fb"
       }
     ],
     "appendOnlyPrefixes": [
-      { "path": "prompts/state/State-Transition-Log.md", "prefixBytes": 544842, "sha256": "8b9567ff3cec6bb79c220af0eacc669824485d717cf69df92bcc1ecb9875545e" }
+      {
+        "path": "prompts/state/State-Transition-Log.md",
+        "prefixBytes": 544842,
+        "sha256": "8b9567ff3cec6bb79c220af0eacc669824485d717cf69df92bcc1ecb9875545e"
+      }
     ]
   },
-  "digest": "sha256:42a753468c2ad94f32825b2e71baee08f3c8a677746517d0edcdc5effb705506"
+  "digest": "sha256:23f16352a82bd2177cfe1002050fb4351d1e1fd1868544165a963b82c43b878d"
 }

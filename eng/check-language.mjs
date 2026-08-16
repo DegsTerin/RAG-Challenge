@@ -1,4 +1,4 @@
-// Purpose: Enforces project-owned en-GB prose while preserving narrowly classified historical, localisation and external content.
+// Purpose: Enforces en-GB across every tracked blob while binding exact binary, immutable-text, localisation and identifier exceptions.
 import { createHash } from "node:crypto";
 import { constants } from "node:fs";
 import { lstat, open, realpath } from "node:fs/promises";
@@ -6,7 +6,7 @@ import { extname, isAbsolute, relative, resolve, sep } from "node:path";
 import { spawnSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 
-const policySchemaId = "https://rag-challenge.invalid/schemas/language-policy-v1.json";
+const policySchemaId = "https://rag-challenge.invalid/schemas/language-policy-v2.json";
 const baselineSchemaId = "https://rag-challenge.invalid/schemas/language-migration-baseline-v1.json";
 const digestPattern = /^sha256:[0-9a-f]{64}$/;
 const hashPattern = /^[0-9a-f]{64}$/;
@@ -188,17 +188,19 @@ export function validatePolicyDocument(document, expectedSchemaDigest) {
   const payload = document.payload;
   assertExactKeys(payload, [
     "schemaVersion", "policyId", "technicalLanguage", "ownerLanguage", "bannedAmericanSpellings",
-    "portugueseTechnicalMarkers", "scannedExtensions", "productCredentialIdentifierAllowances",
-    "excludedPaths", "excludedRegions", "appendOnlyPrefixes",
+    "portugueseTechnicalMarkers", "binaryPaths", "immutableTextPaths", "productCredentialIdentifierAllowances",
+    "canonicalIdentifierAllowances", "excludedRegions", "appendOnlyPrefixes",
   ], "Language policy payload");
-  if (payload.schemaVersion !== 1 || payload.policyId !== "rag-challenge-language-policy-v1" ||
+  if (payload.schemaVersion !== 2 || payload.policyId !== "rag-challenge-language-policy-v2" ||
       payload.technicalLanguage !== "en-GB" || payload.ownerLanguage !== "pt-BR") {
     throw new Error("Language policy identity and language boundary are invalid.");
   }
   for (const [name, values] of [["bannedAmericanSpellings", payload.bannedAmericanSpellings],
-    ["portugueseTechnicalMarkers", payload.portugueseTechnicalMarkers], ["scannedExtensions", payload.scannedExtensions],
+    ["portugueseTechnicalMarkers", payload.portugueseTechnicalMarkers], ["binaryPaths", payload.binaryPaths],
+    ["immutableTextPaths", payload.immutableTextPaths],
     ["productCredentialIdentifierAllowances", payload.productCredentialIdentifierAllowances],
-    ["excludedPaths", payload.excludedPaths], ["excludedRegions", payload.excludedRegions], ["appendOnlyPrefixes", payload.appendOnlyPrefixes]]) {
+    ["canonicalIdentifierAllowances", payload.canonicalIdentifierAllowances],
+    ["excludedRegions", payload.excludedRegions], ["appendOnlyPrefixes", payload.appendOnlyPrefixes]]) {
     if (!Array.isArray(values) || (name !== "excludedRegions" && values.length === 0)) throw new Error(`Language policy '${name}' must be an array with the required entries.`);
   }
   for (const entry of payload.bannedAmericanSpellings) {
@@ -212,21 +214,27 @@ export function validatePolicyDocument(document, expectedSchemaDigest) {
     throw new Error("Portuguese markers must be bounded non-empty strings.");
   }
   assertUnique(payload.portugueseTechnicalMarkers, (entry) => entry.toLocaleLowerCase("pt-BR"), "Portuguese markers");
-  if (payload.scannedExtensions.some((extension) => !/^\.[a-z0-9]+$/.test(extension))) {
-    throw new Error("Scanned extensions must be explicit lower-case suffixes.");
-  }
-  assertUnique(payload.scannedExtensions, (entry) => entry, "Scanned extensions");
-  const classes = new Set(["FROZEN_PUBLIC_CONTRACT", "GENERATED_MIGRATION", "FUNCTIONAL_LOCALISATION",
-    "OWNER_FACING_PT_BR", "SOURCE_OR_CITATION_DATA", "EXTERNAL_CANONICAL_FORMAT", "ACCEPTED_ARCHITECTURE_HISTORY",
-    "HISTORICAL_EVIDENCE", "FROZEN_EVALUATION_DATA"]);
-  for (const entry of payload.excludedPaths) {
-    assertExactKeys(entry, ["path", "classification", "reason"], "Excluded path");
-    assertRepositoryPath(entry.path, "Excluded path");
-    if (!classes.has(entry.classification) || typeof entry.reason !== "string" || entry.reason.length === 0) {
-      throw new Error("Excluded paths require a closed classification and reason.");
+  for (const entry of payload.binaryPaths) {
+    assertExactKeys(entry, ["path", "classification", "reason", "sha256"], "Binary path");
+    assertRepositoryPath(entry.path, "Binary path");
+    if (entry.classification !== "HISTORICAL_VISUAL_EVIDENCE" || typeof entry.reason !== "string" || entry.reason.length === 0 ||
+        !hashPattern.test(entry.sha256)) {
+      throw new Error("Binary paths require a closed classification, reason and exact digest.");
     }
   }
-  assertUnique(payload.excludedPaths, (entry) => entry.path, "Excluded paths");
+  assertUnique(payload.binaryPaths, (entry) => entry.path, "Binary paths");
+  const immutableClasses = new Set(["FROZEN_PUBLIC_CONTRACT", "GENERATED_MIGRATION", "OWNER_FACING_PT_BR",
+    "SOURCE_OR_CITATION_DATA", "ACCEPTED_ARCHITECTURE_HISTORY", "HISTORICAL_EVIDENCE", "FROZEN_EVALUATION_DATA"]);
+  for (const entry of payload.immutableTextPaths) {
+    assertExactKeys(entry, ["path", "classification", "reason", "sha256"], "Immutable text path");
+    assertRepositoryPath(entry.path, "Immutable text path");
+    if (!immutableClasses.has(entry.classification) || typeof entry.reason !== "string" || entry.reason.length === 0 ||
+        !hashPattern.test(entry.sha256)) {
+      throw new Error("Immutable text paths require a closed classification, reason and exact digest.");
+    }
+  }
+  assertUnique(payload.immutableTextPaths, (entry) => entry.path, "Immutable text paths");
+  assertUnique([...payload.binaryPaths, ...payload.immutableTextPaths], (entry) => entry.path, "Classified whole-file paths");
   const credentialAllowanceClasses = new Set([
     "PRODUCT_RUNTIME_OR_DEPLOYMENT_CONFIGURATION",
     "SECURITY_POLICY",
@@ -234,7 +242,7 @@ export function validatePolicyDocument(document, expectedSchemaDigest) {
     "SYNTHETIC_ENFORCEMENT",
     "PRESERVED_HISTORICAL_DOCUMENT",
   ]);
-  const historicalExclusions = new Map(payload.excludedPaths.map((entry) => [entry.path, entry.classification]));
+  const immutableClassifications = new Map(payload.immutableTextPaths.map((entry) => [entry.path, entry.classification]));
   for (const entry of payload.productCredentialIdentifierAllowances) {
     assertExactKeys(entry, ["path", "classification", "sha256"], "Product credential identifier allowance");
     assertRepositoryPath(entry.path, "Product credential identifier allowance path");
@@ -248,15 +256,58 @@ export function validatePolicyDocument(document, expectedSchemaDigest) {
     if (!historical && entry.sha256 !== null) {
       throw new Error("Current product credential identifier allowances must not carry a historical digest.");
     }
-    if (historical && !["ACCEPTED_ARCHITECTURE_HISTORY", "HISTORICAL_EVIDENCE"].includes(historicalExclusions.get(entry.path))) {
-      throw new Error("Historical product credential identifier allowances must bind an existing historical exclusion.");
+    if (historical && !["ACCEPTED_ARCHITECTURE_HISTORY", "HISTORICAL_EVIDENCE"].includes(immutableClassifications.get(entry.path))) {
+      throw new Error("Historical product credential identifier allowances must bind immutable historical text.");
     }
   }
   assertUnique(payload.productCredentialIdentifierAllowances, (entry) => entry.path, "Product credential identifier allowances");
+  const identifierClasses = new Set(["CANONICAL_CONTRACT_IDENTIFIER", "CANONICAL_DOMAIN_LITERAL",
+    "CANONICAL_MANIFEST_LITERAL", "CANONICAL_POLICY_LITERAL", "CANONICAL_STORAGE_LITERAL", "HASH_BOUND_LITERAL",
+    "PERSISTED_IDENTIFIER", "PUBLIC_API_IDENTIFIER", "PUBLIC_SCRIPT_NAME", "SYNTHETIC_ENFORCEMENT_IDENTIFIER"]);
+  const identifierKinds = new Map([
+    ["CANONICAL_CONTRACT_IDENTIFIER", new Set(["IDENTIFIER"])],
+    ["CANONICAL_DOMAIN_LITERAL", new Set(["LITERAL"])],
+    ["CANONICAL_MANIFEST_LITERAL", new Set(["LITERAL"])],
+    ["CANONICAL_POLICY_LITERAL", new Set(["LITERAL"])],
+    ["CANONICAL_STORAGE_LITERAL", new Set(["LITERAL"])],
+    ["HASH_BOUND_LITERAL", new Set(["LITERAL"])],
+    ["PERSISTED_IDENTIFIER", new Set(["IDENTIFIER"])],
+    ["PUBLIC_API_IDENTIFIER", new Set(["IDENTIFIER"])],
+    ["PUBLIC_SCRIPT_NAME", new Set(["LITERAL", "PATH"])],
+    ["SYNTHETIC_ENFORCEMENT_IDENTIFIER", new Set(["IDENTIFIER"])],
+  ]);
+  for (const entry of payload.canonicalIdentifierAllowances) {
+    assertExactKeys(entry, ["path", "classification", "kind", "value", "occurrences", "contextHashes"], "Canonical identifier allowance");
+    assertRepositoryPath(entry.path, "Canonical identifier allowance path");
+    if (!identifierClasses.has(entry.classification) || !["IDENTIFIER", "LITERAL", "PATH"].includes(entry.kind) ||
+        !identifierKinds.get(entry.classification)?.has(entry.kind) ||
+        typeof entry.value !== "string" || entry.value.length === 0 || entry.value.length > 512 ||
+        !new RegExp(["arti", "fact"].join(""), "i").test(entry.value) ||
+        !Number.isSafeInteger(entry.occurrences) || entry.occurrences < 1 || !Array.isArray(entry.contextHashes) ||
+        entry.contextHashes.some((hash) => typeof hash !== "string" || !hashPattern.test(hash))) {
+      throw new Error("Canonical identifier allowances require a closed classification, kind, value and count.");
+    }
+    if (entry.kind === "IDENTIFIER" && !/^[A-Za-z_][A-Za-z0-9_]*$/.test(entry.value)) {
+      throw new Error("Identifier allowances must bind one exact identifier token.");
+    }
+    if (entry.kind === "PATH" && (entry.value !== entry.path || entry.occurrences !== 1)) {
+      throw new Error("Path identifier allowances must bind their exact repository path once.");
+    }
+    if ((entry.kind === "PATH" && entry.contextHashes.length !== 0) ||
+        (entry.kind !== "PATH" && entry.contextHashes.length !== entry.occurrences)) {
+      throw new Error("Content identifier allowances require one exact context hash per occurrence.");
+    }
+    if (entry.kind !== "PATH" && /[\r\n]/.test(entry.value)) {
+      throw new Error("Content identifier allowances cannot span lines.");
+    }
+  }
+  assertUnique(payload.canonicalIdentifierAllowances,
+    (entry) => `${entry.path}\0${entry.kind}\0${entry.value}`, "Canonical identifier allowances");
   for (const entry of payload.excludedRegions) {
     assertExactKeys(entry, ["path", "classification", "startMarker", "endMarker", "sha256"], "Excluded region");
     assertRepositoryPath(entry.path, "Excluded region path");
-    if (!["PRESERVED_HISTORICAL_REGION", "SYNTHETIC_ENFORCEMENT_REGION"].includes(entry.classification) ||
+    if (!["PRESERVED_HISTORICAL_REGION", "SYNTHETIC_ENFORCEMENT_REGION", "FUNCTIONAL_LOCALISATION_REGION",
+      "OWNER_FACING_PT_BR_REGION"].includes(entry.classification) ||
         typeof entry.startMarker !== "string" || entry.startMarker.length === 0 ||
         !(entry.endMarker === null || (typeof entry.endMarker === "string" && entry.endMarker.length > 0)) || !hashPattern.test(entry.sha256)) {
       throw new Error("Excluded regions require exact markers, classification and digest.");
@@ -320,12 +371,38 @@ function cleanTechnicalText(value) {
     .replace(/\b[A-Z][A-Za-z0-9]*(?:[._/:+-][A-Za-z0-9]+)+\b/g, " ");
 }
 
+function cleanCommitIdentifierText(value) {
+  return value
+    .replace(/`[^`]*`/g, " ")
+    .replace(/https?:\/\/\S+/gi, " ")
+    .replace(/\b[0-9a-f]{12,}\b/gi, " ");
+}
+
 function markdownRegions(text) {
   const result = [];
   let fenced = false;
+  let fenceCharacter = "";
+  let fenceLength = 0;
+  let inspectTextFence = false;
   for (const [index, line] of text.split(/\r?\n/).entries()) {
-    if (/^\s*(```|~~~)/.test(line)) { fenced = !fenced; continue; }
-    if (!fenced && line.trim().length > 0) result.push({ line: index + 1, text: cleanTechnicalText(line) });
+    const marker = line.match(/^\s*(`{3,}|~{3,})\s*([^\s]*)\s*$/);
+    if (marker !== null) {
+      if (!fenced) {
+        fenced = true;
+        fenceCharacter = marker[1][0];
+        fenceLength = marker[1].length;
+        inspectTextFence = marker[2].toLocaleLowerCase("en-GB") === "text";
+      } else if (marker[1][0] === fenceCharacter && marker[1].length >= fenceLength && marker[2] === "") {
+        fenced = false;
+        fenceCharacter = "";
+        fenceLength = 0;
+        inspectTextFence = false;
+      }
+      continue;
+    }
+    if ((!fenced || inspectTextFence) && line.trim().length > 0) {
+      result.push({ line: index + 1, text: cleanTechnicalText(line) });
+    }
   }
   return result;
 }
@@ -411,7 +488,19 @@ export function inspectRegions(path, regions, payload) {
 }
 
 export function inspectCommitMessage(message, payload) {
-  return inspectRegions("<commit-message>", message.split(/\r?\n/).map((text, index) => ({ line: index + 1, text: cleanTechnicalText(text) })), payload);
+  const lines = message.split(/\r?\n/);
+  const regions = lines.map((text, index) => ({ line: index + 1, text: cleanTechnicalText(text) }));
+  const identifierRegions = lines.map((text, index) => ({ line: index + 1, text: cleanCommitIdentifierText(text) }));
+  const findings = inspectRegions("<commit-message>", regions, payload);
+  const legacyStem = ["arti", "fact"].join("");
+  for (const region of identifierRegions) {
+    const normalised = normaliseRegion(region.text);
+    if (new RegExp(legacyStem, "i").test(normalised) && !findings.some((finding) =>
+      finding.line === region.line && finding.ruleId === "US_SPELLING" && finding.token.startsWith(legacyStem))) {
+      findings.push(makeFinding("<commit-message>", region.line, "US_SPELLING", legacyStem, normalised));
+    }
+  }
+  return findings.sort(compareFindings);
 }
 
 export function assertSafeCommitMessage(message) {
@@ -584,6 +673,97 @@ function exactByteRange(bytes, startMarker, endMarker, path) {
   return { start, end: end + endBytes.length };
 }
 
+function exactTextRange(text, startMarker, endMarker, path) {
+  const start = text.indexOf(startMarker);
+  if (start < 0 || text.indexOf(startMarker, start + startMarker.length) >= 0) {
+    throw new Error(`Excluded region marker is missing or ambiguous for '${path}'.`);
+  }
+  if (endMarker === null) return { start, end: text.length };
+  const end = text.indexOf(endMarker, start + startMarker.length);
+  if (end < 0 || text.indexOf(endMarker, end + endMarker.length) >= 0) {
+    throw new Error(`Excluded region end marker is missing or ambiguous for '${path}'.`);
+  }
+  return { start, end: end + endMarker.length };
+}
+
+function maskBoundText(path, text, regions) {
+  for (const region of regions) {
+    const range = exactTextRange(text, region.startMarker, region.endMarker, path);
+    const regionText = text.slice(range.start, range.end);
+    if (sha256(regionText) !== region.sha256) throw new Error(`Excluded region identity changed for '${path}'.`);
+    text = `${text.slice(0, range.start)}${regionText.replace(/[^\n]/g, " ")}${text.slice(range.end)}`;
+  }
+  return text;
+}
+
+function exactValueRanges(text, entry) {
+  const ranges = [];
+  let offset = 0;
+  while (offset <= text.length - entry.value.length) {
+    const start = text.indexOf(entry.value, offset);
+    if (start < 0) break;
+    const end = start + entry.value.length;
+    const before = start === 0 ? "" : text[start - 1];
+    const after = end === text.length ? "" : text[end];
+    if (entry.kind === "LITERAL" || (!/[A-Za-z0-9_]/.test(before) && !/[A-Za-z0-9_]/.test(after))) {
+      ranges.push({ start, end });
+    }
+    offset = start + Math.max(1, entry.value.length);
+  }
+  return ranges;
+}
+
+function contextHashForRange(text, range) {
+  const currentStart = text.lastIndexOf("\n", Math.max(0, range.start - 1)) + 1;
+  const currentEndIndex = text.indexOf("\n", range.end);
+  const currentEnd = currentEndIndex < 0 ? text.length : currentEndIndex;
+  const previousStart = currentStart === 0 ? 0 : text.lastIndexOf("\n", Math.max(0, currentStart - 2)) + 1;
+  const nextEndIndex = text.indexOf("\n", currentEnd + 1);
+  const nextEnd = currentEndIndex < 0 ? currentEnd : (nextEndIndex < 0 ? text.length : nextEndIndex);
+  return sha256(text.slice(previousStart, nextEnd));
+}
+
+function assertCanonicalIdentifierAllowlist(path, text, allowances) {
+  const legacyStem = ["arti", "fact"].join("");
+  const pathEntries = allowances.filter((entry) => entry.path === path && entry.kind === "PATH");
+  const pathContainsLegacyStem = new RegExp(legacyStem, "i").test(path);
+  if (pathContainsLegacyStem !== (pathEntries.length === 1 && pathEntries[0].value === path)) {
+    throw new Error(`A tracked path is outside the canonical identifier allowlist for '${path}'.`);
+  }
+  const contentEntries = allowances.filter((entry) => entry.path === path && entry.kind !== "PATH");
+  const literalMatches = contentEntries
+    .filter((entry) => entry.kind === "LITERAL")
+    .flatMap((entry) => exactValueRanges(text, entry).map((range) => ({ entry, range })));
+  const acceptedRanges = [];
+  for (const entry of contentEntries) {
+    const ranges = exactValueRanges(text, entry).filter((range) => {
+      if (entry.kind === "IDENTIFIER") {
+        return !literalMatches.some((literal) => range.start >= literal.range.start && range.end <= literal.range.end);
+      }
+      if (entry.kind === "LITERAL") {
+        return !literalMatches.some((literal) => literal.entry.value.length > entry.value.length &&
+          range.start >= literal.range.start && range.end <= literal.range.end);
+      }
+      return true;
+    });
+    if (ranges.length !== entry.occurrences) {
+      throw new Error(`A canonical identifier allowance count changed for '${path}'.`);
+    }
+    const contexts = ranges.map((range) => contextHashForRange(text, range));
+    if (contexts.some((hash, index) => hash !== entry.contextHashes[index])) {
+      throw new Error(`A canonical identifier allowance context changed for '${path}'.`);
+    }
+    acceptedRanges.push(...ranges);
+  }
+  for (const match of text.matchAll(new RegExp(legacyStem, "ig"))) {
+    const start = match.index;
+    const end = start + match[0].length;
+    if (!acceptedRanges.some((range) => start >= range.start && end <= range.end)) {
+      throw new Error(`An identifier using the legacy spelling is outside the canonical allowlist for '${path}'.`);
+    }
+  }
+}
+
 export async function assertProductCredentialIdentifierAllowlist(source, payload) {
   const tracked = new Set(source.paths);
   const allowances = new Map(payload.productCredentialIdentifierAllowances.map((entry) => [entry.path, entry]));
@@ -626,44 +806,55 @@ export async function inspectRepository(repositoryRoot, payload, commit = null, 
   const source = suppliedSource ?? await selectedSource(repositoryRoot, commit);
   const tracked = source.paths;
   const trackedSet = new Set(tracked);
-  const excluded = new Set(payload.excludedPaths.map((entry) => entry.path));
+  const binaries = new Map(payload.binaryPaths.map((entry) => [entry.path, entry]));
+  const immutableText = new Map(payload.immutableTextPaths.map((entry) => [entry.path, entry]));
   const appendOnly = new Map(payload.appendOnlyPrefixes.map((entry) => [entry.path, entry]));
-  const extensions = new Set(payload.scannedExtensions);
   const findings = [];
-  for (const entry of payload.excludedPaths) {
-    if (!trackedSet.has(entry.path)) throw new Error("A whole-file exclusion path is not a regular tracked file.");
+  for (const entry of [...payload.binaryPaths, ...payload.immutableTextPaths]) {
+    if (!trackedSet.has(entry.path)) throw new Error("A classified whole-file path is not a regular tracked file.");
   }
   for (const region of payload.excludedRegions) {
     if (!trackedSet.has(region.path)) throw new Error("A required excluded region path is not tracked.");
+    if (binaries.has(region.path) || immutableText.has(region.path)) {
+      throw new Error("An excluded region cannot overlap a classified whole-file path.");
+    }
+  }
+  for (const entry of payload.canonicalIdentifierAllowances) {
+    if (!trackedSet.has(entry.path)) throw new Error("A canonical identifier allowance path is not tracked.");
+    if (entry.kind !== "PATH" && (binaries.has(entry.path) || immutableText.has(entry.path))) {
+      throw new Error("A content identifier allowance cannot overlap a classified whole-file path.");
+    }
   }
   await assertProductCredentialIdentifierAllowlist(source, payload);
   for (const path of tracked) {
-    if (excluded.has(path) || !extensions.has(extname(path).toLowerCase())) continue;
     const bytes = await source.read(path);
+    const binary = binaries.get(path);
+    if (binary !== undefined) {
+      if (sha256(bytes) !== binary.sha256) throw new Error(`Classified binary identity changed for '${path}'.`);
+      let decoded = true;
+      try { decodeUtf8(bytes, "Classified binary"); } catch { decoded = false; }
+      if (decoded) throw new Error(`A classified binary path contains valid UTF-8 text for '${path}'.`);
+      assertCanonicalIdentifierAllowlist(path, "", payload.canonicalIdentifierAllowances);
+      continue;
+    }
+    let text = decodeUtf8(bytes, "Tracked text file");
+    const immutable = immutableText.get(path);
+    if (immutable !== undefined) {
+      if (sha256(bytes) !== immutable.sha256) throw new Error(`Immutable text identity changed for '${path}'.`);
+      assertCanonicalIdentifierAllowlist(path, "", payload.canonicalIdentifierAllowances);
+      continue;
+    }
     const prefix = appendOnly.get(path);
-    let text;
-    if (prefix === undefined) {
-      text = decodeUtf8(bytes, "Tracked language file");
-    } else {
+    if (prefix !== undefined) {
       const suffixBytes = bytes.subarray(prefix.prefixBytes);
       const suffix = decodeUtf8(suffixBytes, "Append-only suffix");
       const prefixText = decodeUtf8(bytes.subarray(0, prefix.prefixBytes), "Append-only prefix");
       text = `${prefixText.replace(/[^\n]/g, " ")}${suffix}`;
     }
-    for (const region of payload.excludedRegions.filter((entry) => entry.path === path)) {
-      const start = text.indexOf(region.startMarker);
-      if (start < 0 || text.indexOf(region.startMarker, start + region.startMarker.length) >= 0) {
-        throw new Error(`Excluded region marker is missing or ambiguous for '${path}'.`);
-      }
-      const end = region.endMarker === null ? text.length : text.indexOf(region.endMarker, start + region.startMarker.length);
-      if (end < 0 || (region.endMarker !== null && text.indexOf(region.endMarker, end + region.endMarker.length) >= 0)) {
-        throw new Error(`Excluded region end marker is missing or ambiguous for '${path}'.`);
-      }
-      const regionText = text.slice(start, region.endMarker === null ? end : end + region.endMarker.length);
-      if (sha256(regionText) !== region.sha256) throw new Error(`Excluded region identity changed for '${path}'.`);
-      text = `${text.slice(0, start)}${regionText.replace(/[^\n]/g, " ")}${text.slice(region.endMarker === null ? end : end + region.endMarker.length)}`;
-    }
-    findings.push(...inspectRegions(path, extractProse(path, text), payload));
+    const proseText = text;
+    const maskedText = maskBoundText(path, text, payload.excludedRegions.filter((entry) => entry.path === path));
+    assertCanonicalIdentifierAllowlist(path, maskedText, payload.canonicalIdentifierAllowances);
+    findings.push(...inspectRegions(path, extractProse(path, path === "eng/language-policy.json" ? proseText : maskedText), payload));
   }
   return findings.sort(compareFindings);
 }
@@ -771,7 +962,13 @@ export async function runCheck({ repositoryRoot, trustedPolicyRoot = repositoryR
   const messages = commitMessages(repositoryRoot, commitBase, commitHead);
   const commitFindings = messages.flatMap((message) => inspectCommitMessage(message, policy.payload));
   if (commitFindings.length > 0) throw new Error(`Language enforcement rejected ${commitFindings.length} commit-message item(s).`);
-  return { files: source.paths.length, findings: findings.length, commits: messages.length };
+  return {
+    files: source.paths.length,
+    textFiles: source.paths.length - policy.payload.binaryPaths.length,
+    binaryFiles: policy.payload.binaryPaths.length,
+    findings: findings.length,
+    commits: messages.length,
+  };
 }
 
 function valueAfter(arguments_, name) {
@@ -799,7 +996,7 @@ async function main() {
     commitBase: valueAfter(arguments_, "--commit-base"),
     commitHead: valueAfter(arguments_, "--commit-head"),
   });
-  process.stdout.write(`Language policy PASS: ${result.files} files, ${result.findings} accepted migration findings, ${result.commits} commit message(s).\n`);
+  process.stdout.write(`Language policy PASS: ${result.files} tracked files (${result.textFiles} text, ${result.binaryFiles} binary), ${result.findings} accepted migration findings, ${result.commits} commit message(s).\n`);
 }
 
 function sanitiseFailure(error) {

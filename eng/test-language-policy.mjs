@@ -32,16 +32,68 @@ function digestDocument(schema, schemaDigest, payload) {
   return { $schema: schema, schemaDigest, payload, digest: `sha256:${sha256(canonicalJson(payload))}` };
 }
 
+function contextHashesForValue(text, value, kind, dominantLiterals = []) {
+  const dominantRanges = dominantLiterals.flatMap((literal) => {
+    const ranges = [];
+    let offset = 0;
+    while ((offset = text.indexOf(literal, offset)) >= 0) {
+      ranges.push({ start: offset, end: offset + literal.length });
+      offset += literal.length;
+    }
+    return ranges;
+  });
+  const ranges = [];
+  let offset = 0;
+  while ((offset = text.indexOf(value, offset)) >= 0) {
+    const range = { start: offset, end: offset + value.length };
+    const before = range.start === 0 ? "" : text[range.start - 1];
+    const after = range.end === text.length ? "" : text[range.end];
+    const exactIdentifier = kind !== "IDENTIFIER" || (!/[A-Za-z0-9_]/.test(before) && !/[A-Za-z0-9_]/.test(after));
+    if (exactIdentifier && !dominantRanges.some((dominant) =>
+      range.start >= dominant.start && range.end <= dominant.end)) ranges.push(range);
+    offset = range.end;
+  }
+  return ranges.map((range) => {
+    const currentStart = text.lastIndexOf("\n", Math.max(0, range.start - 1)) + 1;
+    const currentEndIndex = text.indexOf("\n", range.end);
+    const currentEnd = currentEndIndex < 0 ? text.length : currentEndIndex;
+    const previousStart = currentStart === 0 ? 0 : text.lastIndexOf("\n", Math.max(0, currentStart - 2)) + 1;
+    const nextEndIndex = text.indexOf("\n", currentEnd + 1);
+    const nextEnd = currentEndIndex < 0 ? currentEnd : (nextEndIndex < 0 ? text.length : nextEndIndex);
+    return sha256(text.slice(previousStart, nextEnd));
+  });
+}
+
 // SYNTHETIC_LANGUAGE_POLICY_PAYLOAD_START
 function policyPayload(overrides = {}) {
+  const canonicalText = canonicalFixture();
   return {
-    schemaVersion: 1,
-    policyId: "rag-challenge-language-policy-v1",
+    schemaVersion: 2,
+    policyId: "rag-challenge-language-policy-v2",
     technicalLanguage: "en-GB",
     ownerLanguage: "pt-BR",
     bannedAmericanSpellings,
     portugueseTechnicalMarkers: ["alteração", "arquivo", "implementação", "segurança", "validação"],
-    scannedExtensions: [".json", ".md", ".mjs", ".ts", ".yml"],
+    binaryPaths: [{
+      path: "image.bin",
+      classification: "HISTORICAL_VISUAL_EVIDENCE",
+      reason: "Synthetic binary classification.",
+      sha256: sha256(new Uint8Array([0xff, 0xfe, 0xfd])),
+    }],
+    immutableTextPaths: [
+      {
+        path: "citation.json",
+        classification: "SOURCE_OR_CITATION_DATA",
+        reason: "Synthetic source-language citation data.",
+        sha256: sha256('{"text":"Alteração citada pela fonte"}\n'),
+      },
+      {
+        path: "historical.md",
+        classification: "HISTORICAL_EVIDENCE",
+        reason: "Synthetic protected historical data.",
+        sha256: sha256("Historical OPENAI_API_KEY identifier.\n"),
+      },
+    ],
     productCredentialIdentifierAllowances: [
       { path: "security.md", classification: "SECURITY_POLICY", sha256: null },
       {
@@ -50,23 +102,116 @@ function policyPayload(overrides = {}) {
         sha256: sha256("Historical OPENAI_API_KEY identifier.\n"),
       },
     ],
-    excludedPaths: [
-      { path: "locale.ts", classification: "FUNCTIONAL_LOCALISATION", reason: "Synthetic bilingual interface data." },
-      { path: "citation.json", classification: "SOURCE_OR_CITATION_DATA", reason: "Synthetic source-language citation data." },
-      { path: "historical.md", classification: "HISTORICAL_EVIDENCE", reason: "Synthetic protected historical data." },
+    canonicalIdentifierAllowances: [
+      {
+        path: "canonical.ts",
+        classification: "CANONICAL_CONTRACT_IDENTIFIER",
+        kind: "IDENTIFIER",
+        value: "LogicalArtifactDigest",
+        occurrences: 1,
+        contextHashes: contextHashesForValue(canonicalText, "LogicalArtifactDigest", "IDENTIFIER"),
+      },
+      {
+        path: "canonical.ts",
+        classification: "PUBLIC_API_IDENTIFIER",
+        kind: "IDENTIFIER",
+        value: "artifacts",
+        occurrences: 2,
+        contextHashes: contextHashesForValue(canonicalText, "artifacts", "IDENTIFIER",
+          ["task-owned-artifacts-local-v1", "artifacts-local"]),
+      },
+      {
+        path: "canonical.ts",
+        classification: "CANONICAL_STORAGE_LITERAL",
+        kind: "LITERAL",
+        value: "artifacts-local",
+        occurrences: 1,
+        contextHashes: contextHashesForValue(canonicalText, "artifacts-local", "LITERAL",
+          ["task-owned-artifacts-local-v1"]),
+      },
+      {
+        path: "canonical.ts",
+        classification: "CANONICAL_POLICY_LITERAL",
+        kind: "LITERAL",
+        value: "task-owned-artifacts-local-v1",
+        occurrences: 1,
+        contextHashes: contextHashesForValue(canonicalText, "task-owned-artifacts-local-v1", "LITERAL"),
+      },
+      {
+        path: "eng/language-policy.json",
+        classification: "SYNTHETIC_ENFORCEMENT_IDENTIFIER",
+        kind: "IDENTIFIER",
+        value: "artifact",
+        occurrences: 1,
+        contextHashes: ["0".repeat(64)],
+      },
+      {
+        path: "eng/language-policy.json",
+        classification: "SYNTHETIC_ENFORCEMENT_IDENTIFIER",
+        kind: "IDENTIFIER",
+        value: "artifacts",
+        occurrences: 1,
+        contextHashes: ["0".repeat(64)],
+      },
     ],
-    excludedRegions: [{
-      path: "preserved.md",
-      classification: "PRESERVED_HISTORICAL_REGION",
-      startMarker: "## Historical",
-      endMarker: null,
-      sha256: sha256("## Historical\nImplementação preservada.\n"),
-    }],
+    excludedRegions: [
+      {
+        path: "eng/language-policy.json",
+        classification: "SYNTHETIC_ENFORCEMENT_REGION",
+        startMarker: '    "canonicalIdentifierAllowances": [',
+        endMarker: '    ],\n    "excludedRegions": [',
+        sha256: "0".repeat(64),
+      },
+      {
+        path: "locale.ts",
+        classification: "FUNCTIONAL_LOCALISATION_REGION",
+        startMarker: '  "pt-BR": {',
+        endMarker: '  "en-GB": {',
+        sha256: sha256('  "pt-BR": { label: "Alteração do arquivo" },\n  "en-GB": {'),
+      },
+      {
+        path: "handoff.md",
+        classification: "OWNER_FACING_PT_BR_REGION",
+        startMarker: "## Owner hand-off\n```text",
+        endMarker: "Autorizo a alteração do arquivo.\n```",
+        sha256: sha256("## Owner hand-off\n```text\nAutorizo a alteração do arquivo.\n```"),
+      },
+      {
+        path: "preserved.md",
+        classification: "PRESERVED_HISTORICAL_REGION",
+        startMarker: "## Historical",
+        endMarker: null,
+        sha256: sha256("## Historical\nImplementação preservada.\n"),
+      },
+    ],
     appendOnlyPrefixes: [{ path: "history.md", prefixBytes: 1, sha256: sha256("h") }],
     ...overrides,
   };
 }
 // SYNTHETIC_LANGUAGE_POLICY_PAYLOAD_END
+
+function policyDocument(payload) {
+  const selfRegion = payload.excludedRegions.find((entry) => entry.path === "eng/language-policy.json");
+  let draft = digestDocument("./language-policy.schema.json", policySchemaDigest, payload);
+  let text = `${JSON.stringify(draft, null, 2)}\n`;
+  let start = text.indexOf(selfRegion.startMarker);
+  let end = text.indexOf(selfRegion.endMarker, start + selfRegion.startMarker.length) + selfRegion.endMarker.length;
+  const masked = `${text.slice(0, start)}${text.slice(start, end).replace(/[^\n]/g, " ")}${text.slice(end)}`;
+  for (const entry of payload.canonicalIdentifierAllowances.filter((allowance) =>
+    allowance.path === "eng/language-policy.json" && allowance.kind !== "PATH")) {
+    entry.contextHashes = contextHashesForValue(masked, entry.value, entry.kind);
+  }
+  draft = digestDocument("./language-policy.schema.json", policySchemaDigest, payload);
+  text = `${JSON.stringify(draft, null, 2)}\n`;
+  start = text.indexOf(selfRegion.startMarker);
+  end = text.indexOf(selfRegion.endMarker, start + selfRegion.startMarker.length) + selfRegion.endMarker.length;
+  selfRegion.sha256 = sha256(text.slice(start, end));
+  return digestDocument("./language-policy.schema.json", policySchemaDigest, payload);
+}
+
+function boundPolicyPayload(overrides = {}) {
+  return policyDocument(policyPayload(overrides)).payload;
+}
 
 function baselinePayload(policyDigest, findings = [], status = "IN_PROGRESS") {
   return { schemaVersion: 1, baselineId: "rag-challenge-en-gb-migration-v1", status, policyDigest, findings };
@@ -105,19 +250,27 @@ async function guidTempDirectory(prefix) {
 }
 
 // SYNTHETIC_LANGUAGE_REPOSITORY_START
+function canonicalFixture(extra = "") {
+  return `export interface Contract { LogicalArtifactDigest: string; }\nexport function collect(artifacts: string[]) { return artifacts; }\nexport const root = "artifacts-local";\nexport const policy = "task-owned-artifacts-local-v1";\n${extra}`;
+}
+
 async function createRepository(initialMessage = "test(language): initialise synthetic policy") {
   const root = await guidTempDirectory("rag-challenge-language-policy-");
   await mkdir(join(root, "eng"), { recursive: true });
   await writeFile(join(root, "history.md"), "history\n", "utf8");
   await writeFile(join(root, "technical.md"), "British technical prose is authorised.\n", "utf8");
+  await writeFile(join(root, "technical.config"), "# British configuration behaviour is authorised.\n", "utf8");
+  await writeFile(join(root, "canonical.ts"), canonicalFixture(), "utf8");
+  await writeFile(join(root, "image.bin"), new Uint8Array([0xff, 0xfe, 0xfd]));
   await writeFile(join(root, "security.md"), "The OPENAI_API_KEY identifier is synthetic policy data.\n", "utf8");
   await writeFile(join(root, "historical.md"), "Historical OPENAI_API_KEY identifier.\n", "utf8");
   await writeFile(join(root, "preserved.md"), "## Historical\nImplementação preservada.\n", "utf8");
-  await writeFile(join(root, "locale.ts"), "export const label = 'Alteração do arquivo';\n", "utf8");
+  await writeFile(join(root, "handoff.md"), "## Owner hand-off\n```text\nAutorizo a alteração do arquivo.\n```\n", "utf8");
+  await writeFile(join(root, "locale.ts"), 'export const copy = {\n  "pt-BR": { label: "Alteração do arquivo" },\n  "en-GB": { label: "File change" },\n};\n', "utf8");
   await writeFile(join(root, "citation.json"), '{"text":"Alteração citada pela fonte"}\n', "utf8");
   await writeFile(join(root, "eng", "language-policy.schema.json"), await readFile(join(sourceRoot, "language-policy.schema.json"), "utf8"), "utf8");
   await writeFile(join(root, "eng", "language-migration-baseline.schema.json"), await readFile(join(sourceRoot, "language-migration-baseline.schema.json"), "utf8"), "utf8");
-  const policy = digestDocument("./language-policy.schema.json", policySchemaDigest, policyPayload());
+  const policy = policyDocument(policyPayload());
   await writeFile(join(root, "eng", "language-policy.json"), `${JSON.stringify(policy, null, 2)}\n`, "utf8");
   git(root, "init", "--initial-branch=main");
   git(root, "config", "user.name", "Language Fixture");
@@ -151,6 +304,20 @@ test("policy and baseline manifests reject unknown fields, invalid schemas and d
     digestDocument("./language-policy.schema.json", policySchemaDigest, unknownAllowancePayload),
     policySchemaDigest,
   ), /closed classification/);
+  const wrongIdentifierKindPayload = policyPayload({
+    canonicalIdentifierAllowances: [{
+      path: "canonical.ts",
+      classification: "CANONICAL_CONTRACT_IDENTIFIER",
+      kind: "LITERAL",
+      value: ["Logical", "Arti", "fact", "Digest"].join(""),
+      occurrences: 1,
+      contextHashes: ["0".repeat(64)],
+    }],
+  });
+  assert.throws(() => validatePolicyDocument(
+    digestDocument("./language-policy.schema.json", policySchemaDigest, wrongIdentifierKindPayload),
+    policySchemaDigest,
+  ), /closed classification, kind/);
   const unhashedHistoricalPayload = policyPayload({
     productCredentialIdentifierAllowances: [
       { path: "preserved.md", classification: "PRESERVED_HISTORICAL_DOCUMENT", sha256: null },
@@ -201,7 +368,7 @@ test("trusted policy root defeats coordinated candidate policy, baseline and sch
     await writeFile(join(candidateRoot, "technical.md"), "This candidate changes behavior.\n", "utf8");
     await assert.rejects(
       runCheck({ repositoryRoot: candidateRoot, trustedPolicyRoot: trustedRoot }),
-      /new or changed/,
+      /new or changed|canonical identifier allowance count/,
     );
   } finally {
     try { git(trustedRoot, "worktree", "remove", "--force", candidateRoot); } catch { /* The synthetic root removal remains authoritative. */ }
@@ -319,40 +486,42 @@ test("product credential identifier allowances are exact, canonical and fail clo
   const root = await createRepository();
   const identifier = ["OPENAI", "API", "KEY"].join("_");
   try {
-    await assert.doesNotReject(inspectRepository(root, policyPayload()));
+    await assert.doesNotReject(inspectRepository(root, boundPolicyPayload()));
     await writeFile(join(root, "technical.md"), `The ${identifier} identifier is outside policy.\n`, "utf8");
-    await assert.rejects(inspectRepository(root, policyPayload()), (error) =>
+    await assert.rejects(inspectRepository(root, boundPolicyPayload()), (error) =>
       error instanceof Error && /outside its closed allowlist/.test(error.message) && !error.message.includes(identifier));
     await writeFile(join(root, "technical.md"), "British technical prose remains authorised.\n", "utf8");
     await writeFile(join(root, "security.md"), "The openai_api_key identifier is not canonical.\n", "utf8");
-    await assert.rejects(inspectRepository(root, policyPayload()), /non-canonical product credential identifier/);
+    await assert.rejects(inspectRepository(root, boundPolicyPayload()), /non-canonical product credential identifier/);
     await writeFile(join(root, "security.md"), "British security policy contains no identifier.\n", "utf8");
-    await assert.rejects(inspectRepository(root, policyPayload()), /unused path/);
+    await assert.rejects(inspectRepository(root, boundPolicyPayload()), /unused path/);
     await writeFile(join(root, "security.md"), "The OPENAI_API_KEY identifier is synthetic policy data.\n", "utf8");
     await writeFile(join(root, "historical.md"), "Historical OPENAI_API_KEY identifier changed.\n", "utf8");
-    await assert.rejects(inspectRepository(root, policyPayload()), /protected historical credential document changed/);
+    await assert.rejects(inspectRepository(root, boundPolicyPayload()), /protected historical credential document changed/);
   } finally { await rm(root, { recursive: true, force: true }); }
 });
 // SYNTHETIC_LANGUAGE_SECRET_MESSAGES_END
 
 // SYNTHETIC_LANGUAGE_OWNER_PAYLOAD_START
-test("owner-facing pt-BR fenced payload is excluded but Portuguese technical prose fails", () => {
+test("unclassified owner-facing text fences and Portuguese technical prose fail", () => {
   const payload = policyPayload();
   const ownerPayload = "```text\nAutorizo a alteração do arquivo.\n```\n";
-  assert.deepEqual(inspectRegions("handoff.md", extractProse("handoff.md", ownerPayload), payload), []);
+  assert.equal(inspectRegions("handoff.md", extractProse("handoff.md", ownerPayload), payload)
+    .some((finding) => finding.ruleId === "PORTUGUESE_TECHNICAL_PROSE"), true);
   const findings = inspectRegions("technical.md", extractProse("technical.md", "A implementação exige validação técnica."), payload);
   assert.equal(findings.some((finding) => finding.ruleId === "PORTUGUESE_TECHNICAL_PROSE"), true);
 });
 // SYNTHETIC_LANGUAGE_OWNER_PAYLOAD_END
 
-test("localisation and source or citation exclusions are closed exact paths", () => {
+test("localisation regions and immutable source data are closed exact classifications", () => {
   const payload = policyPayload();
-  assert.deepEqual(payload.excludedPaths.map((entry) => [entry.path, entry.classification]), [
-    ["locale.ts", "FUNCTIONAL_LOCALISATION"],
+  assert.deepEqual(payload.immutableTextPaths.map((entry) => [entry.path, entry.classification]), [
     ["citation.json", "SOURCE_OR_CITATION_DATA"],
     ["historical.md", "HISTORICAL_EVIDENCE"],
   ]);
-  assert.equal(payload.excludedPaths.some((entry) => /[*?]/.test(entry.path)), false);
+  assert.equal(payload.excludedRegions.some((entry) =>
+    entry.path === "locale.ts" && entry.classification === "FUNCTIONAL_LOCALISATION_REGION"), true);
+  assert.equal([...payload.immutableTextPaths, ...payload.excludedRegions].some((entry) => /[*?]/.test(entry.path)), false);
 });
 
 // SYNTHETIC_LANGUAGE_MIGRATION_DEBT_START
@@ -369,6 +538,56 @@ test("identical migration debt passes, changed or new debt fails, and COMPLETE c
 // SYNTHETIC_LANGUAGE_MIGRATION_DEBT_END
 
 // SYNTHETIC_LANGUAGE_HISTORY_AND_COMMITS_START
+test("all tracked text is inspected independently of filename extension", async () => {
+  const root = await createRepository();
+  try {
+    await writeFile(join(root, "technical.config"), "# This configuration documents behavior.\n", "utf8");
+    await assert.rejects(runCheck({ repositoryRoot: root }), /new or changed/);
+  } finally { await rm(root, { recursive: true, force: true }); }
+});
+
+test("binary classifications require an exact path, digest and non-text identity", async () => {
+  const root = await createRepository();
+  try {
+    await writeFile(join(root, "image.bin"), new Uint8Array([0xff, 0xfe, 0xfc]));
+    await assert.rejects(inspectRepository(root, boundPolicyPayload()), /Classified binary identity changed/);
+    await writeFile(join(root, "image.bin"), "British text.\n", "utf8");
+    const textBytes = await readFile(join(root, "image.bin"));
+    const payload = boundPolicyPayload({
+      binaryPaths: [{ ...policyPayload().binaryPaths[0], sha256: sha256(textBytes) }],
+    });
+    await assert.rejects(inspectRepository(root, payload), /contains valid UTF-8 text/);
+    await writeFile(join(root, "image.bin"), new Uint8Array([0xff, 0xfe, 0xfd]));
+    await writeFile(join(root, "unknown.bin"), new Uint8Array([0xff, 0xfe, 0xfb]));
+    git(root, "add", "unknown.bin");
+    await assert.rejects(inspectRepository(root, boundPolicyPayload()), /not valid UTF-8/);
+  } finally { await rm(root, { recursive: true, force: true }); }
+});
+
+test("canonical identifier allowances reject new internal names, count drift and unclassified paths", async () => {
+  const root = await createRepository();
+  try {
+    await writeFile(join(root, "technical.md"), "British prose names PrivateArtifact as a private helper.\n", "utf8");
+    await assert.rejects(inspectRepository(root, boundPolicyPayload()), /outside the canonical allowlist/);
+    await writeFile(join(root, "technical.md"), "British technical prose remains authorised.\n", "utf8");
+    await writeFile(join(root, "canonical.ts"), canonicalFixture().replace("function collect", "function gather"), "utf8");
+    await assert.rejects(inspectRepository(root, boundPolicyPayload()), /allowance context changed/);
+    await writeFile(join(root, "canonical.ts"), "export interface Contract { Digest: string; }\n", "utf8");
+    await assert.rejects(inspectRepository(root, boundPolicyPayload()), /allowance count changed/);
+    await writeFile(join(root, "canonical.ts"), canonicalFixture(), "utf8");
+    await writeFile(join(root, "PrivateArtifact.cs"), "// British test prose.\n", "utf8");
+    git(root, "add", "PrivateArtifact.cs");
+    await assert.rejects(inspectRepository(root, boundPolicyPayload()), /tracked path is outside/);
+  } finally { await rm(root, { recursive: true, force: true }); }
+});
+
+test("commit messages reject embedded legacy identifier spelling but preserve backticked canonical literals", () => {
+  const payload = policyPayload();
+  assert.equal(inspectCommitMessage("refactor(language): rename PrivateArtifact helper", payload).length > 0, true);
+  assert.equal(inspectCommitMessage("refactor(language): rename private-artifact-helper", payload).length > 0, true);
+  assert.deepEqual(inspectCommitMessage("docs(language): preserve `LogicalArtifactDigest` contract", payload), []);
+});
+
 test("append-only enforcement scans new suffixes and detects prefix mutation", async () => {
   const root = await createRepository();
   try {
@@ -411,16 +630,23 @@ test("commit range scans immutable HEAD bytes despite adversarial worktree conte
   } finally { await rm(root, { recursive: true, force: true }); }
 });
 
-test("whole-file exclusions require exact regular tracked files", async () => {
+test("immutable text classifications require exact regular tracked files and digests", async () => {
   const root = await createRepository();
   try {
-    const payload = policyPayload({
-      excludedPaths: [
-        ...policyPayload().excludedPaths,
-        { path: "missing.md", classification: "HISTORICAL_EVIDENCE", reason: "Synthetic missing exclusion." },
+    const payload = boundPolicyPayload({
+      immutableTextPaths: [
+        ...policyPayload().immutableTextPaths,
+        {
+          path: "missing.md",
+          classification: "HISTORICAL_EVIDENCE",
+          reason: "Synthetic missing immutable text.",
+          sha256: "a".repeat(64),
+        },
       ],
     });
-    await assert.rejects(inspectRepository(root, payload), /whole-file exclusion path/);
+    await assert.rejects(inspectRepository(root, payload), /classified whole-file path/);
+    await writeFile(join(root, "citation.json"), '{"text":"Changed source"}\n', "utf8");
+    await assert.rejects(inspectRepository(root, boundPolicyPayload()), /Immutable text identity changed/);
   } finally { await rm(root, { recursive: true, force: true }); }
 });
 

@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://rag-challenge.invalid/schemas/language-policy-v1.json",
+  "$id": "https://rag-challenge.invalid/schemas/language-policy-v2.json",
   "title": "RAG-Challenge language enforcement policy",
   "type": "object",
   "additionalProperties": false,
@@ -18,15 +18,16 @@
         "ownerLanguage",
         "bannedAmericanSpellings",
         "portugueseTechnicalMarkers",
-        "scannedExtensions",
+        "binaryPaths",
+        "immutableTextPaths",
         "productCredentialIdentifierAllowances",
-        "excludedPaths",
+        "canonicalIdentifierAllowances",
         "excludedRegions",
         "appendOnlyPrefixes"
       ],
       "properties": {
-        "schemaVersion": { "const": 1 },
-        "policyId": { "const": "rag-challenge-language-policy-v1" },
+        "schemaVersion": { "const": 2 },
+        "policyId": { "const": "rag-challenge-language-policy-v2" },
         "technicalLanguage": { "const": "en-GB" },
         "ownerLanguage": { "const": "pt-BR" },
         "bannedAmericanSpellings": {
@@ -47,10 +48,45 @@
           "minItems": 1,
           "items": { "type": "string", "minLength": 2 }
         },
-        "scannedExtensions": {
+        "binaryPaths": {
           "type": "array",
           "minItems": 1,
-          "items": { "type": "string", "pattern": "^[.][a-z0-9]+$" }
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["path", "classification", "reason", "sha256"],
+            "properties": {
+              "path": { "type": "string", "minLength": 1 },
+              "classification": { "const": "HISTORICAL_VISUAL_EVIDENCE" },
+              "reason": { "type": "string", "minLength": 1 },
+              "sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" }
+            }
+          }
+        },
+        "immutableTextPaths": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["path", "classification", "reason", "sha256"],
+            "properties": {
+              "path": { "type": "string", "minLength": 1 },
+              "classification": {
+                "enum": [
+                  "FROZEN_PUBLIC_CONTRACT",
+                  "GENERATED_MIGRATION",
+                  "OWNER_FACING_PT_BR",
+                  "SOURCE_OR_CITATION_DATA",
+                  "ACCEPTED_ARCHITECTURE_HISTORY",
+                  "HISTORICAL_EVIDENCE",
+                  "FROZEN_EVALUATION_DATA"
+                ]
+              },
+              "reason": { "type": "string", "minLength": 1 },
+              "sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" }
+            }
+          }
         },
         "productCredentialIdentifierAllowances": {
           "type": "array",
@@ -96,29 +132,79 @@
             ]
           }
         },
-        "excludedPaths": {
+        "canonicalIdentifierAllowances": {
           "type": "array",
+          "minItems": 1,
           "items": {
             "type": "object",
             "additionalProperties": false,
-            "required": ["path", "classification", "reason"],
+            "required": ["path", "classification", "kind", "value", "occurrences", "contextHashes"],
             "properties": {
               "path": { "type": "string", "minLength": 1 },
               "classification": {
                 "enum": [
-                  "FROZEN_PUBLIC_CONTRACT",
-                  "GENERATED_MIGRATION",
-                  "FUNCTIONAL_LOCALISATION",
-                  "OWNER_FACING_PT_BR",
-                  "SOURCE_OR_CITATION_DATA",
-                  "EXTERNAL_CANONICAL_FORMAT"
-                  ,"ACCEPTED_ARCHITECTURE_HISTORY"
-                  ,"HISTORICAL_EVIDENCE"
-                  ,"FROZEN_EVALUATION_DATA"
+                  "CANONICAL_CONTRACT_IDENTIFIER",
+                  "CANONICAL_DOMAIN_LITERAL",
+                  "CANONICAL_MANIFEST_LITERAL",
+                  "CANONICAL_POLICY_LITERAL",
+                  "CANONICAL_STORAGE_LITERAL",
+                  "HASH_BOUND_LITERAL",
+                  "PERSISTED_IDENTIFIER",
+                  "PUBLIC_API_IDENTIFIER",
+                  "PUBLIC_SCRIPT_NAME",
+                  "SYNTHETIC_ENFORCEMENT_IDENTIFIER"
                 ]
               },
-              "reason": { "type": "string", "minLength": 1 }
-            }
+              "kind": { "enum": ["IDENTIFIER", "LITERAL", "PATH"] },
+              "value": { "type": "string", "minLength": 1, "maxLength": 512 },
+              "occurrences": { "type": "integer", "minimum": 1 },
+              "contextHashes": {
+                "type": "array",
+                "items": { "type": "string", "pattern": "^[0-9a-f]{64}$" }
+              }
+            },
+            "allOf": [
+              {
+                "if": {
+                  "properties": {
+                    "classification": {
+                      "enum": [
+                        "CANONICAL_CONTRACT_IDENTIFIER",
+                        "PERSISTED_IDENTIFIER",
+                        "PUBLIC_API_IDENTIFIER",
+                        "SYNTHETIC_ENFORCEMENT_IDENTIFIER"
+                      ]
+                    }
+                  }
+                },
+                "then": { "properties": { "kind": { "const": "IDENTIFIER" } } }
+              },
+              {
+                "if": {
+                  "properties": {
+                    "classification": {
+                      "enum": [
+                        "CANONICAL_DOMAIN_LITERAL",
+                        "CANONICAL_MANIFEST_LITERAL",
+                        "CANONICAL_POLICY_LITERAL",
+                        "CANONICAL_STORAGE_LITERAL",
+                        "HASH_BOUND_LITERAL"
+                      ]
+                    }
+                  }
+                },
+                "then": { "properties": { "kind": { "const": "LITERAL" } } }
+              },
+              {
+                "if": { "properties": { "classification": { "const": "PUBLIC_SCRIPT_NAME" } } },
+                "then": { "properties": { "kind": { "enum": ["LITERAL", "PATH"] } } }
+              },
+              {
+                "if": { "properties": { "kind": { "const": "PATH" } } },
+                "then": { "properties": { "contextHashes": { "maxItems": 0 } } },
+                "else": { "properties": { "contextHashes": { "minItems": 1 } } }
+              }
+            ]
           }
         },
         "excludedRegions": {
@@ -129,7 +215,14 @@
             "required": ["path", "classification", "startMarker", "endMarker", "sha256"],
             "properties": {
               "path": { "type": "string", "minLength": 1 },
-              "classification": { "enum": ["PRESERVED_HISTORICAL_REGION", "SYNTHETIC_ENFORCEMENT_REGION"] },
+              "classification": {
+                "enum": [
+                  "PRESERVED_HISTORICAL_REGION",
+                  "SYNTHETIC_ENFORCEMENT_REGION",
+                  "FUNCTIONAL_LOCALISATION_REGION",
+                  "OWNER_FACING_PT_BR_REGION"
+                ]
+              },
               "startMarker": { "type": "string", "minLength": 1 },
               "endMarker": { "type": ["string", "null"] },
               "sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" }

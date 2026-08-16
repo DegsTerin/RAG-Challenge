@@ -35,7 +35,7 @@ import {
 import { baseline, instant, passingResult, task } from "./helpers.js";
 
 const trustedLanguagePolicy: TrustedLanguagePolicy = {
-  policyId: "rag-challenge-language-policy-v1",
+  policyId: "rag-challenge-language-policy-v2",
   technicalLanguage: "en-GB",
   bannedAmericanSpellings: [
     { american: "behavior", british: "behaviour" },
@@ -62,15 +62,23 @@ function syntheticLanguagePolicyPayload(
   allowances: readonly Readonly<Record<string, unknown>>[],
 ): Readonly<Record<string, unknown>> {
   return {
-    schemaVersion: 1,
-    policyId: "rag-challenge-language-policy-v1",
+    schemaVersion: 2,
+    policyId: "rag-challenge-language-policy-v2",
     technicalLanguage: "en-GB",
     ownerLanguage: "pt-BR",
     bannedAmericanSpellings: [{ american: "behavior", british: "behaviour" }],
     portugueseTechnicalMarkers: ["implementação"],
-    scannedExtensions: [".md"],
+    binaryPaths: [{
+      path: "evidence.png", classification: "HISTORICAL_VISUAL_EVIDENCE", reason: "Synthetic evidence.", sha256: "c".repeat(64),
+    }],
+    immutableTextPaths: [{
+      path: "history.md", classification: "HISTORICAL_EVIDENCE", reason: "Synthetic history.", sha256: "d".repeat(64),
+    }],
     productCredentialIdentifierAllowances: allowances,
-    excludedPaths: [],
+    canonicalIdentifierAllowances: [{
+      path: "contract.ts", classification: "CANONICAL_CONTRACT_IDENTIFIER", kind: "IDENTIFIER",
+      value: ["Logical", "Arti", "fact", "Digest"].join(""), occurrences: 1, contextHashes: ["e".repeat(64)],
+    }],
     excludedRegions: [],
     appendOnlyPrefixes: [{ path: "history.md", prefixBytes: 1, sha256: "a".repeat(64) }],
   };
@@ -219,6 +227,9 @@ test("trusted candidate language policy accepts British prose and external liter
     error instanceof OrchestratorStop && error.code === "OUT_OF_SCOPE_CHANGE_REQUIRED");
   assert.throws(() => assertBritishCommitMessage("fix(orchestrator): preserve candidate\n\nReject behavior drift.", trustedLanguagePolicy), (error: unknown) =>
     error instanceof OrchestratorStop && error.code === "OUT_OF_SCOPE_CHANGE_REQUIRED");
+  assert.throws(() => assertBritishCommitMessage("refactor(orchestrator): rename PrivateArtifact helper", trustedLanguagePolicy), (error: unknown) =>
+    error instanceof OrchestratorStop && error.code === "OUT_OF_SCOPE_CHANGE_REQUIRED");
+  assert.doesNotThrow(() => assertBritishCommitMessage("docs(orchestrator): preserve `LogicalArtifactDigest`", trustedLanguagePolicy));
 });
 
 test("candidate cannot relax the coordinator-owned language policy", async () => {

@@ -65,8 +65,10 @@ A batch is ready when:
 - Communication and artefacts comply with the
   [language policy](Language-Policy.md).
 - Schema, policy digest, migration fingerprints, append-only identities,
-  repository prose and applicable new commit messages pass the automated
-  language check. Candidate checks use coordinator-owned policy bytes and the
+  every tracked blob classification, immutable-text and binary digests,
+  canonical identifier counts and contexts, repository prose and applicable
+  new commit messages pass the automated language check. Candidate checks use
+  coordinator-owned policy bytes and the
   exact immutable HEAD tree for every supplied commit boundary, reject merges
   and inspect each ranged commit for changes to the full transitive enforcement
   boundary. This lexical result is
@@ -137,7 +139,8 @@ An audit does not correct silently, invent evidence or advance state.
 The sole aggregated CI entry point is `./eng/ci.ps1`; the workflow must invoke
 it exactly once. The governed order is:
 
-1. language-policy tests and one fail-closed repository/commit check;
+1. language-policy tests and one fail-closed all-tracked-blob,
+   repository-identifier and commit-message check;
 2. fail-closed CI and coverage policy tests;
 3. LF verification of NuGet lockfiles;
 4. locked restore;

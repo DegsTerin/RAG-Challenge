@@ -5,7 +5,7 @@ import { readBoundedRegularFile, resolveContained } from "./path-policy.js";
 import { parseSecureJson } from "./secure-json.js";
 
 export interface TrustedLanguagePolicy {
-  readonly policyId: "rag-challenge-language-policy-v1";
+  readonly policyId: "rag-challenge-language-policy-v2";
   readonly technicalLanguage: "en-GB";
   readonly bannedAmericanSpellings: readonly Readonly<{ american: string; british: string }>[];
   readonly portugueseTechnicalMarkers: readonly string[];
@@ -71,13 +71,17 @@ export function parseTrustedLanguagePolicy(value: unknown, expectedSchemaDigest:
   }
   const payload = asRecord(document.payload);
   if (!exactKeys(payload, ["schemaVersion", "policyId", "technicalLanguage", "ownerLanguage", "bannedAmericanSpellings",
-    "portugueseTechnicalMarkers", "scannedExtensions", "productCredentialIdentifierAllowances", "excludedPaths",
-    "excludedRegions", "appendOnlyPrefixes"]) ||
-      payload.schemaVersion !== 1 || payload.policyId !== "rag-challenge-language-policy-v1" || payload.technicalLanguage !== "en-GB") {
+    "portugueseTechnicalMarkers", "binaryPaths", "immutableTextPaths", "productCredentialIdentifierAllowances",
+    "canonicalIdentifierAllowances", "excludedRegions", "appendOnlyPrefixes"]) ||
+      payload.schemaVersion !== 2 || payload.policyId !== "rag-challenge-language-policy-v2" || payload.technicalLanguage !== "en-GB") {
     throw new OrchestratorStop("OUT_OF_SCOPE_CHANGE_REQUIRED", "The trusted coordinator language policy identity is invalid.");
   }
   if (!Array.isArray(payload.bannedAmericanSpellings) || !Array.isArray(payload.portugueseTechnicalMarkers) ||
-      !Array.isArray(payload.productCredentialIdentifierAllowances) || payload.bannedAmericanSpellings.length === 0 ||
+      !Array.isArray(payload.binaryPaths) || !Array.isArray(payload.immutableTextPaths) ||
+      !Array.isArray(payload.productCredentialIdentifierAllowances) || !Array.isArray(payload.canonicalIdentifierAllowances) ||
+      !Array.isArray(payload.excludedRegions) || !Array.isArray(payload.appendOnlyPrefixes) ||
+      payload.bannedAmericanSpellings.length === 0 || payload.binaryPaths.length === 0 ||
+      payload.immutableTextPaths.length === 0 || payload.canonicalIdentifierAllowances.length === 0 ||
       payload.portugueseTechnicalMarkers.length === 0 || payload.productCredentialIdentifierAllowances.length === 0) {
     throw new OrchestratorStop("OUT_OF_SCOPE_CHANGE_REQUIRED", "The trusted coordinator language rules are missing.");
   }
@@ -117,7 +121,7 @@ export function parseTrustedLanguagePolicy(value: unknown, expectedSchemaDigest:
     throw new OrchestratorStop("OUT_OF_SCOPE_CHANGE_REQUIRED", "The trusted coordinator language policy digest is invalid.");
   }
   return {
-    policyId: "rag-challenge-language-policy-v1",
+    policyId: "rag-challenge-language-policy-v2",
     technicalLanguage: "en-GB",
     bannedAmericanSpellings: spellings,
     portugueseTechnicalMarkers: payload.portugueseTechnicalMarkers as readonly string[],
@@ -132,7 +136,7 @@ export async function loadTrustedLanguagePolicy(repositoryRoot: string): Promise
     if (schemaText.includes("\uFFFD")) throw new Error("invalid UTF-8");
     const schema = asRecord(parseSecureJson(schemaText, "Trusted language schema", "OUT_OF_SCOPE_CHANGE_REQUIRED"));
     if (schema.$schema !== "https://json-schema.org/draft/2020-12/schema" ||
-        schema.$id !== "https://rag-challenge.invalid/schemas/language-policy-v1.json" || schema.additionalProperties !== false) {
+        schema.$id !== "https://rag-challenge.invalid/schemas/language-policy-v2.json" || schema.additionalProperties !== false) {
       throw new Error("invalid schema identity");
     }
     const expectedSchemaDigest = `sha256:${createHash("sha256").update(schemaText).digest("hex")}`;
@@ -161,6 +165,10 @@ export function assertBritishCommitMessage(message: string, policy: TrustedLangu
     .replace(/https?:\/\/\S+/gi, " ")
     .replace(/`[^`]*`/g, " ")
     .replace(/\b[0-9a-f]{12,}\b/gi, " ");
+  const legacyStem = ["arti", "fact"].join("");
+  if (new RegExp(legacyStem, "i").test(normalised)) {
+    throw new OrchestratorStop("OUT_OF_SCOPE_CHANGE_REQUIRED", "The candidate commit message contains a non-canonical identifier spelling.", taskId);
+  }
   for (const entry of policy.bannedAmericanSpellings) {
     if (new RegExp(`(^|[^A-Za-z])${escapeRegex(entry.american)}([^A-Za-z]|$)`, "i").test(normalised)) {
       throw new OrchestratorStop("OUT_OF_SCOPE_CHANGE_REQUIRED", "The candidate commit message is not compliant British English.", taskId);

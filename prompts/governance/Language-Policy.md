@@ -122,6 +122,10 @@ payload data or externally supplied content merely to apply `en-GB`.
 - Preserve source content and citations in their original language.
 - Preserve external names, APIs, protocols, canonical fields, identifiers,
   error codes and other mandatory literals.
+- Preserve every legacy-spelled canonical identifier only through the exact
+  path, kind, value, classification, occurrence count and context hash bound
+  by the executable policy. That exception never authorises a new private
+  identifier or a rename of an accepted contract.
 - Preserve functional `pt-BR`/`en-GB` localisation. Changing the supported
   interface or query languages requires a separate product decision.
 
@@ -129,12 +133,29 @@ payload data or externally supplied content merely to apply `en-GB`.
 
 The repository applies the schema-validated policy in
 [`../../eng/language-policy.json`](../../eng/language-policy.json) and the
-temporary migration inventory in
+closed migration inventory in
 [`../../eng/language-migration-baseline.json`](../../eng/language-migration-baseline.json).
-Exclusions are exact, classified paths rather than generic ignore patterns.
-Synthetic rejection fixtures use digest-bound regions; ordinary technical
-prose in the same test files remains in scope. Schema byte digests bind the
-closed manifests to the reviewed schema constraints.
+Every regular tracked blob is classified. A closed list binds each accepted
+binary by exact path, purpose and SHA-256; every other blob must decode as
+strict UTF-8 text, regardless of filename or extension. Immutable contracts,
+generated migrations, sources, owner inputs, frozen evaluation data and
+historical evidence remain exact text classifications with byte digests, not
+unbounded ignore patterns. Editable localisation and owner-facing examples
+use unique marker pairs and region digests inside otherwise scanned files.
+Synthetic rejection fixtures use the same digest-bound region mechanism;
+ordinary technical prose in those files remains in scope. Schema byte digests
+bind the closed manifests to the reviewed schema constraints.
+
+The canonical identifier allowlist is exact by repository path,
+classification, identifier or literal kind, value, occurrence count and a
+three-line context hash for every occurrence. It also binds every accepted
+legacy-spelled filename. New unmatched filenames, private identifiers, count
+drift or context substitution fail closed. Commit-message inspection rejects
+the legacy spelling even when embedded inside a new identifier; backticked
+canonical technical literals remain technical exceptions rather than
+project-owned prose. No wildcard, automatic baseline writer or reusable
+policy-update switch exists.
+
 While migration is `IN_PROGRESS`, only an identical fingerprinted occurrence
 may remain; new or changed debt fails. A `COMPLETE` baseline must contain zero
 debt. The checker also protects accepted append-only prefixes and validates
