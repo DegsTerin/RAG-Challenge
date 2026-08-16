@@ -92,13 +92,21 @@ reports.
   current header with newest-first entries; all entries from `4.15.0`
   backwards are one digest-bound historical region. The complete prefix of
   `State-Transition-Log.md` and every other formally append-only region remain
-  byte protected. At integration candidate
-  `6b2d95c98fc84835154e3d35bda78a2b684fade1`, the focused language tests,
-  repository audit, diff hygiene and independent completion and security
-  reviews passed. The final integrated reviews and canonical offline gate
-  remain pending before local `main` can be updated. No provider call,
-  credential use, external action, Human Gate or lifecycle transition has
-  occurred under this authority.
+  byte protected. The subsequent credential-identifier correction confines
+  the product identifier to 16 exact, classified current or digest-bound
+  historical paths and removes it from editable descriptive documentation.
+  Commit `7ee0df1` made the orchestrator parser recognise and validate that
+  closed manifest field; commit `6a52054` moved its two synthetic contract
+  tests outside the digest-bound enforcement region and restored that region
+  to its recorded identity. At clean integration candidate
+  `6a520545b12a93b04f1e45fedc637c885ac963e6`, `npm run check` passed 105 of
+  107 orchestrator tests with zero failures and two host symlink-permission
+  skips, and the language-policy suite passed 100/100. The real parser loaded
+  all 16 permissions, and independent governance, security and result reviews
+  passed. The documentary and canonical offline gates remain pending before
+  local `main` can be updated. No provider call, credential use, external
+  action, Human Gate or lifecycle transition has occurred under this
+  authority.
 - Position: `STATE-00 DISCOVERY` closed; `GATE-B01
   ARCHITECTURE_BOOTSTRAP_DECISION` approved and closed; `STATE-01
   PROJECT_SETUP` closed after a Human Gate approved without reservations on

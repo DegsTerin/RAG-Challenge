@@ -12,10 +12,12 @@
   development orchestrator remains `MULTI_AGENT_READY` with separate authority
   required for every execution; the Stage 0/1/2 governance,
   product-credential isolation and en-GB migration implementation is complete
-  on the isolated integration candidate; the language baseline is `COMPLETE`
-  with zero accepted debt; final integrated gates remain required before the
-  local `main` may be updated; product homologation, Human Gate and lifecycle
-  change remain unexecuted
+  on the isolated integration candidate; the product credential identifier is
+  restricted to a closed classified allowlist and its orchestrator parser
+  contract has passed independent reviews; the language baseline is
+  `COMPLETE` with zero accepted debt; documentary and canonical offline gates
+  remain required before the local `main` may be updated; product
+  homologation, Human Gate and lifecycle change remain unexecuted
 - Scope: 13 active files under `prompts/`
 
 The corpus version is independent from the future software version.
@@ -41,6 +43,10 @@ Every change updates this file and, when necessary,
 - Removes local `.env.local` credential loading, closes agent, orchestrator,
   CI, common-test and development-tool environments, and uses only synthetic
   readers, maps, values and fake handlers in verification.
+- Restricts the product credential identifier to 16 exact current or
+  digest-bound historical paths under five closed classifications. The
+  orchestrator parser validates the same non-empty manifest field, exact
+  paths, classifications, uniqueness and historical/current digest rules.
 - Enforces British English for current project-owned technical prose and new
   commit messages through schema-bound policy, immutable Git-object scanning,
   protected control paths and exact structured exclusions. The migration

@@ -8585,3 +8585,37 @@ contém somente fatos cronológicos.
 - Append-only integrity: this entry preserves the complete previous prefix of
   544,842 bytes at SHA-256
   `8b9567ff3cec6bb79c220af0eacc669824485d717cf69df92bcc1ecb9875545e`.
+
+## 2026-08-16 — Product credential identifier enforcement reconciled
+
+- Authority: `AUTH-STAGE012-CREDENTIAL-ID-CORR-001`,
+  `AUTH-STAGE012-CREDENTIAL-ID-PARSER-CORR-001` and
+  `AUTH-STAGE012-CREDENTIAL-ID-PARSER-CORR-002`, preserving the authority and
+  negative scope of `AUTH-STAGE012-GOV-SEC-ENGB-IMPL-001`.
+- Enforcement: commit `45bcf7c` restricts the product credential identifier
+  to 16 exact current or digest-bound historical paths under five closed
+  classifications. Editable descriptive documentation uses the generic term
+  “product provider credential”; no credential value is accepted or exposed.
+- Parser: commit `7ee0df1` makes the orchestrator’s trusted policy parser
+  require and validate the allowance field without relaxing exact keys,
+  canonical envelope or digest checks. It rejects empty arrays, unsafe or
+  duplicate paths, wildcards, directories, unknown classifications and
+  invalid current/historical digest combinations.
+- Protected test correction: commit `6a52054` moves the two new synthetic
+  parser tests outside the digest-bound enforcement region without changing
+  their bytes. The protected region again has SHA-256
+  `597567640cead55e7557283bf50f2bda97194a507f3d45ac5f4fc5229f61a322`.
+- Verification: on clean candidate
+  `6a520545b12a93b04f1e45fedc637c885ac963e6`, `npm run check` passed 105 of
+  107 orchestrator tests with zero failures and two host
+  symlink-permission skips; `node eng/test-language-policy.mjs` passed
+  100/100. The compiled parser loaded all 16 real manifest permissions.
+  Independent governance, security and result reviews passed.
+- Pending gate: the documentary gate and `eng/ci.ps1 -Offline` remain required
+  before local `main` can be updated.
+- Negative scope: no provider call, credential read or use, external network,
+  billing, ADR, Human Gate, lifecycle transition, push, pull request, release
+  or deployment occurred.
+- Append-only integrity: this entry preserves the complete previous file of
+  548,144 bytes at SHA-256
+  `fef88ce45058ad967bee2faaffc6cdc62ebe24356d9bf332d97ba00c0f3d9288`.
