@@ -271,12 +271,12 @@ public sealed class SqliteVectorIndexStore(SqliteStoreOptions options)
                 "A vector candidate cannot be finalised before its exact chunk count is durable.");
         }
 
-        var artifacts = chunkRows
-            .Select(row => ToLogicalArtifact(row, build.VectorDimensions))
+        var artefacts = chunkRows
+            .Select(row => ToLogicalArtefact(row, build.VectorDimensions))
             .ToArray();
         var manifest = IndexGenerationCanonicalizer.CreateFinalisedManifest(
             specification,
-            artifacts);
+            artefacts);
 
         if (string.Equals(build.Status, "Validated", StringComparison.Ordinal))
         {
@@ -578,8 +578,8 @@ public sealed class SqliteVectorIndexStore(SqliteStoreOptions options)
             .OrderBy(row => row.ChunkOrdinal)
             .ToArrayAsync(cancellationToken)
             .ConfigureAwait(false);
-        var artifacts = chunkRows
-            .Select(row => ToLogicalArtifact(row, build.VectorDimensions))
+        var artefacts = chunkRows
+            .Select(row => ToLogicalArtefact(row, build.VectorDimensions))
             .ToArray();
         var specification = new IndexGenerationSpecification(
             manifest.ManifestSchemaVersion,
@@ -592,7 +592,7 @@ public sealed class SqliteVectorIndexStore(SqliteStoreOptions options)
         return IndexGenerationCanonicalizer.Matches(
             manifest,
             specification,
-            artifacts);
+            artefacts);
     }
 
     internal async Task<bool> DeleteGenerationIfPresentAsync(
@@ -738,7 +738,7 @@ public sealed class SqliteVectorIndexStore(SqliteStoreOptions options)
         return vector;
     }
 
-    private static LogicalIndexArtifact ToLogicalArtifact(
+    private static LogicalIndexArtifact ToLogicalArtefact(
         VectorChunkRow row,
         int dimensions)
     {

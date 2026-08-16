@@ -47,7 +47,7 @@ public sealed class DeterministicChunkingStrategyTests
     public void NonBmpTextUsesScalarLimitsAndAnExactScalarOverlap()
     {
         var text = string.Concat(Enumerable.Repeat("😀", 5_000));
-        var chunks = Chunk(Artifact(Page(0, text, 1)), new ChunkingPolicy());
+        var chunks = Chunk(Artefact(Page(0, text, 1)), new ChunkingPolicy());
 
         Assert.Equal(2, chunks.Count);
         Assert.Equal(3_200, ScalarCount(chunks[0].Text));
@@ -65,7 +65,7 @@ public sealed class DeterministicChunkingStrategyTests
         var text = new string('a', 25) + ".\n" + new string('b', 8) +
             "\n\n" + new string('c', 60);
         var chunks = Chunk(
-            Artifact(Page(0, text, 1)),
+            Artefact(Page(0, text, 1)),
             new ChunkingPolicy(32, 8, 40));
 
         Assert.True(chunks.Count >= 2);
@@ -79,7 +79,7 @@ public sealed class DeterministicChunkingStrategyTests
         var pageOne = "PAGE-ONE " + new string('a', 100);
         var pageTwo = "PAGE-TWO " + new string('b', 100);
         var chunks = Chunk(
-            Artifact(Page(0, pageOne, 1), Page(1, pageTwo, 2)),
+            Artefact(Page(0, pageOne, 1), Page(1, pageTwo, 2)),
             new ChunkingPolicy(32, 8, 40));
 
         Assert.Contains(chunks, chunk => chunk.PageNumber == 1);
@@ -98,7 +98,7 @@ public sealed class DeterministicChunkingStrategyTests
             DocumentFormat = DocumentFormat.Csv,
             SourceAdapterId = new SourceAdapterId("synthetic-csv"),
         };
-        var artifact = new ParsedDocumentArtifact(
+        var artefact = new ParsedDocumentArtifact(
             DocumentFormat.Csv,
             "synthetic-csv/1",
             [
@@ -114,7 +114,7 @@ public sealed class DeterministicChunkingStrategyTests
                     columns: new Dictionary<string, string> { ["id"] = "two" }),
             ]);
         var chunks = new DeterministicChunkingStrategy().Chunk(
-            artifact,
+            artefact,
             csvContext,
             new ChunkingPolicy(32, 8, 40));
 
@@ -140,17 +140,17 @@ public sealed class DeterministicChunkingStrategyTests
             DocumentFormat = DocumentFormat.Csv,
             SourceAdapterId = new SourceAdapterId("synthetic-csv"),
         };
-        var first = CsvArtifact(new Dictionary<string, string>
+        var first = CsvArtefact(new Dictionary<string, string>
         {
             ["id"] = "one",
             ["name"] = "Alpha",
         });
-        var reordered = CsvArtifact(new Dictionary<string, string>
+        var reordered = CsvArtefact(new Dictionary<string, string>
         {
             ["name"] = "Alpha",
             ["id"] = "one",
         });
-        var changed = CsvArtifact(new Dictionary<string, string>
+        var changed = CsvArtefact(new Dictionary<string, string>
         {
             ["id"] = "one",
             ["name"] = "Beta",
@@ -170,11 +170,11 @@ public sealed class DeterministicChunkingStrategyTests
     [Fact]
     public void NormalisationAndDigestAreStableGoldenEvidence()
     {
-        var artifact = Artifact(Page(0, "Cafe\u0301\r\n\r\nAlpha\tBeta\u0001Gamma", 1));
+        var artefact = Artefact(Page(0, "Cafe\u0301\r\n\r\nAlpha\tBeta\u0001Gamma", 1));
         var policy = new ChunkingPolicy(64, 8, 80);
 
-        var first = Assert.Single(Chunk(artifact, policy));
-        var replay = Assert.Single(Chunk(artifact, policy));
+        var first = Assert.Single(Chunk(artefact, policy));
+        var replay = Assert.Single(Chunk(artefact, policy));
 
         Assert.Equal("Café\n\nAlpha Beta Gamma", first.Text);
         Assert.Equal(first.Digest, replay.Digest);
@@ -205,14 +205,14 @@ public sealed class DeterministicChunkingStrategyTests
     }
 
     private static IReadOnlyList<DocumentChunk> Chunk(
-        ParsedDocumentArtifact artifact,
+        ParsedDocumentArtifact artefact,
         ChunkingPolicy policy) =>
-        new DeterministicChunkingStrategy().Chunk(artifact, Context, policy);
+        new DeterministicChunkingStrategy().Chunk(artefact, Context, policy);
 
-    private static ParsedDocumentArtifact Artifact(params ParsedDocumentUnit[] units) =>
+    private static ParsedDocumentArtifact Artefact(params ParsedDocumentUnit[] units) =>
         new(DocumentFormat.Pdf, "synthetic-pdf/1", units);
 
-    private static ParsedDocumentArtifact CsvArtifact(
+    private static ParsedDocumentArtifact CsvArtefact(
         IReadOnlyDictionary<string, string> columns) =>
         new(
             DocumentFormat.Csv,

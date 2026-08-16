@@ -142,7 +142,7 @@ public static class IndexGenerationCanonicalizer
         IEnumerable<LogicalIndexArtifact> artifacts)
     {
         ArgumentNullException.ThrowIfNull(artifacts);
-        var ordered = artifacts.OrderBy(artifact => artifact.ChunkOrdinal).ToArray();
+        var ordered = artifacts.OrderBy(artefact => artefact.ChunkOrdinal).ToArray();
 
         if (ordered.Length == 0)
         {
@@ -151,7 +151,7 @@ public static class IndexGenerationCanonicalizer
                 nameof(artifacts));
         }
 
-        if (ordered.Select(artifact => artifact.ChunkOrdinal).Distinct().Count() !=
+        if (ordered.Select(artefact => artefact.ChunkOrdinal).Distinct().Count() !=
             ordered.Length)
         {
             throw new ArgumentException(
@@ -163,14 +163,14 @@ public static class IndexGenerationCanonicalizer
         writer.Append(LogicalArtifactDomain);
         writer.Append(ordered.Length.ToString(CultureInfo.InvariantCulture));
 
-        foreach (var artifact in ordered)
+        foreach (var artefact in ordered)
         {
-            writer.Append(artifact.ChunkOrdinal.ToString(CultureInfo.InvariantCulture));
-            writer.Append(artifact.DocumentId.Value);
-            writer.Append(artifact.DocumentVersion.ToCanonicalString());
-            writer.Append(artifact.ChunkDigest.Value);
-            writer.Append(artifact.ChunkText);
-            writer.Append(EncodeVector(artifact.Vector.Span));
+            writer.Append(artefact.ChunkOrdinal.ToString(CultureInfo.InvariantCulture));
+            writer.Append(artefact.DocumentId.Value);
+            writer.Append(artefact.DocumentVersion.ToCanonicalString());
+            writer.Append(artefact.ChunkDigest.Value);
+            writer.Append(artefact.ChunkText);
+            writer.Append(EncodeVector(artefact.Vector.Span));
         }
 
         return new LogicalArtifactDigest(writer.Finish());

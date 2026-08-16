@@ -8,17 +8,17 @@ namespace RagChallenge.UnitTests;
 public sealed class DocumentParsingContractTests
 {
     [Fact]
-    public void ParsedArtifactsRequireOrderedOrdinalsAndIncreasingLocations()
+    public void ParsedArtefactsRequireOrderedOrdinalsAndIncreasingLocations()
     {
-        Assert.Throws<ArgumentException>(() => PdfArtifact(
+        Assert.Throws<ArgumentException>(() => PdfArtefact(
             new ParsedDocumentUnit(1, "page one", pageNumber: 1)));
-        Assert.Throws<ArgumentException>(() => PdfArtifact(
+        Assert.Throws<ArgumentException>(() => PdfArtefact(
             new ParsedDocumentUnit(0, "first", pageNumber: 1),
             new ParsedDocumentUnit(1, "duplicate", pageNumber: 1)));
-        Assert.Throws<ArgumentException>(() => PdfArtifact(
+        Assert.Throws<ArgumentException>(() => PdfArtefact(
             new ParsedDocumentUnit(0, "third", pageNumber: 3),
             new ParsedDocumentUnit(1, "second", pageNumber: 2)));
-        Assert.Throws<ArgumentException>(() => CsvArtifact(
+        Assert.Throws<ArgumentException>(() => CsvArtefact(
             new ParsedDocumentUnit(
                 0,
                 "second",
@@ -30,7 +30,7 @@ public sealed class DocumentParsingContractTests
                 recordNumber: 1,
                 columns: Columns("first"))));
 
-        var withPhysicalPageGap = PdfArtifact(
+        var withPhysicalPageGap = PdfArtefact(
             new ParsedDocumentUnit(0, "first", pageNumber: 1),
             new ParsedDocumentUnit(1, "third", pageNumber: 3));
 
@@ -38,9 +38,9 @@ public sealed class DocumentParsingContractTests
     }
 
     [Fact]
-    public void ParsedArtifactsRejectFormatIncompatibleMetadata()
+    public void ParsedArtefactsRejectFormatIncompatibleMetadata()
     {
-        Assert.Throws<ArgumentException>(() => PdfArtifact(
+        Assert.Throws<ArgumentException>(() => PdfArtefact(
             new ParsedDocumentUnit(
                 0,
                 "record",
@@ -93,10 +93,10 @@ public sealed class DocumentParsingContractTests
         Assert.Equal(expectedMessage, exception.Message);
     }
 
-    private static ParsedDocumentArtifact PdfArtifact(params ParsedDocumentUnit[] units) =>
+    private static ParsedDocumentArtifact PdfArtefact(params ParsedDocumentUnit[] units) =>
         new(DocumentFormat.Pdf, "synthetic-pdf/1", units);
 
-    private static ParsedDocumentArtifact CsvArtifact(params ParsedDocumentUnit[] units) =>
+    private static ParsedDocumentArtifact CsvArtefact(params ParsedDocumentUnit[] units) =>
         new(DocumentFormat.Csv, "synthetic-csv/1", units);
 
     private static Dictionary<string, string> Columns(string value) =>

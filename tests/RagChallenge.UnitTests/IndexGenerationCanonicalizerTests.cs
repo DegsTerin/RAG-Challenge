@@ -7,11 +7,11 @@ namespace RagChallenge.UnitTests;
 public sealed class IndexGenerationCanonicalizerTests
 {
     [Fact]
-    public void ArtifactOrderDoesNotChangeFinalGenerationIdentity()
+    public void ArtefactOrderDoesNotChangeFinalGenerationIdentity()
     {
         var specification = CreateSpecification();
-        var first = CreateArtifact(0, "first", new float[] { 1, 0, 0 });
-        var second = CreateArtifact(1, "second", new float[] { 0, 1, 0 });
+        var first = CreateArtefact(0, "first", new float[] { 1, 0, 0 });
+        var second = CreateArtefact(1, "second", new float[] { 0, 1, 0 });
 
         var ordered = IndexGenerationCanonicalizer.CreateFinalisedManifest(
             specification,
@@ -32,13 +32,13 @@ public sealed class IndexGenerationCanonicalizerTests
         var specification = CreateSpecification();
         var baseline = IndexGenerationCanonicalizer.CreateFinalisedManifest(
             specification,
-            [CreateArtifact(0, "baseline", new float[] { 1, 0, 0 })]);
+            [CreateArtefact(0, "baseline", new float[] { 1, 0, 0 })]);
         var changedText = IndexGenerationCanonicalizer.CreateFinalisedManifest(
             specification,
-            [CreateArtifact(0, "changed", new float[] { 1, 0, 0 })]);
+            [CreateArtefact(0, "changed", new float[] { 1, 0, 0 })]);
         var changedVector = IndexGenerationCanonicalizer.CreateFinalisedManifest(
             specification,
-            [CreateArtifact(0, "baseline", new float[] { 0, 1, 0 })]);
+            [CreateArtefact(0, "baseline", new float[] { 0, 1, 0 })]);
 
         Assert.NotEqual(baseline.LogicalArtifactDigest, changedText.LogicalArtifactDigest);
         Assert.NotEqual(baseline.IndexGenerationId, changedText.IndexGenerationId);
@@ -49,14 +49,14 @@ public sealed class IndexGenerationCanonicalizerTests
     [Fact]
     public void DuplicateOrdinalsAndNonFiniteVectorsFailClosed()
     {
-        var first = CreateArtifact(0, "first", new float[] { 1, 0, 0 });
-        var duplicate = CreateArtifact(0, "duplicate", new float[] { 0, 1, 0 });
+        var first = CreateArtefact(0, "first", new float[] { 1, 0, 0 });
+        var duplicate = CreateArtefact(0, "duplicate", new float[] { 0, 1, 0 });
 
         Assert.Throws<ArgumentException>(() =>
             IndexGenerationCanonicalizer.ComputeLogicalArtifactDigest(
                 [first, duplicate]));
         Assert.Throws<ArgumentException>(() =>
-            CreateArtifact(1, "invalid", new float[] { float.NaN, 0, 0 }));
+            CreateArtefact(1, "invalid", new float[] { float.NaN, 0, 0 }));
     }
 
     private static IndexGenerationSpecification CreateSpecification() =>
@@ -69,7 +69,7 @@ public sealed class IndexGenerationCanonicalizerTests
             new SourceBindingSetDigest(new string('b', 64)),
             new IndexCompatibilityKey(new string('c', 64)));
 
-    private static LogicalIndexArtifact CreateArtifact(
+    private static LogicalIndexArtifact CreateArtefact(
         long ordinal,
         string text,
         float[] vector) =>

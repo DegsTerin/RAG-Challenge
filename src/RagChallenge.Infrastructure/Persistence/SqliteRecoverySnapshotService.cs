@@ -678,7 +678,7 @@ public sealed class SqliteRecoverySnapshotService(SqliteStoreOptions options)
                 ORDER BY chunk_ordinal;
                 """;
             chunkCommand.Parameters.AddWithValue("$candidateBuildId", candidateBuildId);
-            var artifacts = new List<LogicalIndexArtifact>();
+            var artefacts = new List<LogicalIndexArtifact>();
             await using (var chunkReader = await chunkCommand
                 .ExecuteReaderAsync(cancellationToken)
                 .ConfigureAwait(false))
@@ -686,7 +686,7 @@ public sealed class SqliteRecoverySnapshotService(SqliteStoreOptions options)
                 while (await chunkReader.ReadAsync(cancellationToken).ConfigureAwait(false))
                 {
                     var decoded = StoredVectorChunkCodec.Decode(chunkReader.GetString(4));
-                    artifacts.Add(new LogicalIndexArtifact(
+                    artefacts.Add(new LogicalIndexArtifact(
                         chunkReader.GetInt64(0),
                         new DocumentId(chunkReader.GetString(1)),
                         new DocumentVersionNumber(chunkReader.GetInt64(2)),
@@ -708,7 +708,7 @@ public sealed class SqliteRecoverySnapshotService(SqliteStoreOptions options)
             if (!IndexGenerationCanonicalizer.Matches(
                     evidence.Manifest,
                     specification,
-                    artifacts))
+                    artefacts))
             {
                 failures.Add(
                     $"active generation {evidence.Manifest.IndexGenerationId.Value} failed canonical readback");
