@@ -16,8 +16,11 @@
   exception, filename, identifier and new-commit-message enforcement; the
   language baseline is `COMPLETE` with zero accepted debt; focused checks and
   corrective reviews passed after the attributable localisation and
-  backticked-literal bypass corrections, while integrated reviews and the
-  final gates remain pending; product
+  backticked-literal bypass corrections; integrated result and security
+  reviews and the 420-file documentary gate passed; the single canonical
+  offline execution failed in the first language-policy stage because the
+  coordinator’s isolated temporary root produced overlong synthetic Git paths,
+  and a corrected run requires new explicit authority; product
   homologation, Human Gate and lifecycle change remain unexecuted
 - Scope: 13 active files under `prompts/`
 
@@ -60,8 +63,11 @@ Every change updates this file and, when necessary,
   no wildcard, automatic baseline writer, ordinary authority switch or
   reusable bypass is introduced.
 - Preserves provider, credential, external-action, ADR, Human Gate and
-  lifecycle boundaries. Integrated final reviews, the documentary gate and
-  exactly one canonical offline gate remain pending.
+  lifecycle boundaries. Integrated final reviews and the documentary gate
+  passed. Exactly one canonical offline execution ran on `2c2b80c`, failed
+  before restore or build because the task-owned temporary root produced
+  overlong synthetic Git paths, and was not retried. Disposition is
+  `TEST_BASELINE_BROKEN`; a corrected run requires new explicit authority.
 - Classification: `MINOR`, because the corpus gains complete tracked-blob,
   repository-identifier and commit-message enforcement without changing
   lifecycle or product contracts.

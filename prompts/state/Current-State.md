@@ -137,9 +137,18 @@ reports.
   implementations now exempt only a complete value from the validated closed
   canonical set, with negative tests for a private identifier and American
   prose. The originating read-only reviewer approved the second correction
-  with zero residual P0–P3 findings. Focused checks passed; the integrated
-  final reviews, documentary gate and the single canonical offline gate remain
-  pending. The complete factual record is
+  with zero residual P0–P3 findings. Focused checks and both integrated final
+  reviews passed with zero P0–P3 findings; the documentary gate passed for 420
+  files. The single canonical offline gate ran on clean `2c2b80c`, exited `1`
+  after 6,085 ms and was not retried. The first language-policy stage passed
+  84 of 105 tests; 21 synthetic Git tests failed at `git add .` before any
+  restore, build, coverage or later stage. A bounded diagnostic reproduced the
+  failure only when the task-owned temporary path produced 264-character
+  fixture paths; the same closed Git add passed in a shorter task-owned path.
+  Disposition is `TEST_BASELINE_BROKEN`: the result is attributable to the
+  coordinator’s execution envelope, not evidence of a lane regression, but no
+  canonical PASS exists and any corrected execution requires new explicit
+  authority. The complete factual record is
   [`En-GB-Repository-Completion-Report.md`](../../docs/En-GB-Repository-Completion-Report.md).
 - Position: `STATE-00 DISCOVERY` closed; `GATE-B01
   ARCHITECTURE_BOOTSTRAP_DECISION` approved and closed; `STATE-01

@@ -8744,3 +8744,39 @@ contém somente fatos cronológicos.
 - Append-only integrity: this entry preserves the complete previous file of
   555,592 bytes at SHA-256
   `6174ea06a9b3147c36daaa882966c98f5646863befc3552e86c0c8187501fb30`.
+
+## 2026-08-16 — Repository-completion canonical gate failed closed
+
+- Authority and baseline: the only canonical execution authorised by
+  `AUTH-ENGB-REPOSITORY-COMPLETION-IMPL-001` ran on the exact clean branch
+  `codex/en-gb-repository-completion@2c2b80c106be6a9b69884e2267c3d7a84d7c11f9`.
+  Both integrated final reviews had passed with zero P0–P3 findings, and the
+  documentary gate had passed for 420 non-ignored files.
+- Runtime and isolation: preflight found zero process or listener proved to
+  belong to RAG-Challenge. The command used a closed child environment,
+  disabled MSBuild node reuse and bound offline NuGet, npm and temporary paths
+  to the coordinator worktree and task ID. No product credential identifier
+  or value was inherited or used.
+- Single command: `pwsh -NoProfile -File eng/ci.ps1 -Offline` ran exactly once,
+  exited `1` after 6,085 ms and was not retried.
+- Observed failure: the first language-policy stage passed 84 of 105 tests and
+  failed 21. Every failure reported the same sanitised synthetic Git outcome
+  at `git add .`. The script stopped before restore, formatting, build, .NET
+  tests, coverage, Dashboard, orchestrator and final repository-audit stages.
+- Attributed cause: the isolated temporary base was 153 characters. A
+  generated repository reached 220 characters and its longest fixture and Git
+  lock paths reached 264. In a bounded diagnostic under the same closed Git
+  environment, both long and short repositories initialised; the long
+  `git add .` returned `128` with a path-length classification, while the
+  identical add passed in a shorter task-owned location.
+- Disposition: `TEST_BASELINE_BROKEN`. The failure is attributable to the
+  coordinator’s temporary-path envelope rather than to an integrated lane,
+  but the canonical gate is failed and no downstream PASS may be inferred.
+  The authorised single execution is consumed. A corrected canonical run
+  requires a new exact baseline and new explicit owner authority.
+- Negative scope: no provider, product credential identifier or value,
+  external network, billing, installation, OCI, GitHub, push, pull request,
+  merge, release, deploy, ADR, Human Gate or lifecycle action occurred.
+- Append-only integrity: this entry preserves the complete previous file of
+  558,076 bytes at SHA-256
+  `0436dfda55e5222320dc89e62649f422b32949f0f3b71f53598e4ed39d644093`.

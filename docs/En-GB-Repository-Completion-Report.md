@@ -164,24 +164,48 @@ records the authority, implementation and still-pending final gates; and the
 instruction-system ledger records the new capability newest-first. Historical
 entries and protected prefixes remain byte-for-byte.
 
-## 8. Gate status after corrective reconciliation
+## 8. Gate results
 
 ```text
 Focused lane checks: PASS
 Independent corrective reviews: PASS after both attributable P1 corrections
-Integrated final reviews: PENDING
-Documentary gate: PENDING
-Canonical ./eng/ci.ps1 -Offline: NOT_RUN; exactly one sequential execution remains reserved for the reviewed integrated baseline
+Integrated final result review: PASS, zero P0–P3 findings
+Integrated final security review: PASS, zero P0–P3 findings
+Documentary gate: PASS for 420 non-ignored files
+Canonical ./eng/ci.ps1 -Offline: FAIL; exactly one execution consumed on 2c2b80c106be6a9b69884e2267c3d7a84d7c11f9
 ```
 
-The canonical result must be recorded only after the single command has
-actually completed. A later factual documentation commit may record that
-result, but it cannot retroactively become part of the baseline validated by
-the earlier invocation.
+Runtime preflight found no process or listener proved to belong to
+RAG-Challenge. The canonical command ran once in a closed child environment,
+with MSBuild node reuse disabled and task-owned offline package caches and
+temporaries. It exited `1` after 6,085 ms during the first language-policy
+stage. Of 105 tests, 84 passed and 21 failed with the same sanitised
+`Synthetic Git command failed closed` outcome at synthetic `git add .` calls.
+Restore, formatting, build, .NET tests, Dashboard checks, orchestrator checks,
+coverage aggregation and the repository-audit stage were therefore not
+reached. The command was not retried.
+
+A bounded local diagnostic attributed the observed stage failure to the
+coordinator’s temporary-path selection. The task-specific temporary base was
+153 characters; the generated repository root reached 220 characters and its
+longest fixture and Git lock paths reached 264. Under the same closed Git
+environment, `git init` succeeded in both locations, `git add .` returned
+`128` with a path-length error in the long location and the identical add
+succeeded in a shorter task-owned location. This is an execution-envelope
+failure rather than evidence of a candidate regression, but the mandatory
+gate remains failed.
+
+Disposition is `TEST_BASELINE_BROKEN`. The single execution authorised by
+`AUTH-ENGB-REPOSITORY-COMPLETION-IMPL-001` has been consumed. A corrected
+canonical run requires new explicit authority, a new exact clean baseline and
+a shorter isolated task-specific temporary root. No result from the passing
+focused suites substitutes for that missing canonical PASS.
 
 ## 9. Limitations
 
 - Offline validation cannot substitute for an online dependency audit.
+- The canonical offline gate did not pass; all stages after the first
+  language-policy stage remain unexecuted on the integrated baseline.
 - Two orchestrator file-symlink tests remain conditional on a Windows host
   permission not available in the focused lane checks; all other relevant
   boundary tests passed.
@@ -196,6 +220,7 @@ the earlier invocation.
 ```text
 Branch: codex/en-gb-repository-completion
 Integrated technical HEAD: 08a2c960bbf3e46e9b74276da73f8cb5a56157cc
-Documentary commit: reported in the owner hand-off because a commit cannot truthfully embed its own object identity
+Failed canonical baseline: 2c2b80c106be6a9b69884e2267c3d7a84d7c11f9
+Final factual documentation commit: reported in the owner hand-off because a commit cannot truthfully embed its own object identity
 Push, pull request, merge, release and deployment: NOT_PERFORMED
 ```
