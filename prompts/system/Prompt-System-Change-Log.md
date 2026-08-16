@@ -15,8 +15,9 @@
   completion is integrated on its isolated candidate, including exact blob,
   exception, filename, identifier and new-commit-message enforcement; the
   language baseline is `COMPLETE` with zero accepted debt; focused checks and
-  lane reviews passed after the attributable localisation-bypass correction,
-  while integrated reviews and the final gates remain pending; product
+  corrective reviews passed after the attributable localisation and
+  backticked-literal bypass corrections, while integrated reviews and the
+  final gates remain pending; product
   homologation, Human Gate and lifecycle change remain unexecuted
 - Scope: 13 active files under `prompts/`
 
@@ -51,6 +52,10 @@ Every change updates this file and, when necessary,
 - Records the independent P1 finding against a generic `pt-BR` dictionary
   bypass, its removal, the new negative regression test and exact
   classification of the two localisation fixtures exposed by the correction.
+- Records the independent P1 finding against the generic backticked-content
+  bypass in commit messages. Both implementations now exempt only complete
+  values derived from validated canonical allowances and test private,
+  American-prose and exact-canonical outcomes.
 - Keeps the protected enforcement update exceptional and manually reviewed;
   no wildcard, automatic baseline writer, ordinary authority switch or
   reusable bypass is introduced.

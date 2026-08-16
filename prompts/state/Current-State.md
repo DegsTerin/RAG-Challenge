@@ -122,7 +122,7 @@ reports.
   `main@8882ab8a58e1db58fb0148b967894f1b8388adc2`, reviewed and integrated
   the private-identifier candidate as `172575da`, then created, reviewed and
   integrated the enforcement candidate as `b9031d5` followed by corrective
-  commit `fe7f9f0`. The internal lane changed only private, editable,
+  commits `fe7f9f0` and `08a2c96`. The internal lane changed only private, editable,
   non-serialised, non-persisted and non-contractual names. The binding
   owner-listed canonical family, public script names, OpenAPI v1/v2, migrations,
   evaluation data, localisation, sources, citations, accepted ADRs and product
@@ -132,8 +132,13 @@ reports.
   independent security review found a generic `pt-BR` dictionary bypass; the
   candidate was held, the bypass was removed, two exposed localisation
   fixtures received exact region classifications and the closing review
-  passed with zero P0–P3 findings. Focused checks passed; the integrated final
-  reviews, documentary gate and the single canonical offline gate remain
+  passed. A later integrated result review found that arbitrary backticked
+  content bypassed commit-message inspection. Gates remained stopped; both
+  implementations now exempt only a complete value from the validated closed
+  canonical set, with negative tests for a private identifier and American
+  prose. The originating read-only reviewer approved the second correction
+  with zero residual P0–P3 findings. Focused checks passed; the integrated
+  final reviews, documentary gate and the single canonical offline gate remain
   pending. The complete factual record is
   [`En-GB-Repository-Completion-Report.md`](../../docs/En-GB-Repository-Completion-Report.md).
 - Position: `STATE-00 DISCOVERY` closed; `GATE-B01

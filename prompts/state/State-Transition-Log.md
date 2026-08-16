@@ -8705,3 +8705,42 @@ contém somente fatos cronológicos.
 - Append-only integrity: this entry preserves the complete previous file of
   552,927 bytes at SHA-256
   `4bc73464a8c1e0002fa01e2b5952f5b0030fcfdd943e1efbe86ef318088da086`.
+
+## 2026-08-16 — Backticked commit-literal enforcement corrected
+
+- Authority: the correction remains within
+  `AUTH-ENGB-REPOSITORY-COMPLETION-IMPL-001` and its exceptional,
+  manually reviewed enforcement boundary. It creates no reusable control
+  update authority.
+- Finding: the first integrated result review found one P1 after documentary
+  reconciliation. The repository checker and orchestrator removed every
+  backticked span before checking legacy-spelled identifiers, so arbitrary
+  private identifiers or American prose could evade commit-message
+  inspection. Gates remained stopped and the canonical CI remained `NOT_RUN`.
+- Correction: source commit `ac4f7e5`, integrated as `08a2c96`, derives the
+  technical-literal exception only from complete, exact values in the
+  validated canonical-identifier allowances. Unclassified backticked content
+  returns to lexical and identifier inspection. The trusted orchestrator
+  parser validates the same allowance envelope, paths, classes, kinds, values,
+  counts, context hashes and uniqueness before deriving its set.
+- Verification: negative tests in both implementations reject a private
+  identifier and American prose inside backticks, while the complete exact
+  canonical value remains accepted. The language-policy suite passed 105/105;
+  orchestrator lint and typecheck passed; its suite passed 105 of 107 tests
+  with zero failures and the two existing host symlink-permission skips. The
+  repository inspection retained zero findings.
+- Independent review: the reviewer who reported the P1 reproduced the two
+  negative and one positive outcomes, validated the policy, baseline and two
+  affected region digests, and approved the correction with zero residual
+  P0–P3 findings.
+- Preservation: OpenAPI v1/v2, migrations, evaluation data, localisation,
+  sources, citations, accepted ADRs, product requirements, owner-listed
+  canonical identities and public scripts remain unchanged.
+- Current gate status: integrated final reviews, documentary gate and exactly
+  one sequential `./eng/ci.ps1 -Offline` execution remain pending.
+- Negative scope: no provider, product credential identifier or value,
+  network, billing, installation, OCI, GitHub, push, pull request, merge,
+  release, deploy, ADR, Human Gate or lifecycle action occurred.
+- Append-only integrity: this entry preserves the complete previous file of
+  555,592 bytes at SHA-256
+  `6174ea06a9b3147c36daaa882966c98f5646863befc3552e86c0c8187501fb30`.

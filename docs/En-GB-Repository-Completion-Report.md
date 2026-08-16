@@ -88,15 +88,17 @@ authorise a later candidate to bypass that rejection.
 | Evidence | Result |
 |---|---|
 | Source implementation candidate | `1ae50b3b4955eb3270a17fcf5a73278fa4008241` |
-| Source corrective candidate | `db57d68f2154f979567bf8b5ec821573cd93610b` |
+| Source localisation corrective candidate | `db57d68f2154f979567bf8b5ec821573cd93610b` |
+| Source commit-literal corrective candidate | `ac4f7e5b413519d63c7562fefb7e04b9af55c19e` |
 | Integrated implementation commit | `b9031d5eb30ce81736a5bc0f0ad4cc66e9ff77ec` |
-| Integrated corrective commit | `fe7f9f02770d38ca76f109709f1b2537d7b9ac63` |
+| Integrated localisation corrective commit | `fe7f9f02770d38ca76f109709f1b2537d7b9ac63` |
+| Integrated commit-literal corrective commit | `08a2c960bbf3e46e9b74276da73f8cb5a56157cc` |
 | Language-policy tests | 105 passed, 0 failed |
 | Repository inspection | 419 tracked blobs, zero findings on the reviewed technical candidate |
 | Orchestrator package | lint and typecheck passed; 105 of 107 tests passed, 0 failed and 2 host symlink-permission skips |
-| Independent closing review | PASS, zero P0–P3 findings |
+| Independent corrective reviews | PASS after each attributable P1; zero residual P0–P3 findings |
 
-## 5. Independent-review correction
+## 5. Independent-review corrections
 
 The first enforcement security review found one blocking P1. The code-region
 extractor skipped any line containing a `"pt-BR"` dictionary key, which could
@@ -115,6 +117,24 @@ The same read-only reviewer then confirmed the reproduction, the four region
 digests, the immutable 419-blob inspection, both candidate messages and the
 absence of any residual generic `pt-BR` skip. The closing result was PASS with
 zero P0–P3 findings.
+
+The first integrated result review then found a separate blocking P1 in commit
+message handling. Both the repository checker and the orchestrator removed
+every inline code span before checking legacy-spelled identifier stems. This
+allowed an arbitrary private identifier or American prose to evade the rule by
+using backticks, while the tests proved only the intended positive canonical
+case. The gates remained stopped.
+
+The second corrective commit derives one closed set from the exact values in
+the validated canonical-identifier allowances. Only a complete, case-exact
+member of that set receives the inline technical-literal exception. Every
+other backticked value is returned to lexical and identifier inspection. The
+orchestrator now validates the allowance records’ envelope, path, class, kind,
+value, count, context hashes and uniqueness before deriving the same set.
+Negative tests cover a private identifier and American prose between
+backticks; the exact canonical case remains positive. The originating
+read-only reviewer reproduced all three outcomes and approved `ac4f7e5` with
+zero residual P0–P3 findings before its integration as `08a2c96`.
 
 ## 6. Protected identity evidence
 
@@ -144,11 +164,11 @@ records the authority, implementation and still-pending final gates; and the
 instruction-system ledger records the new capability newest-first. Historical
 entries and protected prefixes remain byte-for-byte.
 
-## 8. Gate status at documentary commit
+## 8. Gate status after corrective reconciliation
 
 ```text
 Focused lane checks: PASS
-Independent lane reviews: PASS after the attributable P1 correction
+Independent corrective reviews: PASS after both attributable P1 corrections
 Integrated final reviews: PENDING
 Documentary gate: PENDING
 Canonical ./eng/ci.ps1 -Offline: NOT_RUN; exactly one sequential execution remains reserved for the reviewed integrated baseline
@@ -175,7 +195,7 @@ the earlier invocation.
 
 ```text
 Branch: codex/en-gb-repository-completion
-Integrated technical HEAD: fe7f9f02770d38ca76f109709f1b2537d7b9ac63
+Integrated technical HEAD: 08a2c960bbf3e46e9b74276da73f8cb5a56157cc
 Documentary commit: reported in the owner hand-off because a commit cannot truthfully embed its own object identity
 Push, pull request, merge, release and deployment: NOT_PERFORMED
 ```
