@@ -183,7 +183,7 @@ Candidate concepts:
   `CorpusActivationRecord`;
 - `ProviderDescriptor`;
 - `SupportedQueryLanguage`, restricted to `pt-BR` and `en-GB`, and separate
-  canonical-BCP-47 `DocumentContentLanguage`;
+  canonical BCP 47 `DocumentContentLanguage`;
 - `QueryRequest`, `RetrievedEvidence` and `AnswerOutcome`.
 
 Domain knows no file paths, PDF, SQL, HTTP, SDKs or models.

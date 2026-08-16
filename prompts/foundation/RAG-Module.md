@@ -103,7 +103,7 @@ requires explicit atomic database deactivation.
 - `Pdf` or `Csv` format;
 - declared version when available;
 - source and ingestion dates;
-- `contentLanguage` as canonical-BCP-47 `DocumentContentLanguage`;
+- `contentLanguage` as canonical BCP 47 `DocumentContentLanguage`;
 - exact `sourceDeclaredLanguage` when supplied by publisher or embedded
   metadata, without inferring region or script;
 - `sourceAdapterId`;
