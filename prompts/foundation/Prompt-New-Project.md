@@ -1,289 +1,289 @@
-# Visão do Projeto RAG-Challenge
+# RAG-Challenge Project Vision
 
-## Contexto
+## Context
 
-Os materiais do Challenge da Alura/ONE descrevem uma empresa que possui
-documentos difíceis de consultar e precisa de um agente capaz de responder
-perguntas em linguagem natural. A entrega mínima exige código organizado em
-repositório público, um agente funcional fundamentado em documento, README e
-evidência de deploy usando ao menos um serviço OCI.
+The Alura/ONE Challenge materials describe a company whose documents are
+difficult to query and that needs an agent able to answer natural-language
+questions. The minimum delivery requires organised code in a public
+repository, a functional document-grounded agent, a README and deployment
+evidence using at least one OCI service.
 
-O produto será especializado em documentação sobre bancos de dados. Os
-exemplos originais BimBam Buy, Santo Pegasus e Mercado Central 24h permanecem
-como referência local e não constituem o acervo do produto.
+The product specialises in database documentation. The original BimBam Buy,
+Santo Pegasus and Mercado Central 24h examples remain local references and do
+not constitute the product corpus.
 
-## Problema
+## Problem
 
-Profissionais precisam localizar rapidamente diferenças, características e
-orientações presentes em documentação extensa de bancos de dados. Buscas
-manuais consomem tempo, e respostas de modelos sem evidência podem inventar
-informações.
+Professionals need to find differences, characteristics and guidance in
+extensive database documentation quickly. Manual searches take time, and
+model answers without evidence can invent information.
 
-## Proposta de valor
+## Value proposition
 
-Fornecer uma experiência simples de perguntas e respostas que:
+Provide a simple question-and-answer experience that:
 
-- pesquisa um acervo controlado;
-- recupera trechos relevantes;
-- gera uma resposta limitada às evidências;
-- aceita perguntas em `pt-BR` e `en-GB` e responde no idioma declarado da
-  pergunta;
-- apresenta citações rastreáveis;
-- preserva nas citações o idioma original do conteúdo referenciado;
-- declara quando a evidência é insuficiente.
+- searches a controlled corpus;
+- retrieves relevant passages;
+- generates an evidence-bounded answer;
+- accepts questions in `pt-BR` and `en-GB` and answers in the declared question
+  language;
+- presents traceable citations;
+- preserves the original language of referenced source content in citations;
+  and
+- declares when evidence is insufficient.
 
-## Classificação
+## Classification
 
-| Dimensão | Classificação inicial |
+| Dimension | Initial classification |
 |---|---|
-| Fase | Discovery de um MVP |
-| Porte | Pequeno, com arquitetura de produto evolutivo |
-| Criticidade | Moderada |
-| Exposição | Local no desenvolvimento; pública no deploy do RAG-Challenge |
-| Dados | Acervo publicável e perguntas de usuários não confiáveis |
-| Disponibilidade | Best effort no MVP |
-| Arquitetura candidata | Monólito modular com API e interface web |
-| Modelo de entrega | Aplicação independente implantável em OCI |
+| Phase | Discovery for an MVP |
+| Size | Small, with evolvable product architecture |
+| Criticality | Moderate |
+| Exposure | Local during development; public in the RAG-Challenge deployment |
+| Data | Publishable corpus and untrusted user questions |
+| Availability | Best effort in the MVP |
+| Candidate architecture | Modular monolith with API and web interface |
+| Delivery model | Independent application deployable on OCI |
 
-## Usuários e stakeholders
+## Users and stakeholders
 
-- participante que desenvolve e mantém o RAG-Challenge;
-- avaliador que instala, consulta e verifica a entrega;
-- pessoa interessada em documentação de bancos de dados;
-- futuro mantenedor do DB-Notifier, somente quando uma integração separada for
-  autorizada.
+- the participant who develops and maintains RAG-Challenge;
+- the evaluator who installs, queries and verifies the delivery;
+- a person interested in database documentation; and
+- a future DB-Notifier maintainer, only when separate integration is
+  authorised.
 
-O proprietário do projeto decide prioridades, aceita Human Gates, escolhe a
-licença e autoriza ações externas.
+The project owner sets priorities, accepts Human Gates, selects the licence and
+authorises external actions.
 
-## Objetivos
+## Objectives
 
-- Entregar um MVP local e online comprovadamente funcional.
-- Produzir respostas grounded, com fontes e recusa segura.
-- Suportar perguntas e respostas em `pt-BR` e `en-GB`, com a resposta no
-  idioma declarado da pergunta e sem traduzir o conteúdo citado.
-- Manter baixo acoplamento entre domínio e provedores de IA.
-- Permitir trocar embeddings, banco vetorial e modelo sem reescrever os casos
-  de uso.
-- Permitir administrar bancos e versões documentais, construir candidatos e
-  ativar um conjunto coerente sem interromper a geração vigente.
-- Entregar consulta unificada a documentos PDF/CSV locais autorizados e fontes
-  oficiais controladas, sem navegação livre.
-- Preparar, sem implementar agora, múltiplos acervos e atualização incremental
-  agendada.
-- Preservar um caminho de integração futura ao DB-Notifier sem dependência
-  direta.
+- Deliver a demonstrably functional local and online MVP.
+- Produce grounded answers with sources and safe refusal.
+- Support questions and answers in `pt-BR` and `en-GB`, answering in the
+  declared question language without translating cited content.
+- Keep the domain loosely coupled from AI providers.
+- Allow embeddings, vector database and model to be replaced without rewriting
+  use cases.
+- Allow databases and document versions to be administered, candidates to be
+  built and a coherent set to be activated without interrupting the current
+  generation.
+- Deliver unified query over authorised local PDF/CSV documents and controlled
+  official sources without unrestricted browsing.
+- Prepare, without implementing now, multiple corpora and scheduled
+  incremental updates.
+- Preserve a future DB-Notifier integration path without a direct dependency.
 
-## Escopo do MVP
+## MVP scope
 
-- Um corpus lógico configurado com catálogo administrativo de bancos e
-  documentos.
-- Catálogo inicial canônico de 51 bancos de dados e 54 associações a 9
-  categorias, sem hard-code no produto.
-- Qualquer quantidade de documentos PDF/CSV locais autorizados ou oficiais por
-  banco, desde que cada banco ativo possua ao menos um documento ativo.
-- Um adapter de parser por formato inicial: PDF e CSV.
-- Sincronização manual server-side de cada fonte oficial aprovada para snapshot
-  imutável, com proveniência, frescor e rollback.
-- Recuperação unificada de todos os documentos ativos. Origem local/oficial e
-  classe de confiança permanecem visíveis em metadados e citações.
-- Uma estratégia versionada de normalização e chunking compartilhada.
-- Um provider de embeddings.
-- Um banco ou índice vetorial.
-- Um modelo de linguagem.
-- Consulta por API e uma interface web mínima.
-- Contrato OpenAPI v1 versionado pertencente ao RAG-Challenge.
-- Resposta com citações e resultado explícito de evidência insuficiente.
-- Idioma da pergunta explicitamente declarado como `pt-BR` ou `en-GB`, com a
-  resposta no mesmo idioma e citações preservadas no idioma da evidência.
-- Interface web disponível em `pt-BR` e `en-GB`, com seleção explícita e
-  independente do idioma da pergunta.
-- Temas visuais `Light` e `Dark`, com seleção explícita e independente dos
-  idiomas da interface, pergunta, resposta e evidência.
-- Catálogo local de metadados, versão de documento e geração de índice.
-- Armazenamento durável e content-addressed dos bytes necessários a rebuild e
+- One configured logical corpus with an administrative database and document
+  catalogue.
+- An initial canonical catalogue of 51 databases and 54 associations with 9
+  categories, without product hard-coding.
+- Any number of authorised local or official PDF/CSV documents per database,
+  provided every active database has at least one active document.
+- One parser adapter per initial format: PDF and CSV.
+- Manual server-side synchronisation of each approved official source into an
+  immutable snapshot, with provenance, freshness and rollback.
+- Unified retrieval across all active documents. Local/official origin and
+  trust class remain visible in metadata and citations.
+- One shared, versioned normalisation and chunking strategy.
+- One embedding provider.
+- One vector database or index.
+- One language model.
+- Query through an API and a minimal web interface.
+- A versioned RAG-Challenge-owned OpenAPI v1 contract.
+- Answers with citations and an explicit insufficient-evidence outcome.
+- Question language explicitly declared as `pt-BR` or `en-GB`, with the answer
+  in the same language and citations preserving the evidence language.
+- A web interface available in `pt-BR` and `en-GB`, with an explicit selection
+  independent of question language.
+- `Light` and `Dark` visual themes, explicitly selected and independent of the
+  interface, question, answer and evidence languages.
+- Local catalogue metadata, document versions and index generations.
+- Durable, content-addressed storage of the bytes required for rebuild and
   rollback.
-- Administração local de bancos e documentos, indexação candidata e ativação
-  explícita e segura.
-- Execução local reproduzível.
-- Deploy autorizado em OCI e evidência da execução.
-- Testes, observabilidade mínima e documentação pública.
+- Local administration of databases and documents, candidate indexing and
+  explicit safe activation.
+- Reproducible local execution.
+- Authorised OCI deployment and execution evidence.
+- Tests, minimal observability and public documentation.
 
-## Fora do escopo do MVP
+## Outside the MVP scope
 
-- Prometer cobertura de todos os bancos de dados existentes além do catálogo
-  administrativamente ativado.
-- Ingerir Word, Excel, PowerPoint, Markdown, JSON, HTML ou outros formatos além
-  de PDF e CSV sem adapter e decisão compatíveis.
-- Upload público e administração remota de acervos.
-- Mais de um acervo ativo.
-- Sincronização incremental agendada e distribuída.
-- URL arbitrária, crawling genérico ou consulta direta à internet durante cada
-  pergunta.
-- Autenticação corporativa, RBAC completo ou multi-tenancy.
-- Microserviços, filas distribuídas ou loader dinâmico de plug-ins.
-- Integração executável com o DB-Notifier.
-- Start, Stop, administração ou conexão com bancos de dados reais.
+- Promise coverage of every existing database beyond the administratively
+  activated catalogue.
+- Ingest Word, Excel, PowerPoint, Markdown, JSON, HTML or formats beyond PDF
+  and CSV without compatible adapters and decisions.
+- Public upload and remote corpus administration.
+- More than one active corpus.
+- Scheduled and distributed incremental synchronisation.
+- Arbitrary URLs, generic crawling or direct internet query during each
+  question.
+- Corporate authentication, complete RBAC or multi-tenancy.
+- Microservices, distributed queues or dynamic plug-in loading.
+- Executable DB-Notifier integration.
+- Start, stop, administration of or connection to real databases.
 
-## Acervo inicial
+## Initial corpus
 
-O acervo lógico é `Catálogo de Bancos de Dados — MVP`. Sua revisão inicial
-possui 51 entidades únicas e 54 associações em 9 categorias. Categorias são
-muitos-para-muitos; Redis, SAP HANA e SingleStore são entidades únicas em duas
-categorias cada.
+The logical corpus is `Catálogo de Bancos de Dados — MVP`. Its initial
+revision contains 51 unique entities and 54 associations across 9 categories.
+Categories are many-to-many; Redis, SAP HANA and SingleStore are unique
+entities that each belong to two categories.
 
-| Categoria | Bancos canônicos |
+| Category | Canonical databases |
 |---|---|
-| Relacionais (SQL) | PostgreSQL; MySQL; MariaDB; Microsoft SQL Server; Oracle Database; SQLite; IBM Db2; SAP HANA; Firebird; Teradata; CockroachDB; YugabyteDB; SingleStore; TiDB; Amazon Aurora |
-| Documentos (NoSQL) | MongoDB; Couchbase; CouchDB; RavenDB; Amazon DocumentDB; Azure Cosmos DB |
-| Chave-valor | Redis; Valkey; Amazon DynamoDB; Riak KV; Aerospike |
+| Relational (SQL) | PostgreSQL; MySQL; MariaDB; Microsoft SQL Server; Oracle Database; SQLite; IBM Db2; SAP HANA; Firebird; Teradata; CockroachDB; YugabyteDB; SingleStore; TiDB; Amazon Aurora |
+| Document (NoSQL) | MongoDB; Couchbase; CouchDB; RavenDB; Amazon DocumentDB; Azure Cosmos DB |
+| Key-value | Redis; Valkey; Amazon DynamoDB; Riak KV; Aerospike |
 | Wide-column | Apache Cassandra; ScyllaDB; Apache HBase; Google Bigtable |
-| Grafos | Neo4j; Amazon Neptune; TigerGraph; JanusGraph; ArangoDB |
-| Busca | Elasticsearch; OpenSearch; Apache Solr |
-| Séries temporais | InfluxDB; TimescaleDB; QuestDB; VictoriaMetrics |
+| Graph | Neo4j; Amazon Neptune; TigerGraph; JanusGraph; ArangoDB |
+| Search | Elasticsearch; OpenSearch; Apache Solr |
+| Time series | InfluxDB; TimescaleDB; QuestDB; VictoriaMetrics |
 | Data Warehouse / Analytics | Snowflake; Google BigQuery; Databricks SQL; Amazon Redshift; ClickHouse; Vertica; DuckDB; Apache Doris; StarRocks |
-| Em memória | Redis; SAP HANA; SingleStore |
+| In-memory | Redis; SAP HANA; SingleStore |
 
-A lista é dado canônico inicial, não enum, constante ou condição hard-coded.
-O administrador pode acrescentar bancos e documentos compatíveis sem mudança
-de código ou ADR por item. Cada inclusão registra proveniência, licença,
-idioma, fonte/URL allowlisted quando externa, snapshot imutável, hash, adapter,
-validação, indexação candidata e ativação. Uma nova classe de formato,
-protocolo, autenticação ou confiança pode exigir implementação e decisão
-arquitetural própria.
+The list is initial canonical data, not an enum, constant or hard-coded
+condition. The administrator can add compatible databases and documents
+without a code change or per-item ADR. Every addition records provenance,
+licence, language, an allowlisted source/URL when external, immutable snapshot,
+hash, adapter, validation, candidate indexing and activation. A new format,
+protocol, authentication or trust class may require implementation and its own
+architectural decision.
 
-Não existe teto de produto para bancos, documentos ou páginas. Cada versão é
-finita, registra suas contagens observadas e deve caber com segurança no
-ambiente homologado. Limites de arquivo, linha, página, memória, tempo e
-concorrência são controles operacionais e não limites do catálogo.
+There is no product ceiling for databases, documents or pages. Every version
+is finite, records its observed counts and must fit safely in the homologated
+environment. File, row, page, memory, time and concurrency limits are
+operational controls, not catalogue limits.
 
-## Requisitos funcionais
+## Functional requirements
 
-| ID | Requisito | MVP |
+| ID | Requirement | MVP |
 |---|---|---|
-| `RF-001` | Carregar documentos PDF/CSV autorizados sem depender de `reference-materials/`. | Sim |
-| `RF-002` | Validar tipo, tamanho, identidade e integridade do documento antes do processamento. | Sim |
-| `RF-003` | Extrair conteúdo de PDF e CSV e produzir chunks com localização e metadados de origem específicos do formato. | Sim |
-| `RF-004` | Gerar embeddings e construir uma geração de índice identificável. | Sim |
-| `RF-005` | Consultar o índice com uma pergunta em linguagem natural. | Sim |
-| `RF-006` | Gerar resposta somente a partir dos trechos recuperados. | Sim |
-| `RF-007` | Retornar citações com documento, versão e localização disponível. | Sim |
-| `RF-008` | Retornar `INSUFFICIENT_EVIDENCE` quando a recuperação não sustentar a resposta. | Sim |
-| `RF-009` | Versionar manualmente um documento e construir candidata sem destruir previamente a versão ativa. | Sim |
-| `RF-010` | Expor liveness, readiness e diagnóstico sanitizado de dependências. | Sim |
-| `RF-011` | Executar localmente por procedimento documentado. | Sim |
-| `RF-012` | Executar em OCI e produzir evidência verificável. | Sim |
-| `RF-013` | Adicionar, remover, versionar, ativar e desativar múltiplos acervos. | Futuro |
-| `RF-014` | Sincronizar alterações por documento de forma incremental e agendada. | Futuro |
-| `RF-015` | Trocar embeddings, armazenamento vetorial e LLM por configuração/composição. | Preparado; uma implementação no MVP |
-| `RF-016` | Sincronizar manualmente cada fonte oficial registrada por adapter compatível, allowlist e snapshot versionado, preservando URL e frescor. | Sim |
-| `RF-017` | Publicar no MVP o contrato HTTP/OpenAPI versionado do RAG-Challenge; qualquer adapter consumidor, inclusive do DB-Notifier, pertence ao repositório consumidor e a gates próprios futuros. | Contrato no MVP; adapters consumidores no futuro |
-| `RF-018` | Processar PDF e CSV por adapters próprios sem alterar os casos de uso do núcleo; formatos adicionais permanecem futuros. | Sim para PDF/CSV |
-| `RF-019` | Aplicar RBAC e escopo por corpus antes da recuperação. | Futuro |
-| `RF-020` | Recuperar por padrão em todos os documentos ativos, registrar a proveniência local/oficial de cada evidência e nunca substituir silenciosamente uma fonte indisponível por outra. | Sim |
-| `RF-021` | Aceitar perguntas com idioma declarado `pt-BR` ou `en-GB`, responder no mesmo idioma e preservar no idioma original todo conteúdo derivado da fonte exibido em citações. | Sim |
-| `RF-022` | Permitir selecionar `pt-BR` ou `en-GB` para a interface e localizar todo texto visual pertencente ao produto sem alterar `questionLanguage`, `answerLanguage` ou conteúdo citado. | Sim |
-| `RF-023` | Permitir selecionar o tema visual `Light` ou `Dark` sem alterar `interfaceLanguage`, `questionLanguage`, `answerLanguage`, evidência ou citações. | Sim |
-| `RF-024` | Permitir ao administrador adicionar, versionar, ativar, desativar e remover logicamente bancos do catálogo, com estado Candidate antes da ativação. | Sim |
-| `RF-025` | Permitir qualquer quantidade de documentos por banco e administrar suas versões/estados; cada banco ativo exige ao menos um documento ativo e todos os documentos ativos participam da recuperação. | Sim |
+| `RF-001` | Load authorised PDF/CSV documents without depending on `reference-materials/`. | Yes |
+| `RF-002` | Validate document type, size, identity and integrity before processing. | Yes |
+| `RF-003` | Extract PDF and CSV content and produce chunks with format-specific location and origin metadata. | Yes |
+| `RF-004` | Generate embeddings and build an identifiable index generation. | Yes |
+| `RF-005` | Query the index with a natural-language question. | Yes |
+| `RF-006` | Generate an answer only from retrieved passages. | Yes |
+| `RF-007` | Return citations with document, version and available location. | Yes |
+| `RF-008` | Return `INSUFFICIENT_EVIDENCE` when retrieval does not support an answer. | Yes |
+| `RF-009` | Manually version a document and build a candidate without first destroying the active version. | Yes |
+| `RF-010` | Expose liveness, readiness and sanitised dependency diagnostics. | Yes |
+| `RF-011` | Run locally through a documented procedure. | Yes |
+| `RF-012` | Run on OCI and produce verifiable evidence. | Yes |
+| `RF-013` | Add, remove, version, activate and deactivate multiple corpora. | Future |
+| `RF-014` | Synchronise changes incrementally and on a schedule per document. | Future |
+| `RF-015` | Replace embeddings, vector storage and LLM through configuration/composition. | Prepared; one MVP implementation |
+| `RF-016` | Manually synchronise every registered official source through a compatible adapter, allowlist and versioned snapshot, preserving URL and freshness. | Yes |
+| `RF-017` | Publish the versioned RAG-Challenge HTTP/OpenAPI contract in the MVP; any consuming adapter, including DB-Notifier, belongs to the consuming repository and its own future gates. | Contract in MVP; consuming adapters in future |
+| `RF-018` | Process PDF and CSV through dedicated adapters without changing core use cases; additional formats remain future capabilities. | Yes for PDF/CSV |
+| `RF-019` | Apply RBAC and per-corpus scope before retrieval. | Future |
+| `RF-020` | Retrieve from all active documents by default, record local/official provenance for each item of evidence and never silently replace an unavailable source with another. | Yes |
+| `RF-021` | Accept questions declared as `pt-BR` or `en-GB`, answer in the same language and preserve all source-derived citation content in its original language. | Yes |
+| `RF-022` | Allow selection of `pt-BR` or `en-GB` for the interface and localise all product-owned visual text without changing `questionLanguage`, `answerLanguage` or cited content. | Yes |
+| `RF-023` | Allow selection of the `Light` or `Dark` visual theme without changing `interfaceLanguage`, `questionLanguage`, `answerLanguage`, evidence or citations. | Yes |
+| `RF-024` | Allow an administrator to add, version, activate, deactivate and logically remove catalogue databases, with Candidate state before activation. | Yes |
+| `RF-025` | Allow any number of documents per database and administer their versions/states; every active database requires at least one active document and all active documents participate in retrieval. | Yes |
 
-## Requisitos não funcionais
+## Non-functional requirements
 
-| ID | Requisito |
+| ID | Requirement |
 |---|---|
-| `RNF-001` | O núcleo não depende de SDK de IA, parser, vetor, UI, transporte ou DB-Notifier. |
-| `RNF-002` | Configuração é tipada, validada no startup e falha fechada. |
-| `RNF-003` | Segredos não entram no repositório, logs, respostas ou evidências. |
-| `RNF-004` | Operações externas têm timeout, cancelamento e limites de tamanho/custo. |
-| `RNF-005` | Documento, conteúdo bruto, snapshot, chunk, provider e índice têm proveniência, identidade e versão rastreáveis. A identidade da geração cobre o binding de fonte sem observação; cada revisão do registro de ativação cobre separadamente o binding completo com `sourceObservationId`. Bytes imutáveis permanecem reabríveis enquanto forem necessários para rebuild ou rollback. |
-| `RNF-006` | Logs são estruturados, sanitizados e correlacionáveis. |
-| `RNF-007` | O produto diferencia indisponibilidade, conteúdo inválido e evidência insuficiente. |
-| `RNF-008` | Testes são determinísticos e não exigem serviços pagos na suíte padrão. |
-| `RNF-009` | A interface mínima atende teclado, contraste e estados de loading, vazio e erro. |
-| `RNF-010` | Build, dependências e toolchains são reproduzíveis e versionados. |
-| `RNF-011` | O clone público não depende de arquivos ignorados ou dados privados. |
-| `RNF-012` | Mudanças de documento ou provider não exigem refatoração do núcleo. |
-| `RNF-013` | O repositório público possui estrutura compreensível e histórico incremental de commits. |
-| `RNF-014` | O egress da fonte oficial falha fechado, mantém os escopos distinguíveis e aplica HTTPS, allowlist, limites, pinning da conexão ao DNS/IP autorizado, redirects bloqueados, validação TLS sem destinos laterais e proteção SSRF. |
-| `RNF-015` | Contratos, recuperação e geração tratam `pt-BR` e `en-GB` por tags BCP 47 explícitas; a homologação cobre perguntas e evidências no mesmo idioma e nas duas direções cruzadas. |
-| `RNF-016` | A interface não mistura idiomas em textos pertencentes ao produto, conserva acessibilidade nas duas localizações e mantém o idioma visual independente do idioma da consulta. |
-| `RNF-017` | Os temas `Light` e `Dark` preservam contraste, foco visível, semântica, reflow e todos os estados da interface, sem comunicar informação somente por cor. |
-| `RNF-018` | Bancos, categorias, documentos e fontes compatíveis são registros administráveis, não listas hard-coded; inclusão por item não exige código nem ADR, mas uma nova classe de integração pode exigir ambos. |
+| `RNF-001` | The core does not depend on an AI SDK, parser, vector implementation, UI, transport or DB-Notifier. |
+| `RNF-002` | Configuration is typed, validated at start-up and fail-closed. |
+| `RNF-003` | Secrets do not enter the repository, logs, responses or evidence. |
+| `RNF-004` | External operations have timeouts, cancellation and size/cost limits. |
+| `RNF-005` | Document, raw content, snapshot, chunk, provider and index have traceable provenance, identity and version. Generation identity covers source binding without observation; each activation-record revision separately covers the complete binding with `sourceObservationId`. Immutable bytes remain reopenable while required for rebuild or rollback. |
+| `RNF-006` | Logs are structured, sanitised and correlatable. |
+| `RNF-007` | The product distinguishes unavailability, invalid content and insufficient evidence. |
+| `RNF-008` | Tests are deterministic and do not require paid services in the standard suite. |
+| `RNF-009` | The minimal interface supports keyboard use, contrast and loading, empty and error states. |
+| `RNF-010` | Build, dependencies and toolchains are reproducible and versioned. |
+| `RNF-011` | The public clone does not depend on ignored files or private data. |
+| `RNF-012` | Document or provider changes do not require core refactoring. |
+| `RNF-013` | The public repository has an understandable structure and incremental commit history. |
+| `RNF-014` | Official-source egress fails closed, keeps scopes distinguishable and applies HTTPS, an allowlist, limits, connection pinning to authorised DNS/IP, blocked redirects, TLS validation without lateral destinations and SSRF protection. |
+| `RNF-015` | Contracts, retrieval and generation handle `pt-BR` and `en-GB` through explicit BCP 47 tags; homologation covers questions and evidence in the same language and both cross-language directions. |
+| `RNF-016` | The interface does not mix languages in product-owned text, preserves accessibility in both localisations and keeps visual language independent of query language. |
+| `RNF-017` | `Light` and `Dark` themes preserve contrast, visible focus, semantics, reflow and every interface state without communicating information through colour alone. |
+| `RNF-018` | Compatible databases, categories, documents and sources are administrable records, not hard-coded lists; per-item addition requires neither code nor an ADR, but a new integration class may require both. |
 
-## Critérios de aceitação do MVP
+## MVP acceptance criteria
 
-| ID | Critério |
+| ID | Criterion |
 |---|---|
-| `AC-MVP-001` | Um clone limpo pode ser configurado, compilado, testado e executado pelo procedimento publicado. |
-| `AC-MVP-002` | Cada documento autorizado é persistido/reaberto por hash, processado e incorporado a uma candidata validada; staging parcial permanece não consultável. |
-| `AC-MVP-003` | Perguntas representativas aprovadas recuperam citações corretas. |
-| `AC-MVP-004` | Perguntas fora do acervo não recebem resposta factual inventada. |
-| `AC-MVP-005` | Mudança de banco ou documento cria candidata validada e ativa atomicamente o manifesto completo com todos os bindings documentais aplicáveis. A ativação valida `activeDocumentSetDigest`, o `sourceBindingSetDigest` generation-bound e o `activationBindingSetDigest` completo; preserva geração anterior elegível e testa rollback por novo registro, sem replay de freshness histórica. |
-| `AC-MVP-006` | Nenhum secret ou material local ignorado integra o repositório. |
-| `AC-MVP-007` | Os checks automáticos aplicáveis ao estado são aprovados. |
-| `AC-MVP-008` | A aplicação é executada em OCI com link ou evidência visual sanitizada. |
-| `AC-MVP-009` | O README contém arquitetura, tecnologias, execução e exemplos reais verificados após a implementação. |
-| `AC-MVP-010` | A interface mínima permite perguntar, consultar citações e compreender loading, vazio, erro, indisponibilidade e evidência insuficiente, com teclado, foco e contraste adequados. |
-| `AC-MVP-011` | A API expõe consulta, health e artefato OpenAPI v1 versionados, com configuração fail-closed, limites, cancelamento, metadados reproduzíveis, erros canônicos e diagnóstico sanitizado; compatibilidade do contrato é testada. |
-| `AC-MVP-012` | Testes de arquitetura e contrato demonstram que Domain/Application não dependem de SDKs ou adapters concretos e que providers são compostos pelas bordas. |
-| `AC-MVP-013` | O repositório público possui estrutura compreensível e histórico incremental de commits, sem secrets ou materiais locais ignorados. |
-| `AC-MVP-014` | A sincronização autorizada de cada fonte allowlisted produz snapshot/observação versionados. Alteração de conteúdo exige candidata; `304`/hash idêntico para o mesmo registro/snapshot cria nova revisão completa do registro e `activationBindingSetDigest`, mas preserva manifesto, `sourceBindingSetDigest`, `generationSpecDigest`, `IndexGenerationId`, `catalogueRevision` e `generationActivatedAt`. Mismatch falha fechado; citações expõem fonte, URL pública quando aplicável, snapshot e frescor. |
-| `AC-MVP-015` | Cada fonte externa rejeita domínio, IP, porta, path, query, resposta DNS mista, redirect ou destino TLS lateral fora de sua política. Consulta não faz fetch e considera somente documentos ativos/current, expondo cobertura degradada sem fallback silencioso. |
-| `AC-MVP-016` | Perguntas declaradas como `pt-BR` recebem respostas em `pt-BR`, perguntas declaradas como `en-GB` recebem respostas em `en-GB`, e citações não traduzem título, seção, trecho ou outro conteúdo proveniente da fonte. Testes determinísticos cobrem `pt-BR→pt-BR`, `en-GB→en-GB`, `pt-BR→en-GB` e `en-GB→pt-BR` entre idioma da pergunta e idioma da evidência. |
-| `AC-MVP-017` | A pessoa consegue alternar explicitamente a interface entre `pt-BR` e `en-GB`; labels, instruções, validações e estados pertencentes ao produto usam integralmente o idioma visual selecionado. Testes de componente e fluxo cobrem cada idioma da interface combinado com cada `questionLanguage`, sem traduzir citações. |
-| `AC-MVP-018` | A pessoa consegue alternar explicitamente a interface entre `Light` e `Dark`; conteúdo, idioma e contexto da consulta permanecem inalterados. Testes de componente, acessibilidade e fluxo executam nos dois temas as quatro combinações entre `interfaceLanguage` e `questionLanguage`, totalizando oito combinações, e validam contraste, foco, estados e ausência de informação dependente apenas de cor. |
-| `AC-MVP-019` | O catálogo inicial contém exatamente 51 entidades e 54 associações nas 9 categorias aprovadas, preservando Redis, SAP HANA e SingleStore como entidades únicas multiclasse. |
-| `AC-MVP-020` | Banco/documento novo começa Candidate; somente validação e ativação explícita permitem consulta. Desativação preserva histórico; remoção é lógica; o último documento ativo só pode sair em operação que também desative explicitamente o banco. |
+| `AC-MVP-001` | A clean clone can be configured, built, tested and run through the published procedure. |
+| `AC-MVP-002` | Every authorised document is persisted/reopened by hash, processed and incorporated into a validated candidate; partial staging remains non-queryable. |
+| `AC-MVP-003` | Approved representative questions retrieve correct citations. |
+| `AC-MVP-004` | Questions outside the corpus receive no invented factual answer. |
+| `AC-MVP-005` | A database or document change creates a validated candidate and atomically activates the complete manifest with every applicable document binding. Activation validates `activeDocumentSetDigest`, the generation-bound `sourceBindingSetDigest` and complete `activationBindingSetDigest`; it preserves an eligible prior generation and tests rollback through a new record without historical freshness replay. |
+| `AC-MVP-006` | No secret or ignored local material enters the repository. |
+| `AC-MVP-007` | Automatic checks applicable to the state pass. |
+| `AC-MVP-008` | The application runs on OCI with a link or sanitised visual evidence. |
+| `AC-MVP-009` | The README contains architecture, technologies, operation and real examples verified after implementation. |
+| `AC-MVP-010` | The minimal interface supports asking, viewing citations and understanding loading, empty, error, unavailable and insufficient-evidence states with suitable keyboard access, focus and contrast. |
+| `AC-MVP-011` | The API exposes versioned query, health and OpenAPI v1 artefact with fail-closed configuration, limits, cancellation, reproducible metadata, canonical errors and sanitised diagnostics; contract compatibility is tested. |
+| `AC-MVP-012` | Architecture and contract tests demonstrate that Domain/Application do not depend on SDKs or concrete adapters and that providers are composed at the boundaries. |
+| `AC-MVP-013` | The public repository has an understandable structure and incremental commit history without secrets or ignored local materials. |
+| `AC-MVP-014` | Authorised synchronisation of every allowlisted source produces versioned snapshot/observation records. A content change requires a candidate; `304`/identical hash for the same record/snapshot creates a complete new record revision and `activationBindingSetDigest`, while preserving manifest, `sourceBindingSetDigest`, `generationSpecDigest`, `IndexGenerationId`, `catalogueRevision` and `generationActivatedAt`. A mismatch fails closed; citations expose source, public URL when applicable, snapshot and freshness. |
+| `AC-MVP-015` | Every external source rejects a domain, IP, port, path, query, mixed DNS response, redirect or lateral TLS destination outside its policy. Query performs no fetch and considers only active/current documents, exposing degraded coverage without silent fallback. |
+| `AC-MVP-016` | Questions declared as `pt-BR` receive `pt-BR` answers, questions declared as `en-GB` receive `en-GB` answers, and citations do not translate source-derived titles, sections, passages or other content. Deterministic tests cover `pt-BR→pt-BR`, `en-GB→en-GB`, `pt-BR→en-GB` and `en-GB→pt-BR` between question and evidence languages. |
+| `AC-MVP-017` | A person can explicitly switch the interface between `pt-BR` and `en-GB`; product-owned labels, instructions, validation and states use the selected visual language throughout. Component and flow tests cover each interface language with each `questionLanguage` without translating citations. |
+| `AC-MVP-018` | A person can explicitly switch the interface between `Light` and `Dark`; query content, language and context remain unchanged. Component, accessibility and flow tests run the four `interfaceLanguage`/`questionLanguage` combinations in both themes, totalling eight combinations, and validate contrast, focus, states and absence of colour-only information. |
+| `AC-MVP-019` | The initial catalogue contains exactly 51 entities and 54 associations in the 9 approved categories, preserving Redis, SAP HANA and SingleStore as unique multi-class entities. |
+| `AC-MVP-020` | A new database/document starts as Candidate; only validation and explicit activation permit query. Deactivation preserves history; removal is logical; the final active document can be removed only by an operation that also explicitly deactivates the database. |
 
-## Premissas
+## Assumptions
 
-- A primeira interface será simples; o valor principal é o fluxo RAG.
-- O acesso a perguntas pode ser anônimo no MVP, conforme os materiais do
-  Challenge.
-- Operações administrativas de ingestão não serão expostas anonimamente.
-- A sincronização oficial é manual e administrativa; uma pergunta pública não
-  inicia crawling nem escolhe URL.
-- Fontes oficiais iniciais são publicamente acessíveis sem autenticação; URL,
-  headers e query não carregam token, assinatura ou credencial.
-- Um serviço OCI de hospedagem é suficiente para o requisito mínimo, desde que
-  a execução seja real e documentada.
-- As tecnologias sugeridas pelo curso são opcionais.
-- A interface suporta `pt-BR` e `en-GB` por decisão separada do suporte
-  bilíngue de consulta; seleção inicial, persistência e fallback permanecem
-  detalhes futuros próprios.
-- A interface suporta `Light` e `Dark` por decisão própria; tema inicial,
-  preferência do sistema, persistência e fallback permanecem detalhes futuros
-  do frontend.
+- The first interface will be simple; the RAG flow is the main value.
+- Question access may be anonymous in the MVP, following the Challenge
+  materials.
+- Administrative ingestion operations will not be exposed anonymously.
+- Official synchronisation is manual and administrative; a public question
+  neither starts crawling nor selects a URL.
+- Initial official sources are publicly accessible without authentication;
+  URL, headers and query carry no token, signature or credential.
+- One OCI hosting service is sufficient for the minimum requirement when
+  execution is real and documented.
+- Technologies suggested by the course are optional.
+- The interface supports `pt-BR` and `en-GB` under a decision separate from
+  bilingual query support; initial selection, persistence and fallback remain
+  their own future details.
+- The interface supports `Light` and `Dark` under its own decision; initial
+  theme, system preference, persistence and fallback remain future frontend
+  details.
 
-## Limitações e evidências pendentes
+## Limitations and pending evidence
 
-- A licença MIT do repositório foi aceita e materializada. O PostgreSQL 18.4
-  `LocalAuthorised` tornou-se o primeiro documento de produto materializado e
-  ativado sob evidência de direitos, proveniência e idioma registrada. Cada
-  documento adicional continua exigindo sua própria disposição verificável.
-- PostgreSQL 18 é a primeira fonte oficial verificada. Cada registro adicional
-  ainda exige URL canônica, termos/licença, `maxAge`, limites, autoridade de
-  rede e ativação próprios.
-- ADR-0005 aceitou condicionalmente OpenAI para embeddings e LLM,
-  `SqliteExactVectorStore`, EF Core SQLite e filesystem content-addressed.
-  Adapters e packages foram implementados sob versões governadas, mas campanha
-  LLM pontuada, qualidade bilíngue real, custo observado de consulta,
-  desempenho representativo e recuperação operacional permanecem separados.
-- ADR-0006 aceitou as quatro políticas de egress deny-by-default e o limite de
-  divulgação. Essa decisão por si só não habilita egress, provider, conta ou
-  destino; execuções posteriores pertencem às autoridades e evidências
-  registradas no Current State.
-- ADR-0005 aceitou condicionalmente o alvo OCI em `sa-saopaulo-1`; capacidade,
-  entitlement, IAM, cobrança, consistência de backup e restore da tenancy
-  permanecem não verificados.
-- RB-1 congelou desenho e thresholds. Os artefatos RB-2/RB-3 foram
-  materializados, mas a reauditoria de governança encontrou conflito de
-  adjudicação humana; eles permanecem indisponíveis para uma campanha pontuada
-  até disposição do proprietário e eventual sucessor coerente.
-- ADR-0007 foi aceito e sua semântica foi reconciliada nos contratos
-  documentais e implementada sob autoridade posterior. A auditoria combinada
-  dispôs `AQG-S02-001` a `AQG-S02-003` como `RESOLVIDOS`; os resultados
-  reprovados anteriores permanecem históricos.
+- The repository MIT licence was accepted and materialised. PostgreSQL 18.4
+  `LocalAuthorised` became the first materialised and activated product
+  document under recorded rights, provenance and language evidence. Every
+  additional document still requires its own verifiable disposition.
+- PostgreSQL 18 is the first verified official source. Every additional record
+  still requires its own canonical URL, terms/licence, `maxAge`, limits,
+  network authority and activation.
+- ADR-0005 conditionally accepted OpenAI for embeddings and LLM,
+  `SqliteExactVectorStore`, EF Core SQLite and a content-addressed filesystem.
+  Adapters and packages were implemented under governed versions, but the
+  scored LLM campaign, real bilingual quality, observed query cost,
+  representative performance and operational recovery remain separate.
+- ADR-0006 accepted the four deny-by-default egress policies and the disclosure
+  boundary. That decision alone does not enable egress, a provider, an account
+  or a destination; later executions belong to the authorities and evidence
+  recorded in Current State.
+- ADR-0005 conditionally accepted the OCI target in `sa-saopaulo-1`; tenancy
+  capacity, entitlement, IAM, billing and backup/restore consistency remain
+  unverified.
+- RB-1 froze the design and thresholds. RB-2/RB-3 artefacts were materialised,
+  but governance reaudit found a human-adjudication conflict; they remain
+  unavailable to a scored campaign pending owner disposition and a possible
+  coherent successor.
+- ADR-0007 was accepted, its semantics were reconciled in documentary
+  contracts and it was implemented under later authority. The combined audit
+  disposed `AQG-S02-001` through `AQG-S02-003` as `RESOLVIDOS`; earlier failed
+  results remain historical.
 
-Esses itens distinguem decisões arquiteturais aceitas de evidência,
-implementação e autoridade externa ainda ausentes.
+These items distinguish accepted architectural decisions from evidence,
+implementation and external authority that remain absent.

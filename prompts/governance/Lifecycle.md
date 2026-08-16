@@ -1,385 +1,381 @@
-# Ciclo de Desenvolvimento
+# Development Lifecycle
 
-## Regra geral
+## General rule
 
-Cada estado exige entradas, entregáveis, auditoria automática, decisão humana
-e handoff. Correções pertencem ao estado dono do defeito. Os formatos de
-evidência estão em [`../templates/Templates.md`](../templates/Templates.md).
+Every state requires inputs, deliverables, an automatic audit, a human decision
+and a hand-off. Corrections belong to the state that owns the defect. Evidence
+formats are in [`../templates/Templates.md`](../templates/Templates.md).
 
 ## STATE-00 DISCOVERY
 
-Objetivo: compreender o Challenge, delimitar o problema e o MVP, inventariar
-fontes, propor arquitetura e preparar o setup.
+Objective: understand the Challenge, delimit the problem and MVP, inventory
+sources, propose the architecture and prepare setup.
 
-Entradas:
+Inputs:
 
-- requisitos do proprietário;
-- materiais originais locais;
-- análise somente leitura do DB-Notifier.
+- owner requirements;
+- original local materials;
+- read-only DB-Notifier analysis.
 
-Entregáveis:
+Deliverables:
 
-- visão, escopo, requisitos e critérios;
-- riscos, premissas e decisões pendentes;
-- arquitetura e módulo RAG de alto nível;
-- ADRs propostos;
-- governança, gates e memória;
-- roadmap e backlog;
-- relatório automático do estado.
+- vision, scope, requirements and criteria;
+- risks, assumptions and pending decisions;
+- high-level architecture and RAG module;
+- proposed ADRs;
+- governance, gates and memory;
+- roadmap and backlog;
+- automatic state report.
 
-Aceite:
+Acceptance:
 
-- requisitos oficiais e interpretações estão rastreáveis;
-- MVP e evolução futura estão separados;
-- materiais ignorados não são dependência do produto;
-- propostas não são apresentadas como implementação;
-- links e estrutura documental são válidos;
-- Human Gate é explícito e separado.
+- official requirements and interpretations are traceable;
+- the MVP and future evolution are separate;
+- ignored materials are not a product dependency;
+- proposals are not presented as implementation;
+- links and documentary structure are valid;
+- the Human Gate is explicit and separate.
 
 ## STATE-01 PROJECT_SETUP
 
-Objetivo: preparar o repositório, solução, convenções, builds, testes,
-configuração segura e CI sem implementar RAG.
+Objective: prepare the repository, solution, conventions, builds, tests,
+secure configuration and CI without implementing RAG.
 
-Pré-condições de entrada:
+Entry preconditions:
 
-- Human Gate de `STATE-00` concluído;
-- `GATE-B01` concluído, com ADR-0001 aceito, licença do repositório escolhida
-  e mapa físico de projetos registrado;
-- entrada em `STATE-01` autorizada explicitamente em decisão separada;
-- Git init, scaffold e dependências ainda não executados antes dessa
-  autorização.
+- the `STATE-00` Human Gate is complete;
+- `GATE-B01` is complete, with ADR-0001 accepted, the repository licence
+  selected and the physical project map recorded;
+- entry into `STATE-01` is explicitly authorised by a separate decision;
+- Git initialisation, scaffolding and dependencies were not executed before
+  that authority.
 
-Entregáveis:
+Deliverables:
 
-- Git e branch inicial autorizados;
-- `.editorconfig`, `.gitattributes` e `.gitignore` completos;
-- SDK/toolchains fixados;
-- solution e projetos vazios nas fronteiras aprovadas;
-- gestão central de dependências e lockfiles;
-- hosts mínimos com health sem regra funcional;
-- testes estruturais e pipeline CI;
-- documentação de onboarding;
-- relatório do setup.
+- authorised Git and initial branch;
+- complete `.editorconfig`, `.gitattributes` and `.gitignore`;
+- pinned SDK/toolchains;
+- empty solution and projects at the approved boundaries;
+- central dependency management and lockfiles;
+- minimal hosts with health and no functional rule;
+- structural tests and CI pipeline;
+- onboarding documentation;
+- setup report.
 
-Aceite:
+Acceptance:
 
-- clone limpo restaura, compila e testa;
-- arquitetura de dependências é verificada;
-- configuração inválida falha fechada;
-- nenhum secret ou corpus privado;
-- nenhuma ingestão, recuperação ou geração prematura;
-- Human Gate do setup concluído.
+- a clean clone restores, builds and tests;
+- dependency architecture is verified;
+- invalid configuration fails closed;
+- no secret or private corpus is present;
+- no premature ingestion, retrieval or generation exists;
+- the setup Human Gate is complete.
 
 ## STATE-02 ARCHITECTURE
 
-Objetivo: aceitar limites, providers do MVP, contratos, dados, segurança,
-implantação e avaliação.
+Objective: accept the MVP boundaries, providers, contracts, data, security,
+deployment and evaluation.
 
-Entregáveis:
+Deliverables:
 
-- ADRs aceitos ou rejeitados;
-- contratos canônicos e diagramas;
-- contrato bilíngue de consulta com `pt-BR`/`en-GB`, resposta no idioma da
-  pergunta e citação no idioma original;
-- threat model detalhado;
-- seleção de parser, embeddings, vetor e LLM;
-- definição do corpus e da licença do corpus;
-- catálogo canônico inicial, ciclo administrativo de bancos/documentos,
-  formatos PDF/CSV e registros de fontes oficiais com URLs, termos/licenças,
-  maxAge e limites individuais;
-- decisão de persistência durável para conteúdo bruto, catálogo e índice;
-- política de configuração, `AI_PROVIDER_EGRESS`, `VECTOR_STORE_EGRESS`,
-  `OFFICIAL_SOURCE_EGRESS` e `OCI_RUNTIME_EGRESS`;
-- contratos canônicos de busca vetorial, falhas, readiness e OpenAPI;
-- proteção SSRF com canonicalização e pinning DNS/IP por conexão;
-- estratégia de avaliação, OCI e rollback.
+- accepted or rejected ADRs;
+- canonical contracts and diagrams;
+- bilingual query contract with `pt-BR`/`en-GB`, answer in the question
+  language and citation in the original language;
+- detailed threat model;
+- parser, embedding, vector and LLM selection;
+- corpus and corpus-licence definition;
+- initial canonical catalogue, database/document administrative lifecycle,
+  PDF/CSV formats and official-source records with URLs, terms/licences,
+  `maxAge` and individual limits;
+- durable-persistence decision for raw content, catalogue and index;
+- configuration, `AI_PROVIDER_EGRESS`, `VECTOR_STORE_EGRESS`,
+  `OFFICIAL_SOURCE_EGRESS` and `OCI_RUNTIME_EGRESS` policies;
+- canonical vector-search, failure, readiness and OpenAPI contracts;
+- SSRF protection with per-connection canonicalisation and DNS/IP pinning;
+- evaluation, OCI and rollback strategy.
 
-Aceite:
+Acceptance:
 
-- dependências apontam para o núcleo;
-- providers são substituíveis por portas;
-- origem local/oficial permanece rastreável sem dividir silenciosamente a
-  recuperação unificada;
-- cada fonte oficial possui URL PDF/CSV allowlisted, sem crawling ou fallback
-  silencioso;
-- limites, custos, falhas e segurança foram tratados;
-- thresholds são definidos antes da homologação.
-- idioma da pergunta, resposta e evidência possui semântica canônica sem
-  decidir o idioma da interface.
+- dependencies point towards the core;
+- providers are replaceable through ports;
+- local/official origin remains traceable without silently splitting unified
+  retrieval;
+- every official source has an allowlisted PDF/CSV URL without crawling or
+  silent fallback;
+- limits, costs, failures and security are addressed;
+- thresholds are defined before homologation;
+- question, answer and evidence language have canonical semantics without
+  deciding interface language.
 
 ## STATE-03 DATA_AND_INDEX_MODELING
 
-Objetivo: modelar bancos, categorias muitos-para-muitos, documentos, versões,
-chunks, snapshots oficiais, freshness, manifestos, gerações, auditoria e
-persistência.
+Objective: model databases, many-to-many categories, documents, versions,
+chunks, official snapshots, freshness, manifests, generations, audit and
+persistence.
 
-Entregáveis:
+Deliverables:
 
-- modelo e dicionário;
-- constraints, índices e concorrência;
-- migrations não produtivas;
-- retenção e recuperação;
-- estados Candidate/Active/Deactivated/Removed, formato PDF/CSV, snapshot
-  imutável, observações de revalidação, URL canônica, freshness e retirada;
-- manifesto canônico versionado, staging/finalização idempotentes, digest e
-  contagens dos artefatos lógicos e identidade determinística da geração
-  finalizada;
-- `sourceBindingSetDigest` generation-bound sem observação,
-  `activationBindingSetDigest` do binding completo e vetores canônicos de ambos;
-- revisão própria do journal append-only de observações, separada de
-  `catalogueRevision` e da revisão transacional interna;
-- `CorpusActivationRecord` e algoritmo transacional de ativação/rollback por
-  construção de nova revisão, sem replay de registro histórico;
-- retenção do conteúdo bruto alcançável e cleanup de órfãos;
-- fixtures determinísticas.
+- model and dictionary;
+- constraints, indexes and concurrency;
+- non-production migrations;
+- retention and recovery;
+- Candidate/Active/Deactivated/Removed states, PDF/CSV format, immutable
+  snapshot, revalidation observations, canonical URL, freshness and withdrawal;
+- versioned canonical manifest, idempotent staging/finalisation, logical
+  artefact digest/counts and deterministic finalised-generation identity;
+- observation-free generation-bound `sourceBindingSetDigest`, complete-binding
+  `activationBindingSetDigest` and canonical vectors for both;
+- an append-only observation-journal revision separate from
+  `catalogueRevision` and the internal transactional revision;
+- `CorpusActivationRecord` and transactional activation/rollback algorithm by
+  constructing a new revision without replaying a historical record;
+- retention of reachable raw content and orphan cleanup;
+- deterministic fixtures.
 
-Aceite:
+Acceptance:
 
-- documento e índice têm versões independentes;
-- conteúdo bruto permanece reabrível para rebuild e rollback autorizados;
-- candidato parcial nunca é consultável e a finalização valida
-  digest/contagens/readback antes da ativação;
-- secrets não integram o modelo;
-- geração parcial ou observação não vinculada nunca fica ativa;
-- mismatch entre observação e registro/snapshot falha fechado; mudança apenas
-  de `sourceObservationId` altera somente o digest/revisão de ativação;
-- rollback liga observações explicitamente selecionadas, compatíveis e
-  atualmente elegíveis, sem reviver freshness histórica;
-- todo documento ativo integra o manifesto; origem/trust integram identidade,
-  digest e citação sem formar corpora mutuamente exclusivos;
-- migrations e recuperação são verificáveis;
-- corpus do produto não é confundido com banco documentado.
+- document and index have independent versions;
+- raw content remains reopenable for authorised rebuild and rollback;
+- a partial candidate is never queryable, and finalisation validates
+  digest/counts/readback before activation;
+- secrets do not enter the model;
+- a partial generation or unbound observation is never active;
+- a mismatch between observation and record/snapshot fails closed; changing
+  only `sourceObservationId` changes only the activation digest/revision;
+- rollback binds explicitly selected, compatible and currently eligible
+  observations without reviving historical freshness;
+- every active document enters the manifest; origin/trust enter identity,
+  digest and citation without forming mutually exclusive corpora;
+- migrations and recovery are verifiable;
+- the product corpus is not confused with a documented database.
 
 ## STATE-04 BACKEND_IMPLEMENTATION
 
-Objetivo: implementar administração/ingestão PDF/CSV, sincronização manual
-oficial, indexação, recuperação unificada, geração e API.
+Objective: implement administration/PDF/CSV ingestion, manual official
+synchronisation, indexing, unified retrieval, generation and API.
 
-Entregáveis:
+Deliverables:
 
-- Domain e Application;
-- adapters autorizados;
-- adapters PDF/CSV e registros allowlisted de fontes oficiais com snapshots
-  governados;
-- persistência;
-- API versionada;
-- validação de `questionLanguage`, geração em `answerLanguage` e propagação de
-  `contentLanguage` nas citações;
-- artefato OpenAPI v1 versionado e testes de compatibilidade;
-- configuração;
-- citações e recusa;
-- testes unitários, arquitetura, contrato e integração.
+- Domain and Application;
+- authorised adapters;
+- PDF/CSV adapters and allowlisted official-source records with governed
+  snapshots;
+- persistence;
+- versioned API;
+- validation of `questionLanguage`, generation in `answerLanguage` and
+  propagation of citation `contentLanguage`;
+- versioned OpenAPI v1 artefact and compatibility tests;
+- configuration;
+- citations and refusal;
+- unit, architecture, contract and integration tests.
 
-Aceite:
+Acceptance:
 
-- um corpus é processado ponta a ponta;
-- providers não vazam para o núcleo;
-- falhas são tipadas e sanitizadas;
-- hard pre-filter integra o contrato do vector store e precede o top-k;
-- o hard pre-filter inclui os bindings generation-bound elegíveis derivados do
-  único registro de ativação resolvido pela consulta;
-- geração anterior sobrevive a falha de reconstrução;
-- `304`/hash idêntico compatível cria nova revisão íntegra do registro,
-  preserva manifesto/geração/`catalogueRevision` e rejeita mismatch antes do
+- one corpus is processed end to end;
+- providers do not leak into the core;
+- failures are typed and sanitised;
+- hard pre-filtering is part of the vector-store contract and precedes top-k;
+- hard pre-filtering includes eligible generation-bound bindings derived from
+  the single activation record resolved by the query;
+- the prior generation survives a rebuild failure;
+- compatible `304`/identical hash creates a complete new record revision,
+  preserves manifest/generation/`catalogueRevision` and rejects mismatch before
   compare-and-swap;
-- falha/stale de uma fonte reduz cobertura explicitamente sem apresentar outra
-  origem como substituta;
-- perguntas sem evidência recusam;
-- perguntas `pt-BR` e `en-GB` respondem no mesmo idioma e citações preservam
-  o idioma da fonte, inclusive na recuperação cruzada;
-- suíte padrão não exige serviço pago.
+- one source's failure/staleness explicitly reduces coverage without
+  presenting another origin as a substitute;
+- questions without evidence are refused;
+- `pt-BR` and `en-GB` questions receive answers in the same language and
+  citations preserve source language, including cross-language retrieval;
+- the standard suite requires no paid service.
 
 ## STATE-05 FRONTEND_IMPLEMENTATION
 
-Objetivo: implementar a interface web mínima.
+Objective: implement the minimal web interface.
 
-Entregáveis:
+Deliverables:
 
-- pergunta e resposta;
-- interface localizada em `pt-BR` e `en-GB`, com seletor explícito e estado
-  visual independente de `questionLanguage`;
-- temas `Light` e `Dark`, com seletor explícito e estado independente de
-  `interfaceLanguage` e `questionLanguage`;
-- indicador de cobertura e proveniência das fontes efetivamente consultadas;
-- citações;
-- estados loading, vazio, erro, fonte stale/indisponível, rate limit e sem
-  evidência;
-- responsividade e acessibilidade;
-- testes de componente e fluxo.
+- question and answer;
+- interface localised in `pt-BR` and `en-GB`, with an explicit selector and
+  visual state independent of `questionLanguage`;
+- `Light` and `Dark` themes, with an explicit selector and state independent
+  of `interfaceLanguage` and `questionLanguage`;
+- coverage and provenance indicator for the sources actually queried;
+- citations;
+- loading, empty, error, stale/unavailable source, rate-limit and no-evidence
+  states;
+- responsiveness and accessibility;
+- component and flow tests.
 
-Aceite:
+Acceptance:
 
-- teclado, foco, contraste e semântica adequados;
-- nenhuma lógica de autorização ou acesso direto a provider no cliente;
-- informação de fonte não depende apenas de cor;
-- cobertura degradada é explícita e citações exibem origem, snapshot/freshness
-  e localização PDF/CSV;
-- mensagens pertencentes ao produto são factuais e integralmente localizadas
-  no `interfaceLanguage` selecionado;
-- os fluxos `pt-BR` e `en-GB` preservam teclado, foco, semântica, reflow e
-  ausência de mistura de idiomas;
-- `Light` e `Dark` preservam contraste, foco, hierarquia, reflow, estados e
-  informação que não dependa apenas de cor;
-- a matriz de quatro combinações entre `interfaceLanguage` e
-  `questionLanguage` é executada nos dois temas;
-- `interfaceLanguage` nunca é inferido do contrato bilíngue de consulta e não
-  traduz conteúdo de citação.
+- suitable keyboard use, focus, contrast and semantics;
+- no authorisation logic or direct provider access in the client;
+- source information does not depend on colour alone;
+- degraded coverage is explicit and citations display origin,
+  snapshot/freshness and PDF/CSV location;
+- product-owned messages are factual and fully localised in the selected
+  `interfaceLanguage`;
+- `pt-BR` and `en-GB` flows preserve keyboard use, focus, semantics, reflow and
+  absence of mixed languages;
+- `Light` and `Dark` preserve contrast, focus, hierarchy, reflow, states and
+  information that does not depend on colour alone;
+- the four `interfaceLanguage`/`questionLanguage` combinations run in both
+  themes;
+- `interfaceLanguage` is never inferred from the bilingual query contract and
+  does not translate citation content.
 
 ## STATE-06 INTEGRATION
 
-Objetivo: integrar API, interface, providers e artefato em ambiente
-controlado.
+Objective: integrate API, interface, providers and artefact in a controlled
+environment.
 
-Entregáveis:
+Deliverables:
 
-- E2E local/sandbox;
-- servidor falso para sync oficial e smoke real opt-in somente autorizado;
-- configuração por ambiente;
-- resiliência e cancelamento;
-- artefato reproduzível;
-- plano e ensaio não produtivo de OCI;
-- README factualmente atual, com ao menos um exemplo cujo comando e resultado
-  tenham sido verificados no artefato integrado local/sintético e com essa
-  fronteira explicitada.
+- local/sandbox E2E;
+- fake server for official synchronisation and authorised opt-in real smoke
+  only;
+- per-environment configuration;
+- resilience and cancellation;
+- reproducible artefact;
+- non-production OCI plan and rehearsal;
+- factually current README with at least one command and result verified in the
+  integrated local/synthetic artefact, with that boundary explicit.
 
-Aceite:
+Acceptance:
 
-- fluxo completo é reproduzível;
-- reinicialização e persistência são conhecidas;
-- erros externos não corrompem o índice ativo;
-- consulta nunca faz fetch, usa somente bindings ativos e expõe a proveniência
-  de cada evidência sem mistura de geração;
-- nenhum secret no artefato;
-- evidências não são confundidas com produção.
+- the complete flow is reproducible;
+- restart and persistence are understood;
+- external errors do not corrupt the active index;
+- query never fetches, uses only active bindings and exposes each item's
+  provenance without mixing generations;
+- no secret exists in the artefact;
+- evidence is not confused with production.
 
 ## STATE-07 TESTING_HOMOLOGATION
 
-Objetivo: validar qualidade RAG, segurança, desempenho, recuperação e
-experiência representativa.
+Objective: validate RAG quality, security, performance, recovery and a
+representative experience.
 
-Entregáveis:
+Deliverables:
 
-- dataset e relatório de avaliação;
-- matriz de idioma pergunta/evidência para `pt-BR` e `en-GB`, nos pares iguais
-  e nas duas direções cruzadas;
-- estratos adicionais por tag BCP 47 documental exata, sem inferir `en` como
-  `en-GB` ou fundir resultados;
-- quando implementada e elegível, evidência de direitos, render manifest,
-  serving e acessibilidade dos PNGs de páginas citadas;
-- testes negativos e prompt injection;
-- SSRF, DNS rebinding, resposta DNS mista, pinning IP/Host/SNI, redirect, URL,
-  media type, tamanho, freshness e source leakage;
-- carga e limites;
-- recuperação/rollback;
-- acessibilidade;
-- matriz de ambiente/provider;
-- riscos residuais.
+- dataset and evaluation report;
+- question/evidence language matrix for `pt-BR` and `en-GB`, with matching
+  pairs and both cross-language directions;
+- additional strata by exact document BCP 47 tag, without inferring `en` as
+  `en-GB` or merging results;
+- when implemented and eligible, rights, render-manifest, serving and
+  accessibility evidence for cited-page PNGs;
+- negative and prompt-injection tests;
+- SSRF, DNS rebinding, mixed DNS response, IP/Host/SNI pinning, redirect, URL,
+  media type, size, freshness and source leakage;
+- load and limits;
+- recovery/rollback;
+- accessibility;
+- environment/provider matrix;
+- residual risks.
 
-Aceite:
+Acceptance:
 
-- thresholds previamente aprovados são atendidos;
-- respostas usam o idioma declarado da pergunta e textos de citação mantêm o
-  idioma original em todos os quatro pares da matriz;
-- cada idioma documental adicional é reportado separadamente para as duas
-  linguagens de pergunta suportadas, sem substituir os quatro pares
-  obrigatórios;
-- evidência visual, quando fizer parte da candidata, deriva somente de citação
-  validada, mantém alternativa textual acessível e falha fechada diante de
-  manifesto, binding, rights ou lifecycle incompatível;
-- limitações e custos são explícitos;
-- nenhuma vulnerabilidade bloqueadora;
-- fonte oficial real é testada somente quando egress específico foi autorizado;
-- afirmações públicas correspondem à matriz testada;
-- Human Gate repete amostras críticas.
+- previously approved thresholds are met;
+- answers use the declared question language and citation text preserves the
+  original language in all four matrix pairs;
+- every additional document language is reported separately for both supported
+  question languages without replacing the four mandatory pairs;
+- visual evidence, when part of the candidate, derives only from a validated
+  citation, preserves an accessible text alternative and fails closed on an
+  incompatible manifest, binding, rights or lifecycle;
+- limitations and costs are explicit;
+- no blocking vulnerability remains;
+- the real official source is tested only when specific egress is authorised;
+- public claims match the tested matrix;
+- the Human Gate repeats critical samples.
 
-## Refinamentos arquiteturais aceitos durante STATE-07
+## Architectural refinements accepted during STATE-07
 
-Os ADRs 0008, 0009 e 0010 foram aceitos depois do encerramento dos estados donos
-das implementações originais. A reconciliação documental não reabre nem
-reescreve evidência histórica e não declara uma capacidade implementada. Cada
-item exige autoridade corretiva própria. A ordem de dependência e o estado
-factual vigente são:
+ADRs 0008, 0009 and 0010 were accepted after closure of the states that owned
+the original implementations. Documentary reconciliation neither reopens nor
+rewrites historical evidence and does not declare a capability implemented.
+Every item requires its own corrective authority. The dependency order and
+current factual state are:
 
-1. `S03-CORR-01`, concluído: modelo lógico/físico compatível para idiomas,
-   `DocumentPageImage`, `DocumentRenderManifest` e reachability, sem inferência
-   de dados;
-2. owner corretivo de `STATE-04`, preservando v1:
-   - `S04-CORR-04-A`, concluído: content store permanente e readback verificado;
-   - `S04-CORR-04-B`, concluído: contratos e gates de direitos;
-   - `S04-CORR-04-C`, concluído: renderização determinística e finalização de
-     fonte/PNGs/manifest;
-   - `S04-CORR-04-D`, concluído: persistência e ativação atômica de fonte,
-     direitos, geração e manifest; e
-   - `S04-CORR-04-E`, concluído na fronteira local/offline: contrato persistente
-     `AnswerEvidenceRecordV1`, retenção fixa `P30D` e participação em
-     reachability, com Automatic Quality Gate corretivo aprovado, ainda sem
-     homologação de produto;
-3. contrato v2 separadamente versionado e apresentação same-origin segura e
-   acessível de evidência visual, implementados e com Automatic Quality Gate
-   aprovado;
-4. integração, restart, cold backup/restore confinado e limites, implementados
-   e verificados focalmente no commit
-   `e5dae7ee5a786417fba2c6ef0555686816b0b330`, com Automatic Quality Gate
-   aprovado sob `AUTH-STATE07-V2-INTEGRATION-RECOVERY-AQG-RETEST-001`, sem
-   novo achado, e `AQG-S07-V2-IR-001` `RESOLVIDO`; e
-5. dataset/homologação estratificados por idioma documental exato e pelas
-   capacidades realmente implementadas, posteriores e não autorizados.
+1. `S03-CORR-01`, complete: compatible logical/physical model for languages,
+   `DocumentPageImage`, `DocumentRenderManifest` and reachability, without
+   data inference;
+2. corrective `STATE-04` owner, preserving v1:
+   - `S04-CORR-04-A`, complete: permanent content store and verified readback;
+   - `S04-CORR-04-B`, complete: rights contracts and gates;
+   - `S04-CORR-04-C`, complete: deterministic rendering and
+     source/PNG/manifest finalisation;
+   - `S04-CORR-04-D`, complete: atomic source, rights, generation and manifest
+     persistence and activation; and
+   - `S04-CORR-04-E`, complete at the local/offline boundary: persistent
+     `AnswerEvidenceRecordV1` contract, fixed `P30D` retention and reachability
+     participation, with approved corrective Automatic Quality Gate but no
+     product homologation;
+3. separately versioned v2 contract and secure, accessible same-origin visual
+   evidence presentation, implemented with an approved Automatic Quality Gate;
+4. integration, restart, confined cold backup/restore and limits, implemented
+   and verified focally in commit
+   `e5dae7ee5a786417fba2c6ef0555686816b0b330`, with an Automatic Quality Gate
+   approved under `AUTH-STATE07-V2-INTEGRATION-RECOVERY-AQG-RETEST-001`, no new
+   finding, and `AQG-S07-V2-IR-001` `RESOLVIDO`; and
+5. dataset/homologation stratified by exact document language and actually
+   implemented capabilities, later and unauthorised.
 
-Essas responsabilidades pertencem aos owners técnicos nomeados de `STATE-03` a
-`STATE-07`, mas não promovem, retrocedem ou encerram estado por si sós.
-`STATE-07` permanece ativo; enquanto a implementação/evidência correspondente
-faltar, a claim permanece ausente. OpenAPI v1 conserva byte a byte a superfície
-fechada `pt-BR|en-GB`; contrato/serving v2 estão implementados e possuem
-Automatic Quality Gate aprovado; integração, restart, cold backup/restore
-confinado e limites estão implementados e verificados focalmente; seu
-Automatic Quality Gate foi aprovado sob
-`AUTH-STATE07-V2-INTEGRATION-RECOVERY-AQG-RETEST-001`, sem novo achado, e
-`AQG-S07-V2-IR-001` está `RESOLVIDO`; dataset e homologação de produto
-continuam posteriores, `NOT_RUN` e não autorizados.
+These responsibilities belong to the named technical owners from `STATE-03`
+through `STATE-07`, but do not promote, regress or close a state by themselves.
+`STATE-07` remains active; while corresponding implementation/evidence is
+absent, the claim remains absent. OpenAPI v1 preserves the closed
+`pt-BR|en-GB` surface byte for byte; the v2 contract/serving are implemented
+and have an approved Automatic Quality Gate; integration, restart, confined
+cold backup/restore and limits are implemented and verified focally; their
+Automatic Quality Gate was approved under
+`AUTH-STATE07-V2-INTEGRATION-RECOVERY-AQG-RETEST-001`, with no new finding, and
+`AQG-S07-V2-IR-001` is `RESOLVIDO`; product dataset and homologation remain
+later, `NOT_RUN` and unauthorised.
 
 ## STATE-08 PRODUCTION_RELEASE
 
-Objetivo: publicar a entrega do RAG-Challenge no alvo OCI autorizado.
+Objective: publish the RAG-Challenge delivery to the authorised OCI target.
 
-Entregáveis:
+Deliverables:
 
-- release candidate identificável;
-- configuração e secrets externos;
-- `OFFICIAL_SOURCE_EGRESS` restrito ao conjunto exato de URLs ativas e
-  `OCI_RUNTIME_EGRESS` composto somente pelos destinos separadamente
-  autorizados;
-- `VECTOR_STORE_EGRESS` vazio para adapter local ou restrito ao serviço
-  gerenciado aprovado;
-- deploy e smoke test;
-- health e observabilidade;
+- identifiable release candidate;
+- external configuration and secrets;
+- `OFFICIAL_SOURCE_EGRESS` restricted to the exact active URL set and
+  `OCI_RUNTIME_EGRESS` composed only from separately authorised destinations;
+- `VECTOR_STORE_EGRESS` empty for the local adapter or restricted to the
+  approved managed service;
+- deployment and smoke test;
+- health and observability;
 - rollback;
-- link/captura de execução;
-- README público final, complementando ou substituindo os exemplos
-  locais/sintéticos com comandos e evidência separadamente verificados em OCI
-  e na execução real do produto, e submissão GitHub.
+- execution link/screenshot;
+- final public README, supplementing or replacing local/synthetic examples
+  with commands and evidence separately verified on OCI and in real product
+  execution, and GitHub submission.
 
-Aceite:
+Acceptance:
 
-- alvo e ação autorizados;
-- aplicação pública funcional;
-- evidência sanitizada e reproduzível;
-- nenhum material local ignorado requerido;
-- rollback ou recuperação ensaiados;
-- sincronização oficial, freshness e runbook operacionais verificados;
-- critérios formais do Challenge atendidos.
+- the target and action are authorised;
+- the public application is functional;
+- evidence is sanitised and reproducible;
+- no ignored local material is required;
+- rollback or recovery was rehearsed;
+- official synchronisation, freshness and operational runbook are verified;
+- formal Challenge criteria are met.
 
-## Matriz módulo × estado
+## Module × state matrix
 
-| Módulo | S02 | S03 | S04 | S05 | S06 | S07 | S08 |
+| Module | S02 | S03 | S04 | S05 | S06 | S07 | S08 |
 |---|---|---|---|---|---|---|---|
-| Corpus Catalog | Contratos | Modelo | Casos de uso | Visão | Persistência | Recuperação | Operação |
-| Document Ingestion | Adapters | Versões | Parser | Estado | E2E | Segurança/carga | Runbook |
-| Indexing/Retrieval | Providers | Manifesto | Pipeline | Diagnóstico | Compatibilidade | Evals | Operação |
-| Answer Generation | Política | Evidência | LLM/citações | Resposta | E2E | Groundedness | Limites |
-| Query Experience | API/UX | N/A | API | Interface | Integração | A11y/carga | Publicação |
-| Operations/Governance | Segurança | Auditoria | Health/logs | Erros | Ambiente | Homologação | Release |
-| Official Sources | Contrato/allowlist | Snapshot/freshness | Adapter/sync | Seletor/citação | E2E controlado | SSRF/stale | Egress/runbook |
-| External Integration Contracts | Política OpenAPI | N/A | Artefato/testes | Cliente Web | Compatibilidade | Regressão | Publicação |
+| Corpus Catalog | Contracts | Model | Use cases | View | Persistence | Recovery | Operation |
+| Document Ingestion | Adapters | Versions | Parser | State | E2E | Security/load | Runbook |
+| Indexing/Retrieval | Providers | Manifest | Pipeline | Diagnostics | Compatibility | Evals | Operation |
+| Answer Generation | Policy | Evidence | LLM/citations | Answer | E2E | Groundedness | Limits |
+| Query Experience | API/UX | N/A | API | Interface | Integration | A11y/load | Publication |
+| Operations/Governance | Security | Audit | Health/logs | Errors | Environment | Homologation | Release |
+| Official Sources | Contract/allowlist | Snapshot/freshness | Adapter/synchronisation | Selector/citation | Controlled E2E | SSRF/stale | Egress/runbook |
+| External Integration Contracts | OpenAPI policy | N/A | Artefact/tests | Web client | Compatibility | Regression | Publication |
 
-Desenho anterior à fase não autoriza implementação antecipada.
+A design created before its phase does not authorise premature implementation.

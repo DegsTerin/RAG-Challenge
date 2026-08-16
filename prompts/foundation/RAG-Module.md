@@ -1,35 +1,34 @@
-# Módulo RAG
+# RAG Module
 
 ## Status
 
-Contrato arquitetural vigente para o MVP e sua evolução, reconciliado com os
-ADRs aceitos. O estado implementado e testado pertence ao Current State e aos
-relatórios dos estados. Os incrementos corretivos implementaram a separação de
-idiomas, o content store, os gates de direitos, o renderer/PNG e os vínculos de
-ativação previstos pelos ADRs 0008/0009. Incrementos posteriores implementaram
-v2, serving same-origin, o perfil notice-bearing local e o fluxo text-first,
-preservando v1 byte a byte; o AQG notice-bearing e a homologação de produto
-permanecem separados. O
-`AnswerEvidenceRecordV1`, sua retenção `P30D` e participação em
-reachability previstas pelo ADR-0010 foram implementados localmente por
-`S04-CORR-04-E`, sem gate ou homologação. A geração textual PostgreSQL 18.4
-foi materializada, validada e posteriormente ativada na revisão `1`, com
-`renderManifestId=null`; nenhuma consulta de produto ou resposta foi executada
-por essa ativação. O Current State conserva a evidência e os limites vigentes.
+Current architectural contract for the MVP and its evolution, reconciled with
+accepted ADRs. Implemented and tested state belongs to Current State and state
+reports. Corrective increments implemented the language split, content store,
+rights gates, renderer/PNG and activation bindings anticipated by ADRs
+0008/0009. Later increments implemented v2, same-origin serving, the local
+notice-bearing profile and the text-first flow while preserving v1 byte for
+byte; notice-bearing AQG and product homologation remain separate.
+`S04-CORR-04-E` locally implemented ADR-0010's `AnswerEvidenceRecordV1`,
+`P30D` retention and reachability participation without a gate or homologation.
+The PostgreSQL 18.4 textual generation was materialised, validated and later
+activated at revision `1` with `renderManifestId=null`; that activation made no
+product query or answer. Current State preserves the current evidence and
+boundaries.
 
-## Objetivo e limites
+## Objective and boundaries
 
-O módulo recupera evidências de um acervo governado e gera respostas
-fundamentadas. Ele não:
+The module retrieves evidence from a governed corpus and generates grounded
+answers. It does not:
 
-- administra bancos de dados;
-- executa SQL ou shell;
-- acessa secrets diretamente;
-- decide autorização por saída do modelo;
-- consulta a internet sem adapter e política próprios;
-- trata texto recuperado como instrução confiável.
+- administer databases;
+- execute SQL or shell;
+- access secrets directly;
+- decide authorisation from model output;
+- access the internet without its own adapter and policy;
+- treat retrieved text as trusted instruction.
 
-## Pipeline canônico
+## Canonical pipeline
 
 ```text
 Governed local document or official snapshot (PDF/CSV)
@@ -58,144 +57,135 @@ Question
   -> Answer outcome
 ```
 
-## Conceitos
+## Concepts
 
 ### Corpus
 
-Unidade lógica de conhecimento com:
+A logical knowledge unit with:
 
-- `corpusId` estável;
-- nome e descrição;
-- estado `Active`, `Inactive` ou `Unavailable`;
-- política de fonte;
-- idiomas de conteúdo declarados por tags BCP 47 canônicas; isso não amplia os
-  idiomas de pergunta/resposta suportados;
-- revisão declarada;
-- referência lógica à geração de índice ativa, cujo registro canônico pertence
-  exclusivamente ao `IIndexGenerationStore`.
+- stable `corpusId`;
+- name and description;
+- `Active`, `Inactive` or `Unavailable` state;
+- source policy;
+- content languages declared through canonical BCP 47 tags, without broadening
+  supported question/answer languages;
+- declared revision;
+- logical reference to the active index generation, whose canonical record
+  belongs exclusively to `IIndexGenerationStore`.
 
-O MVP possui um corpus lógico configurado. Ele contém um catálogo administrável
-de bancos e documentos; isso não implementa gestão de múltiplos acervos.
+The MVP has one configured logical corpus containing an administrable database
+and document catalogue; this does not implement multiple-corpus management.
 
-Origem `LocalAuthorised` ou `OfficialExternal` integra proveniência, digests,
-metadados vetoriais e citações, mas não divide a consulta em corpora
-mutuamente exclusivos. Todos os documentos ativos e elegíveis participam da
-recuperação padrão.
+`LocalAuthorised` or `OfficialExternal` origin enters provenance, digests,
+vector metadata and citations but does not split query into mutually exclusive
+corpora. Every active eligible document participates in default retrieval.
 
-### Banco de dados e categoria
+### Database and category
 
-`DatabaseProductId` identifica uma entidade lógica independente de seu nome de
-exibição. `DatabaseProductRevision` é imutável e associa zero ou mais categorias
-por `DatabaseCategoryAssignment`. Categorias são muitos-para-muitos.
+`DatabaseProductId` identifies a logical entity independently of its display
+name. Immutable `DatabaseProductRevision` associates zero or more categories
+through `DatabaseCategoryAssignment`; categories are many-to-many.
 
-Bancos percorrem `Candidate → Active ↔ Deactivated`; de `Candidate` ou
-`Deactivated` podem seguir para `Removed`. `Removed` é tombstone lógico
-auditável. Um banco só pode ficar
-`Active` quando ao menos um documento associado também estiver `Active` e
-elegível. Retirar o último documento ativo exige desativação explícita e
-atômica do banco.
+Databases move `Candidate → Active ↔ Deactivated`; `Candidate` or
+`Deactivated` may move to `Removed`. `Removed` is an auditable logical
+tombstone. A database can be `Active` only when at least one associated
+document is also `Active` and eligible. Removing the final active document
+requires explicit atomic database deactivation.
 
-### Documento e versão
+### Document and version
 
-`DocumentId` identifica um documento lógico associado a um
-`DatabaseProductId`. Cada conteúdo imutável recebe `DocumentVersion` com:
+`DocumentId` identifies a logical document associated with a
+`DatabaseProductId`. Every immutable content object receives a
+`DocumentVersion` with:
 
-- hash SHA-256;
-- tamanho e media type;
-- formato `Pdf` ou `Csv`;
-- versão declarada quando disponível;
-- data da fonte;
-- data de ingestão;
-- `contentLanguage` como `DocumentContentLanguage` BCP 47 canônico;
-- `sourceDeclaredLanguage` exato quando publisher ou metadado embutido fornecer
-  uma tag, sem inferir região ou script;
+- SHA-256 hash;
+- size and media type;
+- `Pdf` or `Csv` format;
+- declared version when available;
+- source and ingestion dates;
+- `contentLanguage` as canonical-BCP-47 `DocumentContentLanguage`;
+- exact `sourceDeclaredLanguage` when supplied by publisher or embedded
+  metadata, without inferring region or script;
 - `sourceAdapterId`;
 - `SourceTrustClass`;
-- locator sanitizado;
-- estado de licenciamento/proveniência.
+- sanitised locator;
+- licensing/provenance state.
 
-Documentos e versões usam `Candidate`, `Active`, `Deactivated` e `Removed` com
-a mesma semântica do catálogo. Uma nova versão é candidata enquanto a anterior
-permanece ativa. Desativação retira a versão da recuperação sem apagar
-histórico; remoção é lógica e bytes só são eliminados após retenção e prova de
-que nenhuma revisão ativa/retida os alcança.
+Documents and versions use `Candidate`, `Active`, `Deactivated` and `Removed`
+with catalogue semantics. A new version is a candidate while the prior one
+remains active. Deactivation removes it from retrieval without erasing history;
+removal is logical, and bytes are deleted only after retention and proof that
+no active/retained revision reaches them.
 
-Renomear um arquivo não deve criar silenciosamente uma nova identidade lógica
-quando o catálogo já tiver um mapeamento estável. Conteúdo alterado sempre
-produz nova versão.
+Renaming a file must not silently create a new logical identity when a stable
+catalogue mapping exists. Changed content always creates a new version.
 
-Parser e configuração não alteram `DocumentVersion`. Um artefato textual
-derivado é identificado separadamente por `DocumentVersion` mais descriptor
-do parser/normalização e sua configuração não secreta; essa compatibilidade
-integra a geração do índice.
+Parser and configuration do not change `DocumentVersion`. A derived textual
+artefact is separately identified by `DocumentVersion`, the
+parser/normalisation descriptor and its non-secret configuration; this
+compatibility enters the index generation.
 
-O runtime implementa `SupportedQueryLanguage` fechado em `pt-BR` e `en-GB` e
-`DocumentContentLanguage` BCP 47 separado, preservando
-`sourceDeclaredLanguage` exato. O contrato público v1 continua fechado em
-`pt-BR|en-GB`; o candidato PostgreSQL `en` não é coagido para `en-GB` nem se
-torna ativo por essa superfície. O contrato v2 está implementado localmente e
-mantém a separação entre idioma de consulta e idioma documental.
+Runtime implements `SupportedQueryLanguage` closed to `pt-BR` and `en-GB` and
+separate BCP 47 `DocumentContentLanguage`, preserving exact
+`sourceDeclaredLanguage`. Public v1 remains closed to `pt-BR|en-GB`; PostgreSQL
+candidate `en` is neither coerced to `en-GB` nor activated through that
+surface. Locally implemented v2 preserves the query/document-language split.
 
-### Conteúdo e evidência visual de página
+### Content and page visual evidence
 
-`IDocumentContentStore` é a única fonte de verdade binária para bytes exatos
-da fonte e PNGs persistentes. Cada objeto é imutável, identificado pelo SHA-256
-dos próprios bytes, gravado idempotentemente e reaberto com hash e tamanho
-verificados. Git, Git LFS, `artifacts-local/`, catálogo e vector store não são
-substitutos.
+`IDocumentContentStore` is the sole binary source of truth for exact source
+bytes and persistent PNGs. Every object is immutable, identified by its own
+byte SHA-256, written idempotently and reopened with verified hash and size.
+Git, Git LFS, `artifacts-local/`, catalogue and vector store are not substitutes.
 
-Para PDF, os perfis aceitos produzem uma imagem `image/png` por página física,
-numerada a partir de 1, a 144 DPI, RGB de 8 bits, fundo branco, aspect ratio
-preservado e dimensões de até 4.096 pixels por eixo. O binding
-`DocumentPageImage` liga documento/versão, conteúdo fonte, página,
-perfil/renderer e conteúdo PNG. Um `DocumentRenderManifest` vinculado à
-ativação registra o conjunto completo e ordinal, page count, descriptors e
-digest canônico; falha, lacuna, duplicidade, limite excedido, assinatura
-inválida ou readback inconsistente reprova esse modo visual de ativação. CSV
-não recebe visualização implícita.
+For PDF, accepted profiles produce one `image/png` per physical page, numbered
+from 1, at 144 DPI, 8-bit RGB, white background, preserved aspect ratio and no
+more than 4,096 pixels per axis. `DocumentPageImage` binds document/version,
+source content, page, profile/renderer and PNG content. An activation-bound
+`DocumentRenderManifest` records the complete ordinal set, page count,
+descriptors and canonical digest. Failure, gap, duplication, exceeded limit,
+invalid signature or inconsistent readback rejects that visual activation
+mode. CSV receives no implicit visualisation.
 
-O perfil `pdf-page-png-notice-v1` implementado preserva a região de página
-pixel a pixel e acrescenta um painel determinístico com o
-`DerivativeObligationSetV1` integral. Manifest, persistence/reachability,
-readback e serving vinculam e revalidam a mesma identidade/digest; o Dashboard
-apresenta o conteúdo exato como texto acessível junto da figura. Isso não
-reclassifica candidato, cria corpus de produto ou substitui seu AQG próprio.
+Implemented `pdf-page-png-notice-v1` preserves the page region pixel for pixel
+and appends a deterministic panel containing the complete
+`DerivativeObligationSetV1`. Manifest, persistence/reachability, readback and
+serving bind and revalidate the same identity/digest; the Dashboard presents
+the exact content as accessible text beside the figure. This neither
+reclassifies a candidate nor creates a product corpus or replaces its AQG.
 
-Importar ou renderizar não ativa conteúdo. O modo text-first permite ativar um
-PDF com geração textual/indexada finalizada, direitos `TextualEvidence`, objeto
-fonte verificado e `renderManifestId=null`. Alternativamente, uma ativação
-visual liga atomicamente direitos `PdfVisualEvidence`, manifesto completo e
-todos os PNGs verificados. Depois de uma resposta v2 text-first citar páginas
-PDF exatas, o runtime pode materializar sob demanda somente essas páginas, no
-intervalo de uma a cinco por resposta. O manifesto esparso resultante pertence
-exclusivamente à evidência persistida daquela resposta, nunca ao binding de
-ativação. Documento `Deactivated` ou `Removed` não serve imagem, e cleanup
-precisa provar ausência de reachability por documento ativo/retido, manifesto,
-evidência de resposta e rollback.
+Importing or rendering does not activate content. Text-first mode can activate
+a PDF with a finalised textual/indexed generation, `TextualEvidence` rights, a
+verified source object and `renderManifestId=null`. Alternatively, visual
+activation atomically binds `PdfVisualEvidence` rights, a complete manifest and
+all verified PNGs. After a text-first v2 answer cites exact PDF pages, runtime
+may render on demand only those pages, from one to five per answer. The sparse
+manifest belongs only to that answer's persisted evidence, never to the
+activation binding. A `Deactivated` or `Removed` document serves no image;
+cleanup proves no reachability through active/retained document, manifest,
+answer evidence or rollback.
 
-O `AnswerEvidenceRecordV1` implementado torna a evidência de resposta uma raiz
-com expiração fixa e sem refresh. A evidência local sintética de
-`S04-CORR-04-E` não substitui Automatic Quality Gate, homologação ou prova
-operacional de cleanup.
+Implemented `AnswerEvidenceRecordV1` makes answer evidence a fixed-expiry,
+no-refresh root. Local synthetic `S04-CORR-04-E` evidence replaces neither an
+Automatic Quality Gate, homologation nor operational cleanup proof.
 
 ### Chunk
 
-Cada chunk preserva:
+Every chunk preserves:
 
-- corpus, banco/revisão, documento/versão, formato e classe de confiança;
-- `contentLanguage` herdado da versão documental;
-- estratégia e versão de chunking;
-- ordem;
-- página/bloco para PDF ou linha/coluna/cabeçalho para CSV;
-- hash do texto normalizado;
-- metadados permitidos para filtro e citação.
+- corpus, database/revision, document/version, format and trust class;
+- `contentLanguage` inherited from the document version;
+- chunking strategy and version;
+- order;
+- PDF page/block or CSV row/column/header;
+- normalised-text hash;
+- permitted filter and citation metadata.
 
-Chunks não carregam secrets nem instruções confiáveis.
+Chunks carry neither secrets nor trusted instructions.
 
-### Geração de índice e compatibilidade
+### Index generation and compatibility
 
-Uma geração é imutável e identificada por um manifesto canônico finalizado que
-inclui:
+An immutable generation is identified by a finalised canonical manifest:
 
 ```text
 manifestSchemaVersion
@@ -211,46 +201,44 @@ vectorCount
 logicalArtifactDigest
 ```
 
-O `activeDocumentSetDigest` cobre a lista ordinal de banco/revisão,
-documento/versão e formato. O `sourceBindingSetDigest` cobre a projeção
-generation-bound ordinal de banco/revisão, documento/versão/formato,
-`sourceAdapterId`, trust, registro de fonte imutável/versionado e snapshot
-imutável. `sourceObservationId` é excluído de `sourceBindingSetDigest`,
-`generationSpecDigest`, digest do manifesto completo e `IndexGenerationId`.
-A sobreposição entre os dois digests é deliberada: um prova o conjunto de
-documentos e o outro prova origem, trust, registro e snapshot materializados
-nos artefatos e citações.
+`activeDocumentSetDigest` covers the ordinal database/revision,
+document/version and format list. `sourceBindingSetDigest` covers the ordinal
+generation-bound projection of database/revision, document/version/format,
+`sourceAdapterId`, trust, immutable/versioned source registration and immutable
+snapshot. `sourceObservationId` is excluded from `sourceBindingSetDigest`,
+`generationSpecDigest`, complete-manifest digest and `IndexGenerationId`. The
+digest overlap is deliberate: one proves the document set and the other proves
+origin, trust, registration and snapshot materialised in artefacts/citations.
 
-`generationSpecDigest` é o SHA-256 da representação canônica dos sete primeiros
-campos do manifesto e identifica a especificação de build. O candidato usa um
-`candidateBuildId` temporário; depois de produzir todos os chunks e vetores, a
-finalização calcula `logicalArtifactDigest` sobre registros lógicos ordenados e
-canônicos, registra contagens e produz o manifesto completo.
+`generationSpecDigest` is the SHA-256 of the canonical representation of the
+first seven manifest fields and identifies the build specification. The
+candidate uses temporary `candidateBuildId`; after all chunks and vectors are
+produced, finalisation computes `logicalArtifactDigest` over ordered canonical
+logical records, records counts and produces the complete manifest.
 
-O manifesto usa schema versionado, nomes e ordem de propriedades fixos,
-serialização UTF-8 e ordenação ordinal de conjuntos. O
-`generationContentDigest` é o SHA-256 do manifesto completo, e
-`IndexGenerationId` deriva dele com prefixo estável. Mesma especificação e
-mesmos artefatos lógicos produzem a mesma identidade; outputs diferentes nunca
-colidem sob um ID já finalizado. `createdAt`, status operacional e observações
-de freshness são metadados fora do digest de conteúdo.
+The manifest uses a versioned schema, fixed property names/order, UTF-8
+serialisation and ordinal set ordering. `generationContentDigest` is the
+complete-manifest SHA-256; `IndexGenerationId` derives from it with a stable
+prefix. Identical specification and logical artefacts yield the same identity;
+different output never collides under an already-finalised ID. `createdAt`,
+operational status and freshness observations remain outside the content digest.
 
-O binding completo pertence ao registro de ativação e é protegido por
-`activationBindingSetDigest`. Esse digest cobre a mesma projeção ordinal de
-fonte e acrescenta `sourceObservationId`; usa domínio canônico versionado
-distinto, propriedades fixas, UTF-8, ordem ordinal e null inequívoco. Alterar
-somente a observação muda o digest do registro, mas não os digests do
-manifesto nem `IndexGenerationId`. Alterar snapshot, adapter, trust, registro
-imutável, documento ou compatibilidade exige nova geração.
+The complete activation-record binding is protected by
+`activationBindingSetDigest`. It covers the same ordinal source projection plus
+`sourceObservationId` under a distinct versioned canonical domain with fixed
+properties, UTF-8, ordinal order and unambiguous null. Changing only the
+observation changes the record digest but not manifest digests or
+`IndexGenerationId`. Changing snapshot, adapter, trust, immutable registration,
+document or compatibility requires a new generation.
 
-O `STATE-03` fecha staging e finalização idempotentes. A ativação só admite
-manifesto finalizado após conferir contagens, digest dos payloads produzidos e
-readback/sentinelas suportados pelo adapter. Candidato parcial nunca recebe
-`IndexGenerationId` nem fica consultável; retry pode reaproveitar apenas
-staging comprovadamente compatível ou remover o órfão por cleanup explícito.
+`STATE-03` closes idempotent staging/finalisation. Activation admits only a
+finalised manifest after checking counts, produced-payload digest and
+adapter-supported readback/sentinels. A partial candidate gets no
+`IndexGenerationId` and is not queryable; retry may reuse only proven-compatible
+staging or explicitly clean the orphan.
 
-O `IndexCompatibilityKey` é o SHA-256 de uma serialização canônica,
-versionada e sem secrets dos campos:
+`IndexCompatibilityKey` is the SHA-256 of a canonical, versioned, secret-free
+serialisation of:
 
 ```text
 parserAdapterId/version/nonSecretConfigDigest
@@ -264,51 +252,48 @@ vectorStoreAdapterId/version/schemaVersion
 distanceMetric/indexAlgorithm/nonSecretIndexParametersDigest
 ```
 
-Qualquer mudança em um desses campos produz chave diferente e exige nova
-geração. A aplicação recusa usar índice cuja chave não corresponda à
-configuração ativa; igualdade de versão nominal não permite reutilização
-silenciosa de artefatos incompatíveis.
+Any change produces a different key and requires a new generation. The
+application refuses an index whose key does not match active configuration;
+nominal version equality cannot silently reuse incompatible artefacts.
 
-## Portas substituíveis
+## Replaceable ports
 
-| Porta | Responsabilidade |
+| Port | Responsibility |
 |---|---|
-| `IDocumentSource` | Enumerar e abrir documentos sem interpretar conteúdo. |
-| `IOfficialSourceSynchroniser` | Buscar somente fontes oficiais configuradas e produzir snapshot imutável. |
-| `IDocumentParser` | Transformar bytes validados em unidades textuais e localização. |
-| `IChunkingStrategy` | Produzir chunks determinísticos e versionados. |
-| `IEmbeddingProvider` | Gerar vetores com descriptor de modelo e dimensão. |
-| `IVectorStore` | Escrever gerações imutáveis e consultar por `VectorSearchRequest` com `CorpusId`, `IndexGenerationId`, seletores generation-bound elegíveis e filtros administrativos opcionais; provar hard pre-filter antes do top-k e não gerir ativação. |
-| `ILanguageModel` | Gerar resposta limitada ao prompt e às evidências. |
-| `IDocumentContentStore` | Persistir e reabrir bytes imutáveis content-addressed de fontes, snapshots oficiais e PNGs de páginas. |
-| `IDocumentCatalog` | Persistir identidades, versões, proveniência e estado. |
-| `IIndexGenerationStore` | Persistir manifestos e ser a única fonte de verdade do `CorpusActivationRecord`, com compare-and-swap e rollback. |
+| `IDocumentSource` | Enumerate and open documents without interpreting content. |
+| `IOfficialSourceSynchroniser` | Fetch only configured official sources and produce an immutable snapshot. |
+| `IDocumentParser` | Transform validated bytes into textual units and locations. |
+| `IChunkingStrategy` | Produce deterministic versioned chunks. |
+| `IEmbeddingProvider` | Generate vectors with model descriptor and dimension. |
+| `IVectorStore` | Write immutable generations and query by `VectorSearchRequest` with `CorpusId`, `IndexGenerationId`, eligible generation-bound selectors and optional administrative filters; prove hard pre-filtering before top-k and do not manage activation. |
+| `ILanguageModel` | Generate an answer bounded by prompt and evidence. |
+| `IDocumentContentStore` | Persist and reopen immutable content-addressed bytes for sources, official snapshots and page PNGs. |
+| `IDocumentCatalog` | Persist identities, versions, provenance and state. |
+| `IIndexGenerationStore` | Persist manifests and be the sole source of truth for `CorpusActivationRecord`, with compare-and-swap and rollback. |
 
-Cada implementação declara identificador, versão, capacidades, limites e
-configuração não secreta. O registro é estático por dependency injection no
-MVP; plug-ins dinâmicos ficam fora do escopo.
+Each implementation declares identifier, version, capabilities, limits and
+non-secret configuration. Registration is static through dependency injection
+in the MVP; dynamic plug-ins are outside scope.
 
-O `IDocumentContentStore` usa gravação idempotente por hash, valida o conteúdo
-reaberto e impede sobrescrita. Catálogo e manifesto guardam referências
-estáveis; a política de retenção impede remover conteúdo fonte ou imagem
-alcançável por documento/manifests/evidência ativos ou retidos e pelo único
-alvo de rollback. Vector store guarda derivados e não substitui a fonte bruta
-necessária para reconstrução.
+`IDocumentContentStore` writes idempotently by hash, validates reopened content
+and prevents overwrite. Catalogue and manifest keep stable references;
+retention prevents removing source/image content reachable through
+active/retained documents/manifests/evidence and the sole rollback target.
+Vector storage contains derivatives and does not replace raw rebuild material.
 
-O Application orquestra ativação. O vector store não mantém uma segunda
-autoridade de estado ativo; eventual alias técnico de um adapter é somente
-projeção recuperável, nunca o system of record. Busca global seguida de
-post-filter também não satisfaz o contrato de isolamento.
+Application orchestrates activation. The vector store maintains no second
+active-state authority; an adapter's technical alias is a recoverable
+projection, never the system of record. Global search followed by post-filter
+also violates the isolation contract.
 
-### Estado e registro de ativação
+### Activation state and record
 
-Uma geração percorre `Candidate → Validated`; falha antes da validação leva a
-`Failed`. `Active` e `Retained` são projeções derivadas, respectivamente, do
-registro de ativação corrente e das revisões completas preservadas para
-rollback, nunca estados mutáveis concorrentes em outro store. Somente uma
-geração `Validated` pode integrar um registro ativo.
+A generation moves `Candidate → Validated`; pre-validation failure becomes
+`Failed`. `Active` and `Retained` are projections from the current activation
+record and complete revisions preserved for rollback, never concurrent mutable
+states elsewhere. Only `Validated` may enter an active record.
 
-O `CorpusActivationRecord` contém ao menos:
+`CorpusActivationRecord` contains at least:
 
 ```text
 corpusId
@@ -323,206 +308,197 @@ documentBindings[]
   sourceTrustClass/sourceAdapterId
   officialSourceRegistrationId?/sourceSnapshotId?/sourceObservationId?
 evidenceBindings[]
-  documentBinding completo
+  complete documentBinding
   sourceContentObjectId
   rightsSchemaVersion: 1
   rightsDecisions[10]
-  renderManifestId? # nulo no PDF text-first/CSV; completo no PDF visual
+  renderManifestId? # null for text-first PDF/CSV; complete for visual PDF
 generationActivatedAt
 recordUpdatedAt
 ```
 
-O compare-and-swap altera o registro inteiro em uma transação do plano de
-controle que também preserva as representações completas anterior e nova no
-histórico versionado de ativação e grava o evento de auditoria sanitizado. Cada
-binding é ordenado ordinalmente. `activeDocumentSetDigest` e
-`sourceBindingSetDigest`, sem observação, precisam corresponder ao manifesto;
-`activationBindingSetDigest`, com observação, precisa corresponder ao registro.
-Cada observação oficial já deve existir imutavelmente e nomear o mesmo registro
-e snapshot do binding antes da transação. Falha ou conflito deixa registro e
-histórico anteriores intactos; conteúdo, observações e vetores candidatos
-permanecem órfãos auditáveis até cleanup explícito. A consulta lê o registro
-corrente uma vez e não combina a geração com estado de catálogo ou “última
-observação” obtidos separadamente.
+Compare-and-swap changes the complete record in one control-plane transaction
+that preserves complete old/new representations in versioned activation
+history and writes the sanitised audit event. Bindings are ordinally ordered.
+Observation-free `activeDocumentSetDigest` and `sourceBindingSetDigest` must
+match the manifest; observation-bearing `activationBindingSetDigest` must
+match the record. Every official observation already exists immutably and
+names the same binding registration/snapshot before the transaction. Failure
+or conflict leaves prior record/history intact; candidate content,
+observations and vectors remain auditable orphans until explicit cleanup.
+Query reads the current record once and does not combine generation with
+separately read catalogue state or “latest observation”.
 
-Cada nova revisão persiste um binding de evidência imutável por documento: o
-`DocumentBinding` e objeto fonte exatos, snapshot completo das dez decisões de
-direitos em schema `1` e o `renderManifestId` opcional. `null` seleciona o modo
-text-first; um valor seleciona o manifesto completo de ativação visual. Esses
-campos não criam identidade/revisão administrativa ou digest global de direitos
-e não alteram os domínios de `sourceBindingSetDigest` ou
-`activationBindingSetDigest`. Replay pelo mesmo `OperationId` compara também
-todos os vínculos e decisões. Revisão histórica sem o conjunto completo é
-preservada sem inferência, mas falha fechada como autoridade corrente de
-consulta ou prontidão visual.
+Every new revision persists one immutable evidence binding per document: exact
+`DocumentBinding` and source object, complete snapshot of ten rights decisions
+in schema `1`, and optional `renderManifestId`. `null` selects text-first; a
+value selects the complete visual-activation manifest. These fields create no
+administrative identity/revision or global rights digest and do not alter the
+`sourceBindingSetDigest` or `activationBindingSetDigest` domains. Replay by the
+same `OperationId` also compares all links and decisions. A historical revision
+without the complete set remains uninferred but fails closed as current query
+or visual-readiness authority.
 
-Antes do CAS, a implementação confere corpus, documento, versão, formato,
-objeto fonte, idioma documental suportado, geração textual/vector finalizada e
-bindings idênticos ao manifesto. CSV e PDF text-first com
-`renderManifestId=null` exigem `TextualEvidence` integralmente `Permitted` e
-reabertura verificada da fonte. PDF com `renderManifestId` exige
-`PdfVisualEvidence` integralmente `Permitted`, manifesto finalizado da mesma
-fonte, uma linha consecutiva por página física e reabertura verificada da fonte
-e de todos os PNGs. Manifesto esparso sob demanda não satisfaz nem pode ser
-usado nesse binding de ativação. A transação Control grava revisão, bindings,
-evidência/direitos, retenção, head, auditoria e completion do journal
-administrativo aplicável como uma única mudança atômica.
+Before CAS, implementation checks corpus, document, version, format, source
+object, supported document language, finalised textual/vector generation and
+manifest-identical bindings. CSV and text-first PDF with
+`renderManifestId=null` require all `TextualEvidence` rights `Permitted` and a
+verified source reopen. PDF with `renderManifestId` requires all
+`PdfVisualEvidence` rights `Permitted`, a finalised same-source manifest, one
+consecutive row per physical page and verified source/all-PNG reopen. An
+on-demand sparse manifest cannot satisfy this activation binding. The Control
+transaction writes revision, bindings, evidence/rights, retention, head, audit
+and applicable administrative-journal completion atomically.
 
-`catalogueRevision` identifica o snapshot imutável do catálogo que integra a
-especificação da geração. O journal append-only de observações possui revisão
-própria. Rebinding de freshness avança o journal e `recordRevision`, nunca a
-`catalogueRevision`; versão transacional interna de uma linha também não se
-confunde com essa revisão canônica.
+`catalogueRevision` identifies the immutable catalogue snapshot in the
+generation specification. The append-only observation journal has its own
+revision. Freshness rebinding advances journal and `recordRevision`, never
+`catalogueRevision`; a row's internal transactional version is also distinct.
 
-## Fontes locais e externas
+## Local and external sources
 
-### Fontes locais autorizadas
+### Authorised local sources
 
-Usa `sourceAdapterId=local-directory` e
-`SourceTrustClass=LocalAuthorised`. O ID do adapter é extensível; a
-classificação de confiança é fechada e não concede autorização por si só.
+Uses `sourceAdapterId=local-directory` and
+`SourceTrustClass=LocalAuthorised`. Adapter ID is extensible; trust
+classification is closed and grants no authority itself.
 
-- raiz configurada e canonicalizada;
-- sem acesso fora da raiz;
-- allowlist de extensão/media type;
-- limites por arquivo/operação de tamanho, páginas/linhas e concorrência, sem
-  teto de produto para a quantidade total de documentos;
-- conteúdo hashado antes da indexação;
-- bytes validados promovidos idempotentemente ao `IDocumentContentStore` e
-  reabertos com hash verificado antes de qualquer ativação;
-- para PDF com manifesto vinculado à ativação, renderização completa e
-  persistência/reabertura verificadas de todos os PNGs antes do CAS; PDF
-  text-first mantém `renderManifestId=null` e não pré-renderiza páginas;
-- nenhuma dependência de `reference-materials/`.
+- configured canonicalised root;
+- no access outside the root;
+- extension/media-type allowlist;
+- per-file/operation size, page/row and concurrency limits, without a product
+  ceiling on total documents;
+- content hashed before indexing;
+- validated bytes promoted idempotently to `IDocumentContentStore` and reopened
+  with verified hash before activation;
+- activation-bound PDF manifests require complete rendering and verified
+  persistence/reopen of all PNGs before CAS; text-first PDF keeps
+  `renderManifestId=null` and does not pre-render pages;
+- no dependency on `reference-materials/`.
 
-### Fontes oficiais externas
+### External official sources
 
-Implementação separada com `SourceTrustClass=OfficialExternal` e
-`sourceAdapterId` estável específico do adapter:
+Separate implementation with `SourceTrustClass=OfficialExternal` and stable
+adapter-specific `sourceAdapterId`:
 
-- somente HTTPS;
-- qualquer quantidade de registros aprovados compatíveis com o adapter;
-- scheme, domínio, porta, path e query exatos de cada PDF/CSV em allowlist;
-- fonte pública anônima, sem userinfo, token/assinatura em query,
-  `Authorization`, API key, client certificate ou credencial ambiente;
-- redirects desativados no MVP;
-- cada conexão física resolve e autoriza DNS/IP uma vez, conecta somente ao IP
-  aprovado e preserva host/SNI sem nova resolução por hostname;
-- validação TLS não pode buscar AIA, CRL ou OCSP fora da política; trust,
-  revogação, downloads de cadeia e eventual material local são decididos no
-  `STATE-02`, e qualquer destino auxiliar exige allowlist própria;
-- timeout, máximo de bytes/páginas/linhas, media type/assinatura ou estrutura
-  PDF/CSV, concorrência e rate limit;
-- termos, licença e robots revisados antes da primeira sincronização;
-- snapshot de conteúdo imutável com `sourceKey`, `snapshotId`, URL canônica,
-  ETag/Last-Modified observados na captura, hash, `retrievedAt` e licença;
-- bytes do snapshot persistidos pelo `IDocumentContentStore`;
-- páginas PDF derivadas persistidas no mesmo content store somente depois de
-  direitos específicos e autoridade de renderização;
-- observações de revalidação append-only com `observationId`, `snapshotId`,
-  validators condicionais enviados, status HTTP, ETag/Last-Modified
-  observados, `revalidatedAt`, `maxAge`, resultado e evidência sanitizada;
-- sincronização para snapshot governado antes da recuperação;
-- origem local/oficial visível sem separar o espaço padrão de recuperação.
+- HTTPS only;
+- any number of approved adapter-compatible records;
+- exact allowlisted scheme, domain, port, path and query for every PDF/CSV;
+- anonymous public source without userinfo, query token/signature,
+  `Authorization`, API key, client certificate or environment credential;
+- redirects disabled in the MVP;
+- each physical connection resolves/authorises DNS/IP once, connects only to an
+  approved IP and preserves host/SNI without new hostname resolution;
+- TLS validation cannot fetch out-of-policy AIA, CRL or OCSP; `STATE-02`
+  decides trust, revocation, chain downloads and possible local material, and
+  every auxiliary destination requires its own allowlist;
+- timeout, maximum bytes/pages/rows, PDF/CSV media type/signature/structure,
+  concurrency and rate limit;
+- terms, licence and robots reviewed before first synchronisation;
+- immutable content snapshot with `sourceKey`, `snapshotId`, canonical URL,
+  capture-observed ETag/Last-Modified, hash, `retrievedAt` and licence;
+- snapshot bytes persisted by `IDocumentContentStore`;
+- derived PDF pages persisted in the same content store only after specific
+  rights and rendering authority;
+- append-only revalidation observations with `observationId`, `snapshotId`,
+  sent conditional validators, HTTP status, observed ETag/Last-Modified,
+  `revalidatedAt`, `maxAge`, outcome and sanitised evidence;
+- synchronisation to a governed snapshot before retrieval;
+- visible local/official origin without splitting default retrieval space.
 
-O conteúdo de cada snapshot nunca muda. O vínculo configurado da fonte possui
-estado `Current`, `Stale`, `Withdrawn` ou `Deactivated`, derivado da observação
-apontada pelo binding do `CorpusActivationRecord`, e não simplesmente da última
-observação gravada. Conteúdo expirado, retirado ou desativado não é apresentado
-como atual; status e frescor acompanham a citação. A política padrão do MVP
-falha fechada para o documento quando o registro ativo não vincula snapshot e
-observação elegível `Current`; os demais documentos ativos continuam elegíveis
-e a cobertura degradada é explícita.
+Snapshot content never changes. Configured source binding has `Current`,
+`Stale`, `Withdrawn` or `Deactivated` state derived from the observation named
+by `CorpusActivationRecord`, not simply the last written observation. Expired,
+withdrawn or deactivated content is not presented as current; status and
+freshness accompany citations. The default MVP policy fails the document
+closed when the active record binds no eligible `Current` snapshot/observation;
+other active documents remain eligible and degraded coverage is explicit.
 
-A consulta não recebe acesso irrestrito à web. O conteúdo sincronizado não
-altera políticas, prompts de sistema ou autorização.
+Query receives no unrestricted web access. Synchronised content changes no
+policy, system prompt or authority.
 
-Sincronização oficial é um caso de uso administrativo manual por registro:
+Official synchronisation is a manual administrative use case per record:
 
-1. carregar `OfficialSourceRegistrationId` aprovado; nenhuma URL vem da
-   pergunta;
-2. canonicalizar a URL pública sem credenciais, validar a allowlist específica,
-   resolver A/AAAA e rejeitar respostas mistas/proibidas; conectar ao IP
-   aprovado preservando host/SNI, sem egress lateral da validação TLS;
-3. fazer request condicional usando os validators do binding ativo e persistir
-   os validators enviados/recebidos e o status; redirects ficam desativados;
-4. em `304` ou hash idêntico, persistir observação imutável e, somente quando
-   ela nomear o mesmo registro imutável e snapshot do manifesto ativo, criar
-   nova revisão completa do registro com `sourceObservationId` e
-   `activationBindingSetDigest` recalculado; publicar por compare-and-swap com
-   auditoria atômica ou falhar fechado;
-5. para conteúdo novo, baixar para quarentena, limitar bytes e trabalho de
-   parser, validar PDF/CSV, calcular hash, persistir/reabrir o snapshot e criar
-   uma versão documental `Candidate`;
-6. construir e validar geração candidata com o novo conjunto ordenado;
-7. em uma transação, ativar banco/documento quando aplicável e trocar o
-   `CorpusActivationRecord` completo com auditoria sanitizada.
+1. load approved `OfficialSourceRegistrationId`; no URL comes from the question;
+2. canonicalise the credential-free public URL, validate its allowlist,
+   resolve A/AAAA and reject mixed/prohibited responses; connect to the
+   approved IP preserving host/SNI with no lateral TLS-validation egress;
+3. make a conditional request using active-binding validators and persist
+   sent/received validators and status; redirects remain disabled;
+4. on `304` or identical hash, persist an immutable observation and, only when
+   it names the same immutable registration and active-manifest snapshot,
+   create a complete new record revision with `sourceObservationId` and
+   recalculated `activationBindingSetDigest`; publish by compare-and-swap with
+   atomic audit or fail closed;
+5. for new content, download to quarantine, bound bytes/parser work, validate
+   PDF/CSV, hash, persist/reopen the snapshot and create a Candidate document
+   version;
+6. build and validate a candidate generation with the new ordered set;
+7. atomically activate database/document when applicable and replace the
+   complete `CorpusActivationRecord` with sanitised audit.
 
-Uma resposta autoritativa `404`/`410`, quando assim definida pela política da
-fonte, cria observação `Withdrawn` vinculada ao snapshot ativo. Uma operação
-administrativa explícita e auditada cria observação `Deactivated` sem fetch.
-Nos dois casos, o compare-and-swap muda somente o binding do registro
-compatível, o digest/revisão do registro e a auditoria. Preserva manifesto,
-`sourceBindingSetDigest`, `generationSpecDigest`, `IndexGenerationId`,
-`catalogueRevision`, `generationActivatedAt` e snapshot quando o documento
-deixa de ser elegível apenas por freshness; nenhuma reindexação ocorre. Falha
-transitória de DNS/transporte/`5xx` registra a tentativa, mas não substitui uma
-observação `Current`; o snapshot passa a `Stale` pelo `maxAge`. Voltar a
-`Current` exige nova sincronização/revalidação elegível e, após
-`Deactivated`, reativação administrativa explícita.
+An authoritative `404`/`410`, as defined by source policy, creates a
+`Withdrawn` observation bound to the active snapshot. An explicit audited
+administrative operation creates `Deactivated` without fetch. In both cases,
+CAS changes only the compatible record binding, record digest/revision and
+audit. It preserves manifest, `sourceBindingSetDigest`, `generationSpecDigest`,
+`IndexGenerationId`, `catalogueRevision`, `generationActivatedAt` and snapshot
+when only freshness makes the document ineligible; no reindex occurs. A
+transient DNS/transport/`5xx` failure records the attempt but does not replace
+a `Current` observation; the snapshot becomes `Stale` through `maxAge`.
+Returning to `Current` requires eligible synchronisation/revalidation and,
+after `Deactivated`, explicit administrative reactivation.
 
-Falha transitória ou sincronização rejeitada nunca altera geração, snapshot ou
-observação ativos. Um snapshot anterior pode continuar servindo somente
-enquanto `Current`; após `maxAge`, ele deixa a recuperação e a resposta expõe
-cobertura degradada, sem apresentar outra origem como substituta silenciosa.
+Transient failure or rejected synchronisation never changes active generation,
+snapshot or observation. A prior snapshot serves only while `Current`; after
+`maxAge` it leaves retrieval and the answer exposes degraded coverage without
+silently presenting another origin as a substitute.
 
-## Estratégia do MVP para atualização
+## MVP update strategy
 
-O MVP mantém o fluxo simples:
+1. Resolve active databases/documents plus explicitly selected candidates and
+   bound official snapshots.
+2. Validate each document's format, provenance, licence, identity and hash.
+3. Persist or reuse the immutable object by hash, reopen it through
+   `IDocumentContentStore` and verify its bytes.
+4. Explicitly select PDF binding: text-first with `renderManifestId=null`, or
+   visual with a complete finalised manifest verified before activation.
+5. Build one generation with every eligible chunk and database, document,
+   format, origin and trust metadata.
+6. Validate manifest, reopenable references, compatibility, eligibility,
+   coverage, both binding domains and smoke queries.
+7. Compare-and-swap the complete `CorpusActivationRecord` in
+   `IIndexGenerationStore`, including document/source bindings, rights
+   snapshots and applicable render manifests.
+8. Keep the active generation and at least one prior validated generation until
+   explicit cleanup after the defined rollback window.
 
-1. resolver bancos/documentos ativos mais candidatos explicitamente escolhidos
-   e os snapshots oficiais vinculados;
-2. validar formato, proveniência, licença, identidade e hash de cada documento;
-3. persistir ou reutilizar o objeto imutável por hash, reabri-lo pelo
-   `IDocumentContentStore` e conferir seus bytes;
-4. escolher explicitamente o binding do PDF: text-first com
-   `renderManifestId=null`, ou visual com manifesto completo finalizado e
-   verificado antes da ativação;
-5. construir uma geração única com todos os chunks elegíveis e metadados de
-   banco, documento, formato, origem e confiança;
-6. validar manifesto, referências reabríveis, compatibilidade, elegibilidade,
-   cobertura, os dois domínios de binding e smoke queries;
-7. trocar por compare-and-swap o `CorpusActivationRecord` completo no
-   `IIndexGenerationStore`, incluindo todos os bindings documentais, fontes,
-   snapshots de direitos e render manifests aplicáveis;
-8. manter a geração ativa e ao menos uma geração anterior validada até cleanup
-   explícito após a janela de rollback definida.
+The MVP may rebuild the complete generation. It need not implement per-chunk
+diff, scheduler, queue or distributed synchronisation.
 
-O MVP pode reconstruir a geração completa. Ele não precisa implementar diff
-por chunk, scheduler, fila ou sincronização distribuída.
+By default, every question retrieves across all active eligible bindings in the
+resolved record. Origin is not an implicit filter; optional administrative
+database/document filters, when introduced, must be explicit.
 
-Cada pergunta recupera, por padrão, em todos os bindings ativos e elegíveis do
-registro resolvido. Origem não é um filtro implícito; filtros administrativos
-opcionais por banco/documento, quando introduzidos, devem ser explícitos.
+Joint-generation invariants:
 
-Invariantes da geração conjunta:
+- a candidate represents a coherent snapshot of the complete selected catalogue;
+- each update preserves unchanged databases/documents by identity/version in
+  the new manifest;
+- content updates are serialised per corpus;
+- an active database has at least one active/eligible document;
+- removing the final active document requires explicit atomic database
+  deactivation;
+- `VectorSearchRequest` requires `CorpusId` and `IndexGenerationId`; declared
+  administrative filters and eligible-binding selectors derived from the
+  resolved record also apply before top-k;
+- post-filtering after global search violates the contract;
+- rollback replaces the complete generation; partial rollback creates a new
+  candidate;
+- official freshness is revalidated outside the index and does not become
+  `Current` merely through rollback.
 
-- uma candidata representa snapshot coerente do catálogo inteiro selecionado;
-- toda atualização preserva bancos/documentos não alterados por identidade e
-  versão no novo manifesto;
-- atualizações de conteúdo são serializadas por corpus;
-- um banco ativo possui ao menos um documento ativo/elegível;
-- a saída do último documento ativo exige desativação explícita e atômica do
-  banco;
-- `VectorSearchRequest` exige `CorpusId` e `IndexGenerationId`; filtros
-  administrativos declarados e os seletores de bindings elegíveis derivados do
-  registro resolvido também são aplicados antes do top-k;
-- post-filter depois de busca global é violação de contrato;
-- rollback troca a geração inteira; rollback parcial cria uma nova candidata;
-- freshness oficial é metadado revalidado fora do índice e não volta a
-  `Current` apenas por rollback.
-
-## Atualização incremental futura
+## Future incremental update
 
 ```text
 discover snapshot
@@ -535,129 +511,129 @@ discover snapshot
   -> atomically activate
 ```
 
-Requisitos:
+Requirements:
 
-- operação idempotente;
-- checkpoint e retomada segura;
-- lote, timeout, cancelamento e backpressure;
-- nenhuma consulta lê geração parcialmente escrita;
-- remoção preserva auditoria e retenção;
-- provider/model/chunking incompatível força reconstrução controlada.
+- idempotent operation;
+- checkpoint and safe resume;
+- batch, timeout, cancellation and backpressure;
+- no query reads a partially written generation;
+- removal preserves audit and retention;
+- incompatible provider/model/chunking forces a controlled rebuild.
 
 ## Rollback
 
-Rollback de índice usa como alvo uma geração anterior preservada, validada e
-sua projeção generation-bound completa. A operação nunca restaura bytes de um
-`CorpusActivationRecord` histórico. Ela constrói nova revisão corrente,
-recalcula `activationBindingSetDigest` e publica por compare-and-swap. Não edita
-vetores no lugar nem combina a geração anterior com um vínculo oficial
-arbitrário.
+Index rollback targets a preserved validated prior generation and its complete
+generation-bound projection. It never restores bytes from a historical
+`CorpusActivationRecord`; it constructs a new current revision, recalculates
+`activationBindingSetDigest` and publishes by compare-and-swap. It neither
+edits vectors in place nor combines a prior generation with an arbitrary
+official binding.
 
-Para cada registro/snapshot oficial do alvo, a transação administrativa recebe
-e valida explicitamente uma observação append-only já existente, compatível e
-elegível pela política atual; não seleciona “a mais recente” implicitamente. Se
-o conjunto não mantiver cada banco ativo com evidência elegível, o rollback é
-rejeitado sem alterar o registro corrente. Observações históricas nunca têm
-timestamp, `maxAge` ou estado reescritos; corrigir uma observação exige novo
-append e nova revisão de ativação.
+For every target official registration/snapshot, the administrative
+transaction explicitly receives and validates an existing append-only
+observation that is compatible and eligible under current policy; it does not
+implicitly select “the latest”. If the set cannot keep every active database
+with eligible evidence, rollback is rejected without changing the current
+record. Historical observation timestamp, `maxAge` and state are never
+rewritten; correction requires a new append and activation revision.
 
-O rollback também recebe todos os bindings de evidência atuais e revalida
-direitos, objetos fonte, geração textual/vector e render manifests; não copia
-cegamente o snapshot histórico. Um rebind exclusivamente de freshness só
-preserva os bindings imutáveis quando documento, versão, geração e manifesto
-permanecem idênticos.
+Rollback also receives current evidence bindings and revalidates rights,
+source objects, textual/vector generation and render manifests; it does not
+blindly copy a historical snapshot. Freshness-only rebinding preserves
+immutable bindings only when document, version, generation and manifest remain
+identical.
 
-Rollback de documento seleciona uma versão anterior e cria nova candidata para
-o manifesto completo. Uma geração anterior só pode ser reativada quando o
-conjunto generation-bound completo e a chave de compatibilidade correspondem
-ao alvo e as observações selecionadas satisfazem a política atual; reativação
-nunca torna snapshot antigo novamente `Current`.
+Document rollback selects a prior version and creates a new candidate for the
+complete manifest. A prior generation may be reactivated only when its complete
+generation-bound set and compatibility key match the target and selected
+observations satisfy current policy; reactivation never makes an old snapshot
+`Current` again.
 
-Rollback de aplicação, configuração, catálogo e índice são procedimentos
-separados. No MVP, cleanup nunca remove a geração ativa nem o único alvo de
-rollback elegível antes do fim da janela aprovada. Depois de cleanup explícito,
-ou diante de incompatibilidade comprovada com o runtime, o caminho é
-reconstrução controlada e não uma promessa falsa de rollback.
+Application, configuration, catalogue and index rollback are separate
+procedures. MVP cleanup never removes the active generation or sole eligible
+rollback target before the approved window ends. After explicit cleanup or
+proved runtime incompatibility, the path is controlled rebuild, not a false
+rollback promise.
 
-Ativação e retorno devem testar:
+Activation and return must test:
 
-1. leitura do registro esperado;
-2. compare-and-swap do registro inteiro para a candidata validada;
-3. rejeição segura em conflito de concorrência;
-4. consulta usando somente a geração resolvida;
-5. construção e compare-and-swap de novo registro apontando para a geração
-   anterior, com observações compatíveis e atualmente elegíveis;
-6. validação dos digests do documento, da fonte generation-bound e do binding
-   completo, com atomicidade entre registro, observação e evento de auditoria;
-7. crash antes, durante e depois de cada fronteira de persistência;
-8. preservação dos registros completos históricos sem replay de freshness;
-9. auditoria de ator, motivo, origem, alvo e resultado.
+1. reading the expected record;
+2. whole-record compare-and-swap to the validated candidate;
+3. safe rejection on concurrency conflict;
+4. query using only the resolved generation;
+5. construction and compare-and-swap of a new record pointing to the prior
+   generation with compatible currently eligible observations;
+6. validation of document, generation-bound source and complete-binding digests
+   with atomic record, observation and audit event;
+7. crash before, during and after each persistence boundary;
+8. preservation of complete historical records without freshness replay;
+9. actor, reason, origin, target and outcome audit.
 
-## Múltiplos acervos futuros
+## Future multiple corpora
 
-- Namespace de vetor e metadados sempre inclui `corpusId`.
-- Consulta deve receber escopo de corpus explícito.
-- Ativação e versão são independentes por corpus.
-- Adicionar, remover ou desativar corpus não altera o núcleo.
-- Filtros de autorização são aplicados antes da recuperação.
-- Resultados de acervos diferentes não são misturados silenciosamente.
+- Vector namespace and metadata always include `corpusId`.
+- Query receives explicit corpus scope.
+- Activation and version are independent per corpus.
+- Adding, removing or deactivating a corpus does not change the core.
+- Authorisation filters apply before retrieval.
+- Results from different corpora are not silently mixed.
 
-O MVP fixa um único corpus por configuração e não expõe administração remota.
+The MVP fixes one corpus by configuration and exposes no remote administration.
 
-## Recuperação e geração
+## Retrieval and generation
 
-- Normalizar e limitar a pergunta.
-- Exigir `questionLanguage=pt-BR|en-GB` como `SupportedQueryLanguage` e
-  validá-lo antes de qualquer chamada
-  externa; não inferir silenciosamente outro idioma em perguntas curtas ou
-  ambíguas.
-- Não aceitar URL, domínio, banco, documento, origem ou adapter como campo de
-  autoridade na pergunta.
-- Resolver o `CorpusActivationRecord` uma única vez no início da consulta.
-- Resolver todos os bindings ativos/current e a cobertura antes de gerar o
-  query embedding ou chamar qualquer provider.
-- Usar `CorpusId`, `IndexGenerationId` e os seletores generation-bound dos
-  bindings elegíveis, todos derivados do registro resolvido, em um
-  `VectorSearchRequest` durante toda recuperação, validação e citação; nenhuma
-  etapa relê silenciosamente o registro.
-- Usar top-k e thresholds definidos por avaliação, não por palpite.
-- Aplicar `CorpusId`, `IndexGenerationId`, bindings elegíveis e filtros
-  administrativos opcionais antes do top-k/ranking.
-- Separar claramente instruções confiáveis de evidências não confiáveis.
-- Instruir o modelo a gerar a resposta exatamente em `questionLanguage`,
-  mesmo quando `contentLanguage` das evidências for diferente.
-- Limitar número e tamanho total dos trechos.
-- Exigir referência de cada afirmação factual relevante.
-- Rejeitar citação que não pertença ao conjunto recuperado.
-- Não preencher lacunas com conhecimento paramétrico não citado.
-- Retornar `INSUFFICIENT_EVIDENCE` quando não houver suporte suficiente.
+- Normalise and bound the question.
+- Require `questionLanguage=pt-BR|en-GB` as `SupportedQueryLanguage` and
+  validate before any external call; do not infer another language for short
+  or ambiguous questions.
+- Accept no URL, domain, database, document, origin or adapter as an authority
+  field in the question.
+- Resolve `CorpusActivationRecord` exactly once at query start.
+- Resolve all active/current bindings and coverage before query embedding or
+  any provider call.
+- Use `CorpusId`, `IndexGenerationId` and generation-bound eligible-binding
+  selectors derived from the resolved record in one `VectorSearchRequest`
+  throughout retrieval, validation and citation; no stage silently rereads the
+  record.
+- Use top-k and thresholds defined through evaluation, not guesswork.
+- Apply `CorpusId`, `IndexGenerationId`, eligible bindings and optional
+  administrative filters before top-k/ranking.
+- Clearly separate trusted instructions from untrusted evidence.
+- Instruct the model to answer exactly in `questionLanguage` even when evidence
+  `contentLanguage` differs.
+- Bound passage count and total size.
+- Require a reference for every material factual claim.
+- Reject a citation outside the retrieved set.
+- Do not fill gaps with uncited parametric knowledge.
+- Return `INSUFFICIENT_EVIDENCE` without sufficient support.
 
-O modelo não recebe acesso direto ao vetor, arquivo, rede ou catálogo. A
-Application seleciona e limita as evidências.
+The model has no direct vector, file, network or catalogue access. Application
+selects and bounds evidence.
 
-Documento oficial stale/indisponível não participa da recuperação e aparece na
-cobertura degradada. A consulta continua somente quando existe ao menos um
-documento ativo/elegível, sem afirmar que outra origem substituiu a ausente.
+A stale/unavailable official document does not participate in retrieval and
+appears in degraded coverage. Query continues only when at least one active
+eligible document exists, without claiming another origin replaced the absent
+one.
 
-### Readiness por capacidade
+### Per-capability readiness
 
-- Liveness depende apenas da capacidade do processo responder.
-- Readiness global exige plano de controle, geração ativa compatível, ao menos
-  um banco/documento servível, vector store, embedding de query e LLM.
-- Fontes/documentos `Stale|Unavailable|Withdrawn|Deactivated` produzem
-  degradação de cobertura e não tornam a instância indisponível enquanto outro
-  documento ativo/elegível permanece servível.
-- Disponibilidade do egress administrativo de sincronização é diagnóstico
-  separado e não participa da readiness do caminho de consulta.
+- Liveness depends only on the process being able to respond.
+- Global readiness requires the control plane, a compatible active generation,
+  at least one servable database/document, vector store, query embedding and LLM.
+- `Stale|Unavailable|Withdrawn|Deactivated` sources/documents degrade coverage
+  and do not make the instance unavailable while another active eligible
+  document remains servable.
+- Administrative synchronisation-egress availability is separate diagnostics,
+  not query-path readiness.
 
-## Respostas e citações
+## Answers and citations
 
-`AnswerOutcome` possui somente resultados concluídos:
+`AnswerOutcome` contains only completed outcomes:
 
 - `Answered`;
 - `InsufficientEvidence`.
 
-Falhas de consulta são resultados tipados separados:
+Query failures are separate typed outcomes:
 
 - `InvalidInput`;
 - `CorpusUnavailable`;
@@ -671,190 +647,176 @@ Falhas de consulta são resultados tipados separados:
 - `OperationCancelled`;
 - `UnexpectedFailure`.
 
-Esses nomes são subconjunto da taxonomia canônica da Application. O
-`STATE-02` define uma única tabela para código `CH_*`, HTTP e Problem Details;
-adapters não traduzem a mesma falha para categorias concorrentes.
+These names are a subset of the canonical Application taxonomy. `STATE-02`
+defines one `CH_*`/HTTP/Problem Details table; adapters do not translate one
+failure into competing categories.
 
-Uma citação sempre inclui:
+A citation always includes:
 
 - `corpusId`;
-- `databaseProductId` e `databaseProductRevision`;
+- `databaseProductId` and `databaseProductRevision`;
 - `indexGenerationId`;
 - `documentId`;
 - `documentVersion`;
 - `documentFormat`;
 - `contentLanguage`;
 - chunk ID;
-- `sourceAdapterId` e `SourceTrustClass`.
+- `sourceAdapterId` and `SourceTrustClass`.
 
-Quando disponíveis, também inclui:
+When available, it also includes title, PDF page/block or CSV
+row/column/header, and a safe display locator.
 
-- título;
-- página/bloco para PDF ou linha/coluna/cabeçalho para CSV;
-- locator seguro para exibição.
+Title, section, passage, page label and all source-derived text remain in the
+original `DocumentContentLanguage`. Generation may explain evidence in the
+question language but does not rewrite or translate citation content. In
+implemented v1, `contentLanguage` remains closed to `pt-BR|en-GB`; a broader
+tag is not coerced or activated through that surface.
 
-Título, seção, trecho, rótulo de página e qualquer outro texto derivado da
-fonte permanecem no `DocumentContentLanguage` original. A geração pode explicar
-a evidência no idioma da pergunta, mas não reescreve nem traduz o conteúdo
-apresentado como citação. No contrato v1 implementado, `contentLanguage`
-continua fechado em `pt-BR|en-GB`; uma tag mais ampla não é coagida nem ativada
-por essa superfície.
+Implemented v2 preserves closed `questionLanguage`/`answerLanguage`, broadens
+`CitationV2.contentLanguage` to BCP 47, preserves `sourceDeclaredLanguage` and
+adds `PageImageEvidenceV1` references. After validating a grounded answer and
+citations, text-first activation may render on demand only the distinct cited
+physical pages, one to five per answer. The sparse manifest must match that set
+exactly; visual failure preserves the grounded textual answer and invents no
+image reference. For the notice-bearing profile, each materialised page carries
+`obligationSetId` and the citation carries a complete matching
+`DerivativeObligationPresentationV1`. The response embeds neither PNG nor path;
+the same-origin endpoint revalidates active binding, manifest, rights,
+obligation and unexpired `AnswerEvidenceRecordV1` authority before serving
+bounded bytes. Adjacent textual evidence and accessible obligation remain. The
+LLM receives text only; images require separate provider/egress/data/cost
+authority.
 
-O contrato v2 implementado conserva
-`questionLanguage`/`answerLanguage` fechados, amplia `CitationV2.contentLanguage`
-para BCP 47, preserva `sourceDeclaredLanguage` e adiciona referências
-`PageImageEvidenceV1`. Depois de validar a resposta fundamentada e suas
-citações, uma ativação text-first pode renderizar sob demanda somente as
-páginas físicas distintas efetivamente citadas, entre uma e cinco por resposta.
-O manifesto esparso precisa corresponder exatamente a esse conjunto; qualquer
-falha visual preserva a resposta textual já fundamentada e não inventa
-referência de imagem. Para o perfil notice-bearing, cada página materializada
-carrega `obligationSetId` e a citação carrega uma
-`DerivativeObligationPresentationV1` completa e coincidente. A resposta não
-embute PNG nem path; o endpoint same-origin revalida binding ativo, manifesto,
-direitos, obrigação e autoridade do `AnswerEvidenceRecordV1` não expirado antes
-de servir bytes limitados. Evidência textual e obrigação acessível adjacentes
-continuam disponíveis. O LLM recebe somente texto; imagem exige autoridade
-separada de provider/egress/dados/custo.
+The response includes technical metadata:
 
-A resposta inclui metadados técnicos:
-
-- resumo de `evidenceCoverage` e origens efetivamente citadas;
+- `evidenceCoverage` summary and actually cited origins;
 - `indexGenerationId`;
 - `retrievalPolicyVersion`;
 - `promptVersion`;
-- `answerLanguage`, sempre igual ao `questionLanguage` aceito;
-- provider e revisão do modelo de linguagem;
+- `answerLanguage`, always equal to accepted `questionLanguage`;
+- language-model provider and revision;
 - `correlationId`.
 
-Para fonte oficial, a citação inclui também a URL canônica pública sem
-credenciais, `snapshotId`, `revalidatedAt`, estado e frescor. Esses metadados
-permitem reproduzir uma resposta sem expor prompts, configuração secreta ou
-conteúdo integral.
+For an official source, citation also includes the credential-free public
+canonical URL, `snapshotId`, `revalidatedAt`, state and freshness. These allow
+answer reproduction without exposing prompts, secret configuration or full
+content.
 
-### Persistência interna de evidência de resposta
+### Internal answer-evidence persistence
 
-Somente um resultado `Answered`, depois de validar idioma, limites, cobertura,
-citações e vínculos, cria o `AnswerEvidenceRecordV1`. O registro completo
-é persistido e reaberto antes de devolver a resposta v1. `InsufficientEvidence`
-e falhas não criam registro.
+Only `Answered`, after language, limit, coverage, citation and binding
+validation, creates `AnswerEvidenceRecordV1`. The complete record is persisted
+and reopened before returning v1. `InsufficientEvidence` and failures create no
+record.
 
-O agregado imutável liga a resposta por hash/comprimento ao corpus, revisão de
-ativação, catálogo, geração, ambos os binding digests, política de recuperação,
-prompt, modelo e cobertura. Cada citação preserva identidades exatas de banco,
-documento, versão, formato, idioma, chunk, fonte/proveniência, objeto fonte e
-localização. Quando a página citada foi materializada sob demanda, o mesmo
-registro persiste o manifesto esparso exato, profile/renderer e a identidade
-integral do PNG; sem materialização visual, esses campos permanecem ausentes.
+The immutable aggregate binds answer hash/length to corpus, activation
+revision, catalogue, generation, both binding digests, retrieval policy,
+prompt, model and coverage. Each citation preserves exact database, document,
+version, format, language, chunk, source/provenance, source object and location
+identities. When a cited page was rendered on demand, the same record persists
+the exact sparse manifest, profile/renderer and complete PNG identity; without
+visual materialisation these fields are absent.
 
-O registro não contém pergunta nem seu hash, resposta, título/excerto/URL de
-citação, prompt ou payload de provider, scores/vetores, identidade/IP do usuário,
-secret, path ou bytes. A política fixa `answer-evidence-p30d-v1` expira em
-`createdAt + P30D` sem refresh. Até então, fonte e PNGs vinculados permanecem
-alcançáveis; depois, cleanup ainda exige o protocolo `cleanup-plan-v1` com
-reserva e revalidação integral antes de excluir.
+The record contains no question or question hash, answer, citation
+title/excerpt/URL, prompt or provider payload, scores/vectors, user identity/IP,
+secret, path or bytes. Fixed `answer-evidence-p30d-v1` expires at
+`createdAt + P30D` without refresh. Until then, bound source and PNGs remain
+reachable; afterwards, cleanup still requires `cleanup-plan-v1` reservation
+and complete revalidation before deletion.
 
-Header, citações, páginas e auditoria sanitizada formam uma única transação
-Control. Replay de mesmo ID/digest é `AlreadyApplied`; conteúdo divergente sob
-o mesmo ID é conflito sem mutação. Falha de persistência/readback impede
-`Answered` e usa a taxonomia v1 existente. OpenAPI v1 não muda. A arquitetura
-deste bloco está implementada localmente por `S04-CORR-04-E`; gate, homologação,
-v2 e serving permanecem separados.
+Header, citations, pages and sanitised audit form one Control transaction.
+Replay of the same ID/digest is `AlreadyApplied`; divergent content under the
+same ID conflicts without mutation. Persistence/readback failure prevents
+`Answered` and uses the existing v1 taxonomy. OpenAPI v1 does not change.
+`S04-CORR-04-E` implemented this locally; gate, homologation, v2 and serving
+remain separate.
 
-Scores brutos de diferentes providers não são apresentados como confiança
-universal sem calibração.
+Raw scores from different providers are not presented as universal confidence
+without calibration.
 
-## Segurança
+## Security
 
-- Prompt injection em documento é ameaça explícita.
-- PDFs e CSVs são entrada não confiável; parsing ocorre com limites. Anexos,
-  ações, links, fórmulas e instruções embutidas não recebem autoridade nem são
-  executados.
-- Renderização PDF ocorre com limites de bytes, páginas, tempo, memória,
-  dimensões e concorrência; saída e manifests são revalidados antes de servir.
-- Direitos de renderização, derivados, retenção, exibição e distribuição são
-  independentes da permissão de ler, indexar ou citar texto.
-- Cada conexão oficial usa somente IP previamente resolvido e autorizado,
-  preserva host/SNI e não refaz resolução por hostname no socket.
-- A fonte oficial é anônima e sua validação TLS não inicia downloads
-  AIA/CRL/OCSP ou qualquer egress fora das allowlists.
-- Upload público não integra o MVP.
-- Perguntas não podem selecionar provider, caminho, URL ou prompt de sistema.
-- Contexto recuperado usa delimitadores e instruções explícitas de
-  não autoridade.
-- Respostas não podem executar ferramentas ou gerar ações administrativas.
-- Logs não armazenam texto integral por padrão.
-- Caches e índices são dados derivados, com acesso e retenção controlados.
+- Document prompt injection is an explicit threat.
+- PDFs and CSVs are untrusted; parsing is bounded. Attachments, actions, links,
+  formulae and embedded instructions receive no authority and are not executed.
+- PDF rendering is bounded by bytes, pages, time, memory, dimensions and
+  concurrency; output and manifests are revalidated before serving.
+- Rights to render, derive, retain, display and distribute are independent from
+  permission to read, index or cite text.
+- Every official connection uses only a previously resolved authorised IP,
+  preserves host/SNI and does not resolve hostname again in the socket.
+- The official source is anonymous and TLS validation initiates no AIA/CRL/OCSP
+  or out-of-allowlist egress.
+- Public upload is outside the MVP.
+- Questions cannot select provider, path, URL or system prompt.
+- Retrieved context uses delimiters and explicit non-authority instructions.
+- Answers cannot execute tools or create administrative actions.
+- Logs do not store full text by default.
+- Caches and indexes are derived data with controlled access and retention.
 
-## Avaliação
+## Evaluation
 
-Antes de homologar um provider ou versão:
+Before homologating a provider or version:
 
-- conjunto de perguntas representativas e casos sem resposta;
-- rubrica para relevância, fidelidade e qualidade da citação;
-- recuperação: recall/precision em critérios aprovados;
-- resposta: groundedness e ausência de afirmações não sustentadas;
-- idioma: resposta no idioma da pergunta e citação no idioma original;
-- segurança: prompt injection e conteúdo malicioso;
-- cobertura por banco, documento e formato, com casos proporcionais ao conjunto
-  ativo;
-- busca adversarial em que chunks de banco/documento excluído por filtro
-  explícito pontuam acima dos corretos, provando pre-filter antes do top-k;
-- busca adversarial com chunks de outra geração e, quando aplicável, de outro
-  corpus pontuando acima dos corretos, provando isolamento antes do top-k;
-- SSRF, redirect, domínio/path, tamanho e freshness da fonte oficial;
-- vetores canônicos provam que mudar somente `sourceObservationId` altera
-  `activationBindingSetDigest`, sem alterar `sourceBindingSetDigest`,
-  `generationSpecDigest` ou `IndexGenerationId`; mudar snapshot, adapter,
-  trust ou registro imutável exige geração nova;
-- `304` ou hash idêntico atualiza observação e cria nova revisão completa do
-  registro sem novo snapshot ou índice somente quando a observação nomeia o
-  registro/snapshot compatível; os campos preservados e alterados seguem
-  ADR-0007;
-- mismatch entre observação e registro/snapshot falha antes da ativação; retry
-  depois de conflito é idempotente e não usa “última observação” implícita;
-- degradação de uma fonte enquanto outras permanecem servíveis, seguida de
-  revalidação `304`, preservando snapshot e restaurando elegibilidade sem
-  mistura de geração;
-- crash antes, durante e depois do append da observação, cálculo dos digests,
-  auditoria e compare-and-swap, provando atomicidade do
-  `CorpusActivationRecord`;
-- rollback cria registro novo com observações compatíveis e elegíveis, preserva
-  históricos e falha fechado quando a invariante de evidência não pode ser
-  satisfeita;
-- operação: latência, falha, rate limit e custo;
-- regressão entre versões de documento, prompt, modelo e índice.
+- representative questions and no-answer cases;
+- relevance, faithfulness and citation-quality rubric;
+- retrieval recall/precision under approved criteria;
+- answer groundedness and absence of unsupported claims;
+- answer in question language and citation in original language;
+- prompt-injection and malicious-content security;
+- per-database/document/format coverage proportional to the active set;
+- adversarial search where chunks excluded by explicit database/document
+  filter outrank correct chunks, proving pre-filter before top-k;
+- adversarial search where another generation's and, when applicable, another
+  corpus's chunks outrank correct chunks, proving pre-top-k isolation;
+- official-source SSRF, redirect, domain/path, size and freshness;
+- canonical vectors proving that changing only `sourceObservationId` changes
+  `activationBindingSetDigest` but not `sourceBindingSetDigest`,
+  `generationSpecDigest` or `IndexGenerationId`; changing snapshot, adapter,
+  trust or immutable registration requires a new generation;
+- `304`/identical hash updates the observation and creates a complete new
+  record revision without snapshot/index only when the observation names the
+  compatible registration/snapshot; preserved/changed fields follow ADR-0007;
+- observation/registration/snapshot mismatch fails before activation; retry
+  after conflict is idempotent and uses no implicit “latest observation”;
+- one source degrades while others remain servable, followed by `304`
+  revalidation preserving snapshot and restoring eligibility without mixing
+  generations;
+- crash before, during and after observation append, digest calculation, audit
+  and compare-and-swap, proving `CorpusActivationRecord` atomicity;
+- rollback creates a new record with compatible eligible observations,
+  preserves history and fails closed when the evidence invariant cannot hold;
+- operation latency, failure, rate limit and cost;
+- regression between document, prompt, model and index versions.
 
-A suíte determinística cobre a matriz completa entre idioma da pergunta e
-idioma da evidência: `pt-BR→pt-BR`, `en-GB→en-GB`, `pt-BR→en-GB` e
-`en-GB→pt-BR`. Quando o corpus real aprovado não contiver um dos idiomas de
-evidência, testes unitários, de contrato e de integração usam fixtures
-sintéticas autorizadas e claramente separadas do corpus do produto. Essa
-matriz não decide o idioma visual da interface.
+The deterministic suite covers the complete question/evidence language matrix:
+`pt-BR→pt-BR`, `en-GB→en-GB`, `pt-BR→en-GB` and `en-GB→pt-BR`. When the
+approved real corpus lacks an evidence language, unit, contract and integration
+tests use authorised synthetic fixtures clearly separated from product corpus.
+This matrix does not decide interface visual language.
 
-Cada outro `DocumentContentLanguage` presente no corpus pontuado cria um
-estrato exato adicional por idioma de evidência, sem agrupamento silencioso.
-Para o candidato PostgreSQL `en`, a campanha deve separar ao menos
-`pt-BR→en` e `en-GB→en`; essas linhas não contam como evidência `en-GB` e não
-substituem a matriz obrigatória. Relatórios nomeiam tags, documentos, dataset,
-provider e ambiente exatos.
+Every other `DocumentContentLanguage` in the scored corpus creates an exact
+additional evidence-language stratum without silent grouping. For PostgreSQL
+candidate `en`, the campaign separates at least `pt-BR→en` and `en-GB→en`;
+these are not `en-GB` evidence and do not replace the mandatory matrix. Reports
+name exact tags, documents, dataset, provider and environment.
 
-Dataset, rubrica e thresholds iniciais pertencem ao `STATE-02`. O `STATE-07`
-executa a campanha; qualquer revisão exige decisão formal registrada antes da
-primeira execução que possa revelar resultados. Nenhum threshold pode ser
-escolhido ou alterado depois de observar o resultado para fazê-lo passar.
+Initial dataset, rubric and thresholds belong to `STATE-02`. `STATE-07` runs
+the campaign; revision requires a formal recorded decision before the first
+execution that could reveal results. No threshold may be selected or changed
+after seeing a result to make it pass.
 
-## Matriz MVP × evolução
+## MVP × evolution matrix
 
-| Capacidade | MVP | Evolução |
+| Capability | MVP | Evolution |
 |---|---|---|
-| Corpus lógico | Um, com catálogo administrável | Vários com autorização/RBAC próprios |
-| Bancos e documentos | 51 iniciais; cardinalidade aberta por registros | Novos itens compatíveis sem mudança do núcleo |
-| Formato | PDF e CSV | Markdown, HTML, Office e outros autorizados |
-| Atualização | Administração e sincronização oficiais manuais | Diff incremental e scheduler |
-| Providers | Um por porta | Catálogo e múltiplas implementações |
-| Índice | Geração imutável, uma anterior retida e rollback limitado | Migração, compactação e distribuição |
-| Evidência de resposta | Registro interno mínimo, retenção `P30D` e reachability após implementação autorizada | Outra retenção, histórico de usuário ou analytics exigem decisão própria |
-| Fontes online | Registros oficiais allowlisted e snapshots | Novas classes de autenticação/protocolo por decisão própria |
-| Acesso | Consulta anônima limitada | RBAC e escopo por corpus |
-| Integração DB-Notifier | Nenhuma | Adapter ou módulo versionado |
+| Logical corpus | One, with administrable catalogue | Several with their own authorisation/RBAC |
+| Databases and documents | 51 initial; open cardinality through records | Compatible new items without core change |
+| Format | PDF and CSV | Authorised Markdown, HTML, Office and others |
+| Update | Manual administration and official synchronisation | Incremental diff and scheduler |
+| Providers | One per port | Catalogue and multiple implementations |
+| Index | Immutable generation, one prior retained and bounded rollback | Migration, compaction and distribution |
+| Answer evidence | Minimum internal record, `P30D` retention and reachability after authorised implementation | Different retention, user history or analytics require their own decision |
+| Online sources | Allowlisted official records and snapshots | New authentication/protocol classes under their own decision |
+| Access | Bounded anonymous query | RBAC and per-corpus scope |
+| DB-Notifier integration | None | Versioned adapter or module |

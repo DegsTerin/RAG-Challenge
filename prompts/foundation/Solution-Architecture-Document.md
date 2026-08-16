@@ -1,42 +1,42 @@
-# Arquitetura da Solução RAG-Challenge
+# RAG-Challenge Solution Architecture
 
 ## Status
 
-Baseline de alto nível proposta no `STATE-00 DISCOVERY` e reconciliada com as
-decisões arquiteturais aceitas até `STATE-02 ARCHITECTURE`. O mapa físico
-vigente pertence ao ADR-0003, que incorpora as decisões não relacionadas a
-nomenclatura do ADR-0001; o lifecycle RAG e as seleções condicionais pertencem
-ao ADR-0002 e aos ADR-0004 a ADR-0006. Os ADRs estão indexados em
-[`../../docs/architecture/`](../../docs/architecture/README.md). Esta visão não
-representa por si só implementação, teste, deploy ou homologação. O ADR-0007
-corrige identidade de geração/freshness; os ADRs aceitos 0008 e 0009 refinam
-armazenamento/evidência visual e idiomas documentais. O estado implementado
-permanece no snapshot factual; incrementos posteriores implementaram esses
-refinamentos, v2/serving same-origin e o perfil notice-bearing na fronteira
-local e sintética, sem constituir homologação de produto.
+High-level baseline proposed in `STATE-00 DISCOVERY` and reconciled with
+architectural decisions accepted through `STATE-02 ARCHITECTURE`. The current
+physical map belongs to ADR-0003, which incorporates ADR-0001 decisions not
+related to naming; the RAG lifecycle and conditional selections belong to
+ADR-0002 and ADR-0004 through ADR-0006. ADRs are indexed in
+[`../../docs/architecture/`](../../docs/architecture/README.md). This view does
+not itself represent implementation, testing, deployment or homologation.
+ADR-0007 corrects generation identity/freshness; accepted ADRs 0008 and 0009
+refine storage/visual evidence and document languages. Implemented state
+remains in the factual snapshot; later increments implemented those
+refinements, v2/same-origin serving and the notice-bearing profile at the local
+synthetic boundary without constituting product homologation.
 
-## Princípios
+## Principles
 
-- Monólito modular proporcional ao MVP.
-- Dependências voltadas para dentro.
-- Domínio independente de IA, persistência, UI e infraestrutura.
-- Portas tipadas para fontes, parsing, embeddings, vetores e LLM.
-- Configuração fail-closed, sem segredos persistidos.
-- Proveniência e versão preservadas do documento à citação.
-- `SupportedQueryLanguage` fechado em `pt-BR` e `en-GB`, com resposta no
-  idioma explícito da pergunta; `DocumentContentLanguage` separado e aberto a
-  tags BCP 47 canônicas, sem inferir `en` como `en-GB`.
-- Conteúdo derivado da fonte preservado no idioma original da citação.
-- Bytes de fonte e PNGs persistentes endereçados por conteúdo, com renderização
-  PDF determinística e manifesto completo antes de evidência visual ativa.
-- Índices construídos de forma imutável antes da ativação.
-- Falha externa isolada e explicitamente classificada.
-- Origem local e oficial preservadas como proveniência e confiança, com todos
-  os documentos ativos elegíveis na recuperação unificada.
-- Contrato externo versionado pertencente ao RAG-Challenge; adapters
-  consumidores futuros pertencem aos respectivos repositórios.
+- A modular monolith proportionate to the MVP.
+- Dependencies point inwards.
+- Domain is independent of AI, persistence, UI and infrastructure.
+- Typed ports for sources, parsing, embeddings, vectors and LLM.
+- Fail-closed configuration with no persisted secrets.
+- Provenance and version preserved from document to citation.
+- `SupportedQueryLanguage` closed to `pt-BR` and `en-GB`, with an answer in the
+  explicit question language; separate `DocumentContentLanguage` open to
+  canonical BCP 47 tags without inferring `en` as `en-GB`.
+- Source-derived content preserved in the original citation language.
+- Persistent content-addressed source bytes and PNGs, with deterministic PDF
+  rendering and a complete manifest before active visual evidence.
+- Indexes built immutably before activation.
+- External failure isolated and explicitly classified.
+- Local and official origin preserved as provenance and trust, with all active
+  documents eligible for unified retrieval.
+- A versioned external contract owned by RAG-Challenge; future consuming
+  adapters belong to their respective repositories.
 
-## Contexto do sistema
+## System context
 
 ```text
 Question author / evaluator
@@ -58,17 +58,18 @@ Question author / evaluator
    +----------------------------> governed local/official source adapters
 ```
 
-No MVP, o servidor pode hospedar a API e os arquivos estáticos do Dashboard no
-mesmo deploy. Isso reduz operação sem acoplar a interface aos casos de uso.
+In the MVP, the server may host the API and static Dashboard files in the same
+deployment. This reduces operational work without coupling the interface to
+use cases.
 
-## Direção de dependências
+## Dependency direction
 
 ```text
 RagChallenge.Domain
         ^
         |
 RagChallenge.Application
-(inclui as abstrações RAG)
+(includes RAG abstractions)
         ^
         |
 RagChallenge.Infrastructure / RagChallenge.Server.Api
@@ -76,37 +77,37 @@ RagChallenge.Infrastructure / RagChallenge.Server.Api
 RagChallenge.Dashboard.Web -- versioned HTTP --> RagChallenge.Server.Api
 ```
 
-- `RagChallenge.Domain` possui identidades, versões, estados e invariantes.
-- `RagChallenge.Application` possui os contratos RAG, implementa casos de uso
-  e orquestra portas; referencia somente Domain.
-- `RagChallenge.Infrastructure` implementa adapters e persistência.
-- API é composition root e não contém regras de negócio.
-- Dashboard não possui referência de código ao Application; consome somente
-  contratos HTTP versionados.
+- `RagChallenge.Domain` owns identities, versions, states and invariants.
+- `RagChallenge.Application` owns RAG contracts, implements use cases and
+  orchestrates ports; it references only Domain.
+- `RagChallenge.Infrastructure` implements adapters and persistence.
+- The API is the composition root and contains no business rules.
+- The Dashboard has no code reference to Application; it consumes only
+  versioned HTTP contracts.
 
-## Módulos canônicos
+## Canonical modules
 
-| ID | Módulo | Responsabilidade |
+| ID | Module | Responsibility |
 |---|---|---|
-| `CH-MOD-01` | `CORPUS_CATALOG` | Identidade, categorias muitos-para-muitos, versões e estado de bancos/documentos. |
-| `CH-MOD-02` | `DOCUMENT_INGESTION` | Descoberta, validação, parsing PDF/CSV e normalização. |
-| `CH-MOD-03` | `INDEXING_RETRIEVAL` | Chunking, embeddings, gerações e recuperação. |
-| `CH-MOD-04` | `ANSWER_GENERATION` | Contexto grounded, resposta, citações e recusa. |
-| `CH-MOD-05` | `QUERY_EXPERIENCE` | API e interface de consulta. |
-| `CH-MOD-06` | `OPERATIONS_GOVERNANCE` | Configuração, health, logs, auditoria e gates. |
-| `CH-MOD-07` | `OFFICIAL_EXTERNAL_SOURCES` | Registro e sincronização manual governada de fontes oficiais compatíveis. |
-| `CH-MOD-08` | `EXTERNAL_INTEGRATION_CONTRACTS` | Contrato HTTP/OpenAPI versionado do RAG-Challenge; adapters consumidores ficam fora deste repositório. |
+| `CH-MOD-01` | `CORPUS_CATALOG` | Identity, many-to-many categories, versions and database/document state. |
+| `CH-MOD-02` | `DOCUMENT_INGESTION` | Discovery, validation, PDF/CSV parsing and normalisation. |
+| `CH-MOD-03` | `INDEXING_RETRIEVAL` | Chunking, embeddings, generations and retrieval. |
+| `CH-MOD-04` | `ANSWER_GENERATION` | Grounded context, answer, citations and refusal. |
+| `CH-MOD-05` | `QUERY_EXPERIENCE` | Query API and interface. |
+| `CH-MOD-06` | `OPERATIONS_GOVERNANCE` | Configuration, health, logs, audit and gates. |
+| `CH-MOD-07` | `OFFICIAL_EXTERNAL_SOURCES` | Governed manual registration and synchronisation of compatible official sources. |
+| `CH-MOD-08` | `EXTERNAL_INTEGRATION_CONTRACTS` | Versioned RAG-Challenge HTTP/OpenAPI contract; consuming adapters remain outside this repository. |
 
-IDs não devem ser reutilizados com outro significado.
-`CH-MOD-08` conserva a fronteira de integração da baseline anterior, mas o
-rótulo foi corrigido antes do Human Gate para deixar explícito que o
-RAG-Challenge é owner do contrato e não do adapter consumidor.
+IDs must not be reused with another meaning. `CH-MOD-08` preserves the prior
+baseline's integration boundary, but its label was corrected before the Human
+Gate to make explicit that RAG-Challenge owns the contract, not the consuming
+adapter.
 
-## Mapa físico aceito no bootstrap
+## Physical map accepted at bootstrap
 
-O `GATE-B01` aceitou o mapa físico depois incorporado pelo ADR-0003. A
-estrutura abaixo registra esse boundary vigente; não autoriza lógica funcional
-nem afirma que as capacidades descritas neste documento estejam implementadas.
+`GATE-B01` accepted the physical map later incorporated by ADR-0003. The
+structure below records that current boundary; it neither authorises functional
+logic nor claims that capabilities described in this document are implemented.
 
 ```text
 /
@@ -134,64 +135,62 @@ nem afirma que as capacidades descritas neste documento estejam implementadas.
     └── RagChallenge.IntegrationTests/
 ```
 
-O scaffold de `STATE-01` materializou inicialmente somente configuração,
-checks, hosts mínimos e marcadores de boundary. Incrementos posteriores e
-separadamente autorizados implementaram ingestão, recuperação, geração e a
-administração one-shot no host principal. As abstrações RAG permanecem
-separadas dentro de `RagChallenge.Application`, e a persistência dentro de
-`RagChallenge.Infrastructure`. O estado executado e seus limites pertencem ao
-Current State e aos relatórios factuais, não a esta visão arquitetural.
+The `STATE-01` scaffold initially materialised only configuration, checks,
+minimal hosts and boundary markers. Later separately authorised increments
+implemented ingestion, retrieval, generation and one-shot administration in
+the main host. RAG abstractions remain separated within
+`RagChallenge.Application`, and persistence within
+`RagChallenge.Infrastructure`. The executed state and its boundaries belong to
+Current State and factual reports, not this architectural view.
 
-## Convenções de nomenclatura
+## Naming conventions
 
-- Nome público e arquivo da solution: `RAG-Challenge` e
-  `RAG-Challenge.sln`.
-- Prefixo técnico de projeto, assembly e namespace: `RagChallenge`.
-- Projetos: `RagChallenge.<Responsibility>`.
-- Testes: `RagChallenge.<TestScope>Tests`.
-- Tipos e membros C#: PascalCase; variáveis e parâmetros: camelCase.
-- API inicial: `/api/v1`.
-- Configuração: seções `RagChallenge:<Capability>`.
-- IDs de erro: `CH_<AREA>_<CONDITION>`, estáveis e sem detalhe secreto; o
-  prefixo permanece por compatibilidade após a renomeação do produto.
-- IDs de corpus: slug estável em minúsculas; nomes de exibição não são
-  identificadores.
-- Timestamps de contrato: UTC em ISO 8601.
-- Documentos: nomes descritivos; ADRs em inglês conforme o padrão do
-  DB-Notifier.
+- Public name and solution file: `RAG-Challenge` and `RAG-Challenge.sln`.
+- Technical project, assembly and namespace prefix: `RagChallenge`.
+- Projects: `RagChallenge.<Responsibility>`.
+- Tests: `RagChallenge.<TestScope>Tests`.
+- C# types and members: PascalCase; variables and parameters: camelCase.
+- Initial API: `/api/v1`.
+- Configuration: `RagChallenge:<Capability>` sections.
+- Error IDs: `CH_<AREA>_<CONDITION>`, stable and without secret detail; the
+  prefix remains for compatibility after product renaming.
+- Corpus IDs: stable lowercase slugs; display names are not identifiers.
+- Contract timestamps: UTC in ISO 8601.
+- Documents: descriptive names; ADRs in English following the DB-Notifier
+  pattern.
 
-As convenções de idioma pertencem à
-[`política de idioma`](../governance/Language-Policy.md). Este documento não
-as redefine.
+Language conventions belong to the
+[`language policy`](../governance/Language-Policy.md). This document does not
+redefine them.
 
-## Componentes e responsabilidades
+## Components and responsibilities
 
 ### Domain
 
-Conceitos candidatos:
+Candidate concepts:
 
-- `CorpusId`, `CorpusStatus` e `CorpusRevision`;
-- `DatabaseProductId`, `DatabaseProductRevision`, `DatabaseProductStatus` e
+- `CorpusId`, `CorpusStatus` and `CorpusRevision`;
+- `DatabaseProductId`, `DatabaseProductRevision`, `DatabaseProductStatus` and
   `DatabaseCategoryAssignment`;
-- `DocumentId`, `DocumentVersion`, `DocumentStatus`, `DocumentFormat` e
+- `DocumentId`, `DocumentVersion`, `DocumentStatus`, `DocumentFormat` and
   `SourceDescriptor`;
-- `ContentObjectId`, `DocumentPageImage`, `DocumentRenderManifest` e
-  referências imutáveis ao conteúdo de fonte e aos derivados visuais;
+- `ContentObjectId`, `DocumentPageImage`, `DocumentRenderManifest` and
+  immutable references to source content and visual derivatives;
 - `SourceTrustClass`, `OfficialSourceRegistration`, `OfficialSourceSnapshot`,
-  `OfficialSourceObservation` e `SourceFreshness`;
-- `ChunkIdentity` e `Citation`;
-- `CandidateBuildId`, `IndexGenerationId`, `IndexGenerationStatus` e
+  `OfficialSourceObservation` and `SourceFreshness`;
+- `ChunkIdentity` and `Citation`;
+- `CandidateBuildId`, `IndexGenerationId`, `IndexGenerationStatus` and
   `CorpusActivationRecord`;
 - `ProviderDescriptor`;
-- `SupportedQueryLanguage`, restrito a `pt-BR` e `en-GB`, e
-  `DocumentContentLanguage`, BCP 47 canônico e separado;
-- `QueryRequest`, `RetrievedEvidence` e `AnswerOutcome`.
+- `SupportedQueryLanguage`, restricted to `pt-BR` and `en-GB`, and separate
+  canonical-BCP-47 `DocumentContentLanguage`;
+- `QueryRequest`, `RetrievedEvidence` and `AnswerOutcome`.
 
-O Domain não conhece caminhos de arquivo, PDF, SQL, HTTP, SDKs ou modelos.
+Domain knows no file paths, PDF, SQL, HTTP, SDKs or models.
 
-### RAG abstractions em Application
+### RAG abstractions in Application
 
-Portas candidatas:
+Candidate ports:
 
 - `IDocumentSource`;
 - `IOfficialSourceSynchroniser`;
@@ -203,100 +202,101 @@ Portas candidatas:
 - `IDocumentContentStore`;
 - `IDocumentCatalog`;
 - `IIndexGenerationStore`;
-- `IClock` ou `TimeProvider` na borda apropriada.
+- `IClock` or `TimeProvider` at the appropriate boundary.
 
-Contratos carregam `CancellationToken`, limites e resultados tipados.
-`IVectorStore` recebe um `VectorSearchRequest` com `CorpusId`,
-`IndexGenerationId`, vetor de consulta, limites, seletores generation-bound dos
-bindings elegíveis e filtros administrativos opcionais por banco/documento. O
-adapter prova hard pre-filter de corpus, geração, bindings elegíveis e filtros
-antes do top-k ou usa partição física equivalente; post-filter de busca global
-não satisfaz o contrato. Ele não possui autoridade de ativação.
+Contracts carry `CancellationToken`, limits and typed outcomes.
+`IVectorStore` receives a `VectorSearchRequest` with `CorpusId`,
+`IndexGenerationId`, query vector, limits, generation-bound selectors for
+eligible bindings and optional administrative database/document filters. The
+adapter proves hard pre-filtering by corpus, generation, eligible bindings and
+filters before top-k, or uses equivalent physical partitioning; post-filtering
+a global search does not satisfy the contract. It has no activation authority.
 
-`IDocumentContentStore` é a única autoridade de produto que persiste e reabre
-bytes imutáveis endereçados por conteúdo para fontes e PNGs de páginas. Git,
-Git LFS, quarentena e vector store não o substituem. `IDocumentCatalog` mantém
-identidades, idioma/proveniência/direitos, manifestos de renderização e
-referências, e
-`IIndexGenerationStore` é a única fonte de verdade do
-`CorpusActivationRecord`, que vincula atomicamente a geração ativa e um
-conjunto ordenado de bindings de banco, documento, versão, snapshot e observação
-aplicável. Revisões completas anterior e nova ficam no histórico versionado da
-mesma transação; `sourceBindingSetDigest` protege a projeção generation-bound
-sem observação e `activationBindingSetDigest` protege o binding completo.
-`Active` e `Retained` são projeções, não autoridades paralelas.
+`IDocumentContentStore` is the only product authority that persists and
+reopens immutable content-addressed bytes for sources and page PNGs. Git, Git
+LFS, quarantine and the vector store do not replace it. `IDocumentCatalog`
+maintains identities, language/provenance/rights, rendering manifests and
+references. `IIndexGenerationStore` is the sole source of truth for the
+`CorpusActivationRecord`, which atomically binds the active generation to an
+ordered set of applicable database, document, version, snapshot and
+observation bindings. Complete old and new revisions remain in the versioned
+history of the same transaction; `sourceBindingSetDigest` protects the
+observation-free generation-bound projection and `activationBindingSetDigest`
+protects the complete binding. `Active` and `Retained` are projections, not
+parallel authorities.
 
 ### Application
 
-Casos de uso candidatos:
+Candidate use cases:
 
 - `BuildCorpusIndex`;
 - `ActivateIndexGeneration`;
 - `RollbackIndexGeneration`;
 - `RegisterDatabaseProduct`, `VersionDatabaseProduct`,
-  `ActivateDatabaseProduct`, `DeactivateDatabaseProduct` e
+  `ActivateDatabaseProduct`, `DeactivateDatabaseProduct` and
   `RemoveDatabaseProduct`;
 - `RegisterDocument`, `VersionDocument`, `ActivateDocument`,
-  `DeactivateDocument` e `RemoveDocument`;
+  `DeactivateDocument` and `RemoveDocument`;
 - `SynchroniseOfficialSource`;
 - `AskQuestion`;
 - `GetSystemReadiness`.
 
-Atualização incremental agendada e gestão de múltiplos acervos não integram os
-casos de uso do MVP. Bancos, documentos e fontes compatíveis são registros
-administráveis; sincronização oficial é manual, limitada às URLs allowlisted e
-não ocorre no fluxo de pergunta.
+Scheduled incremental updating and multiple-corpus management are not MVP use
+cases. Compatible databases, documents and sources are administrable records;
+official synchronisation is manual, limited to allowlisted URLs and does not
+occur in the question flow.
 
-### Infrastructure e Persistence
+### Infrastructure and Persistence
 
-- Um adapter concreto por porta no MVP.
-- ADR-0005 aceitou EF Core SQLite para catálogo, metadados e histórico local,
-  de forma condicional às versões exatas, implementação e evidência futura.
-- O armazenamento bruto é durável, content-addressed e separado do catálogo;
-  filesystem local é candidato para o MVP, com caminho durável equivalente no
-  alvo OCI. Vector store não substitui os bytes necessários a rebuild,
-  retenção ou rollback.
-- O mesmo content store preserva PNGs determinísticos de páginas. Cada PDF usa
-  o perfil `pdf-page-png-v1`, um binding imutável por página física e um
-  `DocumentRenderManifest` canônico completo; CSV não recebe imagem implícita.
-- Renderização, PNG persistente e serving v2 same-origin estão implementados
-  localmente. O sucessor `pdf-page-png-notice-v1` preserva os pixels da página,
-  vincula o obligation set ao manifest/reachability e apresenta o texto exato
-  no Dashboard; AQG notice-bearing e produto real permanecem separados.
-- O armazenamento vetorial permanece atrás de `IVectorStore`.
-- Vector store gerenciado exige política de egress e tratamento de dados
-  próprios; escolher implementação local evita esse egress no MVP.
-- EF Core ou detalhes de schema não vazam para Domain/Application.
-- A fonte local aplica raiz configurada, canonicalização de caminho e limites.
-- Cada fonte oficial aplica URL PDF/CSV pública sem credenciais, allowlist
-  completa, proteção SSRF, pinning DNS/IP/Host/SNI, política TLS sem egress
-  lateral, limites e snapshot antes de usar o parser do formato declarado.
-- Chamadas externas usam cliente tipado, timeout, retry somente quando seguro
-  e sanitização.
+- One concrete adapter per port in the MVP.
+- ADR-0005 conditionally accepted EF Core SQLite for the local catalogue,
+  metadata and history, subject to exact versions, implementation and future
+  evidence.
+- Raw storage is durable, content-addressed and separate from the catalogue; a
+  local filesystem is the MVP candidate, with an equivalent durable path in
+  the OCI target. The vector store does not replace bytes required for rebuild,
+  retention or rollback.
+- The same content store preserves deterministic page PNGs. Every PDF uses the
+  `pdf-page-png-v1` profile, one immutable binding per physical page and one
+  complete canonical `DocumentRenderManifest`; CSV receives no implicit image.
+- Rendering, persistent PNG and v2 same-origin serving are implemented locally.
+  The `pdf-page-png-notice-v1` successor preserves page pixels, binds the
+  obligation set to manifest/reachability and presents the exact text in the
+  Dashboard; notice-bearing AQG and real product remain separate.
+- Vector storage remains behind `IVectorStore`.
+- A managed vector store requires its own egress and data-handling policy;
+  selecting a local implementation avoids that MVP egress.
+- EF Core and schema details do not leak into Domain/Application.
+- The local source applies a configured root, path canonicalisation and limits.
+- Every official source applies a credential-free public PDF/CSV URL, complete
+  allowlist, SSRF protection, DNS/IP/Host/SNI pinning, TLS policy without
+  lateral egress, limits and a snapshot before using the declared-format parser.
+- External calls use a typed client, timeout, retry only when safe and
+  sanitisation.
 
 ### Server/API
 
-Superfície HTTP v1 implementada e versionada, descrita aqui apenas em nível
-arquitetural:
+Implemented and versioned HTTP v1 surface, described here only at the
+architectural level:
 
-| Método e rota | Uso |
+| Method and route | Use |
 |---|---|
-| `POST /api/v1/questions` | Enviar pergunta e receber resposta/citações. |
-| `GET /api/v1/health/live` | Confirmar que o processo está vivo. |
-| `GET /api/v1/health/ready` | Informar prontidão e dependências sem segredos. |
+| `POST /api/v1/questions` | Send a question and receive an answer/citations. |
+| `GET /api/v1/health/live` | Confirm that the process is alive. |
+| `GET /api/v1/health/ready` | Report readiness and dependencies without secrets. |
 
-Ingestão, sincronização oficial, ativação e rollback não serão endpoints
-públicos anônimos no MVP. ADR-0006 aceitou a superfície local não pública no
-modo administrativo one-shot do host principal. A operação identifica o
-operador ou ambiente por identidade do sistema operacional, usa permissões
-mínimas, exige motivo, é idempotente e gera auditoria sanitizada. O startup
-apenas carrega e verifica a geração ativa; não ingere, sincroniza, ativa nem
-executa rollback, salvo nesse modo explicitamente configurado e invocado. A
-decisão não é evidência de implementação.
+Ingestion, official synchronisation, activation and rollback will not be
+anonymous public endpoints in the MVP. ADR-0006 accepted the non-public local
+surface in the main host's one-shot administrative mode. The operation
+identifies the operator or environment through operating-system identity,
+uses minimum permissions, requires a reason, is idempotent and produces a
+sanitised audit. Start-up only loads and verifies the active generation; it
+does not ingest, synchronise, activate or roll back except in this explicitly
+configured and invoked mode. The decision is not implementation evidence.
 
-O contrato público inicial para consumidores externos é HTTP/OpenAPI v1,
-pertence ao RAG-Challenge e não expõe entidades Domain nem portas de provider.
-Conceitualmente:
+The initial public contract for external consumers is HTTP/OpenAPI v1. It is
+owned by RAG-Challenge and exposes neither Domain entities nor provider ports.
+Conceptually:
 
 ```text
 QueryRequestV1
@@ -317,24 +317,23 @@ QueryResponseV1
   correlationId
 ```
 
-Cada citação preserva corpus, banco, documento, versão, formato, classe de
-confiança, geração e localização. Citação oficial inclui URL canônica,
-snapshot, `revalidatedAt` e freshness; PDF usa páginas/blocos e CSV usa
-linhas/colunas/cabeçalhos.
-No v1, toda citação continua declarando
-`contentLanguage=pt-BR|en-GB`; títulos, seções e trechos derivados da fonte
-permanecem nesse idioma original. `answerLanguage` é sempre igual ao
-`questionLanguage` aceito, inclusive quando a evidência usa o outro idioma.
-`languageModelDescriptor` contém apenas provider, modelo e revisão não
-secretos; não contém endpoint, credencial ou configuração interna.
+Every citation preserves corpus, database, document, version, format, trust
+class, generation and location. An official citation includes canonical URL,
+snapshot, `revalidatedAt` and freshness; PDF uses pages/blocks and CSV uses
+rows/columns/headers. In v1, every citation continues to declare
+`contentLanguage=pt-BR|en-GB`; source-derived titles, sections and passages
+remain in that original language. `answerLanguage` always equals accepted
+`questionLanguage`, including when evidence uses the other language.
+`languageModelDescriptor` contains only non-secret provider, model and revision;
+it contains no endpoint, credential or internal configuration.
 
-O artefato OpenAPI v1 pertence ao RAG-Challenge, é gerado e versionado com a API,
-inclui pergunta, respostas concluídas, citações e Problem Details, e passa por
-teste de compatibilidade. Ele permanece byte a byte inalterado nesta
-reconciliação. A política de breaking changes pertence ao `STATE-02`; a
-implementação e a prova do artefato pertencem ao `STATE-04`.
+The OpenAPI v1 artefact is owned by RAG-Challenge, generated and versioned with
+the API, includes questions, completed responses, citations and Problem
+Details, and passes a compatibility test. It remains byte-for-byte unchanged
+in this reconciliation. Breaking-change policy belongs to `STATE-02`;
+implementation and artefact proof belong to `STATE-04`.
 
-O sucessor aceito está implementado sob autoridades posteriores:
+The accepted successor is implemented under later authorities:
 
 ```text
 QueryRequestV2
@@ -354,59 +353,58 @@ PageImageEvidenceV1
   obligationSetId: exact immutable obligation-set identity | null
 ```
 
-`CitationV2` conserva os demais campos do v1, expõe somente referências PNG
-validadas pelo binding ativo e preserva todo texto da fonte no idioma original.
-O JSON não embute bytes nem paths. O endpoint same-origin, somente leitura,
-revalida citação, manifesto, direitos e obligation set antes de servir o PNG
-limitado. A apresentação completa permanece como texto acessível junto da
-figura. O modelo de linguagem continua recebendo somente evidência textual.
-OpenAPI v1 permanece protegido; v2 e a implementação notice-bearing não
-autorizam corpus/provider real nem homologação de produto.
+`CitationV2` preserves other v1 fields, exposes only PNG references validated
+by the active binding and preserves all source text in its original language.
+JSON embeds neither bytes nor paths. The read-only same-origin endpoint
+revalidates citation, manifest, rights and obligation set before serving the
+bounded PNG. Complete presentation remains accessible text alongside the
+figure. The language model continues to receive only textual evidence.
+OpenAPI v1 remains protected; v2 and notice-bearing implementation authorise
+neither a real corpus/provider nor product homologation.
 
-Os campos de idioma pertencem ao contrato de consulta e não selecionam o
-idioma visual. O Dashboard suporta separadamente `interfaceLanguage=pt-BR` ou
+Language fields belong to the query contract and do not select visual
+language. The Dashboard separately supports `interfaceLanguage=pt-BR` or
 `interfaceLanguage=en-GB`.
 
-O tema também pertence ao estado local do Dashboard, com `Light` e `Dark`
-como valores suportados. Ele não integra o contrato público de consulta e não
-altera idioma, conteúdo, escopo, resposta, evidência ou citação.
+Theme also belongs to local Dashboard state, with supported `Light` and `Dark`
+values. It is not part of the public query contract and changes no language,
+content, scope, answer, evidence or citation.
 
-`QueryResponseV1` representa apenas uma consulta concluída com `Answered` ou
-`InsufficientEvidence`. `evidenceCoverage` identifica o conjunto ativo
-consultado e eventuais fontes degradadas sem substituir evidência
-silenciosamente. Entrada inválida, ausência de qualquer conjunto servível,
-violação de política, rate limit, indisponibilidade de provider e falha interna
-são resultados tipados da Application mapeados pela API para Problem Details
-não `2xx`, com código estável e sem detalhes sensíveis.
+`QueryResponseV1` represents only a completed query with `Answered` or
+`InsufficientEvidence`. `evidenceCoverage` identifies the queried active set
+and degraded sources without silently substituting evidence. Invalid input,
+absence of any servable set, policy violation, rate limit, provider
+unavailability and internal failure are typed Application outcomes mapped by
+the API to non-`2xx` Problem Details with stable codes and no sensitive detail.
 
 ### Dashboard
 
-- Interface mínima e responsiva.
-- Seletor explícito de `interfaceLanguage` entre `pt-BR` e `en-GB`, sem
-  inferência a partir de `questionLanguage` ou `answerLanguage`.
-- Labels, instruções, validações, estados e erros pertencentes ao produto
-  integralmente localizados no idioma visual selecionado; citações preservam
+- Minimal responsive interface.
+- Explicit `interfaceLanguage` selector between `pt-BR` and `en-GB`, with no
+  inference from `questionLanguage` or `answerLanguage`.
+- Product-owned labels, instructions, validation, states and errors fully
+  localised in the selected visual language; citations preserve
   `contentLanguage`.
-- Seletor explícito de tema entre `Light` e `Dark`, independente de
-  `interfaceLanguage`, `questionLanguage` e do conteúdo consultado.
-- Tokens visuais de fundo, superfície, texto, borda, foco e estado
-  preservam contraste, hierarquia e informação não dependente apenas de cor
-  nos dois temas.
-- Indicador acessível de cobertura e proveniência local/oficial das evidências,
-  sem criar corpora mutuamente exclusivos.
-- Estados de carregamento, vazio, erro, rate limit, cobertura degradada, fonte
-  indisponível/stale e evidência insuficiente.
-- Navegação por teclado e foco visível.
-- Citações acessíveis e separadas da resposta.
-- Nenhum acesso direto ao vetor, ao LLM ou a secrets.
-- Seleção inicial, persistência e fallback de `interfaceLanguage`, assim como
-  tema inicial, preferência do sistema, persistência e fallback de tema,
-  pertencem ao `STATE-05` e permanecem sem decisão.
-- Saída é texto puro por padrão. Se Markdown for autorizado, usa subconjunto
-  sanitizado, bloqueia HTML cru, permite somente schemes de URL aprovados e
-  opera sob Content Security Policy.
+- Explicit theme selector between `Light` and `Dark`, independent of
+  `interfaceLanguage`, `questionLanguage` and queried content.
+- Background, surface, text, border, focus and state visual tokens preserve
+  contrast, hierarchy and information that does not depend on colour alone in
+  both themes.
+- Accessible coverage and local/official provenance indicator without creating
+  mutually exclusive corpora.
+- Loading, empty, error, rate-limit, degraded-coverage, unavailable/stale source
+  and insufficient-evidence states.
+- Keyboard navigation and visible focus.
+- Accessible citations separated from the answer.
+- No direct access to vector, LLM or secrets.
+- Initial selection, persistence and fallback of `interfaceLanguage`, as well
+  as initial theme, system preference, persistence and theme fallback, belong
+  to `STATE-05` and remain undecided.
+- Output is plain text by default. If Markdown is authorised, it uses a
+  sanitised subset, blocks raw HTML, permits only approved URL schemes and
+  operates under Content Security Policy.
 
-## Fluxo de indexação
+## Indexing flow
 
 ```text
 configured logical corpus and catalogue
@@ -418,35 +416,34 @@ configured logical corpus and catalogue
   -> chunk with versioned strategy
   -> embed
   -> write under temporary candidate build identity
-  -> finalise canonical manifest with logical artifact digest/counts
+  -> finalise canonical manifest with logical artefact digest/counts
   -> validate readback, manifest and smoke queries
   -> atomically bind eligible source/render/index artefacts and compare-and-swap
      the complete CorpusActivationRecord in IIndexGenerationStore
 ```
 
-Cada binding oficial selecionado para a candidata preserva snapshot e
-observação. Somente bindings `Current` e itens `Active` participam do conjunto
-consultável. Falha antes ou durante o compare-and-swap mantém geração e
-bindings anteriores. Vetores, conteúdo ou observações candidatos que não forem
-ativados são órfãos auditáveis até cleanup explícito. A estratégia detalhada
-está em [`RAG-Module.md`](RAG-Module.md).
+Every official binding selected for the candidate preserves snapshot and
+observation. Only `Current` bindings and `Active` items participate in the
+queryable set. Failure before or during compare-and-swap preserves the prior
+generation and bindings. Candidate vectors, content or observations that are
+not activated remain auditable orphans until explicit cleanup. The detailed
+strategy is in [`RAG-Module.md`](RAG-Module.md).
 
-Candidato parcial nunca possui `IndexGenerationId` nem é consultável. A
-identidade final deriva da especificação e do digest/contagens dos artefatos
-lógicos produzidos; outputs distintos não reutilizam silenciosamente o mesmo
-ID. Staging, finalização idempotente e evidência mínima de readback pertencem
-ao `STATE-03`.
+A partial candidate never has `IndexGenerationId` and is never queryable. Final
+identity derives from the specification and logical artefact digest/counts;
+distinct outputs do not silently reuse one ID. Staging, idempotent finalisation
+and minimum readback evidence belong to `STATE-03`.
 
-A candidata contém um conjunto ordenado de todos os bancos e documentos que se
-pretende ativar. Atualizações são serializadas por corpus; o vector store deve
-filtrar `CorpusId`, `IndexGenerationId`, bindings elegíveis e quaisquer filtros
-administrativos declarados antes do top-k. Rollback seleciona uma geração
-retida inteira, mas cria nova revisão do registro com observações compatíveis e
-atualmente elegíveis, sem restaurar freshness histórica. Desativar ou remover o
-último documento ativo exige desativar explicitamente o banco na mesma operação
-atômica.
+The candidate contains an ordered set of all databases and documents intended
+for activation. Updates are serialised per corpus; the vector store must filter
+`CorpusId`, `IndexGenerationId`, eligible bindings and declared administrative
+filters before top-k. Rollback selects a whole retained generation but creates
+a new record revision with compatible, currently eligible observations,
+without restoring historical freshness. Deactivating or removing the final
+active document requires explicit database deactivation in the same atomic
+operation.
 
-## Fluxo de consulta
+## Query flow
 
 ```text
 question
@@ -463,20 +460,19 @@ question
   -> answer or INSUFFICIENT_EVIDENCE
 ```
 
-## Configuração
+## Configuration
 
-- Configuração comum em arquivos sem segredo.
-- Overrides por ambiente e variáveis protegidas.
-- Secrets somente por referências ou nomes de variáveis.
-- Startup valida provider, modelo, dimensão, limites, catálogo, content store,
-  durabilidade mínima, compatibilidade do índice e, quando a capacidade visual
-  estiver habilitada, perfil/renderer/manifests. O perfil oficial valida cada
-  registro de URL/allowlist, política de egress e freshness sem executar
-  sincronização.
-- Capacidade incompleta permanece desativada; não há fallback silencioso.
-- Um `.env.example` futuro contém apenas nomes e valores fictícios.
+- Common configuration in non-secret files.
+- Per-environment overrides and protected variables.
+- Secrets only through references or variable names.
+- Start-up validates provider, model, dimension, limits, catalogue, content
+  store, minimum durability, index compatibility and, when visual capability
+  is enabled, profile/renderer/manifests. The official profile validates each
+  URL/allowlist record, egress policy and freshness without synchronising.
+- An incomplete capability remains disabled; there is no silent fallback.
+- A future `.env.example` contains only names and fictitious values.
 
-Seções candidatas:
+Candidate sections:
 
 ```text
 RagChallenge:Corpus
@@ -492,14 +488,14 @@ RagChallenge:Observability
 RagChallenge:Egress
 ```
 
-## Tratamento de erros
+## Error handling
 
-Resultados concluídos de `AnswerOutcome`:
+Completed `AnswerOutcome` results:
 
 - `Answered`;
 - `InsufficientEvidence`.
 
-Categorias canônicas iniciais de falha:
+Initial canonical failure categories:
 
 - `InvalidInput`;
 - `CorpusUnavailable`;
@@ -516,91 +512,88 @@ Categorias canônicas iniciais de falha:
 - `OperationCancelled`;
 - `UnexpectedFailure`.
 
-A API mapeia falhas para Problem Details sem stack trace, prompt, documento,
-token ou segredo. Os dois `AnswerOutcome` permanecem respostas tipadas `2xx`;
-falhas não são apresentadas como sucesso. Retry só
-ocorre para falha transitória e operação idempotente. O `STATE-02` fecha uma
-tabela única `ApplicationFailure → CH_* → HTTP/Problem Details`; adapters não
-criam taxonomias paralelas.
+The API maps failures to Problem Details without a stack trace, prompt,
+document, token or secret. Both `AnswerOutcome` values remain typed `2xx`
+responses; failures are not presented as success. Retry occurs only for a
+transient failure and idempotent operation. `STATE-02` closes one
+`ApplicationFailure → CH_* → HTTP/Problem Details` table; adapters do not
+create parallel taxonomies.
 
-## Observabilidade, logging e auditoria
+## Observability, logging and audit
 
-- Logs estruturados com correlation ID, operation ID e códigos estáveis.
-- Métricas de ingestão/sincronização: duração, bancos, documentos, formatos,
-  páginas/linhas, bytes de fonte/imagem, render manifests, chunks, freshness,
-  falhas e versão, sem conteúdo bruto.
-- Métricas de consulta: latência por estágio, candidatos, recusas e falhas de
-  provider.
-- Custo/tokens somente quando o provider oferece metadados seguros.
-- Liveness verifica somente que o processo responde e não depende de serviço
-  externo.
-- Readiness global exige ao menos um banco ativo com um documento ativo e uma
-  geração compatível servível. Fontes `Stale`, `Unavailable`, `Withdrawn` ou
-  `Deactivated` aparecem como cobertura degradada por fonte/documento; somente
-  ausência de qualquer conjunto servível torna a instância globalmente
-  indisponível. Egress de sincronização não integra o caminho de readiness.
-- Auditoria registra configuração relevante sanitizada, início/fim de
-  indexação/sincronização, snapshot, ativação, rollback e provider/version.
-- Perguntas, trechos e respostas completas não são logados por padrão.
+- Structured logs with correlation ID, operation ID and stable codes.
+- Ingestion/synchronisation metrics: duration, databases, documents, formats,
+  pages/rows, source/image bytes, render manifests, chunks, freshness, failures
+  and version, without raw content.
+- Query metrics: per-stage latency, candidates, refusals and provider failures.
+- Cost/tokens only when the provider supplies safe metadata.
+- Liveness checks only that the process responds and does not depend on an
+  external service.
+- Global readiness requires at least one active database with one active
+  document and a compatible servable generation. `Stale`, `Unavailable`,
+  `Withdrawn` or `Deactivated` sources appear as degraded per-source/document
+  coverage; only absence of any servable set makes the instance globally
+  unavailable. Synchronisation egress is not in the readiness path.
+- Audit records relevant sanitised configuration, start/end of
+  indexing/synchronisation, snapshot, activation, rollback and provider/version.
+- Full questions, passages and answers are not logged by default.
 
-## Infraestrutura e CI/CD
+## Infrastructure and CI/CD
 
-O `STATE-01` deve preparar CI, não deploy automático. Pipeline mínimo:
+`STATE-01` must prepare CI, not automatic deployment. Minimum pipeline:
 
-1. checkout sem persistir credenciais;
-2. toolchains e versões fixadas;
-3. restore por lockfile;
-4. formatação, lint e type checking;
-5. build Release;
-6. testes e cobertura;
-7. testes de arquitetura;
-8. auditoria de dependências;
+1. checkout without persisting credentials;
+2. pinned toolchains and versions;
+3. lockfile restore;
+4. format, lint and type checking;
+5. Release build;
+6. tests and coverage;
+7. architecture tests;
+8. dependency audit;
 9. secret scan;
-10. validação de links e higiene do diff.
+10. link validation and diff hygiene.
 
-Testes padrão usam fontes HTTP falsas locais e não acessam URLs oficiais reais.
-Smoke real é opt-in e exige autoridade de rede própria.
+Standard tests use local fake HTTP sources and do not access real official
+URLs. Real smoke is opt-in and requires its own network authority.
 
-CD e OCI pertencem aos estados posteriores. O deploy inicial candidato é um
-único artefato no serviço OCI selecionado, com configuração e secrets
-externos. `OFFICIAL_SOURCE_EGRESS` fica limitado ao conjunto exato de URLs
-ativas e separadamente aprovadas;
-`OCI_RUNTIME_EGRESS` agrega separadamente somente os destinos aprovados de
-fonte oficial, IA, vector store externo, secret store, telemetria e operação.
-Um vector store gerenciado exige também `VECTOR_STORE_EGRESS`; autorização do
-runtime não amplia a política específica. GitHub Pages pode hospedar apenas
-um frontend estático opcional; não substitui o backend nem o uso de OCI.
+CD and OCI belong to later states. The initial candidate deployment is one
+artefact on the selected OCI service, with external configuration and secrets.
+`OFFICIAL_SOURCE_EGRESS` is limited to the exact separately approved active URL
+set; `OCI_RUNTIME_EGRESS` separately aggregates only approved official-source,
+AI, external vector-store, secret-store, telemetry and operations destinations.
+A managed vector store also requires `VECTOR_STORE_EGRESS`; runtime authority
+does not broaden the specific policy. GitHub Pages may host only an optional
+static frontend; it replaces neither the backend nor OCI use.
 
-## Integração futura ao DB-Notifier
+## Future DB-Notifier integration
 
-Compatibilidade é obtida por:
+Compatibility is achieved through:
 
-- .NET 10 e convenções equivalentes;
-- boundaries Domain/Application/Infrastructure;
-- resultados e erros tipados;
-- configuração e providers fail-closed;
-- contrato HTTP/OpenAPI versionado;
-- proveniência, UTC, cancelamento e observabilidade.
+- .NET 10 and equivalent conventions;
+- Domain/Application/Infrastructure boundaries;
+- typed outcomes and errors;
+- fail-closed configuration and providers;
+- a versioned HTTP/OpenAPI contract;
+- provenance, UTC, cancellation and observability.
 
-A primeira fronteira de integração será um adapter HTTP pertencente ao
-DB-Notifier que consome o contrato OpenAPI v1 pertencente ao RAG-Challenge.
-Requisição, resposta tipada, cobertura/proveniência, citações, metadados de
-reprodutibilidade, `indexGenerationId` e `correlationId` pertencem ao contrato
-público; entidades Domain, portas RAG e tipos de SDK não atravessam essa
-fronteira.
+The first integration boundary will be a DB-Notifier-owned HTTP adapter that
+consumes the RAG-Challenge-owned OpenAPI v1 contract. Request, typed response,
+coverage/provenance, citations, reproducibility metadata,
+`indexGenerationId` and `correlationId` belong to the public contract; Domain
+entities, RAG ports and SDK types do not cross this boundary.
 
-Empacotamento in-process de contratos ou casos de uso só poderá nascer depois,
-por ADR próprio e evidência de necessidade. A decisão de integrar também será
-registrada no repositório consumidor. O RAG-Challenge não referencia
-assemblies, banco, eventos ou configuração do DB-Notifier no MVP e não implementa o
-adapter consumidor.
+In-process packaging of contracts or use cases may arise only later under its
+own ADR and evidence of need. The integration decision will also be recorded
+in the consuming repository. RAG-Challenge does not reference DB-Notifier
+assemblies, database, events or configuration in the MVP and does not
+implement the consuming adapter.
 
-## Implantação e funcionamento independente
+## Independent deployment and operation
 
-- Local: API, Dashboard e dependências configuradas pelo desenvolvedor.
-- OCI: a mesma aplicação e contratos, com secrets e armazenamento adequados
-  ao ambiente.
-- GitHub: código, documentação e CI.
-- GitHub Pages: somente interface estática opcional.
+- Local: API, Dashboard and dependencies configured by the developer.
+- OCI: the same application and contracts, with environment-appropriate
+  secrets and storage.
+- GitHub: code, documentation and CI.
+- GitHub Pages: optional static interface only.
 
-O produto deve continuar funcional sem DB-Notifier instalado.
+The product must remain functional without DB-Notifier installed.
