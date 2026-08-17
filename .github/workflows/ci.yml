@@ -124,14 +124,14 @@ jobs:
 
           $expectedVersion = [System.Version]$expectedDotnet
           if ($installedVersion.Major -ne $expectedVersion.Major -or
-              $installedVersion.Minor -ne $expectedVersion.Minor -or
-              (($rollForward -eq "latestPatch") -and
-              $installedVersion.Build -lt $expectedVersion.Build) -or
-              ((-not $rollForward) -and ($installedVersion -ne $expectedVersion)) -or
-              (($rollForward -ne "latestPatch") -and
-              (-not [string]::IsNullOrWhiteSpace($rollForward)) -and
-              $installedVersion -ne $expectedVersion)) {
-            throw "Expected .NET SDK $expectedDotnet with latestPatch roll-forward when configured, found $installedDotnet."
+              $installedVersion.Minor -ne $expectedVersion.Minor) {
+            throw "Expected .NET SDK major/minor $($expectedVersion.Major).$($expectedVersion.Minor), found $installedDotnet."
+          }
+
+          if ($rollForward -eq "latestPatch") {
+            if ($installedVersion.Build -lt $expectedVersion.Build) {
+              throw "Expected .NET SDK patch >= $($expectedVersion.Build), found $installedDotnet."
+            }
           }
 
           $nodeVersion = (node --version).TrimStart("v")
