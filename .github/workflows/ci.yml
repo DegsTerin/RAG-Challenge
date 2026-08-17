@@ -18,7 +18,7 @@ concurrency:
 jobs:
   setup-gate:
     name: Setup gate
-    runs-on: windows-2025
+    runs-on: windows-latest
     timeout-minutes: 30
 
     steps:
@@ -99,11 +99,29 @@ jobs:
           $ErrorActionPreference = "Stop"
           . ./eng/ci-policy.ps1
 
-          $expectedDotnet = (Get-Content global.json | ConvertFrom-Json).sdk.version
+          $dotnetSdk = Get-Content global.json | ConvertFrom-Json | Select-Object -ExpandProperty sdk
+          $expectedDotnet = $dotnetSdk.version
+          $rollForward = $dotnetSdk.rollForward
           $dashboardPackage = Get-Content src/RagChallenge.Dashboard.Web/package.json -Raw | ConvertFrom-Json
           $orchestratorPackage = Get-Content tools/ai-orchestrator/package.json -Raw | ConvertFrom-Json
-          if ((dotnet --version) -ne $expectedDotnet) {
-            throw "Expected .NET SDK $expectedDotnet."
+          $installedDotnet = (dotnet --version).Trim()
+          if ($installedDotnet -match '^(\d+)\.(\d+)\.(\d+)') {
+            $installedVersion = [System.Version]$matches[0]
+          }
+          else {
+            throw "Unable to parse dotnet --version output '$installedDotnet'."
+          }
+
+          $expectedVersion = [System.Version]$expectedDotnet
+          if ($installedVersion.Major -ne $expectedVersion.Major -or
+              $installedVersion.Minor -ne $expectedVersion.Minor -or
+              (($rollForward -eq "latestPatch") -and
+              $installedVersion.Build -lt $expectedVersion.Build) -or
+              ((-not $rollForward) -and ($installedVersion -ne $expectedVersion)) -or
+              (($rollForward -ne "latestPatch") -and
+              (-not [string]::IsNullOrWhiteSpace($rollForward)) -and
+              $installedVersion -ne $expectedVersion)) {
+            throw "Expected .NET SDK $expectedDotnet with latestPatch roll-forward when configured, found $installedDotnet."
           }
 
           $nodeVersion = (node --version).TrimStart("v")
