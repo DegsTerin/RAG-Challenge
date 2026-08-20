@@ -551,7 +551,8 @@ public sealed class SqliteProviderBudgetLedgerTests
             conflict.Rejection);
         Assert.Equal(ProviderBudgetState.ReconciliationRequired, conflict.State);
         Assert.Equal(reconciled.LedgerRevision, conflict.CurrentLedgerRevision);
-        var repeatedConflict = await ledger.AdmitAsync(divergentAfterExpiry);
+        var repeatedConflict = await ledger.AdmitAsync(
+            WithRequestedAt(divergentAfterExpiry, instant.AddHours(3)));
         Assert.Equal(ProviderBudgetAdmissionOutcome.Rejected, repeatedConflict.Outcome);
         Assert.Equal(
             ProviderBudgetAdmissionRejection.ReconciliationRequired,
@@ -587,6 +588,179 @@ public sealed class SqliteProviderBudgetLedgerTests
             "AND from_state = 'ReconciliationRequired' " +
             "AND to_state = 'ReconciliationRequired' " +
             "AND outcome_code = 'Conflict';"));
+    }
+
+    [Theory]
+    [InlineData("Dispatch")]
+    [InlineData("Commit")]
+    [InlineData("Release")]
+    public async Task DivergentTransitionReplayPreservesReconciliationRequiredAndAuditsOnce(
+        string transitionKind)
+    {
+        await using var fixture = await SqlitePersistenceFixture.CreateAsync();
+        var instant = DateTimeOffset.UtcNow;
+        await SeedDisarmedGraphAsync(fixture.Options.ControlDatabasePath, instant);
+        var ledger = new SqliteProviderBudgetLedger(fixture.Options);
+        var disarmed = (await ledger.ReadEnvelopeAsync(new ProviderBudgetEnvelopeId(EnvelopeId)))!;
+        var armed = (await ledger.RearmAsync(CreateRearmRequest(disarmed, instant))).Envelope!;
+        var admission = await ledger.AdmitAsync(
+            CreateAdmissionRequest(
+                armed,
+                $"PBR-RECOVERY-{transitionKind.ToUpperInvariant()}-CONFLICT",
+                instant.AddSeconds(1)));
+        var reservation = Assert.IsType<ProviderBudgetReservation>(admission.Reservation);
+        ProviderBudgetEnvelopeV1 reconciled;
+        ProviderBudgetReservation expectedReservation;
+        Func<DateTimeOffset, Task<ProviderBudgetTransitionResult>> divergentReplay;
+
+        if (transitionKind == "Release")
+        {
+            var release = await ledger.ReleasePreSendAsync(
+                new ProviderBudgetReleaseRequest(
+                    reservation.ProviderRequestId,
+                    admission.CurrentLedgerRevision!,
+                    reservation.CurrentReservationRevision,
+                    ProviderBudgetReleaseProofKind.BeforeCredentialLookup,
+                    Sha("original release proof"),
+                    reservation.OperationAuthorityReference,
+                    instant.AddSeconds(2)));
+            Assert.Equal(ProviderBudgetTransitionOutcome.Applied, release.Outcome);
+            expectedReservation = Assert.IsType<ProviderBudgetReservation>(release.Reservation);
+            var afterRelease = Assert.IsType<ProviderBudgetEnvelopeV1>(
+                await ledger.ReadEnvelopeAsync(armed.EnvelopeId));
+            var orphanAdmission = await ledger.AdmitAsync(
+                CreateAdmissionRequest(
+                    afterRelease,
+                    "PBR-RECOVERY-RELEASE-ORPHAN",
+                    instant.AddSeconds(3)));
+            var orphan = Assert.IsType<ProviderBudgetReservation>(orphanAdmission.Reservation);
+            var orphanDispatch = await ledger.MarkDispatchStartedAsync(
+                new ProviderBudgetDispatchRequest(
+                    orphan.ProviderRequestId,
+                    orphanAdmission.CurrentLedgerRevision!,
+                    orphan.CurrentReservationRevision,
+                    instant.AddSeconds(4)));
+            Assert.Equal(ProviderBudgetTransitionOutcome.Applied, orphanDispatch.Outcome);
+            var recovery = await ledger.RearmAsync(
+                CreateRearmRequest(
+                    Assert.IsType<ProviderBudgetEnvelopeV1>(
+                        await ledger.ReadEnvelopeAsync(armed.EnvelopeId)),
+                    instant.AddSeconds(5),
+                    "PRS-RECOVERY-RELEASE-RESTART"));
+            reconciled = Assert.IsType<ProviderBudgetEnvelopeV1>(recovery.Envelope);
+            divergentReplay = occurredAtUtc => ledger.ReleasePreSendAsync(
+                new ProviderBudgetReleaseRequest(
+                    reservation.ProviderRequestId,
+                    admission.CurrentLedgerRevision!,
+                    reservation.CurrentReservationRevision,
+                    ProviderBudgetReleaseProofKind.BeforeCredentialLookup,
+                    Sha("divergent release proof"),
+                    reservation.OperationAuthorityReference,
+                    occurredAtUtc));
+        }
+        else
+        {
+            var dispatch = await ledger.MarkDispatchStartedAsync(
+                new ProviderBudgetDispatchRequest(
+                    reservation.ProviderRequestId,
+                    admission.CurrentLedgerRevision!,
+                    reservation.CurrentReservationRevision,
+                    instant.AddSeconds(2)));
+            Assert.Equal(ProviderBudgetTransitionOutcome.Applied, dispatch.Outcome);
+            var dispatched = Assert.IsType<ProviderBudgetReservation>(dispatch.Reservation);
+
+            if (transitionKind == "Commit")
+            {
+                var commitment = await ledger.CommitAsync(
+                    new ProviderBudgetCommitRequest(
+                        reservation.ProviderRequestId,
+                        dispatch.CurrentLedgerRevision!,
+                        dispatched.CurrentReservationRevision,
+                        ProviderBudgetCommitmentKind.IndeterminateMaximum,
+                        reservation.MaximumCharge,
+                        Sha("original indeterminate evidence"),
+                        new ProviderBudgetOutcomeCode("ORIGINAL_INDETERMINATE"),
+                        providerDuration: null,
+                        instant.AddSeconds(3)));
+                Assert.Equal(ProviderBudgetTransitionOutcome.Applied, commitment.Outcome);
+                expectedReservation = Assert.IsType<ProviderBudgetReservation>(commitment.Reservation);
+                reconciled = Assert.IsType<ProviderBudgetEnvelopeV1>(
+                    await ledger.ReadEnvelopeAsync(armed.EnvelopeId));
+                divergentReplay = occurredAtUtc => ledger.CommitAsync(
+                    new ProviderBudgetCommitRequest(
+                        reservation.ProviderRequestId,
+                        dispatch.CurrentLedgerRevision!,
+                        dispatched.CurrentReservationRevision,
+                        ProviderBudgetCommitmentKind.IndeterminateMaximum,
+                        reservation.MaximumCharge,
+                        Sha("divergent indeterminate evidence"),
+                        new ProviderBudgetOutcomeCode("ORIGINAL_INDETERMINATE"),
+                        providerDuration: null,
+                        occurredAtUtc));
+            }
+            else
+            {
+                var recovery = await ledger.RearmAsync(
+                    CreateRearmRequest(
+                        Assert.IsType<ProviderBudgetEnvelopeV1>(
+                            await ledger.ReadEnvelopeAsync(armed.EnvelopeId)),
+                        instant.AddSeconds(3),
+                        "PRS-RECOVERY-DISPATCH-RESTART"));
+                reconciled = Assert.IsType<ProviderBudgetEnvelopeV1>(recovery.Envelope);
+                expectedReservation = Assert.IsType<ProviderBudgetReservation>(
+                    await ledger.ReadReservationAsync(reservation.ProviderRequestId));
+                divergentReplay = occurredAtUtc => ledger.MarkDispatchStartedAsync(
+                    new ProviderBudgetDispatchRequest(
+                        reservation.ProviderRequestId,
+                        admission.CurrentLedgerRevision!,
+                        reservation.CurrentReservationRevision,
+                        occurredAtUtc));
+            }
+        }
+
+        Assert.Equal(ProviderBudgetState.ReconciliationRequired, reconciled.State);
+        var firstConflict = await divergentReplay(instant.AddSeconds(10));
+        var repeatedConflict = await divergentReplay(instant.AddSeconds(11));
+
+        Assert.Equal(ProviderBudgetTransitionOutcome.Rejected, firstConflict.Outcome);
+        Assert.Equal(ProviderBudgetTransitionRejection.EnvelopeNotArmed, firstConflict.Rejection);
+        Assert.Equal(ProviderBudgetState.ReconciliationRequired, firstConflict.State);
+        Assert.Equal(reconciled.LedgerRevision, firstConflict.CurrentLedgerRevision);
+        Assert.Equal(ProviderBudgetTransitionOutcome.Rejected, repeatedConflict.Outcome);
+        Assert.Equal(ProviderBudgetTransitionRejection.EnvelopeNotArmed, repeatedConflict.Rejection);
+        Assert.Equal(ProviderBudgetState.ReconciliationRequired, repeatedConflict.State);
+        Assert.Equal(reconciled.LedgerRevision, repeatedConflict.CurrentLedgerRevision);
+        var unchanged = Assert.IsType<ProviderBudgetEnvelopeV1>(
+            await ledger.ReadEnvelopeAsync(armed.EnvelopeId));
+        Assert.Equal(ProviderBudgetState.ReconciliationRequired, unchanged.State);
+        Assert.Equal(reconciled.LedgerRevision, unchanged.LedgerRevision);
+        Assert.Equal(reconciled.CurrentLedgerSha256, unchanged.CurrentLedgerSha256);
+        var durableReservation = Assert.IsType<ProviderBudgetReservation>(
+            await ledger.ReadReservationAsync(reservation.ProviderRequestId));
+        Assert.Equal(expectedReservation.Status, durableReservation.Status);
+        Assert.Equal(
+            1,
+            await ScalarAsync(
+                fixture.Options.ControlDatabasePath,
+                $"SELECT COUNT(*) FROM provider_budget_audit_events " +
+                $"WHERE event_type = 'ReservationConflict' " +
+                $"AND provider_request_id = '{reservation.ProviderRequestId.Value}' " +
+                $"AND from_state = 'ReconciliationRequired' " +
+                $"AND to_state = 'ReconciliationRequired' " +
+                $"AND outcome_code = 'Conflict';"));
+        Assert.Equal(0, await ScalarAsync(
+            fixture.Options.ControlDatabasePath,
+            "SELECT COUNT(*) FROM provider_budget_audit_events " +
+            "WHERE event_type = 'EnvelopeTripped' " +
+            "AND from_state = 'ReconciliationRequired';"));
+        var rejectedRearm = await ledger.RearmAsync(
+            CreateRearmRequest(
+                unchanged,
+                instant.AddSeconds(12),
+                $"PRS-RECOVERY-{transitionKind.ToUpperInvariant()}-SECOND-RESTART"));
+        Assert.Equal(ProviderBudgetRearmOutcome.Rejected, rejectedRearm.Outcome);
+        Assert.Equal(ProviderBudgetState.ReconciliationRequired, rejectedRearm.Envelope!.State);
+        Assert.Equal(unchanged.LedgerRevision, rejectedRearm.Envelope.LedgerRevision);
     }
 
     [Fact]
@@ -837,6 +1011,28 @@ public sealed class SqliteProviderBudgetLedgerTests
             Sha("exact binding"),
             new ProviderBudgetUnits(0),
             instant);
+
+    private static ProviderBudgetAdmissionRequest WithRequestedAt(
+        ProviderBudgetAdmissionRequest request,
+        DateTimeOffset requestedAtUtc) =>
+        new(
+            request.ProviderRequestId,
+            request.EnvelopeId,
+            request.StoreEpochId,
+            request.ExpectedConfigurationRevision,
+            request.ExpectedLedgerRevision,
+            request.RuntimeSessionId,
+            request.Scope,
+            request.CostScheduleId,
+            request.CostScheduleSha256,
+            request.OperationClass,
+            request.OperationAuthorityReference,
+            request.RequestPlanSha256,
+            request.RequestSha256,
+            request.MaximumChargeBasisSha256,
+            request.BindingSha256,
+            request.MaximumCharge,
+            requestedAtUtc);
 
     private static async Task SeedDisarmedGraphAsync(string path, DateTimeOffset instant)
     {

@@ -2,7 +2,7 @@
 
 ## Current version
 
-- Version: `4.18.3`
+- Version: `4.18.4`
 - Date: 2026-08-20
 - Status: `STATE-07` active; ADR-0011 through ADR-0017 retain their recorded
   accepted dispositions and implemented or pending boundaries; PostgreSQL 18.4
@@ -29,9 +29,10 @@
   approval or gate disposition; the item-4 test candidate remains blocked and
   a separate authorised corrective now persists expiry, recovers orphaned
   dispatches conservatively and keeps clean restart fail-closed; its bounded
-  Automatic Quality Gate is `REPROVADO` after independent read-only review
-  found one open P1 in divergent transition replay and one open P2 in
-  conflict-audit idempotency before any executable check; Product
+  Automatic Quality Gate remains historically `REPROVADO`, while the P1 in
+  divergent transition replay and P2 in conflict-audit idempotency are locally
+  `CORRECTED_PENDING_GATE_RETEST` under a separate bounded correction with zero
+  P0-P3 in independent review; Product
   on-demand visual materialisation is disabled fail-closed
   under the authorised `SEC-CORR-002` containment while the dedicated ADR-0019
   sandbox remains unimplemented; the
@@ -50,6 +51,32 @@ The corpus version is independent from the future software version.
 
 Every change updates this file and, when necessary,
 [`../Start-Here.md`](../Start-Here.md).
+
+## 4.18.4 — 2026-08-20
+
+- Records `AUTH-SEC-BUDGET-001-RECOVERY-CORR-20260820-02` on exact clean
+  `main@adcc0c553e8b203e74133f748f05aa33b4b1c79d`, corpus `4.18.3`, without
+  changing `STATE-07`, the historical Automatic Quality Gate disposition,
+  Human Gate or lifecycle.
+- Corrects `AQG-SEC-BUDGET-RECOVERY-001`: divergent dispatch, commitment and
+  release replay against `ReconciliationRequired` preserves the dominant
+  ledger/head/reservation state, cannot persist `Tripped` and cannot reopen an
+  exact rearm path.
+- Corrects `AQG-SEC-BUDGET-RECOVERY-002`: admission and transition conflict
+  audit identities exclude attempt timestamps and current ledger revision, so
+  one logical divergence appends at most one sanitised `ReservationConflict`.
+- Adds the bounded regression matrix across admission, dispatch, commitment and
+  release with different attempt timestamps. Focused tests passed 17/17; all
+  555 .NET tests passed; merged coverage passed at 95.75% of lines and 67.03%
+  of branches; Release build, focused format, policy tests, repository audit and
+  independent read-only review with zero P0-P3 passed.
+- Retains the recorded solution-wide import-ordering failure in the unchanged,
+  out-of-scope `OpenAiHttpAdapters.cs`. No Automatic Quality Gate, schema,
+  migration, OpenAPI, dependency, budget value, cost schedule, provider,
+  credential, network, billing, deployment or external action occurred.
+- Classification: `PATCH`, because this revision records a bounded executable
+  defect correction and its factual evidence without changing architecture,
+  public contracts, persistence shape, lifecycle or external authority.
 
 ## 4.18.3 — 2026-08-20
 

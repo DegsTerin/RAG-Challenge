@@ -9305,3 +9305,67 @@ contém somente fatos cronológicos.
 - Next condition: obtain separate bounded corrective authority for both open
   findings. A complete AQG retest then requires a new explicit authority on an
   exact clean baseline; no correction or retest is inferred from this record.
+
+## 2026-08-20 — Provider-budget recovery findings corrected locally
+
+- Authority: `AUTH-SEC-BUDGET-001-RECOVERY-CORR-20260820-02` authorised only
+  the local, offline, deterministic and sequential correction of
+  `AQG-SEC-BUDGET-RECOVERY-001` and `AQG-SEC-BUDGET-RECOVERY-002` on exact
+  `main@adcc0c553e8b203e74133f748f05aa33b4b1c79d`, corpus `4.18.3`, in
+  `STATE-07 TESTING_HOMOLOGATION`.
+- Baseline and preflight: branch, HEAD, clean tracked/untracked tree, empty
+  index, corpus identity and protected OpenAPI v1/v2 SHA-256 identities
+  `d6a686b94c926914beb28b437f464430a01de6560c2e2d476cf5c36025813e34`
+  and `f4dca8db7fb7bd453e580495bb1bb7760812d954344931063e8549ed8f036733`
+  matched the authority. No Git or orchestrator lock, RAG-Challenge-owned
+  process or known product listener existed; the separate detached worktree
+  remained untouched.
+- Terminal-state correction: divergent dispatch, commitment and release replay
+  against any non-`Armed` envelope now records the conflict and returns the
+  terminal rejection before the `Tripped` persistence path. The ledger
+  revision, envelope head, reservation and `ReconciliationRequired` state stay
+  unchanged, so exact rearming remains rejected and no path to `Armed` reopens.
+- Audit correction: admission and transition conflict fingerprints bind the
+  logical replay divergence while excluding attempt timestamps and the current
+  ledger revision. The stable audit identity records the first observation and
+  appends at most one sanitised `ReservationConflict` for repeated attempts at
+  different instants.
+- Regression evidence: the focused provider-budget ledger class passed 17/17.
+  Its matrix covers admission plus divergent dispatch, commitment and release,
+  repeats each logical conflict with a different timestamp, asserts one audit,
+  preserves state/revision/hash/reservation and proves that rearming remains
+  rejected.
+- Complete applicable verification: Release build passed with zero warnings or
+  errors; all 227 unit, 317 integration and 11 architecture tests passed; and
+  fail-closed merged coverage passed at 95.75% of lines (61,625/64,363) and
+  67.03% of branches (5,856/8,736). Focused format, coverage and CI policy
+  tests, all 105 language-policy tests, repository audit across 433 non-ignored
+  files and `git diff --check` passed. Solution-wide format verification
+  retained only the recorded, out-of-scope import-ordering failure in
+  `OpenAiHttpAdapters.cs`; that file was not changed. No Automatic Quality Gate
+  was executed.
+- Independent review: the sequential read-only review confirmed the exact
+  baseline and two-file executable diff and reported zero P0, zero P1, zero P2
+  and zero P3. It executed no build, test, runtime, network or Git mutation.
+- Disposition: both findings are locally `CORRECTED_PENDING_GATE_RETEST`. The
+  prior Automatic Quality Gate remains historically `REPROVADO`; this
+  correction neither reruns that gate nor advances Human Gate or lifecycle.
+- Closed corrective scope: only the SQLite provider-budget ledger, its focused
+  integration tests, Security-And-Access, Current State, Prompt System Change
+  Log and this append-only EOF are changed. Schema, migration, OpenAPI,
+  dependency, budget values, cost schedule, provider, credential, billing and
+  workflows remain unchanged.
+- Versioning: the instruction corpus advances by factual `PATCH` from `4.18.3`
+  to `4.18.4` without changing architecture, public contracts, persistence
+  shape, lifecycle or external authority.
+- Append-only integrity: this entry preserves the complete previous file of
+  595,145 bytes at SHA-256
+  `5cc6c349c62fb3a20d40ca3a79fe976bc0a650e735ff5f4fb5a4fafdeda10312`.
+- Runtime postflight: no RAG-Challenge-owned process or known product listener
+  remained after verification; no process was stopped.
+- Negative scope: no fetch, push, merge, rebase, amend, network, billing,
+  Render, OCI, deployment, Automatic Quality Gate, Human Gate, lifecycle
+  transition or remote action occurred.
+- Next condition: a complete AQG retest requires new explicit bounded authority
+  on the exact clean corrective baseline; no retest is inferred from this
+  record.

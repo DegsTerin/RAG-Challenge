@@ -165,25 +165,31 @@ These corrections use the existing closed states, transitions, commitments and
 audit records; no schema or migration is changed.
 
 The bounded Automatic Quality Gate under
-`AUTH-SEC-BUDGET-001-RECOVERY-AQG-20260820-01` is `REPROVADO`. Independent
-read-only review stopped the gate before executable checks with two open
-findings:
+`AUTH-SEC-BUDGET-001-RECOVERY-AQG-20260820-01` remains historically
+`REPROVADO`. Independent read-only review stopped that gate before executable
+checks with `AQG-SEC-BUDGET-RECOVERY-001` (`P1`) and
+`AQG-SEC-BUDGET-RECOVERY-002` (`P2`) open; neither finding was corrected within
+the gate.
 
-- `AQG-SEC-BUDGET-RECOVERY-001` (`P1`): a divergent dispatch, commitment or
-  release replay reaches the transition conflict path before normal transition
-  validation and persists `Tripped` unconditionally. After orphan recovery this
-  can reduce `ReconciliationRequired` to a rearmable state and permit a later
-  exact rearm once the reservation is terminal.
-- `AQG-SEC-BUDGET-RECOVERY-002` (`P2`): the preserved-state admission-conflict
-  audit identifier includes `RequestedAtUtc`, although replay binding equality
-  excludes that instant. Repeating the same logical divergence with a new
-  timestamp can therefore append another `ReservationConflict` event rather
-  than remain idempotent.
+Under `AUTH-SEC-BUDGET-001-RECOVERY-CORR-20260820-02`, both findings are now
+locally `CORRECTED_PENDING_GATE_RETEST`:
 
-The previous candidate assertions that every divergent replay preserves the
-dominant terminal state and records one idempotent conflict audit are therefore
-not verified. No CI, build, test, coverage or format command was executed after
-the mandatory stop, and neither finding was corrected within the gate.
+- a divergent dispatch, commitment or release replay against any non-`Armed`
+  envelope records the conflict and returns the terminal rejection without
+  changing the ledger revision, envelope head or reservation. In particular,
+  `ReconciliationRequired` cannot reach the path that persists `Tripped`, so it
+  remains ineligible for exact rearming and cannot return to `Armed`;
+- admission and transition conflict identities bind the logical divergence but
+  exclude the attempt timestamp and current ledger revision. Repetition at a
+  different instant therefore resolves to the same audit identity and appends
+  at most one sanitised `ReservationConflict` event.
+
+The directed regression matrix covers admission, dispatch, commitment and
+release, including repeated attempts with different timestamps. Local focused
+and complete verification passed, and independent read-only review reported
+zero P0-P3. This evidence is not an Automatic Quality Gate: the historical
+`REPROVADO` disposition remains unchanged until a separately authorised
+complete retest runs on the exact clean corrective baseline.
 
 Candidate commit `7b031a5` remains blocked and outside `main`: its crash test
 asserts the prohibited `Armed` plus `DispatchStarted` outcome and was replaced,

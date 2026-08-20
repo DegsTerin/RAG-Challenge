@@ -179,7 +179,9 @@ public sealed class SqliteProviderBudgetLedger : IProviderBudgetLedger, IProvide
                     context,
                     existingEnvelope,
                     existingRow,
-                    request,
+                    request.OperationAuthorityReference,
+                    request.RequestedAtUtc,
+                    AdmissionConflictSha256(request),
                     cancellationToken).ConfigureAwait(false);
                 var stateRejection = existingEnvelope.IsClosed
                     ? ProviderBudgetAdmissionRejection.Closed
@@ -607,6 +609,23 @@ public sealed class SqliteProviderBudgetLedger : IProviderBudgetLedger, IProvide
                     current.LedgerRevision,
                     reservation,
                     rejection: null);
+            }
+
+            if (current.State != ProviderBudgetState.Armed)
+            {
+                await AddPreservedStateConflictAuditAsync(
+                    context,
+                    current,
+                    row,
+                    reservation.OperationAuthorityReference,
+                    occurredAtUtc,
+                    TransitionConflictSha256(request),
+                    cancellationToken).ConfigureAwait(false);
+                await transaction.CommitAsync(cancellationToken).ConfigureAwait(false);
+                return Rejected(
+                    ProviderBudgetTransitionRejection.EnvelopeNotArmed,
+                    current,
+                    reservation);
             }
 
             current = await PersistStateOnlyAsync(
@@ -1231,6 +1250,50 @@ public sealed class SqliteProviderBudgetLedger : IProviderBudgetLedger, IProvide
         row.BindingSha256 == request.BindingSha256.Value &&
         row.MaximumChargeUnits == request.MaximumCharge.Value;
 
+    private static string AdmissionConflictSha256(ProviderBudgetAdmissionRequest request) =>
+        Digest(
+            "provider-budget-admission-conflict-v1",
+            request.EnvelopeId.Value,
+            request.StoreEpochId.Value,
+            request.ExpectedConfigurationRevision.Value,
+            request.RuntimeSessionId.Value,
+            request.OperationClass.ToString(),
+            request.OperationAuthorityReference.Value,
+            request.RequestPlanSha256.Value,
+            request.RequestSha256.Value,
+            request.MaximumChargeBasisSha256.Value,
+            request.CostScheduleSha256.Value,
+            request.BindingSha256.Value,
+            request.MaximumCharge.Value);
+
+    private static string TransitionConflictSha256(object request) => request switch
+    {
+        ProviderBudgetDispatchRequest dispatch => Digest(
+            "provider-budget-dispatch-conflict-v1",
+            dispatch.ProviderRequestId.Value,
+            dispatch.ExpectedLedgerRevision.Value,
+            dispatch.ExpectedReservationRevision),
+        ProviderBudgetCommitRequest commit => Digest(
+            "provider-budget-commit-conflict-v1",
+            commit.ProviderRequestId.Value,
+            commit.ExpectedLedgerRevision.Value,
+            commit.ExpectedReservationRevision,
+            commit.CommitmentKind.ToString(),
+            commit.CommittedUnits.Value,
+            commit.UsageEvidenceSha256.Value,
+            commit.ProviderOutcomeCode.Value,
+            commit.ProviderDuration?.Ticks.ToString(CultureInfo.InvariantCulture) ?? "null"),
+        ProviderBudgetReleaseRequest release => Digest(
+            "provider-budget-release-conflict-v1",
+            release.ProviderRequestId.Value,
+            release.ExpectedLedgerRevision.Value,
+            release.ExpectedReservationRevision,
+            release.ProofKind.ToString(),
+            release.ProofSha256.Value,
+            release.AuthorityReference.Value),
+        _ => throw new ArgumentOutOfRangeException(nameof(request)),
+    };
+
     private static async Task<ProviderBudgetEnvelopeV1> PersistExpiredAsync(
         ControlPlaneDbContext context,
         ProviderBudgetEnvelopeV1 current,
@@ -1277,16 +1340,16 @@ public sealed class SqliteProviderBudgetLedger : IProviderBudgetLedger, IProvide
         ControlPlaneDbContext context,
         ProviderBudgetEnvelopeV1 current,
         ProviderBudgetReservationRow existingRow,
-        ProviderBudgetAdmissionRequest request,
+        ProviderBudgetAuthorityReference authorityReference,
+        DateTimeOffset occurredAtUtc,
+        string conflictSha256,
         CancellationToken cancellationToken)
     {
         var auditEventId = $"PBA-{Digest(
-            "provider-budget-preserved-state-conflict-audit-id-v1",
+            "provider-budget-preserved-state-conflict-audit-id-v2",
             current.EnvelopeId.Value,
-            current.LedgerRevision.Value,
             existingRow.ProviderRequestId,
-            request.RequestSha256.Value,
-            request.RequestedAtUtc)}";
+            conflictSha256)}";
         var auditExists = await context.ProviderBudgetAuditEvents.AsNoTracking()
             .AnyAsync(
                 row => row.AuditEventId == auditEventId,
@@ -1305,21 +1368,19 @@ public sealed class SqliteProviderBudgetLedger : IProviderBudgetLedger, IProvide
             ProviderRequestId = existingRow.ProviderRequestId,
             OperationClass = null,
             EventType = "ReservationConflict",
-            AuthorityReference = request.OperationAuthorityReference.Value,
+            AuthorityReference = authorityReference.Value,
             ActorReference = null,
             RequestSha256 = null,
             MaximumChargeUnits = null,
             FromState = current.State.ToString(),
             ToState = current.State.ToString(),
             OutcomeCode = "Conflict",
-            OccurredAtUtc = FormatUtc(request.RequestedAtUtc),
+            OccurredAtUtc = FormatUtc(occurredAtUtc),
             DetailsSha256 = Digest(
-                "provider-budget-preserved-state-conflict-audit-v1",
+                "provider-budget-preserved-state-conflict-audit-v2",
                 current.EnvelopeId.Value,
-                current.LedgerRevision.Value,
                 existingRow.ProviderRequestId,
-                request.RequestSha256.Value,
-                request.RequestedAtUtc),
+                conflictSha256),
         });
         await context.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
     }

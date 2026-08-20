@@ -1772,6 +1772,26 @@ reports.
   is `REPROVADO`, with zero P0, one P1, one P2 and zero P3. The mandatory stop
   occurred before CI, build, tests, coverage or format; no source or test was
   corrected.
+- Under `AUTH-SEC-BUDGET-001-RECOVERY-CORR-20260820-02` on exact clean
+  `main@adcc0c553e8b203e74133f748f05aa33b4b1c79d`, corpus `4.18.3`, the two
+  findings are locally `CORRECTED_PENDING_GATE_RETEST`. Divergent dispatch,
+  commitment and release replay against `ReconciliationRequired` now records
+  one sanitised conflict while preserving the ledger revision, envelope head,
+  reservation and dominant state; it cannot reach the path that persists
+  `Tripped`, and exact rearming remains rejected. Admission and transition
+  conflict audit identities now bind the logical divergence without an attempt
+  timestamp, so the same divergence at a different instant appends no duplicate
+  `ReservationConflict`. The directed matrix passed 17/17 across admission,
+  dispatch, commitment and release; Release build passed with zero warnings or
+  errors; all 555 .NET tests passed (227 unit, 317 integration and 11
+  architecture); and merged coverage passed at 95.75% of lines and 67.03% of
+  branches. Independent read-only review reported zero P0-P3. Focused format,
+  coverage/CI policy tests, 105 language-policy tests, repository audit and
+  `git diff --check` passed. Solution-wide format verification retained only
+  the recorded, out-of-scope import-ordering failure in
+  `OpenAiHttpAdapters.cs`; that file was not changed. No Automatic Quality Gate
+  was run, so the historical `REPROVADO` disposition is unchanged and a
+  complete retest requires separate authority on the new exact clean baseline.
 - The same audit records `SEC-PDF-001`: Product composition still selects the
   existing Server.Api renderer worker. Windows Job Object and Linux
   `rlimit`/non-dumpable containment do not satisfy ADR-0019's dedicated,
@@ -1844,7 +1864,7 @@ reports.
   the language policy added the 21st public document through a versioned
   increment, and ADR-0003 added the 22nd.
 - The baseline approved at the `STATE-00` Human Gate remains `3.4.0`.
-- The current instruction corpus is version `4.18.3` and has 13 files under
+- The current instruction corpus is version `4.18.4` and has 13 files under
   `prompts/`.
 - Vision, requirements, architecture, RAG, security, quality, lifecycle,
   roadmap, backlog, state, history and templates are documented.
@@ -2624,8 +2644,10 @@ authorised.
     crash semantics. The separately authorised recovery corrective persists
     expiry, conservatively recovers orphaned dispatches and retains fail-closed
     clean-restart rearming without integrating that commit. It has local test
-    and coverage evidence, but its bounded Automatic Quality Gate is
-    `REPROVADO` with one open P1 and one open P2. ADR-0019's
+    and coverage evidence. Its bounded Automatic Quality Gate remains
+    historically `REPROVADO`; the P1 and P2 are locally
+    `CORRECTED_PENDING_GATE_RETEST` under the separately authorised second
+    corrective. ADR-0019's
     dedicated sandbox remains unimplemented. The authorised `SEC-CORR-002`
     containment prevents Product composition from selecting the incomplete
     renderer and preserves text-first behaviour; dedicated sandbox
@@ -2644,11 +2666,13 @@ The ADR-0018 recovery corrective is locally implemented under
 `AUTH-SEC-BUDGET-001-RECOVERY-CORR-20260820-01`. Its bounded AQG under
 `AUTH-SEC-BUDGET-001-RECOVERY-AQG-20260820-01` is `REPROVADO` after independent
 read-only review found one P1 in terminal-state precedence for divergent
-transition replay and one P2 in cross-attempt conflict-audit idempotency. The
-first directly related future condition, if pursued, is separate bounded
-corrective authority for both findings, followed by a newly authorised complete
-AQG retest on an exact clean baseline. Nonzero budget, cost schedule,
-credential, provider, billing and real execution remain unauthorised.
+transition replay and one P2 in cross-attempt conflict-audit idempotency. Both
+findings are locally `CORRECTED_PENDING_GATE_RETEST` under
+`AUTH-SEC-BUDGET-001-RECOVERY-CORR-20260820-02`, with zero P0-P3 in independent
+read-only review. The first directly related future condition, if pursued, is a
+newly authorised complete AQG retest on the exact clean corrective baseline.
+Nonzero budget, cost schedule, credential, provider, billing and real execution
+remain unauthorised.
 
 Stage 2 is implemented and validated for deterministic coordination with
 `FakeAgentRunner` and the Codex App Server runner selected by ADR-0017. The
