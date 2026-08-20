@@ -1,6 +1,6 @@
 # Current State
 
-This document is the current factual snapshot of the workspace on 2026-08-16. It
+This document is the current factual snapshot of the workspace on 2026-08-20. It
 grants no authority. Evolution and decisions in their original context belong in
 [`State-Transition-Log.md`](State-Transition-Log.md) and the owning
 reports.
@@ -1714,6 +1714,54 @@ reports.
   accepted controls were reconciled into Security-And-Access and the threat
   model only. The operational budget remains zero and `Disarmed`; no risk,
   implementation or platform evidence was accepted or created.
+- Under `AUTH-AUDIT-STATE-RECONCILE-20260820-01`, the owner authorised factual
+  documentary reconciliation of the clean baseline
+  `main@5cd240f30fa4409a65eeb242ca4f210bd42c2eab`. Commits
+  `9c7b888c8f29f3e3767de93de3649b51859e6f84`,
+  `09bf5fcbc5d70793427c8d22f5132c34c49d6f91` and
+  `e67805d9f464c9ed71286d5d0396dc0fb3485023` are present on `main` and
+  materialise ADR-0018 implementation-sequence items 1, 2 and part of item 3.
+  No authority for those three executable increments is evidenced in the
+  canonical owners. This reconciliation records their existence and
+  provenance gap without retroactive approval, homologation, Automatic Quality
+  Gate, risk acceptance or lifecycle effect. The implementation remains a
+  zero-only, fail-closed candidate: no nonzero envelope, cost schedule,
+  provider, credential, egress or billing authority was created.
+- Candidate commit `7b031a5c36761404cafe35a80c50f72da500fc6e` remains only on
+  `codex/adr0018-item4-failure-recovery-tests`. Its post-dispatch crash test
+  preserves `Armed` plus `DispatchStarted`, rather than committing the maximum
+  and entering `ReconciliationRequired` as ADR-0018 requires. The candidate is
+  blocked and not integrable in its recorded form. The persistent ledger also
+  rejects an expired admission without persisting the `Expired` state, unlike
+  the deterministic fake. These implementation findings are open and have no
+  corrective authority in this reconciliation.
+- The same audit records `SEC-PDF-001`: Product composition still selects the
+  existing Server.Api renderer worker. Windows Job Object and Linux
+  `rlimit`/non-dumpable containment do not satisfy ADR-0019's dedicated,
+  pre-input-attested `pdf-render-sandbox-v1`. ADR-0019 therefore remains
+  unimplemented. Any future visual path must fail closed until the accepted
+  sandbox is separately implemented and proven; text-first behaviour remains
+  independent.
+- The canonical offline gate started on 2026-08-20 and stopped at its first
+  executable divergence: .NET format verification rejected import ordering in
+  `OpenAiHttpAdapters.cs`. This result is `FAIL`, not an Automatic Quality
+  Gate. Separately classified supplemental diagnostics passed the Release
+  build, 540 .NET tests, 95.71% line and 66.58% branch coverage, 45 Dashboard
+  tests, and 105 of 107 orchestrator tests; the two orchestrator skips require
+  symlink creation unavailable in the Windows environment. Repository audit,
+  `git diff --check`, protected OpenAPI hashes and Git object integrity passed.
+  Online dependency audits, remote CI, provider, deployed runtime, Linux/OCI
+  and external systems were `NOT_RUN`. The working tree remained clean, no Git
+  lock or known product listener existed, `.env.local` remained ignored and
+  unread, and runtime preflight was `NOT_APPLICABLE` for this documentary
+  reconciliation.
+- The audit retained the pre-existing `SEC-001` and `SCRIPT-001` findings as
+  open. It additionally observed mutable tag references for two setup actions
+  in the CI workflow and a repository secret check limited to assignment
+  patterns. The rate-limit partition behind the recorded public proxy remains
+  a conditional risk because trusted forwarded-header topology was not
+  verified. No workflow, scanner, local tool or host configuration was changed,
+  and none of these observations authorises a correction.
 
 ## Documentary baseline
 
@@ -1721,7 +1769,7 @@ reports.
   the language policy added the 21st public document through a versioned
   increment, and ADR-0003 added the 22nd.
 - The baseline approved at the `STATE-00` Human Gate remains `3.4.0`.
-- The current instruction corpus is version `4.17.4` and has 13 files under
+- The current instruction corpus is version `4.17.5` and has 13 files under
   `prompts/`.
 - Vision, requirements, architecture, RAG, security, quality, lifecycle,
   roadmap, backlog, state, history and templates are documented.
@@ -2489,24 +2537,33 @@ authorised.
    operational-recovery, Linux, OCI and production boundaries remain `NOT_RUN`.
 10. ADR-0018 and ADR-0019 are `accepted` through the owner's explicit decisions
     `ADR-0018: ACEITAR.` and `ADR-0019: ACEITAR.`. Acceptance establishes
-    architecture authority only and accepts no risk. Their semantic
-    reconciliation into the security and threat-model owners is complete under
-    `SEC-CORR-ADR-RECONCILE-01`. Separate authorities remain required for
-    persistence, schema, migration, implementation, dependencies,
-    platform-specific tests, budget arming, provider access and operational
-    evidence.
+    architecture authority only and accepts no risk. ADR-0018 items 1, 2 and
+    part of item 3 now exist on `main` through commits `9c7b888`, `09bf5fc` and
+    `e67805d`, but their implementation authority is not evidenced in the
+    canonical owners; this audit neither approves nor gates them.
+    Item-4 candidate `7b031a5` is blocked by incompatible post-dispatch crash
+    semantics; persistent expiry also diverges from the deterministic fake.
+    ADR-0019's dedicated sandbox remains unimplemented while Product composition
+    retains the incomplete current renderer worker. Separate corrective
+    authority, review, platform evidence, budget arming, provider access and
+    operational evidence remain required.
 
 ## Next authority
 
-ADR-0018 and ADR-0019 are accepted and semantically reconciled as architecture
-authority only. No implementation authority has been granted. The first
-directly related authority, if pursued, is a bounded design of ADR-0018
-implementation-sequence item 1: the exact internal persistence schema and
-migration, including crash-safe uniqueness and transaction semantics. That
-future authority must stop before changing schema, migration, code,
-dependencies, price, nonzero budget, provider, network, Human Gate or
-lifecycle. ADR-0019's dedicated worker implementation remains separate and
-unauthorised.
+This reconciliation grants no corrective implementation authority. The first
+directly related future authority, if pursued, is a bounded `SEC-CORR-002`
+containment increment that makes Product visual rendering unavailable
+fail-closed while preserving the existing text-first path. It must stop before
+implementing the dedicated sandbox, changing a public contract, schema,
+migration, provider, network, Human Gate or lifecycle.
+
+Only after that independently verified containment may a separate ADR-0018
+corrective authority address persistent `Expired` transition, orphaned
+`DispatchStarted` recovery, conservative maximum commitment,
+`ReconciliationRequired`, clean-restart rearming and a replacement item-4 test
+candidate. Independent security review and an Automatic Quality Gate remain
+later, separately authorised sequence items. Nonzero budget, cost schedule,
+credential, provider, billing and real execution remain unauthorised.
 
 Stage 2 is implemented and validated for deterministic coordination with
 `FakeAgentRunner` and the Codex App Server runner selected by ADR-0017. The

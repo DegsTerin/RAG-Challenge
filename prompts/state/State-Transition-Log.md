@@ -8953,3 +8953,101 @@ contém somente fatos cronológicos.
   persistence schema and migration design. That future authority must stop
   before changing schema, migration, code, dependencies, price, nonzero
   budget, provider, network, Human Gate or lifecycle.
+
+## 2026-08-20 — Executable baseline and security audit facts reconciled
+
+- Authority: `AUTH-AUDIT-STATE-RECONCILE-20260820-01` authorised only factual
+  documentary reconciliation of exact clean
+  `main@5cd240f30fa4409a65eeb242ca4f210bd42c2eab` in `STATE-07
+  TESTING_HOMOLOGATION`. It authorised no executable correction, retrospective
+  approval, homologation, Automatic Quality Gate, Human Gate, lifecycle,
+  provider, network or external action.
+- Preflight: the canonical repository, branch and HEAD matched the authority;
+  the tracked tree was clean, no Git operation or Git lock was active, and the
+  task-owned orchestrator area contained no lock-like artefact. The separate
+  worktree below `<user-home>\.codex` and all preserved branches were outside
+  scope and unchanged. No conflicting canonical execution authority was found.
+- Factual provenance: commits
+  `9c7b888c8f29f3e3767de93de3649b51859e6f84`,
+  `09bf5fcbc5d70793427c8d22f5132c34c49d6f91` and
+  `e67805d9f464c9ed71286d5d0396dc0fb3485023` are ancestors of the authorised
+  `main` baseline. They respectively materialise the ADR-0018 schema and
+  migration, Application contracts plus deterministic fake, and a SQLite
+  ledger plus rearming/provider integration candidate. The third increment is
+  only part of implementation-sequence item 3 and remains zero-only and
+  fail-closed in Product composition.
+- Authority gap: the canonical owners contain no evidenced implementation
+  authority for those three executable increments. This entry records the
+  executable facts and that gap; it does not approve the commits
+  retrospectively, accept risk, homologate behaviour or classify any item as
+  gated. ADR-0018 items 1 and 2 and part of item 3 are therefore implemented
+  candidates, not approved or homologated increments.
+- Blocked item 4 candidate: commit
+  `7b031a5c36761404cafe35a80c50f72da500fc6e` remains one commit beyond `main`
+  only on `codex/adr0018-item4-failure-recovery-tests`. Its post-dispatch crash
+  expectation retains `Armed` plus `DispatchStarted`, rather than committing
+  the maximum and entering `ReconciliationRequired` as ADR-0018 requires. It
+  is blocked and not integrable in its recorded form; the branch and commit
+  remain preserved.
+- Budget audit finding: the SQLite ledger has no startup/read recovery that
+  converts an orphaned `DispatchStarted` reservation into an indeterminate
+  maximum commitment plus `ReconciliationRequired`. It also rejects an
+  expired admission without persisting `Expired`, while the deterministic fake
+  advances to that state. The rearm path accepts only `Disarmed` or `Tripped`,
+  and Product admission remains limited to unconfigured zero envelopes. These
+  gaps have no correction authority in this reconciliation.
+- Renderer audit finding `SEC-PDF-001`: Product composition still selects the
+  existing Server.Api renderer worker. Windows Job Object and Linux
+  `rlimit`/non-dumpable controls do not implement ADR-0019's dedicated,
+  parent-attested, pre-input `pdf-render-sandbox-v1` boundary. ADR-0019 remains
+  unimplemented; future visual rendering must remain unavailable fail-closed
+  until the separate sandbox is implemented and proven, while text-first
+  behaviour remains independent.
+- Additional audit disposition: pre-existing `SEC-001` and `SCRIPT-001` remain
+  open. Mutable tag references for two setup actions and an assignment-pattern
+  repository secret check leave supply-chain verification incomplete. The
+  effect of proxy topology on IP-partitioned rate limiting remains conditional
+  and `NOT_VERIFIED`. No workflow, scanner, script or host correction occurred.
+- Canonical gate result: the 2026-08-20 canonical offline gate stopped at .NET
+  format verification because import ordering in `OpenAiHttpAdapters.cs`
+  diverged. Exit `1` remains `FAIL` and is not an Automatic Quality Gate.
+  Separately classified diagnostics passed a Release build, 540 .NET tests,
+  95.71% line and 66.58% branch coverage, 45 Dashboard tests and 105 of 107
+  orchestrator tests; the two skips reflect unavailable symlink creation on
+  the Windows host. Repository audit, `git diff --check`, protected OpenAPI
+  identities and Git object integrity passed within their recorded scopes.
+- Verification limits: online dependency audits, remote CI, provider,
+  deployment, Linux/OCI and external systems remained `NOT_RUN`. `.env.local`
+  remained ignored and unread. Supplemental successes neither override the
+  canonical gate failure nor prove the unimplemented security boundaries.
+- Closed documentary scope: only Current State, Security-And-Access, the
+  STATE-02 threat model, Prompt System Change Log and this append-only EOF are
+  changed. ADRs, architecture records, code, tests, schema, migrations,
+  dependencies, workflows, branches, worktrees, runtime and external resources
+  remain unchanged.
+- Protected artefacts: OpenAPI v1 remains at SHA-256
+  `d6a686b94c926914beb28b437f464430a01de6560c2e2d476cf5c36025813e34` and
+  OpenAPI v2 remains at SHA-256
+  `f4dca8db7fb7bd453e580495bb1bb7760812d954344931063e8549ed8f036733`.
+- Documentary verification: `git diff --check` exited `0`; the repository
+  audit passed for 432 non-ignored files; the language-policy checker passed
+  for 432 tracked files with zero accepted migration findings. Semantic checks
+  confirmed the exact commit identities, blocked candidate, unchanged ADRs and
+  executable paths, protected OpenAPI identities and append-only log prefix.
+- Runtime preflight: `NOT_APPLICABLE`, because this reconciliation changes and
+  validates no executable RAG-Challenge behaviour. No process enumeration or
+  shutdown was performed for this documentary activity.
+- Versioning: the instruction corpus advances by factual `PATCH` from `4.17.4`
+  to `4.17.5` without changing architecture, authority, public contracts,
+  executable behaviour, operational posture, gate or lifecycle.
+- Append-only integrity: this entry preserves the complete previous file of
+  571,640 bytes at SHA-256
+  `faf1a41740dd25eae10d67e11a933ec8603226647617286fb3d087103bbf2916`.
+- Negative scope: no fetch, push, merge, rebase, deployment, provider, network,
+  paid service, Human Gate, lifecycle transition or remote action occurred.
+- Next condition: obtain a separate bounded authority for `SEC-CORR-002`
+  containment that makes Product visual rendering unavailable fail-closed
+  while preserving text-first behaviour. A later, independently authorised
+  provider-budget correction must resolve orphaned dispatch recovery and
+  persistent expiry semantics before item 4 is rebuilt or any nonzero budget
+  is considered.

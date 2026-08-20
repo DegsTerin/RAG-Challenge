@@ -2,8 +2,8 @@
 
 ## Current version
 
-- Version: `4.17.4`
-- Date: 2026-08-16
+- Version: `4.17.5`
+- Date: 2026-08-20
 - Status: `STATE-07` active; ADR-0011 through ADR-0017 retain their recorded
   accepted dispositions and implemented or pending boundaries; PostgreSQL 18.4
   remains active at revision `1` in its validated text-first generation; the
@@ -24,8 +24,11 @@
   short isolated temporary root and passed every offline stage; product
   homologation, Human Gate and lifecycle change remain unexecuted; ADR-0018
   and ADR-0019 are accepted and semantically reconciled as architecture
-  authority only; no risk or implementation is accepted or authorised, and
-  the operational provider budget remains zero and disarmed
+  authority only; three ADR-0018 implementation commits are now factually
+  recorded on `main` without evidenced implementation authority, retroactive
+  approval or gate disposition; the item-4 test candidate
+  is blocked, the dedicated ADR-0019 sandbox remains unimplemented, and the
+  operational provider budget remains zero and disarmed
 - Scope: 13 active files under `prompts/`
 
 The corpus version is independent from the future software version.
@@ -38,6 +41,48 @@ The corpus version is independent from the future software version.
 
 Every change updates this file and, when necessary,
 [`../Start-Here.md`](../Start-Here.md).
+
+## 4.17.5 — 2026-08-20
+
+- Records `AUTH-AUDIT-STATE-RECONCILE-20260820-01` on clean
+  `main@5cd240f30fa4409a65eeb242ca4f210bd42c2eab`, without changing
+  `STATE-07`, an Automatic Quality Gate, Human Gate or lifecycle.
+- Reconciles the executable tree with its canonical owners: commits
+  `9c7b888`, `09bf5fc` and `e67805d` materialise ADR-0018 sequence items 1,
+  2 and part of 3, but no implementation authority for them is evidenced in
+  the canonical owners. Their existence is not retroactive approval,
+  homologation, risk acceptance or gate disposition.
+- Records candidate `7b031a5` as blocked and not integrable in its current
+  form because its crash test preserves `Armed` plus `DispatchStarted` instead
+  of maximum commitment plus `ReconciliationRequired`. The SQLite candidate
+  also rejects expiry without persisting the `Expired` state selected by its
+  deterministic fake.
+- Records `SEC-PDF-001`: Product composition retains the existing Server.Api
+  renderer worker and therefore does not implement ADR-0019's dedicated,
+  pre-input-attested `pdf-render-sandbox-v1`. The accepted safe fallback is
+  future fail-closed visual unavailability with the text-first path preserved;
+  no code correction or sandbox implementation is authorised here.
+- Preserves the zero-only provider disposition. No nonzero envelope, cost
+  schedule, price, account, credential, provider, network, billing or egress
+  authority is selected or created.
+- Records the 2026-08-20 local audit accurately: the canonical offline gate
+  failed at .NET format verification; separately classified supplemental
+  build, test, coverage, Dashboard, orchestrator, repository, OpenAPI and Git
+  integrity checks passed within their recorded limitations. Online dependency
+  audit, remote CI, provider, deployed runtime, Linux/OCI and external systems
+  remain `NOT_RUN`.
+- Retains `SEC-001` and `SCRIPT-001` as open, records mutable setup-action tags
+  and the assignment-pattern limitation of the repository secret check, and
+  classifies proxy-aware rate-limit partitioning as conditional and
+  unverified. No correction is authorised by this record.
+- Changes only Current State, Security-And-Access, the threat model, this
+  corpus change log and the append-only EOF of State Transition Log. No ADR,
+  code, test, schema, migration, dependency, workflow, branch, worktree,
+  runtime or external resource is changed.
+- Classification: `PATCH`, because this revision corrects current factual
+  status and records open findings without changing architecture, authority,
+  public contracts, executable behaviour, operational posture, gate or
+  lifecycle.
 
 ## 4.17.4 — 2026-08-16
 

@@ -136,9 +136,22 @@ authority.
 [Accepted ADR-0018](../../docs/architecture/ADR-0018-Persistent-Provider-Budget-Admission-And-Explicit-Rearming.md)
 establishes the internal `ProviderBudgetEnvelopeV1` architecture. Acceptance
 arms no budget, selects no price or account fact and authorises no provider
-call. No operational envelope or ledger is implemented; the effective
-aggregate limit and all operation allocations therefore remain zero, and
-provider capability remains `Disarmed`.
+call. A local implementation candidate now exists on `main` through commits
+`9c7b888`, `09bf5fc` and `e67805d`, but no implementation authority for those
+increments is evidenced in the canonical owners and no approval or gate has
+disposed them. Product composition remains zero-only and unconfigured:
+no operational nonzero envelope or cost schedule is selected, the effective
+aggregate limit and all operation allocations remain zero, and provider
+capability remains `Disarmed`.
+
+The 2026-08-20 audit identified two open candidate divergences. A crash after
+`DispatchStarted` has no start-up recovery that conservatively commits the
+maximum and persists `ReconciliationRequired`; candidate commit `7b031a5`
+instead asserts that the envelope remains `Armed` with an unfinished attempt.
+The SQLite admission path also rejects an expired request without persisting
+the `Expired` state selected by the deterministic fake. These observations do
+not authorise a correction, a nonzero budget, credential lookup or provider
+egress. The item-4 candidate is not integrable in its recorded form.
 
 The durable closed states are `Disarmed`, `Armed`, `Tripped`, `Exhausted`,
 `ReconciliationRequired` and `Expired`. Absence, unreadability, corruption,
@@ -344,6 +357,15 @@ The system never falls back to the current worker, in-process rendering, a
 weaker sandbox or a generic OCI boundary. Windows evidence does not prove
 Linux ARM64, static cross-publish does not prove native execution and sandbox
 success does not replace rights, manifest, activation or output validation.
+
+The 2026-08-20 audit records `SEC-PDF-001`: Product composition still selects
+the existing Server.Api renderer worker. Its Windows Job Object and Linux
+`rlimit`/non-dumpable controls remain incomplete against the accepted profile,
+and the dedicated pre-input-attested worker is not implemented. This is an open
+implementation divergence, not accepted risk or homologated behaviour. A
+future separately authorised containment increment must make Product visual
+rendering unavailable fail-closed while preserving the independent text-first
+path; implementing `pdf-render-sandbox-v1` remains a later authority.
 
 ## Persistent answer evidence
 
