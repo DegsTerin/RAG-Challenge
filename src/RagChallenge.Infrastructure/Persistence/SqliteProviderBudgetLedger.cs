@@ -148,6 +148,19 @@ public sealed class SqliteProviderBudgetLedger : IProviderBudgetLedger, IProvide
                 new ProviderBudgetEnvelopeId(existingRow.EnvelopeId),
                 cancellationToken).ConfigureAwait(false);
 
+            if (!existingEnvelope.IsClosed &&
+                request.RequestedAtUtc >= existingEnvelope.ExpiresAtUtc &&
+                existingEnvelope.State is not (
+                    ProviderBudgetState.Expired or
+                    ProviderBudgetState.ReconciliationRequired))
+            {
+                existingEnvelope = await PersistExpiredAsync(
+                    context,
+                    existingEnvelope,
+                    request,
+                    cancellationToken).ConfigureAwait(false);
+            }
+
             if (HasIdenticalBinding(existingRow, request))
             {
                 var replay = ToDomain(existingRow);
@@ -158,6 +171,39 @@ public sealed class SqliteProviderBudgetLedger : IProviderBudgetLedger, IProvide
                     existingEnvelope.LedgerRevision,
                     replay,
                     rejection: null);
+            }
+
+            if (existingEnvelope.State != ProviderBudgetState.Armed)
+            {
+                await AddPreservedStateConflictAuditAsync(
+                    context,
+                    existingEnvelope,
+                    existingRow,
+                    request,
+                    cancellationToken).ConfigureAwait(false);
+                var stateRejection = existingEnvelope.IsClosed
+                    ? ProviderBudgetAdmissionRejection.Closed
+                    : existingEnvelope.State switch
+                    {
+                        ProviderBudgetState.Disarmed =>
+                            ProviderBudgetAdmissionRejection.Disarmed,
+                        ProviderBudgetState.Tripped =>
+                            ProviderBudgetAdmissionRejection.Tripped,
+                        ProviderBudgetState.Exhausted =>
+                            ProviderBudgetAdmissionRejection.Exhausted,
+                        ProviderBudgetState.ReconciliationRequired =>
+                            ProviderBudgetAdmissionRejection.ReconciliationRequired,
+                        ProviderBudgetState.Expired =>
+                            ProviderBudgetAdmissionRejection.Expired,
+                        _ => ProviderBudgetAdmissionRejection.Disarmed,
+                    };
+                await transaction.CommitAsync(cancellationToken).ConfigureAwait(false);
+                return new ProviderBudgetAdmissionResult(
+                    ProviderBudgetAdmissionOutcome.Rejected,
+                    existingEnvelope.State,
+                    existingEnvelope.LedgerRevision,
+                    reservation: null,
+                    stateRejection);
             }
 
             existingEnvelope = await PersistStateOnlyAsync(
@@ -180,6 +226,17 @@ public sealed class SqliteProviderBudgetLedger : IProviderBudgetLedger, IProvide
 
         var envelope = await ReadEnvelopeWithinAsync(context, request.EnvelopeId, cancellationToken)
             .ConfigureAwait(false);
+
+        if (envelope is { IsClosed: false } &&
+            request.RequestedAtUtc >= envelope.ExpiresAtUtc &&
+            envelope.State is not (
+                ProviderBudgetState.Expired or
+                ProviderBudgetState.ReconciliationRequired))
+        {
+            envelope = await PersistExpiredAsync(context, envelope, request, cancellationToken)
+                .ConfigureAwait(false);
+        }
+
         var rejection = ValidateAdmission(envelope, request);
 
         if (rejection is not null)
@@ -329,8 +386,7 @@ public sealed class SqliteProviderBudgetLedger : IProviderBudgetLedger, IProvide
         var current = await ReadEnvelopeWithinAsync(context, request.EnvelopeId, cancellationToken)
             .ConfigureAwait(false);
 
-        if (current is null || current.IsClosed ||
-            current.State is not (ProviderBudgetState.Disarmed or ProviderBudgetState.Tripped))
+        if (current is null || current.IsClosed)
         {
             await transaction.CommitAsync(cancellationToken).ConfigureAwait(false);
             return new ProviderBudgetRearmResult(ProviderBudgetRearmOutcome.Rejected, current);
@@ -341,7 +397,7 @@ public sealed class SqliteProviderBudgetLedger : IProviderBudgetLedger, IProvide
                 row.ConfigurationRevision == current.ConfigurationRevision.Value,
                 cancellationToken).ConfigureAwait(false);
         var expectedBalancesSha = new ProviderBudgetSha256(OperationBalancesDigest(current));
-        var exact = current.StoreEpochId == request.ExpectedStoreEpochId &&
+        var exactRecoveryBinding = current.StoreEpochId == request.ExpectedStoreEpochId &&
             IsZeroBudget(current) &&
             current.ConfigurationRevision == request.ExpectedConfigurationRevision &&
             current.LedgerRevision == request.ExpectedLedgerRevision &&
@@ -355,13 +411,54 @@ public sealed class SqliteProviderBudgetLedger : IProviderBudgetLedger, IProvide
                 request.ConfigurationSha256.Value,
                 StringComparison.Ordinal) &&
             configuration.SealedAtUtc is not null &&
-            request.OccurredAtUtc >= current.EffectiveAtUtc &&
-            request.OccurredAtUtc < current.ExpiresAtUtc;
+            current.RuntimeSessionId != request.NewRuntimeSessionId &&
+            request.OccurredAtUtc >= current.EffectiveAtUtc;
 
-        if (!exact)
+        if (exactRecoveryBinding)
+        {
+            var revisionBeforeRecovery = current.LedgerRevision;
+            current = await RecoverOrphanedDispatchesAsync(
+                context,
+                current,
+                request,
+                cancellationToken).ConfigureAwait(false);
+
+            if (current.LedgerRevision != revisionBeforeRecovery)
+            {
+                await transaction.CommitAsync(cancellationToken).ConfigureAwait(false);
+                return new ProviderBudgetRearmResult(
+                    ProviderBudgetRearmOutcome.Rejected,
+                    current);
+            }
+        }
+
+        var rearmableState = current.State is
+            ProviderBudgetState.Disarmed or ProviderBudgetState.Tripped;
+        if (!rearmableState)
+        {
+            await transaction.CommitAsync(cancellationToken).ConfigureAwait(false);
+            return new ProviderBudgetRearmResult(ProviderBudgetRearmOutcome.Rejected, current);
+        }
+
+        var exactRearm = exactRecoveryBinding &&
+            request.OccurredAtUtc < current.ExpiresAtUtc;
+        if (!exactRearm)
         {
             await transaction.CommitAsync(cancellationToken).ConfigureAwait(false);
             return new ProviderBudgetRearmResult(ProviderBudgetRearmOutcome.Conflict, current);
+        }
+
+        var hasPendingReservation = await context.ProviderBudgetReservations.AsNoTracking()
+            .AnyAsync(
+                row => row.EnvelopeId == current.EnvelopeId.Value &&
+                    (row.Status == nameof(ProviderBudgetReservationStatus.Reserved) ||
+                     row.Status == nameof(ProviderBudgetReservationStatus.DispatchStarted)),
+                cancellationToken).ConfigureAwait(false);
+
+        if (hasPendingReservation)
+        {
+            await transaction.CommitAsync(cancellationToken).ConfigureAwait(false);
+            return new ProviderBudgetRearmResult(ProviderBudgetRearmOutcome.Rejected, current);
         }
 
         var nextRearm = new ProviderBudgetRearmRevision(
@@ -547,7 +644,42 @@ public sealed class SqliteProviderBudgetLedger : IProviderBudgetLedger, IProvide
             return Rejected(rejection.Value, current, reservation);
         }
 
+        var persisted = await PersistTransitionAsync(
+            context,
+            current,
+            row,
+            reservation,
+            request,
+            occurredAtUtc,
+            cancellationToken).ConfigureAwait(false);
+        await transaction.CommitAsync(cancellationToken).ConfigureAwait(false);
+        return new ProviderBudgetTransitionResult(
+            ProviderBudgetTransitionOutcome.Applied,
+            persisted.Envelope.State,
+            persisted.Envelope.LedgerRevision,
+            persisted.Reservation,
+            rejection: null);
+    }
+
+    private static async Task<PersistedTransition> PersistTransitionAsync(
+        ControlPlaneDbContext context,
+        ProviderBudgetEnvelopeV1 current,
+        ProviderBudgetReservationRow row,
+        ProviderBudgetReservation reservation,
+        object request,
+        DateTimeOffset occurredAtUtc,
+        CancellationToken cancellationToken,
+        ProviderBudgetAuthorityReference? authorityOverride = null,
+        ProviderBudgetAuthorityReference? actorReference = null)
+    {
+        var requestId = reservation.ProviderRequestId;
         var transition = CreateTransition(current, reservation, request, occurredAtUtc);
+
+        if (authorityOverride is not null)
+        {
+            transition = transition with { AuthorityReference = authorityOverride };
+        }
+
         var next = await PersistLedgerAsync(
             context,
             current,
@@ -619,7 +751,8 @@ public sealed class SqliteProviderBudgetLedger : IProviderBudgetLedger, IProvide
             next.State,
             transition.AuditOutcome,
             occurredAtUtc,
-            cancellationToken).ConfigureAwait(false);
+            cancellationToken,
+            actorReference).ConfigureAwait(false);
         await AdvanceEnvelopeAsync(context, next, cancellationToken).ConfigureAwait(false);
         context.ChangeTracker.Clear();
         var readback = await RequireReservationWithinAsync(context, requestId, cancellationToken)
@@ -628,13 +761,61 @@ public sealed class SqliteProviderBudgetLedger : IProviderBudgetLedger, IProvide
             context,
             reservation.EnvelopeId,
             cancellationToken).ConfigureAwait(false);
-        await transaction.CommitAsync(cancellationToken).ConfigureAwait(false);
-        return new ProviderBudgetTransitionResult(
-            ProviderBudgetTransitionOutcome.Applied,
-            envelopeReadback.State,
-            envelopeReadback.LedgerRevision,
-            readback,
-            rejection: null);
+        return new PersistedTransition(envelopeReadback, readback);
+    }
+
+    private static async Task<ProviderBudgetEnvelopeV1> RecoverOrphanedDispatchesAsync(
+        ControlPlaneDbContext context,
+        ProviderBudgetEnvelopeV1 current,
+        ProviderBudgetRearmRequest request,
+        CancellationToken cancellationToken)
+    {
+        var orphanedRequestIds = await context.ProviderBudgetReservations.AsNoTracking()
+            .Where(row => row.EnvelopeId == current.EnvelopeId.Value &&
+                row.Status == nameof(ProviderBudgetReservationStatus.DispatchStarted))
+            .OrderBy(row => row.ProviderRequestId)
+            .Select(row => row.ProviderRequestId)
+            .ToArrayAsync(cancellationToken).ConfigureAwait(false);
+
+        foreach (var orphanedRequestId in orphanedRequestIds)
+        {
+            var row = await context.ProviderBudgetReservations.SingleAsync(
+                value => value.ProviderRequestId == orphanedRequestId,
+                cancellationToken).ConfigureAwait(false);
+            var reservation = ToDomain(row);
+            var recoveryAtUtc = reservation.DispatchStartedAtUtc is { } dispatchStartedAtUtc &&
+                request.OccurredAtUtc < dispatchStartedAtUtc
+                    ? dispatchStartedAtUtc
+                    : request.OccurredAtUtc;
+            var recovery = new ProviderBudgetCommitRequest(
+                reservation.ProviderRequestId,
+                current.LedgerRevision,
+                reservation.CurrentReservationRevision,
+                ProviderBudgetCommitmentKind.IndeterminateMaximum,
+                reservation.MaximumCharge,
+                new ProviderBudgetSha256(Digest(
+                    "provider-budget-orphaned-dispatch-recovery-v1",
+                    reservation.ProviderRequestId.Value,
+                    row.CurrentTransitionSha256,
+                    request.NewRuntimeSessionId.Value,
+                    recoveryAtUtc)),
+                new ProviderBudgetOutcomeCode("RESTART_ORPHAN_RECOVERY"),
+                providerDuration: null,
+                recoveryAtUtc);
+            var persisted = await PersistTransitionAsync(
+                context,
+                current,
+                row,
+                reservation,
+                recovery,
+                recoveryAtUtc,
+                cancellationToken,
+                request.AuthorityReference,
+                request.ActorReference).ConfigureAwait(false);
+            current = persisted.Envelope;
+        }
+
+        return current;
     }
 
     private static TransitionShape CreateTransition(
@@ -1049,6 +1230,99 @@ public sealed class SqliteProviderBudgetLedger : IProviderBudgetLedger, IProvide
         row.CostScheduleSha256 == request.CostScheduleSha256.Value &&
         row.BindingSha256 == request.BindingSha256.Value &&
         row.MaximumChargeUnits == request.MaximumCharge.Value;
+
+    private static async Task<ProviderBudgetEnvelopeV1> PersistExpiredAsync(
+        ControlPlaneDbContext context,
+        ProviderBudgetEnvelopeV1 current,
+        ProviderBudgetAdmissionRequest request,
+        CancellationToken cancellationToken)
+    {
+        var next = await PersistLedgerAsync(
+            context,
+            current,
+            ProviderBudgetState.Expired,
+            current.RuntimeSessionId,
+            current.AggregateCommitted,
+            current.AggregateReserved,
+            current.AggregateIndeterminate,
+            current.OperationBalances,
+            "Expired",
+            providerRequestId: null,
+            request.OperationAuthorityReference,
+            request.RequestedAtUtc,
+            cancellationToken).ConfigureAwait(false);
+        await AddAuditAsync(
+            context,
+            next,
+            "EnvelopeExpired",
+            providerRequestId: null,
+            operationClass: null,
+            request.OperationAuthorityReference,
+            requestSha256: null,
+            maximumCharge: null,
+            current.State,
+            next.State,
+            "Expired",
+            request.RequestedAtUtc,
+            cancellationToken).ConfigureAwait(false);
+        await AdvanceEnvelopeAsync(context, next, cancellationToken).ConfigureAwait(false);
+        context.ChangeTracker.Clear();
+        return await RequireEnvelopeWithinAsync(
+            context,
+            current.EnvelopeId,
+            cancellationToken).ConfigureAwait(false);
+    }
+
+    private static async Task AddPreservedStateConflictAuditAsync(
+        ControlPlaneDbContext context,
+        ProviderBudgetEnvelopeV1 current,
+        ProviderBudgetReservationRow existingRow,
+        ProviderBudgetAdmissionRequest request,
+        CancellationToken cancellationToken)
+    {
+        var auditEventId = $"PBA-{Digest(
+            "provider-budget-preserved-state-conflict-audit-id-v1",
+            current.EnvelopeId.Value,
+            current.LedgerRevision.Value,
+            existingRow.ProviderRequestId,
+            request.RequestSha256.Value,
+            request.RequestedAtUtc)}";
+        var auditExists = await context.ProviderBudgetAuditEvents.AsNoTracking()
+            .AnyAsync(
+                row => row.AuditEventId == auditEventId,
+                cancellationToken).ConfigureAwait(false);
+
+        if (auditExists)
+        {
+            return;
+        }
+
+        context.ProviderBudgetAuditEvents.Add(new ProviderBudgetAuditEventRow
+        {
+            AuditEventId = auditEventId,
+            EnvelopeId = current.EnvelopeId.Value,
+            LedgerRevision = current.LedgerRevision.Value,
+            ProviderRequestId = existingRow.ProviderRequestId,
+            OperationClass = null,
+            EventType = "ReservationConflict",
+            AuthorityReference = request.OperationAuthorityReference.Value,
+            ActorReference = null,
+            RequestSha256 = null,
+            MaximumChargeUnits = null,
+            FromState = current.State.ToString(),
+            ToState = current.State.ToString(),
+            OutcomeCode = "Conflict",
+            OccurredAtUtc = FormatUtc(request.RequestedAtUtc),
+            DetailsSha256 = Digest(
+                "provider-budget-preserved-state-conflict-audit-v1",
+                current.EnvelopeId.Value,
+                current.LedgerRevision.Value,
+                existingRow.ProviderRequestId,
+                request.RequestSha256.Value,
+                request.RequestedAtUtc),
+        });
+        await context.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
+    }
 
     private static async Task<ProviderBudgetEnvelopeV1> PersistStateOnlyAsync(
         ControlPlaneDbContext context,
@@ -1489,6 +1763,10 @@ public sealed class SqliteProviderBudgetLedger : IProviderBudgetLedger, IProvide
         return Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(canonical)))
             .ToLowerInvariant();
     }
+
+    private sealed record PersistedTransition(
+        ProviderBudgetEnvelopeV1 Envelope,
+        ProviderBudgetReservation Reservation);
 
     private sealed record TransitionShape(
         ProviderBudgetState State,

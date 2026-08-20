@@ -2,7 +2,7 @@
 
 ## Current version
 
-- Version: `4.18.1`
+- Version: `4.18.2`
 - Date: 2026-08-20
 - Status: `STATE-07` active; ADR-0011 through ADR-0017 retain their recorded
   accepted dispositions and implemented or pending boundaries; PostgreSQL 18.4
@@ -26,8 +26,10 @@
   and ADR-0019 are accepted and semantically reconciled as architecture
   authority only; three ADR-0018 implementation commits are now factually
   recorded on `main` without evidenced implementation authority, retroactive
-  approval or gate disposition; the item-4 test candidate
-  is blocked; Product on-demand visual materialisation is disabled fail-closed
+  approval or gate disposition; the item-4 test candidate remains blocked and
+  a separate authorised corrective now persists expiry, recovers orphaned
+  dispatches conservatively and keeps clean restart fail-closed; Product
+  on-demand visual materialisation is disabled fail-closed
   under the authorised `SEC-CORR-002` containment while the dedicated ADR-0019
   sandbox remains unimplemented; the
   operational provider budget remains zero and disarmed; ADR-0020 accepts
@@ -45,6 +47,40 @@ The corpus version is independent from the future software version.
 
 Every change updates this file and, when necessary,
 [`../Start-Here.md`](../Start-Here.md).
+
+## 4.18.2 — 2026-08-20
+
+- Records `AUTH-SEC-BUDGET-001-RECOVERY-CORR-20260820-01` on exact clean
+  `main@fb9328d8d0ec12304289cdee6275ac82c1927bec`, corpus `4.18.1`, without
+  changing `STATE-07`, an Automatic Quality Gate, Human Gate or lifecycle.
+- Persists an idempotent `Expired` ledger/audit/head transition before an
+  expired SQLite admission is rejected or an identical reservation replay is
+  returned. An exact rearm request proving a new runtime-session identity
+  recovers every orphaned `DispatchStarted`, including after expiry or an
+  already persisted `Expired` state, in one immediate transaction, commits the
+  complete admitted maximum, records `IndeterminateCommitted`, enters
+  `ReconciliationRequired` and rejects the rearm. A failed orphan transition
+  rolls the complete batch back. A divergent replay against a non-armed
+  envelope records a sanitised conflict audit while preserving the dominant
+  terminal state and cannot make `ReconciliationRequired` rearmable.
+- Preserves the existing schema restriction that only `Disarmed` or `Tripped`
+  may be rearmed. Same-session requests cannot recover a potentially live
+  dispatch; `Armed` cannot rearm on clean restart; and any pending `Reserved`
+  or `DispatchStarted` attempt blocks otherwise eligible rearming.
+- Replaces the incompatible crash semantics from blocked candidate `7b031a5`
+  without integrating that commit. The focused class passed 14/14; isolated
+  format verification passed for both changed code files; Release build passed
+  with zero warnings or errors; and all 552 .NET tests passed with merged
+  coverage of 95.73% of lines and 66.74% of branches. Solution-wide format
+  verification retained the recorded out-of-scope import-ordering failure in
+  `OpenAiHttpAdapters.cs`; this result is not an Automatic Quality Gate.
+- Changes only the persistent ledger, its focused integration tests,
+  Security-And-Access, Current State, this corpus change log and the append-only
+  EOF of State Transition Log. No OpenAPI contract, schema, migration,
+  dependency, workflow, budget value, provider or external resource is changed.
+- Classification: `PATCH`, because this revision implements the already
+  accepted recovery boundary without changing architecture, public contracts,
+  persistence shape, lifecycle or external authority.
 
 ## 4.18.1 — 2026-08-20
 

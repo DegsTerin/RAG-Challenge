@@ -1727,14 +1727,36 @@ reports.
   Gate, risk acceptance or lifecycle effect. The implementation remains a
   zero-only, fail-closed candidate: no nonzero envelope, cost schedule,
   provider, credential, egress or billing authority was created.
-- Candidate commit `7b031a5c36761404cafe35a80c50f72da500fc6e` remains only on
-  `codex/adr0018-item4-failure-recovery-tests`. Its post-dispatch crash test
-  preserves `Armed` plus `DispatchStarted`, rather than committing the maximum
-  and entering `ReconciliationRequired` as ADR-0018 requires. The candidate is
-  blocked and not integrable in its recorded form. The persistent ledger also
-  rejects an expired admission without persisting the `Expired` state, unlike
-  the deterministic fake. These implementation findings are open and have no
-  corrective authority in this reconciliation.
+- Under `AUTH-SEC-BUDGET-001-RECOVERY-CORR-20260820-01` on exact clean
+  `main@fb9328d8d0ec12304289cdee6275ac82c1927bec`, corpus `4.18.1`, the
+  persistent SQLite ledger now records an idempotent `Expired` ledger/audit/head
+  transition before rejecting an expired admission or returning an identical
+  reservation replay after expiry. An exact administrative rearm request with a
+  different runtime-session identity recovers every orphaned `DispatchStarted`
+  in one immediate transaction, including after expiry or an already persisted
+  `Expired` state, commits each complete admitted maximum, records
+  `IndeterminateCommitted`, enters `ReconciliationRequired` and rejects the
+  rearm. A failed transition in a multi-orphan batch rolls the complete recovery
+  back. A divergent replay against a non-armed envelope records one sanitised
+  `ReservationConflict` audit without weakening the dominant state; in
+  particular, `ReconciliationRequired` cannot become rearmable `Tripped`.
+  Same-session requests do not classify a potentially live dispatch as orphaned;
+  `Armed` never rearms on clean restart, and pending `Reserved` or
+  `DispatchStarted` attempts block rearming from the otherwise permitted
+  `Disarmed` or `Tripped` states. The existing schema and migration remain
+  unchanged. Candidate commit
+  `7b031a5c36761404cafe35a80c50f72da500fc6e` remains outside `main`, blocked
+  and unintegrated; its incompatible crash test was replaced by the new
+  recovery matrix.
+- Three explicitly authorised read-only fronts mapped code, tests and security
+  in parallel before any coordinator write. The final focused class passed 14/14
+  and both changed code files passed isolated format verification. Release build
+  passed with zero warnings or errors; all 552 .NET tests passed (227 unit, 314
+  integration and 11 architecture), with merged coverage of 95.73% of lines and
+  66.74% of branches. Solution-wide format verification retained the recorded,
+  out-of-scope import-ordering failure in `OpenAiHttpAdapters.cs`; it was not
+  changed. These results are local corrective evidence, not an Automatic
+  Quality Gate, Human Gate, homologation or lifecycle transition.
 - The same audit records `SEC-PDF-001`: Product composition still selects the
   existing Server.Api renderer worker. Windows Job Object and Linux
   `rlimit`/non-dumpable containment do not satisfy ADR-0019's dedicated,
@@ -1807,7 +1829,7 @@ reports.
   the language policy added the 21st public document through a versioned
   increment, and ADR-0003 added the 22nd.
 - The baseline approved at the `STATE-00` Human Gate remains `3.4.0`.
-- The current instruction corpus is version `4.18.0` and has 13 files under
+- The current instruction corpus is version `4.18.2` and has 13 files under
   `prompts/`.
 - Vision, requirements, architecture, RAG, security, quality, lifecycle,
   roadmap, backlog, state, history and templates are documented.
@@ -2583,13 +2605,16 @@ authorised.
     part of item 3 now exist on `main` through commits `9c7b888`, `09bf5fc` and
     `e67805d`, but their implementation authority is not evidenced in the
     canonical owners; this audit neither approves nor gates them.
-    Item-4 candidate `7b031a5` is blocked by incompatible post-dispatch crash
-    semantics; persistent expiry also diverges from the deterministic fake.
-    ADR-0019's dedicated sandbox remains unimplemented. The authorised
-    `SEC-CORR-002` containment now prevents Product composition from selecting
-    the incomplete renderer and preserves text-first behaviour; dedicated
-    sandbox implementation, platform evidence, budget arming, provider access
-    and operational evidence remain separately governed.
+    Item-4 candidate `7b031a5` remains blocked by incompatible post-dispatch
+    crash semantics. The separately authorised recovery corrective persists
+    expiry, conservatively recovers orphaned dispatches and retains fail-closed
+    clean-restart rearming without integrating that commit. It has local test
+    and coverage evidence but no Automatic Quality Gate disposition. ADR-0019's
+    dedicated sandbox remains unimplemented. The authorised `SEC-CORR-002`
+    containment prevents Product composition from selecting the incomplete
+    renderer and preserves text-first behaviour; dedicated sandbox
+    implementation, platform evidence, budget arming, provider access and
+    operational evidence remain separately governed.
 
 ## Next authority
 
@@ -2599,13 +2624,12 @@ fail-closed and text-first behaviour remains independent. The dedicated
 `pdf-render-sandbox-v1`, public contract, schema, migration, provider, network,
 Human Gate and lifecycle remain unchanged or unimplemented.
 
-The first directly related future authority, if pursued, is a separate
-ADR-0018 corrective increment addressing persistent `Expired` transition, orphaned
-`DispatchStarted` recovery, conservative maximum commitment,
-`ReconciliationRequired`, clean-restart rearming and a replacement item-4 test
-candidate. Independent security review and an Automatic Quality Gate remain
-later, separately authorised sequence items. Nonzero budget, cost schedule,
-credential, provider, billing and real execution remain unauthorised.
+The ADR-0018 recovery corrective is locally implemented under
+`AUTH-SEC-BUDGET-001-RECOVERY-CORR-20260820-01`; the authority includes its
+required independent pre-commit review but no gate. The first directly related
+future authority, if pursued, is the bounded Automatic Quality Gate for this
+corrective candidate. Nonzero budget, cost schedule, credential, provider,
+billing and real execution remain unauthorised.
 
 Stage 2 is implemented and validated for deterministic coordination with
 `FakeAgentRunner` and the Codex App Server runner selected by ADR-0017. The

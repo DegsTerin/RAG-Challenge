@@ -9182,3 +9182,74 @@ contém somente fatos cronológicos.
   `a584f86258b6ddbd5973d705f985522fac0ae0bce483827d74234b32cf06aae6`.
 - Negative scope: no fetch, push, merge, rebase, amend, deployment, provider,
   network, billing, external service or remote action occurred.
+
+## 2026-08-20 — Provider-budget expiry and orphan recovery corrected
+
+- Authority: `AUTH-SEC-BUDGET-001-RECOVERY-CORR-20260820-01` authorised the
+  focal ADR-0018 recovery corrective on exact clean
+  `main@fb9328d8d0ec12304289cdee6275ac82c1927bec`, corpus `4.18.1`, in
+  `STATE-07 TESTING_HOMOLOGATION`. It authorised no schema, migration, OpenAPI,
+  dependency, nonzero budget, provider, credential, network, billing,
+  Automatic Quality Gate, Human Gate, lifecycle or deployment action.
+- Preconditions: the main worktree and index were clean; no Git or orchestrator
+  lock existed; runtime preflight found no RAG-Challenge-owned process or
+  listener and stopped nothing. Protected OpenAPI v1/v2 retained SHA-256
+  `d6a686b94c926914beb28b437f464430a01de6560c2e2d476cf5c36025813e34`
+  and `f4dca8db7fb7bd453e580495bb1bb7760812d954344931063e8549ed8f036733`.
+- Parallel evidence: three owner-authorised fronts mapped ledger transactions,
+  the recovery test matrix and ADR-0018/security conformance in read-only mode.
+  They created no branch, worktree, lock, file change, integration, gate or
+  canonical-memory mutation. The coordinator synthesised all three results
+  before becoming the only writer; implementation and integration remained
+  sequential in the main worktree.
+- Expiry correction: the SQLite admission transaction now persists and reads
+  back one `Expired` ledger revision, matching `EnvelopeExpired` audit event and
+  envelope head before rejecting the expired request or returning an identical
+  reservation replay after expiry. Repeated expired admissions append no
+  duplicate expiry transition and create no additional reservation.
+- Crash recovery: an exact administrative rearm request proving a different
+  runtime-session identity detects every durable `DispatchStarted`, commits
+  each complete admitted maximum as `IndeterminateMaximum`, records the
+  terminal reservation transition and audit, advances the envelope to
+  `ReconciliationRequired` and rejects rearming in the same immediate
+  transaction. Recovery remains available after the authority window expires
+  and from an already persisted `Expired` state. Repetition is idempotent, new
+  admission remains blocked and a synthetic failure on the second orphan proved
+  that the complete multi-orphan transaction rolls back before a clean retry.
+- Terminal-state precedence: a divergent replay against a non-armed envelope
+  records one idempotent, sanitised `ReservationConflict` audit on the existing
+  complete ledger revision and returns the matching terminal rejection. It does
+  not reduce `ReconciliationRequired`, `Expired`, `Exhausted` or another
+  dominant state to rearmable `Tripped`.
+- Clean-restart restriction: same-session requests cannot classify a
+  potentially live dispatch as orphaned; `Armed` remains ineligible for rearm;
+  and pending `Reserved` or `DispatchStarted` attempts block rearming from
+  otherwise permitted `Disarmed` or `Tripped`. The existing trigger and schema
+  remain unchanged. Candidate `7b031a5` was inspected only through immutable
+  Git objects, not integrated; its incompatible crash test was replaced.
+- Focused verification: the first run passed 7/8 and exposed that an
+  envelope-scoped expiry audit cannot bind a request without a reservation.
+  The audit was corrected to retain the authority while omitting request-bound
+  fields. A first independent review then found that reservation replay and
+  recovery after expiry still bypassed the correction and requested an
+  intermediate batch-failure proof. A second review found that a divergent
+  replay could reduce `ReconciliationRequired` to rearmable `Tripped`. Those
+  findings were corrected; the final focused class passed 14/14, and isolated
+  format verification passed for both changed code files.
+- Complete applicable .NET verification: Release build passed with zero
+  warnings or errors; 227 unit, 314 integration and 11 architecture tests all
+  passed; fail-closed merged coverage passed at 95.73% of lines
+  (61,564/64,310) and 66.74% of branches (5,822/8,724). Solution-wide format
+  verification retained the already recorded, out-of-scope import-ordering
+  failure in `OpenAiHttpAdapters.cs`; that file was not changed and this result
+  is not an Automatic Quality Gate.
+- Versioning: the instruction corpus advances by factual `PATCH` from `4.18.1`
+  to `4.18.2` without changing architecture, public contracts, persistence
+  shape, lifecycle or external authority.
+- Append-only integrity: this entry preserves the complete previous file of
+  586,694 bytes at SHA-256
+  `4d08845bcae5512305c9bb7c6174497766f03c7e9e9cf89503fc28451cc0c2ed`.
+- Negative scope: no fetch, push, merge, rebase, amend, schema, migration,
+  dependency, budget value, credential, provider, network, billing, Render,
+  OCI, deployment, Automatic Quality Gate, Human Gate, lifecycle transition
+  or remote action occurred.

@@ -145,14 +145,32 @@ no operational nonzero envelope or cost schedule is selected, the effective
 aggregate limit and all operation allocations remain zero, and provider
 capability remains `Disarmed`.
 
-The 2026-08-20 audit identified two open candidate divergences. A crash after
-`DispatchStarted` has no start-up recovery that conservatively commits the
-maximum and persists `ReconciliationRequired`; candidate commit `7b031a5`
-instead asserts that the envelope remains `Armed` with an unfinished attempt.
-The SQLite admission path also rejects an expired request without persisting
-the `Expired` state selected by the deterministic fake. These observations do
-not authorise a correction, a nonzero budget, credential lookup or provider
-egress. The item-4 candidate is not integrable in its recorded form.
+The 2026-08-20 audit identified two candidate divergences: an expired SQLite
+admission was rejected without persisting `Expired`, and a process crash could
+leave `Armed` plus an unfinished `DispatchStarted`. Under
+`AUTH-SEC-BUDGET-001-RECOVERY-CORR-20260820-01`, a distinct corrective
+candidate now persists the first expiry transition and, only when an exact
+administrative rearm request proves a different runtime-session identity,
+converts every orphaned dispatch to its complete maximum commitment and
+`ReconciliationRequired` in the same immediate transaction. Recovery rejects
+the rearm, cannot retry the request and is idempotent after durable completion,
+including when recovery is requested after the authority window has expired or
+after `Expired` was already persisted. An identical reservation replay after
+expiry persists `Expired` before returning the replay, so it cannot reopen
+egress. A same-session request cannot classify a potentially live dispatch as
+orphaned. Clean restart never rearms an `Armed` envelope, and `Disarmed` or
+`Tripped` cannot be rearmed while a `Reserved` or `DispatchStarted` attempt
+remains. Batch recovery rolls back atomically if any orphan transition fails.
+A divergent replay cannot weaken `ReconciliationRequired` or another non-armed
+state into rearmable `Tripped`; it records one sanitised `ReservationConflict`
+audit against the dominant revision and remains rejected. These corrections use
+the existing closed states, transitions, commitments and audit records; no
+schema or migration is changed.
+
+Candidate commit `7b031a5` remains blocked and outside `main`: its crash test
+asserts the prohibited `Armed` plus `DispatchStarted` outcome and was replaced,
+not integrated. The corrective authority arms no budget and authorises no
+credential lookup, provider egress or billing.
 
 The durable closed states are `Disarmed`, `Armed`, `Tripped`, `Exhausted`,
 `ReconciliationRequired` and `Expired`. Absence, unreadability, corruption,

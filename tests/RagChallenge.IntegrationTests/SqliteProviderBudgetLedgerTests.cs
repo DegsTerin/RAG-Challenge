@@ -1,9 +1,10 @@
-// Purpose: Verifies focused local SQLite persistence, explicit administrative rearming, durable zero admission and terminal accounting without provider credentials, network or non-zero schedules.
+// Purpose: Verifies focused local SQLite admission, terminal recovery and explicit rearming without provider credentials, network or non-zero schedules.
 using System.Globalization;
 using System.Security.Cryptography;
 using System.Text;
 
 using Microsoft.Data.Sqlite;
+using Microsoft.EntityFrameworkCore;
 
 using RagChallenge.Application.ProviderBudget;
 using RagChallenge.Infrastructure.Persistence;
@@ -184,16 +185,626 @@ public sealed class SqliteProviderBudgetLedgerTests
             "SELECT COUNT(*) FROM provider_budget_rearms;"));
     }
 
+    [Fact]
+    public async Task ExpiredAdmissionPersistsTerminalStateAcrossRestart()
+    {
+        await using var fixture = await SqlitePersistenceFixture.CreateAsync();
+        var instant = DateTimeOffset.UtcNow;
+        await SeedDisarmedGraphAsync(fixture.Options.ControlDatabasePath, instant);
+        var ledger = new SqliteProviderBudgetLedger(fixture.Options);
+        var disarmed = (await ledger.ReadEnvelopeAsync(new ProviderBudgetEnvelopeId(EnvelopeId)))!;
+        var armed = (await ledger.RearmAsync(CreateRearmRequest(disarmed, instant))).Envelope!;
+        var expiredRequest = CreateAdmissionRequest(
+            armed,
+            "PBR-RECOVERY-EXPIRED",
+            instant.AddHours(2));
+
+        var expired = await ledger.AdmitAsync(expiredRequest);
+
+        Assert.Equal(ProviderBudgetAdmissionOutcome.Rejected, expired.Outcome);
+        Assert.Equal(ProviderBudgetAdmissionRejection.Expired, expired.Rejection);
+        Assert.Equal(ProviderBudgetState.Expired, expired.State);
+        var expiredRevision = Assert.IsType<ProviderBudgetLedgerRevision>(
+            expired.CurrentLedgerRevision);
+        Assert.Equal(armed.LedgerRevision.Value + 1, expiredRevision.Value);
+        var restartedLedger = new SqliteProviderBudgetLedger(fixture.Options);
+        var durable = Assert.IsType<ProviderBudgetEnvelopeV1>(
+            await restartedLedger.ReadEnvelopeAsync(armed.EnvelopeId));
+        Assert.Equal(ProviderBudgetState.Expired, durable.State);
+        Assert.Equal(expiredRevision, durable.LedgerRevision);
+        Assert.Equal(0, await ScalarAsync(
+            fixture.Options.ControlDatabasePath,
+            "SELECT COUNT(*) FROM provider_budget_reservations;"));
+        Assert.Equal(1, await ScalarAsync(
+            fixture.Options.ControlDatabasePath,
+            "SELECT COUNT(*) FROM provider_budget_ledger_revisions " +
+            "WHERE state = 'Expired' AND transition_kind = 'Expired' AND is_complete = 1;"));
+        Assert.Equal(1, await ScalarAsync(
+            fixture.Options.ControlDatabasePath,
+            "SELECT COUNT(*) FROM provider_budget_audit_events " +
+            "WHERE event_type = 'EnvelopeExpired' AND from_state = 'Armed' " +
+            "AND to_state = 'Expired' AND outcome_code = 'Expired';"));
+
+        var repeated = await restartedLedger.AdmitAsync(expiredRequest);
+
+        Assert.Equal(ProviderBudgetAdmissionOutcome.Rejected, repeated.Outcome);
+        Assert.Equal(ProviderBudgetAdmissionRejection.Expired, repeated.Rejection);
+        Assert.Equal(expiredRevision, repeated.CurrentLedgerRevision);
+        Assert.Equal(1, await ScalarAsync(
+            fixture.Options.ControlDatabasePath,
+            "SELECT COUNT(*) FROM provider_budget_ledger_revisions " +
+            "WHERE state = 'Expired' AND transition_kind = 'Expired';"));
+        Assert.Equal(1, await ScalarAsync(
+            fixture.Options.ControlDatabasePath,
+            "SELECT COUNT(*) FROM provider_budget_audit_events " +
+            "WHERE event_type = 'EnvelopeExpired';"));
+    }
+
+    [Fact]
+    public async Task ReservationReplayAfterExpiryPersistsExpiredAndBlocksNewAdmission()
+    {
+        await using var fixture = await SqlitePersistenceFixture.CreateAsync();
+        var instant = DateTimeOffset.UtcNow;
+        await SeedDisarmedGraphAsync(fixture.Options.ControlDatabasePath, instant);
+        var ledger = new SqliteProviderBudgetLedger(fixture.Options);
+        var disarmed = (await ledger.ReadEnvelopeAsync(new ProviderBudgetEnvelopeId(EnvelopeId)))!;
+        var armed = (await ledger.RearmAsync(CreateRearmRequest(disarmed, instant))).Envelope!;
+        var original = CreateAdmissionRequest(
+            armed,
+            "PBR-RECOVERY-EXPIRED-REPLAY",
+            instant.AddSeconds(1));
+        var admitted = await ledger.AdmitAsync(original);
+        var replayAfterExpiry = new ProviderBudgetAdmissionRequest(
+            original.ProviderRequestId,
+            original.EnvelopeId,
+            original.StoreEpochId,
+            original.ExpectedConfigurationRevision,
+            original.ExpectedLedgerRevision,
+            original.RuntimeSessionId,
+            original.Scope,
+            original.CostScheduleId,
+            original.CostScheduleSha256,
+            original.OperationClass,
+            original.OperationAuthorityReference,
+            original.RequestPlanSha256,
+            original.RequestSha256,
+            original.MaximumChargeBasisSha256,
+            original.BindingSha256,
+            original.MaximumCharge,
+            instant.AddHours(2));
+
+        var replay = await ledger.AdmitAsync(replayAfterExpiry);
+
+        Assert.Equal(ProviderBudgetAdmissionOutcome.Replay, replay.Outcome);
+        Assert.Equal(ProviderBudgetState.Expired, replay.State);
+        Assert.Equal(admitted.CurrentLedgerRevision!.Value + 1, replay.CurrentLedgerRevision!.Value);
+        Assert.Equal(ProviderBudgetReservationStatus.Reserved, replay.Reservation!.Status);
+        var restartedLedger = new SqliteProviderBudgetLedger(fixture.Options);
+        var durable = Assert.IsType<ProviderBudgetEnvelopeV1>(
+            await restartedLedger.ReadEnvelopeAsync(armed.EnvelopeId));
+        Assert.Equal(ProviderBudgetState.Expired, durable.State);
+        Assert.Equal(replay.CurrentLedgerRevision, durable.LedgerRevision);
+        Assert.Equal(1, await ScalarAsync(
+            fixture.Options.ControlDatabasePath,
+            "SELECT COUNT(*) FROM provider_budget_ledger_revisions " +
+            "WHERE state = 'Expired' AND transition_kind = 'Expired';"));
+        Assert.Equal(1, await ScalarAsync(
+            fixture.Options.ControlDatabasePath,
+            "SELECT COUNT(*) FROM provider_budget_audit_events " +
+            "WHERE event_type = 'EnvelopeExpired';"));
+
+        var blocked = await restartedLedger.AdmitAsync(
+            CreateAdmissionRequest(
+                durable,
+                "PBR-RECOVERY-EXPIRED-BLOCKED",
+                instant.AddHours(2).AddSeconds(1)));
+
+        Assert.Equal(ProviderBudgetAdmissionOutcome.Rejected, blocked.Outcome);
+        Assert.Equal(ProviderBudgetAdmissionRejection.Expired, blocked.Rejection);
+        Assert.Equal(ProviderBudgetState.Expired, blocked.State);
+        Assert.Equal(1, await ScalarAsync(
+            fixture.Options.ControlDatabasePath,
+            "SELECT COUNT(*) FROM provider_budget_reservations;"));
+    }
+
+    [Fact]
+    public async Task RestartRearmRecoversEveryOrphanedDispatchAsIndeterminateMaximum()
+    {
+        await using var fixture = await SqlitePersistenceFixture.CreateAsync();
+        var instant = DateTimeOffset.UtcNow;
+        await SeedDisarmedGraphAsync(fixture.Options.ControlDatabasePath, instant);
+        var ledger = new SqliteProviderBudgetLedger(fixture.Options);
+        var disarmed = (await ledger.ReadEnvelopeAsync(new ProviderBudgetEnvelopeId(EnvelopeId)))!;
+        var current = (await ledger.RearmAsync(CreateRearmRequest(disarmed, instant))).Envelope!;
+        var originalRequests = new List<ProviderBudgetAdmissionRequest>();
+        var requestIds = new[] { "PBR-RECOVERY-ORPHAN-A", "PBR-RECOVERY-ORPHAN-B" };
+
+        for (var index = 0; index < requestIds.Length; index++)
+        {
+            var admissionRequest = CreateAdmissionRequest(
+                current,
+                requestIds[index],
+                instant.AddSeconds((index * 2) + 1));
+            originalRequests.Add(admissionRequest);
+            var admission = await ledger.AdmitAsync(admissionRequest);
+            var reservation = Assert.IsType<ProviderBudgetReservation>(admission.Reservation);
+            var dispatch = await ledger.MarkDispatchStartedAsync(
+                new ProviderBudgetDispatchRequest(
+                    reservation.ProviderRequestId,
+                    admission.CurrentLedgerRevision!,
+                    reservation.CurrentReservationRevision,
+                    instant.AddSeconds((index * 2) + 2)));
+            Assert.Equal(ProviderBudgetTransitionOutcome.Applied, dispatch.Outcome);
+            Assert.Equal(
+                ProviderBudgetReservationStatus.DispatchStarted,
+                dispatch.Reservation!.Status);
+            current = Assert.IsType<ProviderBudgetEnvelopeV1>(
+                await ledger.ReadEnvelopeAsync(current.EnvelopeId));
+        }
+
+        var restartedLedger = new SqliteProviderBudgetLedger(fixture.Options);
+        var recovery = await restartedLedger.RearmAsync(
+            CreateRearmRequest(
+                current,
+                instant.AddSeconds(6),
+                "PRS-RECOVERY-RESTART"));
+
+        Assert.Equal(ProviderBudgetRearmOutcome.Rejected, recovery.Outcome);
+        var reconciled = Assert.IsType<ProviderBudgetEnvelopeV1>(recovery.Envelope);
+        Assert.Equal(ProviderBudgetState.ReconciliationRequired, reconciled.State);
+        Assert.Equal(current.LedgerRevision.Value + requestIds.Length, reconciled.LedgerRevision.Value);
+        Assert.Equal(1, await ScalarAsync(
+            fixture.Options.ControlDatabasePath,
+            "SELECT COUNT(*) FROM provider_budget_rearms;"));
+        Assert.Equal(requestIds.Length, await ScalarAsync(
+            fixture.Options.ControlDatabasePath,
+            "SELECT COUNT(*) FROM provider_budget_commitments AS commitment " +
+            "JOIN provider_budget_reservations AS reservation " +
+            "ON reservation.provider_request_id = commitment.provider_request_id " +
+            "WHERE commitment.commitment_kind = 'IndeterminateMaximum' " +
+            "AND commitment.committed_units = reservation.maximum_charge_units " +
+            "AND commitment.provider_duration_milliseconds IS NULL;"));
+        Assert.Equal(requestIds.Length, await ScalarAsync(
+            fixture.Options.ControlDatabasePath,
+            "SELECT COUNT(*) FROM provider_budget_reservation_transitions " +
+            "WHERE from_status = 'DispatchStarted' " +
+            "AND to_status = 'IndeterminateCommitted' " +
+            "AND transition_kind = 'IndeterminateCommitted';"));
+        Assert.Equal(requestIds.Length, await ScalarAsync(
+            fixture.Options.ControlDatabasePath,
+            "SELECT COUNT(*) FROM provider_budget_audit_events " +
+            "WHERE event_type = 'IndeterminateCommitted' " +
+            "AND authority_reference = 'AUTH-ITEM-3-REARM-001' " +
+            "AND actor_reference = 'ACTOR-ITEM-3-001' " +
+            "AND outcome_code = 'Indeterminate';"));
+
+        foreach (var requestId in requestIds)
+        {
+            var durableReservation = Assert.IsType<ProviderBudgetReservation>(
+                await restartedLedger.ReadReservationAsync(new ProviderRequestId(requestId)));
+            Assert.Equal(
+                ProviderBudgetReservationStatus.IndeterminateCommitted,
+                durableReservation.Status);
+            Assert.NotNull(durableReservation.TerminalAtUtc);
+            Assert.NotNull(durableReservation.TerminalLedgerRevision);
+        }
+
+        var replay = await restartedLedger.AdmitAsync(originalRequests[0]);
+        Assert.Equal(ProviderBudgetAdmissionOutcome.Replay, replay.Outcome);
+        Assert.Equal(ProviderBudgetState.ReconciliationRequired, replay.State);
+        Assert.Equal(
+            ProviderBudgetReservationStatus.IndeterminateCommitted,
+            replay.Reservation!.Status);
+        var repeatedRearm = await restartedLedger.RearmAsync(
+            CreateRearmRequest(
+                reconciled,
+                instant.AddSeconds(7),
+                "PRS-RECOVERY-SECOND-RESTART"));
+        Assert.Equal(ProviderBudgetRearmOutcome.Rejected, repeatedRearm.Outcome);
+        Assert.Equal(reconciled.LedgerRevision, repeatedRearm.Envelope!.LedgerRevision);
+        Assert.Equal(requestIds.Length, await ScalarAsync(
+            fixture.Options.ControlDatabasePath,
+            "SELECT COUNT(*) FROM provider_budget_commitments;"));
+        var furtherAdmission = await restartedLedger.AdmitAsync(
+            CreateAdmissionRequest(
+                reconciled,
+                "PBR-RECOVERY-BLOCKED",
+                instant.AddSeconds(8)));
+        Assert.Equal(ProviderBudgetAdmissionOutcome.Rejected, furtherAdmission.Outcome);
+        Assert.Equal(
+            ProviderBudgetAdmissionRejection.ReconciliationRequired,
+            furtherAdmission.Rejection);
+        Assert.Equal(requestIds.Length, await ScalarAsync(
+            fixture.Options.ControlDatabasePath,
+            "SELECT COUNT(*) FROM provider_budget_reservations;"));
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task RestartAfterExpiryRecoversOrphanedDispatch(bool persistExpiryFirst)
+    {
+        await using var fixture = await SqlitePersistenceFixture.CreateAsync();
+        var instant = DateTimeOffset.UtcNow;
+        await SeedDisarmedGraphAsync(fixture.Options.ControlDatabasePath, instant);
+        var ledger = new SqliteProviderBudgetLedger(fixture.Options);
+        var disarmed = (await ledger.ReadEnvelopeAsync(new ProviderBudgetEnvelopeId(EnvelopeId)))!;
+        var armed = (await ledger.RearmAsync(CreateRearmRequest(disarmed, instant))).Envelope!;
+        var admission = await ledger.AdmitAsync(
+            CreateAdmissionRequest(
+                armed,
+                "PBR-RECOVERY-EXPIRED-ORPHAN",
+                instant.AddSeconds(1)));
+        var reservation = Assert.IsType<ProviderBudgetReservation>(admission.Reservation);
+        var dispatch = await ledger.MarkDispatchStartedAsync(
+            new ProviderBudgetDispatchRequest(
+                reservation.ProviderRequestId,
+                admission.CurrentLedgerRevision!,
+                reservation.CurrentReservationRevision,
+                instant.AddSeconds(2)));
+        Assert.Equal(ProviderBudgetTransitionOutcome.Applied, dispatch.Outcome);
+        var beforeRecovery = Assert.IsType<ProviderBudgetEnvelopeV1>(
+            await ledger.ReadEnvelopeAsync(armed.EnvelopeId));
+
+        if (persistExpiryFirst)
+        {
+            var expiry = await ledger.AdmitAsync(
+                CreateAdmissionRequest(
+                    beforeRecovery,
+                    "PBR-RECOVERY-PERSIST-EXPIRY",
+                    instant.AddHours(2)));
+            Assert.Equal(ProviderBudgetAdmissionOutcome.Rejected, expiry.Outcome);
+            Assert.Equal(ProviderBudgetState.Expired, expiry.State);
+            beforeRecovery = Assert.IsType<ProviderBudgetEnvelopeV1>(
+                await ledger.ReadEnvelopeAsync(armed.EnvelopeId));
+        }
+
+        var restartedLedger = new SqliteProviderBudgetLedger(fixture.Options);
+        var recovery = await restartedLedger.RearmAsync(
+            CreateRearmRequest(
+                beforeRecovery,
+                instant.AddHours(2).AddSeconds(1),
+                "PRS-RECOVERY-AFTER-EXPIRY"));
+
+        Assert.Equal(ProviderBudgetRearmOutcome.Rejected, recovery.Outcome);
+        var reconciled = Assert.IsType<ProviderBudgetEnvelopeV1>(recovery.Envelope);
+        Assert.Equal(ProviderBudgetState.ReconciliationRequired, reconciled.State);
+        Assert.Equal(beforeRecovery.LedgerRevision.Value + 1, reconciled.LedgerRevision.Value);
+        var durableReservation = Assert.IsType<ProviderBudgetReservation>(
+            await restartedLedger.ReadReservationAsync(reservation.ProviderRequestId));
+        Assert.Equal(
+            ProviderBudgetReservationStatus.IndeterminateCommitted,
+            durableReservation.Status);
+        Assert.Equal(1, await ScalarAsync(
+            fixture.Options.ControlDatabasePath,
+            "SELECT COUNT(*) FROM provider_budget_commitments AS commitment " +
+            "JOIN provider_budget_reservations AS reservation " +
+            "ON reservation.provider_request_id = commitment.provider_request_id " +
+            "WHERE commitment.commitment_kind = 'IndeterminateMaximum' " +
+            "AND commitment.committed_units = reservation.maximum_charge_units;"));
+        Assert.Equal(1, await ScalarAsync(
+            fixture.Options.ControlDatabasePath,
+            "SELECT COUNT(*) FROM provider_budget_rearms;"));
+    }
+
+    [Fact]
+    public async Task DivergentReplayCannotDowngradeReconciliationRequiredOrEnableRearm()
+    {
+        await using var fixture = await SqlitePersistenceFixture.CreateAsync();
+        var instant = DateTimeOffset.UtcNow;
+        await SeedDisarmedGraphAsync(fixture.Options.ControlDatabasePath, instant);
+        var ledger = new SqliteProviderBudgetLedger(fixture.Options);
+        var disarmed = (await ledger.ReadEnvelopeAsync(new ProviderBudgetEnvelopeId(EnvelopeId)))!;
+        var armed = (await ledger.RearmAsync(CreateRearmRequest(disarmed, instant))).Envelope!;
+        var original = CreateAdmissionRequest(
+            armed,
+            "PBR-RECOVERY-RR-CONFLICT",
+            instant.AddSeconds(1));
+        var admission = await ledger.AdmitAsync(original);
+        var reservation = Assert.IsType<ProviderBudgetReservation>(admission.Reservation);
+        var dispatch = await ledger.MarkDispatchStartedAsync(
+            new ProviderBudgetDispatchRequest(
+                reservation.ProviderRequestId,
+                admission.CurrentLedgerRevision!,
+                reservation.CurrentReservationRevision,
+                instant.AddSeconds(2)));
+        Assert.Equal(ProviderBudgetTransitionOutcome.Applied, dispatch.Outcome);
+        var dispatchedEnvelope = Assert.IsType<ProviderBudgetEnvelopeV1>(
+            await ledger.ReadEnvelopeAsync(armed.EnvelopeId));
+        var recovery = await ledger.RearmAsync(
+            CreateRearmRequest(
+                dispatchedEnvelope,
+                instant.AddSeconds(3),
+                "PRS-RECOVERY-RR-CONFLICT"));
+        Assert.Equal(ProviderBudgetRearmOutcome.Rejected, recovery.Outcome);
+        var reconciled = Assert.IsType<ProviderBudgetEnvelopeV1>(recovery.Envelope);
+        Assert.Equal(ProviderBudgetState.ReconciliationRequired, reconciled.State);
+        var recoveredReservation = Assert.IsType<ProviderBudgetReservation>(
+            await ledger.ReadReservationAsync(reservation.ProviderRequestId));
+        Assert.Equal(
+            ProviderBudgetReservationStatus.IndeterminateCommitted,
+            recoveredReservation.Status);
+        var divergentAfterExpiry = new ProviderBudgetAdmissionRequest(
+            original.ProviderRequestId,
+            original.EnvelopeId,
+            original.StoreEpochId,
+            original.ExpectedConfigurationRevision,
+            original.ExpectedLedgerRevision,
+            original.RuntimeSessionId,
+            original.Scope,
+            original.CostScheduleId,
+            original.CostScheduleSha256,
+            original.OperationClass,
+            original.OperationAuthorityReference,
+            original.RequestPlanSha256,
+            Sha("reconciliation conflict"),
+            original.MaximumChargeBasisSha256,
+            original.BindingSha256,
+            original.MaximumCharge,
+            instant.AddHours(2));
+
+        var conflict = await ledger.AdmitAsync(divergentAfterExpiry);
+
+        Assert.Equal(ProviderBudgetAdmissionOutcome.Rejected, conflict.Outcome);
+        Assert.Equal(
+            ProviderBudgetAdmissionRejection.ReconciliationRequired,
+            conflict.Rejection);
+        Assert.Equal(ProviderBudgetState.ReconciliationRequired, conflict.State);
+        Assert.Equal(reconciled.LedgerRevision, conflict.CurrentLedgerRevision);
+        var repeatedConflict = await ledger.AdmitAsync(divergentAfterExpiry);
+        Assert.Equal(ProviderBudgetAdmissionOutcome.Rejected, repeatedConflict.Outcome);
+        Assert.Equal(
+            ProviderBudgetAdmissionRejection.ReconciliationRequired,
+            repeatedConflict.Rejection);
+        Assert.Equal(reconciled.LedgerRevision, repeatedConflict.CurrentLedgerRevision);
+        var unchanged = Assert.IsType<ProviderBudgetEnvelopeV1>(
+            await ledger.ReadEnvelopeAsync(armed.EnvelopeId));
+        Assert.Equal(ProviderBudgetState.ReconciliationRequired, unchanged.State);
+        Assert.Equal(reconciled.LedgerRevision, unchanged.LedgerRevision);
+        Assert.Equal(reconciled.CurrentLedgerSha256, unchanged.CurrentLedgerSha256);
+        var rearm = await ledger.RearmAsync(
+            CreateRearmRequest(
+                unchanged,
+                instant.AddHours(2).AddSeconds(1),
+                "PRS-RECOVERY-RR-SECOND-RESTART"));
+
+        Assert.Equal(ProviderBudgetRearmOutcome.Rejected, rearm.Outcome);
+        Assert.Equal(ProviderBudgetState.ReconciliationRequired, rearm.Envelope!.State);
+        Assert.Equal(unchanged.LedgerRevision, rearm.Envelope.LedgerRevision);
+        Assert.Equal(1, await ScalarAsync(
+            fixture.Options.ControlDatabasePath,
+            "SELECT COUNT(*) FROM provider_budget_rearms;"));
+        Assert.Equal(1, await ScalarAsync(
+            fixture.Options.ControlDatabasePath,
+            "SELECT COUNT(*) FROM provider_budget_reservations;"));
+        Assert.Equal(1, await ScalarAsync(
+            fixture.Options.ControlDatabasePath,
+            "SELECT COUNT(*) FROM provider_budget_commitments;"));
+        Assert.Equal(1, await ScalarAsync(
+            fixture.Options.ControlDatabasePath,
+            "SELECT COUNT(*) FROM provider_budget_audit_events " +
+            "WHERE event_type = 'ReservationConflict' " +
+            "AND from_state = 'ReconciliationRequired' " +
+            "AND to_state = 'ReconciliationRequired' " +
+            "AND outcome_code = 'Conflict';"));
+    }
+
+    [Fact]
+    public async Task MultiOrphanRecoveryRollsBackAtomicallyWhenSecondCommitmentFails()
+    {
+        await using var fixture = await SqlitePersistenceFixture.CreateAsync();
+        var instant = DateTimeOffset.UtcNow;
+        await SeedDisarmedGraphAsync(fixture.Options.ControlDatabasePath, instant);
+        var ledger = new SqliteProviderBudgetLedger(fixture.Options);
+        var disarmed = (await ledger.ReadEnvelopeAsync(new ProviderBudgetEnvelopeId(EnvelopeId)))!;
+        var current = (await ledger.RearmAsync(CreateRearmRequest(disarmed, instant))).Envelope!;
+        var requestIds = new[] { "PBR-RECOVERY-FAULT-A", "PBR-RECOVERY-FAULT-B" };
+
+        for (var index = 0; index < requestIds.Length; index++)
+        {
+            var admission = await ledger.AdmitAsync(
+                CreateAdmissionRequest(
+                    current,
+                    requestIds[index],
+                    instant.AddSeconds((index * 2) + 1)));
+            var reservation = Assert.IsType<ProviderBudgetReservation>(admission.Reservation);
+            var dispatch = await ledger.MarkDispatchStartedAsync(
+                new ProviderBudgetDispatchRequest(
+                    reservation.ProviderRequestId,
+                    admission.CurrentLedgerRevision!,
+                    reservation.CurrentReservationRevision,
+                    instant.AddSeconds((index * 2) + 2)));
+            Assert.Equal(ProviderBudgetTransitionOutcome.Applied, dispatch.Outcome);
+            current = Assert.IsType<ProviderBudgetEnvelopeV1>(
+                await ledger.ReadEnvelopeAsync(current.EnvelopeId));
+        }
+
+        await ExecuteWriteAsync(
+            fixture.Options.ControlDatabasePath,
+            """
+            CREATE TRIGGER provider_budget_recovery_fault
+            BEFORE INSERT ON provider_budget_commitments
+            WHEN NEW.provider_request_id = 'PBR-RECOVERY-FAULT-B'
+            BEGIN
+                SELECT RAISE(ABORT, 'synthetic provider-budget recovery fault');
+            END;
+            """);
+        var revisionBeforeRecovery = current.LedgerRevision;
+        var shaBeforeRecovery = current.CurrentLedgerSha256;
+        var restartedLedger = new SqliteProviderBudgetLedger(fixture.Options);
+
+        _ = await Assert.ThrowsAsync<DbUpdateException>(() => restartedLedger.RearmAsync(
+            CreateRearmRequest(
+                current,
+                instant.AddSeconds(6),
+                "PRS-RECOVERY-FAULT-RESTART")));
+
+        var afterFailureLedger = new SqliteProviderBudgetLedger(fixture.Options);
+        var unchanged = Assert.IsType<ProviderBudgetEnvelopeV1>(
+            await afterFailureLedger.ReadEnvelopeAsync(current.EnvelopeId));
+        Assert.Equal(ProviderBudgetState.Armed, unchanged.State);
+        Assert.Equal(revisionBeforeRecovery, unchanged.LedgerRevision);
+        Assert.Equal(shaBeforeRecovery, unchanged.CurrentLedgerSha256);
+        Assert.Equal(0, await ScalarAsync(
+            fixture.Options.ControlDatabasePath,
+            "SELECT COUNT(*) FROM provider_budget_commitments;"));
+        Assert.Equal(2, await ScalarAsync(
+            fixture.Options.ControlDatabasePath,
+            "SELECT COUNT(*) FROM provider_budget_reservations " +
+            "WHERE status = 'DispatchStarted';"));
+        Assert.Equal(0, await ScalarAsync(
+            fixture.Options.ControlDatabasePath,
+            "SELECT COUNT(*) FROM provider_budget_audit_events " +
+            "WHERE event_type = 'IndeterminateCommitted';"));
+
+        await ExecuteWriteAsync(
+            fixture.Options.ControlDatabasePath,
+            "DROP TRIGGER provider_budget_recovery_fault;");
+        var retry = await afterFailureLedger.RearmAsync(
+            CreateRearmRequest(
+                unchanged,
+                instant.AddSeconds(7),
+                "PRS-RECOVERY-FAULT-RESTART"));
+
+        Assert.Equal(ProviderBudgetRearmOutcome.Rejected, retry.Outcome);
+        Assert.Equal(ProviderBudgetState.ReconciliationRequired, retry.Envelope!.State);
+        Assert.Equal(2, await ScalarAsync(
+            fixture.Options.ControlDatabasePath,
+            "SELECT COUNT(*) FROM provider_budget_commitments;"));
+    }
+
+    [Fact]
+    public async Task SameSessionRearmDoesNotClassifyAnActiveDispatchAsOrphaned()
+    {
+        await using var fixture = await SqlitePersistenceFixture.CreateAsync();
+        var instant = DateTimeOffset.UtcNow;
+        await SeedDisarmedGraphAsync(fixture.Options.ControlDatabasePath, instant);
+        var ledger = new SqliteProviderBudgetLedger(fixture.Options);
+        var disarmed = (await ledger.ReadEnvelopeAsync(new ProviderBudgetEnvelopeId(EnvelopeId)))!;
+        var armed = (await ledger.RearmAsync(CreateRearmRequest(disarmed, instant))).Envelope!;
+        var admission = await ledger.AdmitAsync(
+            CreateAdmissionRequest(armed, "PBR-RECOVERY-ACTIVE", instant.AddSeconds(1)));
+        var reservation = Assert.IsType<ProviderBudgetReservation>(admission.Reservation);
+        var dispatch = await ledger.MarkDispatchStartedAsync(
+            new ProviderBudgetDispatchRequest(
+                reservation.ProviderRequestId,
+                admission.CurrentLedgerRevision!,
+                reservation.CurrentReservationRevision,
+                instant.AddSeconds(2)));
+        var dispatchedEnvelope = Assert.IsType<ProviderBudgetEnvelopeV1>(
+            await ledger.ReadEnvelopeAsync(armed.EnvelopeId));
+        var restartedLedgerObject = new SqliteProviderBudgetLedger(fixture.Options);
+
+        var result = await restartedLedgerObject.RearmAsync(
+            CreateRearmRequest(
+                dispatchedEnvelope,
+                instant.AddSeconds(3),
+                dispatchedEnvelope.RuntimeSessionId!.Value));
+
+        Assert.Equal(ProviderBudgetRearmOutcome.Rejected, result.Outcome);
+        Assert.Equal(ProviderBudgetState.Armed, result.Envelope!.State);
+        Assert.Equal(dispatchedEnvelope.LedgerRevision, result.Envelope.LedgerRevision);
+        Assert.Equal(
+            ProviderBudgetReservationStatus.DispatchStarted,
+            dispatch.Reservation!.Status);
+        Assert.Equal(0, await ScalarAsync(
+            fixture.Options.ControlDatabasePath,
+            "SELECT COUNT(*) FROM provider_budget_commitments;"));
+    }
+
+    [Theory]
+    [InlineData("PRS-ITEM-3-001")]
+    [InlineData("PRS-CLEAN-RESTART")]
+    public async Task ArmedEnvelopeDoesNotRearmOnCleanRestart(string requestedSessionId)
+    {
+        await using var fixture = await SqlitePersistenceFixture.CreateAsync();
+        var instant = DateTimeOffset.UtcNow;
+        await SeedDisarmedGraphAsync(fixture.Options.ControlDatabasePath, instant);
+        var ledger = new SqliteProviderBudgetLedger(fixture.Options);
+        var disarmed = (await ledger.ReadEnvelopeAsync(new ProviderBudgetEnvelopeId(EnvelopeId)))!;
+        var armed = (await ledger.RearmAsync(CreateRearmRequest(disarmed, instant))).Envelope!;
+        var restartedLedger = new SqliteProviderBudgetLedger(fixture.Options);
+
+        var result = await restartedLedger.RearmAsync(
+            CreateRearmRequest(armed, instant.AddSeconds(1), requestedSessionId));
+
+        Assert.Equal(ProviderBudgetRearmOutcome.Rejected, result.Outcome);
+        var unchanged = Assert.IsType<ProviderBudgetEnvelopeV1>(result.Envelope);
+        Assert.Equal(ProviderBudgetState.Armed, unchanged.State);
+        Assert.Equal(armed.RuntimeSessionId, unchanged.RuntimeSessionId);
+        Assert.Equal(armed.LedgerRevision, unchanged.LedgerRevision);
+        Assert.Equal(armed.CurrentLedgerSha256, unchanged.CurrentLedgerSha256);
+        Assert.Equal(1, await ScalarAsync(
+            fixture.Options.ControlDatabasePath,
+            "SELECT COUNT(*) FROM provider_budget_rearms;"));
+    }
+
+    [Fact]
+    public async Task TrippedEnvelopeWithReservedAttemptCannotBeRearmed()
+    {
+        await using var fixture = await SqlitePersistenceFixture.CreateAsync();
+        var instant = DateTimeOffset.UtcNow;
+        await SeedDisarmedGraphAsync(fixture.Options.ControlDatabasePath, instant);
+        var ledger = new SqliteProviderBudgetLedger(fixture.Options);
+        var disarmed = (await ledger.ReadEnvelopeAsync(new ProviderBudgetEnvelopeId(EnvelopeId)))!;
+        var armed = (await ledger.RearmAsync(CreateRearmRequest(disarmed, instant))).Envelope!;
+        var original = CreateAdmissionRequest(
+            armed,
+            "PBR-RECOVERY-RESERVED",
+            instant.AddSeconds(1));
+        _ = await ledger.AdmitAsync(original);
+        var divergent = new ProviderBudgetAdmissionRequest(
+            original.ProviderRequestId,
+            original.EnvelopeId,
+            original.StoreEpochId,
+            original.ExpectedConfigurationRevision,
+            original.ExpectedLedgerRevision,
+            original.RuntimeSessionId,
+            original.Scope,
+            original.CostScheduleId,
+            original.CostScheduleSha256,
+            original.OperationClass,
+            original.OperationAuthorityReference,
+            original.RequestPlanSha256,
+            Sha("reserved conflict"),
+            original.MaximumChargeBasisSha256,
+            original.BindingSha256,
+            original.MaximumCharge,
+            original.RequestedAtUtc);
+        var conflict = await ledger.AdmitAsync(divergent);
+        Assert.Equal(ProviderBudgetState.Tripped, conflict.State);
+        var tripped = Assert.IsType<ProviderBudgetEnvelopeV1>(
+            await ledger.ReadEnvelopeAsync(armed.EnvelopeId));
+
+        var rearm = await ledger.RearmAsync(
+            CreateRearmRequest(
+                tripped,
+                instant.AddSeconds(2),
+                "PRS-RECOVERY-AFTER-TRIP"));
+
+        Assert.Equal(ProviderBudgetRearmOutcome.Rejected, rearm.Outcome);
+        Assert.Equal(ProviderBudgetState.Tripped, rearm.Envelope!.State);
+        Assert.Equal(tripped.LedgerRevision, rearm.Envelope.LedgerRevision);
+        Assert.Equal(1, await ScalarAsync(
+            fixture.Options.ControlDatabasePath,
+            "SELECT COUNT(*) FROM provider_budget_rearms;"));
+        Assert.Equal(1, await ScalarAsync(
+            fixture.Options.ControlDatabasePath,
+            "SELECT COUNT(*) FROM provider_budget_reservations " +
+            "WHERE status = 'Reserved';"));
+    }
+
     private static ProviderBudgetRearmRequest CreateRearmRequest(
         ProviderBudgetEnvelopeV1 envelope,
-        DateTimeOffset instant) =>
+        DateTimeOffset instant,
+        string runtimeSessionId = "PRS-ITEM-3-001") =>
         new(
             envelope.EnvelopeId,
             envelope.StoreEpochId,
             envelope.ConfigurationRevision,
             envelope.LedgerRevision,
             envelope.RearmRevision,
-            new ProviderRuntimeSessionId("PRS-ITEM-3-001"),
+            new ProviderRuntimeSessionId(runtimeSessionId),
             new ProviderBudgetAuthorityReference("AUTH-ITEM-3-REARM-001"),
             new ProviderBudgetAuthorityReference("ACTOR-ITEM-3-001"),
             Sha("explicit rearm reason"),
@@ -338,6 +949,16 @@ public sealed class SqliteProviderBudgetLedgerTests
         await using var command = connection.CreateCommand();
         command.CommandText = sql;
         return Convert.ToInt64(await command.ExecuteScalarAsync(), CultureInfo.InvariantCulture);
+    }
+
+    private static async Task ExecuteWriteAsync(string path, string sql)
+    {
+        await using var connection = new SqliteConnection(
+            $"Data Source={path};Mode=ReadWrite;Cache=Private;Foreign Keys=True");
+        await connection.OpenAsync();
+        await using var command = connection.CreateCommand();
+        command.CommandText = sql;
+        _ = await command.ExecuteNonQueryAsync();
     }
 
     private static ProviderBudgetSha256 Sha(string value) =>
