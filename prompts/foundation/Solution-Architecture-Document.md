@@ -13,7 +13,10 @@ ADR-0007 corrects generation identity/freshness; accepted ADRs 0008 and 0009
 refine storage/visual evidence and document languages. Implemented state
 remains in the factual snapshot; later increments implemented those
 refinements, v2/same-origin serving and the notice-bearing profile at the local
-synthetic boundary without constituting product homologation.
+synthetic boundary without constituting product homologation. Accepted
+ADR-0020 supplements the OCI target with the observed Render deployment as an
+isolated secondary public homologation surface; it does not establish shared
+state, failover or OCI runtime evidence.
 
 ## Principles
 
@@ -556,8 +559,13 @@ create parallel taxonomies.
 Standard tests use local fake HTTP sources and do not access real official
 URLs. Real smoke is opt-in and requires its own network authority.
 
-CD and OCI belong to later states. The initial candidate deployment is one
-artefact on the selected OCI service, with external configuration and secrets.
+CD and OCI belong to later states. The durable candidate deployment remains
+one artefact on the selected OCI service, with external configuration and
+secrets. The separately observed Render deployment remains a secondary public
+homologation surface. ADR-0020 permits both instances to remain available
+concurrently but keeps their configuration, secrets, storage, mutable state
+and operational evidence isolated; it selects neither live replication nor
+automatic failover.
 `OFFICIAL_SOURCE_EGRESS` is limited to the exact separately approved active URL
 set; `OCI_RUNTIME_EGRESS` separately aggregates only approved official-source,
 AI, external vector-store, secret-store, telemetry and operations destinations.
@@ -591,8 +599,13 @@ implement the consuming adapter.
 ## Independent deployment and operation
 
 - Local: API, Dashboard and dependencies configured by the developer.
+- Render: secondary public homologation deployment with environment-specific
+  configuration and ephemeral storage unless a later decision proves a
+  different service shape.
 - OCI: the same application and contracts, with environment-appropriate
-  secrets and storage.
+  secrets and durable storage; it remains the MVP delivery target.
+- Concurrent operation: Render and OCI remain independent instances without a
+  shared SQLite database, content store, vector store or automatic failover.
 - GitHub: code, documentation and CI.
 - GitHub Pages: optional static interface only.
 

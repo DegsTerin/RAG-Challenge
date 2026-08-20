@@ -140,6 +140,14 @@ risk and authorises no schema, migration, implementation, dependency,
 provider, credential, network, billing, deployment, Human Gate or lifecycle
 action.
 
+On 2026-08-20, the owner accepted ADR-0020 through the explicit instruction to
+document the decision to use Render and OCI. It retains the observed Render
+deployment as a secondary public homologation surface and OCI as ADR-0005's
+durable MVP target, permitting both isolated instances to remain available
+concurrently after separately authorised OCI deployment. It selects no shared
+state, active-active writes, automatic failover, traffic management or OCI
+region. No account, console, service or runtime was accessed by the decision.
+
 The later combined audit failed on `AQG-S02-001`, an internal contradiction
 between observation-inclusive generation identity and observation-only
 freshness rebinding. The owner accepted ADR-0007 explicitly on 2026-08-02. It
@@ -268,11 +276,17 @@ Dashboard -- versioned HTTP --> API
 ## Deployment shapes
 
 - Local development: API, Dashboard and configured providers on one machine.
+- Render: the already observed secondary public homologation deployment, with
+  its current ephemeral-storage boundary. It does not replace OCI or constitute
+  production evidence.
 - OCI MVP: one deployable application boundary, with external secrets and
   environment configuration. Official-source egress is limited to the exact
   approved active URL set; the runtime allowlist separately aggregates only approved
   official, AI, vector-store, secret-store, telemetry and operational
   destinations. A managed vector store also requires its own egress policy.
+- Concurrent target: Render and OCI may remain available simultaneously as
+  isolated instances. They share no live SQLite, content-store or vector-store
+  files and have no selected automatic failover or active-active write model.
 - GitHub: source, documentation and CI.
 - GitHub Pages: optional static frontend only; never the RAG backend.
 - Future DB-Notifier: RAG-Challenge owns HTTP/OpenAPI v1; the HTTP adapter
@@ -343,6 +357,9 @@ Dashboard -- versioned HTTP --> API
 - [ADR-0019 — Cross-Platform PDF Renderer Sandbox Boundary](ADR-0019-Cross-Platform-PDF-Renderer-Sandbox-Boundary.md)
   (`accepted`; `SEC-CORR-002`; Windows and Linux ARM64 implementation and
   native runtime evidence are separately governed)
+- [ADR-0020 — Concurrent Render and OCI Deployment Targets](ADR-0020-Concurrent-Render-And-OCI-Deployment-Targets.md)
+  (`accepted`; isolated concurrent targets only; OCI deployment, shared state,
+  failover and operational evidence remain separately governed)
 
 ## STATE-02 design artefacts
 

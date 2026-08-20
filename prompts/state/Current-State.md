@@ -1772,6 +1772,16 @@ reports.
   candidate remains outside `main`, blocked and not integrable in its recorded
   form. This wording correction grants no implementation authority, approval,
   homologation, gate or lifecycle effect.
+- On 2026-08-20, the owner explicitly decided to retain both Render and OCI.
+  Accepted ADR-0020 records Render as the already observed secondary public
+  homologation surface and OCI as ADR-0005's durable MVP target. The two
+  instances may remain available concurrently only as isolated deployments,
+  with separate configuration, secrets, storage, mutable state and operational
+  evidence. No shared SQLite/content/vector state, active-active writes,
+  automatic failover, traffic management or OCI region was selected. This
+  documentary decision accessed neither provider and did not deploy, configure
+  or verify OCI. `SEC-CORR-002` remains the first recorded corrective
+  implementation candidate.
 
 ## Documentary baseline
 
@@ -1779,7 +1789,7 @@ reports.
   the language policy added the 21st public document through a versioned
   increment, and ADR-0003 added the 22nd.
 - The baseline approved at the `STATE-00` Human Gate remains `3.4.0`.
-- The current instruction corpus is version `4.17.6` and has 13 files under
+- The current instruction corpus is version `4.18.0` and has 13 files under
   `prompts/`.
 - Vision, requirements, architecture, RAG, security, quality, lifecycle,
   roadmap, backlog, state, history and templates are documented.
@@ -2461,7 +2471,10 @@ reports.
 - HTTP/OpenAPI v1 and v2 contracts coexist. V2 projects BCP 47 document
   language and same-origin visual evidence; both OpenAPI artefacts remain
   preserved byte-for-byte.
-- Local execution and future OCI deployment.
+- Local execution, the observed secondary Render public-homologation
+  deployment and future concurrent OCI deployment under ADR-0020. Render and
+  OCI remain isolated instances; OCI is not yet deployed or operationally
+  verified.
 - GitHub Pages only as an optional static frontend.
 
 ## Inactive future capabilities
@@ -2517,8 +2530,9 @@ authorised.
 6. Test comprehensive process-crash boundaries in `STATE-07`; restart and cold
    backup/restore of the task-owned v2 store already have local, synthetic and
    confined evidence, without representing operational storage or recovery.
-7. Verify real capacity, entitlement, IAM, restore, cost and billing for the
-   OCI tenancy; public sources still diverge on the free allowance.
+7. Verify real capacity, entitlement, IAM, restore, cost, billing and region
+   for the OCI tenancy. ADR-0020 retains Render concurrently but supplies none
+   of this OCI evidence; public sources still diverge on the free allowance.
 8. The bytes, hashes, 252 cases and 252 vectors in the RB-2/RB-3 freezes remain
    preserved and unscored. The reaudit found an incompatibility between
    the human review/adjudication requirement and the recorded actors/decisions.

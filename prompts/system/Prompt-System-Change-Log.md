@@ -2,7 +2,7 @@
 
 ## Current version
 
-- Version: `4.17.6`
+- Version: `4.18.0`
 - Date: 2026-08-20
 - Status: `STATE-07` active; ADR-0011 through ADR-0017 retain their recorded
   accepted dispositions and implemented or pending boundaries; PostgreSQL 18.4
@@ -28,7 +28,9 @@
   recorded on `main` without evidenced implementation authority, retroactive
   approval or gate disposition; the item-4 test candidate
   is blocked, the dedicated ADR-0019 sandbox remains unimplemented, and the
-  operational provider budget remains zero and disarmed
+  operational provider budget remains zero and disarmed; ADR-0020 accepts
+  concurrent but isolated Render and OCI deployment targets, while OCI
+  deployment, region and operational evidence remain unverified
 - Scope: 13 active files under `prompts/`
 
 The corpus version is independent from the future software version.
@@ -41,6 +43,34 @@ The corpus version is independent from the future software version.
 
 Every change updates this file and, when necessary,
 [`../Start-Here.md`](../Start-Here.md).
+
+## 4.18.0 — 2026-08-20
+
+- Records the owner's explicit decision to use Render and OCI on clean
+  `main@eccffff56abbd23d37378a5bde7a76d2a1d06bc9`, corpus `4.17.6`, without
+  changing `STATE-07`, an Automatic Quality Gate, Human Gate or lifecycle.
+- Adds accepted ADR-0020. Render remains the already observed secondary public
+  homologation surface; OCI remains ADR-0005's conditional durable MVP target.
+  Both may remain available concurrently only as isolated deployments.
+- Selects no shared SQLite, content-store or vector-store state, active-active
+  writes, replication, automatic failover, traffic management or OCI region.
+  An authenticated console location is not treated as region selection or
+  tenancy evidence.
+- Preserves `SEC-CORR-002` as the first recorded corrective implementation
+  candidate and grants no implementation or deployment authority.
+- Documentary checks passed `git diff --check`, the repository audit for 433
+  non-ignored files, the language-policy test suite, protected OpenAPI hashes
+  and append-only prefix verification. The worktree language checker stopped
+  automatically because baseline commit `eccffff` changes the protected
+  Security-And-Access control; no bypass was used, and the required exceptional
+  semantic review remains the applicable disposition.
+- Changes only ADR-0020, the architecture index, Solution Architecture,
+  Current State, this corpus change log and the append-only EOF of State
+  Transition Log. No code, test, schema, migration, dependency, workflow,
+  OpenAPI contract, branch, worktree, runtime or external resource is changed.
+- Classification: `MINOR`, because this revision establishes a new accepted
+  concurrent deployment topology while preserving all executable, security,
+  gate and lifecycle boundaries.
 
 ## 4.17.6 — 2026-08-20
 

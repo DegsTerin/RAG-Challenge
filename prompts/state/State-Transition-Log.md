@@ -9083,3 +9083,50 @@ contém somente fatos cronológicos.
 - Negative scope: no amend, rebase, fetch, push, merge, provider, network,
   deployment, Automatic Quality Gate, Human Gate, lifecycle transition or
   remote action occurred.
+
+## 2026-08-20 — Concurrent Render and OCI deployment targets accepted
+
+- Decision authority: the owner explicitly instructed,
+  `Então apenas documente a decisão de usar Render e OCI`, on clean
+  `main@eccffff56abbd23d37378a5bde7a76d2a1d06bc9`, corpus `4.17.6`.
+- Decision: accepted ADR-0020 retains Render as the already observed secondary
+  public homologation surface and OCI as ADR-0005's durable MVP target. Both
+  may remain available concurrently after separately authorised OCI deployment.
+- Isolation boundary: each provider keeps separate configuration, secrets,
+  storage, mutable state, evidence and deployment lifecycle. No shared SQLite,
+  content-store or vector-store files, active-active writes, replication,
+  automatic failover or traffic-management design is selected.
+- OCI boundary: no tenancy, console, API, service or runtime was accessed. The
+  authenticated console region mentioned by the owner is not deployment
+  evidence or a selected region. ADR-0005's `sa-saopaulo-1` candidate remains
+  conditional; exact region, capacity, entitlement, IAM, billing, backup and
+  restore require separate authority and evidence.
+- Existing authority preserved: Render does not replace the OCI requirement;
+  ADR-0005, ADR-0006, ADR-0018 and ADR-0019 retain their controls.
+  `SEC-CORR-002` remains the first recorded corrective implementation
+  candidate and is neither postponed nor authorised by this decision.
+- Closed documentary scope: only ADR-0020, the architecture index, Solution
+  Architecture, Current State, Prompt System Change Log and this append-only
+  EOF are changed. No code, test, schema, migration, dependency, workflow,
+  OpenAPI contract, branch, worktree, runtime or external resource is changed.
+- Runtime preflight: `NOT_APPLICABLE`, because the decision changes and
+  validates no executable RAG-Challenge behaviour.
+- Protected artefacts: OpenAPI v1 remains at SHA-256
+  `d6a686b94c926914beb28b437f464430a01de6560c2e2d476cf5c36025813e34` and
+  OpenAPI v2 remains at SHA-256
+  `f4dca8db7fb7bd453e580495bb1bb7760812d954344931063e8549ed8f036733`.
+- Documentary verification: `git diff --check`, the repository audit for 433
+  non-ignored files and the language-policy test suite passed. The worktree
+  language checker stopped automatically because baseline commit `eccffff`
+  changes the protected Security-And-Access control; no bypass was used. The
+  full previous append-only prefix and both protected OpenAPI hashes were
+  verified exactly.
+- Versioning: the instruction corpus advances by `MINOR` from `4.17.6` to
+  `4.18.0`, establishing a concurrent deployment topology without changing
+  executable behaviour, operational authority, gate or lifecycle.
+- Append-only integrity: this entry preserves the complete previous file of
+  580,204 bytes at SHA-256
+  `aa56532fd33f40be5ab2ac184163e6aa0fd4566f014a5aed655d1d922b64e13e`.
+- Negative scope: no Render or OCI access, fetch, push, merge, rebase, amend,
+  deployment, provider, network, billing, Automatic Quality Gate, Human Gate,
+  lifecycle transition or remote action occurred.
