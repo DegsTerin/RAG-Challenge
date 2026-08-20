@@ -1,10 +1,5 @@
 # RAG-Challenge
 
-## Latest screenshots
-
-![Screenshot 1](docs/assets/screenshots/screenshot-1.png)
-![Screenshot 2](docs/assets/screenshots/screenshot-2.png)
-
 Independent RAG assistant for querying database documentation in natural
 language, with grounded answers and source references.
 
