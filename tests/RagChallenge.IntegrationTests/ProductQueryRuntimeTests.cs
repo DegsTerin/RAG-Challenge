@@ -1,4 +1,4 @@
-// Purpose: Verifies the Oracle-only product composition, persisted readiness checks and fail-closed migration path without contacting external providers.
+// Purpose: Verifies the product composition, including fail-closed visual materialisation, persisted readiness checks and migration behaviour without contacting external providers.
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
@@ -24,6 +24,12 @@ namespace RagChallenge.IntegrationTests;
 
 public sealed class ProductQueryRuntimeTests
 {
+    [Fact]
+    public void ProductVisualMaterialisationRemainsUnavailableWithoutTheAcceptedSandbox()
+    {
+        Assert.Null(ProductQueryRuntime.ProductVisualEvidenceMaterializer);
+    }
+
     [Fact]
     public void PostgreSqlAuthorityAcceptsOnlyTheExactLocalAuthorisedDocumentProfile()
     {

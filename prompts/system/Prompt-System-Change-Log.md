@@ -2,7 +2,7 @@
 
 ## Current version
 
-- Version: `4.18.0`
+- Version: `4.18.1`
 - Date: 2026-08-20
 - Status: `STATE-07` active; ADR-0011 through ADR-0017 retain their recorded
   accepted dispositions and implemented or pending boundaries; PostgreSQL 18.4
@@ -27,7 +27,9 @@
   authority only; three ADR-0018 implementation commits are now factually
   recorded on `main` without evidenced implementation authority, retroactive
   approval or gate disposition; the item-4 test candidate
-  is blocked, the dedicated ADR-0019 sandbox remains unimplemented, and the
+  is blocked; Product on-demand visual materialisation is disabled fail-closed
+  under the authorised `SEC-CORR-002` containment while the dedicated ADR-0019
+  sandbox remains unimplemented; the
   operational provider budget remains zero and disarmed; ADR-0020 accepts
   concurrent but isolated Render and OCI deployment targets, while OCI
   deployment, region and operational evidence remain unverified
@@ -43,6 +45,35 @@ The corpus version is independent from the future software version.
 
 Every change updates this file and, when necessary,
 [`../Start-Here.md`](../Start-Here.md).
+
+## 4.18.1 — 2026-08-20
+
+- Records `AUTH-SEC-CORR-002-VISUAL-FAIL-CLOSED-20260820-01` on clean
+  `main@f3113d8062391d163854ee2b38c689798ed4c017`, corpus `4.18.0`, without
+  changing `STATE-07`, an Automatic Quality Gate, Human Gate or lifecycle.
+- Removes the incomplete Server.Api PDF renderer, render-candidate service and
+  on-demand visual materialiser from Product query composition. The optional
+  Product query visual materialiser is fixed to `null`; text-first answers and
+  read-only serving of already persisted verified images remain independent.
+- Local/offline verification passed the new containment test, the existing
+  textual-v2 preservation test, all 18 Product runtime integration tests,
+  locked restore, focal format verification, Release build, all 541 .NET
+  tests, coverage floors, language and policy checks, repository audit and
+  diff hygiene. Solution-wide format verification retains the already recorded
+  out-of-scope import-ordering failure in `OpenAiHttpAdapters.cs`; neither
+  changed project has a format finding. No external provider, source, Render,
+  OCI or network was accessed, and no Automatic Quality Gate was claimed.
+- Reconciles Security-And-Access and `THR-S02-009`/`THR-S02-037` without
+  claiming the dedicated `pdf-render-sandbox-v1`, Windows/Linux ARM64 evidence
+  or operational homologation.
+- Changes only ProductQueryRuntime, its focused integration tests,
+  Security-And-Access, the threat model, Current State, this corpus change log
+  and the append-only EOF of State Transition Log. No OpenAPI contract, schema,
+  migration, dependency, workflow, branch, worktree or external resource is
+  changed.
+- Classification: `PATCH`, because this revision implements the already
+  accepted fail-closed fallback without changing architecture, public
+  contracts, persistence, lifecycle or external authority.
 
 ## 4.18.0 — 2026-08-20
 

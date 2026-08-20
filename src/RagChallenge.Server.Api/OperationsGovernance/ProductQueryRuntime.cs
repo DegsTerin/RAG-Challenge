@@ -1,5 +1,4 @@
-// Purpose: Reopens an explicitly configured product store and composes real OpenAI query providers without bootstrapping synthetic data or mutating catalogue and activation state.
-using System.Runtime.InteropServices;
+// Purpose: Reopens an explicitly configured product store, composes real OpenAI query providers and keeps visual materialisation unavailable until the accepted renderer sandbox is implemented.
 using System.Security.Cryptography;
 using System.Text;
 
@@ -177,6 +176,8 @@ internal sealed class ProductQueryRuntime :
     private readonly SemaphoreSlim initialisationGate = new(1, 1);
     private QuestionAnsweringService? answeringService;
     private VerifiedPageImageEvidenceReader? visualEvidenceReader;
+
+    internal static IQueryVisualEvidenceMaterializer? ProductVisualEvidenceMaterializer => null;
 
     private string ConfigurationRevision => options.CatalogueProfile switch
     {
@@ -372,28 +373,6 @@ internal sealed class ProductQueryRuntime :
             var retrievalPolicyExecutor = new RetrievalV2PolicyExecutor(
                 vectorStore,
                 retrievalPolicyConfiguration);
-            var noticeCompositor = new NoticeBearingPageImageCompositor();
-            var renderCandidateService = new DocumentRenderCandidateService(
-                contentStore,
-                CreateProductPdfRenderer(),
-                new PngPageImageValidator(),
-                controlStore,
-                noticeCompositor,
-                noticeCompositor);
-            var visualMaterializer = new OnDemandVisualEvidenceMaterializer(
-                CorpusId,
-                controlStore,
-                controlStore,
-                renderCandidateService,
-                new PdfRenderPolicy(
-                    maximumSourceByteLength: 32L * 1024 * 1024,
-                    maximumPageCount: 5000,
-                    maximumTotalPixels: 25_000_000,
-                    maximumPageOutputByteLength: 64L * 1024 * 1024,
-                    maximumTotalOutputByteLength: 320L * 1024 * 1024,
-                    maximumWorkerMemoryBytes: 2L * 1024 * 1024 * 1024,
-                    maximumWorkerCpuTime: TimeSpan.FromMinutes(2),
-                    workerTimeout: TimeSpan.FromMinutes(3)));
             var answerEvidenceStore = new SqliteAnswerEvidenceStore(stores);
             visualEvidenceReader = new VerifiedPageImageEvidenceReader(
                 CorpusId,
@@ -413,26 +392,12 @@ internal sealed class ProductQueryRuntime :
                 answerEvidenceStore,
                 new SystemAnswerEvidenceRecordIdSource(),
                 answerEvidenceActivitySink,
-                visualMaterializer);
+                ProductVisualEvidenceMaterializer);
         }
         finally
         {
             initialisationGate.Release();
         }
-    }
-
-    private static IsolatedPdfRendererProcess CreateProductPdfRenderer()
-    {
-        var processPath = Environment.ProcessPath ??
-            throw new InvalidOperationException("The product renderer host path is unavailable.");
-        var isDotnetHost = string.Equals(
-            Path.GetFileNameWithoutExtension(processPath),
-            "dotnet",
-            StringComparison.OrdinalIgnoreCase);
-        return new IsolatedPdfRendererProcess(new RendererWorkerLaunch(
-            processPath,
-            isDotnetHost ? [typeof(Program).Assembly.Location] : [],
-            RuntimeInformation.RuntimeIdentifier));
     }
 
     private async Task ValidateCurrentAuthorityAsync(CancellationToken cancellationToken)

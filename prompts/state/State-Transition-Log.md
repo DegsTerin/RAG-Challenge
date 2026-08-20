@@ -9130,3 +9130,55 @@ contém somente fatos cronológicos.
 - Negative scope: no Render or OCI access, fetch, push, merge, rebase, amend,
   deployment, provider, network, billing, Automatic Quality Gate, Human Gate,
   lifecycle transition or remote action occurred.
+
+## 2026-08-20 — Product visual materialisation contained fail-closed
+
+- Authority: `AUTH-SEC-CORR-002-VISUAL-FAIL-CLOSED-20260820-01` authorised a
+  focal Product composition correction on clean
+  `main@f3113d8062391d163854ee2b38c689798ed4c017`, corpus `4.18.0`, with no
+  Git lock or product-owned listener.
+- Runtime preflight: no Product process or listener was active. The inspection
+  observed only its own transient PowerShell process with no listener; it was
+  not a product runtime and no process was stopped.
+- Implementation: Product query composition no longer creates the existing
+  Server.Api renderer worker, `DocumentRenderCandidateService` or
+  `OnDemandVisualEvidenceMaterializer`. Its optional
+  `IQueryVisualEvidenceMaterializer` is fixed to `null`, so an untrusted PDF
+  cannot reach that incomplete worker through Product query execution.
+- Preserved behaviour: the accepted text-first query path remains independent,
+  and `VerifiedPageImageEvidenceReader` remains only as the read-only boundary
+  for already persisted, fully bound page-image evidence. No image, manifest,
+  source, activation or runtime data was changed.
+- Focused verification: the exact new containment test passed 1/1; the existing
+  textual-v2 preservation test passed 1/1; and the complete
+  `ProductQueryRuntimeTests` class passed 18/18. The first compilation attempt
+  exposed a still-required Application.Documents namespace import; restoring
+  that import was the only correction before the successful rerun.
+- Broader local/offline verification: locked restore, format verification for
+  both changed projects and Release build passed; all 227 unit, 303 integration
+  and 11 architecture tests passed; merged coverage passed at 95.68% of lines
+  and 66.53% of branches; 105 language-policy tests, worktree language
+  inspection, coverage/CI policy tests, repository audit across 433 non-ignored
+  files and `git diff --check` passed. Protected OpenAPI v1/v2 digests remained
+  `d6a686b94c926914beb28b437f464430a01de6560c2e2d476cf5c36025813e34`
+  and `f4dca8db7fb7bd453e580495bb1bb7760812d954344931063e8549ed8f036733`.
+  Solution-wide format verification retained the already recorded,
+  out-of-scope import-ordering failure in `OpenAiHttpAdapters.cs`; neither
+  changed project had a format finding. This verification was not an Automatic
+  Quality Gate.
+- Security disposition: `SEC-PDF-001` is contained at the Product query
+  composition boundary. ADR-0019 remains unimplemented: the dedicated worker,
+  pre-input `pdf-render-sandbox-v1`, Windows/Linux ARM64 controls and native
+  platform evidence remain open and separately governed.
+- Protected artefacts: OpenAPI v1/v2, schema, migrations, dependencies and
+  workflows are unchanged. No renderer sandbox, provider, credential, source,
+  network, Render, OCI, deployment, Automatic Quality Gate, Human Gate or
+  lifecycle action occurred.
+- Versioning: the instruction corpus advances by factual `PATCH` from `4.18.0`
+  to `4.18.1` without changing architecture, public contracts, persistence,
+  lifecycle or external authority.
+- Append-only integrity: this entry preserves the complete previous file of
+  583,290 bytes at SHA-256
+  `a584f86258b6ddbd5973d705f985522fac0ae0bce483827d74234b32cf06aae6`.
+- Negative scope: no fetch, push, merge, rebase, amend, deployment, provider,
+  network, billing, external service or remote action occurred.

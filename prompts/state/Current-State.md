@@ -1782,6 +1782,24 @@ reports.
   documentary decision accessed neither provider and did not deploy, configure
   or verify OCI. `SEC-CORR-002` remains the first recorded corrective
   implementation candidate.
+- Under `AUTH-SEC-CORR-002-VISUAL-FAIL-CLOSED-20260820-01` on clean
+  `main@f3113d8062391d163854ee2b38c689798ed4c017`, Product query composition
+  removed the existing Server.Api renderer worker, render-candidate service
+  and on-demand visual materialiser. The optional query visual materialiser is
+  fixed to `null`: no Product query can deliver an untrusted PDF to that
+  incomplete worker, while the accepted text-first path and the read-only
+  verified serving of already persisted page-image evidence remain separate.
+  Focused tests passed the new containment case, the existing textual-v2
+  preservation case and all 18 Product runtime integration cases. Local and
+  offline verification also passed locked restore, focal format verification,
+  Release build, all 541 .NET tests, coverage at 95.68% of lines and 66.53% of
+  branches, language-policy tests and worktree inspection, policy tests,
+  repository audit and diff hygiene. Solution-wide format verification retains
+  the already recorded, out-of-scope import-ordering failure in
+  `OpenAiHttpAdapters.cs`; neither changed project has a format finding. This
+  is local fail-closed containment only, not an Automatic Quality Gate;
+  ADR-0019's dedicated sandbox, platform evidence and operational homologation
+  remain unimplemented or `NOT_RUN`.
 
 ## Documentary baseline
 
@@ -2567,22 +2585,22 @@ authorised.
     canonical owners; this audit neither approves nor gates them.
     Item-4 candidate `7b031a5` is blocked by incompatible post-dispatch crash
     semantics; persistent expiry also diverges from the deterministic fake.
-    ADR-0019's dedicated sandbox remains unimplemented while Product composition
-    retains the incomplete current renderer worker. Separate corrective
-    authority, review, platform evidence, budget arming, provider access and
-    operational evidence remain required.
+    ADR-0019's dedicated sandbox remains unimplemented. The authorised
+    `SEC-CORR-002` containment now prevents Product composition from selecting
+    the incomplete renderer and preserves text-first behaviour; dedicated
+    sandbox implementation, platform evidence, budget arming, provider access
+    and operational evidence remain separately governed.
 
 ## Next authority
 
-This reconciliation grants no corrective implementation authority. The first
-directly related future authority, if pursued, is a bounded `SEC-CORR-002`
-containment increment that makes Product visual rendering unavailable
-fail-closed while preserving the existing text-first path. It must stop before
-implementing the dedicated sandbox, changing a public contract, schema,
-migration, provider, network, Human Gate or lifecycle.
+The authorised `SEC-CORR-002` containment is implemented at the local Product
+composition boundary: on-demand visual materialisation is unavailable
+fail-closed and text-first behaviour remains independent. The dedicated
+`pdf-render-sandbox-v1`, public contract, schema, migration, provider, network,
+Human Gate and lifecycle remain unchanged or unimplemented.
 
-Only after that independently verified containment may a separate ADR-0018
-corrective authority address persistent `Expired` transition, orphaned
+The first directly related future authority, if pursued, is a separate
+ADR-0018 corrective increment addressing persistent `Expired` transition, orphaned
 `DispatchStarted` recovery, conservative maximum commitment,
 `ReconciliationRequired`, clean-restart rearming and a replacement item-4 test
 candidate. Independent security review and an Automatic Quality Gate remain

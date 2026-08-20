@@ -359,14 +359,17 @@ weaker sandbox or a generic OCI boundary. Windows evidence does not prove
 Linux ARM64, static cross-publish does not prove native execution and sandbox
 success does not replace rights, manifest, activation or output validation.
 
-The 2026-08-20 audit records `SEC-PDF-001`: Product composition still selects
-the existing Server.Api renderer worker. Its Windows Job Object and Linux
-`rlimit`/non-dumpable controls remain incomplete against the accepted profile,
-and the dedicated pre-input-attested worker is not implemented. This is an open
-implementation divergence, not accepted risk or homologated behaviour. A
-future separately authorised containment increment must make Product visual
-rendering unavailable fail-closed while preserving the independent text-first
-path; implementing `pdf-render-sandbox-v1` remains a later authority.
+The 2026-08-20 audit recorded `SEC-PDF-001`: Product composition selected the
+existing Server.Api renderer worker even though its Windows Job Object and
+Linux `rlimit`/non-dumpable controls do not satisfy the accepted profile.
+Under `AUTH-SEC-CORR-002-VISUAL-FAIL-CLOSED-20260820-01`, Product composition
+no longer constructs that worker or an on-demand visual materialiser. It binds
+the optional query visual materialiser to `null`, so Product cannot send an
+untrusted PDF to the incomplete renderer and a text-first answer remains
+independent. The verified reader for already persisted page-image evidence
+remains a separate read-only serving boundary. This is fail-closed containment,
+not implementation or proof of `pdf-render-sandbox-v1`; the dedicated worker
+and Windows/Linux ARM64 platform evidence remain later authorities.
 
 ## Persistent answer evidence
 
