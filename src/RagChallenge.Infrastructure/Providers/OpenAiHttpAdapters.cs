@@ -1,7 +1,7 @@
 // Purpose: Implements direct-HTTP OpenAI embedding and grounded-response adapters behind durable zero-budget admission, exact routes, bounded JSON and no SDK, retry, redirect, proxy or provider-owned state.
+using System.Diagnostics;
 using System.Net;
 using System.Net.Http.Headers;
-using System.Diagnostics;
 using System.Text;
 using System.Text.Json;
 
