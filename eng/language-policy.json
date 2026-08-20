@@ -903,10 +903,22 @@
         "sha256": "40163edb072d716065fecccfd466c291f0e0a38a8d76fb4994577806a8bb4023"
       },
       {
+        "path": "src/RagChallenge.Infrastructure/Persistence/Migrations/Control/20260816202337_AddPersistentProviderBudgetAdmission.cs",
+        "classification": "GENERATED_MIGRATION",
+        "reason": "Accepted generated migration identity is preserved.",
+        "sha256": "933801b7d7a8d21604d4a5d42478a276a8aea2cf5ca5fcdb89aa7c0ef6751dd7"
+      },
+      {
+        "path": "src/RagChallenge.Infrastructure/Persistence/Migrations/Control/20260816202337_AddPersistentProviderBudgetAdmission.Designer.cs",
+        "classification": "GENERATED_MIGRATION",
+        "reason": "Accepted generated migration identity is preserved.",
+        "sha256": "3ef865b44eb3c7c606cde80fd0544673b04c1225d44e6c4f069567f41c46855f"
+      },
+      {
         "path": "src/RagChallenge.Infrastructure/Persistence/Migrations/Control/ControlPlaneDbContextModelSnapshot.cs",
         "classification": "GENERATED_MIGRATION",
         "reason": "Accepted generated model snapshot identity is preserved.",
-        "sha256": "e43da4fa8a37fcaa133d1a2cdd5c85f0a174e22596fec7728fde1a2550838455"
+        "sha256": "cec2579d21d7315e29be7deb70a902080172de512fd39f6c2a7db4e91db3d537"
       },
       {
         "path": "src/RagChallenge.Infrastructure/Persistence/Migrations/Vector/20260802171400_InitialVectorStore.cs",
@@ -2259,5 +2271,5 @@
       }
     ]
   },
-  "digest": "sha256:1f8d4217b9c5fba685a57c30d417ac63e1423e945785075ce1978c34a97bff28"
+  "digest": "sha256:13641e6cbe5d23e4a5d6430d1ce07d1d2fa820357ab88b81497208561be644e9"
 }
