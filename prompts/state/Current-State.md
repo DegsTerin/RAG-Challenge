@@ -1811,6 +1811,31 @@ reports.
   `AQG-SEC-BUDGET-RECOVERY-001` and `AQG-SEC-BUDGET-RECOVERY-002` remain
   `CORRECTED_PENDING_GATE_RETEST`. No source or test was corrected, and the
   post-failure tree remained clean without a product runtime or listener.
+- Under the owner's subsequent explicit recovery-AQG authority, exact clean
+  `main@9ef8f0203feb4fe3149daf63acabec56fd2210ac`, corpus `4.18.5`, protected
+  OpenAPI v1/v2 identities, append-only history, clean tracked/untracked tree,
+  empty index, absence of Git/orchestrator locks and absence of a
+  RAG-Challenge-owned process or known listener were confirmed. Exceptional
+  independent review of the protected `Security-And-Access.md` change returned
+  `MANUAL_REVIEW_PASS`, with zero P0-P3, while preserving the earlier
+  mechanical language-policy failure as historical fact. Independent static
+  review of the complete `adcc0c5..9ef8f02` range also reported zero P0-P3 and
+  confirmed terminal-state precedence, stable conflict identities, exact
+  rearm rejection and the semantic neutrality of the import-ordering commit.
+  The canonical offline gate then ran exactly once from
+  `2026-08-20T14:26:22.0727449Z` to `2026-08-20T14:31:46.8184113Z`, elapsed
+  `324,746` ms and exited `0`. It passed 105 language-policy tests, immutable
+  inspection of 433 tracked files and two post-review commit messages,
+  CI/coverage policy tests, locked restore, solution-wide format, a Release
+  build with zero warnings or errors, 227 unit, 317 integration and 11
+  architecture tests, 95.75% line and 67.03% branch coverage, Dashboard lint,
+  typecheck, build and 45 tests, 105 of 107 orchestrator tests with zero failure
+  and two host-conditioned symlink skips, repository audit and diff hygiene.
+  `AQG-SEC-BUDGET-RECOVERY-001` and `AQG-SEC-BUDGET-RECOVERY-002` are
+  `RESOLVED`, and the local/offline recovery AQG is `APROVADO`. Online
+  dependency audits remained `BLOCKED`/`NOT_RUN` under the no-network boundary
+  and the result is not equivalent to the online workflow. No provider,
+  credential, egress, billing, Human Gate or lifecycle authority was created.
 - The same audit records `SEC-PDF-001`: Product composition still selects the
   existing Server.Api renderer worker. Windows Job Object and Linux
   `rlimit`/non-dumpable containment do not satisfy ADR-0019's dedicated,
@@ -1883,7 +1908,7 @@ reports.
   the language policy added the 21st public document through a versioned
   increment, and ADR-0003 added the 22nd.
 - The baseline approved at the `STATE-00` Human Gate remains `3.4.0`.
-- The current instruction corpus is version `4.18.5` and has 13 files under
+- The current instruction corpus is version `4.18.6` and has 13 files under
   `prompts/`.
 - Vision, requirements, architecture, RAG, security, quality, lifecycle,
   roadmap, backlog, state, history and templates are documented.
@@ -2663,19 +2688,18 @@ authorised.
     crash semantics. The separately authorised recovery corrective persists
     expiry, conservatively recovers orphaned dispatches and retains fail-closed
     clean-restart rearming without integrating that commit. It has local test
-    and coverage evidence. Its bounded Automatic Quality Gate remains
-    historically `REPROVADO`; the P1 and P2 are locally
-    `CORRECTED_PENDING_GATE_RETEST` under the separately authorised second
-    corrective. ADR-0019's
+    and coverage evidence. The original bounded Automatic Quality Gate and its
+    first complete retest remain historically `REPROVADO`, but the subsequent
+    owner-authorised complete local/offline retest on `main@9ef8f02` received
+    `MANUAL_REVIEW_PASS` for the protected control, passed independent static
+    review and the single canonical run, and resolved the P1 and P2. ADR-0019's
     dedicated sandbox remains unimplemented. The authorised `SEC-CORR-002`
     containment prevents Product composition from selecting the incomplete
     renderer and preserves text-first behaviour; dedicated sandbox
     implementation, platform evidence, budget arming, provider access and
-    operational evidence remain separately governed. The separately authorised
-    recovery AQG retest on `main@79640d0` passed independent review with zero
-    P0-P3 but was `REPROVADO` when the canonical offline gate stopped at its
-    protected-control language check. No later executable stage ran, so the two
-    recovery findings remain `CORRECTED_PENDING_GATE_RETEST`.
+    operational evidence remain separately governed. Online dependency audits
+    were outside the no-network gate authority and remain `BLOCKED`/`NOT_RUN`;
+    the approved local/offline result is not an online-workflow claim.
 
 ## Next authority
 
@@ -2686,19 +2710,16 @@ fail-closed and text-first behaviour remains independent. The dedicated
 Human Gate and lifecycle remain unchanged or unimplemented.
 
 The ADR-0018 recovery corrective is locally implemented under
-`AUTH-SEC-BUDGET-001-RECOVERY-CORR-20260820-01`. Its original bounded AQG under
-`AUTH-SEC-BUDGET-001-RECOVERY-AQG-20260820-01` is historically `REPROVADO`
-after one P1 in terminal-state precedence and one P2 in cross-attempt
-conflict-audit idempotency. Both findings are locally
-`CORRECTED_PENDING_GATE_RETEST` under
-`AUTH-SEC-BUDGET-001-RECOVERY-CORR-20260820-02`. The complete retest under
-`AUTH-SEC-BUDGET-001-RECOVERY-AQG-RETEST-20260820-01` passed independent
-read-only review with zero P0-P3 but was `REPROVADO` when the single canonical
-offline run stopped at the protected-control language check before later
-executable stages. The first directly related future condition, if pursued,
-is a newly authorised complete AQG retest on the exact clean factual-
-reconciliation baseline. Nonzero budget, cost schedule, credential, provider,
-billing and real execution remain unauthorised.
+`AUTH-SEC-BUDGET-001-RECOVERY-CORR-20260820-01`. Its original bounded AQG and
+first complete retest remain historically `REPROVADO`. The subsequent
+owner-authorised complete local/offline retest on exact clean
+`main@9ef8f0203feb4fe3149daf63acabec56fd2210ac` received
+`MANUAL_REVIEW_PASS`, passed independent static review with zero P0-P3 and
+passed its single canonical offline run. `AQG-SEC-BUDGET-RECOVERY-001` and
+`AQG-SEC-BUDGET-RECOVERY-002` are `RESOLVED`. Online dependency audits remain
+`BLOCKED`/`NOT_RUN`, and no online-workflow, nonzero budget, cost schedule,
+credential, provider, billing or real-execution authority is inferred. There
+is no further directly related recovery-AQG action under the current scope.
 
 Stage 2 is implemented and validated for deterministic coordination with
 `FakeAgentRunner` and the Codex App Server runner selected by ADR-0017. The

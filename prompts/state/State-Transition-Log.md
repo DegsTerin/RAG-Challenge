@@ -9423,3 +9423,68 @@ contém somente fatos cronológicos.
 - Next condition: a further complete AQG retest requires new explicit bounded
   authority on the exact clean factual-reconciliation baseline; no rerun or
   approval is inferred from the independent review.
+
+## 2026-08-20 — Provider-budget recovery Automatic Quality Gate approved after manual disposition
+
+- Gate authority: the owner explicitly authorised one complete, sequential
+  recovery Automatic Quality Gate on exact clean
+  `main@9ef8f0203feb4fe3149daf63acabec56fd2210ac`, corpus `4.18.5`, with no
+  correction inside the gate and no provider, credential, network, billing,
+  external action, Human Gate or lifecycle authority.
+- Baseline and preflight: branch, HEAD, clean tracked/untracked tree, empty
+  index, corpus identity, protected OpenAPI v1/v2, append-only history, absence
+  of Git/orchestrator locks and absence of a RAG-Challenge-owned process or
+  known listener matched the envelope.
+- Exceptional manual disposition: independent review of the protected
+  `Security-And-Access.md` change returned `MANUAL_REVIEW_PASS`, with zero P0,
+  P1, P2 or P3. The disposition preserved the earlier mechanical language-
+  policy failure as historical fact and neither bypassed nor reclassified it.
+- Static disposition: independent review of the complete
+  `adcc0c553e8b203e74133f748f05aa33b4b1c79d..9ef8f0203feb4fe3149daf63acabec56fd2210ac`
+  range reported zero P0-P3. It confirmed terminal-state precedence, stable
+  conflict identity across attempt timestamps, rejection of exact rearming
+  from `ReconciliationRequired` and semantic neutrality of the import-ordering
+  commit.
+- Canonical execution: `pwsh -NoProfile -File .\eng\ci.ps1 -Offline` ran
+  exactly once from `2026-08-20T14:26:22.0727449Z` to
+  `2026-08-20T14:31:46.8184113Z`, elapsed `324,746` ms and exited `0`. It
+  passed 105 language-policy tests, immutable inspection of 433 tracked files
+  and two post-review commit messages, CI/coverage policy tests, locked restore,
+  solution format, a warning-free Release build, 227 unit, 317 integration and
+  11 architecture tests, 95.75% line and 67.03% branch coverage, Dashboard
+  lint/typecheck/build and 45 tests, 105 of 107 orchestrator tests with zero
+  failure and two Windows symlink-permission skips, repository audit and diff
+  hygiene.
+- Limitation: online dependency audits were `BLOCKED`/`NOT_RUN` by the explicit
+  no-network boundary. The local/offline PASS is not equivalent to the online
+  workflow and creates no provider, egress, credential or billing authority.
+- Disposition: the bounded recovery Automatic Quality Gate is `APROVADO`, with
+  no new P0-P3. `AQG-SEC-BUDGET-RECOVERY-001` and
+  `AQG-SEC-BUDGET-RECOVERY-002` are `RESOLVED`. The original gate and first
+  complete retest remain historically `REPROVADO`.
+- Documentary authority: the owner initially authorised factual reconciliation
+  across the STATE-07 report, Security and Access, Current State, Prompt System
+  Change Log and this append-only EOF. Language enforcement rejected the draft
+  report addition because that file is immutable `HISTORICAL_EVIDENCE`. The
+  owner then explicitly authorised removal of only that task-created addition
+  and continuation through the four mutable owners. The report was restored
+  byte for byte at SHA-256
+  `0961875d0e413bee17ef99b6f37ae4c49b3f3ece70dd07be9c0946b48b4a995f`;
+  this final reconciliation changes only Security and Access, Current State,
+  Prompt System Change Log and this append-only EOF, with applicable
+  documentary checks, independent manual review and at most one focal local
+  commit.
+- Versioning: the instruction corpus advances by factual `PATCH` from `4.18.5`
+  to `4.18.6` without changing architecture, executable behaviour, public
+  contracts, persistence, operational authority, Human Gate or lifecycle.
+- Append-only integrity: this entry preserves the complete previous file of
+  602,902 bytes at SHA-256
+  `349d03bd92673af1c52363638c1410ba6fc39bff92ac250200d49930eb884d00`.
+- Reconciliation runtime preflight: `NOT_APPLICABLE`; this activity changed and
+  validated documentation only and did not inspect or stop a process.
+- Negative scope: no AQG rerun, build, product test, runtime, provider,
+  credential, network, billing, fetch, push, merge, rebase, amend, deployment,
+  Human Gate, lifecycle transition or remote action occurred.
+- Next condition: no further directly related recovery-AQG action remains; any
+  nonzero budget, provider, online workflow or other successor requires its own
+  explicit authority.

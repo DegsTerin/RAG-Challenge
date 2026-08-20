@@ -2,7 +2,7 @@
 
 ## Current version
 
-- Version: `4.18.5`
+- Version: `4.18.6`
 - Date: 2026-08-20
 - Status: `STATE-07` active; ADR-0011 through ADR-0017 retain their recorded
   accepted dispositions and implemented or pending boundaries; PostgreSQL 18.4
@@ -29,12 +29,13 @@
   approval or gate disposition; the item-4 test candidate remains blocked and
   a separate authorised corrective now persists expiry, recovers orphaned
   dispatches conservatively and keeps clean restart fail-closed; its bounded
-  Automatic Quality Gate remains historically `REPROVADO`, while the P1 in
-  divergent transition replay and P2 in conflict-audit idempotency are locally
-  `CORRECTED_PENDING_GATE_RETEST` under a separate bounded correction; its
-  complete retest passed independent review with zero P0-P3 but was
-  `REPROVADO` when the canonical offline gate stopped at protected-control
-  language inspection before later executable stages; Product
+  original Automatic Quality Gate and first complete retest remain historically
+  `REPROVADO`, while a subsequent owner-authorised local/offline retest received
+  `MANUAL_REVIEW_PASS`, passed independent static review and its single
+  canonical run, and resolved the P1 in divergent transition replay and P2 in
+  conflict-audit idempotency; online dependency audits remain
+  `BLOCKED`/`NOT_RUN` and the result is not equivalent to the online workflow;
+  Product
   on-demand visual materialisation is disabled fail-closed
   under the authorised `SEC-CORR-002` containment while the dedicated ADR-0019
   sandbox remains unimplemented; the
@@ -53,6 +54,38 @@ The corpus version is independent from the future software version.
 
 Every change updates this file and, when necessary,
 [`../Start-Here.md`](../Start-Here.md).
+
+## 4.18.6 — 2026-08-20
+
+- Records the owner's subsequent explicit recovery-AQG authority on exact clean
+  `main@9ef8f0203feb4fe3149daf63acabec56fd2210ac`, corpus `4.18.5`, without
+  changing `STATE-07`, Human Gate or lifecycle.
+- Records `MANUAL_REVIEW_PASS`, with zero P0-P3, for the protected
+  `Security-And-Access.md` change. The disposition preserves the earlier
+  mechanical language-policy failure as historical fact and does not treat
+  manual review as an automatic PASS.
+- Records independent static review of `adcc0c5..9ef8f02` as zero P0-P3 and the
+  single canonical offline run as exit `0` after 324,746 ms. The run passed 105
+  language-policy tests, inspection of 433 tracked files and two post-review
+  commit messages, CI/coverage policies, locked restore, solution format,
+  warning-free Release build, all 555 .NET tests, 95.75% line and 67.03% branch
+  coverage, Dashboard lint/typecheck/build and 45 tests, 105 of 107 orchestrator
+  tests with zero failure and two Windows symlink-permission skips, repository
+  audit and diff hygiene.
+- Disposes `AQG-SEC-BUDGET-RECOVERY-001` and
+  `AQG-SEC-BUDGET-RECOVERY-002` as `RESOLVED` and the bounded local/offline
+  recovery AQG as `APROVADO`. Online dependency audits remain
+  `BLOCKED`/`NOT_RUN`; the result is not equivalent to the online workflow.
+- Preserves the immutable STATE-07 report byte for byte at SHA-256
+  `0961875d0e413bee17ef99b6f37ae4c49b3f3ece70dd07be9c0946b48b4a995f`
+  after the owner corrected the documentary scope. Changes are limited to
+  Security and Access, Current State, this corpus change log and the append-only
+  EOF of State Transition Log. No source, test, schema, migration, OpenAPI,
+  dependency, budget, cost schedule, provider, credential, network, billing,
+  deployment, Human Gate or lifecycle is changed.
+- Classification: `PATCH`, because this revision records factual gate evidence
+  and dispositions without changing architecture, executable behaviour, public
+  contracts, persistence, operational authority or lifecycle.
 
 ## 4.18.5 — 2026-08-20
 

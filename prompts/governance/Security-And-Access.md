@@ -187,9 +187,33 @@ locally `CORRECTED_PENDING_GATE_RETEST`:
 The directed regression matrix covers admission, dispatch, commitment and
 release, including repeated attempts with different timestamps. Local focused
 and complete verification passed, and independent read-only review reported
-zero P0-P3. This evidence is not an Automatic Quality Gate: the historical
-`REPROVADO` disposition remains unchanged until a separately authorised
-complete retest runs on the exact clean corrective baseline.
+zero P0-P3. This corrective evidence preceded the separately authorised gate
+retests and did not itself alter their dispositions.
+
+The first complete retest under
+`AUTH-SEC-BUDGET-001-RECOVERY-AQG-RETEST-20260820-01` remains historically
+`REPROVADO`: its single canonical run stopped when immutable language
+inspection required exceptional manual review of this protected control. A
+later owner-authorised retest on exact clean
+`main@9ef8f0203feb4fe3149daf63acabec56fd2210ac`, corpus `4.18.5`, treated that
+boundary separately before any dependent stage. The independent exceptional
+review returned `MANUAL_REVIEW_PASS`, with zero P0-P3, without erasing or
+reclassifying the earlier mechanical failure. Independent static review of the
+complete corrective range also reported zero P0-P3.
+
+The canonical offline gate then ran exactly once and passed. It approved all
+105 language-policy tests, immutable inspection of 433 tracked files and the
+two commits after the manually reviewed protected commit, CI and coverage
+policy tests, locked restore, solution-wide format, a warning-free Release
+build, all 555 .NET tests, merged coverage of 95.75% of lines and 67.03% of
+branches, Dashboard lint/typecheck/build and 45 tests, 105 of 107 orchestrator
+tests with zero failures and two Windows symlink-permission skips, repository
+audit and diff hygiene. `AQG-SEC-BUDGET-RECOVERY-001` and
+`AQG-SEC-BUDGET-RECOVERY-002` are therefore `RESOLVED`. Online dependency
+audits remained `BLOCKED`/`NOT_RUN` by the explicit no-network boundary, so the
+result is not equivalent to the online workflow. The effective provider budget
+remains zero and `Disarmed`; no credential, egress or billing authority follows
+from this disposition.
 
 Candidate commit `7b031a5` remains blocked and outside `main`: its crash test
 asserts the prohibited `Armed` plus `DispatchStarted` outcome and was replaced,
