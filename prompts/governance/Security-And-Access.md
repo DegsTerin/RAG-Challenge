@@ -161,11 +161,29 @@ egress. A same-session request cannot classify a potentially live dispatch as
 orphaned. Clean restart never rearms an `Armed` envelope, and `Disarmed` or
 `Tripped` cannot be rearmed while a `Reserved` or `DispatchStarted` attempt
 remains. Batch recovery rolls back atomically if any orphan transition fails.
-A divergent replay cannot weaken `ReconciliationRequired` or another non-armed
-state into rearmable `Tripped`; it records one sanitised `ReservationConflict`
-audit against the dominant revision and remains rejected. These corrections use
-the existing closed states, transitions, commitments and audit records; no
-schema or migration is changed.
+These corrections use the existing closed states, transitions, commitments and
+audit records; no schema or migration is changed.
+
+The bounded Automatic Quality Gate under
+`AUTH-SEC-BUDGET-001-RECOVERY-AQG-20260820-01` is `REPROVADO`. Independent
+read-only review stopped the gate before executable checks with two open
+findings:
+
+- `AQG-SEC-BUDGET-RECOVERY-001` (`P1`): a divergent dispatch, commitment or
+  release replay reaches the transition conflict path before normal transition
+  validation and persists `Tripped` unconditionally. After orphan recovery this
+  can reduce `ReconciliationRequired` to a rearmable state and permit a later
+  exact rearm once the reservation is terminal.
+- `AQG-SEC-BUDGET-RECOVERY-002` (`P2`): the preserved-state admission-conflict
+  audit identifier includes `RequestedAtUtc`, although replay binding equality
+  excludes that instant. Repeating the same logical divergence with a new
+  timestamp can therefore append another `ReservationConflict` event rather
+  than remain idempotent.
+
+The previous candidate assertions that every divergent replay preserves the
+dominant terminal state and records one idempotent conflict audit are therefore
+not verified. No CI, build, test, coverage or format command was executed after
+the mandatory stop, and neither finding was corrected within the gate.
 
 Candidate commit `7b031a5` remains blocked and outside `main`: its crash test
 asserts the prohibited `Armed` plus `DispatchStarted` outcome and was replaced,

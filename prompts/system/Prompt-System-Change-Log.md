@@ -2,7 +2,7 @@
 
 ## Current version
 
-- Version: `4.18.2`
+- Version: `4.18.3`
 - Date: 2026-08-20
 - Status: `STATE-07` active; ADR-0011 through ADR-0017 retain their recorded
   accepted dispositions and implemented or pending boundaries; PostgreSQL 18.4
@@ -28,7 +28,10 @@
   recorded on `main` without evidenced implementation authority, retroactive
   approval or gate disposition; the item-4 test candidate remains blocked and
   a separate authorised corrective now persists expiry, recovers orphaned
-  dispatches conservatively and keeps clean restart fail-closed; Product
+  dispatches conservatively and keeps clean restart fail-closed; its bounded
+  Automatic Quality Gate is `REPROVADO` after independent read-only review
+  found one open P1 in divergent transition replay and one open P2 in
+  conflict-audit idempotency before any executable check; Product
   on-demand visual materialisation is disabled fail-closed
   under the authorised `SEC-CORR-002` containment while the dedicated ADR-0019
   sandbox remains unimplemented; the
@@ -47,6 +50,28 @@ The corpus version is independent from the future software version.
 
 Every change updates this file and, when necessary,
 [`../Start-Here.md`](../Start-Here.md).
+
+## 4.18.3 — 2026-08-20
+
+- Records `AUTH-SEC-BUDGET-001-RECOVERY-AQG-20260820-01` on exact clean
+  `main@65275304a3d42727e95458f2bbb3db6cc6324d02`, corpus `4.18.2`, without
+  changing `STATE-07`, Human Gate or lifecycle.
+- Records the AQG as `REPROVADO` after independent read-only review found
+  `AQG-SEC-BUDGET-RECOVERY-001` (`P1`): divergent transition replay can persist
+  `Tripped` before normal transition validation and reduce recovered
+  `ReconciliationRequired` to a rearmable state.
+- Records `AQG-SEC-BUDGET-RECOVERY-002` (`P2`): the preserved-state conflict
+  audit ID includes `RequestedAtUtc` while replay binding equality excludes it,
+  so the same logical divergence with a new timestamp can append another audit
+  event.
+- Applies the mandatory stop before CI, build, tests, coverage or format. No
+  source, test, schema, migration, OpenAPI, dependency, budget value, provider,
+  credential, network, billing or external resource is changed.
+- Changes only Security-And-Access, Current State, this corpus change log and
+  the append-only EOF of State Transition Log.
+- Classification: `PATCH`, because this revision records a factual gate
+  disposition and corrects current claims without changing architecture,
+  executable behaviour, public contracts, lifecycle or external authority.
 
 ## 4.18.2 — 2026-08-20
 

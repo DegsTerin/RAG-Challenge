@@ -1737,9 +1737,10 @@ reports.
   `Expired` state, commits each complete admitted maximum, records
   `IndeterminateCommitted`, enters `ReconciliationRequired` and rejects the
   rearm. A failed transition in a multi-orphan batch rolls the complete recovery
-  back. A divergent replay against a non-armed envelope records one sanitised
-  `ReservationConflict` audit without weakening the dominant state; in
-  particular, `ReconciliationRequired` cannot become rearmable `Tripped`.
+  back. The corrective intended a divergent replay against a non-armed envelope
+  to record one sanitised `ReservationConflict` audit without weakening the
+  dominant state; the subsequent AQG findings below disprove that claim for the
+  transition-replay path and its cross-attempt audit idempotency.
   Same-session requests do not classify a potentially live dispatch as orphaned;
   `Armed` never rearms on clean restart, and pending `Reserved` or
   `DispatchStarted` attempts block rearming from the otherwise permitted
@@ -1757,6 +1758,20 @@ reports.
   out-of-scope import-ordering failure in `OpenAiHttpAdapters.cs`; it was not
   changed. These results are local corrective evidence, not an Automatic
   Quality Gate, Human Gate, homologation or lifecycle transition.
+- Under `AUTH-SEC-BUDGET-001-RECOVERY-AQG-20260820-01`, the exact clean
+  baseline `main@65275304a3d42727e95458f2bbb3db6cc6324d02`, corpus `4.18.2`,
+  protected OpenAPI identities, absence of Git/orchestrator locks and absence
+  of a RAG-Challenge-owned process or listener were confirmed. Independent
+  read-only review found `AQG-SEC-BUDGET-RECOVERY-001` (`P1`): a divergent
+  dispatch, commitment or release replay can persist `Tripped` before normal
+  transition validation, reducing recovered `ReconciliationRequired` and
+  reopening an exact rearm path after the reservation becomes terminal. It also
+  found `AQG-SEC-BUDGET-RECOVERY-002` (`P2`): the admission-conflict audit ID
+  includes `RequestedAtUtc` although replay binding equality does not, so a new
+  timestamp can create another event for the same logical divergence. The AQG
+  is `REPROVADO`, with zero P0, one P1, one P2 and zero P3. The mandatory stop
+  occurred before CI, build, tests, coverage or format; no source or test was
+  corrected.
 - The same audit records `SEC-PDF-001`: Product composition still selects the
   existing Server.Api renderer worker. Windows Job Object and Linux
   `rlimit`/non-dumpable containment do not satisfy ADR-0019's dedicated,
@@ -1829,7 +1844,7 @@ reports.
   the language policy added the 21st public document through a versioned
   increment, and ADR-0003 added the 22nd.
 - The baseline approved at the `STATE-00` Human Gate remains `3.4.0`.
-- The current instruction corpus is version `4.18.2` and has 13 files under
+- The current instruction corpus is version `4.18.3` and has 13 files under
   `prompts/`.
 - Vision, requirements, architecture, RAG, security, quality, lifecycle,
   roadmap, backlog, state, history and templates are documented.
@@ -2609,7 +2624,8 @@ authorised.
     crash semantics. The separately authorised recovery corrective persists
     expiry, conservatively recovers orphaned dispatches and retains fail-closed
     clean-restart rearming without integrating that commit. It has local test
-    and coverage evidence but no Automatic Quality Gate disposition. ADR-0019's
+    and coverage evidence, but its bounded Automatic Quality Gate is
+    `REPROVADO` with one open P1 and one open P2. ADR-0019's
     dedicated sandbox remains unimplemented. The authorised `SEC-CORR-002`
     containment prevents Product composition from selecting the incomplete
     renderer and preserves text-first behaviour; dedicated sandbox
@@ -2625,11 +2641,14 @@ fail-closed and text-first behaviour remains independent. The dedicated
 Human Gate and lifecycle remain unchanged or unimplemented.
 
 The ADR-0018 recovery corrective is locally implemented under
-`AUTH-SEC-BUDGET-001-RECOVERY-CORR-20260820-01`; the authority includes its
-required independent pre-commit review but no gate. The first directly related
-future authority, if pursued, is the bounded Automatic Quality Gate for this
-corrective candidate. Nonzero budget, cost schedule, credential, provider,
-billing and real execution remain unauthorised.
+`AUTH-SEC-BUDGET-001-RECOVERY-CORR-20260820-01`. Its bounded AQG under
+`AUTH-SEC-BUDGET-001-RECOVERY-AQG-20260820-01` is `REPROVADO` after independent
+read-only review found one P1 in terminal-state precedence for divergent
+transition replay and one P2 in cross-attempt conflict-audit idempotency. The
+first directly related future condition, if pursued, is separate bounded
+corrective authority for both findings, followed by a newly authorised complete
+AQG retest on an exact clean baseline. Nonzero budget, cost schedule,
+credential, provider, billing and real execution remain unauthorised.
 
 Stage 2 is implemented and validated for deterministic coordination with
 `FakeAgentRunner` and the Codex App Server runner selected by ADR-0017. The

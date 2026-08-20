@@ -9253,3 +9253,55 @@ contém somente fatos cronológicos.
   dependency, budget value, credential, provider, network, billing, Render,
   OCI, deployment, Automatic Quality Gate, Human Gate, lifecycle transition
   or remote action occurred.
+
+## 2026-08-20 — Provider-budget recovery Automatic Quality Gate rejected
+
+- Authority: `AUTH-SEC-BUDGET-001-RECOVERY-AQG-20260820-01` authorised only the
+  local, offline and deterministic Automatic Quality Gate of the recovery
+  corrective on exact `main@65275304a3d42727e95458f2bbb3db6cc6324d02`, corpus
+  `4.18.2`, plus its factual evidence and at most one local documentary commit.
+- Baseline and preflight: branch, HEAD, clean tracked/untracked tree, empty
+  index, protected OpenAPI v1/v2 identities, absence of Git locks and absence
+  of orchestrator locks matched the authority. The separate detached worktree
+  remained untouched. Directed runtime preflight found zero RAG-Challenge-owned
+  process and zero owned listener and stopped nothing. Candidate `7b031a5`
+  remained outside the target ancestry.
+- Independent review: a read-only reviewer inspected the complete
+  `fb9328d8d0ec12304289cdee6275ac82c1927bec..65275304a3d42727e95458f2bbb3db6cc6324d02`
+  diff, the accepted ADR-0018 boundary, the security owner and the regression
+  matrix before any executable gate command.
+- `AQG-SEC-BUDGET-RECOVERY-001` (`P1`, `OPEN`): divergent dispatch,
+  commitment or release replay is handled before normal transition validation.
+  The conflict path persists `Tripped` unconditionally, so an orphan recovered
+  to `ReconciliationRequired` can be reduced to a rearmable state and later
+  return to `Armed` through an otherwise exact rearm after its reservation is
+  terminal. The existing regression covers divergent admission replay, not
+  divergent transition replay.
+- `AQG-SEC-BUDGET-RECOVERY-002` (`P2`, `OPEN`): the preserved-state admission
+  conflict audit ID incorporates `RequestedAtUtc`, while replay binding
+  equality excludes that instant. Repeating the same logical divergence with a
+  new timestamp can append another `ReservationConflict` event and does not
+  satisfy the recorded one-event idempotency claim. The existing regression
+  repeats the same request object and timestamp.
+- Mandatory stop and disposition: the gate stopped immediately after the
+  static findings. `eng/ci.ps1 -Offline`, restore, format, build, tests,
+  coverage, Dashboard and orchestrator checks were not executed. The Automatic
+  Quality Gate is `REPROVADO`, with zero P0, one P1, one P2 and zero P3; no
+  finding was corrected within the gate.
+- Preserved boundaries: the corrective diff changes no schema, migration,
+  OpenAPI or dependency. The operational budget remains zero and `Disarmed`.
+  No credential, provider, network, billing, Render, OCI, deployment, Human
+  Gate, lifecycle, fetch, push, merge, rebase or amend action occurred.
+- Closed documentary scope: only Security-And-Access, Current State, Prompt
+  System Change Log and this append-only EOF are changed. Source, tests, ADRs,
+  schema, migrations, dependencies, workflows, branches, worktrees, runtime
+  and external resources remain unchanged.
+- Versioning: the instruction corpus advances by factual `PATCH` from `4.18.2`
+  to `4.18.3` without changing architecture, executable behaviour, public
+  contracts, operational authority, Human Gate or lifecycle.
+- Append-only integrity: this entry preserves the complete previous file of
+  591,601 bytes at SHA-256
+  `2094296b21dd2bb0303669aae463c130d3ddada2b0fc2eb3c72644209538b129`.
+- Next condition: obtain separate bounded corrective authority for both open
+  findings. A complete AQG retest then requires a new explicit authority on an
+  exact clean baseline; no correction or retest is inferred from this record.
