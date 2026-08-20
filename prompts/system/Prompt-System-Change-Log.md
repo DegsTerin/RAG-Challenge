@@ -2,7 +2,7 @@
 
 ## Current version
 
-- Version: `4.17.5`
+- Version: `4.17.6`
 - Date: 2026-08-20
 - Status: `STATE-07` active; ADR-0011 through ADR-0017 retain their recorded
   accepted dispositions and implemented or pending boundaries; PostgreSQL 18.4
@@ -41,6 +41,27 @@ The corpus version is independent from the future software version.
 
 Every change updates this file and, when necessary,
 [`../Start-Here.md`](../Start-Here.md).
+
+## 4.17.6 — 2026-08-20
+
+- Records `AUTH-AUDIT-STATE-RECONCILE-20260820-01-CORR-01` on clean
+  `main@6685c4251fdd1bc4bf2eda82ff5d7d40576da779`.
+- Replaces the non-idiomatic security disposition with an en-GB statement that
+  the implementation candidates have received neither approval nor a gate
+  disposition. Its authority meaning is unchanged.
+- Appends, without rewriting history, that `one commit beyond main` referred
+  exclusively to the audited
+  `main@5cd240f30fa4409a65eeb242ca4f210bd42c2eab` baseline. At the correction
+  baseline, the graph between `main` and
+  `codex/adr0018-item4-failure-recovery-tests` is `1/1`; candidate `7b031a5`
+  remains outside `main`, blocked and not integrable in its recorded form.
+- Changes only Security-And-Access, Current State, this corpus change log and
+  the append-only EOF of State Transition Log. No code, test, ADR, schema,
+  migration, dependency, workflow, branch, worktree, runtime or external
+  resource is changed.
+- Classification: `PATCH`, because this revision corrects wording and a
+  historical reference without changing architecture, authority, public
+  contracts, executable behaviour, operational posture, gate or lifecycle.
 
 ## 4.17.5 — 2026-08-20
 

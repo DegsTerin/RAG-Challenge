@@ -9051,3 +9051,35 @@ contém somente fatos cronológicos.
   provider-budget correction must resolve orphaned dispatch recovery and
   persistent expiry semantics before item 4 is rebuilt or any nonzero budget
   is considered.
+
+## 2026-08-20 — Reconciliation wording corrected
+
+- Authority: `AUTH-AUDIT-STATE-RECONCILE-20260820-01-CORR-01` authorised only
+  the two P3 documentary corrections identified by the exceptional semantic
+  review of commit `6685c4251fdd1bc4bf2eda82ff5d7d40576da779`.
+- Security wording: the implementation candidates are now described
+  idiomatically as having received neither approval nor a gate disposition.
+  The correction changes no authority, risk, implementation, homologation or
+  gate fact.
+- Append-only clarification: the phrase `one commit beyond main` in the
+  immediately preceding entry referred exclusively to the audited
+  `main@5cd240f30fa4409a65eeb242ca4f210bd42c2eab` baseline. At clean correction
+  baseline `main@6685c4251fdd1bc4bf2eda82ff5d7d40576da779`, the graph
+  `main...codex/adr0018-item4-failure-recovery-tests` is `1/1`. Candidate
+  commit `7b031a5c36761404cafe35a80c50f72da500fc6e` remains outside `main`,
+  blocked and not integrable in its recorded form.
+- Closed scope: only Security-And-Access, Current State, Prompt System Change
+  Log and this append-only EOF are changed. Code, tests, ADRs, schema,
+  migrations, dependencies, workflows, branches, worktrees, runtime and
+  external resources remain unchanged.
+- Runtime preflight: `NOT_APPLICABLE`, because this correction changes and
+  validates no executable RAG-Challenge behaviour.
+- Versioning: the instruction corpus advances by factual `PATCH` from `4.17.5`
+  to `4.17.6` without changing architecture, authority, public contracts,
+  executable behaviour, operational posture, gate or lifecycle.
+- Append-only integrity: this entry preserves the complete previous file of
+  578,260 bytes at SHA-256
+  `3c945538ff11588bb1593acc65f43f2dce417e36579773c8bbb3e8f7a287c5de`.
+- Negative scope: no amend, rebase, fetch, push, merge, provider, network,
+  deployment, Automatic Quality Gate, Human Gate, lifecycle transition or
+  remote action occurred.

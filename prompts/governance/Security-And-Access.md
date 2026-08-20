@@ -138,8 +138,9 @@ establishes the internal `ProviderBudgetEnvelopeV1` architecture. Acceptance
 arms no budget, selects no price or account fact and authorises no provider
 call. A local implementation candidate now exists on `main` through commits
 `9c7b888`, `09bf5fc` and `e67805d`, but no implementation authority for those
-increments is evidenced in the canonical owners and no approval or gate has
-disposed them. Product composition remains zero-only and unconfigured:
+increments is evidenced in the canonical owners; they have received neither
+approval nor a gate disposition. Product composition remains zero-only and
+unconfigured:
 no operational nonzero envelope or cost schedule is selected, the effective
 aggregate limit and all operation allocations remain zero, and provider
 capability remains `Disarmed`.

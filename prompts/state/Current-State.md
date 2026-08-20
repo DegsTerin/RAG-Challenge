@@ -1762,6 +1762,16 @@ reports.
   a conditional risk because trusted forwarded-header topology was not
   verified. No workflow, scanner, local tool or host configuration was changed,
   and none of these observations authorises a correction.
+- Under `AUTH-AUDIT-STATE-RECONCILE-20260820-01-CORR-01` on clean
+  `main@6685c4251fdd1bc4bf2eda82ff5d7d40576da779`, the non-idiomatic security
+  disposition was corrected without changing its meaning. An append-only
+  clarification records that the earlier phrase `one commit beyond main`
+  referred exclusively to the audited
+  `main@5cd240f30fa4409a65eeb242ca4f210bd42c2eab` baseline. At the correction
+  baseline, `main...codex/adr0018-item4-failure-recovery-tests` is `1/1`; the
+  candidate remains outside `main`, blocked and not integrable in its recorded
+  form. This wording correction grants no implementation authority, approval,
+  homologation, gate or lifecycle effect.
 
 ## Documentary baseline
 
@@ -1769,7 +1779,7 @@ reports.
   the language policy added the 21st public document through a versioned
   increment, and ADR-0003 added the 22nd.
 - The baseline approved at the `STATE-00` Human Gate remains `3.4.0`.
-- The current instruction corpus is version `4.17.5` and has 13 files under
+- The current instruction corpus is version `4.17.6` and has 13 files under
   `prompts/`.
 - Vision, requirements, architecture, RAG, security, quality, lifecycle,
   roadmap, backlog, state, history and templates are documented.
