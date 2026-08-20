@@ -9369,3 +9369,57 @@ contém somente fatos cronológicos.
 - Next condition: a complete AQG retest requires new explicit bounded authority
   on the exact clean corrective baseline; no retest is inferred from this
   record.
+
+## 2026-08-20 — Provider-budget recovery AQG retest stopped at protected language control
+
+- Authority: `AUTH-SEC-BUDGET-001-RECOVERY-AQG-RETEST-20260820-01` authorised
+  only the complete local, offline, deterministic and sequential Automatic
+  Quality Gate retest of `AQG-SEC-BUDGET-RECOVERY-001` and
+  `AQG-SEC-BUDGET-RECOVERY-002` on exact clean
+  `main@79640d04301dd3c895862ffca2003387dbf188a7`, corpus `4.18.4`, plus factual
+  evidence and at most one focused local documentary commit.
+- Baseline and preflight: branch, HEAD, clean tracked/untracked tree, empty
+  index, corpus identity, protected OpenAPI v1/v2, append-only prefix, absence
+  of Git locks and zero active orchestrator locks matched the authority.
+  Directed runtime preflight found no RAG-Challenge-owned process or known
+  listener and stopped nothing. Blocked candidate `7b031a5` remained outside
+  the target ancestry.
+- Independent review: the sequential read-only reviewer inspected the complete
+  `adcc0c553e8b203e74133f748f05aa33b4b1c79d..79640d04301dd3c895862ffca2003387dbf188a7`
+  diff and reported zero P0, zero P1, zero P2 and zero P3. It confirmed that
+  divergent admission, dispatch, commitment and release preserve dominant
+  non-`Armed` state, that conflict identities remain stable across attempt
+  timestamps, and that `ReconciliationRequired` cannot be rearmed.
+- Canonical execution: `pwsh -NoProfile -File .\eng\ci.ps1 -Offline` ran exactly
+  once from `2026-08-20T12:10:08.0884584Z` to
+  `2026-08-20T12:10:57.1881887Z`, elapsed `49,100` ms and exited `1`. All 105
+  language-policy tests passed. The following immutable commit inspection then
+  returned `Language policy FAIL` because commit `79640d0` changes protected
+  control `Security-And-Access.md` and requires exceptional manual review.
+- Mandatory stop: CI/coverage policy tests, lockfile verification, restore,
+  format, Release build, .NET tests, coverage, Dashboard, orchestrator,
+  repository audit and `git diff --check` were not executed by the canonical
+  run. The command was not repeated, no bypass was used and no source or test
+  was corrected.
+- Disposition: the Automatic Quality Gate is `REPROVADO`. No new P0-P3 finding
+  was recorded, but the mandatory canonical stage did not pass;
+  `AQG-SEC-BUDGET-RECOVERY-001` and `AQG-SEC-BUDGET-RECOVERY-002` therefore
+  remain `CORRECTED_PENDING_GATE_RETEST`.
+- Postflight: the tracked and untracked tree remained clean immediately after
+  the failure, with no RAG-Challenge-owned process or known product listener.
+- Closed documentary scope: only Current State, Prompt System Change Log and
+  this append-only EOF are changed. Security policy, source, tests, schema,
+  migrations, OpenAPI, dependencies, workflows, budget values and cost
+  schedule remain unchanged.
+- Versioning: the instruction corpus advances by factual `PATCH` from `4.18.4`
+  to `4.18.5` without changing architecture, executable behaviour, public
+  contracts, persistence, lifecycle or external authority.
+- Append-only integrity: this entry preserves the complete previous file of
+  599,319 bytes at SHA-256
+  `a7ae42f2e3767d3eb796fe5dd709f50af1cb29dc03815e3711e233a7324364c2`.
+- Negative scope: no fetch, push, merge, rebase, amend, source/test correction,
+  provider, credential, network, billing, Render, OCI, deployment, Human Gate,
+  lifecycle transition or remote action occurred.
+- Next condition: a further complete AQG retest requires new explicit bounded
+  authority on the exact clean factual-reconciliation baseline; no rerun or
+  approval is inferred from the independent review.

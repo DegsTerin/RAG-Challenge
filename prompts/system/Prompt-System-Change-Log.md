@@ -2,7 +2,7 @@
 
 ## Current version
 
-- Version: `4.18.4`
+- Version: `4.18.5`
 - Date: 2026-08-20
 - Status: `STATE-07` active; ADR-0011 through ADR-0017 retain their recorded
   accepted dispositions and implemented or pending boundaries; PostgreSQL 18.4
@@ -31,8 +31,10 @@
   dispatches conservatively and keeps clean restart fail-closed; its bounded
   Automatic Quality Gate remains historically `REPROVADO`, while the P1 in
   divergent transition replay and P2 in conflict-audit idempotency are locally
-  `CORRECTED_PENDING_GATE_RETEST` under a separate bounded correction with zero
-  P0-P3 in independent review; Product
+  `CORRECTED_PENDING_GATE_RETEST` under a separate bounded correction; its
+  complete retest passed independent review with zero P0-P3 but was
+  `REPROVADO` when the canonical offline gate stopped at protected-control
+  language inspection before later executable stages; Product
   on-demand visual materialisation is disabled fail-closed
   under the authorised `SEC-CORR-002` containment while the dedicated ADR-0019
   sandbox remains unimplemented; the
@@ -51,6 +53,31 @@ The corpus version is independent from the future software version.
 
 Every change updates this file and, when necessary,
 [`../Start-Here.md`](../Start-Here.md).
+
+## 4.18.5 — 2026-08-20
+
+- Records `AUTH-SEC-BUDGET-001-RECOVERY-AQG-RETEST-20260820-01` on exact clean
+  `main@79640d04301dd3c895862ffca2003387dbf188a7`, corpus `4.18.4`, without
+  changing `STATE-07`, Human Gate or lifecycle.
+- Records the independent read-only review as zero P0-P3 across the complete
+  corrective diff, including terminal-state precedence, conflict-audit
+  idempotency, rearm rejection and the regression matrix.
+- Records the single canonical offline run as exit `1`. Its 105
+  language-policy tests passed, but immutable commit inspection rejected the
+  protected `Security-And-Access.md` change and required exceptional manual
+  review. The mandatory stop prevented every later canonical stage.
+- Records the Automatic Quality Gate as `REPROVADO`, with no new P0-P3
+  finding. `AQG-SEC-BUDGET-RECOVERY-001` and
+  `AQG-SEC-BUDGET-RECOVERY-002` remain
+  `CORRECTED_PENDING_GATE_RETEST`; passing independent review does not erase or
+  bypass the mechanical gate failure.
+- Changes only Current State, this corpus change log and the append-only EOF of
+  State Transition Log. No source, test, schema, migration, OpenAPI,
+  dependency, budget, cost schedule, provider, credential, network, billing,
+  deployment, Human Gate or lifecycle is changed.
+- Classification: `PATCH`, because this revision records the factual failed
+  gate result without changing architecture, executable behaviour, public
+  contracts, persistence, lifecycle or external authority.
 
 ## 4.18.4 — 2026-08-20
 
