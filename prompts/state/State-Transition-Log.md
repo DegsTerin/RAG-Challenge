@@ -9873,3 +9873,43 @@ contém somente fatos cronológicos.
 - Disposition: the six-file change is eligible for the authorised focused local
   commit. No provider, OCI, paid service, external source, push, PR, merge,
   deployment, Human Gate or lifecycle transition occurred.
+
+## 2026-08-21 — Recovery result recoverability correction
+
+- Authority and precondition: `RECOVERY-RETENTION-RESULT-CORR-001` authorised
+  only the recovery-result wording, its synthetic regression evidence, three
+  factual documents and a second focused local commit. Exact baseline
+  `main@89ee888d2a98431a773123015a14a456eafcd4da`, all 36 pre-existing WIP
+  entries and the closed 9,967-byte journal at SHA-256
+  `42719a159f31aa2ba029557ff67f6643dc75eeccbf7ae5215aefa26867be46c7`
+  were confirmed before editing. The journal still terminates with exactly one
+  `RECOVERY_COMPLETED`, and its active transaction root remains absent.
+- Factual defect: the material recovery and permanent evidence correctly
+  treated all deleted outputs as regenerable but not byte-identically
+  recoverable. However, intact later targets copied their pre-Apply
+  recoverability sentence into the final `RECOVERY_APPLY.deleted` collection,
+  incorrectly describing already deleted bytes as still preserved in the
+  transaction. The defect affected result wording only; it did not affect
+  deletion, target identity, logical bytes, journal closure or protected data.
+- Correction: every successfully deleted recovery target now receives the
+  single post-Apply statement that its original content is regenerable but not
+  recoverable as the same ephemeral bytes. Recovery dry-run entries continue to
+  describe intact quarantined bytes accurately before Apply.
+- Regression evidence: the ReadOnly partial fixture now stages three targets,
+  leaves an empty partial root and an intact later target, then completes
+  recovery. It checks the two deletions, the intact target's logical byte count,
+  terminal `RECOVERY_COMPLETED` and the final recoverability statement for every
+  deleted entry. Both PowerShell files parse and the complete focused retention
+  suite passes.
+- Repository evidence: `eng/check-repository.ps1` passes for 445 non-ignored
+  files. Git diff hygiene and UTF-8/LF/final-newline/trailing-whitespace checks
+  pass. `node eng/check-language.mjs` retains exit `1` with
+  `Language policy FAIL: Commit changes language controls and requires
+  exceptional manual review.` The mechanical failure is not reclassified.
+- Append-only integrity: this entry preserves the complete preceding file of
+  632,480 bytes at SHA-256
+  `6f1d83b9f5b1378ed1ec9fd22f44637bfdd4e83612a7c774e2f1320c358dbf16`.
+- Disposition: no real Apply, recovery Apply, deletion, restoration, provider,
+  OCI, paid service, external source, push, PR, merge, deployment, Human Gate or
+  lifecycle transition occurred. The five authorised files are eligible for
+  the separately authorised second focused local commit.

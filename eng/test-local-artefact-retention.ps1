@@ -154,6 +154,8 @@ owned/output/
 
     $applicationBin = Join-Path $repositoryRoot "src\RagChallenge.Application\bin"
     $domainBin = Join-Path $repositoryRoot "src\RagChallenge.Domain\bin"
+    $infrastructureBin = Join-Path $repositoryRoot (
+        "src\RagChallenge.Infrastructure\bin")
     $testResults = Join-Path $repositoryRoot "TestResults"
     Write-TestFile -Path (Join-Path $applicationBin "generated.dll") -Content "generated`n"
     Write-TestFile -Path (Join-Path $testResults "coverage.xml") -Content "coverage`n"
@@ -1036,6 +1038,9 @@ catch
     Write-TestFile -Path (Join-Path $applicationBin "generated.dll") -Content "first`n"
     $readOnlyPartialFile = Join-Path $domainBin "generated.dll"
     Write-TestFile -Path $readOnlyPartialFile -Content "second`n"
+    Write-TestFile `
+        -Path (Join-Path $infrastructureBin "generated.dll") `
+        -Content "third`n"
     (Get-Item -LiteralPath $readOnlyPartialFile -Force).Attributes =
         [System.IO.FileAttributes]::ReadOnly
     (Get-Item -LiteralPath $domainBin -Force).Attributes =
@@ -1044,8 +1049,8 @@ catch
     $readOnlyPartialPlan = Get-LocalArtefactRetentionPlan `
         -RepositoryRoot $repositoryRoot
     Assert-TestCondition `
-        -Condition ($readOnlyPartialPlan.deletionCandidateCount -eq 2) `
-        -Message "The ReadOnly recovery fixture did not create two candidates."
+        -Condition ($readOnlyPartialPlan.deletionCandidateCount -eq 3) `
+        -Message "The ReadOnly recovery fixture did not create three candidates."
     $script:ReadOnlyPartialRemovalCount = 0
     $originalReadOnlyStagedRemoval =
         ${function:Remove-LocalRetentionStagedTarget}
@@ -1105,11 +1110,8 @@ catch
     Assert-TestCondition -Condition (-not $readOnlyRecoveryPlan.blocked) `
         -Message "A valid empty ReadOnly remainder blocked recovery dry-run."
     Assert-TestCondition `
-        -Condition ($readOnlyRecoveryPlan.recoveryTargetCount -eq 1) `
-        -Message "Recovery did not isolate the one empty ReadOnly root."
-    Assert-TestCondition `
-        -Condition ($readOnlyRecoveryPlan.recoveryTargetBytes -eq 0) `
-        -Message "The empty ReadOnly recovery root reported content bytes."
+        -Condition ($readOnlyRecoveryPlan.recoveryTargetCount -eq 2) `
+        -Message "Recovery did not isolate the empty root and intact later target."
     $emptyRecoveryEntry = @($readOnlyRecoveryPlan.entries |
         Where-Object disposition -ceq (
             "RECOVERY_DELETE_EMPTY_PARTIAL_ROOT_REQUIRES_APPROVAL"))[0]
@@ -1120,6 +1122,16 @@ catch
         -Condition (($emptyRecoveryEntry.currentIdentity.attributes -band
                 [uint32][System.IO.FileAttributes]::ReadOnly) -ne 0) `
         -Message "The recovery fixture lost its ReadOnly root attribute."
+    $intactRecoveryEntry = @($readOnlyRecoveryPlan.entries |
+        Where-Object disposition -ceq (
+            "RECOVERY_DELETE_INTACT_TARGET_REQUIRES_APPROVAL"))[0]
+    Assert-TestCondition `
+        -Condition ($null -ne $intactRecoveryEntry) `
+        -Message "The intact later recovery target was not classified for approval."
+    Assert-TestCondition `
+        -Condition ($readOnlyRecoveryPlan.recoveryTargetBytes -eq
+            $intactRecoveryEntry.currentByteLength) `
+        -Message "Recovery target bytes did not isolate the intact later target."
     Invoke-ExpectedFailure -MessagePart "approval does not match" -Action {
         Invoke-LocalRetentionRecovery `
             -RepositoryRoot $repositoryRoot `
@@ -1133,11 +1145,12 @@ catch
     }
     $recoveryResult = Invoke-TestRecoveryApply -Plan $readOnlyRecoveryPlan
     Assert-TestCondition `
-        -Condition ($recoveryResult.deletedTargetCount -eq 1) `
-        -Message "Recovery did not delete exactly the approved empty root."
+        -Condition ($recoveryResult.deletedTargetCount -eq 2) `
+        -Message "Recovery did not delete the approved empty and intact targets."
     Assert-TestCondition `
-        -Condition ($recoveryResult.logicalBytesRemoved -eq 0) `
-        -Message "Empty-root recovery reported content deletion."
+        -Condition ($recoveryResult.logicalBytesRemoved -eq
+            $intactRecoveryEntry.currentByteLength) `
+        -Message "Recovery did not report the intact target's logical bytes."
     Assert-TestCondition `
         -Condition (-not (Test-Path -LiteralPath (
                     $readOnlyTransactions[0].FullName))) `
@@ -1149,6 +1162,13 @@ catch
         -Condition ($recoveryHistoryText.Contains(
                 '"event":"RECOVERY_COMPLETED"')) `
         -Message "Completed recovery omitted its durable terminal event."
+    $regenerableOnly =
+        "Original content is regenerable but not recoverable as the same ephemeral bytes."
+    Assert-TestCondition `
+        -Condition (@($recoveryResult.deleted | Where-Object {
+                    $_.recoverability -cne $regenerableOnly
+                }).Count -eq 0) `
+        -Message "Completed recovery reported deleted bytes as still preserved."
     Invoke-ExpectedFailure -MessagePart "already consumed" -Action {
         Assert-LocalRetentionPlanNotConsumed `
             -ResolvedRepositoryRoot $repositoryRoot `

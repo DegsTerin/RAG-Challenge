@@ -2829,7 +2829,8 @@ function Invoke-LocalRetentionRecovery {
                         relativePath = $entry.relativePath
                         stagedPath = $entry.stagedPath
                         logicalBytesRemoved = $entry.currentByteLength
-                        recoverability = $entry.recoverability
+                        recoverability =
+                            "Original content is regenerable but not recoverable as the same ephemeral bytes."
                     })
                 Write-LocalRetentionTransactionEvent `
                     -JournalPath $transaction.JournalPath `

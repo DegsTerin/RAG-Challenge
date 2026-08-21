@@ -2838,6 +2838,25 @@ and terminates with exactly one `RECOVERY_COMPLETED`. All six original output
 paths remain absent and are regenerable rather than recoverable as identical
 ephemeral bytes.
 
+Focused commit `89ee888d2a98431a773123015a14a456eafcd4da` records the
+completed transaction and retention policy. Its post-commit inspection found a
+non-material response defect: `RECOVERY_APPLY` correctly deleted the intact
+later targets but copied their pre-Apply recoverability wording into the final
+`deleted` result, incorrectly saying that those bytes remained preserved in
+the transaction. The filesystem, terminal journal and permanent material
+evidence were not affected. Under `RECOVERY-RETENTION-RESULT-CORR-001`, version
+`4.19.2` makes every successfully deleted recovery target report that its
+original content is regenerable but not recoverable as the same ephemeral
+bytes. The synthetic partial-recovery fixture now includes both an empty
+ReadOnly root and an intact later target and rejects any completed result that
+still describes deleted bytes as preserved. No real Apply, recovery Apply,
+deletion or restoration was executed by this correction.
+Both PowerShell files parse and the complete focused suite passes. The
+repository audit passes for 445 non-ignored files, as do Git diff hygiene and
+UTF-8/LF/final-newline/trailing-whitespace checks for the five authorised
+files. The language-policy checker retains its recorded exit `1` and exact
+protected-control exceptional-review failure.
+
 Three configuration-bearing `bin/` roots totalling 3,913,370,016 bytes and
 `TestResults/` totalling 786,270,109 bytes remain preserved without content
 reads. All 42 Git-visible WIP entries and 14 protected boundaries remained

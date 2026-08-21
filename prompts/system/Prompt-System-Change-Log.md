@@ -2,7 +2,7 @@
 
 ## Current version
 
-- Version: `4.19.1`
+- Version: `4.19.2`
 - Date: 2026-08-21
 - Status: `STATE-07` active; ADR-0011 through ADR-0017 retain their recorded
   accepted dispositions and implemented or pending boundaries; PostgreSQL 18.4
@@ -47,7 +47,8 @@
   capability completed its exact owner-approved partial-transaction recovery;
   all 31,298,434 approved logical bytes and the empty ReadOnly root are deleted,
   the journal is closed by `RECOVERY_COMPLETED`, and the protected workspace
-  boundaries remain intact
+  boundaries remain intact; the completed recovery result now declares every
+  deleted target as regenerable but not recoverable as the same ephemeral bytes
 - Scope: 13 active files under `prompts/`
 
 The corpus version is independent from the future software version.
@@ -60,6 +61,33 @@ The corpus version is independent from the future software version.
 
 Every change updates this file and, when necessary,
 [`../Start-Here.md`](../Start-Here.md).
+
+## 4.19.2 — 2026-08-21
+
+- Records the non-material result defect found after focused commit
+  `89ee888d2a98431a773123015a14a456eafcd4da`: successfully deleted intact
+  recovery targets copied their pre-Apply recoverability wording into the final
+  `RECOVERY_APPLY` payload. Filesystem state, the terminal journal and the
+  recorded logical-byte evidence remained correct.
+- Makes every target added to the completed recovery `deleted` result state that
+  its original content is regenerable but not recoverable as the same ephemeral
+  bytes. Dry-run wording remains unchanged while the exact bytes are genuinely
+  quarantined before Apply.
+- Extends the synthetic ReadOnly partial-recovery scenario with an intact later
+  target. The test confirms the empty root and intact target are both deleted,
+  verifies the intact target's logical byte count and rejects any completed
+  result that describes a deleted target as still preserved.
+- Both changed PowerShell files parse and the complete focused retention suite
+  passes. No real Apply, recovery Apply, deletion or restoration occurred.
+- The repository audit passes for 445 non-ignored files, as do Git diff hygiene
+  and focal UTF-8/LF/final-newline/trailing-whitespace checks. The language
+  checker retains exit `1` with the exact protected-control exceptional-review
+  failure; this mechanical result is not reclassified.
+- Classification: `PATCH`, because this correction changes only the factual
+  post-recovery result and its regression evidence without changing deletion,
+  recovery, governance, product/runtime or lifecycle behaviour.
+- No provider, credential, paid service, external source, OCI, deployment,
+  push, PR, merge, Human Gate or lifecycle action occurred.
 
 ## 4.19.1 — 2026-08-21
 
