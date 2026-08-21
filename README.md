@@ -9,12 +9,17 @@ language, with grounded answers and source references.
 > `idxgen-ec39244b021c90fceea1b3a628fe793a99f74650cad451f16ffbcd414af636f6`
 > activated at revision `1`, with 3,282 chunks, 3,282 vectors and
 > `renderManifestId=null`. The private image was published to GitHub Container
-> Registry and deployed once to a Render Web Service Free. The public health
-> and readiness endpoints confirm the `Live` service, active generation and
-> PostgreSQL 18.4 catalogue. No product query, Responses call or new embedding
+> Registry and deployed once to a Render Web Service Free. On 2026-08-14, the
+> public health and readiness endpoints returned the `Live` service, active
+> generation and PostgreSQL 18.4 catalogue. No product query, Responses call or new embedding
 > request was made during deployment. This is `STATE-07` homologation evidence,
 > not production homologation or automatic replacement of the accepted OCI
 > target.
+
+The canonical repository snapshot is dated 2026-08-20 and uses prompt corpus
+`4.18.6`; see [`Current-State.md`](prompts/state/Current-State.md). The Render
+facts below are historical observations from 2026-08-14 and were not
+revalidated by later documentary or local implementation changes.
 
 ## Online demonstration
 
@@ -176,9 +181,16 @@ With dependencies already restored, run the local integrated example from the
 repository root:
 
 ```powershell
-./src/RagChallenge.Server.Api/Build-IntegrationArtifact.ps1
-./src/RagChallenge.Server.Api/Test-IntegrationArtifact.ps1
+$integrationBuildOutput = @(./src/RagChallenge.Server.Api/Build-IntegrationArtifact.ps1)
+$integrationArtefact = $integrationBuildOutput[-1] | ConvertFrom-Json
+./src/RagChallenge.Server.Api/Test-IntegrationArtifact.ps1 `
+    -ExpectedArchiveSha256 $integrationArtefact.Sha256
 ```
+
+The verifier requires the builder's SHA-256 as a coordinator-held trust anchor,
+checks the exact sidecar and bounded internal manifest, rejects unsafe, linked,
+duplicate or compressed-bomb entries, and extracts with exclusive creation
+before starting any payload.
 
 The sanitised result verified in `STATE-06` contains:
 
@@ -203,8 +215,10 @@ The separate Linux ARM64 packaging rehearsal can also be built and checked
 statically without a restore:
 
 ```powershell
-./src/RagChallenge.Server.Api/Build-OciRehearsalArtifact.ps1
-./src/RagChallenge.Server.Api/Test-OciRehearsalArtifact.ps1
+$ociBuildOutput = @(./src/RagChallenge.Server.Api/Build-OciRehearsalArtifact.ps1)
+$ociArtefact = $ociBuildOutput[-1] | ConvertFrom-Json
+./src/RagChallenge.Server.Api/Test-OciRehearsalArtifact.ps1 `
+    -ExpectedArchiveSha256 $ociArtefact.Sha256
 ```
 
 The checker validates the manifest, hashes, fail-closed configuration and ELF
@@ -212,10 +226,12 @@ AArch64 identity. The ARM64 binary is not run on Windows, and no OCI operation
 is performed. The plan and limitations are in
 [`STATE-06-OCI-Readiness-And-Rehearsal.md`](docs/STATE-06-OCI-Readiness-And-Rehearsal.md).
 
-The Render Hobby/Free package prepares a private image with the activated
-PostgreSQL snapshot and restores a verified ephemeral store at every boot. The
-PDF and store remain outside public Git; the image containing the seed remains
-private in GHCR:
+The Render Hobby/Free package prepares a private Docker build context with the
+activated PostgreSQL snapshot; it does not invoke Docker, build or publish an
+image, or create a Render service. The resulting image, when separately built
+and deployed, restores a verified ephemeral store at every boot. The PDF and
+store remain outside public Git, and any image containing the seed must remain
+in an access-controlled registry:
 
 ```powershell
 ./eng/Build-RenderFreePackage.ps1
@@ -225,16 +241,17 @@ private in GHCR:
 The procedure, persistence limitations, private publication and deployment
 evidence are in
 [`deploy/render-free/README.md`](deploy/render-free/README.md). The Render
-deployment is a public homologation demonstration. It does not silently
-replace the OCI requirement recorded in the Challenge materials; final
-selection of the production target requires its own architectural
-reconciliation.
+deployment is the secondary public homologation surface, while OCI remains the
+durable MVP target. ADR-0020 permits both isolated instances to coexist only
+after a separately authorised, implemented and verified OCI deployment; no OCI
+deployment is evidenced here.
 
 The code may be hosted in a public GitHub repository. GitHub Pages alone hosts
 only static content: it neither runs the RAG backend nor protects model
-credentials. Online delivery must run the backend in an authorised OCI
-service. A static interface on GitHub Pages may be assessed later if it uses a
-separately published secure API; it does not replace the OCI requirement.
+credentials. Each online backend requires its own authorised service,
+configuration, secrets, storage and operational evidence. A static interface
+on GitHub Pages may be assessed later if it uses a separately published secure
+API; it does not replace the durable OCI requirement.
 
 ## Known delivery requirements
 
@@ -250,6 +267,15 @@ The local Challenge materials define the minimum result as:
 The same materials permit PDF or CSV and suggest additional formats. The MVP
 adopts PDF and CSV as its initial formats; other formats remain on the roadmap
 until an explicit decision and compatible adapter exist.
+
+## Verification limitations
+
+Current evidence does not homologate a real provider-backed query, trusted
+Render proxy identity, a representative existing-database migration or crash
+recovery, the deployed v2 flow in a real browser with assistive technology,
+Linux ARM64 execution, or an OCI tenancy, region and deployment. Those checks
+remain separately governed and `NOT_RUN`; the local synthetic and historical
+Render health/readiness evidence must not be used as a substitute.
 
 ## Current organisation
 
@@ -283,10 +309,12 @@ contains SQLite migrations, persistent stores, PDF/CSV parsers, provider
 adapters and governed transport. The API preserves v1 health and query and
 also implements the v2 flow, including page references, fail-closed
 same-origin PNG serving and the notice-bearing profile; the Dashboard consumes
-both contracts and presents accessible obligations with the image. The Render
-service reopens the materialised PostgreSQL 18.4 product and confirms its
-active generation through readiness. Public provider-backed query, complete
-product homologation and the production OCI target remain separate.
+both contracts and presents accessible obligations with the image. The
+2026-08-14 Render observation reopened the materialised PostgreSQL 18.4 product
+and reported its active generation through readiness; current availability was
+not revalidated here. Public provider-backed query, complete
+product homologation and implementation of the durable OCI target remain
+separate and unverified here.
 Administration remains one-shot and outside HTTP.
 
 ## Governance

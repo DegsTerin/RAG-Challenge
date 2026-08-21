@@ -321,6 +321,211 @@ public sealed class ProductQueryRuntimeTests
     }
 
     [Fact]
+    public async Task ProductReadinessReportsDisarmedBudgetBeforeDeepStoreVerification()
+    {
+        var root = Path.Combine(
+            Path.GetTempPath(),
+            "rag-challenge-product-runtime-tests",
+            Guid.NewGuid().ToString("N"));
+        Directory.CreateDirectory(root);
+        var options = new SqliteStoreOptions(
+            Path.Combine(root, "control.db"),
+            Path.Combine(root, "vectors.db"),
+            Path.Combine(root, "content"));
+        var queryAuthority = ProductProviderOperationalAuthority.Parse(
+            ProductProviderOperation.QueryEmbedding,
+            "AUTH-QUERY-EMBEDDING-TEST-001");
+        var generationAuthority = ProductProviderOperationalAuthority.Parse(
+            ProductProviderOperation.GroundedGeneration,
+            "AUTH-GROUNDED-GENERATION-TEST-001");
+        var grants = new ProductProviderOperationalGrantSet(
+            [queryAuthority, generationAuthority]);
+        var credentialReads = 0;
+
+        try
+        {
+            await SqliteStoreProvisioner.ApplyMigrationsAsync(options);
+            await ProductRuntimeFixture.SeedValidAuthorityWithoutContentAsync(options);
+            Assert.Equal(
+                ProviderBudgetState.Disarmed,
+                await ProductProviderBudgetAdmission.ReadQueryReadinessAsync(
+                    options,
+                    queryAuthority,
+                    generationAuthority,
+                    ProductProviderOperationalGrantSet.DenyAll(),
+                    ProductRuntimeFixture.ObservedAt));
+            using var runtime = new ProductQueryRuntime(new ProductQueryRuntimeOptions(
+                options,
+                ProductCatalogueProfile.OracleDatabase19c,
+                ProductRuntimeFixture.ApprovedRightsReference,
+                "RAG_CHALLENGE_TEST_PRODUCT_CREDENTIAL",
+                queryAuthority,
+                generationAuthority,
+                grants,
+                ApplyMigrations: false),
+                credentialEnvironmentReader: _ =>
+                {
+                    credentialReads++;
+                    return "synthetic-product-credential";
+                });
+
+            var readiness = await runtime.CheckAsync(ProductRuntimeFixture.ObservedAt);
+            using var services = new ServiceCollection()
+                .AddLogging()
+                .AddOptions()
+                .BuildServiceProvider();
+            var context = new DefaultHttpContext
+            {
+                RequestServices = services,
+            };
+            context.Response.Body = new MemoryStream();
+            var result = await HealthEndpoints.ReadyAsync(runtime, CancellationToken.None);
+            await result.ExecuteAsync(context);
+            context.Response.Body.Position = 0;
+            using var reader = new StreamReader(
+                context.Response.Body,
+                Encoding.UTF8,
+                detectEncodingFromByteOrderMarks: true,
+                leaveOpen: true);
+            var publicPayload = await reader.ReadToEndAsync();
+
+            Assert.Equal("Unready", readiness.Status);
+            var check = Assert.Single(readiness.Checks);
+            Assert.Equal("provider-budget", check.Capability);
+            Assert.Equal("Disarmed", check.State);
+            Assert.Equal(StatusCodes.Status503ServiceUnavailable, context.Response.StatusCode);
+            Assert.Contains("\"state\":\"Disarmed\"", publicPayload, StringComparison.Ordinal);
+            Assert.DoesNotContain("PBE-", publicPayload, StringComparison.Ordinal);
+            Assert.DoesNotContain("PBS-", publicPayload, StringComparison.Ordinal);
+            Assert.DoesNotContain("AUTH-", publicPayload, StringComparison.Ordinal);
+            Assert.DoesNotContain("cost", publicPayload, StringComparison.OrdinalIgnoreCase);
+            Assert.Equal(0, credentialReads);
+        }
+        finally
+        {
+            SqliteConnection.ClearAllPools();
+            if (Directory.Exists(root))
+            {
+                Directory.Delete(root, recursive: true);
+            }
+        }
+    }
+
+    [Fact]
+    public void ProviderBudgetReadinessUsesOnlySanitisedFailClosedStates()
+    {
+        var authority = ProductProviderOperationalAuthority.Parse(
+            ProductProviderOperation.QueryEmbedding,
+            "AUTH-QUERY-EMBEDDING-TEST-001");
+        var context = ProductProviderBudgetAdmission.CreateContext(
+            authority,
+            ProductProviderOperation.QueryEmbedding);
+        var observedAt = ProductRuntimeFixture.ObservedAt;
+
+        Assert.Equal(
+            ProviderBudgetState.Disarmed,
+            ProductProviderBudgetAdmission.SanitiseEnvelopeState(null, context, observedAt));
+        Assert.Equal(
+            ProviderBudgetState.Disarmed,
+            ProductProviderBudgetAdmission.SanitiseEnvelopeState(
+                CreateReadinessEnvelope(context, ProviderBudgetState.Armed, observedAt),
+                context,
+                observedAt));
+        Assert.Equal(
+            ProviderBudgetState.Disarmed,
+            ProductProviderBudgetAdmission.SanitiseEnvelopeState(
+                CreateReadinessEnvelope(
+                    context,
+                    ProviderBudgetState.Armed,
+                    observedAt,
+                    runtimeSessionId: new ProviderRuntimeSessionId("PBS-OTHER-SESSION")),
+                context,
+                observedAt));
+        Assert.Equal(
+            ProviderBudgetState.Disarmed,
+            ProductProviderBudgetAdmission.SanitiseEnvelopeState(
+                CreateReadinessEnvelope(
+                    context,
+                    ProviderBudgetState.Armed,
+                    observedAt,
+                    effectiveAtUtc: observedAt.AddMinutes(1)),
+                context,
+                observedAt));
+        Assert.Equal(
+            ProviderBudgetState.Expired,
+            ProductProviderBudgetAdmission.SanitiseEnvelopeState(
+                CreateReadinessEnvelope(
+                    context,
+                    ProviderBudgetState.Armed,
+                    observedAt,
+                    expiresAtUtc: observedAt),
+                context,
+                observedAt));
+        Assert.Equal(
+            ProviderBudgetState.ReconciliationRequired,
+            ProductProviderBudgetAdmission.SanitiseEnvelopeState(
+                CreateReadinessEnvelope(
+                    context,
+                    ProviderBudgetState.ReconciliationRequired,
+                    observedAt,
+                    expiresAtUtc: observedAt),
+                context,
+                observedAt));
+        Assert.Equal(
+            ProviderBudgetState.ReconciliationRequired,
+            ProductProviderBudgetAdmission.CombineReadinessStates(
+                ProviderBudgetState.Armed,
+                ProviderBudgetState.ReconciliationRequired));
+        Assert.Equal(
+            ProviderBudgetState.Disarmed,
+            ProductProviderBudgetAdmission.CombineReadinessStates());
+    }
+
+    [Fact]
+    public async Task ProviderBudgetReadinessTreatsAnUnreadableLedgerAsDisarmed()
+    {
+        var root = Path.Combine(
+            Path.GetTempPath(),
+            "rag-challenge-product-budget-readiness-tests",
+            Guid.NewGuid().ToString("N"));
+        Directory.CreateDirectory(root);
+        var controlPath = Path.Combine(root, "control.db");
+        await File.WriteAllTextAsync(controlPath, "not-a-sqlite-database", Encoding.UTF8);
+        var options = new SqliteStoreOptions(
+            controlPath,
+            Path.Combine(root, "vectors.db"),
+            Path.Combine(root, "content"));
+        var queryAuthority = ProductProviderOperationalAuthority.Parse(
+            ProductProviderOperation.QueryEmbedding,
+            "AUTH-QUERY-EMBEDDING-TEST-001");
+        var generationAuthority = ProductProviderOperationalAuthority.Parse(
+            ProductProviderOperation.GroundedGeneration,
+            "AUTH-GROUNDED-GENERATION-TEST-001");
+        var grants = new ProductProviderOperationalGrantSet(
+            [queryAuthority, generationAuthority]);
+
+        try
+        {
+            var state = await ProductProviderBudgetAdmission.ReadQueryReadinessAsync(
+                options,
+                queryAuthority,
+                generationAuthority,
+                grants,
+                ProductRuntimeFixture.ObservedAt);
+
+            Assert.Equal(ProviderBudgetState.Disarmed, state);
+        }
+        finally
+        {
+            SqliteConnection.ClearAllPools();
+            if (Directory.Exists(root))
+            {
+                Directory.Delete(root, recursive: true);
+            }
+        }
+    }
+
+    [Fact]
     public async Task SwappedProviderAuthorityStopsBeforeCredentialLookupAndHttpDispatch()
     {
         var credentialReads = 0;
@@ -367,6 +572,58 @@ public sealed class ProductQueryRuntimeTests
             ProductProviderOperationalAuthorityException.StopCode,
             exception.Message,
             StringComparison.Ordinal);
+        Assert.Equal(0, credentialReads);
+        Assert.Equal(0, handler.CallCount);
+    }
+
+    [Fact]
+    public async Task ProductZeroBudgetStopsEvenWithAnExactGrantBeforeCredentialOrHttp()
+    {
+        var credentialReads = 0;
+        var handler = new CountingHttpMessageHandler();
+        using var client = new HttpClient(handler, disposeHandler: false)
+        {
+            BaseAddress = new Uri("https://api.openai.com/", UriKind.Absolute),
+            Timeout = TimeSpan.FromSeconds(25),
+        };
+        var authority = ProductProviderOperationalAuthority.Parse(
+            ProductProviderOperation.QueryEmbedding,
+            "AUTH-QUERY-EMBEDDING-TEST-001");
+        var trustedGrants = new ProductProviderOperationalGrantSet([authority]);
+        var source = new ProductProviderCredentialSource(
+            authority,
+            trustedGrants,
+            ProductProviderOperation.QueryEmbedding,
+            "RAG_CHALLENGE_TEST_PRODUCT_CREDENTIAL",
+            _ =>
+            {
+                credentialReads++;
+                return "synthetic-product-credential";
+            });
+        var stores = new SqliteStoreOptions(
+            Path.Combine(Path.GetTempPath(), "unused-product-zero-budget-control.db"),
+            Path.Combine(Path.GetTempPath(), "unused-product-zero-budget-vectors.db"),
+            Path.Combine(Path.GetTempPath(), "unused-product-zero-budget-content"));
+        var provider = new OpenAiHttpEmbeddingProvider(
+            client,
+            source.ReadAsync,
+            ProductProviderBudgetAdmission.CreateFailClosed(
+                stores,
+                authority,
+                trustedGrants,
+                ProductProviderOperation.QueryEmbedding),
+            ProviderBudgetOperationClass.QueryEmbedding);
+
+        await Assert.ThrowsAsync<ProviderBudgetAdmissionUnavailableException>(() =>
+            provider.EmbedAsync(new EmbeddingBatchRequest(
+                new EmbeddingProviderDescriptor(
+                    "openai",
+                    "text-embedding-3-small",
+                    "text-embedding-3-small",
+                    dimensions: 3),
+                ["synthetic question"],
+                maximumUtf8Bytes: 4096)));
+
         Assert.Equal(0, credentialReads);
         Assert.Equal(0, handler.CallCount);
     }
@@ -594,6 +851,46 @@ public sealed class ProductQueryRuntimeTests
             });
     }
 
+    private static ProviderBudgetEnvelopeV1 CreateReadinessEnvelope(
+        ProviderBudgetAdmissionContext context,
+        ProviderBudgetState state,
+        DateTimeOffset observedAt,
+        ProviderRuntimeSessionId? runtimeSessionId = null,
+        DateTimeOffset? effectiveAtUtc = null,
+        DateTimeOffset? expiresAtUtc = null) =>
+        new(
+            context.EnvelopeId,
+            new ProviderBudgetStoreEpochId("PSE-READINESS-001"),
+            new ProviderBudgetScope(
+                new ProviderBudgetEnvironmentId("ENV-READINESS"),
+                new ProviderBudgetProviderId("openai"),
+                new ProviderBudgetBillingScopeReference("BILLING-READINESS"),
+                new ProviderBudgetModelId("MODEL-READINESS"),
+                new ProviderBudgetCurrencyCode("USD"),
+                new ProviderBudgetAccountingUnitId("UNIT-READINESS")),
+            new ProviderBudgetConfigurationRevision(1),
+            new ProviderBudgetLedgerRevision(1),
+            new ProviderBudgetRearmRevision(1),
+            state,
+            runtimeSessionId ?? context.RuntimeSessionId,
+            new ProviderBudgetCostScheduleId("PCS-READINESS-ZERO"),
+            new ProviderBudgetSha256(new string('3', 64)),
+            new ProviderBudgetUnits(0),
+            new ProviderBudgetUnits(0),
+            new ProviderBudgetUnits(0),
+            new ProviderBudgetUnits(0),
+            Enum.GetValues<ProviderBudgetOperationClass>().Select(value =>
+                new ProviderBudgetOperationBalance(
+                    value,
+                    new ProviderBudgetUnits(0),
+                    new ProviderBudgetUnits(0),
+                    new ProviderBudgetUnits(0),
+                    new ProviderBudgetUnits(0))),
+            effectiveAtUtc ?? observedAt.AddMinutes(-1),
+            expiresAtUtc ?? observedAt.AddMinutes(10),
+            isClosed: false,
+            new ProviderBudgetSha256(new string('4', 64)));
+
     private static async Task<long> ScalarAsync(string path, string sql)
     {
         await using var connection = new SqliteConnection(
@@ -730,7 +1027,8 @@ public sealed class ProductQueryRuntimeTests
             ContentObjectId? contentObjectId = null,
             DocumentFormat documentFormat = DocumentFormat.Pdf,
             long byteLength = 9_322_921,
-            string rightsEvidenceReference = "approved-oracle-rights-evidence")
+            string rightsEvidenceReference = "approved-oracle-rights-evidence",
+            bool includeRenderManifest = true)
         {
             var categoriesAndProducts = ReadCanonicalCatalogue(
                 oracleStatus,
@@ -782,7 +1080,7 @@ public sealed class ProductQueryRuntimeTests
                 binding,
                 document.ContentObjectId,
                 rights,
-                renderManifestId: documentFormat == DocumentFormat.Pdf
+                renderManifestId: documentFormat == DocumentFormat.Pdf && includeRenderManifest
                     ? new RenderManifestId($"rendermanifest-{Hash("oracle-19c-render")}")
                     : null);
             var activation = new CorpusActivationRecord(
@@ -798,6 +1096,146 @@ public sealed class ProductQueryRuntimeTests
                 [evidence]);
             return new ProductAuthority(catalogue, activation, binding, evidence);
         }
+
+        internal static async Task SeedValidAuthorityWithoutContentAsync(
+            SqliteStoreOptions options)
+        {
+            var authority = CreateAuthority(includeRenderManifest: false);
+            var controlStore = new SqliteControlPlaneStore(options);
+            for (var revision = 1L; revision <= authority.Catalogue.Revision.Value; revision++)
+            {
+                var snapshot = new CatalogueSnapshot(
+                    authority.Catalogue.CorpusId,
+                    new CatalogueRevision(revision),
+                    authority.Catalogue.DatabaseCategories,
+                    authority.Catalogue.DatabaseProducts,
+                    authority.Catalogue.DocumentVersions);
+                Assert.Equal(
+                    StoreMutationOutcome.Applied,
+                    (await controlStore.CommitCatalogueAsync(new CatalogueCommitRequest(
+                        new OperationId($"budget-readiness-catalogue-{revision:D2}"),
+                        snapshot,
+                        ExpectedCurrentRevision: revision - 1,
+                        ObservedAt))).Outcome);
+            }
+
+            var vectorStore = new SqliteVectorIndexStore(options);
+            var candidateId = new CandidateBuildId("budget-readiness-candidate");
+            var vector = new float[
+                ProductAdministrativeMaterialisationProfile.AcceptedEmbeddingDimensions];
+            vector[0] = 1;
+            await vectorStore.CreateCandidateAsync(
+                candidateId,
+                ProductQueryRuntime.CorpusId,
+                ProductAdministrativeMaterialisationProfile.CompatibilityProfile.Key,
+                vector.Length,
+                expectedChunkCount: 1,
+                ObservedAt);
+            await vectorStore.AddChunksAsync(candidateId, [new VectorChunkWrite(
+                0,
+                authority.Binding.DocumentId,
+                authority.Binding.DocumentVersion,
+                new LogicalArtifactDigest(Hash("budget-readiness-chunk")),
+                "Synthetic budget readiness chunk.",
+                vector,
+                new DocumentContentLanguage("en"),
+                PageNumber: 1)]);
+            var specification = new IndexGenerationSpecification(
+                manifestSchemaVersion: 1,
+                ProductQueryRuntime.CorpusId,
+                new CorpusRevision(1),
+                authority.Catalogue.Revision,
+                BindingDigestCanonicalizer.CanonicaliseActiveDocumentSet([authority.Binding]).Digest,
+                BindingDigestCanonicalizer.CanonicaliseSourceBindingSet([authority.Binding]).Digest,
+                ProductAdministrativeMaterialisationProfile.CompatibilityProfile.Key);
+            var generation = await vectorStore.FinaliseCandidateAsync(
+                candidateId,
+                specification,
+                ObservedAt);
+            var generationCommit = new GenerationCommitRequest(
+                new OperationId("budget-readiness-generation"),
+                candidateId,
+                generation,
+                [authority.Binding],
+                ObservedAt);
+
+            // This fixture deliberately bypasses generation and activation content eligibility
+            // so the test can prove that a disarmed budget precedes hashing or vector search.
+            var activation = ActivationRecordFactory.CreateInitial(
+                generation,
+                [authority.Evidence],
+                ObservedAt);
+            var compareExchange = new ActivationCompareExchangeRequest(
+                new OperationId("budget-readiness-activation"),
+                ActivationMutationKind.Initial,
+                ExpectedCurrentRevision: 0,
+                activation,
+                ProductAdministrativeMaterialisationProfile.CompatibilityProfile.Key,
+                ObservedAt,
+                SqliteControlPlaneStore.MinimumPreviousGenerationRetention);
+            await using var context = options.CreateControlContext();
+            context.AdminOperations.AddRange(
+                CreateAppliedOperation(
+                    generationCommit.OperationId,
+                    activation.CorpusId,
+                    "GenerationCommit",
+                    generation.CatalogueRevision.Value,
+                    generation.CatalogueRevision.Value),
+                CreateAppliedOperation(
+                    compareExchange.OperationId,
+                    activation.CorpusId,
+                    "ActivationInitial",
+                    expectedRevision: 0,
+                    resultRevision: activation.RecordRevision.Value));
+            context.GenerationManifests.Add(ControlPlaneMapping.ToRow(generationCommit));
+            context.GenerationManifestBindings.Add(
+                ControlPlaneMapping.ToGenerationBindingRow(
+                    generation.CorpusId,
+                    generation.IndexGenerationId,
+                    authority.Binding));
+            context.ActivationRecords.Add(ControlPlaneMapping.ToRow(compareExchange));
+            context.ActivationBindings.AddRange(activation.DocumentBindings.Select(binding =>
+                ControlPlaneMapping.ToActivationBindingRow(
+                    activation.CorpusId,
+                    activation.RecordRevision,
+                    binding)));
+            context.ActivationEvidenceBindings.AddRange(
+                activation.EvidenceBindings.Select(evidence =>
+                    ControlPlaneMapping.ToActivationEvidenceBindingRow(
+                        activation.CorpusId,
+                        activation.RecordRevision,
+                        evidence)));
+            context.ActivationRightsDecisions.AddRange(
+                activation.EvidenceBindings.SelectMany(evidence =>
+                    ControlPlaneMapping.ToActivationRightsDecisionRows(
+                        activation.CorpusId,
+                        activation.RecordRevision,
+                        evidence)));
+            context.ActivationHeads.Add(new ActivationHeadRow
+            {
+                CorpusId = activation.CorpusId.Value,
+                RecordRevision = activation.RecordRevision.Value,
+                RowRevision = 1,
+            });
+            await context.SaveChangesAsync();
+        }
+
+        private static AdminOperationRow CreateAppliedOperation(
+            OperationId operationId,
+            CorpusId corpusId,
+            string operationKind,
+            long expectedRevision,
+            long resultRevision) => new()
+            {
+                OperationId = operationId.Value,
+                CorpusId = corpusId.Value,
+                OperationKind = operationKind,
+                Status = "Applied",
+                ExpectedRevision = expectedRevision,
+                ResultRevision = resultRevision,
+                RequestedAtUtc = ControlPlaneMapping.FormatUtc(ObservedAt),
+                CompletedAtUtc = ControlPlaneMapping.FormatUtc(ObservedAt),
+            };
 
         internal static async Task SeedInvalidButOtherwiseQueryableStoreAsync(
             SqliteStoreOptions options)

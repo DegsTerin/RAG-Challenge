@@ -3,7 +3,10 @@
 param(
     [string]$OutputRoot = "artifacts-local/state07-v2-integration",
     [ValidateRange(1024, 65535)]
-    [int]$Port = 5086
+    [int]$Port = 5086,
+    [Parameter(Mandatory)]
+    [ValidatePattern('^[0-9a-f]{64}$')]
+    [string]$ExpectedArchiveSha256
 )
 
 $ErrorActionPreference = "Stop"
@@ -11,29 +14,32 @@ Set-StrictMode -Version Latest
 
 $serverRoot = $PSScriptRoot
 $repositoryRoot = [System.IO.Path]::GetFullPath((Join-Path $serverRoot "../.."))
-$allowedRoot = [System.IO.Path]::GetFullPath((Join-Path $repositoryRoot "artifacts-local"))
-$resolvedOutput = if ([System.IO.Path]::IsPathFullyQualified($OutputRoot)) {
-    [System.IO.Path]::GetFullPath($OutputRoot)
-}
-else {
-    [System.IO.Path]::GetFullPath((Join-Path $repositoryRoot $OutputRoot))
-}
-$allowedPrefix = $allowedRoot.TrimEnd(
-    [System.IO.Path]::DirectorySeparatorChar,
-    [System.IO.Path]::AltDirectorySeparatorChar) +
-    [System.IO.Path]::DirectorySeparatorChar
+. (Join-Path $repositoryRoot "eng/owned-output-policy.ps1")
+. (Join-Path $repositoryRoot "eng/integration-archive-policy.ps1")
 
-if (-not $resolvedOutput.StartsWith(
-        $allowedPrefix,
-        [System.StringComparison]::OrdinalIgnoreCase)) {
-    throw "The integration artefact path must remain under artifacts-local."
-}
+$canonicalOutputPath = "artifacts-local/state07-v2-integration"
+$outputPurpose = "state07-v2-integration-artifact"
+$outputOwner = "src/RagChallenge.Server.Api/Build-IntegrationArtifact.ps1"
+$canonicalRuntimePath = "$canonicalOutputPath/runtime"
+$runtimePurpose = "state07-v2-integration-runtime"
+$runtimeOwner = "src/RagChallenge.Server.Api/Test-IntegrationArtifact.ps1"
+$resolvedOutput = Resolve-OwnedOutputRoot `
+    -RepositoryRoot $repositoryRoot `
+    -RequestedOutputRoot $OutputRoot `
+    -CanonicalRelativePath $canonicalOutputPath
+Assert-OwnedOutputRoot `
+    -OutputRoot $resolvedOutput `
+    -Purpose $outputPurpose `
+    -Owner $outputOwner `
+    -CanonicalRelativePath $canonicalOutputPath
 
 $archivePath = Join-Path $resolvedOutput "rag-challenge-state07-v2-integration.zip"
+$archiveDigestPath = "$archivePath.sha256"
 
-if (-not (Test-Path -LiteralPath $archivePath -PathType Leaf)) {
-    throw "The integration artefact archive does not exist."
-}
+$trustedArchive = Assert-TrustedIntegrationArchive `
+    -ArchivePath $archivePath `
+    -DigestPath $archiveDigestPath `
+    -ExpectedArchiveSha256 $ExpectedArchiveSha256
 
 if (Get-NetTCPConnection -State Listen -LocalPort $Port -ErrorAction SilentlyContinue) {
     throw "The requested loopback port is already in use."
@@ -46,21 +52,8 @@ $backupRoot = Join-Path $runtimeRoot "backup"
 $restoredStoreRoot = Join-Path $runtimeRoot "restored"
 $baseUri = "http://127.0.0.1:$Port"
 $process = $null
-
-if (Test-Path -LiteralPath $runtimeRoot) {
-    $verifiedRuntime = [System.IO.Path]::GetFullPath($runtimeRoot)
-
-    if (-not $verifiedRuntime.StartsWith(
-            $allowedPrefix,
-            [System.StringComparison]::OrdinalIgnoreCase)) {
-        throw "The existing runtime path failed containment validation."
-    }
-
-    Remove-Item -LiteralPath $verifiedRuntime -Recurse -Force
-}
-
-New-Item -ItemType Directory -Path $extractRoot -Force | Out-Null
-[System.IO.Compression.ZipFile]::ExtractToDirectory($archivePath, $extractRoot)
+$runtimeOwned = $false
+$trustedServerAssemblySha256 = $null
 
 function Stop-TaskProcess {
     if ($null -ne $script:process -and -not $script:process.HasExited) {
@@ -89,6 +82,19 @@ function Start-TaskProcess {
         throw "The integration store must remain inside the task-owned runtime root."
     }
 
+    $serverAssemblyPath = Join-Path $extractRoot "RagChallenge.Server.Api.dll"
+    $serverAssemblyItem = Get-Item -LiteralPath $serverAssemblyPath -Force
+    $actualServerAssemblySha256 = (Get-FileHash `
+            -LiteralPath $serverAssemblyPath `
+            -Algorithm SHA256).Hash.ToLowerInvariant()
+    if ($serverAssemblyItem.PSIsContainer -or
+        ($serverAssemblyItem.Attributes -band
+            [System.IO.FileAttributes]::ReparsePoint) -ne 0 -or
+        $script:trustedServerAssemblySha256 -notmatch '^[0-9a-f]{64}$' -or
+        $actualServerAssemblySha256 -cne $script:trustedServerAssemblySha256) {
+        throw "The extracted integration server assembly lost its trusted identity."
+    }
+
     $startInfo = [System.Diagnostics.ProcessStartInfo]::new()
     $startInfo.FileName = (Get-Command dotnet).Source
     $startInfo.WorkingDirectory = $extractRoot
@@ -96,7 +102,7 @@ function Start-TaskProcess {
     $startInfo.CreateNoWindow = $true
     $startInfo.RedirectStandardOutput = $true
     $startInfo.RedirectStandardError = $true
-    $startInfo.ArgumentList.Add((Join-Path $extractRoot "RagChallenge.Server.Api.dll"))
+    $startInfo.ArgumentList.Add($serverAssemblyPath)
     $startInfo.Environment.Clear()
     $temporaryDirectory = [System.IO.Path]::GetTempPath()
     $startInfo.Environment["TEMP"] = $temporaryDirectory
@@ -364,6 +370,23 @@ function Assert-SameFingerprint {
 }
 
 try {
+    $runtimeRoot = Reset-OwnedOutputRoot `
+        -RepositoryRoot $repositoryRoot `
+        -RequestedOutputRoot $runtimeRoot `
+        -CanonicalRelativePath $canonicalRuntimePath `
+        -Purpose $runtimePurpose `
+        -Owner $runtimeOwner
+    $runtimeOwned = $true
+    $expandedArchive = Expand-TrustedIntegrationArchive `
+        -ArchivePath $archivePath `
+        -DigestPath $archiveDigestPath `
+        -ExpectedArchiveSha256 $ExpectedArchiveSha256 `
+        -ExtractRoot $extractRoot
+    if ($trustedArchive.ArchiveSha256 -cne $expandedArchive.ArchiveSha256) {
+        throw "The integration archive identity changed before extraction."
+    }
+    $trustedServerAssemblySha256 = $expandedArchive.ServerAssemblySha256
+
     $firstReadiness = Start-TaskProcess -TaskStoreRoot $storeRoot
     $html = (Invoke-WebRequest -Uri "$baseUri/" -TimeoutSec 10).Content
 
@@ -504,7 +527,12 @@ try {
 finally {
     Stop-TaskProcess
 
-    if (Test-Path -LiteralPath $runtimeRoot) {
-        Remove-Item -LiteralPath $runtimeRoot -Recurse -Force
+    if ($runtimeOwned) {
+        Remove-OwnedOutputRoot `
+            -RepositoryRoot $repositoryRoot `
+            -RequestedOutputRoot $runtimeRoot `
+            -CanonicalRelativePath $canonicalRuntimePath `
+            -Purpose $runtimePurpose `
+            -Owner $runtimeOwner
     }
 }

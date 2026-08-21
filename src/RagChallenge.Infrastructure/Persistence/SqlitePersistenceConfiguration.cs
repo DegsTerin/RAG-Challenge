@@ -1,6 +1,7 @@
 // Purpose: Applies the mandatory SQLite durability, integrity, and bounded-locking policy whenever Infrastructure opens a writable persistence connection.
 using System.Data.Common;
 
+using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 
@@ -82,8 +83,28 @@ internal static class SqlitePersistenceOptions
         Directory.CreateDirectory(directory);
 
         return builder
-            .UseSqlite($"Data Source={fullPath};Mode=ReadWriteCreate;Cache=Private")
+            .UseSqlite(SqliteConnectionStrings.Create(
+                fullPath,
+                SqliteOpenMode.ReadWriteCreate))
             .AddInterceptors(new SqlitePragmaConnectionInterceptor());
+    }
+}
+
+internal static class SqliteConnectionStrings
+{
+    internal static string Create(
+        string databasePath,
+        SqliteOpenMode mode,
+        bool pooling = true)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(databasePath);
+        return new SqliteConnectionStringBuilder
+        {
+            DataSource = Path.GetFullPath(databasePath),
+            Mode = mode,
+            Cache = SqliteCacheMode.Private,
+            Pooling = pooling,
+        }.ToString();
     }
 }
 

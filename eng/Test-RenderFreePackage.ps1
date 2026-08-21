@@ -7,25 +7,13 @@ param(
 $ErrorActionPreference = "Stop"
 Set-StrictMode -Version Latest
 
-$repositoryRoot = [System.IO.Path]::GetFullPath((Join-Path $PSScriptRoot ".."))
-$allowedOutputRoot = [System.IO.Path]::GetFullPath(
-    (Join-Path $repositoryRoot "artifacts-local"))
-$resolvedOutputRoot = if ([System.IO.Path]::IsPathFullyQualified($OutputRoot)) {
-    [System.IO.Path]::GetFullPath($OutputRoot)
-}
-else {
-    [System.IO.Path]::GetFullPath((Join-Path $repositoryRoot $OutputRoot))
-}
-$allowedOutputPrefix = $allowedOutputRoot.TrimEnd(
-    [System.IO.Path]::DirectorySeparatorChar,
-    [System.IO.Path]::AltDirectorySeparatorChar) +
-    [System.IO.Path]::DirectorySeparatorChar
+. (Join-Path $PSScriptRoot "render-free-output-policy.ps1")
 
-if (-not $resolvedOutputRoot.StartsWith(
-        $allowedOutputPrefix,
-        [System.StringComparison]::OrdinalIgnoreCase)) {
-    throw "The Render Free package must remain under artifacts-local."
-}
+$repositoryRoot = [System.IO.Path]::GetFullPath((Join-Path $PSScriptRoot ".."))
+$resolvedOutputRoot = Resolve-RenderFreePackageOutputRoot `
+    -RepositoryRoot $repositoryRoot `
+    -RequestedOutputRoot $OutputRoot
+Assert-RenderFreePackageOwnedOutput -OutputRoot $resolvedOutputRoot
 
 $contextRoot = Join-Path $resolvedOutputRoot "context"
 $contextManifestPath = Join-Path $contextRoot "context-manifest.sha256"
@@ -104,7 +92,7 @@ $status = @(git -C $repositoryRoot status --porcelain=v1 --untracked-files=all)
 
 if ($packageManifest.source.branch -cne "main" -or
     $packageManifest.source.head -cne $head -or
-    $packageManifest.source.corpus -cne "4.10.40" -or
+    $packageManifest.source.corpus -cne "4.18.6" -or
     $status.Count -ne 0 -or
     $packageManifest.hosting.workspacePlan -cne "hobby" -or
     $packageManifest.hosting.servicePlan -cne "free" -or
@@ -112,12 +100,22 @@ if ($packageManifest.source.branch -cne "main" -or
     $packageManifest.hosting.persistentDisk -ne $false -or
     $packageManifest.hosting.managedDatabase -ne $false -or
     $packageManifest.hosting.autoDeploy -ne $false -or
-    $packageManifest.product.loopbackReadinessValidated -ne $true -or
+    $packageManifest.product.offlineAdministrativeStatusValidated -ne $true -or
+    $packageManifest.product.administrativeStatusResultCode -cne
+        "CH_ADMIN_STATUS_AVAILABLE" -or
+    $packageManifest.product.administrativeStatusCorpusId -cne
+        "rag-challenge-product" -or
+    $packageManifest.product.administrativeStatusRevision -le 0 -or
+    $packageManifest.product.failClosedReadinessValidated -ne $true -or
+    $packageManifest.product.providerBudgetState -cne "Disarmed" -or
+    $packageManifest.product.loopbackLivenessValidated -ne $true -or
     $packageManifest.externalActions.dockerInvoked -ne $false -or
     $packageManifest.externalActions.imagePublished -ne $false -or
     $packageManifest.externalActions.renderContacted -ne $false -or
-    $packageManifest.externalActions.providerCalled -ne $false -or
-    $packageManifest.externalActions.credentialRead -ne $false) {
+    $packageManifest.externalActions.providerQuerySubmitted -ne $false -or
+    $packageManifest.externalActions.providerCredentialConfigured -ne $false -or
+    $packageManifest.externalActions.trustedProviderGrantConfigured -ne $false -or
+    $packageManifest.externalActions.egressObservationPerformed -ne $false) {
     throw "The Render Free package identity or external-action boundary diverged."
 }
 
@@ -138,6 +136,13 @@ if ($dockerfile -notmatch "aspnet:10[.]0[.]11@sha256:[0-9a-f]{64}" -or
     $dockerfile -notmatch "(?m)^USER app\s*$" -or
     $dockerfile -notmatch "chmod -R a-w /opt/rag-challenge/seed" -or
     $entrypoint -notmatch "sha256sum -c seed-manifest[.]sha256" -or
+    $entrypoint -notmatch 'runtime_store="/tmp/rag-challenge-store"' -or
+    $entrypoint -notmatch 'runtime_marker="[.]rag-challenge-runtime-store-v1"' -or
+    $entrypoint -notmatch "CH_DEPLOY_RUNTIME_STORE_UNSAFE" -or
+    $entrypoint -notmatch "umask 077" -or
+    $entrypoint -match 'runtime_store="[$][{]RAG_CHALLENGE_RUNTIME_STORE:-' -or
+    $entrypoint.IndexOf('runtime_marker_value', [System.StringComparison]::Ordinal) -gt
+        $entrypoint.IndexOf('rm -rf --', [System.StringComparison]::Ordinal) -or
     $entrypoint -match "OPENAI_API_KEY|CredentialEnvironmentVariable" -or
     ($dockerfile + $entrypoint) -match "(?im)^\s*(?:curl|wget|Invoke-WebRequest|Invoke-RestMethod)\b") {
     throw "The container boundary is not pinned, unprivileged, offline-seeded and fail-closed."

@@ -242,6 +242,28 @@ internal sealed class ProductQueryRuntime :
         try
         {
             await EnsureComposedAsync(cancellationToken).ConfigureAwait(false);
+            await ValidateCurrentAuthorityAsync(cancellationToken).ConfigureAwait(false);
+            var budgetState = await ProductProviderBudgetAdmission.ReadQueryReadinessAsync(
+                options.Stores,
+                options.QueryEmbeddingAuthority,
+                options.GroundedGenerationAuthority,
+                options.OperationalGrants,
+                observedAt,
+                cancellationToken).ConfigureAwait(false);
+            if (budgetState != ProviderBudgetState.Armed)
+            {
+                return new ReadinessV1(
+                    "Unready",
+                    ActiveDatabaseCount: 0,
+                    EligibleDocumentCount: 0,
+                    DegradedDocumentCount: 0,
+                    SourceStates: Array.Empty<SanitisedSourceStateV1>(),
+                    ActiveGenerationId: null,
+                    ConfigurationRevision,
+                    [new SanitisedCapabilityCheckV1("provider-budget", budgetState.ToString())],
+                    observedAt);
+            }
+
             var snapshot = await VerifyPersistedStateAsync(
                 observedAt,
                 cancellationToken).ConfigureAwait(false);
@@ -261,7 +283,7 @@ internal sealed class ProductQueryRuntime :
                     new SanitisedCapabilityCheckV1("control-store", "Ready"),
                     new SanitisedCapabilityCheckV1("content-store", "Ready"),
                     new SanitisedCapabilityCheckV1("vector-store", "Ready"),
-                    new SanitisedCapabilityCheckV1("openai-providers", "Configured"),
+                    new SanitisedCapabilityCheckV1("provider-budget", "Armed"),
                 ],
                 observedAt);
         }

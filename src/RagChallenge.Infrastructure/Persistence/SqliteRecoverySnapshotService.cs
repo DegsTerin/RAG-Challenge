@@ -3,6 +3,7 @@ using System.Buffers.Binary;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
@@ -23,15 +24,32 @@ public sealed record RecoveryVerificationResult(
 
 public sealed class SqliteRecoverySnapshotService(SqliteStoreOptions options)
 {
+    internal const long MaximumManifestBytes = 256L * 1024 * 1024;
+    internal const int MaximumManifestFileCount = 1_000_002;
+    internal const int MaximumManifestTokenBytes = 1024;
+    private const int MaximumContentObjectCount = 1_000_000;
+    private const int MaximumManifestIdentityLength = 128;
+    private const int MaximumManifestRelativePathLength = 96;
+    private const int MaximumVerificationFailures = 128;
     private static readonly TimeSpan LeaseDuration = TimeSpan.FromMinutes(10);
     private static readonly IReadOnlyList<string> MissingManifestFailures =
         Array.AsReadOnly(new[] { "recovery-manifest.json is missing" });
     private static readonly IReadOnlyList<string> UnsupportedManifestFailures =
         Array.AsReadOnly(new[] { "manifest schema version is unsupported" });
+    private static readonly IReadOnlyList<string> BoundedManifestFailures =
+        Array.AsReadOnly(new[] { "recovery manifest exceeds its bounded limits" });
+    private static readonly IReadOnlyList<string> InvalidManifestFailures =
+        Array.AsReadOnly(new[] { "recovery manifest JSON is invalid" });
+    private static readonly IReadOnlyList<string> InvalidManifestMetadataFailures =
+        Array.AsReadOnly(new[] { "recovery manifest metadata is invalid" });
+    private static readonly IReadOnlyList<string> InvalidManifestFileIdentityFailures =
+        Array.AsReadOnly(new[] { "manifest file identities are incomplete or duplicated" });
     private static readonly JsonSerializerOptions JsonOptions = new()
     {
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
         WriteIndented = true,
+        MaxDepth = 8,
+        UnmappedMemberHandling = JsonUnmappedMemberHandling.Disallow,
     };
 
     private readonly SqliteStoreOptions options =
@@ -103,14 +121,16 @@ public sealed class SqliteRecoverySnapshotService(SqliteStoreOptions options)
             };
             var contentStore = new ImmutableContentStore(options);
             var contentFiles = contentStore.EnumerateObjectFiles()
-                .Order(StringComparer.Ordinal)
+                .Take(MaximumContentObjectCount + 1)
                 .ToArray();
 
-            if (contentFiles.Length > 1_000_000)
+            if (contentFiles.Length > MaximumContentObjectCount)
             {
                 throw new InvalidOperationException(
-                    "A recovery snapshot cannot exceed one million content objects.");
+                    $"A recovery snapshot cannot exceed {MaximumContentObjectCount} content objects.");
             }
+
+            Array.Sort(contentFiles, StringComparer.Ordinal);
 
             foreach (var sourcePath in contentFiles)
             {
@@ -153,6 +173,12 @@ public sealed class SqliteRecoverySnapshotService(SqliteStoreOptions options)
                 snapshotPath,
                 "recovery-manifest.json");
             var json = JsonSerializer.Serialize(manifest, JsonOptions) + "\n";
+            if (Encoding.UTF8.GetByteCount(json) > MaximumManifestBytes)
+            {
+                throw new InvalidOperationException(
+                    "The recovery manifest exceeds its bounded byte limit.");
+            }
+
             await File.WriteAllTextAsync(
                 manifestPath,
                 json,
@@ -219,17 +245,30 @@ public sealed class SqliteRecoverySnapshotService(SqliteStoreOptions options)
 
         try
         {
-            var json = await File.ReadAllTextAsync(
+            StoragePathSafety.EnsureExistingPathIsNotReparsePoint(
+                manifestPath,
+                nameof(snapshotPath));
+            var manifestBytes = await ReadBoundedManifestAsync(
                 manifestPath,
                 cancellationToken).ConfigureAwait(false);
-            manifest = JsonSerializer.Deserialize<RecoveryManifest>(json, JsonOptions);
+            PreflightManifestJson(manifestBytes);
+            manifest = JsonSerializer.Deserialize<RecoveryManifest>(
+                manifestBytes,
+                JsonOptions);
         }
-        catch (Exception exception) when (
-            exception is JsonException or IOException or UnauthorizedAccessException)
+        catch (RecoveryManifestLimitException)
         {
             return new RecoveryVerificationResult(
                 IsValid: false,
-                new[] { $"manifest JSON is invalid: {exception.Message}" });
+                BoundedManifestFailures);
+        }
+        catch (Exception exception) when (
+            exception is JsonException or NotSupportedException or ArgumentException or
+                IOException or UnauthorizedAccessException)
+        {
+            return new RecoveryVerificationResult(
+                IsValid: false,
+                InvalidManifestFailures);
         }
 
         if (manifest is null || manifest.SchemaVersion != 1 || manifest.Files is null)
@@ -239,25 +278,75 @@ public sealed class SqliteRecoverySnapshotService(SqliteStoreOptions options)
                 UnsupportedManifestFailures);
         }
 
-        var relativePaths = manifest.Files
-            .Select(file => file.RelativePath)
-            .ToArray();
-
-        if (relativePaths.Any(string.IsNullOrWhiteSpace) ||
-            relativePaths.Distinct(StringComparer.Ordinal).Count() != relativePaths.Length ||
-            relativePaths.Count(path => path == "control.db") != 1 ||
-            relativePaths.Count(path => path == "vectors.db") != 1)
+        if (manifest.Files.Count < 2 || manifest.Files.Count > MaximumManifestFileCount)
         {
-            failures.Add("manifest file identities are incomplete or duplicated");
+            return new RecoveryVerificationResult(
+                IsValid: false,
+                BoundedManifestFailures);
         }
 
+        try
+        {
+            if (string.IsNullOrWhiteSpace(manifest.CorpusId) ||
+                manifest.CorpusId.Length > MaximumManifestIdentityLength ||
+                string.IsNullOrWhiteSpace(manifest.OperationId) ||
+                manifest.OperationId.Length > MaximumManifestIdentityLength ||
+                string.IsNullOrWhiteSpace(manifest.CreatedAtUtc) ||
+                manifest.CreatedAtUtc.Length > 64)
+            {
+                throw new InvalidDataException("Manifest identity metadata is invalid.");
+            }
+
+            _ = new CorpusId(manifest.CorpusId);
+            _ = new OperationId(manifest.OperationId);
+            _ = ControlPlaneMapping.ParseUtc(manifest.CreatedAtUtc);
+        }
+        catch (Exception exception) when (exception is ArgumentException or InvalidDataException)
+        {
+            return new RecoveryVerificationResult(
+                IsValid: false,
+                InvalidManifestMetadataFailures);
+        }
+
+        var relativePaths = new HashSet<string>(StringComparer.Ordinal);
+        var controlCount = 0;
+        var vectorCount = 0;
+        var identitiesAreValid = true;
         foreach (var file in manifest.Files)
         {
+            if (file is null ||
+                string.IsNullOrWhiteSpace(file.RelativePath) ||
+                file.RelativePath.Length > MaximumManifestRelativePathLength ||
+                !relativePaths.Add(file.RelativePath))
+            {
+                identitiesAreValid = false;
+                continue;
+            }
+
+            controlCount += file.RelativePath == "control.db" ? 1 : 0;
+            vectorCount += file.RelativePath == "vectors.db" ? 1 : 0;
+        }
+
+        if (!identitiesAreValid || controlCount != 1 || vectorCount != 1)
+        {
+            return new RecoveryVerificationResult(
+                IsValid: false,
+                InvalidManifestFileIdentityFailures);
+        }
+
+        for (var index = 0; index < manifest.Files.Count; index++)
+        {
+            if (failures.Count >= MaximumVerificationFailures)
+            {
+                break;
+            }
+
+            var file = manifest.Files[index]!;
             try
             {
                 if (!IsValidManifestEntry(file))
                 {
-                    failures.Add($"invalid manifest entry: {file.RelativePath}");
+                    failures.Add($"invalid manifest entry at index {index}");
                     continue;
                 }
 
@@ -271,11 +360,15 @@ public sealed class SqliteRecoverySnapshotService(SqliteStoreOptions options)
                     continue;
                 }
 
+                StoragePathSafety.EnsureExistingPathIsNotReparsePoint(
+                    path,
+                    nameof(snapshotPath));
                 var info = new FileInfo(path);
 
                 if (info.Length != file.ByteLength)
                 {
                     failures.Add($"length mismatch: {file.RelativePath}");
+                    continue;
                 }
 
                 var actualHash = await HashFileAsync(path, cancellationToken)
@@ -289,7 +382,7 @@ public sealed class SqliteRecoverySnapshotService(SqliteStoreOptions options)
             catch (Exception exception) when (
                 exception is ArgumentException or IOException or UnauthorizedAccessException)
             {
-                failures.Add($"unsafe file entry {file.RelativePath}: {exception.Message}");
+                failures.Add($"unsafe manifest file entry at index {index}");
             }
         }
 
@@ -310,7 +403,7 @@ public sealed class SqliteRecoverySnapshotService(SqliteStoreOptions options)
         catch (Exception exception) when (
             exception is SqliteException or ArgumentException or InvalidDataException)
         {
-            failures.Add($"authority link could not be verified: {exception.Message}");
+            failures.Add("authority link could not be verified");
         }
 
         return new RecoveryVerificationResult(failures.Count == 0, failures.AsReadOnly());
@@ -470,9 +563,15 @@ public sealed class SqliteRecoverySnapshotService(SqliteStoreOptions options)
         CancellationToken cancellationToken)
     {
         await using var source = new SqliteConnection(
-            $"Data Source={sourcePath};Mode=ReadOnly;Cache=Private;Pooling=False");
+            SqliteConnectionStrings.Create(
+                sourcePath,
+                SqliteOpenMode.ReadOnly,
+                pooling: false));
         await using var destination = new SqliteConnection(
-            $"Data Source={destinationPath};Mode=ReadWriteCreate;Cache=Private;Pooling=False");
+            SqliteConnectionStrings.Create(
+                destinationPath,
+                SqliteOpenMode.ReadWriteCreate,
+                pooling: false));
         await source.OpenAsync(cancellationToken).ConfigureAwait(false);
         await destination.OpenAsync(cancellationToken).ConfigureAwait(false);
         source.BackupDatabase(destination);
@@ -489,6 +588,182 @@ public sealed class SqliteRecoverySnapshotService(SqliteStoreOptions options)
             new FileInfo(path).Length,
             await HashFileAsync(path, cancellationToken).ConfigureAwait(false));
     }
+
+    private static async Task<byte[]> ReadBoundedManifestAsync(
+        string path,
+        CancellationToken cancellationToken)
+    {
+        await using var stream = new FileStream(
+            path,
+            FileMode.Open,
+            FileAccess.Read,
+            FileShare.Read,
+            64 * 1024,
+            FileOptions.Asynchronous | FileOptions.SequentialScan);
+        var declaredLength = stream.Length;
+        if (declaredLength <= 0 || declaredLength > MaximumManifestBytes)
+        {
+            throw new RecoveryManifestLimitException();
+        }
+
+        var bytes = GC.AllocateUninitializedArray<byte>((int)declaredLength);
+        var totalRead = 0;
+        while (totalRead < bytes.Length)
+        {
+            var read = await stream.ReadAsync(
+                bytes.AsMemory(totalRead),
+                cancellationToken).ConfigureAwait(false);
+            if (read == 0)
+            {
+                throw new RecoveryManifestLimitException();
+            }
+
+            totalRead += read;
+        }
+
+        var overflowProbe = new byte[1];
+        if (await stream.ReadAsync(
+                overflowProbe.AsMemory(),
+                cancellationToken).ConfigureAwait(false) != 0)
+        {
+            throw new RecoveryManifestLimitException();
+        }
+
+        return bytes;
+    }
+
+    private static void PreflightManifestJson(ReadOnlySpan<byte> manifestBytes)
+    {
+        var reader = new Utf8JsonReader(
+            manifestBytes,
+            new JsonReaderOptions
+            {
+                AllowTrailingCommas = false,
+                CommentHandling = JsonCommentHandling.Disallow,
+                MaxDepth = 8,
+            });
+
+        if (!reader.Read() || reader.TokenType != JsonTokenType.StartObject)
+        {
+            throw new JsonException("The recovery manifest root must be an object.");
+        }
+
+        var filesPropertySeen = false;
+        var awaitingFilesArray = false;
+        var filesArrayDepth = -1;
+        var filesArrayClosed = false;
+        var fileCount = 0;
+        var objectProperties = new Stack<HashSet<string>>();
+        var reusablePropertySets = new Stack<HashSet<string>>();
+        objectProperties.Push(new HashSet<string>(StringComparer.Ordinal));
+
+        while (reader.Read())
+        {
+            if (reader.TokenType is JsonTokenType.PropertyName or JsonTokenType.String &&
+                GetManifestTokenByteLength(reader) > MaximumManifestTokenBytes)
+            {
+                throw new RecoveryManifestLimitException();
+            }
+
+            if (reader.TokenType == JsonTokenType.PropertyName)
+            {
+                var propertyName = reader.GetString() ??
+                    throw new JsonException("A recovery manifest property name is invalid.");
+                if (objectProperties.Count == 0 ||
+                    !objectProperties.Peek().Add(propertyName))
+                {
+                    throw new JsonException(
+                        "A recovery manifest object contains a duplicated property.");
+                }
+            }
+
+            if (reader.TokenType == JsonTokenType.StartObject)
+            {
+                var properties = reusablePropertySets.TryPop(out var reusable)
+                    ? reusable
+                    : new HashSet<string>(StringComparer.Ordinal);
+                objectProperties.Push(properties);
+            }
+            else if (reader.TokenType == JsonTokenType.EndObject)
+            {
+                if (!objectProperties.TryPop(out var properties))
+                {
+                    throw new JsonException("A recovery manifest object is unbalanced.");
+                }
+
+                properties.Clear();
+                reusablePropertySets.Push(properties);
+            }
+
+            if (awaitingFilesArray)
+            {
+                if (reader.TokenType != JsonTokenType.StartArray)
+                {
+                    throw new JsonException("The recovery manifest files value must be an array.");
+                }
+
+                awaitingFilesArray = false;
+                filesArrayDepth = reader.CurrentDepth;
+                continue;
+            }
+
+            if (reader.TokenType == JsonTokenType.PropertyName &&
+                reader.CurrentDepth == 1 &&
+                reader.ValueTextEquals("files"u8))
+            {
+                if (filesPropertySeen)
+                {
+                    throw new JsonException("The recovery manifest files property is duplicated.");
+                }
+
+                filesPropertySeen = true;
+                awaitingFilesArray = true;
+                continue;
+            }
+
+            if (filesArrayDepth >= 0)
+            {
+                if (reader.TokenType == JsonTokenType.EndArray &&
+                    reader.CurrentDepth == filesArrayDepth)
+                {
+                    filesArrayDepth = -1;
+                    filesArrayClosed = true;
+                    continue;
+                }
+
+                if (reader.CurrentDepth == filesArrayDepth + 1 &&
+                    IsManifestArrayValueToken(reader.TokenType) &&
+                    ++fileCount > MaximumManifestFileCount)
+                {
+                    throw new RecoveryManifestLimitException();
+                }
+            }
+        }
+
+        if (!filesPropertySeen || awaitingFilesArray || !filesArrayClosed)
+        {
+            throw new JsonException("The recovery manifest files array is incomplete.");
+        }
+
+        if (objectProperties.Count != 0)
+        {
+            throw new JsonException("The recovery manifest object is incomplete.");
+        }
+    }
+
+    private static int GetManifestTokenByteLength(Utf8JsonReader reader) =>
+        reader.HasValueSequence
+            ? checked((int)reader.ValueSequence.Length)
+            : reader.ValueSpan.Length;
+
+    private static bool IsManifestArrayValueToken(JsonTokenType tokenType) =>
+        tokenType is JsonTokenType.StartObject or
+            JsonTokenType.StartArray or
+            JsonTokenType.String or
+            JsonTokenType.Number or
+            JsonTokenType.True or
+            JsonTokenType.False or
+            JsonTokenType.Null;
 
     private static async Task<string> HashFileAsync(
         string path,
@@ -521,8 +796,14 @@ public sealed class SqliteRecoverySnapshotService(SqliteStoreOptions options)
 
         try
         {
+            StoragePathSafety.EnsureExistingPathIsNotReparsePoint(
+                path,
+                nameof(path));
             await using var connection = new SqliteConnection(
-                $"Data Source={path};Mode=ReadOnly;Cache=Private;Pooling=False");
+                SqliteConnectionStrings.Create(
+                    path,
+                    SqliteOpenMode.ReadOnly,
+                    pooling: false));
             await connection.OpenAsync(cancellationToken).ConfigureAwait(false);
             await using var integrity = connection.CreateCommand();
             integrity.CommandText = "PRAGMA integrity_check;";
@@ -532,7 +813,7 @@ public sealed class SqliteRecoverySnapshotService(SqliteStoreOptions options)
 
             if (!string.Equals(result, "ok", StringComparison.Ordinal))
             {
-                failures.Add($"{label} integrity_check: {result}");
+                failures.Add($"{label} integrity_check did not return ok");
             }
 
             await using var foreignKeys = connection.CreateCommand();
@@ -546,9 +827,11 @@ public sealed class SqliteRecoverySnapshotService(SqliteStoreOptions options)
                 failures.Add($"{label} foreign_key_check returned rows");
             }
         }
-        catch (SqliteException exception)
+        catch (Exception exception) when (
+            exception is SqliteException or ArgumentException or IOException or
+                UnauthorizedAccessException)
         {
-            failures.Add($"{label} could not be opened read-only: {exception.Message}");
+            failures.Add($"{label} could not be opened read-only");
         }
     }
 
@@ -563,10 +846,22 @@ public sealed class SqliteRecoverySnapshotService(SqliteStoreOptions options)
             return;
         }
 
+        StoragePathSafety.EnsureExistingPathIsNotReparsePoint(
+            controlPath,
+            nameof(controlPath));
+        StoragePathSafety.EnsureExistingPathIsNotReparsePoint(
+            vectorPath,
+            nameof(vectorPath));
         await using var control = new SqliteConnection(
-            $"Data Source={controlPath};Mode=ReadOnly;Cache=Private;Pooling=False");
+            SqliteConnectionStrings.Create(
+                controlPath,
+                SqliteOpenMode.ReadOnly,
+                pooling: false));
         await using var vectors = new SqliteConnection(
-            $"Data Source={vectorPath};Mode=ReadOnly;Cache=Private;Pooling=False");
+            SqliteConnectionStrings.Create(
+                vectorPath,
+                SqliteOpenMode.ReadOnly,
+                pooling: false));
         await control.OpenAsync(cancellationToken).ConfigureAwait(false);
         await vectors.OpenAsync(cancellationToken).ConfigureAwait(false);
         await using var activeCommand = control.CreateCommand();
@@ -754,6 +1049,7 @@ public sealed class SqliteRecoverySnapshotService(SqliteStoreOptions options)
     private static bool IsValidManifestEntry(RecoveryFile file)
     {
         if (string.IsNullOrWhiteSpace(file.RelativePath) ||
+            file.RelativePath.Length > MaximumManifestRelativePathLength ||
             string.IsNullOrWhiteSpace(file.Sha256) ||
             file.ByteLength <= 0 ||
             file.Sha256.Length != 64 ||
@@ -837,7 +1133,7 @@ public sealed class SqliteRecoverySnapshotService(SqliteStoreOptions options)
         string CorpusId,
         string OperationId,
         string CreatedAtUtc,
-        IReadOnlyList<RecoveryFile> Files);
+        IReadOnlyList<RecoveryFile?> Files);
 
     private sealed record RecoveryFile(
         string RelativePath,
@@ -847,4 +1143,8 @@ public sealed class SqliteRecoverySnapshotService(SqliteStoreOptions options)
     private sealed record ActiveGenerationEvidence(
         CandidateBuildId CandidateBuildId,
         FinalisedIndexGenerationManifest Manifest);
+
+    private sealed class RecoveryManifestLimitException : Exception
+    {
+    }
 }

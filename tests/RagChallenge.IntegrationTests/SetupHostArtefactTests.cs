@@ -243,8 +243,19 @@ public sealed class SetupHostArtefactTests
             "artifacts-local/s06-oci-rehearsal",
             builder,
             StringComparison.Ordinal);
+        Assert.Contains("Reset-OwnedOutputRoot", builder, StringComparison.Ordinal);
+        Assert.Contains("Assert-OwnedOutputRoot", verifier, StringComparison.Ordinal);
+        Assert.Contains("ExpectedArchiveSha256", verifier, StringComparison.Ordinal);
         Assert.Contains("artifact-manifest.sha256", scripts, StringComparison.Ordinal);
-        Assert.Contains("ZipFile]::OpenRead", verifier, StringComparison.Ordinal);
+        Assert.Contains("ZipArchive]::new", verifier, StringComparison.Ordinal);
+        Assert.Contains("FileShare]::Read", verifier, StringComparison.Ordinal);
+        Assert.Contains("$maximumArchiveBytes = 256MB", verifier, StringComparison.Ordinal);
+        Assert.Contains("$maximumArchiveEntries = 1024", verifier, StringComparison.Ordinal);
+        Assert.Contains("$maximumEntryBytes = 64MB", verifier, StringComparison.Ordinal);
+        Assert.Contains("$maximumExpandedBytes = 256MB", verifier, StringComparison.Ordinal);
+        Assert.Contains("$maximumCompressionRatio = 20", verifier, StringComparison.Ordinal);
+        Assert.Contains("$maximumManifestBytes = 256KB", verifier, StringComparison.Ordinal);
+        Assert.Contains("$unixFileType -eq 0xa000", verifier, StringComparison.Ordinal);
         Assert.Contains("LinuxArm64Executed = $false", scripts, StringComparison.Ordinal);
         Assert.DoesNotMatch(
             new Regex(
@@ -386,11 +397,20 @@ public sealed class SetupHostArtefactTests
     [Fact]
     public void PublishedHarnessDoesNotCancelInitialReadinessBeforeItsDeadline()
     {
+        var builder = File.ReadAllText(Path.Combine(
+            FindRepositoryRoot(),
+            "src",
+            "RagChallenge.Server.Api",
+            "Build-IntegrationArtifact.ps1"));
         var harness = File.ReadAllText(Path.Combine(
             FindRepositoryRoot(),
             "src",
             "RagChallenge.Server.Api",
             "Test-IntegrationArtifact.ps1"));
+        var archivePolicy = File.ReadAllText(Path.Combine(
+            FindRepositoryRoot(),
+            "eng",
+            "integration-archive-policy.ps1"));
 
         Assert.Contains("$readinessTimeoutSeconds = 30", harness, StringComparison.Ordinal);
         Assert.Contains(
@@ -402,6 +422,50 @@ public sealed class SetupHostArtefactTests
             harness,
             StringComparison.Ordinal);
         Assert.DoesNotContain("-TimeoutSec 2", harness, StringComparison.Ordinal);
+        Assert.Contains("Reset-OwnedOutputRoot", builder, StringComparison.Ordinal);
+        Assert.Contains("Assert-OwnedOutputRoot", harness, StringComparison.Ordinal);
+        Assert.Contains("ExpectedArchiveSha256", harness, StringComparison.Ordinal);
+        Assert.Contains("Assert-TrustedIntegrationArchive", harness, StringComparison.Ordinal);
+        Assert.Contains("Expand-TrustedIntegrationArchive", harness, StringComparison.Ordinal);
+        Assert.DoesNotContain("ExtractToDirectory", harness, StringComparison.Ordinal);
+        Assert.Contains("IntegrationMaximumArchiveBytes", archivePolicy, StringComparison.Ordinal);
+        Assert.Contains("IntegrationMaximumEntries", archivePolicy, StringComparison.Ordinal);
+        Assert.Contains("IntegrationMaximumEntryBytes", archivePolicy, StringComparison.Ordinal);
+        Assert.Contains("IntegrationMaximumExpandedBytes", archivePolicy, StringComparison.Ordinal);
+        Assert.Contains("IntegrationMaximumCompressionRatio", archivePolicy, StringComparison.Ordinal);
+        Assert.Contains("ExternalAttributes -ne 0", archivePolicy, StringComparison.Ordinal);
+        Assert.Contains("FileMode]::CreateNew", archivePolicy, StringComparison.Ordinal);
+        Assert.Contains("Reset-OwnedOutputRoot", harness, StringComparison.Ordinal);
+        Assert.Contains("Remove-OwnedOutputRoot", harness, StringComparison.Ordinal);
+        Assert.DoesNotContain(
+            "Remove-Item -LiteralPath $runtimeRoot -Recurse",
+            harness,
+            StringComparison.Ordinal);
+
+        var trustedArchiveIndex = harness.IndexOf(
+            "$trustedArchive = Assert-TrustedIntegrationArchive",
+            StringComparison.Ordinal);
+        var runtimeResetIndex = harness.IndexOf(
+            "$runtimeRoot = Reset-OwnedOutputRoot",
+            StringComparison.Ordinal);
+        var archiveExpansionIndex = harness.IndexOf(
+            "$expandedArchive = Expand-TrustedIntegrationArchive",
+            StringComparison.Ordinal);
+        var firstProcessStartIndex = harness.IndexOf(
+            "$firstReadiness = Start-TaskProcess",
+            StringComparison.Ordinal);
+        var extractedAssemblyHashIndex = harness.IndexOf(
+            "$actualServerAssemblySha256 = (Get-FileHash",
+            StringComparison.Ordinal);
+        var processApiIndex = harness.IndexOf(
+            "[System.Diagnostics.Process]::Start($startInfo)",
+            StringComparison.Ordinal);
+        Assert.True(trustedArchiveIndex >= 0);
+        Assert.True(runtimeResetIndex > trustedArchiveIndex);
+        Assert.True(archiveExpansionIndex > runtimeResetIndex);
+        Assert.True(firstProcessStartIndex > archiveExpansionIndex);
+        Assert.True(extractedAssemblyHashIndex >= 0);
+        Assert.True(processApiIndex > extractedAssemblyHashIndex);
     }
 
     private static string FindRepositoryRoot()

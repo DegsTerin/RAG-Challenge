@@ -387,7 +387,12 @@ try {
 
     foreach ($requiredTest in @(
             "test-assert-coverage.ps1",
-            "test-ci-policy.ps1")) {
+            "test-ci-policy.ps1",
+            "test-nuget-audit-policy.ps1",
+            "test-new-oracle19-product-plans.ps1",
+            "test-render-entrypoint-policy.ps1",
+            "test-render-free-output-policy.ps1",
+            "test-integration-archive-policy.ps1")) {
         $requiredTestPattern =
             '(?m)^\s*-ScriptPath\s+\(Join-Path\s+\$PSScriptRoot\s+"' +
             [regex]::Escape($requiredTest) +
@@ -429,6 +434,26 @@ try {
 
     if ($workflowEntryPointCalls -ne 1) {
         throw "The workflow must invoke the canonical CI entry point exactly once."
+    }
+
+    $actionUses = [regex]::Matches(
+        $workflow,
+        '(?m)^\s*uses:\s*(?<action>[^@\s]+)@(?<revision>[^\s#]+)')
+    $approvedActionPins = @{
+        'actions/checkout' = '11bd71901bbe5b1630ceea73d27597364c9af683'
+        'actions/setup-dotnet' = '67a3573c9a986a3f9c594539f4ab511d57bb3ce9'
+        'actions/setup-node' = '49933ea5288caeca8642d1e84afbd3f7d6820020'
+    }
+    if ($actionUses.Count -ne $approvedActionPins.Count -or
+        @($actionUses | Where-Object {
+                $action = $_.Groups['action'].Value
+                $revision = $_.Groups['revision'].Value
+                $revision -notmatch '^[0-9a-f]{40}$' -or
+                -not $approvedActionPins.ContainsKey($action) -or
+                $approvedActionPins[$action] -cne $revision
+            }).Count -ne 0 -or
+        $workflow -notmatch '(?m)^\s*node-version:\s*\d+\.\d+\.\d+\s*$') {
+        throw "The workflow must use only approved Action identities and pin Node.js by exact patch."
     }
 
     $selectedHeadExpression = '${{ github.event_name == ''pull_request'' && github.event.pull_request.head.sha || github.sha }}'
@@ -634,6 +659,23 @@ try {
         $ciScript -notmatch 'npm run check' -or
         $ciScript -notmatch 'Offline orchestrator restore') {
         throw "The CI entry point does not run the locked orchestrator checks."
+    }
+
+    $npmAuditCalls = [regex]::Matches(
+        $ciScript,
+        '(?m)^\s*npm audit --audit-level=high\s*$').Count
+    if ($npmAuditCalls -ne 2 -or
+        $ciScript -notmatch 'Orchestrator dependency audit' -or
+        $ciScript -notmatch 'NOT_RUN: orchestrator dependency audit' -or
+        $ciScript -notmatch 'NOT_RUN: dashboard dependency audit') {
+        throw "The CI entry point must audit both npm graphs online and report both offline omissions."
+    }
+
+    if ($ciScript -notmatch '--format json' -or
+        $ciScript -notmatch '--output-version 1' -or
+        $ciScript -notmatch 'Assert-NuGetVulnerabilityAuditJson' -or
+        $ciScript -notmatch 'NOT_RUN: [. ]NET dependency audit') {
+        throw "The CI entry point must parse structured NuGet audit output and report its offline omission."
     }
 
     Write-Output "PASS: CI consumers use the shared fail-closed policy"

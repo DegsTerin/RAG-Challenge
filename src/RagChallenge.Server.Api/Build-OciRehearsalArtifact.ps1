@@ -9,24 +9,16 @@ Set-StrictMode -Version Latest
 
 $serverRoot = $PSScriptRoot
 $repositoryRoot = [System.IO.Path]::GetFullPath((Join-Path $serverRoot "../.."))
-$dashboardRoot = Join-Path $repositoryRoot "src/RagChallenge.Dashboard.Web"
-$allowedRoot = [System.IO.Path]::GetFullPath((Join-Path $repositoryRoot "artifacts-local"))
-$resolvedOutput = if ([System.IO.Path]::IsPathFullyQualified($OutputRoot)) {
-    [System.IO.Path]::GetFullPath($OutputRoot)
-}
-else {
-    [System.IO.Path]::GetFullPath((Join-Path $repositoryRoot $OutputRoot))
-}
-$allowedPrefix = $allowedRoot.TrimEnd(
-    [System.IO.Path]::DirectorySeparatorChar,
-    [System.IO.Path]::AltDirectorySeparatorChar) +
-    [System.IO.Path]::DirectorySeparatorChar
+. (Join-Path $repositoryRoot "eng/owned-output-policy.ps1")
 
-if (-not $resolvedOutput.StartsWith(
-        $allowedPrefix,
-        [System.StringComparison]::OrdinalIgnoreCase)) {
-    throw "The OCI rehearsal output must remain under artifacts-local."
-}
+$dashboardRoot = Join-Path $repositoryRoot "src/RagChallenge.Dashboard.Web"
+$canonicalOutputPath = "artifacts-local/s06-oci-rehearsal"
+$outputPurpose = "s06-oci-rehearsal-artifact"
+$outputOwner = "src/RagChallenge.Server.Api/Build-OciRehearsalArtifact.ps1"
+$resolvedOutput = Resolve-OwnedOutputRoot `
+    -RepositoryRoot $repositoryRoot `
+    -RequestedOutputRoot $OutputRoot `
+    -CanonicalRelativePath $canonicalOutputPath
 
 $assetsPath = Join-Path $serverRoot "obj/project.assets.json"
 
@@ -64,17 +56,12 @@ $archiveName = "rag-challenge-s06-linux-arm64.zip"
 $archivePath = Join-Path $resolvedOutput $archiveName
 $archiveDigestPath = "$archivePath.sha256"
 
-if (Test-Path -LiteralPath $resolvedOutput) {
-    $verifiedOutput = [System.IO.Path]::GetFullPath($resolvedOutput)
-
-    if (-not $verifiedOutput.StartsWith(
-            $allowedPrefix,
-            [System.StringComparison]::OrdinalIgnoreCase)) {
-        throw "The existing OCI rehearsal path failed containment validation."
-    }
-
-    Remove-Item -LiteralPath $verifiedOutput -Recurse -Force
-}
+$resolvedOutput = Reset-OwnedOutputRoot `
+    -RepositoryRoot $repositoryRoot `
+    -RequestedOutputRoot $OutputRoot `
+    -CanonicalRelativePath $canonicalOutputPath `
+    -Purpose $outputPurpose `
+    -Owner $outputOwner
 
 New-Item -ItemType Directory -Path $contentRoot -Force | Out-Null
 $env:npm_config_offline = "true"

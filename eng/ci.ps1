@@ -85,6 +85,21 @@ try {
     Invoke-RequiredPolicyTest `
         -Name "shared CI policy" `
         -ScriptPath (Join-Path $PSScriptRoot "test-ci-policy.ps1")
+    Invoke-RequiredPolicyTest `
+        -Name "structured NuGet vulnerability audit" `
+        -ScriptPath (Join-Path $PSScriptRoot "test-nuget-audit-policy.ps1")
+    Invoke-RequiredPolicyTest `
+        -Name "task-owned Oracle plan generation" `
+        -ScriptPath (Join-Path $PSScriptRoot "test-new-oracle19-product-plans.ps1")
+    Invoke-RequiredPolicyTest `
+        -Name "contained Render runtime-store recreation" `
+        -ScriptPath (Join-Path $PSScriptRoot "test-render-entrypoint-policy.ps1")
+    Invoke-RequiredPolicyTest `
+        -Name "owned Render package output" `
+        -ScriptPath (Join-Path $PSScriptRoot "test-render-free-output-policy.ps1")
+    Invoke-RequiredPolicyTest `
+        -Name "trusted integration archive" `
+        -ScriptPath (Join-Path $PSScriptRoot "test-integration-archive-policy.ps1")
 
     Assert-NuGetLockFileLineEndings
     Assert-NpmLockFileLineEndings
@@ -143,6 +158,9 @@ try {
             npm audit --audit-level=high
             Assert-LastExitCode "Dashboard dependency audit"
         }
+        else {
+            Write-Output "NOT_RUN: dashboard dependency audit requires online registry metadata."
+        }
     }
     finally {
         Pop-Location
@@ -162,6 +180,14 @@ try {
 
         npm run check
         Assert-LastExitCode "Orchestrator checks"
+
+        if (-not $Offline) {
+            npm audit --audit-level=high
+            Assert-LastExitCode "Orchestrator dependency audit"
+        }
+        else {
+            Write-Output "NOT_RUN: orchestrator dependency audit requires online registry metadata."
+        }
     }
     finally {
         Pop-Location
@@ -170,8 +196,33 @@ try {
     Assert-NpmLockFileLineEndings
 
     if (-not $Offline) {
-        dotnet list RAG-Challenge.sln package --vulnerable --include-transitive
-        Assert-LastExitCode ".NET dependency audit"
+        $trackedProjects = @(& git ls-files -- "*.csproj")
+        Assert-LastExitCode "Tracked .NET project discovery"
+        if ($trackedProjects.Count -eq 0) {
+            throw "No tracked .NET projects were found for dependency auditing."
+        }
+
+        $expectedProjectPaths = @(
+            $trackedProjects | ForEach-Object {
+                Join-Path $repositoryRoot $_
+            })
+        $auditOutput = @(& dotnet list RAG-Challenge.sln package `
+                --vulnerable `
+                --include-transitive `
+                --format json `
+                --output-version 1 `
+                --no-restore)
+        $auditExitCode = $LASTEXITCODE
+        if ($auditExitCode -ne 0) {
+            throw ".NET dependency audit failed with exit code $auditExitCode."
+        }
+
+        Assert-NuGetVulnerabilityAuditJson `
+            -AuditJson ($auditOutput -join [System.Environment]::NewLine) `
+            -ExpectedProjectPaths $expectedProjectPaths
+    }
+    else {
+        Write-Output "NOT_RUN: .NET dependency audit requires online NuGet metadata."
     }
 
     & "$PSScriptRoot/check-repository.ps1"

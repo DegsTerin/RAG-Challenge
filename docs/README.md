@@ -2,7 +2,7 @@
 
 ## Status
 
-This index describes the current `4.16.0` documentation corpus. `STATE-00`,
+This index describes the current `4.18.6` documentation corpus. `STATE-00`,
 `GATE-B01` and `STATE-01` through `STATE-06` are closed with their gates
 recorded. `STATE-07 TESTING_HOMOLOGATION` is active; local, offline,
 deterministic and synthetic increments have been executed and reconciled
@@ -27,14 +27,13 @@ validation passed; tooling readiness is `MULTI_AGENT_READY`. Every future run
 remains subject to its own plan and authority without changing the product,
 Human Gate or lifecycle.
 
-Under `AUTH-STAGE012-GOV-SEC-ENGB-IMPL-001`, the isolated integration
-candidate now contains the permanent Stage hand-off rule, the product-only
-credential boundary, operation-specific trusted grants, closed development
-environments, verifiable en-GB enforcement, the approved technical-language
-migration and the historical owner-input manifest. The migration baseline is
-`COMPLETE` with zero findings. Independent lane and version-ledger reviews
-passed; final integrated reviews and the canonical offline gate remain
-required before local `main` can be updated.
+Under `AUTH-STAGE012-GOV-SEC-ENGB-IMPL-001`, the permanent Stage hand-off rule,
+product-only credential boundary, operation-specific trusted grants, closed
+development environments, en-GB enforcement, approved technical-language
+migration and historical owner-input manifest were integrated. The language
+migration baseline is `COMPLETE` with zero findings, and the corrected
+canonical offline gate and independent reviews passed. Product homologation,
+Human Gate and lifecycle change remain unexecuted.
 
 ## Start here
 
@@ -112,6 +111,15 @@ required before local `main` can be updated.
   ADR-0017 replaces only the former SDK transport limitation)
 - [ADR-0017 — Codex App Server Pre-Turn Checkpoint Runner](architecture/ADR-0017-Codex-App-Server-Pre-Turn-Checkpoint-Runner.md)
   (`accepted` and implemented; one controlled real validation passed)
+- [ADR-0018 — Persistent Provider Budget Admission and Explicit Rearming](architecture/ADR-0018-Persistent-Provider-Budget-Admission-And-Explicit-Rearming.md)
+  (`accepted`; provider authority and any non-zero budget remain separately
+  governed)
+- [ADR-0019 — Cross-Platform PDF Renderer Sandbox Boundary](architecture/ADR-0019-Cross-Platform-PDF-Renderer-Sandbox-Boundary.md)
+  (`accepted`; the dedicated sandbox remains unimplemented and Product visual
+  rendering is disabled fail-closed)
+- [ADR-0020 — Concurrent Render and OCI Deployment Targets](architecture/ADR-0020-Concurrent-Render-And-OCI-Deployment-Targets.md)
+  (`accepted`; Render remains the observed secondary public homologation
+  surface, while OCI remains the undeployed durable MVP target)
 - [Canonical `STATE-02` contracts](architecture/STATE-02-Canonical-Contracts.md)
 - [`S03-A` logical data dictionary and index](data/STATE-03-S03-A-Data-Dictionary.md)
 - [`STATE-02` threat model](security/STATE-02-Threat-Model.md)

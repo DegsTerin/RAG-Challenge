@@ -1,4 +1,6 @@
 // Purpose: Verifies that the local Render Free package remains private, free-only, fail-closed and separate from external publication.
+using System.Text.RegularExpressions;
+
 namespace RagChallenge.IntegrationTests;
 
 public sealed class RenderFreePackageArtefactTests
@@ -83,6 +85,25 @@ public sealed class RenderFreePackageArtefactTests
             "sha256sum -c seed-manifest.sha256",
             entrypoint,
             StringComparison.Ordinal);
+        Assert.Contains(
+            "runtime_store=\"/tmp/rag-challenge-store\"",
+            entrypoint,
+            StringComparison.Ordinal);
+        Assert.Contains(
+            "runtime_marker=\".rag-challenge-runtime-store-v1\"",
+            entrypoint,
+            StringComparison.Ordinal);
+        Assert.Contains("CH_DEPLOY_RUNTIME_STORE_UNSAFE", entrypoint, StringComparison.Ordinal);
+        Assert.Contains("[ -L \"${runtime_store}\" ]", entrypoint, StringComparison.Ordinal);
+        Assert.Contains("umask 077", entrypoint, StringComparison.Ordinal);
+        Assert.DoesNotContain(
+            "runtime_store=\"${RAG_CHALLENGE_RUNTIME_STORE:-",
+            entrypoint,
+            StringComparison.Ordinal);
+        Assert.True(
+            entrypoint.IndexOf("runtime_marker_value", StringComparison.Ordinal) <
+            entrypoint.IndexOf("rm -rf --", StringComparison.Ordinal),
+            "Runtime ownership validation must precede recursive removal.");
         Assert.DoesNotContain("OPENAI_API_KEY", entrypoint, StringComparison.Ordinal);
         Assert.DoesNotContain("CredentialEnvironmentVariable", entrypoint, StringComparison.Ordinal);
         Assert.Contains(
@@ -98,31 +119,52 @@ public sealed class RenderFreePackageArtefactTests
     public void BuilderConfinesPrivateOutputAndPerformsNoExternalAction()
     {
         var builder = ReadRepositoryFile("eng", "Build-RenderFreePackage.ps1");
+        var outputPolicy = ReadRepositoryFile("eng", "render-free-output-policy.ps1");
+        var ownedOutputPolicy = ReadRepositoryFile("eng", "owned-output-policy.ps1");
+        var combinedPolicy = outputPolicy + "\n" + ownedOutputPolicy;
 
         Assert.Contains(
-            "The Render Free package output must remain under artifacts-local.",
-            builder,
+            "The owned output must use its exact canonical path.",
+            combinedPolicy,
             StringComparison.Ordinal);
+        Assert.Contains("Reset-RenderFreePackageOutput", builder, StringComparison.Ordinal);
+        Assert.Contains(".rag-challenge-owned-output.json", combinedPolicy, StringComparison.Ordinal);
+        Assert.Contains("FileMode]::CreateNew", combinedPolicy, StringComparison.Ordinal);
+        Assert.Contains("contains a reparse point", combinedPolicy, StringComparison.Ordinal);
+        Assert.True(
+            Regex.Count(
+                builder,
+                "Assert-OwnedOutputTreeIsSafe -Root \\$expectedStoreRoot",
+                RegexOptions.CultureInvariant) >= 2);
+        Assert.Contains("Assert-OwnedOutputTreeIsSafe -Root $seedRoot", builder, StringComparison.Ordinal);
         Assert.Contains("--no-restore", builder, StringComparison.Ordinal);
         Assert.Contains("prepared-store.json", builder, StringComparison.Ordinal);
         Assert.Contains("publicDistributionAllowed = $false", builder, StringComparison.Ordinal);
         Assert.Contains("dockerInvoked = $false", builder, StringComparison.Ordinal);
         Assert.Contains("imagePublished = $false", builder, StringComparison.Ordinal);
         Assert.Contains("renderContacted = $false", builder, StringComparison.Ordinal);
-        Assert.Contains("providerCalled = $false", builder, StringComparison.Ordinal);
-        Assert.Contains("credentialRead = $false", builder, StringComparison.Ordinal);
+        Assert.Contains("corpus = \"4.18.6\"", builder, StringComparison.Ordinal);
+        Assert.Contains("providerQuerySubmitted = $false", builder, StringComparison.Ordinal);
+        Assert.Contains("providerCredentialConfigured = $false", builder, StringComparison.Ordinal);
+        Assert.Contains("trustedProviderGrantConfigured = $false", builder, StringComparison.Ordinal);
+        Assert.Contains("egressObservationPerformed = $false", builder, StringComparison.Ordinal);
         Assert.Contains("$startInfo.Environment.Clear()", builder, StringComparison.Ordinal);
         Assert.DoesNotContain("$startInfo.Environment[$credentialName]", builder, StringComparison.Ordinal);
         Assert.Contains(
-            "AUTH-QUERY-EMBEDDING-RENDER-PACKAGE-READINESS",
+            "CH_ADMIN_STATUS_AVAILABLE",
             builder,
             StringComparison.Ordinal);
         Assert.Contains(
-            "AUTH-GROUNDED-GENERATION-RENDER-PACKAGE-READINESS",
+            "offlineAdministrativeStatusValidated = $true",
             builder,
             StringComparison.Ordinal);
+        Assert.Contains("failClosedReadinessValidated = $true", builder, StringComparison.Ordinal);
+        Assert.Contains("providerBudgetState = \"Disarmed\"", builder, StringComparison.Ordinal);
+        Assert.Contains("loopbackLivenessValidated = $true", builder, StringComparison.Ordinal);
+        Assert.Contains("-SkipHttpErrorCheck", builder, StringComparison.Ordinal);
+        Assert.Contains("StatusCode -ne 503", builder, StringComparison.Ordinal);
         Assert.Contains("http://127.0.0.1:", builder, StringComparison.Ordinal);
-        Assert.Contains("loopbackReadinessValidated = $true", builder, StringComparison.Ordinal);
+        Assert.DoesNotContain("loopbackReadinessValidated", builder, StringComparison.Ordinal);
         Assert.DoesNotMatch(
             "(?im)^\\s*(?:docker|curl|wget)\\b|https://",
             builder);
@@ -139,9 +181,23 @@ public sealed class RenderFreePackageArtefactTests
         Assert.Contains("managedDatabase -ne $false", verifier, StringComparison.Ordinal);
         Assert.Contains("imagePublished -ne $false", verifier, StringComparison.Ordinal);
         Assert.Contains("renderContacted -ne $false", verifier, StringComparison.Ordinal);
-        Assert.Contains("providerCalled -ne $false", verifier, StringComparison.Ordinal);
-        Assert.Contains("credentialRead -ne $false", verifier, StringComparison.Ordinal);
+        Assert.Contains("source.corpus -cne \"4.18.6\"", verifier, StringComparison.Ordinal);
+        Assert.Contains("providerQuerySubmitted -ne $false", verifier, StringComparison.Ordinal);
+        Assert.Contains("providerCredentialConfigured -ne $false", verifier, StringComparison.Ordinal);
+        Assert.Contains("trustedProviderGrantConfigured -ne $false", verifier, StringComparison.Ordinal);
+        Assert.Contains("egressObservationPerformed -ne $false", verifier, StringComparison.Ordinal);
         Assert.Contains("prepared-store[.]json", verifier, StringComparison.Ordinal);
+        Assert.Contains(
+            "offlineAdministrativeStatusValidated -ne $true",
+            verifier,
+            StringComparison.Ordinal);
+        Assert.Contains(
+            "failClosedReadinessValidated -ne $true",
+            verifier,
+            StringComparison.Ordinal);
+        Assert.Contains("providerBudgetState -cne \"Disarmed\"", verifier, StringComparison.Ordinal);
+        Assert.Contains("loopbackLivenessValidated -ne $true", verifier, StringComparison.Ordinal);
+        Assert.Contains("Assert-RenderFreePackageOwnedOutput", verifier, StringComparison.Ordinal);
     }
 
     private static string ReadRepositoryFile(params string[] components) =>

@@ -1980,7 +1980,30 @@ public sealed class OneShotAdministrationTests
     }
 
     [Fact]
-    public void ProductProfileIsTypedFrozenAndLeavesCredentialReferenceLazy()
+    public async Task ProductProfileLeavesRenderDocumentUnavailableWithoutStartingAWorker()
+    {
+        using var root = TemporaryAdministrationRoot.Create();
+        await SqliteStoreProvisioner.ApplyMigrationsAsync(root.CreateStoreOptions());
+        await File.WriteAllTextAsync(Path.Combine(root.InputRoot, "render.json"), "{}");
+
+        var result = await RunProgramAsync(
+            MutationArguments(
+                "render-document",
+                "product-renderer-containment-operation",
+                "render.json"),
+            root,
+            ProductAdministrativeMaterialisationProfile.ProfileName,
+            environment: "Production",
+            enableProductProfile: true);
+
+        AssertCanonicalFailure(
+            result,
+            AdministrationExitCode.DependencyUnavailable,
+            "CH_ADMIN_CAPABILITY_NOT_COMPOSED");
+    }
+
+    [Fact]
+    public void ProductProfileIsTypedTextFirstAndLeavesCredentialReferenceLazy()
     {
         using var root = TemporaryAdministrationRoot.Create();
         var credentialReads = 0;
@@ -2005,14 +2028,7 @@ public sealed class OneShotAdministrationTests
             {
                 credentialReads++;
                 throw new InvalidOperationException("A credential must stay lazy.");
-            },
-            options => new SqliteControlPlaneStore(options),
-            () => new IsolatedPdfRendererProcess(new RendererWorkerLaunch(
-                "synthetic-renderer.exe",
-                [],
-                "win-x64")),
-            () => new PngPageImageValidator(),
-            () => new NoticeBearingPageImageCompositor());
+            });
         var ports = ProductAdministrativeMaterialisationProfile.Resolve(
             ProductProfileConfiguration(),
             root.CreateStoreOptions(),
@@ -2021,11 +2037,11 @@ public sealed class OneShotAdministrationTests
         Assert.Same(authority, ports.OfficialSourceAuthorityResolver);
         Assert.Same(transport, ports.OfficialSourceTransport);
         Assert.NotNull(ports.EmbeddingProvider);
-        Assert.NotNull(ports.RenderManifestStore);
-        Assert.NotNull(ports.PdfPageRenderer);
-        Assert.NotNull(ports.PngPageImageValidator);
-        Assert.NotNull(ports.NoticeBearingCompositor);
-        Assert.Same(ports.NoticeBearingCompositor, ports.NoticeBearingValidator);
+        Assert.Null(ports.RenderManifestStore);
+        Assert.Null(ports.PdfPageRenderer);
+        Assert.Null(ports.PngPageImageValidator);
+        Assert.Null(ports.NoticeBearingCompositor);
+        Assert.Null(ports.NoticeBearingValidator);
         Assert.Same(
             ProductAdministrativeMaterialisationProfile.CompatibilityProfile,
             ports.IndexCompatibilityProfile);
@@ -2055,7 +2071,7 @@ public sealed class OneShotAdministrationTests
     [Theory]
     [InlineData("RagChallenge:Administration:ProductMaterialisation:Enabled", "false")]
     [InlineData("RagChallenge:Administration:ProductMaterialisation:OfficialSource:Enabled", "false")]
-    [InlineData("RagChallenge:Administration:ProductMaterialisation:Rendering:Enabled", "false")]
+    [InlineData("RagChallenge:Administration:ProductMaterialisation:Rendering:Enabled", "true")]
     [InlineData("RagChallenge:Administration:ProductMaterialisation:Rendering:ProfileId", "pdf-page-png-v1")]
     [InlineData("RagChallenge:Administration:ProductMaterialisation:Embedding:Dimensions", "3072")]
     [InlineData("RagChallenge:Administration:ProductMaterialisation:Embedding:ModelRevision", "drifted")]
@@ -2669,7 +2685,7 @@ public sealed class OneShotAdministrationTests
             startInfo.Environment[
                 "RagChallenge__Administration__ProductMaterialisation__OfficialSource__Enabled"] = "true";
             startInfo.Environment[
-                "RagChallenge__Administration__ProductMaterialisation__Rendering__Enabled"] = "true";
+                "RagChallenge__Administration__ProductMaterialisation__Rendering__Enabled"] = "false";
             startInfo.Environment[
                 "RagChallenge__Administration__ProductMaterialisation__Rendering__ProfileId"] = "pdf-page-png-notice-v1";
             startInfo.Environment[
@@ -2725,7 +2741,7 @@ public sealed class OneShotAdministrationTests
         {
             ["RagChallenge:Administration:ProductMaterialisation:Enabled"] = "true",
             ["RagChallenge:Administration:ProductMaterialisation:OfficialSource:Enabled"] = "true",
-            ["RagChallenge:Administration:ProductMaterialisation:Rendering:Enabled"] = "true",
+            ["RagChallenge:Administration:ProductMaterialisation:Rendering:Enabled"] = "false",
             ["RagChallenge:Administration:ProductMaterialisation:Rendering:ProfileId"] = "pdf-page-png-notice-v1",
             ["RagChallenge:Administration:ProductMaterialisation:Embedding:Enabled"] = "true",
             ["RagChallenge:Administration:ProductMaterialisation:Embedding:ProviderId"] = "openai",

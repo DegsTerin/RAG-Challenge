@@ -1,6 +1,4 @@
-// Purpose: Composes the disabled-by-default product administration profile from exact typed configuration, persistent authority, notice-bearing rendering, ADR-0006 transport, and the accepted lazy OpenAI embedding descriptor.
-using System.Runtime.InteropServices;
-
+// Purpose: Composes the disabled-by-default text-first product administration profile while keeping PDF rendering fail-closed until the accepted sandbox exists.
 using Microsoft.Extensions.Configuration;
 
 using RagChallenge.Application.Documents;
@@ -103,33 +101,12 @@ internal static class ProductAdministrativeMaterialisationProfile
             credentialSource.ReadAsync,
             budgetAdmission,
             ProviderBudgetOperationClass.AdministrativeIndexEmbedding);
-        var renderManifestStore = selectedDependencies.RenderManifestStoreFactory(storeOptions) ??
-            throw new ArgumentException(
-                "The product render-manifest factory returned no store.",
-                nameof(dependencies));
-        var pdfRenderer = selectedDependencies.PdfPageRendererFactory() ??
-            throw new ArgumentException(
-                "The product PDF renderer factory returned no renderer.",
-                nameof(dependencies));
-        var pngValidator = selectedDependencies.PngPageImageValidatorFactory() ??
-            throw new ArgumentException(
-                "The product PNG validator factory returned no validator.",
-                nameof(dependencies));
-        var noticeCompositor = selectedDependencies.NoticeBearingCompositorFactory() ??
-            throw new ArgumentException(
-                "The product notice compositor factory returned no compositor.",
-                nameof(dependencies));
         return new AdministrativeMaterialisationPorts(
             LocalInputRoot: configuration["RagChallenge:Administration:InputRoot"],
             OfficialSourceAuthorityResolver: authorityResolver,
             OfficialSourceTransport: officialTransport,
             EmbeddingProvider: embeddingProvider,
-            IndexCompatibilityProfile: CompatibilityProfile,
-            RenderManifestStore: renderManifestStore,
-            PdfPageRenderer: pdfRenderer,
-            PngPageImageValidator: pngValidator,
-            NoticeBearingCompositor: noticeCompositor,
-            NoticeBearingValidator: noticeCompositor);
+            IndexCompatibilityProfile: CompatibilityProfile);
     }
 }
 
@@ -145,7 +122,7 @@ internal sealed class ProductAdministrativeMaterialisationOptions
 
     internal void Validate()
     {
-        if (!Enabled || !OfficialSource.Enabled || !Embedding.Enabled || !Rendering.Enabled ||
+        if (!Enabled || !OfficialSource.Enabled || !Embedding.Enabled || Rendering.Enabled ||
             !string.Equals(
                 Rendering.ProfileId,
                 ProductAdministrativeMaterialisationProfile.AcceptedRenderProfileId,
@@ -206,11 +183,7 @@ internal sealed record ProductAdministrativeMaterialisationDependencies(
     Func<SqliteStoreOptions, IOfficialSourceAuthorityResolver> AuthorityResolverFactory,
     Func<IOfficialSourceTransport> OfficialTransportFactory,
     Func<HttpClient> EmbeddingHttpClientFactory,
-    Func<string, string?> CredentialEnvironmentReader,
-    Func<SqliteStoreOptions, IDocumentRenderManifestStore> RenderManifestStoreFactory,
-    Func<IPdfPageRenderer> PdfPageRendererFactory,
-    Func<IPngPageImageValidator> PngPageImageValidatorFactory,
-    Func<NoticeBearingPageImageCompositor> NoticeBearingCompositorFactory)
+    Func<string, string?> CredentialEnvironmentReader)
 {
     internal static ProductAdministrativeMaterialisationDependencies CreateDefault() =>
         new(
@@ -223,25 +196,7 @@ internal sealed record ProductAdministrativeMaterialisationDependencies(
                 BaseAddress = new Uri("https://api.openai.com/", UriKind.Absolute),
                 Timeout = TimeSpan.FromSeconds(25),
             },
-            Environment.GetEnvironmentVariable,
-            options => new SqliteControlPlaneStore(options),
-            CreateDefaultPdfRenderer,
-            () => new PngPageImageValidator(),
-            () => new NoticeBearingPageImageCompositor());
-
-    private static IsolatedPdfRendererProcess CreateDefaultPdfRenderer()
-    {
-        var processPath = Environment.ProcessPath ??
-            throw new InvalidOperationException("The product renderer host path is unavailable.");
-        var isDotnetHost = string.Equals(
-            Path.GetFileNameWithoutExtension(processPath),
-            "dotnet",
-            StringComparison.OrdinalIgnoreCase);
-        return new IsolatedPdfRendererProcess(new RendererWorkerLaunch(
-            processPath,
-            isDotnetHost ? [typeof(Program).Assembly.Location] : [],
-            RuntimeInformation.RuntimeIdentifier));
-    }
+            Environment.GetEnvironmentVariable);
 }
 
 internal sealed record OpaqueEnvironmentCredentialReference

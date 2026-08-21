@@ -9,40 +9,27 @@ Set-StrictMode -Version Latest
 
 $serverRoot = $PSScriptRoot
 $repositoryRoot = [System.IO.Path]::GetFullPath((Join-Path $serverRoot "../.."))
-$dashboardRoot = Join-Path $repositoryRoot "src/RagChallenge.Dashboard.Web"
-$allowedRoot = [System.IO.Path]::GetFullPath((Join-Path $repositoryRoot "artifacts-local"))
-$resolvedOutput = if ([System.IO.Path]::IsPathFullyQualified($OutputRoot)) {
-    [System.IO.Path]::GetFullPath($OutputRoot)
-}
-else {
-    [System.IO.Path]::GetFullPath((Join-Path $repositoryRoot $OutputRoot))
-}
-$allowedPrefix = $allowedRoot.TrimEnd(
-    [System.IO.Path]::DirectorySeparatorChar,
-    [System.IO.Path]::AltDirectorySeparatorChar) +
-    [System.IO.Path]::DirectorySeparatorChar
+. (Join-Path $repositoryRoot "eng/owned-output-policy.ps1")
 
-if (-not $resolvedOutput.StartsWith(
-        $allowedPrefix,
-        [System.StringComparison]::OrdinalIgnoreCase)) {
-    throw "The integration artefact output must remain under artifacts-local."
-}
+$dashboardRoot = Join-Path $repositoryRoot "src/RagChallenge.Dashboard.Web"
+$canonicalOutputPath = "artifacts-local/state07-v2-integration"
+$outputPurpose = "state07-v2-integration-artifact"
+$outputOwner = "src/RagChallenge.Server.Api/Build-IntegrationArtifact.ps1"
+$resolvedOutput = Resolve-OwnedOutputRoot `
+    -RepositoryRoot $repositoryRoot `
+    -RequestedOutputRoot $OutputRoot `
+    -CanonicalRelativePath $canonicalOutputPath
 
 $contentRoot = Join-Path $resolvedOutput "content"
 $archivePath = Join-Path $resolvedOutput "rag-challenge-state07-v2-integration.zip"
 $archiveDigestPath = Join-Path $resolvedOutput "rag-challenge-state07-v2-integration.zip.sha256"
 
-if (Test-Path -LiteralPath $resolvedOutput) {
-    $verifiedOutput = [System.IO.Path]::GetFullPath($resolvedOutput)
-
-    if (-not $verifiedOutput.StartsWith(
-            $allowedPrefix,
-            [System.StringComparison]::OrdinalIgnoreCase)) {
-        throw "The existing integration artefact path failed containment validation."
-    }
-
-    Remove-Item -LiteralPath $verifiedOutput -Recurse -Force
-}
+$resolvedOutput = Reset-OwnedOutputRoot `
+    -RepositoryRoot $repositoryRoot `
+    -RequestedOutputRoot $OutputRoot `
+    -CanonicalRelativePath $canonicalOutputPath `
+    -Purpose $outputPurpose `
+    -Owner $outputOwner
 
 New-Item -ItemType Directory -Path $contentRoot -Force | Out-Null
 $env:npm_config_offline = "true"

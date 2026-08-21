@@ -1,7 +1,10 @@
 # Purpose: Verifies the offline STATE-06 Linux ARM64 rehearsal archive, manifest, native identities and fail-closed configuration without executing the ARM64 binary or contacting OCI.
 [CmdletBinding()]
 param(
-    [string]$OutputRoot = "artifacts-local/s06-oci-rehearsal"
+    [string]$OutputRoot = "artifacts-local/s06-oci-rehearsal",
+    [Parameter(Mandatory)]
+    [ValidatePattern('^[0-9a-f]{64}$')]
+    [string]$ExpectedArchiveSha256
 )
 
 $ErrorActionPreference = "Stop"
@@ -9,23 +12,26 @@ Set-StrictMode -Version Latest
 
 $serverRoot = $PSScriptRoot
 $repositoryRoot = [System.IO.Path]::GetFullPath((Join-Path $serverRoot "../.."))
-$allowedRoot = [System.IO.Path]::GetFullPath((Join-Path $repositoryRoot "artifacts-local"))
-$resolvedOutput = if ([System.IO.Path]::IsPathFullyQualified($OutputRoot)) {
-    [System.IO.Path]::GetFullPath($OutputRoot)
-}
-else {
-    [System.IO.Path]::GetFullPath((Join-Path $repositoryRoot $OutputRoot))
-}
-$allowedPrefix = $allowedRoot.TrimEnd(
-    [System.IO.Path]::DirectorySeparatorChar,
-    [System.IO.Path]::AltDirectorySeparatorChar) +
-    [System.IO.Path]::DirectorySeparatorChar
+. (Join-Path $repositoryRoot "eng/owned-output-policy.ps1")
 
-if (-not $resolvedOutput.StartsWith(
-        $allowedPrefix,
-        [System.StringComparison]::OrdinalIgnoreCase)) {
-    throw "The OCI rehearsal path must remain under artifacts-local."
-}
+$canonicalOutputPath = "artifacts-local/s06-oci-rehearsal"
+$outputPurpose = "s06-oci-rehearsal-artifact"
+$outputOwner = "src/RagChallenge.Server.Api/Build-OciRehearsalArtifact.ps1"
+$maximumArchiveBytes = 256MB
+$maximumArchiveEntries = 1024
+$maximumEntryBytes = 64MB
+$maximumExpandedBytes = 256MB
+$maximumCompressionRatio = 20
+$maximumManifestBytes = 256KB
+$resolvedOutput = Resolve-OwnedOutputRoot `
+    -RepositoryRoot $repositoryRoot `
+    -RequestedOutputRoot $OutputRoot `
+    -CanonicalRelativePath $canonicalOutputPath
+Assert-OwnedOutputRoot `
+    -OutputRoot $resolvedOutput `
+    -Purpose $outputPurpose `
+    -Owner $outputOwner `
+    -CanonicalRelativePath $canonicalOutputPath
 
 $archiveName = "rag-challenge-s06-linux-arm64.zip"
 $archivePath = Join-Path $resolvedOutput $archiveName
@@ -36,23 +42,36 @@ if (-not (Test-Path -LiteralPath $archivePath -PathType Leaf) -or
     throw "The OCI rehearsal archive or its digest file is absent."
 }
 
-$digestRecord = (Get-Content -LiteralPath $archiveDigestPath -Raw).Trim()
-$digestMatch = [System.Text.RegularExpressions.Regex]::Match(
-    $digestRecord,
-    "^(?<hash>[0-9a-f]{64})  rag-challenge-s06-linux-arm64[.]zip$")
-
-if (-not $digestMatch.Success) {
-    throw "The OCI rehearsal archive digest record is malformed."
+$archiveItem = Get-Item -LiteralPath $archivePath -Force
+$archiveDigestItem = Get-Item -LiteralPath $archiveDigestPath -Force
+if (($archiveItem.Attributes -band [System.IO.FileAttributes]::ReparsePoint) -ne 0 -or
+    $archiveItem.Length -le 0 -or
+    $archiveItem.Length -gt $maximumArchiveBytes -or
+    ($archiveDigestItem.Attributes -band [System.IO.FileAttributes]::ReparsePoint) -ne 0 -or
+    $archiveDigestItem.Length -le 0 -or
+    $archiveDigestItem.Length -gt 160) {
+    throw "The OCI rehearsal archive or digest file exceeds its safe boundary."
 }
 
-$actualArchiveDigest = (Get-FileHash -LiteralPath $archivePath -Algorithm SHA256).Hash.ToLowerInvariant()
-
-if ($actualArchiveDigest -cne $digestMatch.Groups["hash"].Value) {
-    throw "The OCI rehearsal archive digest does not match its recorded value."
+$expectedDigestRecord = [System.Text.UTF8Encoding]::new($false, $true).GetBytes(
+    "$ExpectedArchiveSha256  rag-challenge-s06-linux-arm64.zip`n")
+$actualDigestRecord = [System.IO.File]::ReadAllBytes($archiveDigestPath)
+if (-not [System.Linq.Enumerable]::SequenceEqual(
+        [byte[]]$actualDigestRecord,
+        [byte[]]$expectedDigestRecord)) {
+    throw "The OCI rehearsal archive digest record does not match the trusted digest."
 }
 
 function Read-ArchiveEntryText {
-    param([Parameter(Mandatory)]$Entry)
+    param(
+        [Parameter(Mandatory)]$Entry,
+        [ValidateRange(1, 4MB)]
+        [long]$MaximumBytes = $maximumManifestBytes
+    )
+
+    if ($Entry.Length -le 0 -or $Entry.Length -gt $MaximumBytes) {
+        throw "The OCI rehearsal text entry exceeds its bounded size."
+    }
 
     $stream = $Entry.Open()
     $reader = [System.IO.StreamReader]::new(
@@ -112,10 +131,32 @@ function Assert-AArch64Elf {
 }
 
 Add-Type -AssemblyName System.IO.Compression
-$archive = [System.IO.Compression.ZipFile]::OpenRead($archivePath)
+$archiveStream = [System.IO.File]::Open(
+    $archivePath,
+    [System.IO.FileMode]::Open,
+    [System.IO.FileAccess]::Read,
+    [System.IO.FileShare]::Read)
+$archive = $null
 
 try {
-    $entries = @($archive.Entries | Where-Object { -not $_.FullName.EndsWith("/") })
+    $actualArchiveDigest = [System.Convert]::ToHexString(
+        [System.Security.Cryptography.SHA256]::HashData($archiveStream)).ToLowerInvariant()
+    if ($actualArchiveDigest -cne $ExpectedArchiveSha256) {
+        throw "The OCI rehearsal archive does not match the trusted digest."
+    }
+
+    $archiveStream.Position = 0
+    $archive = [System.IO.Compression.ZipArchive]::new(
+        $archiveStream,
+        [System.IO.Compression.ZipArchiveMode]::Read,
+        $true)
+    $entries = @($archive.Entries)
+    if ($entries.Count -lt 2 -or
+        $entries.Count -gt $maximumArchiveEntries -or
+        @($entries | Where-Object { $_.FullName.EndsWith("/") }).Count -gt 0) {
+        throw "The OCI rehearsal archive entry count or shape exceeds its bounds."
+    }
+
     $entryNames = [string[]]@($entries.FullName)
     $sortedNames = [string[]]@($entryNames)
     [System.Array]::Sort($sortedNames, [System.StringComparer]::Ordinal)
@@ -127,6 +168,7 @@ try {
 
     $entriesByName = [System.Collections.Generic.Dictionary[string, object]]::new(
         [System.StringComparer]::Ordinal)
+    $totalExpandedBytes = [long]0
 
     foreach ($entry in $entries) {
         $entriesByName.Add($entry.FullName, $entry)
@@ -136,6 +178,20 @@ try {
             $entry.FullName.Split('/') -contains "..") {
             throw "The OCI rehearsal archive contains an unsafe entry path."
         }
+
+        $unixFileType = ($entry.ExternalAttributes -shr 16) -band 0xf000
+        if ($unixFileType -eq 0xa000 -or
+            $entry.Length -lt 0 -or
+            $entry.CompressedLength -lt 0 -or
+            $entry.Length -gt $maximumEntryBytes -or
+            ($entry.Length -gt 0 -and $entry.CompressedLength -eq 0) -or
+            ($entry.CompressedLength -gt 0 -and
+                $entry.Length -gt ($entry.CompressedLength * $maximumCompressionRatio)) -or
+            $totalExpandedBytes -gt ($maximumExpandedBytes - $entry.Length)) {
+            throw "The OCI rehearsal archive contains an unsafe or oversized entry."
+        }
+
+        $totalExpandedBytes += $entry.Length
 
         if ($entry.FullName -match "(?i)(^|/)runtimes/win-" -or
             $entry.FullName -match "(?i)[.](exe|com|cmd|bat|ps1)$") {
@@ -262,7 +318,7 @@ try {
             continue
         }
 
-        $text = Read-ArchiveEntryText $entry
+        $text = Read-ArchiveEntryText -Entry $entry -MaximumBytes 4MB
 
         if ($text -match "-----BEGIN (?:RSA |EC |OPENSSH )?PRIVATE KEY-----" -or
             $text -match '(?i)(?:api[_-]?key|client[_-]?secret|password|connectionstring)[\s"'']*[:=][\s"'']+[^"''\s]{4,}' -or
@@ -290,5 +346,9 @@ try {
     } | ConvertTo-Json -Compress
 }
 finally {
-    $archive.Dispose()
+    if ($null -ne $archive) {
+        $archive.Dispose()
+    }
+
+    $archiveStream.Dispose()
 }

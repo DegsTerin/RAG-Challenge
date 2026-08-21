@@ -7,25 +7,12 @@ param(
 $ErrorActionPreference = "Stop"
 Set-StrictMode -Version Latest
 
-$repositoryRoot = [System.IO.Path]::GetFullPath((Join-Path $PSScriptRoot ".."))
-$allowedOutputRoot = [System.IO.Path]::GetFullPath(
-    (Join-Path $repositoryRoot "artifacts-local"))
-$resolvedOutputRoot = if ([System.IO.Path]::IsPathFullyQualified($OutputRoot)) {
-    [System.IO.Path]::GetFullPath($OutputRoot)
-}
-else {
-    [System.IO.Path]::GetFullPath((Join-Path $repositoryRoot $OutputRoot))
-}
-$allowedOutputPrefix = $allowedOutputRoot.TrimEnd(
-    [System.IO.Path]::DirectorySeparatorChar,
-    [System.IO.Path]::AltDirectorySeparatorChar) +
-    [System.IO.Path]::DirectorySeparatorChar
+. (Join-Path $PSScriptRoot "render-free-output-policy.ps1")
 
-if (-not $resolvedOutputRoot.StartsWith(
-        $allowedOutputPrefix,
-        [System.StringComparison]::OrdinalIgnoreCase)) {
-    throw "The Render Free package output must remain under artifacts-local."
-}
+$repositoryRoot = [System.IO.Path]::GetFullPath((Join-Path $PSScriptRoot ".."))
+$resolvedOutputRoot = Resolve-RenderFreePackageOutputRoot `
+    -RepositoryRoot $repositoryRoot `
+    -RequestedOutputRoot $OutputRoot
 
 $expectedStoreRoot = [System.IO.Path]::GetFullPath((Join-Path $repositoryRoot (
             "artifacts-local/state-07/product-materialisation/" +
@@ -76,6 +63,8 @@ try {
         throw "The activated PostgreSQL product store cannot be a reparse point."
     }
 
+    Assert-OwnedOutputTreeIsSafe -Root $expectedStoreRoot
+
     foreach ($requiredPath in @(
             (Join-Path $expectedStoreRoot "control.db"),
             (Join-Path $expectedStoreRoot "vectors.db"),
@@ -92,16 +81,9 @@ try {
         throw "The product store contains an open SQLite WAL or shared-memory file."
     }
 
-    if (Test-Path -LiteralPath $resolvedOutputRoot) {
-        $verifiedExistingOutput = [System.IO.Path]::GetFullPath($resolvedOutputRoot)
-        if (-not $verifiedExistingOutput.StartsWith(
-                $allowedOutputPrefix,
-                [System.StringComparison]::OrdinalIgnoreCase)) {
-            throw "The existing Render Free package path failed containment validation."
-        }
-
-        Remove-Item -LiteralPath $verifiedExistingOutput -Recurse -Force
-    }
+    $resolvedOutputRoot = Reset-RenderFreePackageOutput `
+        -RepositoryRoot $repositoryRoot `
+        -RequestedOutputRoot $OutputRoot
 
     New-Item -ItemType Directory -Path $releaseRoot -Force | Out-Null
     New-Item -ItemType Directory -Path $seedRoot -Force | Out-Null
@@ -167,10 +149,12 @@ try {
         }
     }
 
+    Assert-OwnedOutputTreeIsSafe -Root $expectedStoreRoot
     Copy-Item -LiteralPath (Join-Path $expectedStoreRoot "control.db") -Destination $seedRoot
     Copy-Item -LiteralPath (Join-Path $expectedStoreRoot "vectors.db") -Destination $seedRoot
     Copy-Item -LiteralPath (Join-Path $expectedStoreRoot "content") -Destination $seedRoot -Recurse
 
+    Assert-OwnedOutputTreeIsSafe -Root $seedRoot
     $seedPaths = [string[]](Get-ChildItem -LiteralPath $seedRoot -Recurse -File |
         ForEach-Object {
             [System.IO.Path]::GetRelativePath($seedRoot, $_.FullName).Replace('\', '/')
@@ -193,6 +177,95 @@ try {
         -Destination $readinessStoreRoot
     Copy-Item -LiteralPath (Join-Path $seedRoot "content") `
         -Destination $readinessStoreRoot -Recurse
+
+    $offlineOperationId = "render-package-status-$($head.Substring(0, 12))"
+    $administrativeStartInfo = [System.Diagnostics.ProcessStartInfo]::new()
+    $administrativeStartInfo.FileName = (Get-Command dotnet).Source
+    $administrativeStartInfo.WorkingDirectory = $rawPublishRoot
+    $administrativeStartInfo.UseShellExecute = $false
+    $administrativeStartInfo.CreateNoWindow = $true
+    $administrativeStartInfo.RedirectStandardOutput = $true
+    $administrativeStartInfo.RedirectStandardError = $true
+    foreach ($argument in @(
+            "RagChallenge.Server.Api.dll",
+            "admin",
+            "status",
+            "--operation-id",
+            $offlineOperationId,
+            "--corpus-id",
+            "rag-challenge-product",
+            "--reason",
+            "Verify the private Render Free seed offline.")) {
+        $administrativeStartInfo.ArgumentList.Add($argument)
+    }
+
+    $administrativeStartInfo.Environment.Clear()
+    $temporaryDirectory = [System.IO.Path]::GetTempPath()
+    $administrativeStartInfo.Environment["TEMP"] = $temporaryDirectory
+    $administrativeStartInfo.Environment["TMP"] = $temporaryDirectory
+    if ($IsWindows) {
+        $windowsDirectory = [System.IO.Directory]::GetParent(
+            [System.Environment]::SystemDirectory).FullName
+        $administrativeStartInfo.Environment["SystemRoot"] = $windowsDirectory
+        $administrativeStartInfo.Environment["WINDIR"] = $windowsDirectory
+    }
+    $administrativeStartInfo.Environment["DOTNET_ENVIRONMENT"] = "Production"
+    $administrativeStartInfo.Environment["ASPNETCORE_ENVIRONMENT"] = "Production"
+    $administrativeStartInfo.Environment[
+        "RagChallenge__Administration__Enabled"] = "true"
+    $administrativeStartInfo.Environment[
+        "RagChallenge__Administration__ApplyMigrations"] = "false"
+    $administrativeStartInfo.Environment[
+        "RagChallenge__Administration__StoreRoot"] = $readinessStoreRoot
+    $administrativeStartInfo.Environment["Logging__LogLevel__Default"] = "Warning"
+
+    $administrativeProcess = [System.Diagnostics.Process]::Start($administrativeStartInfo)
+    try {
+        $administrativeOutputTask = $administrativeProcess.StandardOutput.ReadToEndAsync()
+        $administrativeErrorTask = $administrativeProcess.StandardError.ReadToEndAsync()
+        if (-not $administrativeProcess.WaitForExit(60000)) {
+            $administrativeProcess.Kill($true)
+            throw "The offline package status command exceeded its bounded duration."
+        }
+
+        $administrativeOutput = $administrativeOutputTask.GetAwaiter().GetResult().Trim()
+        $administrativeError = $administrativeErrorTask.GetAwaiter().GetResult().Trim()
+        if ($administrativeProcess.ExitCode -ne 0 -or
+            -not [string]::IsNullOrWhiteSpace($administrativeError) -or
+            [string]::IsNullOrWhiteSpace($administrativeOutput) -or
+            [System.Text.Encoding]::UTF8.GetByteCount($administrativeOutput) -gt 32768 -or
+            @($administrativeOutput -split "`r?`n").Count -ne 1) {
+            throw "The offline package status command failed its bounded contract."
+        }
+
+        try {
+            $administrativeStatus = $administrativeOutput | ConvertFrom-Json -Depth 10
+        }
+        catch {
+            throw "The offline package status command returned invalid JSON."
+        }
+
+        if ($administrativeStatus.status -cne "Applied" -or
+            $administrativeStatus.resultCode -cne "CH_ADMIN_STATUS_AVAILABLE" -or
+            $administrativeStatus.command -cne "status" -or
+            $administrativeStatus.operationId -cne $offlineOperationId -or
+            $administrativeStatus.corpusId -cne "rag-challenge-product" -or
+            $administrativeStatus.resultRevision -isnot [long] -or
+            $administrativeStatus.resultRevision -le 0 -or
+            $null -ne $administrativeStatus.resultPayload) {
+            throw "The offline package status identity diverged."
+        }
+
+        $offlineStatusRevision = [long]$administrativeStatus.resultRevision
+    }
+    finally {
+        if (-not $administrativeProcess.HasExited) {
+            $administrativeProcess.Kill($true)
+            $null = $administrativeProcess.WaitForExit(10000)
+        }
+
+        $administrativeProcess.Dispose()
+    }
 
     $portReservation = [System.Net.Sockets.TcpListener]::new(
         [System.Net.IPAddress]::Loopback,
@@ -243,38 +316,55 @@ try {
 
     $readinessProcess = [System.Diagnostics.Process]::Start($startInfo)
     try {
+        $readinessOutputTask = $readinessProcess.StandardOutput.ReadToEndAsync()
+        $readinessErrorTask = $readinessProcess.StandardError.ReadToEndAsync()
         $deadline = [System.DateTimeOffset]::UtcNow.AddSeconds(60)
         $readiness = $null
+        $readinessResponse = $null
 
         do {
             if ($readinessProcess.HasExited) {
-                $sanitisedError = $readinessProcess.StandardError.ReadToEnd().Trim()
-                throw "The package readiness probe exited early: $sanitisedError"
+                throw "The package readiness probe exited before a bounded response."
             }
 
             try {
-                $readiness = Invoke-RestMethod `
+                $readinessResponse = Invoke-WebRequest `
                     -Uri "http://127.0.0.1:$readinessPort/api/v1/health/ready" `
-                    -TimeoutSec 3
+                    -TimeoutSec 3 `
+                    -SkipHttpErrorCheck
+                $readiness = $readinessResponse.Content | ConvertFrom-Json -Depth 10
             }
             catch {
                 Start-Sleep -Milliseconds 150
             }
         } while ($null -eq $readiness -and [System.DateTimeOffset]::UtcNow -lt $deadline)
 
+        $readinessChecks = if ($null -eq $readiness) {
+            @()
+        }
+        else {
+            @($readiness.checks)
+        }
         if ($null -eq $readiness -or
-            $readiness.status -cne "Ready" -or
-            $readiness.activeGenerationId -cne $expectedGeneration -or
-            $readiness.activeDatabaseCount -ne 1 -or
-            $readiness.eligibleDocumentCount -ne 1 -or
-            $readiness.configurationRevision -cne "postgresql-18.4-product-v1") {
-            throw "The package readiness identity diverged."
+            $null -eq $readinessResponse -or
+            [int]$readinessResponse.StatusCode -ne 503 -or
+            $readiness.status -cne "Unready" -or
+            $null -ne $readiness.activeGenerationId -or
+            $readiness.activeDatabaseCount -ne 0 -or
+            $readiness.eligibleDocumentCount -ne 0 -or
+            $readiness.configurationRevision -cne "postgresql-18.4-product-v1" -or
+            $readinessChecks.Count -ne 1 -or
+            $readinessChecks[0].capability -cne "provider-budget" -or
+            $readinessChecks[0].state -cne "Disarmed") {
+            throw "The package fail-closed readiness identity diverged."
         }
 
-        $liveness = Invoke-RestMethod `
+        $livenessResponse = Invoke-WebRequest `
             -Uri "http://127.0.0.1:$readinessPort/api/v1/health/live" `
-            -TimeoutSec 3
-        if ($liveness.status -cne "Live") {
+            -TimeoutSec 3 `
+            -SkipHttpErrorCheck
+        $liveness = $livenessResponse.Content | ConvertFrom-Json -Depth 10
+        if ([int]$livenessResponse.StatusCode -ne 200 -or $liveness.status -cne "Live") {
             throw "The package liveness probe diverged."
         }
     }
@@ -286,6 +376,8 @@ try {
             }
         }
 
+        $null = $readinessOutputTask.GetAwaiter().GetResult()
+        $null = $readinessErrorTask.GetAwaiter().GetResult()
         $readinessProcess.Dispose()
     }
 
@@ -302,7 +394,7 @@ try {
         source = [ordered]@{
             branch = $branch
             head = $head
-            corpus = "4.10.40"
+            corpus = "4.18.6"
         }
         hosting = [ordered]@{
             provider = "render"
@@ -320,7 +412,13 @@ try {
             expectedActiveDatabaseCount = 1
             expectedEligibleDocumentCount = 1
             answerEvidencePersistence = "ephemeral-per-process-lifetime"
-            loopbackReadinessValidated = $true
+            offlineAdministrativeStatusValidated = $true
+            administrativeStatusResultCode = "CH_ADMIN_STATUS_AVAILABLE"
+            administrativeStatusCorpusId = "rag-challenge-product"
+            administrativeStatusRevision = $offlineStatusRevision
+            failClosedReadinessValidated = $true
+            providerBudgetState = "Disarmed"
+            loopbackLivenessValidated = $true
         }
         release = [ordered]@{
             framework = "net10.0"
@@ -341,8 +439,10 @@ try {
             dockerInvoked = $false
             imagePublished = $false
             renderContacted = $false
-            providerCalled = $false
-            credentialRead = $false
+            providerQuerySubmitted = $false
+            providerCredentialConfigured = $false
+            trustedProviderGrantConfigured = $false
+            egressObservationPerformed = $false
         }
     }
     [System.IO.File]::WriteAllText(
@@ -369,20 +469,12 @@ try {
         ([string]::Join("`n", $contextManifestLines) + "`n"),
         $utf8WithoutBom)
 
-    $verifiedRawPublishRoot = [System.IO.Path]::GetFullPath($rawPublishRoot)
-    if (-not $verifiedRawPublishRoot.StartsWith(
-            $allowedOutputPrefix,
-            [System.StringComparison]::OrdinalIgnoreCase)) {
-        throw "The temporary publish path failed containment validation."
-    }
-    Remove-Item -LiteralPath $verifiedRawPublishRoot -Recurse -Force
-    $verifiedReadinessStoreRoot = [System.IO.Path]::GetFullPath($readinessStoreRoot)
-    if (-not $verifiedReadinessStoreRoot.StartsWith(
-            $allowedOutputPrefix,
-            [System.StringComparison]::OrdinalIgnoreCase)) {
-        throw "The temporary readiness store path failed containment validation."
-    }
-    Remove-Item -LiteralPath $verifiedReadinessStoreRoot -Recurse -Force
+    Remove-RenderFreePackageTransientDirectory `
+        -OutputRoot $resolvedOutputRoot `
+        -LeafName ".publish-raw"
+    Remove-RenderFreePackageTransientDirectory `
+        -OutputRoot $resolvedOutputRoot `
+        -LeafName ".readiness-store"
 
     [pscustomobject]@{
         Status = "Prepared"
