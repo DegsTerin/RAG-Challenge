@@ -1050,7 +1050,7 @@
         "occurrences": 2,
         "contextHashes": [
           "e94f408edf5efb6102e3d2bcfd357ea4d922a5adc1fcd905e62ae22579cbf02c",
-          "b44364d37b8412b93d77a987422225d40e5b5c92fc235631d12c50be93dbf3bd"
+          "ff3bb3d767b1e83134cfbc4d95e012ab7e0208382feec95324436c18d1a7b5f3"
         ]
       },
       {
@@ -1099,11 +1099,9 @@
         "classification": "CANONICAL_STORAGE_LITERAL",
         "kind": "LITERAL",
         "value": "artifacts-local",
-        "occurrences": 4,
+        "occurrences": 2,
         "contextHashes": [
           "4792a26cf3183e9779ad3bfd6dfb08e38a419a98d7b6f5270d47bbc80a15cdd4",
-          "5a83f82e7056fe2ed87a270c35e416eb6790f55586c7bebc6712ac4b72c85f7a",
-          "1242bec5a056e6cca64d6583bf0fe54a7b06a2d05ce1f2560fc24d24e0b2bccd",
           "a963759eb10b8390864e10f38aa4f08c4babd197aa9f533fc6345b60c018b4a4"
         ]
       },
@@ -1152,11 +1150,9 @@
         "classification": "CANONICAL_STORAGE_LITERAL",
         "kind": "LITERAL",
         "value": "artifacts-local",
-        "occurrences": 3,
+        "occurrences": 1,
         "contextHashes": [
-          "4792a26cf3183e9779ad3bfd6dfb08e38a419a98d7b6f5270d47bbc80a15cdd4",
-          "5a83f82e7056fe2ed87a270c35e416eb6790f55586c7bebc6712ac4b72c85f7a",
-          "7bbfc88330de5d9b330df94bc7954ffbf75e9f91701dcd745c7cd7f8409b36f8"
+          "4792a26cf3183e9779ad3bfd6dfb08e38a419a98d7b6f5270d47bbc80a15cdd4"
         ]
       },
       {
@@ -1187,7 +1183,7 @@
         "value": "Build-IntegrationArtifact.ps1",
         "occurrences": 1,
         "contextHashes": [
-          "cce82c720d4359cccc0e1fc43f007635e86d67a521845e61c52d5af809d3b1d1"
+          "c07594d886c86c61e3b1cfca3ca5f361a47a6824cbf7b4b8c37b88821598e108"
         ]
       },
       {
@@ -1197,7 +1193,7 @@
         "value": "Build-OciRehearsalArtifact.ps1",
         "occurrences": 1,
         "contextHashes": [
-          "990ef716eea211bff193b2cd513ba1d043c8316de0bfebb7d0a820b749937ab5"
+          "7b20557b7b83ff492a1be5c5139dec925410b8be03ee3bf4f7dea12ef32055fb"
         ]
       },
       {
@@ -1207,7 +1203,7 @@
         "value": "Test-IntegrationArtifact.ps1",
         "occurrences": 1,
         "contextHashes": [
-          "2e288d93fb665fc153a59680e6f48846cbef308d573423a5ab4287cd5435d795"
+          "ad8a81fcfa8ecc34113b18ad44e689974683c14c402fecaf5d0f194360e71d00"
         ]
       },
       {
@@ -1217,7 +1213,7 @@
         "value": "Test-OciRehearsalArtifact.ps1",
         "occurrences": 1,
         "contextHashes": [
-          "878d381916697403474742f8ae41a0674260584ddbc64121a455645086073665"
+          "2d65cf66b605a83152f45c2a9162a95446e3fd5f006bf5f43e25d98b4f599749"
         ]
       },
       {
@@ -1577,11 +1573,10 @@
         "classification": "CANONICAL_STORAGE_LITERAL",
         "kind": "LITERAL",
         "value": "artifacts-local",
-        "occurrences": 3,
+        "occurrences": 2,
         "contextHashes": [
           "28c5c0f8eca9d8e85ea96ae675ac7df71fea3eda0b9edbd2cf0b35ada8e5543d",
-          "c95002cc787c4ebf6d6757011430b9b477ab0ec627d2902eb3a0dde2e8aa5d90",
-          "37e00dfed28a8dfc14a2ed5743f96c96a236bea57334d6f5156171b02ab25a85"
+          "1d183b70900ebfe0ce68caae4828c9d35f1810b0cc1c4b8f257ad5f9d9b8172c"
         ]
       },
       {
@@ -1607,11 +1602,10 @@
         "classification": "CANONICAL_STORAGE_LITERAL",
         "kind": "LITERAL",
         "value": "artifacts-local",
-        "occurrences": 3,
+        "occurrences": 2,
         "contextHashes": [
           "83f797cf94c9805a860434f3e0a73eff5235b88a67bc87394912384e1d209a39",
-          "c95002cc787c4ebf6d6757011430b9b477ab0ec627d2902eb3a0dde2e8aa5d90",
-          "0835a4b7999f94a9b310012005ae0a9ad653603e98262cc4675a24794778b113"
+          "659d4624a8ce219e043b9fa7303e51bc83e4b3955380ab400aaa496f7952a4a8"
         ]
       },
       {
@@ -1679,11 +1673,10 @@
         "classification": "CANONICAL_STORAGE_LITERAL",
         "kind": "LITERAL",
         "value": "artifacts-local",
-        "occurrences": 3,
+        "occurrences": 2,
         "contextHashes": [
           "d3671bd8d3d1fc0f7f8365550ea9d7e6701433ff174450c4f2c9468c112a132a",
-          "9a158e4733c4c2fc4c6b574cc81ed27f9ea390b52603b59e0e4ee03a9e6d8b53",
-          "cb1f7d1e24032e1bd275dd850d0ac5771c919c1e98da7de5dcb1f14d2d2b475b"
+          "44d4f3184af14f514ab69b1780a61dba5073f9e18e0a19c8c369bdb75897ef03"
         ]
       },
       {
@@ -1711,11 +1704,10 @@
         "classification": "CANONICAL_STORAGE_LITERAL",
         "kind": "LITERAL",
         "value": "artifacts-local",
-        "occurrences": 3,
+        "occurrences": 2,
         "contextHashes": [
-          "83f797cf94c9805a860434f3e0a73eff5235b88a67bc87394912384e1d209a39",
-          "9a158e4733c4c2fc4c6b574cc81ed27f9ea390b52603b59e0e4ee03a9e6d8b53",
-          "20dfafed4be0ccf407e4f759c86b9f305f719d63c6c5cd5bc70008e07b0dee76"
+          "ca6a034284934ad79f07ecf93c2aca3f4b8c713e7fd5c99df7fcdd51c3be7187",
+          "25c2f0c29871c7efab0bd8495fc256e54ee9e2d6b48f591f3844e537ac345df6"
         ]
       },
       {
@@ -1794,19 +1786,10 @@
         "classification": "CANONICAL_CONTRACT_IDENTIFIER",
         "kind": "IDENTIFIER",
         "value": "LogicalArtifactDigest",
-        "occurrences": 1,
+        "occurrences": 2,
         "contextHashes": [
+          "3779043e0f9705d91bf341af6e397792a7b74d66295169c1080e8d3cc23a4de4",
           "82109c9e11c96c57a003172dbf26dfdfdcd65419646f6be86242e7231ce64a80"
-        ]
-      },
-      {
-        "path": "tests/RagChallenge.IntegrationTests/RenderFreePackageArtefactTests.cs",
-        "classification": "CANONICAL_STORAGE_LITERAL",
-        "kind": "LITERAL",
-        "value": "artifacts-local",
-        "occurrences": 1,
-        "contextHashes": [
-          "ccc256640649a143e61fdd3096c96cf8cbcf23849f13125d149c61733b06c8b7"
         ]
       },
       {
@@ -1857,7 +1840,7 @@
         "value": "artifact-manifest.sha256",
         "occurrences": 1,
         "contextHashes": [
-          "6fd110bea0939f26f6b39f3e090fc0d32cfac8d487185bee832706eee8f15f65"
+          "c337c4d4c562dcb9ea7085e371845d81a0cd04ac75e7c6e9924973ef1d443300"
         ]
       },
       {
@@ -1888,7 +1871,7 @@
         "value": "Test-IntegrationArtifact.ps1",
         "occurrences": 1,
         "contextHashes": [
-          "4070894f37fee3c4ad284f0f5c70e78069382a2a3cfb3dba120b045585c6dccc"
+          "6430f7144e624da9c4cd56688612ce3a6fdffa3c4c2ca90813047565b3ee0482"
         ]
       },
       {
@@ -2141,7 +2124,7 @@
         "classification": "SYNTHETIC_ENFORCEMENT_REGION",
         "startMarker": "    \"canonicalIdentifierAllowances\": [",
         "endMarker": "    ],\n    \"excludedRegions\": [",
-        "sha256": "b168f3b066ee06b70572048ebc9662aa5c7fe71181c124ce6cad537632b3d5b2"
+        "sha256": "c9f826c5ca0f0ab34ec0286a4a3680285fbfa2664295d83fbb3a6a490805fd92"
       },
       {
         "path": "eng/test-language-policy.mjs",
@@ -2271,5 +2254,5 @@
       }
     ]
   },
-  "digest": "sha256:13641e6cbe5d23e4a5d6430d1ce07d1d2fa820357ab88b81497208561be644e9"
+  "digest": "sha256:59e5240401c0f3681f7f9172e3779fa1c3686fc549cd52ecbdc1a1bb2e357657"
 }
