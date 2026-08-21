@@ -2,8 +2,8 @@
 
 ## Current version
 
-- Version: `4.18.6`
-- Date: 2026-08-20
+- Version: `4.19.1`
+- Date: 2026-08-21
 - Status: `STATE-07` active; ADR-0011 through ADR-0017 retain their recorded
   accepted dispositions and implemented or pending boundaries; PostgreSQL 18.4
   remains active at revision `1` in its validated text-first generation; the
@@ -41,7 +41,13 @@
   sandbox remains unimplemented; the
   operational provider budget remains zero and disarmed; ADR-0020 accepts
   concurrent but isolated Render and OCI deployment targets, while OCI
-  deployment, region and operational evidence remain unverified
+  deployment, region and operational evidence remain unverified; selective
+  local recovery preserves only validated historical evidence, stale stores
+  and PostgreSQL source intake; the local generated-artefact retention
+  capability completed its exact owner-approved partial-transaction recovery;
+  all 31,298,434 approved logical bytes and the empty ReadOnly root are deleted,
+  the journal is closed by `RECOVERY_COMPLETED`, and the protected workspace
+  boundaries remain intact
 - Scope: 13 active files under `prompts/`
 
 The corpus version is independent from the future software version.
@@ -54,6 +60,130 @@ The corpus version is independent from the future software version.
 
 Every change updates this file and, when necessary,
 [`../Start-Here.md`](../Start-Here.md).
+
+## 4.19.1 — 2026-08-21
+
+- Records the owner-approved schema-3 cleanup plan
+  `47ba01d8c744c711e459ee66f7ec75c55c04cfb1f6c8ed7b07ccd8305a0754a4`.
+  The first invocation stopped before staging on a conservative self-process
+  classification. The next invocation staged all six exact trees under
+  transaction `47ba01d8c744c711-cf4f62b2d5c14028958176ed2ff61d59`.
+- Records the durable partial result without reclassification: Application
+  output and Dashboard content, totalling 1,784,911 bytes, were deleted. The
+  empty Dashboard root remained because it was ReadOnly, while Domain,
+  Infrastructure, UnitTests and orchestrator outputs remain intact in staging
+  at their original hashes and total 29,513,523 bytes. All protected paths and
+  42 Git-visible WIP entries remained unchanged.
+- Corrects reversible delete-pending to combine the delete disposition with
+  `FILE_DISPOSITION_FLAG_IGNORE_READONLY_ATTRIBUTE` for files and directories,
+  without changing their stored attributes. ADS revalidation, cancellation and
+  handle-only deletion remain unchanged; no pathname fallback was introduced.
+- Adds exact transaction recovery to
+  `eng/Invoke-LocalArtefactRetention.ps1`. Recovery is dry-run by default and
+  binds the strict journal shape and SHA-256, transaction and staging identity,
+  original plan, current executor/Git/WIP/protected boundaries, the empty
+  measured partial root and every intact remaining tree. Any late, unexpected
+  or divergent data is `PRESERVE_UNCERTAIN`.
+- Adds separately approved `-ApplyRecovery`, which revalidates the plan under
+  the repository mutex, WIP locks and transaction handles, writes durable
+  recovery events, deletes only approved staged handles, closes the journal to
+  history and makes `RECOVERY_COMPLETED` prevent original-plan replay.
+- Records the owner's exact recovery-plan approval and successful material
+  continuation. Handle-only recovery deleted the empty ReadOnly Dashboard root
+  and the four intact staged trees, totalling 29,513,523 logical bytes. Together
+  with the 1,784,911 bytes deleted before the partial failure, the complete
+  transaction removed 31,298,434 logical bytes. Observed free space increased
+  by 30,625,792 bytes.
+- Records the closed 9,967-byte history journal at SHA-256
+  `42719a159f31aa2ba029557ff67f6643dc75eeccbf7ae5215aefa26867be46c7`,
+  with one terminal `RECOVERY_COMPLETED` and no remaining active transaction
+  root. All six original output paths are absent and only regenerable; no
+  restoration was attempted.
+- Extends synthetic tests for ReadOnly files and roots, reversible cancellation
+  with attributes preserved, empty-root partial recovery, exact approval
+  refusal, durable recovery completion, completed-plan replay refusal and
+  late-writer preservation. The complete focused suite passes.
+- Records passing PowerShell parsing, the repository audit across 445
+  non-ignored files, Git diff hygiene, focal UTF-8/LF/final-newline and
+  trailing-whitespace checks, and the production pathname-fallback audit. The
+  language checker exits `1` with the recorded protected-control exceptional
+  review requirement; this mechanical `FAIL` remains unchanged.
+- The exceptional manual disposition covers only this directly necessary
+  protected correction. The prior mechanical `Language policy FAIL` remains a
+  failure and is not reclassified. All 42 Git-visible WIP entries and 14
+  protected boundaries remained intact through recovery; the focused local
+  commit remains limited to the six authorised policy files.
+- Classification: `PATCH`, because this revision corrects and recovers the new
+  local retention capability without changing product/runtime or lifecycle
+  authority.
+- No provider, credential, paid service, external source, OCI, deployment,
+  push, PR, merge, Human Gate or lifecycle action occurred.
+
+## 4.19.0 — 2026-08-21
+
+- Records `RECOVERY-OCI-SELECTIVE` on exact baseline
+  `main@a25921d952b8f68498235c7449449da7f4e73238`, preserving all 36
+  pre-existing WIP entries and limiting OneDrive hydration to the files used by
+  the selective recovery.
+- Records byte-verified recovery of the historical RB-2 and RB-3 sets in
+  quarantine, the seven-revision historical orchestrator run, canonical
+  PostgreSQL source intake and dated PostgreSQL/Oracle stores explicitly barred
+  from activation. Oracle source-intake provenance remains `UNCERTAIN`; current
+  stores and current integration/OCI output remain lost as exact identities and
+  were not recreated.
+- Adds the local generated-artefact retention authority to the existing Quality
+  Gates owner without duplicating product data-retention authority. The policy
+  preserves protected roots, WIP, active evidence, current/rollback candidates,
+  active caches and uncertain data; it defines the bounded retention and
+  deletion classes approved by the owner.
+- Adds `eng/Invoke-LocalArtefactRetention.ps1`, which is dry-run by default and
+  requires exact plan, Git-status, Git-visible WIP-identity and one-shot legacy
+  ownership-attestation SHA-256 values for `-Apply`. It binds all Git-visible
+  WIP through no-content-read structural metadata and locks those exact items
+  against concurrent writes. WIP and target identities bind Windows change
+  time, volume and file ID; named alternate data streams block deletion without
+  being read. Targets pass through a same-volume, marker-owned, durably
+  journalled transaction. Legacy contents remain unread. Files are armed with
+  reversible non-POSIX delete-pending and rechecked through their own handles;
+  every armed disposition is cancelled on pre-commit divergence, and only a
+  complete post-arm check permits handle closure. Directories use the same
+  sequence in deepest-first order. Deletion is performed only through approved
+  object handles, never by pathname. The resolved Git
+  executable remains handle-locked, and hermetic Git calls reject inherited
+  redirection/configuration before establishing the plan. Completed plan
+  identities cannot be replayed. A stale preloaded native helper type is
+  rejected before dry-run.
+- Adds `eng/test-local-artefact-retention.ps1` for literal paths, protected
+  roots, ignored parents, tracked work, ownership markers, reparse points,
+  same-path WIP and executor drift, unread secret boundaries, evidence release,
+  process/parentage classification, handle-bound same-path replacement refusal,
+  equal-length WIP/target drift, alternate streams, hostile Git redirection,
+  compatible-share pre-arm detection and preservation, post-arm
+  alternate-stream rejection, reversible-disposition cancellation, stale
+  native-helper injection,
+  staging-directory identity, transactional staging, late-writer preservation,
+  history shape, one-shot-plan consumption and durable partial-deletion evidence.
+- Focused policy tests pass, including junction-based reparse-point, unread
+  arbitrarily named content, late-writer, reversible deletion cancellation and
+  second-target failure cases. The pre-correction dry-run was unblocked and
+  identified six exact `bin/`/`dist/` roots
+  totalling 31,298,434 bytes, each requiring one-shot owner attestation. Three
+  other `bin/` roots totalling 3,913,370,016 bytes remain preserved in full,
+  without content reads, because they contain configuration copies. Fresh
+  `TestResults/` remains preserved within its seven-day evidence window and
+  cannot expire by age alone. The mechanical language check exits `1` with the
+  expected protected-control exceptional-review requirement; the focal PASS
+  does not erase or reclassify that failure.
+- No real `-Apply` or local policy commit has occurred. The exact final plan and
+  all four approval digests require owner approval, and the protected
+  `Quality-Gates.md` diff requires independent semantic review and an
+  exceptional manual disposition. Neither requirement is a Human Gate or
+  lifecycle transition.
+- Classification: `MINOR`, because this revision introduces a new executable
+  repository-local retention capability and safety policy without breaking the
+  existing gate flow or changing product/runtime contracts.
+- No provider, credential, paid service, external source, OCI, deployment,
+  push, PR, merge, Human Gate or lifecycle action occurred.
 
 ## 4.18.6 — 2026-08-20
 

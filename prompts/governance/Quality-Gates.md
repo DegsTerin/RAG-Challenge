@@ -170,6 +170,152 @@ validator. Its use is coordinator-only, requires reviewed scope and must never
 alter prompts or the owner's local work for convenience. The validation
 command remains `dotnet format --verify-no-changes` inside the canonical gate.
 
+## Local generated artefact retention and cleanup
+
+This section governs repository-local generated outputs only. Product data
+retention, reachability, tombstones and physical deletion remain owned by
+[Security and Access](Security-And-Access.md); local cleanup must not interpret
+or replace those controls.
+
+Local retention is fail-closed:
+
+- `.git/`, every tracked file, Git-visible untracked work, `.env.local`, secret
+  or configuration sources, `corpus/`, `reference-materials/`, source intake,
+  active stores, rights evidence, human freezes and any item classified
+  `UNCERTAIN` are preserved without automatic cleanup;
+- the current OCI candidate and one validated rollback per artefact type are
+  preserved, as are ARM64 caches while the corresponding RID and lockfile are
+  active;
+- `node_modules/` and `obj/` are preserved during active work and may be
+  considered only after a reproducible locked restore has been proved and the
+  exact directory has received a separate approved plan;
+- test and coverage results are retained for seven days or until their owning
+  canonical gate no longer depends on them; failure diagnostics are retained
+  for seven days and for the complete duration of an open incident;
+- caches remain only while their exact lockfile, tool version and RID are
+  active; candidate and rollback retention never silently promotes a stale or
+  quarantined artefact;
+- reproducible `bin/` and `dist/` directories, expired `TestResults/`, exact
+  empty temporary directories, superseded generations whose identity and
+  result are preserved canonically, and extracted content replaced by its
+  validated archive and digest may become deletion candidates.
+
+`eng/Invoke-LocalArtefactRetention.ps1` is the only repository-wide local
+cleanup entry point. It is dry-run by default and has a closed set of literal
+generated-output paths. `-Apply` requires the exact owner-approved plan,
+Git-status, Git-visible WIP-identity and legacy ownership-attestation SHA-256
+values emitted by that dry-run. The WIP identity binds the NUL-safe status,
+raw Git change metadata and exact path, type, size, timestamps and attributes
+of every Git-visible tracked or untracked item without opening its content.
+File change time, volume identity and Windows file ID are included for each
+existing WIP file. Secret and configuration WIP therefore remains unread and
+structurally preserved; an unsafe, unmeasurable or reparse-point WIP path is
+`UNCERTAIN` and blocks apply. The executor and resolved Git executable are
+separately bound by content hashes as trusted tooling. Every Git subprocess is
+fixed to the canonical `.git` directory and worktree, rejects inherited
+`GIT_*` redirection and disables external configuration, file-system monitors
+and hooks. Legacy generated roots also remain unread: their structural
+identity includes every relative path, item type, byte count, timestamps,
+attributes, volume identity and Windows file ID. Any named NTFS alternate data
+stream makes the complete target `UNCERTAIN`; stream content is never read.
+Deletion first arms every approved file handle with reversible, non-POSIX
+delete-pending with `FILE_DISPOSITION_FLAG_IGNORE_READONLY_ATTRIBUTE`, without
+changing the stored attributes, then enumerates stream metadata again through
+the same handle. This state must reject a new named stream even when its writer
+permits delete sharing. Any stream or other divergence cancels delete-pending
+on every armed file before handles are closed; failed cancellation makes the
+transaction recovery-required. Directories use the same pre-arm, arm and
+post-arm stream check in deepest-first order. A preloaded native helper type is
+untrusted and requires a fresh PowerShell process before even dry-run.
+Approval applies to that one immutable list only; a changed executor, Git
+executable, WIP identity, path, structural-tree digest, byte count, baseline or
+status requires a new dry-run and decision.
+
+An incomplete marker-owned transaction blocks every normal plan. Recovery is a
+separate mode bound to one exact transaction ID. It is dry-run by default and
+must validate the strict journal sequence, journal SHA-256 and file identity,
+original plan and baseline, deterministic staging names, absence of recreated
+original paths, current Git/WIP identity, protected boundaries and every
+remaining target identity without reading target content. An already-deleted
+prefix remains factual and regenerable. A partially deleted target is eligible
+only when the durable journal and current measurement both prove that its root
+exists with zero files, zero child directories and zero bytes. Every later
+target must still match its original byte count and structural-tree SHA-256;
+any extra, missing or changed item is `UNCERTAIN` and blocks recovery.
+`-ApplyRecovery` requires separately approved recovery-plan, journal,
+Git-status and WIP-identity SHA-256 values. It revalidates the complete boundary
+under the repository mutex, WIP locks and transaction-directory handles,
+appends durable recovery events, deletes only the approved staged handles and
+closes the transaction into history. `RECOVERY_COMPLETED` consumes the original
+plan and prevents replay. A recovery failure remains quarantined and requires a
+new bounded review; it never falls back to pathname deletion.
+
+Existing exact `bin/` and `dist/` roots are legacy generated outputs without a
+producer marker. They can proceed only through a one-shot owner attestation
+bound to every literal path, byte count and tree digest in the approved plan.
+That attestation confirms that the tree contains no manual or ignored WIP, its
+restore is reproducible and no canonical gate or open incident depends on its
+exact bytes. It does not authorise any other path or a later tree. Test evidence
+never becomes a deletion candidate by age alone: after seven days, absent
+canonical gate and incident-release evidence makes it `UNCERTAIN`.
+Any root containing a recognised configuration copy, including
+`appsettings*.json`, is preserved in full without reading that content and is
+excluded from the legacy attestation.
+
+The executor and any successor policy must:
+
+1. resolve every literal target beneath the exact repository root and reject
+   wildcards, traversal, prefix collisions and broad roots;
+2. reject protected roots, an ignored parent, tracked or Git-visible work,
+   missing or divergent ownership evidence, and a reparse point in the target,
+   any ancestor or any descendant;
+3. stop the complete apply when any item is `UNCERTAIN`, when a Windows process
+   or its parentage may write a target, when the process inventory is
+   unavailable, when an exclusive file-use check fails or when Git-visible WIP
+   cannot be held against concurrent writes;
+4. present each full path, bytes, reason, recoverability, disposition and
+   structural-tree SHA-256, plus the total and plan SHA-256, before deletion;
+5. delete only the approved literal leaf roots, never use `git clean`, a glob,
+   shell-expanded input or recursive removal of `artifacts-local/` as a whole;
+6. bind the resolved Git executable identity, acquire a repository-scoped
+   mutex, move every approved root by literal
+   same-volume rename into a marker-owned transaction quarantine, revalidate
+   the moved tree and begin deletion only after every target is staged exactly;
+   hold Windows handles on the transaction and staging directories, reject
+   reparse points and verify their volume and file IDs before and after every
+   move;
+7. write and flush a durable transaction event before and after every material
+   step; a staging divergence is rolled back when identity permits, while any
+   partial deletion or unresolved quarantine blocks later plans for recovery;
+8. open the exact staged inventory with Windows delete-capable handles that
+   deny base-object write and delete sharing, revalidate every volume and file
+   ID, arm all file handles with reversible non-POSIX delete-pending plus the
+   handle-bound ignore-ReadOnly disposition, and enumerate streams again
+   through those same handles before any close; cancel every armed disposition
+   on divergence, close handles to commit only after the complete post-arm
+   check, and apply the same sequence to directories in deepest-first order;
+   delete each approved object only through
+   `SetFileInformationByHandle`, never fall back to pathname deletion, and
+   preserve any late, replaced or unapproved byte; then verify the original
+   Git status and WIP-identity digest, protected structural boundaries and
+   observed free-space change; and
+9. record whether deleted bytes are recoverable or only regenerable, without
+   presenting regeneration as historical recovery.
+
+The focused safety check is `eng/test-local-artefact-retention.ps1`. It covers
+same-path WIP drift, unread secret boundaries, legacy attestation, handle-bound
+same-path replacement refusal, equal-length WIP/target drift, alternate data
+streams including a compatible-share pre-arm race that is preserved and a
+post-arm creation attempt that is rejected, reversible-disposition
+cancellation for normal and ReadOnly objects, hostile inherited Git
+redirection, refusal of a stale preloaded native helper, staging-directory
+identity, strict partial-journal parsing, recovery dry-run approval binding,
+empty ReadOnly-root recovery, late-writer preservation, completed-recovery
+history and replay refusal in addition to the path, ownership, rollback and
+reparse controls. Passing it does not approve a concrete cleanup or recovery
+list and does not replace independent review of a protected policy change, an
+Automatic Quality Gate or a Human Gate.
+
 ## Parallel-work gate
 
 A `PARALLEL_OPTIONAL` or `PARALLEL_RECOMMENDED` recommendation passes only

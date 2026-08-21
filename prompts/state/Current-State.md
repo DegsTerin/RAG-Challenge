@@ -1,6 +1,6 @@
 # Current State
 
-This document is the current factual snapshot of the workspace on 2026-08-20. It
+This document is the current factual snapshot of the workspace on 2026-08-21. It
 grants no authority. Evolution and decisions in their original context belong in
 [`State-Transition-Log.md`](State-Transition-Log.md) and the owning
 reports.
@@ -2748,6 +2748,116 @@ A successor to RB-2/RB-3 remains outside this execution and requires separate
 authority, two independent human reviews and genuine human adjudication. The
 current freezes cannot be edited or consumed by RB-4; `RB-4` remains
 blocked and `NOT_RUN`.
+
+Under `RECOVERY-OCI-SELECTIVE`, exact baseline
+`main@a25921d952b8f68498235c7449449da7f4e73238` retained all 36 pre-existing
+tracked and untracked WIP entries while a selective local recovery addressed
+the unintended removal of the ignored `artifacts-local/` root. Forensic block
+recovery was explicitly declined. OneDrive hydration was limited to the
+validated files required by the recovery and did not delete or rewrite the
+backup.
+
+The recovered local set contains 1,096 copied files and 369,751,465 bytes,
+plus two sanitised recovery records. RB-2 and RB-3 matched their canonical root
+manifest hashes and every internal digest, but remain historical quarantine
+only under their previously recorded invalid/unavailable disposition. The
+historical orchestrator run has seven canonical snapshots, seven journal
+entries, a valid internal hash chain, the documented baseline and terminal
+`PASS`/zero-lock state; no external root digest was ever recorded. PostgreSQL
+source intake was restored byte-identically from the surviving authorised
+corpus PDF. The older PostgreSQL and Oracle stores were restored only below a
+dated `stale-stores/` recovery boundary and cannot be activated or presented as
+current. The Oracle PDF remains preserved in `corpus/` but is not current
+source intake because its canonical provenance and rights evidence remain
+insufficient.
+
+The exact current stores, integration output, OCI rehearsal candidate and
+recent ignored gate/test bytes are not recoverable with their former identity.
+Some are regenerable from surviving inputs under future bounded authority, but
+none was rebuilt, activated or represented as current during recovery.
+Superseded integration generations, AQG packages, corrections, probes and old
+test results were deliberately not restored.
+
+The `4.19.1` local generated-artefact retention candidate adds one closed
+dry-run/apply executor and focused safety tests without changing product data
+retention. It is self-contained, binds approval to a no-content-read structural
+identity for every Git-visible WIP item and separately binds executor/Git tool
+bytes. Git calls are fixed to the canonical `.git`/worktree and ignore inherited
+redirection or external configuration. Each generated target is identified by
+change time, volume and Windows file ID; any named alternate data stream blocks
+deletion without content reads. The executor arms every approved handle with
+reversible non-POSIX delete-pending and
+`FILE_DISPOSITION_FLAG_IGNORE_READONLY_ATTRIBUTE`, without changing stored
+attributes, re-enumerates stream metadata through the same handles and closes
+them only after the complete post-arm check. A compatible-share stream
+introduced before arming is detected and preserves the tree; the same creation
+after arming is rejected. Any pre-commit error cancels all armed dispositions,
+while a failed cancellation makes the transaction recovery-required.
+Directories use the same sequence in deepest-first order. A stale preloaded
+native helper is refused before dry-run. Approved targets are staged in a
+same-volume, marker-owned, durably journalled transaction and deleted only
+through their approved handles.
+
+The owner approved the exact six-target schema-3 plan
+`47ba01d8c744c711e459ee66f7ec75c55c04cfb1f6c8ed7b07ccd8305a0754a4`.
+An initial invocation was refused before staging because its own absolute
+repository argument was conservatively classified as a potential writer; no
+mutation occurred. The corrected invocation staged all six approved trees in
+transaction
+`47ba01d8c744c711-cf4f62b2d5c14028958176ed2ff61d59`. It deleted the
+1,588,103-byte Application tree and all 196,808 content bytes from the
+Dashboard tree, then stopped with a durable partial-failure event because the
+empty Dashboard root retained the ReadOnly attribute and the original
+delete-pending flags did not ignore it. Thus 1,784,911 approved bytes became
+regenerable but no longer recoverable as the same ephemeral bytes. The four
+later trees remained byte-for-byte intact in staging pending recovery.
+
+The correction adds the handle-bound ignore-ReadOnly flag and a separate exact
+transaction recovery mode. Recovery is dry-run by default, validates the
+strict journal sequence and hash, original/current identities, deterministic
+staging names, current Git/WIP and protected boundaries, and accepts only an
+empty measured partial root plus later trees that still match their approved
+hashes. `-ApplyRecovery` requires a new owner-approved recovery plan, journal,
+Git-status and WIP-identity digest. Synthetic tests pass for ReadOnly file and
+root deletion, reversible cancellation with attributes preserved, ADS races,
+an empty-root partial recovery, durable completion, replay refusal and
+late-writer preservation as `PRESERVE_UNCERTAIN`.
+
+The owner then approved recovery plan
+`09c6b369becb70e01dac3ca4d1d205ba842bcfe9900ee35fe1171912d709b4ec`,
+bound to the unchanged partial journal and the approved Git/WIP identities.
+`-ApplyRecovery` removed the empty ReadOnly Dashboard root and the four intact
+staged trees exclusively through handles: Domain 487,059 bytes,
+Infrastructure 15,647,442 bytes, UnitTests 12,478,830 bytes and orchestrator
+900,192 bytes. This recovery continuation removed 29,513,523 logical bytes;
+the complete transaction removed 31,298,434 logical bytes and produced an
+observed free-space increase of 30,625,792 bytes. The active transaction root
+is absent. Its 9,967-byte history record has SHA-256
+`42719a159f31aa2ba029557ff67f6643dc75eeccbf7ae5215aefa26867be46c7`
+and terminates with exactly one `RECOVERY_COMPLETED`. All six original output
+paths remain absent and are regenerable rather than recoverable as identical
+ephemeral bytes.
+
+Three configuration-bearing `bin/` roots totalling 3,913,370,016 bytes and
+`TestResults/` totalling 786,270,109 bytes remain preserved without content
+reads. All 42 Git-visible WIP entries and 14 protected boundaries remained
+intact through the completed recovery. The preserved Git-status SHA-256 is
+`d2fd4c1dacbe9e3c07519e57a3dccd50a81edfee52fd9e5ad3e6fec7cc833bdc`;
+the recovery-bound WIP identity is
+`9f796b1527e27e90b94ee6e7a4e8770826d52ebc3dedb43e3ea636e3d56d975c`
+and the protected-boundary identity is
+`a445740e90e4907353562c08d933a6b6c30ec12ddf72d8da125e6b7f3a1fb88d`.
+Both retention PowerShell files parse and the complete focused suite passes.
+The repository audit passes for 445 non-ignored files; Git diff hygiene,
+UTF-8/LF/final-newline/trailing-whitespace checks for all six focal files and
+the production pathname-fallback audit also pass. The language-policy checker
+exits `1` with `Language policy FAIL: Commit changes language controls and
+requires exceptional manual review.` This result remains a mechanical failure.
+Provider, OCI, paid call, external source, deployment, Human Gate and lifecycle
+transition remain unexecuted. The owner granted exceptional manual disposition
+for the directly necessary protected correction, while the recorded mechanical
+`Language policy FAIL` remains a failure and is not reclassified. The focused
+policy change is the only authorised local commit scope.
 
 ## Contexto histórico preservado
 

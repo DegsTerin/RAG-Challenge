@@ -9488,3 +9488,388 @@ contém somente fatos cronológicos.
 - Next condition: no further directly related recovery-AQG action remains; any
   nonzero budget, provider, online workflow or other successor requires its own
   explicit authority.
+
+## 2026-08-21 — Selective local recovery and retention-policy candidate
+
+- Authority: the owner issued `RECOVERY-OCI-SELECTIVE` for exact baseline
+  `main@a25921d952b8f68498235c7449449da7f4e73238`, required preservation of the
+  current WIP, declined forensic block recovery and authorised OneDrive
+  hydration only for necessary files in the dated `artifacts-local` backup.
+- Pre-existing work: branch and HEAD matched the authority. The worktree had 26
+  modified tracked files and ten untracked files. Those 36 entries remained
+  unchanged throughout selective recovery.
+- Material-deletion incident: during the preceding authorised cleanup attempt,
+  `git clean -fdX -- artifacts-local/ef-design-time` collapsed to the ignored
+  parent rule and removed the complete ignored `artifacts-local/` root rather
+  than the intended leaf. The removed root had previously been observed at
+  approximately 13.86 GiB. No other cleanup target was removed. Recycle Bin,
+  accessible shadow-copy and installed Windows File Recovery paths were
+  unavailable; the owner accepted no forensic block-recovery attempt.
+- Pre-write inventory: no recovery output was created until the candidate sets
+  had been classified as recoverable, divergent/uncertain, rebuildable or lost
+  and that inventory had been reported to the owner. No provider, OCI, paid
+  service or external source was called.
+- RB-2 validation: root manifest SHA-256
+  `daede1db869f7daf784fa2f3fc3b55e037cf4f3bb59a22f94e2026175858bfe4`
+  matched the canonical identity; all 19 bound artefacts matched, with 252
+  unique cases, 200 positive and 52 negative. The set was restored only under
+  historical quarantine because its gate disposition remains invalid.
+- RB-3 validation: root manifest SHA-256
+  `ac7b5763bc9e571b6365449b340c8256790c5fe57ba79142b592b854cf25303c`
+  matched the canonical identity; all 261 bound artefacts matched, including
+  252 vectors of exactly 6,144 bytes. The set was restored only under
+  historical quarantine and remains unavailable to RB-4.
+- Orchestrator validation: run
+  `run-38b7dabe-491d-40f8-baaf-ce11906bd78e` matched documented baseline
+  `bf318213cccbddfa91d10dc5e7555e0f547b3431`, seven snapshots, seven canonical
+  journal entries, every state hash and the complete previous-hash chain.
+  Revision 4 retained the durable thread identity while `RUNNING`; revisions 5
+  and 6 were `PASS`, with zero final locks. No external root digest had been
+  recorded, so recovery claims internal consistency plus documented identity
+  and backup provenance, not an unavailable external hash proof.
+- Source intake: surviving PostgreSQL PDF bytes matched the documented
+  15,771,040-byte identity and SHA-256
+  `cea7b845568095eb56dee1b51bfa145c6c6637bc4377c986019971577efefae4`
+  and were copied to the canonical source-intake path. The surviving Oracle PDF
+  remained preserved in `corpus/`; despite matching its known size and SHA-256,
+  current canonical source-intake provenance and rights evidence were
+  insufficient, so it remained `UNCERTAIN` and was not restored as intake.
+- Stale stores: 31 PostgreSQL files/116,781,833 bytes from a backup last written
+  on 2026-08-15 and 774 Oracle files/230,110,677 bytes from a backup last
+  written on 2026-08-13 were copied below dated `stale-stores/` paths. They are
+  explicitly recovery-only and cannot be activated or represented as current.
+- Recovery result: 1,096 copied files/369,751,465 bytes were verified after
+  copy; the local inventory and notice brought `artifacts-local/` to 1,098
+  files/369,757,765 bytes. The backup still existed, both canonical RB root
+  hashes and the PostgreSQL PDF hash remained exact, and HEAD/WIP remained
+  unchanged.
+- Known loss and omission: stores newer than the backup, the exact current
+  integration/OCI candidate and recent ignored local evidence remain lost as
+  the same byte identities. Regeneration may be possible only under future
+  authority. Superseded integrations, AQGs, corrections, probes, old tests and
+  replaced generated content were deliberately not restored.
+- Retention candidate: the existing Quality Gates authority now owns a small
+  local generated-artefact policy, while Security and Access continues to own
+  product-data retention. `eng/Invoke-LocalArtefactRetention.ps1` is dry-run by
+  default, uses ten closed literal paths and requires exact owner-approved plan,
+  Git-status, Git-visible WIP-content and legacy ownership-attestation SHA-256
+  values for `-Apply`. It is self-contained and does not depend on pre-existing
+  WIP helpers. It rejects protected roots, ignored parents, tracked or sensitive
+  Git-visible work, unsafe ownership, reparse points, changed tree identity,
+  process/file use, an incomplete transaction and any uncertain item. It never
+  reads ignored secret/configuration content.
+- Transaction boundary: a future approved apply acquires a repository mutex,
+  locks non-sensitive Git-visible WIP against writes, rechecks Windows process
+  identity and parentage, then stages all exact targets by same-volume rename
+  below a marker-owned quarantine. Every transition is flushed to a local
+  journal. Deletion begins only after every staged tree matches the approved
+  digest. Any partial deletion remains durably recorded and any unresolved
+  quarantine blocks a successor plan.
+- Focused verification: both PowerShell files parsed with zero errors. The
+  focal safety suite passed path, protected-root, ignored-parent, marker,
+  tracked-work, same-path WIP-byte drift, executor drift, secret-without-read,
+  evidence-release, process classification, transaction, durable
+  partial-deletion and actual junction-based reparse-point cases. Synthetic
+  apply occurred only inside a bounded temporary fixture. No real project
+  apply, build, product runtime or canonical gate was run.
+- Final candidate dry-run: no item was uncertain. Six exact `bin/`/`dist/`
+  roots totalled 31,298,434 regenerable bytes and require one-shot owner
+  attestation bound to their structural identities. Their content was not read.
+  Three other `bin/` roots totalled 3,913,370,016 bytes and were preserved in
+  full, without content reads, because they contain `appsettings*.json`
+  configuration copies. `TestResults/` totalled 786,270,109 bytes but remained
+  preserved because its newest evidence was inside the mandatory seven-day
+  window. No real `-Apply` occurred.
+- Protected-control boundary: `Quality-Gates.md` is protected language-control
+  input. `node eng/check-language.mjs` exited `1` with the expected requirement
+  for exceptional manual review. Its final diff requires independent semantic
+  review and an exceptional manual disposition without erasing or reclassifying
+  that mechanical failure.
+  The exact final cleanup list separately requires owner approval. These are
+  `HUMAN_DECISION_REQUIRED`, not a Human Gate or lifecycle transition; no local
+  policy commit was created.
+- Versioning: the instruction corpus advances as a `MINOR` candidate from
+  `4.18.6` to `4.19.0` because it introduces a new executable local retention
+  capability without changing product/runtime contracts or lifecycle.
+- Append-only integrity: this entry preserves the complete previous file of
+  607,203 bytes at SHA-256
+  `265ac355464cff7fdddb7cebc37da5a773e37575cd7acdf49cd9ac4c4c47ce5e`.
+- Runtime preflight: `NOT_APPLICABLE` to selective file recovery, policy
+  documentation, parser checks, synthetic safety tests and real dry-run. No
+  project process was stopped. Process and exclusive-file checks remain
+  mandatory immediately before a future approved real `-Apply`.
+- Negative scope: no provider, credential, paid service, external source, OCI,
+  build, canonical gate, deployment, push, PR, merge, Human Gate or lifecycle
+  action occurred.
+- Next condition: real cleanup requires explicit approval of the final literal
+  plan, Git-status, WIP-content and legacy ownership-attestation digests. A
+  focused local commit additionally requires the protected-control independent
+  review and exceptional manual disposition.
+
+## 2026-08-21 — Retention candidate security correction
+
+- Correction scope: this append-only entry supersedes only the executable
+  retention-boundary descriptions in the immediately preceding candidate
+  entry. Its `WIP-content` label and byte-hash wording remain historical
+  evidence of the earlier candidate and are replaced by schema 3
+  `WIP-identity`; no prior text was edited or reclassified.
+- WIP boundary: every Git-visible tracked or untracked file is represented
+  without content reads by NUL-safe status, raw Git metadata, literal path,
+  type, length, creation/last-write/change times, attributes, volume and Windows
+  file ID. Apply holds those exact paths against writes/deletes and revalidates
+  the identity before staging. Equal-length byte changes with restored
+  creation/last-write/attributes invalidate the tested identity through change
+  time. A privileged actor able to forge filesystem change time remains outside
+  this local executor's threat boundary; content hashing would conflict with
+  the accepted no-content-read rule.
+- Git boundary: the resolved Git executable is handle-locked from initial hash
+  through the final subprocess, and its path, file ID and bytes are revalidated.
+  Every subprocess fixes the canonical `.git` directory/worktree, removes
+  inherited `GIT_*` redirection and disables external configuration,
+  file-system monitors, hooks and optional locks. The `check-ignore` command
+  cannot accept Git's global literal-pathspec mode; it receives only
+  NUL-delimited paths already constrained to the closed literal syntax without
+  wildcard characters.
+- Deletion boundary: structural target identity now includes file change time,
+  volume and Windows file ID. `FindFirstStreamW`/`FindNextStreamW` metadata
+  enumeration rejects any named alternate data stream without reading it.
+  Approved objects are deleted exclusively through
+  `SetFileInformationByHandle(FileDispositionInfoEx)` while write/delete sharing
+  is denied; no pathname-deletion fallback exists. Handles also protect and
+  revalidate the staging directory and its ancestors before and after every
+  move, and unexpected history subdirectories fail closed.
+- Focused verification: the synthetic suite passed same-path replacement and
+  staging-swap refusal, equal-length WIP and target drift, named alternate
+  streams, hostile Git environment redirection, replay/history shape, reparse
+  points and durable partial-deletion handling. Synthetic apply remained
+  confined to its bounded temporary repository.
+- Hardened dry-run observation: schema 3 was unblocked on exact baseline
+  `main@a25921d952b8f68498235c7449449da7f4e73238`, represented all 42 current
+  Git-status entries with zero WIP content reads, identified the same six
+  candidates/31,298,434 bytes and preserved three configuration-bearing
+  roots/3,913,370,016 bytes plus `TestResults/`/786,270,109 bytes. No uncertain
+  item was present. This observation is not owner approval; edits after it
+  require a new final dry-run and four new approval digests.
+- Append-only integrity: this correction preserves the complete preceding file
+  of 615,257 bytes at SHA-256
+  `f06d093959ef61459ffeff120525aadefae6fcb256aa203fa8f8c1f1699a3e24`.
+- Disposition: no real `-Apply`, commit, provider, OCI, paid/external call,
+  deployment, push, PR, merge, Human Gate or lifecycle transition occurred.
+  Real cleanup still requires owner approval of the final literal list and
+  plan, Git-status, WIP-identity and legacy ownership-attestation digests. A
+  focused local commit separately requires the protected-control independent
+  review and exceptional manual disposition.
+
+## 2026-08-21 — Retention native-boundary closure
+
+- ADS concurrency closure: after every file and directory deletion handle is
+  acquired, the deterministic pre-disposition hook attempts to create
+  `approved.bin:owner-wip`. Windows rejects that creation with a sharing
+  violation because the approved base-file handle denies write/delete sharing.
+  Stream metadata is then enumerated again before handle disposition. Thus a
+  named stream present before locking is `UNCERTAIN`, while a new named stream
+  cannot be introduced between final validation and object-bound deletion.
+- Native implementation closure: the executor now rejects any preloaded
+  `RagChallenge.LocalRetention.NativePathHandle` before dry-run and requires a
+  fresh PowerShell process. A child-process test preloads a homonymous stale
+  type and confirms fail-closed refusal, so executor bytes cannot be paired
+  with an older in-memory deletion implementation.
+- Focused evidence: both PowerShell files parse without error and the complete
+  synthetic retention suite passes after these closures. No real project
+  `-Apply` was executed.
+- Append-only integrity: this entry preserves the complete preceding file of
+  618,910 bytes at SHA-256
+  `9a4c723d74a54e62752126f6b011285b6a14a1487a3803d4668c138a8ab10cca`.
+- Disposition remains unchanged: the final dry-run and four owner-approved
+  digests are still required for material cleanup; protected-control
+  exceptional manual disposition is still required before a focused commit.
+  There is no provider, OCI, external, deployment, Human Gate or lifecycle
+  authority or action in this closure.
+
+## 2026-08-21 — Retention reversible delete-pending correction
+
+- Correction trigger: a stronger native test opened
+  `approved.bin:compatible-owner-wip` with write access and
+  `FileShare.Read | FileShare.Delete`. It proved that an alternate stream could
+  be created after the ordinary base-file deletion handle used by the preceding
+  candidate was acquired. The preceding closure remains historical evidence,
+  but its assertion that the sharing mode alone closed the ADS race is
+  superseded by this correction; the earlier passing result is not
+  reclassified.
+- File deletion closure: the executor re-enumerates stream metadata through
+  each approved file handle, arms all of those handles with reversible,
+  non-POSIX delete-pending without closing them, and performs a second
+  handle-bound `FileStreamInfo` enumeration. Delete-pending rejects a new named
+  stream even when its writer permits delete sharing. Any named stream,
+  identity divergence, injected error or incomplete arm clears the disposition
+  on every armed file before handle disposal. A cancellation failure makes the
+  staged transaction recovery-required instead of invoking a pathname
+  fallback. Only a complete post-arm check permits handle closure to commit
+  deletion.
+- Directory deletion closure: after child objects are committed, each directory
+  receives the same handle-bound pre-arm enumeration, reversible
+  delete-pending and post-arm enumeration in deepest-first order. A non-empty,
+  changed or stream-bearing directory therefore fails before its handle is
+  closed for deletion.
+- Focused evidence: both PowerShell files parse without error and the complete
+  synthetic suite passes. The compatible-share control proves the writer can
+  create an ADS without the armed boundary; the pre-arm race is detected and
+  preserves the base file, stream and root; the same writer is rejected after
+  delete-pending; and an injected post-arm failure cancels the disposition and
+  preserves the complete tree. Synthetic apply remains confined to its bounded
+  temporary repositories. No real project `-Apply` was executed.
+- Append-only integrity: this correction preserves the complete preceding file
+  of 620,534 bytes at SHA-256
+  `ad66e89e947f5595f9dba9fc848aadd041017ab3e8e6856b9f17272bdb48f672`.
+- Disposition remains unchanged: a new final dry-run and four owner-approved
+  digests are required for material cleanup; protected-control exceptional
+  manual disposition is still required before a focused commit. There is no
+  provider, OCI, external, deployment, Human Gate or lifecycle authority or
+  action in this correction.
+
+## 2026-08-21 — Partial retention transaction and recovery correction
+
+- Authority: the owner approved the exact schema-3 plan
+  `47ba01d8c744c711e459ee66f7ec75c55c04cfb1f6c8ed7b07ccd8305a0754a4`,
+  its Git-status, WIP-identity and ownership-attestation digests, the six
+  literal targets and the protected-control exceptional manual disposition.
+  The owner later issued `RECOVERY-RETENTION-PARTIAL-CORR-001` for correction
+  and recovery dry-run only; additional material recovery and commit remain
+  explicitly prohibited pending a new exact approval.
+- Pre-staging refusal: the first Apply invocation included the absolute
+  repository root in its own command line and was conservatively classified as
+  a potential writer. It stopped before transaction creation, target movement
+  or deletion. The second invocation used the same approved executor and four
+  digests without that self-referential argument and revalidated the complete
+  approved boundary.
+- Durable transaction: all six targets were staged under marker-owned
+  transaction `47ba01d8c744c711-cf4f62b2d5c14028958176ed2ff61d59`. Its unchanged
+  4,711-byte journal has SHA-256
+  `b3bc59ba1f16ab9a72f8362d552c9d9a6f92884944b59d534e99ebb1192c606d`
+  and records `PREPARED`, all six `STAGED` events, one completed deletion, the
+  Dashboard `DELETE_STARTED`, `PARTIAL_DELETE_FAILURE` with an empty measured
+  remainder and `APPLY_FAILED`.
+- Material disposition: the 1,588,103-byte Application target and all 196,808
+  content bytes from the Dashboard target were deleted, totalling 1,784,911
+  approved bytes that are regenerable but not recoverable as the same ephemeral
+  bytes. The empty Dashboard root remains in staging. Domain 487,059 bytes,
+  Infrastructure 15,647,442 bytes, UnitTests 12,478,830 bytes and orchestrator
+  900,192 bytes remain intact at their original approved structural hashes and
+  total 29,513,523 bytes. All six original paths are absent because they were
+  deleted or staged; this does not represent transaction completion.
+- Cause: the empty Dashboard root retained attributes `0x80031`, including
+  ReadOnly. Reversible `ArmDeletePending` used only the delete flag, so Windows
+  refused the final root disposition after its approved contents were removed.
+  The executor stopped, measured the empty remainder and preserved every later
+  tree. No retry, attribute mutation, pathname deletion or journal rewrite was
+  attempted.
+- Preserved boundary: exact baseline
+  `main@a25921d952b8f68498235c7449449da7f4e73238`, all 42 Git-visible WIP
+  entries, Git-status SHA-256
+  `d2fd4c1dacbe9e3c07519e57a3dccd50a81edfee52fd9e5ad3e6fec7cc833bdc`
+  and the then-current WIP-identity SHA-256
+  `3a79922ded2eedc2cdee121a70b4bca617e25bda04d3b313d594374566a23e20`
+  remained unchanged by the material attempt. All 14 protected boundaries,
+  configuration-bearing roots, `TestResults/`, source/recovery data, active
+  dependency trees and secret boundary remained present with zero content
+  reads.
+- Corrective implementation: reversible delete-pending now combines
+  `FILE_DISPOSITION_FLAG_DELETE` with
+  `FILE_DISPOSITION_FLAG_IGNORE_READONLY_ATTRIBUTE` for files and directories,
+  without changing stored attributes. Same-handle ADS revalidation,
+  cancellation of every armed disposition on failure and the prohibition on
+  pathname deletion remain intact.
+- Recovery implementation: an exact transaction mode parses only the supported
+  partial journal sequence, binds journal hash and identity, original plan and
+  baseline, deterministic staging names, current executor/Git/WIP/protected
+  identities and every remaining tree without target-content reads. An empty
+  measured partial root and byte-identical later targets may become separately
+  approved recovery candidates; any late, missing, recreated or divergent item
+  is `PRESERVE_UNCERTAIN`. `-ApplyRecovery` requires four new exact approval
+  digests, durable recovery events and handle-only deletion. A terminal
+  `RECOVERY_COMPLETED` consumes the original plan and prevents replay.
+- Focused evidence: both PowerShell files parse and the complete synthetic suite
+  passes ReadOnly file/root deletion, reversible cancellation with attributes
+  preserved, compatible-share ADS races, empty-root recovery, wrong-approval
+  refusal, durable completion, original-plan replay refusal, incomplete
+  transaction blocking and late-writer preservation as `PRESERVE_UNCERTAIN`.
+  No real recovery Apply was executed.
+- Versioning: the candidate advances by `PATCH` from `4.19.0` to `4.19.1` as a
+  correction to the new local retention capability; no product/runtime,
+  lifecycle or external authority changes.
+- Append-only integrity: this entry preserves the complete preceding file of
+  623,159 bytes at SHA-256
+  `776e270c461d2dc4d77291f208d884cd1cdaaeaa2cfb8a62900c516025e0c9b4`.
+- Disposition: the mechanical `Language policy FAIL` remains a failure and is
+  not reclassified by the exceptional manual disposition or focused PASS. A
+  final recovery dry-run and new owner approval remain required before any
+  additional deletion or local commit. No provider, OCI, external source,
+  deployment, push, PR, merge, Human Gate or lifecycle action occurred.
+
+## 2026-08-21 — Partial retention recovery completion
+
+- Authority: `RECOVERY-RETENTION-PARTIAL-APPLY-001` approved only recovery plan
+  `09c6b369becb70e01dac3ca4d1d205ba842bcfe9900ee35fe1171912d709b4ec`
+  for transaction
+  `47ba01d8c744c711-cf4f62b2d5c14028958176ed2ff61d59`, bound to journal
+  SHA-256
+  `b3bc59ba1f16ab9a72f8362d552c9d9a6f92884944b59d534e99ebb1192c606d`,
+  Git-status SHA-256
+  `d2fd4c1dacbe9e3c07519e57a3dccd50a81edfee52fd9e5ad3e6fec7cc833bdc`
+  and WIP-identity SHA-256
+  `9f796b1527e27e90b94ee6e7a4e8770826d52ebc3dedb43e3ea636e3d56d975c`.
+  Approval was limited to the five literal staged paths and their recorded
+  bytes, structural hashes and Windows identity tokens.
+- Material result: recovery revalidated every approved identity and removed
+  the empty ReadOnly Dashboard root plus Domain 487,059 bytes, Infrastructure
+  15,647,442 bytes, UnitTests 12,478,830 bytes and orchestrator 900,192 bytes,
+  exclusively through handles. The continuation removed 29,513,523 logical
+  bytes. Together with the previously deleted Application and Dashboard
+  content, the complete transaction removed 31,298,434 logical bytes. Observed
+  free space increased by 30,625,792 bytes; this observed file-system value is
+  not reclassified as the logical byte count.
+- Transaction closure: the active transaction directory is absent. The
+  9,967-byte record now resides under `artifacts-local/retention-history/` at
+  SHA-256
+  `42719a159f31aa2ba029557ff67f6643dc75eeccbf7ae5215aefa26867be46c7`,
+  terminates with exactly one `RECOVERY_COMPLETED` and consumes the original
+  plan against replay. All six original output paths are absent. Their content
+  is regenerable but is not recoverable as the same ephemeral bytes.
+- Preserved boundary: independent postvalidation confirmed exact baseline
+  `main@a25921d952b8f68498235c7449449da7f4e73238`, all 42 Git-visible WIP
+  entries, the approved Git-status digest, the recovery-bound WIP identity and
+  protected-boundary SHA-256
+  `a445740e90e4907353562c08d933a6b6c30ec12ddf72d8da125e6b7f3a1fb88d`.
+  The executor confirmed all 14 protected paths; recovery data, corpus,
+  reference material, active `obj/` and `node_modules/` boundaries sampled by
+  independent validation remain present.
+- Append-only integrity: this entry preserves the complete preceding file of
+  628,362 bytes at SHA-256
+  `1c2f14cfac2d9ad3d66a63570f31e98bef97037222fd38393293c3203549cbbc`.
+- Disposition: the recorded mechanical `Language policy FAIL` remains a failure
+  and is not reclassified by the exceptional manual disposition. The focused
+  local commit remains limited to the six authorised policy files after their
+  checks pass. No restoration, provider, OCI, paid service, external source,
+  push, PR, merge, deployment, Human Gate or lifecycle transition occurred.
+
+## 2026-08-21 — Partial retention recovery verification
+
+- Focused result: both retention PowerShell files parse and the complete
+  synthetic retention suite passes after material recovery. Coverage includes
+  ReadOnly file and directory disposition, reversible cancellation, same-handle
+  ADS boundaries, partial recovery, durable completion and replay refusal.
+- Repository result: `eng/check-repository.ps1` passes for 445 non-ignored
+  files. `git diff --check`, UTF-8/LF/final-newline/trailing-whitespace checks
+  for the six authorised files and the production pathname-fallback audit all
+  pass.
+- Preserved failure: `node eng/check-language.mjs` exits `1` with
+  `Language policy FAIL: Commit changes language controls and requires
+  exceptional manual review.` The exceptional manual disposition permits only
+  the directly necessary protected correction and does not reclassify this
+  mechanical result.
+- Append-only integrity: this entry preserves the complete preceding file of
+  631,174 bytes at SHA-256
+  `3b639cf1db9df994be43d42bd74c894ac17d0c8ae3757dd2449a43bc9d7fcc47`.
+- Disposition: the six-file change is eligible for the authorised focused local
+  commit. No provider, OCI, paid service, external source, push, PR, merge,
+  deployment, Human Gate or lifecycle transition occurred.
