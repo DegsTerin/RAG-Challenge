@@ -15,6 +15,7 @@ const maximumTrackedFileBytes = 16 * 1024 * 1024;
 const languageControlPaths = new Set([
   ".github/workflows/ci.yml",
   "eng/check-language.mjs",
+  "eng/ci-policy.ps1",
   "eng/ci.ps1",
   "eng/language-migration-baseline.json",
   "eng/language-migration-baseline.schema.json",

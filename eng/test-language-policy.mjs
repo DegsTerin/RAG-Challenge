@@ -257,6 +257,7 @@ function canonicalFixture(extra = "") {
 async function createRepository(initialMessage = "test(language): initialise synthetic policy") {
   const root = await guidTempDirectory("rag-challenge-language-policy-");
   await mkdir(join(root, "eng"), { recursive: true });
+  await writeFile(join(root, "eng", "ci-policy.ps1"), "# British synthetic CI policy.\n", "utf8");
   await writeFile(join(root, "history.md"), "history\n", "utf8");
   await writeFile(join(root, "technical.md"), "British technical prose is authorised.\n", "utf8");
   await writeFile(join(root, "technical.config"), "# British configuration behaviour is authorised.\n", "utf8");
@@ -415,6 +416,7 @@ test("ambiguous catalog and license forms are reserved for semantic review", () 
 
 test("every direct and transitive language-enforcement dependency is protected", () => {
   for (const path of [
+    "eng/ci-policy.ps1",
     "tools/ai-orchestrator/src/security/secret-policy.ts",
     "tools/ai-orchestrator/src/security/path-policy.ts",
     "tools/ai-orchestrator/src/security/secure-json.ts",
@@ -714,6 +716,21 @@ test("ordinary commit ranges reject language-control changes unconditionally", a
   } finally { await rm(root, { recursive: true, force: true }); }
 });
 
+test("exact and range checks reject transitive CI policy changes unconditionally", async () => {
+  const root = await createRepository();
+  try {
+    const base = git(root, "rev-parse", "HEAD");
+    const policyPath = join(root, "eng", "ci-policy.ps1");
+    await writeFile(policyPath, `\n${await readFile(policyPath, "utf8")}`, "utf8");
+    git(root, "add", "eng/ci-policy.ps1");
+    git(root, "commit", "-m", "test(language): alter transitive CI policy bytes");
+    const head = git(root, "rev-parse", "HEAD");
+    await assert.rejects(runCheck({ repositoryRoot: root }), /exceptional manual review/);
+    await assert.rejects(runCheck({ repositoryRoot: root, commitHead: head }), /exceptional manual review/);
+    await assert.rejects(runCheck({ repositoryRoot: root, commitBase: base }), /exceptional manual review/);
+  } finally { await rm(root, { recursive: true, force: true }); }
+});
+
 test("commit ranges reject an intermediate protected edit that a later commit restores", async () => {
   const root = await createRepository();
   try {
@@ -726,6 +743,23 @@ test("commit ranges reject an intermediate protected edit that a later commit re
     await writeFile(policyPath, original, "utf8");
     git(root, "add", "eng/language-policy.json");
     git(root, "commit", "-m", "test(language): restore reviewed policy bytes");
+    assert.equal(git(root, "diff", "--name-only", base, "HEAD"), "");
+    await assert.rejects(runCheck({ repositoryRoot: root, commitBase: base }), /exceptional manual review/);
+  } finally { await rm(root, { recursive: true, force: true }); }
+});
+
+test("commit ranges reject an intermediate transitive CI policy edit that a later commit restores", async () => {
+  const root = await createRepository();
+  try {
+    const base = git(root, "rev-parse", "HEAD");
+    const policyPath = join(root, "eng", "ci-policy.ps1");
+    const original = await readFile(policyPath, "utf8");
+    await writeFile(policyPath, `\n${original}`, "utf8");
+    git(root, "add", "eng/ci-policy.ps1");
+    git(root, "commit", "-m", "test(language): alter transitive CI policy bytes");
+    await writeFile(policyPath, original, "utf8");
+    git(root, "add", "eng/ci-policy.ps1");
+    git(root, "commit", "-m", "test(language): restore transitive CI policy bytes");
     assert.equal(git(root, "diff", "--name-only", base, "HEAD"), "");
     await assert.rejects(runCheck({ repositoryRoot: root, commitBase: base }), /exceptional manual review/);
   } finally { await rm(root, { recursive: true, force: true }); }
