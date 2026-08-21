@@ -2116,6 +2116,188 @@
         "contextHashes": [
           "09046ef2e2e53097effa2aa488033852ac46c318dd733a66d8afeac4f13779dc"
         ]
+      },
+      {
+        "path": "PLANS.md",
+        "classification": "CANONICAL_STORAGE_LITERAL",
+        "kind": "LITERAL",
+        "value": "artifacts-local",
+        "occurrences": 3,
+        "contextHashes": [
+          "4d3a760207fb910bdd556b5d9e38f7efbffdcb9c0799114d61443036bc032110",
+          "3acab05d11a3f932b0d85503100f674efb66a193f5662ff861dbeea865aa0195",
+          "8dd1fedb579586048c900df3389745fce4a78fa3b0e70251991d9a03868231d8"
+        ]
+      },
+      {
+        "path": "eng/New-Oracle19ProductPlans.ps1",
+        "classification": "CANONICAL_STORAGE_LITERAL",
+        "kind": "LITERAL",
+        "value": "artifacts-local",
+        "occurrences": 1,
+        "contextHashes": [
+          "8188f7f77545669608b1ee495c272a1e3f8346b2059da331a23633e120be5f2f"
+        ]
+      },
+      {
+        "path": "eng/integration-archive-policy.ps1",
+        "classification": "CANONICAL_MANIFEST_LITERAL",
+        "kind": "LITERAL",
+        "value": "artifact-manifest.sha256",
+        "occurrences": 1,
+        "contextHashes": [
+          "b9f0755b45d9f3cfeacafc98eb125d7c5a14721341bc472f71b4affbd99a6e89"
+        ]
+      },
+      {
+        "path": "eng/render-free-output-policy.ps1",
+        "classification": "CANONICAL_STORAGE_LITERAL",
+        "kind": "LITERAL",
+        "value": "artifacts-local",
+        "occurrences": 1,
+        "contextHashes": [
+          "f11488e076ba568e4bfffa5f343f957d5abaad2fd5b308c6f3351bb51601577c"
+        ]
+      },
+      {
+        "path": "eng/test-new-oracle19-product-plans.ps1",
+        "classification": "CANONICAL_STORAGE_LITERAL",
+        "kind": "LITERAL",
+        "value": "artifacts-local",
+        "occurrences": 1,
+        "contextHashes": [
+          "7cef1842413b89d21588d8ac7792a72ee4db9516ce9755fe5318939c39267fe0"
+        ]
+      },
+      {
+        "path": "eng/test-render-entrypoint-policy.ps1",
+        "classification": "CANONICAL_STORAGE_LITERAL",
+        "kind": "LITERAL",
+        "value": "artifacts-local",
+        "occurrences": 1,
+        "contextHashes": [
+          "2d828e583d784c865a1fe7adf2c341fc1441dacf48c67390b89ea66f8a483978"
+        ]
+      },
+      {
+        "path": "eng/test-render-free-output-policy.ps1",
+        "classification": "CANONICAL_STORAGE_LITERAL",
+        "kind": "LITERAL",
+        "value": "artifacts-local",
+        "occurrences": 11,
+        "contextHashes": [
+          "69a9ac894bc5494673045fc31cdcd2bf7f117df2662f1bd9254ae2086a966d83",
+          "e0ea3958fa132f05c82942d419e85b6e8904c11bf20ebab64c71466c3f2180fb",
+          "1958db13715558c56cb3ff530b910b6e99df540f3cc1e29a4ddc858d9e8aa50a",
+          "476fcef2ea8c24341c25c78c4206736a506ce8bde3adf2b7fc968155194e8b8e",
+          "48c08a4dc2c042b4753359f592bfc0b6d7b15cd74f62c7f2a829178ee45f5e4f",
+          "96f300e244baa4fc78b9311cd16dfc8dbcd43083ce9ea03f88aea7a64b84553b",
+          "1cdc4b35d83f022e4c59e48daa6f48b39f1511ac4e5575ad8d14c822c8f36119",
+          "1d29e0d62fc91fd4317f9aae203f1190d8f4af46132f338edcf46d58d88a4bb8",
+          "6f4e18c2a0016f12c7d641f0802b091c2c5097c0d9e80957baf3e09b4190972f",
+          "3918c10bd066b71e53e9ef61eb2c25bb400a7a1ff2084824ea2fb9814205f6a5",
+          "00b8089ca6a1cae94240b8b28983d9a7627507d4ab5513d3a1f95bd75dda9f9b"
+        ]
+      },
+      {
+        "path": "src/RagChallenge.Server.Api/Build-IntegrationArtifact.ps1",
+        "classification": "CANONICAL_POLICY_LITERAL",
+        "kind": "LITERAL",
+        "value": "state07-v2-integration-artifact",
+        "occurrences": 1,
+        "contextHashes": [
+          "9e24f4744a2fddb6288e627fe5e0a9643e36d2d80aeb82c4725268323bebf608"
+        ]
+      },
+      {
+        "path": "src/RagChallenge.Server.Api/Build-IntegrationArtifact.ps1",
+        "classification": "PUBLIC_SCRIPT_NAME",
+        "kind": "LITERAL",
+        "value": "Build-IntegrationArtifact.ps1",
+        "occurrences": 1,
+        "contextHashes": [
+          "48062d864579de18b989c4f852430a541104c3b66606492496aceee0fe4b0139"
+        ]
+      },
+      {
+        "path": "src/RagChallenge.Server.Api/Build-OciRehearsalArtifact.ps1",
+        "classification": "CANONICAL_POLICY_LITERAL",
+        "kind": "LITERAL",
+        "value": "s06-oci-rehearsal-artifact",
+        "occurrences": 1,
+        "contextHashes": [
+          "ba626527295169017134fc20d8aafb785d2dbf477ad770646faaa0b128ef258d"
+        ]
+      },
+      {
+        "path": "src/RagChallenge.Server.Api/Build-OciRehearsalArtifact.ps1",
+        "classification": "PUBLIC_SCRIPT_NAME",
+        "kind": "LITERAL",
+        "value": "Build-OciRehearsalArtifact.ps1",
+        "occurrences": 1,
+        "contextHashes": [
+          "93e218e6f55574de148ef1635423e4a45891b49b5d4cf8f29cc3bb169adcd404"
+        ]
+      },
+      {
+        "path": "src/RagChallenge.Server.Api/Test-IntegrationArtifact.ps1",
+        "classification": "CANONICAL_POLICY_LITERAL",
+        "kind": "LITERAL",
+        "value": "state07-v2-integration-artifact",
+        "occurrences": 1,
+        "contextHashes": [
+          "9e24f4744a2fddb6288e627fe5e0a9643e36d2d80aeb82c4725268323bebf608"
+        ]
+      },
+      {
+        "path": "src/RagChallenge.Server.Api/Test-IntegrationArtifact.ps1",
+        "classification": "PUBLIC_SCRIPT_NAME",
+        "kind": "LITERAL",
+        "value": "Build-IntegrationArtifact.ps1",
+        "occurrences": 1,
+        "contextHashes": [
+          "c7e11a2f35b12cad0b631c37c53e6a158c27c03c4c8a6cb5c9df82ff9fc11d57"
+        ]
+      },
+      {
+        "path": "src/RagChallenge.Server.Api/Test-IntegrationArtifact.ps1",
+        "classification": "PUBLIC_SCRIPT_NAME",
+        "kind": "LITERAL",
+        "value": "Test-IntegrationArtifact.ps1",
+        "occurrences": 1,
+        "contextHashes": [
+          "e7b237d3624779503a434dfa98361365924488e2850e471eff152a4525ae335c"
+        ]
+      },
+      {
+        "path": "src/RagChallenge.Server.Api/Test-OciRehearsalArtifact.ps1",
+        "classification": "CANONICAL_POLICY_LITERAL",
+        "kind": "LITERAL",
+        "value": "s06-oci-rehearsal-artifact",
+        "occurrences": 1,
+        "contextHashes": [
+          "ba626527295169017134fc20d8aafb785d2dbf477ad770646faaa0b128ef258d"
+        ]
+      },
+      {
+        "path": "src/RagChallenge.Server.Api/Test-OciRehearsalArtifact.ps1",
+        "classification": "PUBLIC_SCRIPT_NAME",
+        "kind": "LITERAL",
+        "value": "Build-OciRehearsalArtifact.ps1",
+        "occurrences": 1,
+        "contextHashes": [
+          "e94eb1cba4167e66973ea245c4930126766e95abb4bcbc25553532c66b72fba0"
+        ]
+      },
+      {
+        "path": "tests/RagChallenge.IntegrationTests/SetupHostArtefactTests.cs",
+        "classification": "PUBLIC_SCRIPT_NAME",
+        "kind": "LITERAL",
+        "value": "Build-IntegrationArtifact.ps1",
+        "occurrences": 1,
+        "contextHashes": [
+          "bea48ceea71b04430420e0c8cd6dfafbefcdfb6983b002f94ec058c065a5a83c"
+        ]
       }
     ],
     "excludedRegions": [
@@ -2124,7 +2306,7 @@
         "classification": "SYNTHETIC_ENFORCEMENT_REGION",
         "startMarker": "    \"canonicalIdentifierAllowances\": [",
         "endMarker": "    ],\n    \"excludedRegions\": [",
-        "sha256": "c9f826c5ca0f0ab34ec0286a4a3680285fbfa2664295d83fbb3a6a490805fd92"
+        "sha256": "14304560512e6e4d0c7158fd245dbaca7153da29b357d9a912999ac2215e1693"
       },
       {
         "path": "eng/test-language-policy.mjs",
@@ -2254,5 +2436,5 @@
       }
     ]
   },
-  "digest": "sha256:59e5240401c0f3681f7f9172e3779fa1c3686fc549cd52ecbdc1a1bb2e357657"
+  "digest": "sha256:40e715c4967fb2f2687855a210481acfa6f3c19ceac51f26a04d4788c0da5c30"
 }

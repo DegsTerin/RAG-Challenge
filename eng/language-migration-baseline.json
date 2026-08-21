@@ -5,8 +5,8 @@
     "schemaVersion": 1,
     "baselineId": "rag-challenge-en-gb-migration-v1",
     "status": "COMPLETE",
-    "policyDigest": "sha256:59e5240401c0f3681f7f9172e3779fa1c3686fc549cd52ecbdc1a1bb2e357657",
+    "policyDigest": "sha256:40e715c4967fb2f2687855a210481acfa6f3c19ceac51f26a04d4788c0da5c30",
     "findings": []
   },
-  "digest": "sha256:9ee02faddd2ab13eea2140c41a075e30f3c966bfb2e6ce07ad3868d071ea092e"
+  "digest": "sha256:8234c8e3af140513227d64640279f33e050d95d74b59e54f4909018e84584399"
 }
