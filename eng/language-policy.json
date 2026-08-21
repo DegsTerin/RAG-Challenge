@@ -2320,7 +2320,7 @@
         "classification": "SYNTHETIC_ENFORCEMENT_REGION",
         "startMarker": "// SYNTHETIC_LANGUAGE_REPOSITORY_START",
         "endMarker": "// SYNTHETIC_LANGUAGE_REPOSITORY_END",
-        "sha256": "8f56f1324336c75eb33c29bd66352e97fc2576fcb0e4dd52360829ea422b5fc4"
+        "sha256": "b3806a0014cb31eac4511335f0dbc9bbb0a364e270ab6204ba064a08b184272d"
       },
       {
         "path": "eng/test-language-policy.mjs",
@@ -2355,7 +2355,7 @@
         "classification": "SYNTHETIC_ENFORCEMENT_REGION",
         "startMarker": "// SYNTHETIC_LANGUAGE_HISTORY_AND_COMMITS_START",
         "endMarker": "// SYNTHETIC_LANGUAGE_HISTORY_AND_COMMITS_END",
-        "sha256": "0820443ef55e607cf2c64c4150ca7ea1799480eaff2d638e6398399634f037db"
+        "sha256": "44ecd72c689326843bcd83811750922d5a09e77712d29f5d1e5ad213e9efeadf"
       },
       {
         "path": "tools/ai-orchestrator/test/security-boundaries.test.ts",
@@ -2436,5 +2436,5 @@
       }
     ]
   },
-  "digest": "sha256:40e715c4967fb2f2687855a210481acfa6f3c19ceac51f26a04d4788c0da5c30"
+  "digest": "sha256:0504c93bd613135759987b331694ff9d22a3d768e154584cb2f83c294edac6f9"
 }
