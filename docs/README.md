@@ -2,7 +2,7 @@
 
 ## Status
 
-This index describes the current `4.19.3` documentation corpus. `STATE-00`,
+This index describes the current `4.19.4` documentation corpus. `STATE-00`,
 `GATE-B01` and `STATE-01` through `STATE-06` are closed with their gates
 recorded. `STATE-07 TESTING_HOMOLOGATION` is active; local, offline,
 deterministic and synthetic increments have been executed and reconciled
@@ -11,7 +11,9 @@ without constituting product homologation or general execution authority.
 `H-GATE-LANGUAGE-001` is `RESOLVED` exclusively for sealed candidate
 `e80d10a29738fa7a042286c549687d08b2fe1dea`: both bounded exceptional manual
 reviews returned zero P0-P3 and the single corrected canonical offline gate
-exited `0`. The candidate has not been integrated into `main`.
+exited `0`. The sealed candidate and its factual evidence commit were
+fast-forwarded into `main` at
+`a6ff32038510c552d9568786091a993a9be01117`, without a merge commit.
 `H-HOMOLOGATION-001` remains blocked, and `STATE-07` remains active without a
 Human Gate or lifecycle transition.
 

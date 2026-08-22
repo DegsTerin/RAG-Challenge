@@ -2,7 +2,7 @@
 
 ## Current version
 
-- Version: `4.19.3`
+- Version: `4.19.4`
 - Date: 2026-08-21
 - Status: `STATE-07` active; ADR-0011 through ADR-0017 retain their recorded
   accepted dispositions and implemented or pending boundaries; PostgreSQL 18.4
@@ -52,9 +52,11 @@
   bytes; the two bounded exceptional language reviews returned zero P0-P3 and
   the single corrected canonical offline gate approved sealed candidate
   `e80d10a29738fa7a042286c549687d08b2fe1dea`; every prior failure and
-  interruption remains preserved; the candidate is not integrated into
-  `main`, `H-HOMOLOGATION-001` remains blocked and `STATE-07` remains active
-  without a Human Gate or lifecycle transition
+  interruption remains preserved; the candidate and factual evidence commit
+  were fast-forwarded into `main` at
+  `a6ff32038510c552d9568786091a993a9be01117`, while
+  `H-HOMOLOGATION-001` remains blocked and `STATE-07` remains active without a
+  Human Gate or lifecycle transition
 - Scope: 13 active files under `prompts/`
 
 The corpus version is independent from the future software version.
@@ -67,6 +69,30 @@ The corpus version is independent from the future software version.
 
 Every change updates this file and, when necessary,
 [`../Start-Here.md`](../Start-Here.md).
+
+## 4.19.4 — 2026-08-21
+
+- Records the deterministic fast-forward integration of the approved sealed
+  language candidate and its factual evidence commit into `main`, from
+  `e2ae23f8870ac2f447a9bfa09812288c7dcf3f66` to
+  `a6ff32038510c552d9568786091a993a9be01117`, tree
+  `38c7fa18b52f69671ad2a757ace90520d914cf57`, without a merge commit.
+- Records that 34 of the 36 pre-existing WIP paths were byte-identical to the
+  integration target and that `docs/README.md` and `PLANS.md` were
+  byte-identical to ancestor `662e4acdebb5bd0d1a8aa11f5d7bd655b51a3413`.
+  The complete WIP remains recoverable in stash
+  `e906e6945e72afe8f08774818d3d324f2dbb0b05`.
+- Preserves every language-gate failure, retest, interruption and manual
+  disposition exactly as recorded. No canonical gate was repeated.
+- Keeps `H-HOMOLOGATION-001` blocked because valid successor inputs, real
+  provider evidence, two independent human reviews and genuine human
+  adjudication remain absent. `STATE-07` remains active without a Human Gate
+  or lifecycle transition.
+- Classification: `PATCH`, because this revision records a factual Git
+  integration without changing authority, architecture, product behaviour,
+  Human Gate or lifecycle.
+- No credential, provider, paid service, external source, network, push,
+  publication, deployment, Human Gate or lifecycle action occurred.
 
 ## 4.19.3 — 2026-08-21
 

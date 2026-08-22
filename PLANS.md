@@ -13,7 +13,7 @@
 | Git state | `main` was 12 commits ahead of `origin/main`; only `?? Plans.md` existed |
 | Preserved owner work | The original request was read and fingerprinted as SHA-256 `e4954b14ebbc830dfdd391e2b48fc4ac86db01c46db1e1056bac692f68a589b7`; this executable plan implements its intent |
 | Lifecycle | `STATE-07 TESTING_HOMOLOGATION`; unchanged |
-| Prompt corpus | `4.19.3` |
+| Prompt corpus | `4.19.4` |
 | Runtime preflight | No RAG-Challenge-owned process or known task listener was found |
 | Parallel work | `PARALLEL_RECOMMENDED` for three read-only audit lanes; all writes remain sequential in the shared worktree |
 | Delivery | No commit, push, publication, deployment or lifecycle transition |
@@ -192,7 +192,7 @@ No critical finding was confirmed.
 | `H-SCRIPT-001` | Oracle plan generator accepted arbitrary output and overwrote 52 known names | `CORRECTED`: output is derived from a bounded task ID, remains under `artifacts-local`, uses an ownership marker and `CreateNew`, and refuses existing/reparse/foreign targets |
 | `H-NPM-001` | Dashboard graph contained vulnerable `nanoid` 3.3.16 | `CORRECTED`: lockfile resolves 3.3.18; clean audit, signatures, lint, typecheck, 45 tests and build passed |
 | `H-HOMOLOGATION-001` | Real provider-backed product/RAG homologation is not executed | Blocked with justification: separate authority, valid frozen inputs, two independent human reviews and genuine adjudication are required |
-| `H-GATE-LANGUAGE-001` | Protected language-control integration required exceptional manual review and one canonical offline execution | `RESOLVED` for sealed candidate `e80d10a29738fa7a042286c549687d08b2fe1dea`: the two bounded manual reviews returned zero P0-P3 and the single corrected offline gate exited `0`; every earlier failure remains historical evidence |
+| `H-GATE-LANGUAGE-001` | Protected language-control integration required exceptional manual review and one canonical offline execution | `RESOLVED` for sealed candidate `e80d10a29738fa7a042286c549687d08b2fe1dea`: the two bounded manual reviews returned zero P0-P3 and the single corrected offline gate exited `0`; the candidate and factual evidence were fast-forwarded into `main` at `a6ff32038510c552d9568786091a993a9be01117`; every earlier failure remains historical evidence |
 
 ### Medium
 
@@ -429,9 +429,10 @@ A blocker is not risk acceptance and is not silently downgraded.
 
 Disposition: the local correction work achieved `DONE_WITH_BLOCKERS`. The
 overall project remains incomplete because `H-HOMOLOGATION-001` requires
-authority and evidence that this request cannot supply. The separately sealed
-candidate resolves `H-GATE-LANGUAGE-001` without integrating it into `main`.
-No critical or uncorrected high local finding remains.
+valid successor inputs, real provider evidence and genuine human review and
+adjudication. The sealed candidate and its factual evidence are integrated in
+`main`, so `H-GATE-LANGUAGE-001` no longer blocks that baseline. No critical or
+uncorrected high local finding remains.
 
 ## Change log
 
@@ -449,3 +450,4 @@ No critical or uncorrected high local finding remains.
 | `2026-08-21T04:20:01Z` | Closed zero-budget admission before credential/HTTP even with an exact grant; hardened recovery duplicate/link/length races; introduced exact marker-owned output policy for Render, integration and OCI artefacts; made the Render builder prove offline status and fail-closed public health; completed local browser and dependency-drift inspection | Focused suites, rebuilt integration artefact, local browser query, Render component harness, locked restore, format, Release build, 571 .NET tests/coverage, both npm graphs, structured audits, disposable migrations and repository hygiene passed; canonical CI retained its human-review stop |
 | `2026-08-21T04:52:58Z` | Corrected Render corpus provenance/evidence wording; authenticated and bounded integration/OCI archives; required coordinator-held digests; revalidated Render source trees; narrowed link-test skips; rehashed the extracted server immediately before launch | Eleven hostile/trusted archive fixtures, seven policy suites, authenticated integration start/restart/cold recovery, focused static regressions, final format/build and all 571 .NET tests passed. One initial focused CA1875 finding and one stale static assertion failed, were corrected at root, and passed on rerun. Independent security re-review found zero critical/high local finding. |
 | `2026-08-22T01:52:02Z` | Recorded the two bounded exceptional language-review dispositions and the single approved corrected offline gate for sealed candidate `e80d10a29738fa7a042286c549687d08b2fe1dea` | `H-GATE-LANGUAGE-001` is resolved only for that sealed candidate; every prior failure and interruption retains its original disposition; `H-HOMOLOGATION-001` remains blocked and no Human Gate or lifecycle transition occurred |
+| `2026-08-22T02:14:50Z` | Preserved the 36-path `main` WIP in stash `e906e6945e72afe8f08774818d3d324f2dbb0b05` and fast-forwarded `main` from `e2ae23f8870ac2f447a9bfa09812288c7dcf3f66` to factual evidence commit `a6ff32038510c552d9568786091a993a9be01117` | The integrated tree is `38c7fa18b52f69671ad2a757ace90520d914cf57`, the worktree is clean, no merge commit was created, `H-HOMOLOGATION-001` remains blocked and no Human Gate or lifecycle transition occurred |

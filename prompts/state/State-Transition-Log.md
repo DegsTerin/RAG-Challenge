@@ -9957,3 +9957,39 @@ contém somente fatos cronológicos.
   been integrated into `main`; `H-HOMOLOGATION-001` remains blocked and
   `STATE-07 TESTING_HOMOLOGATION` remains active. No provider, network, push,
   publication, deployment, Human Gate or lifecycle transition occurred.
+
+## 2026-08-21 — Approved language candidate fast-forward integration
+
+- Authority and baseline: the owner authorised autonomous local progression
+  towards completion of `STATE-07`, subject to the existing human, provider,
+  secret and lifecycle controls. Preflight confirmed clean integration target
+  `a6ff32038510c552d9568786091a993a9be01117`, source
+  `main@e2ae23f8870ac2f447a9bfa09812288c7dcf3f66`, 36 tracked and untracked WIP
+  paths, no Git lock and no in-progress Git operation.
+- WIP reconciliation: 34 paths were byte-identical to the integration target.
+  The only different paths, `docs/README.md` and `PLANS.md`, were
+  byte-identical to ancestor
+  `662e4acdebb5bd0d1a8aa11f5d7bd655b51a3413`. No WIP-only blob was found.
+- Recovery boundary: the complete 36-path WIP was preserved in named stash
+  `e906e6945e72afe8f08774818d3d324f2dbb0b05`, with base parent
+  `e2ae23f8870ac2f447a9bfa09812288c7dcf3f66`. The stash was retained and not
+  applied or deleted.
+- Integration result: `main` was fast-forwarded without conflict or merge
+  commit to `a6ff32038510c552d9568786091a993a9be01117`, parent
+  `e80d10a29738fa7a042286c549687d08b2fe1dea`, tree
+  `38c7fa18b52f69671ad2a757ace90520d914cf57`. The worktree was clean after the
+  operation and the range from the previous `main` contains no merge commit.
+- Historical integrity: every earlier language-gate failure, corrected retest,
+  PowerShell `ParserError`, focused checker failure and both
+  `MANUAL_REVIEW_PASS` dispositions retain their recorded status. The
+  canonical gate was not repeated and the sealed candidate identity remains
+  `e80d10a29738fa7a042286c549687d08b2fe1dea`.
+- Append-only integrity: this entry preserves the complete preceding file of
+  637,889 bytes at SHA-256
+  `d453d9744a64222ddd088bae2453dc06393e80b17d53f07db3bb609391adacbf`.
+- Disposition: `H-GATE-LANGUAGE-001` is resolved on the integrated `main`
+  baseline through its approved sealed candidate. `H-HOMOLOGATION-001` remains
+  blocked pending valid successor inputs, real provider evidence, two
+  independent human reviews and genuine adjudication. No credential, provider,
+  network, push, publication, deployment, Human Gate or lifecycle transition
+  occurred.

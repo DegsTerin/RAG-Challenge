@@ -2889,10 +2889,14 @@ gate then exited `0`, while every earlier configuration failure, successful
 retest, `ParserError`, integrated-gate identifier failure and focused checker
 failure retains its original disposition in
 [`STATE-07-Language-Gate-Evidence.md`](../../docs/STATE-07-Language-Gate-Evidence.md).
-`H-GATE-LANGUAGE-001` is `RESOLVED` exclusively for this sealed candidate,
-which has not been integrated into `main`. `H-HOMOLOGATION-001` remains
-blocked, and `STATE-07 TESTING_HOMOLOGATION` remains active without a Human
-Gate or lifecycle transition.
+`H-GATE-LANGUAGE-001` is `RESOLVED` exclusively for this sealed candidate. The
+candidate and its factual evidence commit were fast-forwarded into `main` at
+`a6ff32038510c552d9568786091a993a9be01117`, tree
+`38c7fa18b52f69671ad2a757ace90520d914cf57`, without a merge commit. The
+pre-existing 36-path WIP remains recoverable in stash
+`e906e6945e72afe8f08774818d3d324f2dbb0b05`; the integrated worktree is clean.
+`H-HOMOLOGATION-001` remains blocked, and `STATE-07 TESTING_HOMOLOGATION`
+remains active without a Human Gate or lifecycle transition.
 
 ## Contexto histórico preservado
 
