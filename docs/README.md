@@ -2,11 +2,18 @@
 
 ## Status
 
-This index describes the current `4.18.6` documentation corpus. `STATE-00`,
+This index describes the current `4.19.3` documentation corpus. `STATE-00`,
 `GATE-B01` and `STATE-01` through `STATE-06` are closed with their gates
 recorded. `STATE-07 TESTING_HOMOLOGATION` is active; local, offline,
 deterministic and synthetic increments have been executed and reconciled
 without constituting product homologation or general execution authority.
+
+`H-GATE-LANGUAGE-001` is `RESOLVED` exclusively for sealed candidate
+`e80d10a29738fa7a042286c549687d08b2fe1dea`: both bounded exceptional manual
+reviews returned zero P0-P3 and the single corrected canonical offline gate
+exited `0`. The candidate has not been integrated into `main`.
+`H-HOMOLOGATION-001` remains blocked, and `STATE-07` remains active without a
+Human Gate or lifecycle transition.
 
 PostgreSQL 18.4 `LocalAuthorised` was activated, and a private image was
 deployed once on Render Free without a product query. The scored campaign,
@@ -67,6 +74,9 @@ Human Gate and lifecycle change remain unexecuted.
 14. [`Stage-0-1-2-Historical-Owner-Input-Manifest.md`](Stage-0-1-2-Historical-Owner-Input-Manifest.md):
     hashes, sizes, provenance, implementation lineage and the inactive,
     non-normative classification of the three local historical owner inputs.
+15. [`STATE-07-Language-Gate-Evidence.md`](STATE-07-Language-Gate-Evidence.md):
+    sealed-candidate identity, preserved exceptional-review history and the
+    single approved canonical offline language gate.
 
 ## Product and architecture
 

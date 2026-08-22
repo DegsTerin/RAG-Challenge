@@ -13,7 +13,7 @@
 | Git state | `main` was 12 commits ahead of `origin/main`; only `?? Plans.md` existed |
 | Preserved owner work | The original request was read and fingerprinted as SHA-256 `e4954b14ebbc830dfdd391e2b48fc4ac86db01c46db1e1056bac692f68a589b7`; this executable plan implements its intent |
 | Lifecycle | `STATE-07 TESTING_HOMOLOGATION`; unchanged |
-| Prompt corpus | `4.18.6` |
+| Prompt corpus | `4.19.3` |
 | Runtime preflight | No RAG-Challenge-owned process or known task listener was found |
 | Parallel work | `PARALLEL_RECOMMENDED` for three read-only audit lanes; all writes remain sequential in the shared worktree |
 | Delivery | No commit, push, publication, deployment or lifecycle transition |
@@ -192,7 +192,7 @@ No critical finding was confirmed.
 | `H-SCRIPT-001` | Oracle plan generator accepted arbitrary output and overwrote 52 known names | `CORRECTED`: output is derived from a bounded task ID, remains under `artifacts-local`, uses an ownership marker and `CreateNew`, and refuses existing/reparse/foreign targets |
 | `H-NPM-001` | Dashboard graph contained vulnerable `nanoid` 3.3.16 | `CORRECTED`: lockfile resolves 3.3.18; clean audit, signatures, lint, typecheck, 45 tests and build passed |
 | `H-HOMOLOGATION-001` | Real provider-backed product/RAG homologation is not executed | Blocked with justification: separate authority, valid frozen inputs, two independent human reviews and genuine adjudication are required |
-| `H-GATE-LANGUAGE-001` | Canonical CI cannot pass until protected baseline changes receive exceptional manual review | Blocked with justification: authorised human review is required; supplemental passes are not a substitute |
+| `H-GATE-LANGUAGE-001` | Protected language-control integration required exceptional manual review and one canonical offline execution | `RESOLVED` for sealed candidate `e80d10a29738fa7a042286c549687d08b2fe1dea`: the two bounded manual reviews returned zero P0-P3 and the single corrected offline gate exited `0`; every earlier failure remains historical evidence |
 
 ### Medium
 
@@ -365,18 +365,23 @@ applicable lint/type/build checks.
   build, all .NET tests/coverage, both npm workspaces' checks/audits/signatures,
   disposable migrations, integrated start/restart/cold recovery, repository
   audit, `git diff --check`, final Git status/diff and independent review.
-- Rerun `eng/ci.ps1` once. If it stops on the same protected-baseline manual
-  review, record the blocker and keep all later evidence supplemental.
+- The first protected-language execution passed its language tests and stopped
+  at the exceptional-review boundary. The integrated candidate then preserved
+  its configuration, identifier and focused checker failures before the two
+  bounded manual reviews and the single corrected offline gate approved sealed
+  candidate `e80d10a29738fa7a042286c549687d08b2fe1dea`.
 - Result: every safe local increment and final full-suite repetition passed.
   Independent security re-review found zero critical or high local findings.
-  The canonical gate and real provider homologation remain the two justified
-  high human/external blockers; no lifecycle state or external system changed.
+  The protected language gate is resolved only for the sealed candidate. Real
+  provider homologation remains the justified high external blocker; no
+  lifecycle state or external system changed.
 
 ## Final local verification evidence
 
-All results below were observed on 2026-08-21 UTC after the executable changes.
-They are supplemental evidence because the canonical gate remains stopped at
-its earlier exceptional-review boundary.
+The earlier results below were observed on 2026-08-21 UTC after the executable
+changes and retain their original disposition. The later protected-language
+entry records the separately sealed and approved integrated candidate without
+reclassifying any preceding result.
 
 | Command or check | Observed result |
 |---|---|
@@ -400,6 +405,7 @@ its earlier exceptional-review boundary.
 | OCI verifier replay | `NOT_RUN`: the preserved historical output predates the required ownership marker; current builder/verifier code and static regressions passed, but no legacy artefact was adopted or replaced |
 | Repository hygiene | Repository audit passed for 443 non-ignored files; 18 changed PowerShell scripts parsed; `git diff --check` passed |
 | Canonical `eng/ci.ps1` | 105/105 language-policy tests passed, then exit 1 at the intentional exceptional manual-review requirement; no later canonical stage ran |
+| Integrated protected-language gate | Two bounded `MANUAL_REVIEW_PASS` dispositions returned zero P0-P3. The single corrected offline gate for sealed candidate `e80d10a29738fa7a042286c549687d08b2fe1dea` exited `0`: 107 language-policy tests, 445-file checker, Release build, 571 .NET tests, Dashboard checks and 105 orchestrator tests passed; two environment-bound symlink cases were skipped and online dependency audits remained `NOT_RUN` in offline mode |
 | Independent final review | Security re-review confirmed zero critical/high local finding after archive hardening; documentation re-review approved delivery as `DONE_WITH_BLOCKERS` after status, corpus provenance and evidence wording were corrected |
 
 No Docker daemon, paid/provider request, online documentation source, current
@@ -411,7 +417,6 @@ Local correction work is `DONE_WITH_BLOCKERS` when all safe increments pass
 and the remaining items are limited to explicitly external/human-controlled
 work:
 
-- exceptional manual review of protected baseline changes;
 - real provider/RAG homologation and successor RB authority;
 - full `pdf-render-sandbox-v1` implementation/attestation;
 - trusted Render proxy/edge and real deployment evidence;
@@ -423,9 +428,10 @@ The overall project must not be labelled complete while a high blocker remains.
 A blocker is not risk acceptance and is not silently downgraded.
 
 Disposition: the local correction work achieved `DONE_WITH_BLOCKERS`. The
-overall project remains incomplete because `H-GATE-LANGUAGE-001` and
-`H-HOMOLOGATION-001` require authority/evidence that this request cannot
-supply. No critical or uncorrected high local finding remains.
+overall project remains incomplete because `H-HOMOLOGATION-001` requires
+authority and evidence that this request cannot supply. The separately sealed
+candidate resolves `H-GATE-LANGUAGE-001` without integrating it into `main`.
+No critical or uncorrected high local finding remains.
 
 ## Change log
 
@@ -442,3 +448,4 @@ supply. No critical or uncorrected high local finding remains.
 | `2026-08-21T03:24:00Z` | Reconciled current corpus/Stage evidence and ADR-0020 deployment roles across the documentation; recorded dated evidence and unexecuted boundaries; defined the missing Dashboard display-font token | Dashboard lint, typecheck, 45 tests and production build passed; documentation links, repository audit and diff hygiene passed |
 | `2026-08-21T04:20:01Z` | Closed zero-budget admission before credential/HTTP even with an exact grant; hardened recovery duplicate/link/length races; introduced exact marker-owned output policy for Render, integration and OCI artefacts; made the Render builder prove offline status and fail-closed public health; completed local browser and dependency-drift inspection | Focused suites, rebuilt integration artefact, local browser query, Render component harness, locked restore, format, Release build, 571 .NET tests/coverage, both npm graphs, structured audits, disposable migrations and repository hygiene passed; canonical CI retained its human-review stop |
 | `2026-08-21T04:52:58Z` | Corrected Render corpus provenance/evidence wording; authenticated and bounded integration/OCI archives; required coordinator-held digests; revalidated Render source trees; narrowed link-test skips; rehashed the extracted server immediately before launch | Eleven hostile/trusted archive fixtures, seven policy suites, authenticated integration start/restart/cold recovery, focused static regressions, final format/build and all 571 .NET tests passed. One initial focused CA1875 finding and one stale static assertion failed, were corrected at root, and passed on rerun. Independent security re-review found zero critical/high local finding. |
+| `2026-08-22T01:52:02Z` | Recorded the two bounded exceptional language-review dispositions and the single approved corrected offline gate for sealed candidate `e80d10a29738fa7a042286c549687d08b2fe1dea` | `H-GATE-LANGUAGE-001` is resolved only for that sealed candidate; every prior failure and interruption retains its original disposition; `H-HOMOLOGATION-001` remains blocked and no Human Gate or lifecycle transition occurred |

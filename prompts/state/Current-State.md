@@ -2878,6 +2878,22 @@ for the directly necessary protected correction, while the recorded mechanical
 `Language policy FAIL` remains a failure and is not reclassified. The focused
 policy change is the only authorised local commit scope.
 
+The integrated protected-language candidate is sealed at
+`e80d10a29738fa7a042286c549687d08b2fe1dea`, tree
+`3bd61746ee14f4c594e421a8f419a6506b117f4b`, with 445 tracked files and virtual
+manifest SHA-256
+`8ec9e2b98e5e6db0365282b57fd993afcf31d248c841ecb817b9853a869d7a57`.
+The two non-overlapping exceptional manual reviews returned
+`MANUAL_REVIEW_PASS` with zero P0-P3. Its single corrected canonical offline
+gate then exited `0`, while every earlier configuration failure, successful
+retest, `ParserError`, integrated-gate identifier failure and focused checker
+failure retains its original disposition in
+[`STATE-07-Language-Gate-Evidence.md`](../../docs/STATE-07-Language-Gate-Evidence.md).
+`H-GATE-LANGUAGE-001` is `RESOLVED` exclusively for this sealed candidate,
+which has not been integrated into `main`. `H-HOMOLOGATION-001` remains
+blocked, and `STATE-07 TESTING_HOMOLOGATION` remains active without a Human
+Gate or lifecycle transition.
+
 ## Contexto histórico preservado
 
 Os parágrafos seguintes registram snapshots e sequências anteriores. Verbos no

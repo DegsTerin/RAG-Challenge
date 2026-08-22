@@ -2,7 +2,7 @@
 
 ## Current version
 
-- Version: `4.19.2`
+- Version: `4.19.3`
 - Date: 2026-08-21
 - Status: `STATE-07` active; ADR-0011 through ADR-0017 retain their recorded
   accepted dispositions and implemented or pending boundaries; PostgreSQL 18.4
@@ -48,7 +48,13 @@
   all 31,298,434 approved logical bytes and the empty ReadOnly root are deleted,
   the journal is closed by `RECOVERY_COMPLETED`, and the protected workspace
   boundaries remain intact; the completed recovery result now declares every
-  deleted target as regenerable but not recoverable as the same ephemeral bytes
+  deleted target as regenerable but not recoverable as the same ephemeral
+  bytes; the two bounded exceptional language reviews returned zero P0-P3 and
+  the single corrected canonical offline gate approved sealed candidate
+  `e80d10a29738fa7a042286c549687d08b2fe1dea`; every prior failure and
+  interruption remains preserved; the candidate is not integrated into
+  `main`, `H-HOMOLOGATION-001` remains blocked and `STATE-07` remains active
+  without a Human Gate or lifecycle transition
 - Scope: 13 active files under `prompts/`
 
 The corpus version is independent from the future software version.
@@ -61,6 +67,47 @@ The corpus version is independent from the future software version.
 
 Every change updates this file and, when necessary,
 [`../Start-Here.md`](../Start-Here.md).
+
+## 4.19.3 — 2026-08-21
+
+- Records the two non-overlapping exceptional manual reviews for
+  `e2ae23f8870ac2f447a9bfa09812288c7dcf3f66..4b6f9fc04bcd418eb5394f6f5f35c08a74bf1deb`
+  and
+  `4b6f9fc04bcd418eb5394f6f5f35c08a74bf1deb..e80d10a29738fa7a042286c549687d08b2fe1dea`.
+  Each returned `MANUAL_REVIEW_PASS` with zero P0-P3, accepted no risk and did
+  not replace any mechanical result.
+- Preserves the first configuration failure after 107 language tests, the
+  corrected earlier-candidate retest, every PowerShell `ParserError`, the first
+  integrated gate failure after 107 language tests and the focused failures
+  for a truncated context hash and a missing exact canonical-literal
+  allowance. None is erased or reclassified.
+- Records the single corrected canonical execution of
+  `pwsh -NoProfile -File .\eng\ci.ps1 -Offline` with only
+  `RAG_LANGUAGE_COMMIT_BASE=fcbab59ec2063a3dcbc7bb12ad8d869b230c66d3`
+  and without `RAG_LANGUAGE_COMMIT_HEAD`. It exited `0` for sealed candidate
+  `e80d10a29738fa7a042286c549687d08b2fe1dea`, tree
+  `3bd61746ee14f4c594e421a8f419a6506b117f4b`, and virtual manifest SHA-256
+  `8ec9e2b98e5e6db0365282b57fd993afcf31d248c841ecb817b9853a869d7a57`.
+- Records 107 passed language-policy tests, the immutable checker across 445
+  tracked files, a warning-free Release build, 571 passed .NET tests,
+  Dashboard lint/typecheck/45 tests/build, 105 passed orchestrator tests and a
+  passed repository audit. Two environment-bound symlink cases were skipped;
+  online dependency audits remained `NOT_RUN` in offline mode.
+- Adds
+  [`STATE-07-Language-Gate-Evidence.md`](../../docs/STATE-07-Language-Gate-Evidence.md)
+  as the factual evidence owner and preserves
+  `STATE-07-Testing-Homologation-Report.md` byte for byte as historical
+  evidence.
+- Resolves `H-GATE-LANGUAGE-001` exclusively for the sealed candidate. The
+  candidate has not been integrated into `main`; `H-HOMOLOGATION-001` remains
+  blocked and `STATE-07 TESTING_HOMOLOGATION` remains active without a Human
+  Gate or lifecycle transition.
+- Classification: `PATCH`, because this revision records factual gate evidence
+  and references without changing authority, architecture, product behaviour,
+  Human Gate or lifecycle.
+- No provider, credential, paid service, external source, network, push,
+  publication, deployment, integration into `main`, Human Gate or lifecycle
+  action occurred.
 
 ## 4.19.2 — 2026-08-21
 

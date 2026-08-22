@@ -9913,3 +9913,47 @@ contém somente fatos cronológicos.
   OCI, paid service, external source, push, PR, merge, deployment, Human Gate or
   lifecycle transition occurred. The five authorised files are eligible for
   the separately authorised second focused local commit.
+
+## 2026-08-21 — Integrated language gate approval evidence
+
+- Authority and identity: the owner approved documentary persistence for the
+  isolated evidence branch derived from sealed candidate
+  `e80d10a29738fa7a042286c549687d08b2fe1dea`, tree
+  `3bd61746ee14f4c594e421a8f419a6506b117f4b`, with 445 tracked files and
+  virtual manifest SHA-256
+  `8ec9e2b98e5e6db0365282b57fd993afcf31d248c841ecb817b9853a869d7a57`.
+- Preserved earlier-candidate history: the first gate passed all 107 language
+  tests and exited `1` because explicit commit-base and commit-head
+  configuration were supplied together. The separately authorised corrected
+  retest used only the commit base and exited `0`. Neither result is
+  reclassified.
+- Preserved integrated-candidate history: every PowerShell `ParserError`
+  interruption remains an interruption rather than a candidate result. The
+  first integrated gate passed all 107 language tests and exited `1` because a
+  private identifier used an unallowlisted legacy spelling. The focused
+  correction subsequently preserved one failure for a truncated context hash
+  and one failure for a current canonical storage literal without its exact
+  allowance.
+- Manual dispositions: independent review of
+  `e2ae23f8870ac2f447a9bfa09812288c7dcf3f66..4b6f9fc04bcd418eb5394f6f5f35c08a74bf1deb`
+  and independent review of
+  `4b6f9fc04bcd418eb5394f6f5f35c08a74bf1deb..e80d10a29738fa7a042286c549687d08b2fe1dea`
+  each returned `MANUAL_REVIEW_PASS` with zero P0-P3. The dispositions accept
+  no risk and do not erase any earlier result.
+- Approved execution: `pwsh -NoProfile -File .\eng\ci.ps1 -Offline` ran
+  exactly once for the corrected sealed candidate with only
+  `RAG_LANGUAGE_COMMIT_BASE=fcbab59ec2063a3dcbc7bb12ad8d869b230c66d3`
+  and without `RAG_LANGUAGE_COMMIT_HEAD`. It exited `0`. The run passed 107
+  language-policy tests, the immutable checker for 445 tracked files, the
+  warning-free Release build, 571 .NET tests, Dashboard lint/typecheck/45
+  tests/build, 105 orchestrator tests and the repository audit. Two
+  environment-bound symlink cases were skipped; online dependency audits were
+  `NOT_RUN` because the gate was offline.
+- Append-only integrity: this entry preserves the complete preceding file of
+  635,165 bytes at SHA-256
+  `1624d9101e9e07ffedc48b825718c329f24ca6fe265c3732a15ea51cab87d98b`.
+- Disposition: `H-GATE-LANGUAGE-001` is `RESOLVED` exclusively for sealed
+  candidate `e80d10a29738fa7a042286c549687d08b2fe1dea`. The candidate has not
+  been integrated into `main`; `H-HOMOLOGATION-001` remains blocked and
+  `STATE-07 TESTING_HOMOLOGATION` remains active. No provider, network, push,
+  publication, deployment, Human Gate or lifecycle transition occurred.
