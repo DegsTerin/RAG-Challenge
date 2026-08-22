@@ -2298,6 +2298,90 @@
         "contextHashes": [
           "bea48ceea71b04430420e0c8cd6dfafbefcdfb6983b002f94ec058c065a5a83c"
         ]
+      },
+      {
+        "path": "eng/Invoke-LocalArtefactRetention.ps1",
+        "classification": "CANONICAL_STORAGE_LITERAL",
+        "kind": "LITERAL",
+        "value": "artifacts-local",
+        "occurrences": 26,
+        "contextHashes": [
+          "be80f675b2fc88b07aac9456701f3afedb1da93fddca2ce73b4997485de3db80",
+          "521c580e312b10572d7d2af2f5453928540fea51e9e5c307d08bb888fc88f043",
+          "4d43c89ccd22cec8f47a005e74c437ee4ab71cfe2dd72fbde20a71022d094bfc",
+          "8847eb5a12739024235c0afaae0ce082088f2756b045bd2e41dd329f79932279",
+          "080a82f78bc57884fb2a1d5a9e9c4cecc9ec80fdedb0c28424a19c721393928a",
+          "724447331e87d8aece635928a169a2a8938a5fb842f84461d8918821b7ab22e0",
+          "5e83e9155247bca8b777f1915dbc6b609af8e18908469563dfe51fb7f6bf3bcc",
+          "f21c26d095a0e32b7d939e96ebe7902cc6198d1b056b36eeb376f185714ddd5d",
+          "79e9e9adf181fdaaa78cc4f697212952f20c3431999a91663fd43f8edad7b873",
+          "9f74740cdc3844f958bbda09de63810db8fbe1f3fc75e5ca688bc36587a99d5d",
+          "4d17dac0eb5cf9a1c306109edad0a6c60b7b6cd7a8107ba2155dd11539d9a138",
+          "fed70de1b1618fdc191b02e7a303c3910d389001c7cef899633acbcbdcb0e825",
+          "1aab5e914ca7d42f3e9800ae5ffa0078b269bac5b76252a376ef1877178495df",
+          "521225bf9b500b0992d656f1f36b56724f60318e59c8037296882d8b626fb89d",
+          "885de2bac107d7af5507a3652cbdfd2604c0152bb11ab08f78f64e0ea4028a57",
+          "2ecdee625c3cff94aa4889ac777217493e99e8373842165d9770555942af1ffc",
+          "fb6fb70a11ac02909df92e06d0c0e17a80d6988e3ffcdfa8800d2901cfa943e8",
+          "e67d5d5c6f413e531649892499f77a64c63d93ff439740cd562f24642995aed1",
+          "90abdad7f01c278ff1fd202242ec41960af4f5ab1b365506758410abaa06c5a6",
+          "3c6b8013e61b66a32a86f285dcec682e256255ccd37402372df2362acb3b1d3f",
+          "553c5c3c3e38111f17b3e0f42552e6a20ab8581a926b0f4c4a3aaf5abe62504c",
+          "168df96b6bdebd7af416803bbe7d51cb9a8cafa00e60f0ad92fa7327fc489037",
+          "108b5b283b4a155fb377082e770a4128c5d4d7ebbd8a9672f3a5a94282f49f09",
+          "46ec0173b3aa3acceff19e6a6effcaf7bca56c230157dfa84de0fbb6f7dcb5bd",
+          "a13d5f96f4fecc7dafafaf5a07038735639a87aa234cc3c2945a7e16746c385a",
+          "8a7900667cf5c569a2d40bffbb39e33b8a0c94d82ac15c4e83c1c60fbf75d1d8"
+        ]
+      },
+      {
+        "path": "eng/test-local-artefact-retention.ps1",
+        "classification": "CANONICAL_STORAGE_LITERAL",
+        "kind": "LITERAL",
+        "value": "artifacts-local",
+        "occurrences": 6,
+        "contextHashes": [
+          "be21cbbba82ab0f3d1bcd13efae9910bac3b5e97ecac71793e5935e9a758f41e",
+          "6aeb0b3d6efeb9c97bd65315c6d19ca5e2e15b70c61e3de7712da431ade1190b",
+          "e9cc1b4e0840893893d9e111039cd0140e8b3b1ba422fbae25d3d446818bbf26",
+          "b04c03999568a906fb3c43ed050df922e10b8aff71258b12be35e166a9ae3761",
+          "1089a96b25da87c29f4044ce05e1b01bc78aa5929221a525da79ac21d240d8da",
+          "e82901a602b8697d6c65209011286e90b488b218c89a35a9d14b960d283220db"
+        ]
+      },
+      {
+        "path": "prompts/governance/Quality-Gates.md",
+        "classification": "CANONICAL_STORAGE_LITERAL",
+        "kind": "LITERAL",
+        "value": "artifacts-local",
+        "occurrences": 1,
+        "contextHashes": [
+          "de30b7dfa2df6d448bb35604d7404339a0546c073bce25b163229a889c7e4785"
+        ]
+      },
+      {
+        "path": "prompts/state/Current-State.md",
+        "classification": "CANONICAL_STORAGE_LITERAL",
+        "kind": "LITERAL",
+        "value": "artifacts-local",
+        "occurrences": 1,
+        "contextHashes": [
+          "58e6fb7b4ee1729f9b071ab119c3444eef7f8528ebbef43be22fe8067e32bfbf"
+        ]
+      },
+      {
+        "path": "prompts/state/State-Transition-Log.md",
+        "classification": "CANONICAL_STORAGE_LITERAL",
+        "kind": "LITERAL",
+        "value": "artifacts-local",
+        "occurrences": 5,
+        "contextHashes": [
+          "3cbb3bc900e14d530a2082cdc20f680d260354f144771e7629bc950799fc8640",
+          "1050c582e985d55529fe20f7ff3cd8f429f3269866b7a8ed5f3211414e7fc5fb",
+          "e31ba3d5c437c87963fe72ceb0e04dbf1b6700e95ba96675f80c937d802fc458",
+          "2e12cd965e96ef0a138b9b22910faec7dedf159fa6e8d71bf61ac5f156cdcae0",
+          "27b8d6a34938cd10ee3ea85d540f5b666c88227de50259b9aa7c2aeb74b184d6"
+        ]
       }
     ],
     "excludedRegions": [
@@ -2306,7 +2390,7 @@
         "classification": "SYNTHETIC_ENFORCEMENT_REGION",
         "startMarker": "    \"canonicalIdentifierAllowances\": [",
         "endMarker": "    ],\n    \"excludedRegions\": [",
-        "sha256": "14304560512e6e4d0c7158fd245dbaca7153da29b357d9a912999ac2215e1693"
+        "sha256": "a7623afa9100560e18878bfa7b9792de0bf114e284960fa695e3d2a3f545f339"
       },
       {
         "path": "eng/test-language-policy.mjs",
@@ -2436,5 +2520,5 @@
       }
     ]
   },
-  "digest": "sha256:0504c93bd613135759987b331694ff9d22a3d768e154584cb2f83c294edac6f9"
+  "digest": "sha256:1de8765ca57f5cad3b7af4aff954bb8d268947b3315d88dc1923b5dfbf44e8e8"
 }

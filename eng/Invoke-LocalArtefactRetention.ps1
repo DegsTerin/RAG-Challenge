@@ -2147,12 +2147,12 @@ function Initialise-LocalRetentionTransactionInfrastructure {
     [CmdletBinding()]
     param([Parameter(Mandatory)][string]$ResolvedRepositoryRoot)
 
-    $artifactsRoot = Join-Path $ResolvedRepositoryRoot "artifacts-local"
-    Assert-LocalRetentionExistingComponentsAreSafe -RepositoryRoot $ResolvedRepositoryRoot -Path $artifactsRoot
-    [System.IO.Directory]::CreateDirectory($artifactsRoot) | Out-Null
+    $artefactsRoot = Join-Path $ResolvedRepositoryRoot "artifacts-local"
+    Assert-LocalRetentionExistingComponentsAreSafe -RepositoryRoot $ResolvedRepositoryRoot -Path $artefactsRoot
+    [System.IO.Directory]::CreateDirectory($artefactsRoot) | Out-Null
     foreach ($definition in @(
-            [pscustomobject]@{ Path = (Join-Path $artifactsRoot "retention-transactions"); Purpose = "local-retention-transactions"; RelativePath = "artifacts-local/retention-transactions" },
-            [pscustomobject]@{ Path = (Join-Path $artifactsRoot "retention-history"); Purpose = "local-retention-history"; RelativePath = "artifacts-local/retention-history" })) {
+            [pscustomobject]@{ Path = (Join-Path $artefactsRoot "retention-transactions"); Purpose = "local-retention-transactions"; RelativePath = "artifacts-local/retention-transactions" },
+            [pscustomobject]@{ Path = (Join-Path $artefactsRoot "retention-history"); Purpose = "local-retention-history"; RelativePath = "artifacts-local/retention-history" })) {
         $item = Get-Item -LiteralPath $definition.Path -Force -ErrorAction SilentlyContinue
         if ($null -eq $item) { New-LocalRetentionOwnedOutputRoot -OutputRoot $definition.Path -RepositoryRoot $ResolvedRepositoryRoot -Purpose $definition.Purpose -Owner $script:LocalRetentionOwner -CanonicalRelativePath $definition.RelativePath }
         else { Assert-LocalRetentionOwnershipMarker -OutputRoot $definition.Path -Purpose $definition.Purpose -Owner $script:LocalRetentionOwner -CanonicalRelativePath $definition.RelativePath }
