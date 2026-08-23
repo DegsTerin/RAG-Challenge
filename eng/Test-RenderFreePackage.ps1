@@ -19,6 +19,14 @@ $contextRoot = Join-Path $resolvedOutputRoot "context"
 $contextManifestPath = Join-Path $contextRoot "context-manifest.sha256"
 $packageManifestPath = Join-Path $contextRoot "package-manifest.json"
 $renderTemplatePath = Join-Path $resolvedOutputRoot "render.yaml.template"
+$expectedGeneration =
+    "idxgen-4b417b79a9d8cd2472cb657a5fe7509f297b39f4831215f62143080d896e4f0d"
+$expectedGenerationContentDigest =
+    "4b417b79a9d8cd2472cb657a5fe7509f297b39f4831215f62143080d896e4f0d"
+$expectedLogicalArtefactDigest =
+    "af207b4c359b985bb51b91ec39a40ab22cde93bd3fbbb667741c4b1172461558"
+$expectedPreparedStoreSha256 =
+    "dc1aa3a21056a5094be99f7a46b9ab738a139bd0b121907b117cad3eac7dfce6"
 
 foreach ($requiredPath in @(
         $contextRoot,
@@ -100,6 +108,14 @@ if ($packageManifest.source.branch -cne "main" -or
     $packageManifest.hosting.persistentDisk -ne $false -or
     $packageManifest.hosting.managedDatabase -ne $false -or
     $packageManifest.hosting.autoDeploy -ne $false -or
+    $packageManifest.product.activeGenerationId -cne $expectedGeneration -or
+    $packageManifest.product.generationContentDigest -cne
+        $expectedGenerationContentDigest -or
+    $packageManifest.product.logicalArtefactDigest -cne $expectedLogicalArtefactDigest -or
+    $packageManifest.product.preparedStoreSha256 -cne $expectedPreparedStoreSha256 -or
+    $packageManifest.product.controlDbSha256 -notmatch '^[0-9a-f]{64}$' -or
+    $packageManifest.product.vectorsDbSha256 -notmatch '^[0-9a-f]{64}$' -or
+    $packageManifest.product.contentStructuralTreeSha256 -notmatch '^[0-9a-f]{64}$' -or
     $packageManifest.product.offlineAdministrativeStatusValidated -ne $true -or
     $packageManifest.product.administrativeStatusResultCode -cne
         "CH_ADMIN_STATUS_AVAILABLE" -or

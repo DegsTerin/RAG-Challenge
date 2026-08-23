@@ -29,11 +29,40 @@ $seedRoot = Join-Path $contextRoot "seed"
 $readinessStoreRoot = Join-Path $resolvedOutputRoot ".readiness-store"
 $utf8WithoutBom = [System.Text.UTF8Encoding]::new($false)
 $expectedGeneration =
-    "idxgen-ec39244b021c90fceea1b3a628fe793a99f74650cad451f16ffbcd414af636f6"
+    "idxgen-4b417b79a9d8cd2472cb657a5fe7509f297b39f4831215f62143080d896e4f0d"
+$expectedGenerationContentDigest =
+    "4b417b79a9d8cd2472cb657a5fe7509f297b39f4831215f62143080d896e4f0d"
+$expectedLogicalArtefactDigest =
+    "af207b4c359b985bb51b91ec39a40ab22cde93bd3fbbb667741c4b1172461558"
+$expectedPreparedStoreSha256 =
+    "dc1aa3a21056a5094be99f7a46b9ab738a139bd0b121907b117cad3eac7dfce6"
 $expectedOpenApiV1 =
     "d6a686b94c926914beb28b437f464430a01de6560c2e2d476cf5c36025813e34"
 $expectedOpenApiV2 =
     "f4dca8db7fb7bd453e580495bb1bb7760812d954344931063e8549ed8f036733"
+
+function Get-RenderStoreStructuralTreeSha256 {
+    [CmdletBinding()]
+    param([Parameter(Mandatory)][string]$Root)
+
+    $relativePaths = [string[]](Get-ChildItem -LiteralPath $Root -Recurse -File -Force |
+        ForEach-Object {
+            [System.IO.Path]::GetRelativePath($Root, $_.FullName).Replace('\', '/')
+        })
+    [System.Array]::Sort($relativePaths, [System.StringComparer]::Ordinal)
+
+    $lines = foreach ($relativePath in $relativePaths) {
+        $fullPath = Join-Path $Root $relativePath
+        $digest = (Get-FileHash -LiteralPath $fullPath -Algorithm SHA256).
+            Hash.ToLowerInvariant()
+        $length = (Get-Item -LiteralPath $fullPath -Force).Length
+        "$digest  $length  $relativePath"
+    }
+    $payload = [System.Text.Encoding]::UTF8.GetBytes(
+        [string]::Join("`n", $lines) + "`n")
+    return [System.Convert]::ToHexString(
+        [System.Security.Cryptography.SHA256]::HashData($payload)).ToLowerInvariant()
+}
 
 Push-Location $repositoryRoot
 
@@ -79,6 +108,49 @@ try {
         Where-Object { $_.Name.EndsWith("-wal") -or $_.Name.EndsWith("-shm") })
     if ($transientStoreFiles.Count -ne 0) {
         throw "The product store contains an open SQLite WAL or shared-memory file."
+    }
+
+    $preparedStorePath = Join-Path $expectedStoreRoot "prepared-store.json"
+    $preparedStoreSha256 = (Get-FileHash -LiteralPath $preparedStorePath -Algorithm SHA256).
+        Hash.ToLowerInvariant()
+    if ($preparedStoreSha256 -cne $expectedPreparedStoreSha256) {
+        throw "The prepared product-store attestation identity diverged."
+    }
+
+    try {
+        $preparedStore = Get-Content -LiteralPath $preparedStorePath -Raw |
+            ConvertFrom-Json -Depth 10
+    }
+    catch {
+        throw "The prepared product-store attestation is invalid JSON."
+    }
+
+    $controlDbSha256 = (Get-FileHash -LiteralPath (
+            Join-Path $expectedStoreRoot "control.db") -Algorithm SHA256).Hash.ToLowerInvariant()
+    $vectorsDbSha256 = (Get-FileHash -LiteralPath (
+            Join-Path $expectedStoreRoot "vectors.db") -Algorithm SHA256).Hash.ToLowerInvariant()
+    $contentStructuralTreeSha256 = Get-RenderStoreStructuralTreeSha256 `
+        -Root (Join-Path $expectedStoreRoot "content")
+    if ($preparedStore.schemaVersion -ne 1 -or
+        $preparedStore.catalogueProfile -cne "postgresql-18.4" -or
+        $preparedStore.corpusId -cne "rag-challenge-product" -or
+        $preparedStore.corpusVersion -cne "4.19.5" -or
+        $preparedStore.rightsEvidenceReference -cne "auth-s07-a-product-a0-003" -or
+        $preparedStore.activeGenerationId -cne $expectedGeneration -or
+        $preparedStore.generationContentDigest -cne $expectedGenerationContentDigest -or
+        $preparedStore.logicalArtefactDigest -cne $expectedLogicalArtefactDigest -or
+        $preparedStore.chunkCount -ne 3282 -or
+        $preparedStore.vectorCount -ne 3282 -or
+        $preparedStore.embeddingModel -cne "text-embedding-3-small" -or
+        $preparedStore.embeddingDimensions -ne 1536 -or
+        $preparedStore.controlDbSha256 -cne $controlDbSha256 -or
+        $preparedStore.vectorsDbSha256 -cne $vectorsDbSha256 -or
+        $preparedStore.contentStructuralTreeSha256 -cne $contentStructuralTreeSha256 -or
+        $preparedStore.sourcePdfSha256 -cne
+            "cea7b845568095eb56dee1b51bfa145c6c6637bc4377c986019971577efefae4" -or
+        $preparedStore.providerRequests -ne 52 -or
+        $preparedStore.providerCommittedMicroUsd -ne 149629) {
+        throw "The prepared product-store attestation does not match the current candidate."
     }
 
     $resolvedOutputRoot = Reset-RenderFreePackageOutput `
@@ -409,6 +481,12 @@ try {
             catalogueProfile = "postgresql-18.4"
             configurationRevision = "postgresql-18.4-product-v1"
             activeGenerationId = $expectedGeneration
+            generationContentDigest = $expectedGenerationContentDigest
+            logicalArtefactDigest = $expectedLogicalArtefactDigest
+            preparedStoreSha256 = $preparedStoreSha256
+            controlDbSha256 = $controlDbSha256
+            vectorsDbSha256 = $vectorsDbSha256
+            contentStructuralTreeSha256 = $contentStructuralTreeSha256
             expectedActiveDatabaseCount = 1
             expectedEligibleDocumentCount = 1
             answerEvidencePersistence = "ephemeral-per-process-lifetime"

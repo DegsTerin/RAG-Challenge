@@ -139,6 +139,16 @@ public sealed class RenderFreePackageArtefactTests
         Assert.Contains("Assert-OwnedOutputTreeIsSafe -Root $seedRoot", builder, StringComparison.Ordinal);
         Assert.Contains("--no-restore", builder, StringComparison.Ordinal);
         Assert.Contains("prepared-store.json", builder, StringComparison.Ordinal);
+        Assert.Contains("expectedPreparedStoreSha256", builder, StringComparison.Ordinal);
+        Assert.Contains("Get-RenderStoreStructuralTreeSha256", builder, StringComparison.Ordinal);
+        Assert.Contains(
+            "The prepared product-store attestation identity diverged.",
+            builder,
+            StringComparison.Ordinal);
+        Assert.Contains(
+            "idxgen-4b417b79a9d8cd2472cb657a5fe7509f297b39f4831215f62143080d896e4f0d",
+            builder,
+            StringComparison.Ordinal);
         Assert.Contains("publicDistributionAllowed = $false", builder, StringComparison.Ordinal);
         Assert.Contains("dockerInvoked = $false", builder, StringComparison.Ordinal);
         Assert.Contains("imagePublished = $false", builder, StringComparison.Ordinal);
@@ -187,6 +197,11 @@ public sealed class RenderFreePackageArtefactTests
         Assert.Contains("trustedProviderGrantConfigured -ne $false", verifier, StringComparison.Ordinal);
         Assert.Contains("egressObservationPerformed -ne $false", verifier, StringComparison.Ordinal);
         Assert.Contains("prepared-store[.]json", verifier, StringComparison.Ordinal);
+        Assert.Contains("expectedPreparedStoreSha256", verifier, StringComparison.Ordinal);
+        Assert.Contains(
+            "idxgen-4b417b79a9d8cd2472cb657a5fe7509f297b39f4831215f62143080d896e4f0d",
+            verifier,
+            StringComparison.Ordinal);
         Assert.Contains(
             "offlineAdministrativeStatusValidated -ne $true",
             verifier,
