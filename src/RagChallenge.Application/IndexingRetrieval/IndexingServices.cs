@@ -122,6 +122,13 @@ public interface IEmbeddingProvider
         CancellationToken cancellationToken = default);
 }
 
+public interface IEmbeddingProviderPlanValidator
+{
+    Task ValidatePlanAsync(
+        IReadOnlyCollection<EmbeddingBatchRequest> requests,
+        CancellationToken cancellationToken = default);
+}
+
 public sealed class IndexDocumentInput
 {
     public IndexDocumentInput(
@@ -293,15 +300,23 @@ public sealed class CorpusIndexingService(
         CancellationToken cancellationToken)
     {
         var vectors = new List<ReadOnlyMemory<float>>(flattened.Length);
-
-        foreach (var batch in CreateEmbeddingBatches(
-                     flattened,
-                     request.MaximumEmbeddingBatchUtf8Bytes))
-        {
-            var embeddingRequest = new EmbeddingBatchRequest(
+        var embeddingRequests = CreateEmbeddingBatches(
+                flattened,
+                request.MaximumEmbeddingBatchUtf8Bytes)
+            .Select(batch => new EmbeddingBatchRequest(
                 request.ExpectedEmbeddingDescriptor,
                 batch.Select(item => item.Chunk.Text).ToArray(),
-                request.MaximumEmbeddingBatchUtf8Bytes);
+                request.MaximumEmbeddingBatchUtf8Bytes))
+            .ToArray();
+
+        if (embeddingProvider is IEmbeddingProviderPlanValidator validator)
+        {
+            await validator.ValidatePlanAsync(embeddingRequests, cancellationToken)
+                .ConfigureAwait(false);
+        }
+
+        foreach (var embeddingRequest in embeddingRequests)
+        {
             var result = await embeddingProvider.EmbedAsync(
                 embeddingRequest,
                 cancellationToken).ConfigureAwait(false);

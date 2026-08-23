@@ -1,4 +1,4 @@
-// Purpose: Enforces durable zero-budget admission and exact authority revalidation before provider credentials or synthetic transport can be reached; pricing and non-zero operational schedules remain out of scope.
+// Purpose: Enforces durable provider-budget admission, conservative maximum charging and exact authority revalidation before credentials or provider transport can be reached.
 using System.Security.Cryptography;
 using System.Text;
 
@@ -42,19 +42,64 @@ public sealed class ProviderBudgetAdmissionGate
     private readonly IProviderBudgetLedger ledger;
     private readonly ProviderBudgetAdmissionContext context;
     private readonly Func<CancellationToken, ValueTask> revalidateAuthority;
+    private readonly IProviderBudgetMaximumChargeCalculator? maximumChargeCalculator;
     private readonly TimeProvider timeProvider;
 
     public ProviderBudgetAdmissionGate(
         IProviderBudgetLedger ledger,
         ProviderBudgetAdmissionContext context,
         Func<CancellationToken, ValueTask> revalidateAuthority,
+        IProviderBudgetMaximumChargeCalculator? maximumChargeCalculator = null,
         TimeProvider? timeProvider = null)
     {
         this.ledger = ledger ?? throw new ArgumentNullException(nameof(ledger));
         this.context = context ?? throw new ArgumentNullException(nameof(context));
         this.revalidateAuthority = revalidateAuthority ??
             throw new ArgumentNullException(nameof(revalidateAuthority));
+        this.maximumChargeCalculator = maximumChargeCalculator;
         this.timeProvider = timeProvider ?? TimeProvider.System;
+    }
+
+    public async Task<ProviderBudgetUnits> ValidatePlanAsync(
+        ProviderBudgetOperationClass operationClass,
+        IReadOnlyCollection<ReadOnlyMemory<byte>> exactRequestBytes,
+        CancellationToken cancellationToken = default)
+    {
+        if (!Enum.IsDefined(operationClass))
+        {
+            throw new ArgumentOutOfRangeException(nameof(operationClass));
+        }
+
+        ArgumentNullException.ThrowIfNull(exactRequestBytes);
+        if (exactRequestBytes.Count == 0 || exactRequestBytes.Any(value => value.IsEmpty))
+        {
+            throw new ProviderBudgetAdmissionUnavailableException();
+        }
+
+        await revalidateAuthority(cancellationToken).ConfigureAwait(false);
+        var envelope = await ReadAdmissibleEnvelopeAsync(cancellationToken)
+            .ConfigureAwait(false);
+        long totalMaximumCharge = 0;
+
+        foreach (var requestBytes in exactRequestBytes)
+        {
+            totalMaximumCharge = checked(totalMaximumCharge +
+                CalculateMaximumCharge(envelope, operationClass, requestBytes).Value);
+        }
+
+        var operation = envelope.OperationBalances.Single(
+            balance => balance.OperationClass == operationClass);
+        if (totalMaximumCharge >
+                envelope.AggregateLimit.Value - envelope.AggregateCommitted.Value -
+                envelope.AggregateReserved.Value ||
+            totalMaximumCharge >
+                operation.AllocationLimit.Value - operation.Committed.Value -
+                operation.Reserved.Value)
+        {
+            throw new ProviderBudgetAdmissionUnavailableException();
+        }
+
+        return new ProviderBudgetUnits(totalMaximumCharge);
     }
 
     public async Task<ProviderBudgetAdmissionLease> AdmitAsync(
@@ -68,19 +113,26 @@ public sealed class ProviderBudgetAdmissionGate
         }
 
         await revalidateAuthority(cancellationToken).ConfigureAwait(false);
-        var envelope = await ledger.ReadEnvelopeAsync(context.EnvelopeId, cancellationToken)
+        var envelope = await ReadAdmissibleEnvelopeAsync(cancellationToken)
             .ConfigureAwait(false);
-
-        if (envelope is null || envelope.AggregateLimit.Value != 0 ||
-            envelope.OperationBalances.Any(balance => balance.AllocationLimit.Value != 0))
-        {
-            throw new ProviderBudgetAdmissionUnavailableException();
-        }
 
         var requestedAtUtc = timeProvider.GetUtcNow();
         var requestSha = Sha256(exactRequestBytes.Span);
-        var planSha = Sha256("provider-budget-zero-request-plan-v1", requestSha);
-        var maximumBasisSha = Sha256("provider-budget-zero-maximum-v1", operationClass, requestSha);
+        var maximumCharge = CalculateMaximumCharge(
+            envelope,
+            operationClass,
+            exactRequestBytes);
+        var planSha = Sha256(
+            "provider-budget-request-plan-v1",
+            requestSha,
+            maximumCharge.Value);
+        var maximumBasisSha = Sha256(
+            "provider-budget-maximum-v1",
+            operationClass,
+            envelope.CostScheduleId.Value,
+            envelope.CostScheduleSha256.Value,
+            requestSha,
+            maximumCharge.Value);
         var bindingSha = Sha256(
             "provider-budget-admission-binding-v1",
             envelope.EnvelopeId.Value,
@@ -91,7 +143,8 @@ public sealed class ProviderBudgetAdmissionGate
             operationClass,
             context.OperationAuthorityReference.Value,
             requestSha,
-            maximumBasisSha);
+            maximumBasisSha,
+            maximumCharge.Value);
         var request = new ProviderBudgetAdmissionRequest(
             context.ProviderRequestIdFactory(),
             envelope.EnvelopeId,
@@ -108,7 +161,7 @@ public sealed class ProviderBudgetAdmissionGate
             new ProviderBudgetSha256(requestSha),
             new ProviderBudgetSha256(maximumBasisSha),
             new ProviderBudgetSha256(bindingSha),
-            new ProviderBudgetUnits(0),
+            maximumCharge,
             requestedAtUtc);
         var admission = await ledger.AdmitAsync(request, cancellationToken).ConfigureAwait(false);
 
@@ -150,6 +203,36 @@ public sealed class ProviderBudgetAdmissionGate
 
     private static string Sha256(ReadOnlySpan<byte> bytes) =>
         Convert.ToHexString(SHA256.HashData(bytes)).ToLowerInvariant();
+
+    private async Task<ProviderBudgetEnvelopeV1> ReadAdmissibleEnvelopeAsync(
+        CancellationToken cancellationToken)
+    {
+        var envelope = await ledger.ReadEnvelopeAsync(context.EnvelopeId, cancellationToken)
+            .ConfigureAwait(false);
+        var observedAtUtc = timeProvider.GetUtcNow();
+
+        if (envelope is null || envelope.IsClosed ||
+            envelope.State != ProviderBudgetState.Armed ||
+            envelope.RuntimeSessionId != context.RuntimeSessionId ||
+            observedAtUtc < envelope.EffectiveAtUtc || observedAtUtc >= envelope.ExpiresAtUtc ||
+            (maximumChargeCalculator is null &&
+                (envelope.AggregateLimit.Value != 0 ||
+                 envelope.OperationBalances.Any(balance => balance.AllocationLimit.Value != 0))))
+        {
+            throw new ProviderBudgetAdmissionUnavailableException();
+        }
+
+        return envelope;
+    }
+
+    private ProviderBudgetUnits CalculateMaximumCharge(
+        ProviderBudgetEnvelopeV1 envelope,
+        ProviderBudgetOperationClass operationClass,
+        ReadOnlyMemory<byte> exactRequestBytes) =>
+        maximumChargeCalculator?.CalculateMaximumCharge(
+            envelope,
+            operationClass,
+            exactRequestBytes) ?? new ProviderBudgetUnits(0);
 
     private static bool HasExactReadback(
         ProviderBudgetReservation expected,
@@ -210,6 +293,8 @@ public sealed class ProviderBudgetAdmissionLease
         ProviderBudgetReservationStatus.IndeterminateCommitted or
         ProviderBudgetReservationStatus.OverrunCommitted;
 
+    public ProviderBudgetUnits MaximumCharge => reservation.MaximumCharge;
+
     public async Task MarkDispatchStartedAsync(CancellationToken cancellationToken)
     {
         var result = await ledger.MarkDispatchStartedAsync(
@@ -233,6 +318,43 @@ public sealed class ProviderBudgetAdmissionLease
     public async Task CommitObservedZeroAsync(
         string outcomeCode,
         TimeSpan? duration,
+        CancellationToken cancellationToken) =>
+        await CommitObservedAsync(
+            new ProviderBudgetUnits(0),
+            outcomeCode,
+            duration,
+            cancellationToken).ConfigureAwait(false);
+
+    public async Task CommitObservedMaximumAsync(
+        string outcomeCode,
+        TimeSpan? duration,
+        CancellationToken cancellationToken) =>
+        await CommitObservedAsync(
+            reservation.MaximumCharge,
+            outcomeCode,
+            duration,
+            cancellationToken).ConfigureAwait(false);
+
+    public async Task CommitIndeterminateZeroAsync(
+        string outcomeCode,
+        CancellationToken cancellationToken) =>
+        await CommitIndeterminateAsync(
+            new ProviderBudgetUnits(0),
+            outcomeCode,
+            cancellationToken).ConfigureAwait(false);
+
+    public async Task CommitIndeterminateMaximumAsync(
+        string outcomeCode,
+        CancellationToken cancellationToken) =>
+        await CommitIndeterminateAsync(
+            reservation.MaximumCharge,
+            outcomeCode,
+            cancellationToken).ConfigureAwait(false);
+
+    private async Task CommitObservedAsync(
+        ProviderBudgetUnits committedUnits,
+        string outcomeCode,
+        TimeSpan? duration,
         CancellationToken cancellationToken)
     {
         var result = await ledger.CommitAsync(
@@ -241,11 +363,12 @@ public sealed class ProviderBudgetAdmissionLease
                 currentLedgerRevision,
                 reservation.CurrentReservationRevision,
                 ProviderBudgetCommitmentKind.Observed,
-                new ProviderBudgetUnits(0),
+                committedUnits,
                 new ProviderBudgetSha256(Sha256(
-                    "provider-budget-observed-zero-v1",
+                    "provider-budget-observed-v1",
                     reservation.ProviderRequestId.Value,
-                    outcomeCode)),
+                    outcomeCode,
+                    committedUnits.Value)),
                 new ProviderBudgetOutcomeCode(outcomeCode),
                 duration,
                 timeProvider.GetUtcNow()),
@@ -253,7 +376,8 @@ public sealed class ProviderBudgetAdmissionLease
         Apply(result);
     }
 
-    public async Task CommitIndeterminateZeroAsync(
+    private async Task CommitIndeterminateAsync(
+        ProviderBudgetUnits committedUnits,
         string outcomeCode,
         CancellationToken cancellationToken)
     {
@@ -263,11 +387,12 @@ public sealed class ProviderBudgetAdmissionLease
                 currentLedgerRevision,
                 reservation.CurrentReservationRevision,
                 ProviderBudgetCommitmentKind.IndeterminateMaximum,
-                new ProviderBudgetUnits(0),
+                committedUnits,
                 new ProviderBudgetSha256(Sha256(
-                    "provider-budget-indeterminate-zero-v1",
+                    "provider-budget-indeterminate-v1",
                     reservation.ProviderRequestId.Value,
-                    outcomeCode)),
+                    outcomeCode,
+                    committedUnits.Value)),
                 new ProviderBudgetOutcomeCode(outcomeCode),
                 providerDuration: null,
                 timeProvider.GetUtcNow()),

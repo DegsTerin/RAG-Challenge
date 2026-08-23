@@ -91,16 +91,24 @@ internal static class ProductAdministrativeMaterialisationProfile
             ProductProviderOperation.AdministrativeIndexEmbedding,
             credentialReference.EnvironmentVariableName,
             selectedDependencies.CredentialEnvironmentReader);
-        var budgetAdmission = ProductProviderBudgetAdmission.CreateFailClosed(
+        var budgetComposition = ProductProviderBudgetAdmission.CreateOperational(
             storeOptions,
             operationalAuthority,
             operationalGrants,
-            ProductProviderOperation.AdministrativeIndexEmbedding);
+            ProductProviderOperation.AdministrativeIndexEmbedding,
+            options.Embedding.Budget);
         var embeddingProvider = new OpenAiHttpEmbeddingProvider(
             embeddingClient,
             credentialSource.ReadAsync,
-            budgetAdmission,
-            ProviderBudgetOperationClass.AdministrativeIndexEmbedding);
+            budgetComposition.AdmissionGate,
+            ProviderBudgetOperationClass.AdministrativeIndexEmbedding,
+            new OpenAiEmbeddingPlanPolicy(
+                exactRequestCount: 52,
+                maximumInputsPerRequest: 64,
+                exactLastRequestInputCount: 18,
+                exactTotalInputCount: 3_282,
+                maximumTotalMicroUsd: OpenAiEmbeddingCostSchedule.MicroUsdPerUsd),
+            budgetComposition.PrepareAsync);
         return new AdministrativeMaterialisationPorts(
             LocalInputRoot: configuration["RagChallenge:Administration:InputRoot"],
             OfficialSourceAuthorityResolver: authorityResolver,
@@ -177,6 +185,120 @@ internal sealed class ProductEmbeddingOptions
     public string OperationalAuthorityReference { get; init; } = string.Empty;
 
     public string TrustedOperationalGrantReference { get; init; } = string.Empty;
+
+    public ProductProviderBudgetOptions Budget { get; init; } = new();
+}
+
+internal sealed class ProductProviderBudgetOptions
+{
+    public bool Enabled { get; init; }
+
+    public string EnvelopeId { get; init; } = string.Empty;
+
+    public string StoreEpochId { get; init; } = string.Empty;
+
+    public string RuntimeSessionId { get; init; } = string.Empty;
+
+    public string EnvironmentId { get; init; } = string.Empty;
+
+    public string BillingScopeReference { get; init; } = string.Empty;
+
+    public string CostScheduleId { get; init; } = string.Empty;
+
+    public string CostScheduleSha256 { get; init; } = string.Empty;
+
+    public long AggregateLimitMicroUsd { get; init; }
+
+    public long AdministrativeIndexEmbeddingLimitMicroUsd { get; init; }
+
+    public long QueryEmbeddingLimitMicroUsd { get; init; }
+
+    public long GroundedGenerationLimitMicroUsd { get; init; }
+
+    public DateTimeOffset EffectiveAtUtc { get; init; }
+
+    public DateTimeOffset ExpiresAtUtc { get; init; }
+
+    public string CreationAuthorityReference { get; init; } = string.Empty;
+
+    public string RearmAuthorityReference { get; init; } = string.Empty;
+
+    public string ActorReference { get; init; } = string.Empty;
+
+    internal void Validate(string? operationalAuthorityReference = null)
+    {
+        if (!Enabled ||
+            !string.Equals(
+                CostScheduleId,
+                OpenAiEmbeddingCostSchedule.ScheduleId,
+                StringComparison.Ordinal) ||
+            !string.Equals(
+                CostScheduleSha256,
+                OpenAiEmbeddingCostSchedule.ScheduleSha256,
+                StringComparison.Ordinal) ||
+            AggregateLimitMicroUsd != OpenAiEmbeddingCostSchedule.MicroUsdPerUsd ||
+            AdministrativeIndexEmbeddingLimitMicroUsd != AggregateLimitMicroUsd ||
+            QueryEmbeddingLimitMicroUsd != 0 || GroundedGenerationLimitMicroUsd != 0 ||
+            EffectiveAtUtc.Offset != TimeSpan.Zero || ExpiresAtUtc.Offset != TimeSpan.Zero ||
+            ExpiresAtUtc <= EffectiveAtUtc ||
+            ExpiresAtUtc - EffectiveAtUtc > TimeSpan.FromHours(4) ||
+            string.IsNullOrWhiteSpace(operationalAuthorityReference) ||
+            !string.Equals(
+                CreationAuthorityReference,
+                operationalAuthorityReference,
+                StringComparison.Ordinal) ||
+            !string.Equals(
+                RearmAuthorityReference,
+                operationalAuthorityReference,
+                StringComparison.Ordinal))
+        {
+            throw new ArgumentException(
+                "The product provider-budget envelope is absent, over-budget, or drifted.");
+        }
+
+        _ = CreateInitialisationRequest();
+        _ = new ProviderRuntimeSessionId(RuntimeSessionId);
+    }
+
+    internal ProviderBudgetEnvelopeInitialisationRequest CreateInitialisationRequest() =>
+        new(
+            new ProviderBudgetEnvelopeId(EnvelopeId),
+            new ProviderBudgetStoreEpochId(StoreEpochId),
+            new ProviderBudgetScope(
+                new ProviderBudgetEnvironmentId(EnvironmentId),
+                new ProviderBudgetProviderId(OpenAiEmbeddingCostSchedule.ProviderId),
+                new ProviderBudgetBillingScopeReference(BillingScopeReference),
+                new ProviderBudgetModelId(OpenAiEmbeddingCostSchedule.ModelId),
+                new ProviderBudgetCurrencyCode(OpenAiEmbeddingCostSchedule.CurrencyCode),
+                new ProviderBudgetAccountingUnitId(OpenAiEmbeddingCostSchedule.AccountingUnitId)),
+            new ProviderBudgetCostScheduleId(CostScheduleId),
+            new ProviderBudgetSha256(CostScheduleSha256),
+            new ProviderBudgetUnits(AggregateLimitMicroUsd),
+            [
+                new ProviderBudgetOperationBalance(
+                    ProviderBudgetOperationClass.AdministrativeIndexEmbedding,
+                    new ProviderBudgetUnits(AdministrativeIndexEmbeddingLimitMicroUsd),
+                    new ProviderBudgetUnits(0),
+                    new ProviderBudgetUnits(0),
+                    new ProviderBudgetUnits(0)),
+                new ProviderBudgetOperationBalance(
+                    ProviderBudgetOperationClass.QueryEmbedding,
+                    new ProviderBudgetUnits(QueryEmbeddingLimitMicroUsd),
+                    new ProviderBudgetUnits(0),
+                    new ProviderBudgetUnits(0),
+                    new ProviderBudgetUnits(0)),
+                new ProviderBudgetOperationBalance(
+                    ProviderBudgetOperationClass.GroundedGeneration,
+                    new ProviderBudgetUnits(GroundedGenerationLimitMicroUsd),
+                    new ProviderBudgetUnits(0),
+                    new ProviderBudgetUnits(0),
+                    new ProviderBudgetUnits(0)),
+            ],
+            EffectiveAtUtc,
+            ExpiresAtUtc,
+            new ProviderBudgetAuthorityReference(CreationAuthorityReference),
+            new ProviderBudgetAuthorityReference(ActorReference),
+            EffectiveAtUtc);
 }
 
 internal sealed record ProductAdministrativeMaterialisationDependencies(

@@ -13,6 +13,59 @@ namespace RagChallenge.IntegrationTests;
 public sealed class BackendIndexingWorkflowTests
 {
     [Fact]
+    public async Task CompletePlanValidationPrecedesEveryEmbeddingBatch()
+    {
+        await using var fixture = await SqlitePersistenceFixture.CreateAsync();
+        var (_, binding) = await fixture.CommitLocalCatalogueAsync();
+        var descriptor = new EmbeddingProviderDescriptor(
+            "fake",
+            "plan-validation-v1",
+            "fixture-1",
+            dimensions: 3);
+        var compatibilityProfile = CreateCompatibilityProfile(descriptor);
+        var chunks = Enumerable.Range(0, 70)
+            .Select(index => new DocumentChunk(
+                index,
+                new(SqlitePersistenceFixture.Hash($"plan:{index}")),
+                $"chunk-{index:D3}",
+                pageNumber: index + 1,
+                recordNumber: null,
+                new Dictionary<string, string>()))
+            .ToArray();
+        var provider = new RejectingPlanEmbeddingProvider();
+        var service = new CorpusIndexingService(
+            provider,
+            fixture.VectorStore,
+            fixture.ControlStore);
+
+        await Assert.ThrowsAsync<InvalidOperationException>(() => service.BuildAsync(
+            new CorpusIndexingRequest(
+                new CandidateBuildId("candidate-plan-validation-order"),
+                new IndexGenerationSpecification(
+                    1,
+                    SqlitePersistenceFixture.CorpusId,
+                    new CorpusRevision(1),
+                    new CatalogueRevision(1),
+                    BindingDigestCanonicalizer.CanonicaliseActiveDocumentSet([binding]).Digest,
+                    BindingDigestCanonicalizer.CanonicaliseSourceBindingSet([binding]).Digest,
+                    compatibilityProfile.Key),
+                [new IndexDocumentInput(
+                    binding,
+                    DocumentContentLanguage.EnGb,
+                    chunks,
+                    PdfPigDocumentParser.CompatibilityDescriptor,
+                    compatibilityProfile.ChunkingPolicy)],
+                descriptor,
+                compatibilityProfile,
+                Audit("generation-plan-validation-order", "index-generation", 2),
+                SqlitePersistenceFixture.At(3),
+                MaximumEmbeddingBatchUtf8Bytes: 128)));
+
+        Assert.Equal(1, provider.ValidationCount);
+        Assert.Equal(0, provider.EmbeddingCount);
+    }
+
+    [Fact]
     public async Task EmbeddingBatchesRespectBothInputCountAndUtf8ByteLimits()
     {
         await using var fixture = await SqlitePersistenceFixture.CreateAsync();
@@ -342,6 +395,32 @@ public sealed class BackendIndexingWorkflowTests
             var vectors = request.Inputs.Select(_ =>
                 (ReadOnlyMemory<float>)new float[] { 1, 0, 0 }).ToArray();
             return Task.FromResult(new EmbeddingBatchResult(descriptor, vectors));
+        }
+    }
+
+    private sealed class RejectingPlanEmbeddingProvider :
+        IEmbeddingProvider,
+        IEmbeddingProviderPlanValidator
+    {
+        internal int ValidationCount { get; private set; }
+
+        internal int EmbeddingCount { get; private set; }
+
+        public Task ValidatePlanAsync(
+            IReadOnlyCollection<EmbeddingBatchRequest> requests,
+            CancellationToken cancellationToken = default)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            ValidationCount++;
+            throw new InvalidOperationException("Synthetic plan rejection.");
+        }
+
+        public Task<EmbeddingBatchResult> EmbedAsync(
+            EmbeddingBatchRequest request,
+            CancellationToken cancellationToken = default)
+        {
+            EmbeddingCount++;
+            throw new InvalidOperationException("Embedding must remain unreachable.");
         }
     }
 }

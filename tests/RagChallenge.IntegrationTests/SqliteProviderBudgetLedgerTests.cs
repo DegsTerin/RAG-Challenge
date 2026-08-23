@@ -1,4 +1,4 @@
-// Purpose: Verifies focused local SQLite admission, terminal recovery and explicit rearming without provider credentials, network or non-zero schedules.
+// Purpose: Verifies focused local SQLite admission, bounded non-zero initialisation, terminal recovery and explicit rearming without provider credentials or network access.
 using System.Globalization;
 using System.Security.Cryptography;
 using System.Text;
@@ -21,6 +21,133 @@ public sealed class SqliteProviderBudgetLedgerTests
         "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb";
     private const string ZeroSha256 =
         "0000000000000000000000000000000000000000000000000000000000000000";
+
+    [Fact]
+    public async Task InitialNonZeroEnvelopeArmsReservesAndCommitsMaximumCharge()
+    {
+        await using var fixture = await SqlitePersistenceFixture.CreateAsync();
+        var instant = DateTimeOffset.UtcNow;
+        var envelopeId = new ProviderBudgetEnvelopeId("PBE-ADMINISTRATIVE-INDEX-001");
+        var storeEpochId = new ProviderBudgetStoreEpochId("PSE-ADMINISTRATIVE-INDEX-001");
+        var authority = new ProviderBudgetAuthorityReference("AUTH-ADMINISTRATIVE-INDEX-001");
+        var actor = new ProviderBudgetAuthorityReference("ACTOR-ADMINISTRATIVE-INDEX-001");
+        var request = new ProviderBudgetEnvelopeInitialisationRequest(
+            envelopeId,
+            storeEpochId,
+            new ProviderBudgetScope(
+                new ProviderBudgetEnvironmentId("ENV-LOCAL-TEST"),
+                new ProviderBudgetProviderId("openai"),
+                new ProviderBudgetBillingScopeReference("BILLING-LOCAL-TEST"),
+                new ProviderBudgetModelId("text-embedding-3-small"),
+                new ProviderBudgetCurrencyCode("USD"),
+                new ProviderBudgetAccountingUnitId("USD-MICRO")),
+            new ProviderBudgetCostScheduleId("PCS-OPENAI-TEST"),
+            Sha("schedule"),
+            new ProviderBudgetUnits(1_000_000),
+            [
+                new ProviderBudgetOperationBalance(
+                    ProviderBudgetOperationClass.AdministrativeIndexEmbedding,
+                    new ProviderBudgetUnits(1_000_000),
+                    new ProviderBudgetUnits(0),
+                    new ProviderBudgetUnits(0),
+                    new ProviderBudgetUnits(0)),
+                new ProviderBudgetOperationBalance(
+                    ProviderBudgetOperationClass.QueryEmbedding,
+                    new ProviderBudgetUnits(0),
+                    new ProviderBudgetUnits(0),
+                    new ProviderBudgetUnits(0),
+                    new ProviderBudgetUnits(0)),
+                new ProviderBudgetOperationBalance(
+                    ProviderBudgetOperationClass.GroundedGeneration,
+                    new ProviderBudgetUnits(0),
+                    new ProviderBudgetUnits(0),
+                    new ProviderBudgetUnits(0),
+                    new ProviderBudgetUnits(0)),
+            ],
+            instant,
+            instant.AddHours(1),
+            authority,
+            actor,
+            instant);
+        var initialised = await new SqliteProviderBudgetEnvelopeInitialiser(fixture.Options)
+            .InitialiseAsync(request);
+        var ledger = new SqliteProviderBudgetLedger(fixture.Options);
+        var disarmed = initialised.Envelope;
+
+        Assert.Equal(ProviderBudgetState.Disarmed, disarmed.State);
+        Assert.Equal(1_000_000, disarmed.AggregateLimit.Value);
+
+        var rearm = await ledger.RearmAsync(new ProviderBudgetRearmRequest(
+            envelopeId,
+            storeEpochId,
+            disarmed.ConfigurationRevision,
+            disarmed.LedgerRevision,
+            disarmed.RearmRevision,
+            new ProviderRuntimeSessionId("PRS-ADMINISTRATIVE-INDEX-001"),
+            authority,
+            actor,
+            Sha("initial arm"),
+            disarmed.AggregateCommitted,
+            disarmed.AggregateReserved,
+            disarmed.AggregateIndeterminate,
+            SqliteProviderBudgetLedger.ComputeOperationBalancesSha256(disarmed),
+            initialised.ConfigurationSha256,
+            instant.AddSeconds(1)));
+        var armed = Assert.IsType<ProviderBudgetEnvelopeV1>(rearm.Envelope);
+
+        Assert.Equal(ProviderBudgetRearmOutcome.Applied, rearm.Outcome);
+        Assert.Equal(ProviderBudgetState.Armed, armed.State);
+
+        var admission = await ledger.AdmitAsync(new ProviderBudgetAdmissionRequest(
+            new ProviderRequestId("PBR-ADMINISTRATIVE-INDEX-001"),
+            envelopeId,
+            storeEpochId,
+            armed.ConfigurationRevision,
+            armed.LedgerRevision,
+            armed.RuntimeSessionId!,
+            armed.Scope,
+            armed.CostScheduleId,
+            armed.CostScheduleSha256,
+            ProviderBudgetOperationClass.AdministrativeIndexEmbedding,
+            authority,
+            Sha("request plan"),
+            Sha("request"),
+            Sha("maximum charge basis"),
+            Sha("binding"),
+            new ProviderBudgetUnits(123),
+            instant.AddSeconds(2)));
+        var reservation = Assert.IsType<ProviderBudgetReservation>(admission.Reservation);
+        var dispatch = await ledger.MarkDispatchStartedAsync(new ProviderBudgetDispatchRequest(
+            reservation.ProviderRequestId,
+            admission.CurrentLedgerRevision!,
+            reservation.CurrentReservationRevision,
+            instant.AddSeconds(3)));
+        var dispatched = Assert.IsType<ProviderBudgetReservation>(dispatch.Reservation);
+        var commitment = await ledger.CommitAsync(new ProviderBudgetCommitRequest(
+            reservation.ProviderRequestId,
+            dispatch.CurrentLedgerRevision!,
+            dispatched.CurrentReservationRevision,
+            ProviderBudgetCommitmentKind.Observed,
+            new ProviderBudgetUnits(123),
+            Sha("observed maximum"),
+            new ProviderBudgetOutcomeCode("SYNTHETIC_OK"),
+            TimeSpan.FromMilliseconds(1),
+            instant.AddSeconds(4)));
+        var committed = Assert.IsType<ProviderBudgetEnvelopeV1>(
+            await ledger.ReadEnvelopeAsync(envelopeId));
+
+        Assert.Equal(ProviderBudgetTransitionOutcome.Applied, commitment.Outcome);
+        Assert.Equal(123, committed.AggregateCommitted.Value);
+        Assert.Equal(0, committed.AggregateReserved.Value);
+        Assert.Equal(123, committed.OperationBalances.Single(value =>
+            value.OperationClass == ProviderBudgetOperationClass.AdministrativeIndexEmbedding)
+            .Committed.Value);
+        Assert.Equal(0, committed.OperationBalances.Single(value =>
+            value.OperationClass == ProviderBudgetOperationClass.QueryEmbedding).AllocationLimit.Value);
+        Assert.Equal(0, committed.OperationBalances.Single(value =>
+            value.OperationClass == ProviderBudgetOperationClass.GroundedGeneration)
+            .AllocationLimit.Value);
+    }
 
     [Fact]
     public async Task ExplicitRearmAdmissionReplayDispatchAndCommitAreDurable()

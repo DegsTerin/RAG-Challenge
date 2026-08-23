@@ -399,8 +399,7 @@ public sealed class SqliteProviderBudgetLedger : IProviderBudgetLedger, IProvide
                 row.ConfigurationRevision == current.ConfigurationRevision.Value,
                 cancellationToken).ConfigureAwait(false);
         var expectedBalancesSha = new ProviderBudgetSha256(OperationBalancesDigest(current));
-        var exactRecoveryBinding = current.StoreEpochId == request.ExpectedStoreEpochId &&
-            IsZeroBudget(current) &&
+        var exactRearmBinding = current.StoreEpochId == request.ExpectedStoreEpochId &&
             current.ConfigurationRevision == request.ExpectedConfigurationRevision &&
             current.LedgerRevision == request.ExpectedLedgerRevision &&
             current.RearmRevision == request.ExpectedRearmRevision &&
@@ -415,8 +414,13 @@ public sealed class SqliteProviderBudgetLedger : IProviderBudgetLedger, IProvide
             configuration.SealedAtUtc is not null &&
             current.RuntimeSessionId != request.NewRuntimeSessionId &&
             request.OccurredAtUtc >= current.EffectiveAtUtc;
+        var exactZeroBudgetRecoveryBinding = exactRearmBinding && IsZeroBudget(current);
+        var exactInitialNonZeroArmBinding = exactRearmBinding &&
+            IsUnusedNonZeroBudget(current) &&
+            current.State == ProviderBudgetState.Disarmed &&
+            current.RearmRevision.Value == 0;
 
-        if (exactRecoveryBinding)
+        if (exactZeroBudgetRecoveryBinding)
         {
             var revisionBeforeRecovery = current.LedgerRevision;
             current = await RecoverOrphanedDispatchesAsync(
@@ -442,7 +446,7 @@ public sealed class SqliteProviderBudgetLedger : IProviderBudgetLedger, IProvide
             return new ProviderBudgetRearmResult(ProviderBudgetRearmOutcome.Rejected, current);
         }
 
-        var exactRearm = exactRecoveryBinding &&
+        var exactRearm = (exactZeroBudgetRecoveryBinding || exactInitialNonZeroArmBinding) &&
             request.OccurredAtUtc < current.ExpiresAtUtc;
         if (!exactRearm)
         {
@@ -1111,11 +1115,6 @@ public sealed class SqliteProviderBudgetLedger : IProviderBudgetLedger, IProvide
             return ProviderBudgetAdmissionRejection.Closed;
         }
 
-        if (!IsZeroBudget(envelope) || request.MaximumCharge.Value != 0)
-        {
-            return ProviderBudgetAdmissionRejection.AggregateLimitExceeded;
-        }
-
         if (request.RequestedAtUtc < envelope.EffectiveAtUtc)
         {
             return ProviderBudgetAdmissionRejection.Disarmed;
@@ -1768,6 +1767,17 @@ public sealed class SqliteProviderBudgetLedger : IProviderBudgetLedger, IProvide
         envelope.AggregateIndeterminate.Value == 0 &&
         envelope.OperationBalances.All(balance =>
             balance.AllocationLimit.Value == 0 &&
+            balance.Committed.Value == 0 &&
+            balance.Reserved.Value == 0 &&
+            balance.Indeterminate.Value == 0);
+
+    private static bool IsUnusedNonZeroBudget(ProviderBudgetEnvelopeV1 envelope) =>
+        envelope.AggregateLimit.Value > 0 &&
+        envelope.AggregateCommitted.Value == 0 &&
+        envelope.AggregateReserved.Value == 0 &&
+        envelope.AggregateIndeterminate.Value == 0 &&
+        envelope.OperationBalances.Any(balance => balance.AllocationLimit.Value > 0) &&
+        envelope.OperationBalances.All(balance =>
             balance.Committed.Value == 0 &&
             balance.Reserved.Value == 0 &&
             balance.Indeterminate.Value == 0);

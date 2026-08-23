@@ -1,0 +1,20 @@
+{
+  "schemaVersion": 1,
+  "scheduleId": "PCS-OPENAI-TEXT-EMBEDDING-3-SMALL-20260823",
+  "providerId": "openai",
+  "modelId": "text-embedding-3-small",
+  "currency": "USD",
+  "accountingUnitId": "USD-MICRO",
+  "inputPriceMicroUsdPerMillionTokens": 20000,
+  "maximumTokenBound": "utf8-request-bytes",
+  "source": {
+    "url": "https://developers.openai.com/api/docs/models/text-embedding-3-small",
+    "requestStartedAtUtc": "2026-08-23T22:00:26.9717492+00:00",
+    "fetchedAtUtc": "2026-08-23T22:00:28.5152743+00:00",
+    "httpStatus": 200,
+    "contentType": "text/html",
+    "contentLengthBytes": 384286,
+    "payloadSha256": "4f7a89449ce01163662e8240651cc58f2e986f108dff136ebae6eae7b19ca00f",
+    "identitySha256": "a96490e464c121d0d406eb9ed27ff4b1d1d07f1d30825d44e44d6bd2cada2dda"
+  }
+}

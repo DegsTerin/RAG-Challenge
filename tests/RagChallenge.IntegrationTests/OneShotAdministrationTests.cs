@@ -14,6 +14,7 @@ using RagChallenge.Domain.CorpusCatalog;
 using RagChallenge.Domain.IndexingRetrieval;
 using RagChallenge.Infrastructure.Documents;
 using RagChallenge.Infrastructure.Persistence;
+using RagChallenge.Infrastructure.Providers;
 using RagChallenge.Server.Api.OperationsGovernance;
 
 namespace RagChallenge.IntegrationTests;
@@ -2078,6 +2079,11 @@ public sealed class OneShotAdministrationTests
     [InlineData("RagChallenge:Administration:ProductMaterialisation:Embedding:CredentialEnvironmentVariable", "invalid-secret-reference")]
     [InlineData("RagChallenge:Administration:ProductMaterialisation:Embedding:OperationalAuthorityReference", "invalid-authority")]
     [InlineData("RagChallenge:Administration:ProductMaterialisation:Embedding:TrustedOperationalGrantReference", "invalid-authority")]
+    [InlineData("RagChallenge:Administration:ProductMaterialisation:Embedding:Budget:AggregateLimitMicroUsd", "999999")]
+    [InlineData("RagChallenge:Administration:ProductMaterialisation:Embedding:Budget:AdministrativeIndexEmbeddingLimitMicroUsd", "999999")]
+    [InlineData("RagChallenge:Administration:ProductMaterialisation:Embedding:Budget:QueryEmbeddingLimitMicroUsd", "1")]
+    [InlineData("RagChallenge:Administration:ProductMaterialisation:Embedding:Budget:GroundedGenerationLimitMicroUsd", "1")]
+    [InlineData("RagChallenge:Administration:ProductMaterialisation:Embedding:Budget:CostScheduleSha256", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa")]
     public void ProductProfileRejectsDisabledIncompleteOrDriftedConfiguration(
         string key,
         string value)
@@ -2704,6 +2710,7 @@ public sealed class OneShotAdministrationTests
                 "RagChallenge__Administration__ProductMaterialisation__Embedding__OperationalAuthorityReference"] = "AUTH-ADMINISTRATIVE-INDEX-EMBEDDING-TEST-001";
             startInfo.Environment[
                 "RagChallenge__Administration__ProductMaterialisation__Embedding__TrustedOperationalGrantReference"] = "AUTH-ADMINISTRATIVE-INDEX-EMBEDDING-TEST-001";
+            AddProductBudgetEnvironment(startInfo.Environment);
             startInfo.Environment.Remove("RAG_CHALLENGE_TEST_UNSET_CREDENTIAL");
         }
 
@@ -2751,7 +2758,51 @@ public sealed class OneShotAdministrationTests
             ["RagChallenge:Administration:ProductMaterialisation:Embedding:CredentialEnvironmentVariable"] = "RAG_CHALLENGE_TEST_UNSET_CREDENTIAL",
             ["RagChallenge:Administration:ProductMaterialisation:Embedding:OperationalAuthorityReference"] = "AUTH-ADMINISTRATIVE-INDEX-EMBEDDING-TEST-001",
             ["RagChallenge:Administration:ProductMaterialisation:Embedding:TrustedOperationalGrantReference"] = "AUTH-ADMINISTRATIVE-INDEX-EMBEDDING-TEST-001",
+            ["RagChallenge:Administration:ProductMaterialisation:Embedding:Budget:Enabled"] = "true",
+            ["RagChallenge:Administration:ProductMaterialisation:Embedding:Budget:EnvelopeId"] = "PBE-ADMINISTRATIVE-INDEX-EMBEDDING-TEST-001",
+            ["RagChallenge:Administration:ProductMaterialisation:Embedding:Budget:StoreEpochId"] = "PSE-ADMINISTRATIVE-INDEX-EMBEDDING-TEST-001",
+            ["RagChallenge:Administration:ProductMaterialisation:Embedding:Budget:RuntimeSessionId"] = "PRS-ADMINISTRATIVE-INDEX-EMBEDDING-TEST-001",
+            ["RagChallenge:Administration:ProductMaterialisation:Embedding:Budget:EnvironmentId"] = "ENV-LOCAL-TEST",
+            ["RagChallenge:Administration:ProductMaterialisation:Embedding:Budget:BillingScopeReference"] = "BILLING-LOCAL-TEST",
+            ["RagChallenge:Administration:ProductMaterialisation:Embedding:Budget:CostScheduleId"] = OpenAiEmbeddingCostSchedule.ScheduleId,
+            ["RagChallenge:Administration:ProductMaterialisation:Embedding:Budget:CostScheduleSha256"] = OpenAiEmbeddingCostSchedule.ScheduleSha256,
+            ["RagChallenge:Administration:ProductMaterialisation:Embedding:Budget:AggregateLimitMicroUsd"] = "1000000",
+            ["RagChallenge:Administration:ProductMaterialisation:Embedding:Budget:AdministrativeIndexEmbeddingLimitMicroUsd"] = "1000000",
+            ["RagChallenge:Administration:ProductMaterialisation:Embedding:Budget:QueryEmbeddingLimitMicroUsd"] = "0",
+            ["RagChallenge:Administration:ProductMaterialisation:Embedding:Budget:GroundedGenerationLimitMicroUsd"] = "0",
+            ["RagChallenge:Administration:ProductMaterialisation:Embedding:Budget:EffectiveAtUtc"] = "2026-08-04T16:00:00+00:00",
+            ["RagChallenge:Administration:ProductMaterialisation:Embedding:Budget:ExpiresAtUtc"] = "2026-08-04T20:00:00+00:00",
+            ["RagChallenge:Administration:ProductMaterialisation:Embedding:Budget:CreationAuthorityReference"] = "AUTH-ADMINISTRATIVE-INDEX-EMBEDDING-TEST-001",
+            ["RagChallenge:Administration:ProductMaterialisation:Embedding:Budget:RearmAuthorityReference"] = "AUTH-ADMINISTRATIVE-INDEX-EMBEDDING-TEST-001",
+            ["RagChallenge:Administration:ProductMaterialisation:Embedding:Budget:ActorReference"] = "ACTOR-ADMINISTRATIVE-INDEX-EMBEDDING-TEST-001",
         };
+
+    private static void AddProductBudgetEnvironment(
+        IDictionary<string, string?> environment)
+    {
+        var prefix =
+            "RagChallenge__Administration__ProductMaterialisation__Embedding__Budget__";
+        environment[$"{prefix}Enabled"] = "true";
+        environment[$"{prefix}EnvelopeId"] = "PBE-ADMINISTRATIVE-INDEX-EMBEDDING-TEST-001";
+        environment[$"{prefix}StoreEpochId"] = "PSE-ADMINISTRATIVE-INDEX-EMBEDDING-TEST-001";
+        environment[$"{prefix}RuntimeSessionId"] = "PRS-ADMINISTRATIVE-INDEX-EMBEDDING-TEST-001";
+        environment[$"{prefix}EnvironmentId"] = "ENV-LOCAL-TEST";
+        environment[$"{prefix}BillingScopeReference"] = "BILLING-LOCAL-TEST";
+        environment[$"{prefix}CostScheduleId"] = OpenAiEmbeddingCostSchedule.ScheduleId;
+        environment[$"{prefix}CostScheduleSha256"] = OpenAiEmbeddingCostSchedule.ScheduleSha256;
+        environment[$"{prefix}AggregateLimitMicroUsd"] = "1000000";
+        environment[$"{prefix}AdministrativeIndexEmbeddingLimitMicroUsd"] = "1000000";
+        environment[$"{prefix}QueryEmbeddingLimitMicroUsd"] = "0";
+        environment[$"{prefix}GroundedGenerationLimitMicroUsd"] = "0";
+        environment[$"{prefix}EffectiveAtUtc"] = "2026-08-04T16:00:00+00:00";
+        environment[$"{prefix}ExpiresAtUtc"] = "2026-08-04T20:00:00+00:00";
+        environment[$"{prefix}CreationAuthorityReference"] =
+            "AUTH-ADMINISTRATIVE-INDEX-EMBEDDING-TEST-001";
+        environment[$"{prefix}RearmAuthorityReference"] =
+            "AUTH-ADMINISTRATIVE-INDEX-EMBEDDING-TEST-001";
+        environment[$"{prefix}ActorReference"] =
+            "ACTOR-ADMINISTRATIVE-INDEX-EMBEDDING-TEST-001";
+    }
 
     private static async Task<OfficialAuthoritySeed> SeedOfficialAuthorityAsync(
         SqliteStoreOptions options,

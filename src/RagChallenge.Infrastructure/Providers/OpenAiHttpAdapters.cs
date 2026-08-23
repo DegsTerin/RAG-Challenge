@@ -1,4 +1,4 @@
-// Purpose: Implements direct-HTTP OpenAI embedding and grounded-response adapters behind durable zero-budget admission, exact routes, bounded JSON and no SDK, retry, redirect, proxy or provider-owned state.
+// Purpose: Implements direct-HTTP OpenAI embedding and grounded-response adapters behind durable operation-scoped budget admission, exact routes, bounded JSON and no SDK, retry, redirect, proxy or provider-owned state.
 using System.Diagnostics;
 using System.Net;
 using System.Net.Http.Headers;
@@ -80,19 +80,23 @@ public sealed class OpenAiLanguageModelOptions
     internal string ReasoningContextApiValue { get; }
 }
 
-public sealed class OpenAiHttpEmbeddingProvider : IEmbeddingProvider
+public sealed class OpenAiHttpEmbeddingProvider : IEmbeddingProvider, IEmbeddingProviderPlanValidator
 {
     private static readonly Uri Route = new("/v1/embeddings", UriKind.Relative);
     private readonly HttpClient httpClient;
     private readonly Func<CancellationToken, ValueTask<string>> credentialSource;
     private readonly ProviderBudgetAdmissionGate budgetAdmissionGate;
     private readonly ProviderBudgetOperationClass operationClass;
+    private readonly OpenAiEmbeddingPlanPolicy? planPolicy;
+    private readonly Func<CancellationToken, Task>? prepareBudget;
 
     public OpenAiHttpEmbeddingProvider(
         HttpClient httpClient,
         Func<CancellationToken, ValueTask<string>> credentialSource,
         ProviderBudgetAdmissionGate budgetAdmissionGate,
-        ProviderBudgetOperationClass operationClass)
+        ProviderBudgetOperationClass operationClass,
+        OpenAiEmbeddingPlanPolicy? planPolicy = null,
+        Func<CancellationToken, Task>? prepareBudget = null)
     {
         this.httpClient = ValidateClient(httpClient);
         this.credentialSource = credentialSource ??
@@ -104,6 +108,48 @@ public sealed class OpenAiHttpEmbeddingProvider : IEmbeddingProvider
             ProviderBudgetOperationClass.QueryEmbedding
                 ? operationClass
                 : throw new ArgumentOutOfRangeException(nameof(operationClass));
+        this.planPolicy = planPolicy;
+        this.prepareBudget = prepareBudget;
+    }
+
+    public async Task ValidatePlanAsync(
+        IReadOnlyCollection<EmbeddingBatchRequest> requests,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(requests);
+        planPolicy?.Validate(requests);
+        var exactRequests = requests.Select(SerialiseRequest).ToArray();
+
+        if (planPolicy is not null)
+        {
+            long calculatedMaximum = 0;
+            foreach (var exactRequest in exactRequests)
+            {
+                calculatedMaximum = checked(calculatedMaximum +
+                    OpenAiEmbeddingCostSchedule.CalculateMaximumMicroUsd(
+                        exactRequest.Length));
+            }
+
+            if (calculatedMaximum > planPolicy.MaximumTotalMicroUsd)
+            {
+                throw new ProviderBudgetAdmissionUnavailableException();
+            }
+        }
+
+        if (prepareBudget is not null)
+        {
+            await prepareBudget(cancellationToken).ConfigureAwait(false);
+        }
+
+        var admittedMaximum = await budgetAdmissionGate.ValidatePlanAsync(
+            operationClass,
+            exactRequests.Select(bytes => (ReadOnlyMemory<byte>)bytes).ToArray(),
+            cancellationToken).ConfigureAwait(false);
+
+        if (planPolicy is not null && admittedMaximum.Value > planPolicy.MaximumTotalMicroUsd)
+        {
+            throw new ProviderBudgetAdmissionUnavailableException();
+        }
     }
 
     public async Task<EmbeddingBatchResult> EmbedAsync(
@@ -111,14 +157,7 @@ public sealed class OpenAiHttpEmbeddingProvider : IEmbeddingProvider
         CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(request);
-        var payload = new
-        {
-            model = request.ExpectedDescriptor.ModelId,
-            input = request.Inputs,
-            dimensions = request.ExpectedDescriptor.Dimensions,
-            encoding_format = "float",
-        };
-        var exactRequestBytes = JsonSerializer.SerializeToUtf8Bytes(payload);
+        var exactRequestBytes = SerialiseRequest(request);
         var lease = await budgetAdmissionGate.AdmitAsync(
             operationClass,
             exactRequestBytes,
@@ -160,7 +199,7 @@ public sealed class OpenAiHttpEmbeddingProvider : IEmbeddingProvider
                 cancellationToken).ConfigureAwait(false);
             var result = ParseEmbeddingResult(request, bytes);
             stopwatch.Stop();
-            await lease.CommitObservedZeroAsync(
+            await lease.CommitObservedMaximumAsync(
                 "EMBEDDING_OK",
                 stopwatch.Elapsed,
                 CancellationToken.None).ConfigureAwait(false);
@@ -170,7 +209,7 @@ public sealed class OpenAiHttpEmbeddingProvider : IEmbeddingProvider
         {
             if (lease.DispatchStarted)
             {
-                await lease.CommitIndeterminateZeroAsync(
+                await lease.CommitIndeterminateMaximumAsync(
                     "EMBEDDING_INDETERMINATE",
                     CancellationToken.None).ConfigureAwait(false);
             }
@@ -182,6 +221,18 @@ public sealed class OpenAiHttpEmbeddingProvider : IEmbeddingProvider
 
             throw;
         }
+    }
+
+    internal static byte[] SerialiseRequest(EmbeddingBatchRequest request)
+    {
+        ArgumentNullException.ThrowIfNull(request);
+        return JsonSerializer.SerializeToUtf8Bytes(new
+        {
+            model = request.ExpectedDescriptor.ModelId,
+            input = request.Inputs,
+            dimensions = request.ExpectedDescriptor.Dimensions,
+            encoding_format = "float",
+        });
     }
 
     private static EmbeddingBatchResult ParseEmbeddingResult(
