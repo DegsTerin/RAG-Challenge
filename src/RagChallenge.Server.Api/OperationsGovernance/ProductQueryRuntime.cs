@@ -173,9 +173,12 @@ internal sealed class ProductQueryRuntime :
     private readonly Func<string, string?> credentialEnvironmentReader;
     private readonly HttpClient embeddingClient;
     private readonly HttpClient languageModelClient;
+    private readonly SqliteStoreOptions runtimeBudgetStores;
     private readonly SemaphoreSlim initialisationGate = new(1, 1);
     private QuestionAnsweringService? answeringService;
     private VerifiedPageImageEvidenceReader? visualEvidenceReader;
+    private ProductProviderBudgetOperationalComposition? queryBudgetComposition;
+    private ProductProviderBudgetOperationalComposition? generationBudgetComposition;
 
     internal static IQueryVisualEvidenceMaterializer? ProductVisualEvidenceMaterializer => null;
 
@@ -203,6 +206,8 @@ internal sealed class ProductQueryRuntime :
             NullAnswerEvidenceActivitySink.Instance;
         this.credentialEnvironmentReader = credentialEnvironmentReader ??
             Environment.GetEnvironmentVariable;
+        runtimeBudgetStores = ProductProviderBudgetAdmission.CreateRuntimeBudgetStores(
+            options.Stores);
         embeddingClient = CreateOpenAiClient();
         languageModelClient = CreateOpenAiClient();
     }
@@ -216,6 +221,7 @@ internal sealed class ProductQueryRuntime :
         {
             await EnsureComposedAsync(cancellationToken).ConfigureAwait(false);
             await ValidateCurrentAuthorityAsync(cancellationToken).ConfigureAwait(false);
+            await PrepareRuntimeBudgetsAsync(cancellationToken).ConfigureAwait(false);
             return await answeringService!.AskAsync(
                 request,
                 observedAt,
@@ -243,13 +249,22 @@ internal sealed class ProductQueryRuntime :
         {
             await EnsureComposedAsync(cancellationToken).ConfigureAwait(false);
             await ValidateCurrentAuthorityAsync(cancellationToken).ConfigureAwait(false);
-            var budgetState = await ProductProviderBudgetAdmission.ReadQueryReadinessAsync(
-                options.Stores,
-                options.QueryEmbeddingAuthority,
-                options.GroundedGenerationAuthority,
-                options.OperationalGrants,
-                observedAt,
-                cancellationToken).ConfigureAwait(false);
+            ProviderBudgetState budgetState;
+            try
+            {
+                await PrepareRuntimeBudgetsAsync(cancellationToken).ConfigureAwait(false);
+                budgetState = await ProductProviderBudgetAdmission.ReadQueryReadinessAsync(
+                    runtimeBudgetStores,
+                    options.QueryEmbeddingAuthority,
+                    options.GroundedGenerationAuthority,
+                    options.OperationalGrants,
+                    observedAt,
+                    cancellationToken).ConfigureAwait(false);
+            }
+            catch (Exception exception) when (IsLocalRuntimeFailure(exception))
+            {
+                budgetState = ProviderBudgetState.Disarmed;
+            }
             if (budgetState != ProviderBudgetState.Armed)
             {
                 return new ReadinessV1(
@@ -369,26 +384,31 @@ internal sealed class ProductQueryRuntime :
                 ProductProviderOperation.GroundedGeneration,
                 options.CredentialEnvironmentVariable,
                 credentialEnvironmentReader);
-            var queryBudgetAdmission = ProductProviderBudgetAdmission.CreateFailClosed(
-                stores,
+            queryBudgetComposition = ProductProviderBudgetAdmission.CreateRuntimeOperational(
+                runtimeBudgetStores,
+                options.QueryEmbeddingAuthority,
                 options.QueryEmbeddingAuthority,
                 options.OperationalGrants,
                 ProductProviderOperation.QueryEmbedding);
-            var generationBudgetAdmission = ProductProviderBudgetAdmission.CreateFailClosed(
-                stores,
+            generationBudgetComposition =
+                ProductProviderBudgetAdmission.CreateRuntimeOperational(
+                runtimeBudgetStores,
                 options.GroundedGenerationAuthority,
+                options.QueryEmbeddingAuthority,
                 options.OperationalGrants,
                 ProductProviderOperation.GroundedGeneration);
             var embeddingProvider = new OpenAiHttpEmbeddingProvider(
                 embeddingClient,
                 queryCredentialSource.ReadAsync,
-                queryBudgetAdmission,
-                ProviderBudgetOperationClass.QueryEmbedding);
+                queryBudgetComposition.AdmissionGate,
+                ProviderBudgetOperationClass.QueryEmbedding,
+                prepareBudget: queryBudgetComposition.PrepareAsync);
             var languageModel = new OpenAiHttpLanguageModel(
                 languageModelClient,
                 generationCredentialSource.ReadAsync,
                 LanguageModelDescriptor,
-                generationBudgetAdmission);
+                generationBudgetComposition.AdmissionGate,
+                prepareBudget: generationBudgetComposition.PrepareAsync);
             var retrievalPolicyConfiguration = RetrievalPolicyConfiguration.CreateRetrievalV2(
                 ProductAdministrativeMaterialisationProfile.EmbeddingDescriptor,
                 ProductAdministrativeMaterialisationProfile.CompatibilityProfile.Key);
@@ -420,6 +440,16 @@ internal sealed class ProductQueryRuntime :
         {
             initialisationGate.Release();
         }
+    }
+
+    private async Task PrepareRuntimeBudgetsAsync(CancellationToken cancellationToken)
+    {
+        await (queryBudgetComposition ??
+            throw new ProviderBudgetAdmissionUnavailableException())
+            .PrepareAsync(cancellationToken).ConfigureAwait(false);
+        await (generationBudgetComposition ??
+            throw new ProviderBudgetAdmissionUnavailableException())
+            .PrepareAsync(cancellationToken).ConfigureAwait(false);
     }
 
     private async Task ValidateCurrentAuthorityAsync(CancellationToken cancellationToken)

@@ -31,7 +31,9 @@ public sealed class OpenAiEmbeddingCostSchedule : IProviderBudgetMaximumChargeCa
     {
         ArgumentNullException.ThrowIfNull(envelope);
 
-        if (operationClass != ProviderBudgetOperationClass.AdministrativeIndexEmbedding ||
+        if (operationClass is not (
+                ProviderBudgetOperationClass.AdministrativeIndexEmbedding or
+                ProviderBudgetOperationClass.QueryEmbedding) ||
             exactRequestBytes.IsEmpty ||
             !string.Equals(envelope.Scope.ProviderId.Value, ProviderId, StringComparison.Ordinal) ||
             !string.Equals(envelope.Scope.ModelId.Value, ModelId, StringComparison.Ordinal) ||

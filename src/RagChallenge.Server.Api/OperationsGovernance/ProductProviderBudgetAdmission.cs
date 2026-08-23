@@ -11,6 +11,10 @@ namespace RagChallenge.Server.Api.OperationsGovernance;
 
 internal static class ProductProviderBudgetAdmission
 {
+    internal const long DemoAggregateLimitMicroUsd = 500_000;
+    internal const long DemoQueryEmbeddingLimitMicroUsd = 10_000;
+    internal const long DemoGroundedGenerationLimitMicroUsd = 490_000;
+
     internal static ProviderBudgetAdmissionGate CreateFailClosed(
         SqliteStoreOptions stores,
         ProductProviderOperationalAuthority authority,
@@ -75,6 +79,57 @@ internal static class ProductProviderBudgetAdmission
         return new ProductProviderBudgetOperationalComposition(gate, session.PrepareAsync);
     }
 
+    internal static ProductProviderBudgetOperationalComposition CreateRuntimeOperational(
+        SqliteStoreOptions stores,
+        ProductProviderOperationalAuthority operationAuthority,
+        ProductProviderOperationalAuthority budgetAuthority,
+        ProductProviderOperationalGrantSet trustedGrants,
+        ProductProviderOperation operation,
+        TimeProvider? timeProvider = null)
+    {
+        ArgumentNullException.ThrowIfNull(stores);
+        ArgumentNullException.ThrowIfNull(operationAuthority);
+        ArgumentNullException.ThrowIfNull(budgetAuthority);
+        ArgumentNullException.ThrowIfNull(trustedGrants);
+        operationAuthority.Revalidate(operation);
+        budgetAuthority.Revalidate(ProductProviderOperation.QueryEmbedding);
+
+        var selectedTimeProvider = timeProvider ?? TimeProvider.System;
+        var configuration = CreateRuntimeConfiguration(budgetAuthority);
+        var context = CreateRuntimeContext(configuration, operationAuthority, operation);
+        var gate = new ProviderBudgetAdmissionGate(
+            new SqliteProviderBudgetLedger(stores),
+            context,
+            cancellationToken =>
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                trustedGrants.Demand(operationAuthority, operation);
+                return ValueTask.CompletedTask;
+            },
+            maximumChargeCalculator: new OpenAiDemoCostSchedule(),
+            timeProvider: selectedTimeProvider);
+        var session = new ProductProviderBudgetOperationalSession(
+            stores,
+            operationAuthority,
+            trustedGrants,
+            operation,
+            configuration,
+            selectedTimeProvider);
+        return new ProductProviderBudgetOperationalComposition(gate, session.PrepareAsync);
+    }
+
+    internal static SqliteStoreOptions CreateRuntimeBudgetStores(SqliteStoreOptions stores)
+    {
+        ArgumentNullException.ThrowIfNull(stores);
+        var storeRoot = Path.GetDirectoryName(stores.ControlDatabasePath) ??
+            throw new InvalidOperationException("The product store root is unavailable.");
+        var budgetRoot = Path.Combine(storeRoot, ".provider-budget-runtime-v1");
+        return new SqliteStoreOptions(
+            Path.Combine(budgetRoot, "control.db"),
+            Path.Combine(budgetRoot, "vectors.db"),
+            Path.Combine(budgetRoot, "content"));
+    }
+
     internal static async Task<ProviderBudgetState> ReadQueryReadinessAsync(
         SqliteStoreOptions stores,
         ProductProviderOperationalAuthority queryEmbeddingAuthority,
@@ -97,10 +152,13 @@ internal static class ProductProviderBudgetAdmission
                 groundedGenerationAuthority,
                 ProductProviderOperation.GroundedGeneration);
 
-            var queryContext = CreateContext(
+            var configuration = CreateRuntimeConfiguration(queryEmbeddingAuthority);
+            var queryContext = CreateRuntimeContext(
+                configuration,
                 queryEmbeddingAuthority,
                 ProductProviderOperation.QueryEmbedding);
-            var generationContext = CreateContext(
+            var generationContext = CreateRuntimeContext(
+                configuration,
                 groundedGenerationAuthority,
                 ProductProviderOperation.GroundedGeneration);
             var ledger = new SqliteProviderBudgetLedger(stores);
@@ -112,8 +170,16 @@ internal static class ProductProviderBudgetAdmission
                 cancellationToken).ConfigureAwait(false);
 
             return CombineReadinessStates(
-                SanitiseEnvelopeState(queryEnvelope, queryContext, observedAt),
-                SanitiseEnvelopeState(generationEnvelope, generationContext, observedAt));
+                SanitiseRuntimeEnvelopeState(
+                    queryEnvelope,
+                    queryContext,
+                    configuration.InitialisationRequest,
+                    observedAt),
+                SanitiseRuntimeEnvelopeState(
+                    generationEnvelope,
+                    generationContext,
+                    configuration.InitialisationRequest,
+                    observedAt));
         }
         catch (OperationCanceledException)
         {
@@ -191,6 +257,124 @@ internal static class ProductProviderBudgetAdmission
         return states.MaxBy(GetReadinessPriority);
     }
 
+    private static ProductProviderRuntimeBudgetConfiguration CreateRuntimeConfiguration(
+        ProductProviderOperationalAuthority budgetAuthority)
+    {
+        budgetAuthority.Revalidate(ProductProviderOperation.QueryEmbedding);
+        const string runtimeSessionId = "PBS-RENDER-FREE-DEMO-20260823";
+        var effectiveAtUtc = DateTimeOffset.Parse(
+            "2026-08-23T00:00:00Z",
+            System.Globalization.CultureInfo.InvariantCulture);
+        var expiresAtUtc = DateTimeOffset.Parse(
+            "2027-08-31T00:00:00Z",
+            System.Globalization.CultureInfo.InvariantCulture);
+        var request = new ProviderBudgetEnvelopeInitialisationRequest(
+            new ProviderBudgetEnvelopeId("PBE-RENDER-FREE-DEMO-20260823"),
+            new ProviderBudgetStoreEpochId("PSE-RENDER-FREE-DEMO-20260823"),
+            new ProviderBudgetScope(
+                new ProviderBudgetEnvironmentId("ENV-RENDER-FREE-DEMO"),
+                new ProviderBudgetProviderId(OpenAiEmbeddingCostSchedule.ProviderId),
+                new ProviderBudgetBillingScopeReference("BILLING-OPENAI-CREDITS-DEMO"),
+                new ProviderBudgetModelId(OpenAiDemoCostSchedule.ScopeModelId),
+                new ProviderBudgetCurrencyCode(OpenAiEmbeddingCostSchedule.CurrencyCode),
+                new ProviderBudgetAccountingUnitId(
+                    OpenAiEmbeddingCostSchedule.AccountingUnitId)),
+            new ProviderBudgetCostScheduleId(OpenAiDemoCostSchedule.ScheduleId),
+            new ProviderBudgetSha256(OpenAiDemoCostSchedule.ScheduleSha256),
+            new ProviderBudgetUnits(DemoAggregateLimitMicroUsd),
+            [
+                new ProviderBudgetOperationBalance(
+                    ProviderBudgetOperationClass.AdministrativeIndexEmbedding,
+                    new ProviderBudgetUnits(0),
+                    new ProviderBudgetUnits(0),
+                    new ProviderBudgetUnits(0),
+                    new ProviderBudgetUnits(0)),
+                new ProviderBudgetOperationBalance(
+                    ProviderBudgetOperationClass.QueryEmbedding,
+                    new ProviderBudgetUnits(DemoQueryEmbeddingLimitMicroUsd),
+                    new ProviderBudgetUnits(0),
+                    new ProviderBudgetUnits(0),
+                    new ProviderBudgetUnits(0)),
+                new ProviderBudgetOperationBalance(
+                    ProviderBudgetOperationClass.GroundedGeneration,
+                    new ProviderBudgetUnits(DemoGroundedGenerationLimitMicroUsd),
+                    new ProviderBudgetUnits(0),
+                    new ProviderBudgetUnits(0),
+                    new ProviderBudgetUnits(0)),
+            ],
+            effectiveAtUtc,
+            expiresAtUtc,
+            new ProviderBudgetAuthorityReference(budgetAuthority.Reference),
+            new ProviderBudgetAuthorityReference(budgetAuthority.Reference),
+            effectiveAtUtc);
+        return new ProductProviderRuntimeBudgetConfiguration(
+            request,
+            runtimeSessionId,
+            budgetAuthority.Reference,
+            budgetAuthority.Reference);
+    }
+
+    private static ProviderBudgetAdmissionContext CreateRuntimeContext(
+        ProductProviderRuntimeBudgetConfiguration configuration,
+        ProductProviderOperationalAuthority authority,
+        ProductProviderOperation operation)
+    {
+        authority.Revalidate(operation);
+        return new ProviderBudgetAdmissionContext(
+            configuration.InitialisationRequest.EnvelopeId,
+            new ProviderRuntimeSessionId(configuration.RuntimeSessionId),
+            new ProviderBudgetAuthorityReference(authority.Reference));
+    }
+
+    private static ProviderBudgetState SanitiseRuntimeEnvelopeState(
+        ProviderBudgetEnvelopeV1? envelope,
+        ProviderBudgetAdmissionContext context,
+        ProviderBudgetEnvelopeInitialisationRequest expected,
+        DateTimeOffset observedAt)
+    {
+        ArgumentNullException.ThrowIfNull(context);
+        ArgumentNullException.ThrowIfNull(expected);
+        if (envelope is null ||
+            envelope.EnvelopeId != expected.EnvelopeId ||
+            envelope.StoreEpochId != expected.StoreEpochId ||
+            envelope.Scope != expected.Scope ||
+            envelope.ConfigurationRevision.Value != 1 ||
+            envelope.CostScheduleId != expected.CostScheduleId ||
+            envelope.CostScheduleSha256 != expected.CostScheduleSha256 ||
+            envelope.AggregateLimit != expected.AggregateLimit ||
+            envelope.EffectiveAtUtc != expected.EffectiveAtUtc ||
+            envelope.ExpiresAtUtc != expected.ExpiresAtUtc ||
+            envelope.RuntimeSessionId != context.RuntimeSessionId ||
+            envelope.IsClosed ||
+            !HasExactAllocations(envelope, expected) ||
+            observedAt < envelope.EffectiveAtUtc)
+        {
+            return ProviderBudgetState.Disarmed;
+        }
+
+        if (envelope.State == ProviderBudgetState.ReconciliationRequired)
+        {
+            return ProviderBudgetState.ReconciliationRequired;
+        }
+
+        if (observedAt >= envelope.ExpiresAtUtc)
+        {
+            return ProviderBudgetState.Expired;
+        }
+
+        return Enum.IsDefined(envelope.State)
+            ? envelope.State
+            : ProviderBudgetState.Disarmed;
+    }
+
+    internal static bool HasExactAllocations(
+        ProviderBudgetEnvelopeV1 envelope,
+        ProviderBudgetEnvelopeInitialisationRequest expected) =>
+        envelope.OperationBalances
+            .Select(balance => (balance.OperationClass, balance.AllocationLimit.Value))
+            .SequenceEqual(expected.OperationBalances
+                .Select(balance => (balance.OperationClass, balance.AllocationLimit.Value)));
+
     private static int GetReadinessPriority(ProviderBudgetState state) => state switch
     {
         ProviderBudgetState.Armed => 0,
@@ -227,6 +411,12 @@ internal sealed record ProductProviderBudgetOperationalComposition(
     ProviderBudgetAdmissionGate AdmissionGate,
     Func<CancellationToken, Task> PrepareAsync);
 
+internal sealed record ProductProviderRuntimeBudgetConfiguration(
+    ProviderBudgetEnvelopeInitialisationRequest InitialisationRequest,
+    string RuntimeSessionId,
+    string RearmAuthorityReference,
+    string ActorReference);
+
 internal sealed class ProductProviderBudgetOperationalSession
 {
     private readonly Lock sync = new();
@@ -234,7 +424,10 @@ internal sealed class ProductProviderBudgetOperationalSession
     private readonly ProductProviderOperationalAuthority authority;
     private readonly ProductProviderOperationalGrantSet trustedGrants;
     private readonly ProductProviderOperation operation;
-    private readonly ProductProviderBudgetOptions options;
+    private readonly string runtimeSessionId;
+    private readonly string rearmAuthorityReference;
+    private readonly string actorReference;
+    private readonly bool requireUnusedAtPreparation;
     private readonly ProviderBudgetEnvelopeInitialisationRequest initialisationRequest;
     private readonly TimeProvider timeProvider;
     private Task? preparation;
@@ -252,8 +445,31 @@ internal sealed class ProductProviderBudgetOperationalSession
         this.authority = authority;
         this.trustedGrants = trustedGrants;
         this.operation = operation;
-        this.options = options;
+        runtimeSessionId = options.RuntimeSessionId;
+        rearmAuthorityReference = options.RearmAuthorityReference;
+        actorReference = options.ActorReference;
+        requireUnusedAtPreparation = true;
         this.initialisationRequest = initialisationRequest;
+        this.timeProvider = timeProvider;
+    }
+
+    internal ProductProviderBudgetOperationalSession(
+        SqliteStoreOptions stores,
+        ProductProviderOperationalAuthority authority,
+        ProductProviderOperationalGrantSet trustedGrants,
+        ProductProviderOperation operation,
+        ProductProviderRuntimeBudgetConfiguration configuration,
+        TimeProvider timeProvider)
+    {
+        this.stores = stores;
+        this.authority = authority;
+        this.trustedGrants = trustedGrants;
+        this.operation = operation;
+        runtimeSessionId = configuration.RuntimeSessionId;
+        rearmAuthorityReference = configuration.RearmAuthorityReference;
+        actorReference = configuration.ActorReference;
+        requireUnusedAtPreparation = false;
+        initialisationRequest = configuration.InitialisationRequest;
         this.timeProvider = timeProvider;
     }
 
@@ -268,6 +484,11 @@ internal sealed class ProductProviderBudgetOperationalSession
     private async Task PrepareCoreAsync(CancellationToken cancellationToken)
     {
         trustedGrants.Demand(authority, operation);
+        Directory.CreateDirectory(
+            Path.GetDirectoryName(stores.ControlDatabasePath) ??
+                throw new ProviderBudgetAdmissionUnavailableException());
+        await SqliteStoreProvisioner.ApplyMigrationsAsync(stores, cancellationToken)
+            .ConfigureAwait(false);
         var ledger = new SqliteProviderBudgetLedger(stores);
         var envelope = await ledger.ReadEnvelopeAsync(
             initialisationRequest.EnvelopeId,
@@ -296,12 +517,12 @@ internal sealed class ProductProviderBudgetOperationalSession
                     envelope.ConfigurationRevision,
                     envelope.LedgerRevision,
                     envelope.RearmRevision,
-                    new ProviderRuntimeSessionId(options.RuntimeSessionId),
-                    new ProviderBudgetAuthorityReference(options.RearmAuthorityReference),
-                    new ProviderBudgetAuthorityReference(options.ActorReference),
+                    new ProviderRuntimeSessionId(runtimeSessionId),
+                    new ProviderBudgetAuthorityReference(rearmAuthorityReference),
+                    new ProviderBudgetAuthorityReference(actorReference),
                     Hash(
                         "provider-budget-product-initial-rearm-v1",
-                        options.RearmAuthorityReference,
+                        rearmAuthorityReference,
                         envelope.EnvelopeId.Value),
                     envelope.AggregateCommitted,
                     envelope.AggregateReserved,
@@ -338,16 +559,21 @@ internal sealed class ProductProviderBudgetOperationalSession
             envelope.EffectiveAtUtc == expected.EffectiveAtUtc &&
             envelope.ExpiresAtUtc == expected.ExpiresAtUtc &&
             !envelope.IsClosed &&
-            envelope.OperationBalances.SequenceEqual(expected.OperationBalances) &&
-            envelope.AggregateCommitted.Value == 0 &&
-            envelope.AggregateReserved.Value == 0 &&
-            envelope.AggregateIndeterminate.Value == 0;
+            ProductProviderBudgetAdmission.HasExactAllocations(envelope, expected);
+
+        if (requireUnusedAtPreparation)
+        {
+            exact = exact && envelope.OperationBalances.SequenceEqual(expected.OperationBalances) &&
+                envelope.AggregateCommitted.Value == 0 &&
+                envelope.AggregateReserved.Value == 0 &&
+                envelope.AggregateIndeterminate.Value == 0;
+        }
 
         if (requireArmed)
         {
             exact = exact && envelope.State == ProviderBudgetState.Armed &&
-                envelope.RuntimeSessionId == new ProviderRuntimeSessionId(options.RuntimeSessionId) &&
-                envelope.RearmRevision.Value == 1;
+                envelope.RuntimeSessionId == new ProviderRuntimeSessionId(runtimeSessionId) &&
+                envelope.RearmRevision.Value >= 1;
         }
         else
         {

@@ -453,12 +453,14 @@ public sealed class OpenAiHttpLanguageModel : ILanguageModel
     private readonly Func<CancellationToken, ValueTask<string>> credentialSource;
     private readonly OpenAiLanguageModelOptions options;
     private readonly ProviderBudgetAdmissionGate budgetAdmissionGate;
+    private readonly Func<CancellationToken, Task>? prepareBudget;
 
     public OpenAiHttpLanguageModel(
         HttpClient httpClient,
         Func<CancellationToken, ValueTask<string>> credentialSource,
         LanguageModelDescriptor expectedDescriptor,
-        ProviderBudgetAdmissionGate budgetAdmissionGate)
+        ProviderBudgetAdmissionGate budgetAdmissionGate,
+        Func<CancellationToken, Task>? prepareBudget = null)
         : this(
             httpClient,
             credentialSource,
@@ -466,7 +468,8 @@ public sealed class OpenAiHttpLanguageModel : ILanguageModel
                 expectedDescriptor,
                 OpenAiReasoningEffort.None,
                 OpenAiReasoningContext.CurrentTurn),
-            budgetAdmissionGate)
+            budgetAdmissionGate,
+            prepareBudget)
     {
     }
 
@@ -474,7 +477,8 @@ public sealed class OpenAiHttpLanguageModel : ILanguageModel
         HttpClient httpClient,
         Func<CancellationToken, ValueTask<string>> credentialSource,
         OpenAiLanguageModelOptions options,
-        ProviderBudgetAdmissionGate budgetAdmissionGate)
+        ProviderBudgetAdmissionGate budgetAdmissionGate,
+        Func<CancellationToken, Task>? prepareBudget = null)
     {
         this.httpClient = OpenAiHttpEmbeddingProvider.ValidateClient(httpClient);
         this.credentialSource = credentialSource ??
@@ -482,6 +486,7 @@ public sealed class OpenAiHttpLanguageModel : ILanguageModel
         this.options = options ?? throw new ArgumentNullException(nameof(options));
         this.budgetAdmissionGate = budgetAdmissionGate ??
             throw new ArgumentNullException(nameof(budgetAdmissionGate));
+        this.prepareBudget = prepareBudget;
     }
 
     public async Task<GroundedGenerationResult> GenerateAsync(
@@ -537,6 +542,11 @@ public sealed class OpenAiHttpLanguageModel : ILanguageModel
             },
         };
         var exactRequestBytes = JsonSerializer.SerializeToUtf8Bytes(payload);
+        if (prepareBudget is not null)
+        {
+            await prepareBudget(cancellationToken).ConfigureAwait(false);
+        }
+
         var lease = await budgetAdmissionGate.AdmitAsync(
             ProviderBudgetOperationClass.GroundedGeneration,
             exactRequestBytes,
@@ -580,7 +590,7 @@ public sealed class OpenAiHttpLanguageModel : ILanguageModel
                 cancellationToken).ConfigureAwait(false);
             var result = ParseGenerationResult(request, bytes);
             stopwatch.Stop();
-            await lease.CommitObservedZeroAsync(
+            await lease.CommitObservedMaximumAsync(
                 "GENERATION_OK",
                 stopwatch.Elapsed,
                 CancellationToken.None).ConfigureAwait(false);
@@ -590,7 +600,7 @@ public sealed class OpenAiHttpLanguageModel : ILanguageModel
         {
             if (lease.DispatchStarted)
             {
-                await lease.CommitIndeterminateZeroAsync(
+                await lease.CommitIndeterminateMaximumAsync(
                     "GENERATION_INDETERMINATE",
                     CancellationToken.None).ConfigureAwait(false);
             }

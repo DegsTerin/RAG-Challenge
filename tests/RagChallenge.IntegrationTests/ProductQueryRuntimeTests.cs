@@ -394,7 +394,10 @@ public sealed class ProductQueryRuntimeTests
             Assert.Equal("provider-budget", check.Capability);
             Assert.Equal("Disarmed", check.State);
             Assert.Equal(StatusCodes.Status503ServiceUnavailable, context.Response.StatusCode);
-            Assert.Contains("\"state\":\"Disarmed\"", publicPayload, StringComparison.Ordinal);
+            Assert.Contains(
+                "\"capability\":\"product-runtime\",\"state\":\"Unavailable\"",
+                publicPayload,
+                StringComparison.Ordinal);
             Assert.DoesNotContain("PBE-", publicPayload, StringComparison.Ordinal);
             Assert.DoesNotContain("PBS-", publicPayload, StringComparison.Ordinal);
             Assert.DoesNotContain("AUTH-", publicPayload, StringComparison.Ordinal);
