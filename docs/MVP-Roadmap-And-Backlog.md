@@ -342,6 +342,16 @@ finalisation remains owned by `S08-B`.
 
 Criterion: predefined thresholds and no residual P0/P1.
 
+### Current deployment sequencing
+
+On 2026-08-23, the owner selected Render as the immediate operational target
+to prepare and verify under ADR-0020. This prioritises a current Render package,
+preflight and separately authorised deployment before new OCI execution. It
+does not make the historical Render deployment current, authorise an external
+action, replace the product-homologation criteria above or enter `STATE-08`.
+The durable OCI batch and its official delivery criterion remain unchanged
+unless a separate architectural decision supersedes them.
+
 ### Batch S08-A — OCI deployment
 
 - Authorise target and costs.

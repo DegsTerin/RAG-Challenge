@@ -65,6 +65,22 @@ inspected, configured or deployed.
    or health in one environment does not prove equivalent data, readiness,
    recovery, security controls or provider authority in the other.
 
+## Immediate operational sequencing — 2026-08-23
+
+The owner subsequently directed, `Então documente que iremos seguir com o
+Render`. Under this accepted concurrent-target decision, Render is therefore
+the next operational deployment path to prepare and verify. This sequencing
+decision prioritises a current Render candidate and its separately authorised
+preflight, publication, deployment and evidence before new OCI execution.
+
+It does not attest that the historical Render service is currently available,
+ready or equivalent to the current repository, and it grants no account,
+registry, secret, provider, billing, publication or deployment authority. Each
+external step still requires its own bounded approval and current evidence.
+OCI remains the independently governed durable MVP target selected by ADR-0005;
+replacing or retiring that requirement would require a separate architectural
+decision.
+
 ## Relationship to existing decisions
 
 This ADR supplements ADR-0005; it does not supersede its conditional OCI

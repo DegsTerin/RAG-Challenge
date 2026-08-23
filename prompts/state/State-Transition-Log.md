@@ -9993,3 +9993,29 @@ contém somente fatos cronológicos.
   independent human reviews and genuine adjudication. No credential, provider,
   network, push, publication, deployment, Human Gate or lifecycle transition
   occurred.
+
+## 2026-08-23 — Render selected as the immediate operational path
+
+- Authority and baseline: the owner's instruction, `Então documente que iremos
+  seguir com o Render`, authorised this documentary sequencing record on clean
+  `main@f0cab11594628fa25062b086d0d1cc40b424b21c`. Runtime preflight was
+  `NOT_APPLICABLE`; no process or external environment was inspected.
+- Decision: under accepted ADR-0020, Render is the next deployment-related path
+  to prepare and verify before new OCI execution. The next bounded increment
+  must create a current private Render package from clean `main`, verify it
+  locally and obtain separate authority before any remote inspection,
+  publication, secret configuration, provider use, billing or deployment.
+- Preserved architecture: this sequence does not supersede ADR-0005 or
+  ADR-0020. Render remains an isolated, ephemeral public demonstration and
+  homologation surface; OCI remains the separately governed durable MVP target.
+  Replacing or retiring OCI requires a separate architectural decision.
+- Preserved lifecycle: the historical Render image, service and deployment are
+  not represented as current. `STATE-07 TESTING_HOMOLOGATION` remains active,
+  `H-HOMOLOGATION-001` remains blocked, and no Human Gate or lifecycle
+  transition is implied.
+- Append-only integrity: this entry preserves the complete preceding file of
+  640,106 bytes at SHA-256
+  `8227a604fb1509d5e3ecbc65eb729bc44cdd5702c16b4de47a3791affb7a844d`.
+- Negative scope: no account, registry, credential, provider, paid service,
+  network, Render or OCI resource, Git remote, publication or deployment was
+  accessed or changed.

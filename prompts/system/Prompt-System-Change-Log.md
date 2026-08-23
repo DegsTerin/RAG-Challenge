@@ -2,8 +2,8 @@
 
 ## Current version
 
-- Version: `4.19.4`
-- Date: 2026-08-21
+- Version: `4.19.5`
+- Date: 2026-08-23
 - Status: `STATE-07` active; ADR-0011 through ADR-0017 retain their recorded
   accepted dispositions and implemented or pending boundaries; PostgreSQL 18.4
   remains active at revision `1` in its validated text-first generation; the
@@ -56,7 +56,9 @@
   were fast-forwarded into `main` at
   `a6ff32038510c552d9568786091a993a9be01117`, while
   `H-HOMOLOGATION-001` remains blocked and `STATE-07` remains active without a
-  Human Gate or lifecycle transition
+  Human Gate or lifecycle transition; the owner has selected Render as the
+  immediate operational path to prepare next without superseding the
+  independently governed OCI target or authorising any external action
 - Scope: 13 active files under `prompts/`
 
 The corpus version is independent from the future software version.
@@ -69,6 +71,27 @@ The corpus version is independent from the future software version.
 
 Every change updates this file and, when necessary,
 [`../Start-Here.md`](../Start-Here.md).
+
+## 4.19.5 — 2026-08-23
+
+- Records the owner's direction, `Então documente que iremos seguir com o
+  Render`, as an operational sequencing decision under accepted ADR-0020.
+  Render is the next deployment path to prepare and verify before new OCI
+  execution.
+- Keeps the historical Render observation distinct from current readiness. A
+  new increment must rebuild and verify the private package from current clean
+  `main` and obtain separate authority for remote inspection, publication,
+  secrets, provider access, billing and deployment.
+- Preserves OCI as the independently governed durable MVP target selected by
+  ADR-0005. Replacing or retiring OCI requires a separate architectural
+  decision; this PATCH does not alter the `STATE-08` OCI criterion.
+- Leaves `STATE-07`, `H-HOMOLOGATION-001`, Human Gate and lifecycle unchanged.
+- Classification: `PATCH`, because this revision records sequencing within an
+  accepted concurrent-target decision without changing product behaviour,
+  architecture authority or lifecycle.
+- No account, registry, credential, provider, paid service, network, Render or
+  OCI resource, publication, deployment, Human Gate or lifecycle action
+  occurred.
 
 ## 4.19.4 — 2026-08-21
 

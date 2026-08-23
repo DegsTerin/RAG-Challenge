@@ -1,6 +1,6 @@
 # Current State
 
-This document is the current factual snapshot of the workspace on 2026-08-21. It
+This document is the current factual snapshot of the workspace on 2026-08-23. It
 grants no authority. Evolution and decisions in their original context belong in
 [`State-Transition-Log.md`](State-Transition-Log.md) and the owning
 reports.
@@ -2897,6 +2897,17 @@ pre-existing 36-path WIP remains recoverable in stash
 `e906e6945e72afe8f08774818d3d324f2dbb0b05`; the integrated worktree is clean.
 `H-HOMOLOGATION-001` remains blocked, and `STATE-07 TESTING_HOMOLOGATION`
 remains active without a Human Gate or lifecycle transition.
+
+On 2026-08-23, the owner selected Render as the immediate operational path to
+follow. Under accepted ADR-0020, the next deployment-related increment will
+therefore prepare and verify a current Render candidate before new OCI
+execution. This records sequence only: it neither proves that the historical
+Render service is currently available or aligned with `main`, nor authorises
+remote inspection, registry publication, secret configuration, provider use,
+billing or deployment. Render remains an isolated public demonstration and
+homologation surface with ephemeral state. OCI remains the separately governed
+durable MVP target selected by ADR-0005, and `STATE-07`,
+`H-HOMOLOGATION-001`, Human Gate and lifecycle dispositions remain unchanged.
 
 ## Contexto histórico preservado
 

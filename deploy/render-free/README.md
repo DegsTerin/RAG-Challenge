@@ -21,6 +21,14 @@ authorised, implemented and verified, with isolated configuration, secrets,
 storage, mutable state and deployment lifecycles. OCI is not deployed by this
 package.
 
+On 2026-08-23, the owner selected Render as the immediate operational path to
+prepare next. That sequencing does not prove that the historical service or
+image still represents the current repository and does not authorise remote
+inspection, publication, deployment, provider use or billing. The next Render
+increment must start from the current clean `main`, rebuild and verify the
+private package, then obtain separate authority for every external action. OCI
+remains a later, independently governed durable target under ADR-0020.
+
 ## Runtime model
 
 Render Free has an ephemeral filesystem and can stop an idle web service. The
