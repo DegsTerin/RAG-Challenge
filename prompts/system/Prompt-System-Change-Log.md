@@ -2,7 +2,7 @@
 
 ## Current version
 
-- Version: `4.19.5`
+- Version: `4.19.6`
 - Date: 2026-08-23
 - Status: `STATE-07` active; ADR-0011 through ADR-0017 retain their recorded
   accepted dispositions and implemented or pending boundaries; PostgreSQL 18.4
@@ -39,7 +39,10 @@
   on-demand visual materialisation is disabled fail-closed
   under the authorised `SEC-CORR-002` containment while the dedicated ADR-0019
   sandbox remains unimplemented; the
-  operational provider budget remains zero and disarmed; ADR-0020 accepts
+  provider-budget authority now contains only one USD 1.00 administrative
+  indexing allocation with USD 0.149629 committed; QueryEmbedding and
+  GroundedGeneration remain zero and the public runtime remains disarmed;
+  ADR-0020 accepts
   concurrent but isolated Render and OCI deployment targets, while OCI
   deployment, region and operational evidence remain unverified; selective
   local recovery preserves only validated historical evidence, stale stores
@@ -58,7 +61,10 @@
   `H-HOMOLOGATION-001` remains blocked and `STATE-07` remains active without a
   Human Gate or lifecycle transition; the owner has selected Render as the
   immediate operational path to prepare next without superseding the
-  independently governed OCI target or authorising any external action
+  independently governed OCI target; a fresh 3,282-vector PostgreSQL 18.4 store
+  and private Render package are now locally attested and verified, while
+  Docker, registry, Render publication, deployment and runtime provider
+  authority remain unexecuted
 - Scope: 13 active files under `prompts/`
 
 The corpus version is independent from the future software version.
@@ -71,6 +77,32 @@ The corpus version is independent from the future software version.
 
 Every change updates this file and, when necessary,
 [`../Start-Here.md`](../Start-Here.md).
+
+## 4.19.6 — 2026-08-23
+
+- Records the official dated `text-embedding-3-small` price identity, the
+  administrative-only USD 1.00 budget envelope and the exact USD 0.149629
+  conservative commitment for 52 sequential embedding requests over 3,282
+  validated chunks.
+- Records the fresh PostgreSQL 18.4 store with 3,282 vectors and active
+  generation
+  `idxgen-4b417b79a9d8cd2472cb657a5fe7509f297b39f4831215f62143080d896e4f0d`.
+  No stale store was copied or promoted.
+- Records the local current Render package built and verified from the exact
+  attested store at commit
+  `3f51a3cac61e8f153c4d83946907650c6266de79`. The package remains private and
+  ignored; Docker, registry and Render were not contacted.
+- Preserves the expected credential-free readiness result as HTTP 503
+  `Unready` with `provider-budget: Disarmed`, distinct from HTTP 200 `Live`
+  liveness and from any future deployed operational readiness.
+- Leaves QueryEmbedding and GroundedGeneration at zero, and leaves
+  `STATE-07`, `H-HOMOLOGATION-001`, Human Gate, lifecycle and OCI unchanged.
+- Classification: `PATCH`, because this revision records the exact result of
+  an already authorised implementation and execution without changing prompt
+  authority, architecture or lifecycle.
+- No Docker, registry, Render, OCI, push, publication, deployment, product
+  query, Responses call, GroundedGeneration, Human Gate or lifecycle action
+  occurred.
 
 ## 4.19.5 — 2026-08-23
 

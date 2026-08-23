@@ -2909,6 +2909,61 @@ homologation surface with ephemeral state. OCI remains the separately governed
 durable MVP target selected by ADR-0005, and `STATE-07`,
 `H-HOMOLOGATION-001`, Human Gate and lifecycle dispositions remain unchanged.
 
+Under `RENDER-CURRENT-STORE-PROVIDER-001`, execution started from exact clean
+`main@468a8c5220db2c1b1bd1e2fbb12fa9348da497fa`. The official OpenAI model
+page recorded `text-embedding-3-small` input pricing at USD 0.02 per million
+tokens. The captured response was HTTP 200, 384,286 bytes, payload SHA-256
+`4f7a89449ce01163662e8240651cc58f2e986f108dff136ebae6eae7b19ca00f`
+and source-identity SHA-256
+`a96490e464c121d0d406eb9ed27ff4b1d1d07f1d30825d44e44d6bd2cada2dda`.
+Commit `1a304bfd1698026cb3450a863f111f6e8e849a91` introduced the exact dated
+cost schedule, an operational `ProviderBudgetEnvelopeV1` composition and
+fail-closed full-plan admission before credential resolution or provider
+dispatch. The aggregate and `AdministrativeIndexEmbedding` allocations were
+bounded to USD 1.00; `QueryEmbedding` and `GroundedGeneration` remained zero.
+
+The validated PostgreSQL 18.4 intake remained byte-identical to the authorised
+PDF at SHA-256
+`cea7b845568095eb56dee1b51bfa145c6c6637bc4377c986019971577efefae4`
+and produced exactly 3,282 chunks before credential resolution. The approved
+local credential reference was reused without exposing or persisting its
+value. One sequential zero-retry administrative build submitted exactly 52
+embedding requests, 51 batches of 64 and a final batch of 18, using
+`text-embedding-3-small` at 1,536 dimensions. Conservative accounting used
+7,480,210 UTF-8 request bytes as a token upper bound and committed 149,629
+micro-USD, or USD 0.149629. The durable ledger contains 52 reservations and 52
+commitments, with zero release, reserved or indeterminate balance.
+
+A new store was materialised from the validated local inputs rather than copied
+or promoted from a stale store. It has 3,282 chunks and 3,282 vectors, active
+generation
+`idxgen-4b417b79a9d8cd2472cb657a5fe7509f297b39f4831215f62143080d896e4f0d`,
+generation-content digest
+`4b417b79a9d8cd2472cb657a5fe7509f297b39f4831215f62143080d896e4f0d`
+and logical-artefact digest
+`af207b4c359b985bb51b91ec39a40ab22cde93bd3fbbb667741c4b1172461558`.
+Its four files total 48,220,817 bytes with structural-tree SHA-256
+`589426ba8f9437812f112b988882e28e970f8eb18a3575f8a5ab9960347d586c`;
+the exact private attestation SHA-256 is
+`dc1aa3a21056a5094be99f7a46b9ab738a139bd0b121907b117cad3eac7dfce6`.
+
+Commit `3f51a3cac61e8f153c4d83946907650c6266de79` bound the Render builder and
+verifier to that current attestation, generation and store-byte identities.
+The clean local builder and verifier then passed without restore, Docker,
+registry or Render access. The private package has 46 files, 84,573,051 bytes
+and structural-tree SHA-256
+`5c06e33aa2bb7fc2cadeabe7469a8534e460899ccc86c7ab9b0af7d3afcdfc10`;
+its context manifest SHA-256 is
+`1610c9c383558a6e1ace7abce700fc54e4f40eaa98a73925ee3f8eaaa959e8e7`
+and package manifest SHA-256 is
+`df898fa9da26a2e04ca0174838d6d0da0e7db686d7a163bdb27b45deb69ec49f`.
+The credential-free local readiness probe returned its expected fail-closed
+HTTP 503 `Unready` identity with `provider-budget: Disarmed`; liveness was HTTP
+200 `Live`. This proves safe package start-up without authority, not deployed
+readiness. Publication, Render secret configuration, operational query and
+generation budgets/grants, deployment, a product query, Human Gate and
+lifecycle transition remain unexecuted and require separate authority.
+
 ## Contexto histórico preservado
 
 Os parágrafos seguintes registram snapshots e sequências anteriores. Verbos no

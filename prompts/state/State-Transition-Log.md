@@ -10019,3 +10019,63 @@ contém somente fatos cronológicos.
 - Negative scope: no account, registry, credential, provider, paid service,
   network, Render or OCI resource, Git remote, publication or deployment was
   accessed or changed.
+
+## 2026-08-23 — Current provider-backed PostgreSQL store and Render package
+
+- Authority and baseline: `RENDER-CURRENT-STORE-PROVIDER-001` started on exact
+  clean `main@468a8c5220db2c1b1bd1e2fbb12fa9348da497fa`. It authorised only the
+  dated OpenAI embedding price, administrative indexing within USD 1.00, fresh
+  local store materialisation, local Render preflight/build/test and focused
+  local commits.
+- Price evidence: the official
+  `https://developers.openai.com/api/docs/models/text-embedding-3-small` page
+  reported USD 0.02 input per million tokens. The HTTP 200 response captured at
+  `2026-08-23T22:00:28.5152743+00:00` was 384,286 bytes with payload SHA-256
+  `4f7a89449ce01163662e8240651cc58f2e986f108dff136ebae6eae7b19ca00f`
+  and source-identity SHA-256
+  `a96490e464c121d0d406eb9ed27ff4b1d1d07f1d30825d44e44d6bd2cada2dda`.
+- Implementation: commit `1a304bfd1698026cb3450a863f111f6e8e849a91`
+  added the dated cost schedule, full-plan fail-closed validation, bounded
+  sequential zero-retry provider dispatch and the operational administrative
+  budget composition. Its local verification passed 227 unit, 11 architecture
+  and 348 integration tests, a warning-free Release build, the 452-file
+  repository audit and the language policy.
+- Provider execution: exact intake SHA-256
+  `cea7b845568095eb56dee1b51bfa145c6c6637bc4377c986019971577efefae4`
+  produced exactly 3,282 chunks before credential resolution. The approved
+  existing local reference was reused without exposing its value. The build
+  submitted 52 embedding requests, 51 batches of 64 plus 18, model
+  `text-embedding-3-small`, 1,536 dimensions, concurrency one and zero retry.
+  Conservative request-byte accounting committed USD 0.149629 from the USD
+  1.00 administrative allocation; QueryEmbedding and GroundedGeneration
+  allocations remained zero. No Responses or product query was submitted.
+- Current store: the new store was materialised from validated inputs without
+  copying or promoting any stale store. It contains 3,282 chunks and 3,282
+  vectors. Its active generation is
+  `idxgen-4b417b79a9d8cd2472cb657a5fe7509f297b39f4831215f62143080d896e4f0d`,
+  its logical-artefact digest is
+  `af207b4c359b985bb51b91ec39a40ab22cde93bd3fbbb667741c4b1172461558`,
+  and its 48,220,817-byte structural-tree SHA-256 is
+  `589426ba8f9437812f112b988882e28e970f8eb18a3575f8a5ab9960347d586c`.
+- Render correction and result: commit
+  `3f51a3cac61e8f153c4d83946907650c6266de79` made the builder validate the
+  private attestation and current store bytes rather than merely requiring a
+  marker filename. The clean builder and verifier passed. The resulting
+  private package has 46 files, 84,573,051 bytes, structural-tree SHA-256
+  `5c06e33aa2bb7fc2cadeabe7469a8534e460899ccc86c7ab9b0af7d3afcdfc10`,
+  context-manifest SHA-256
+  `1610c9c383558a6e1ace7abce700fc54e4f40eaa98a73925ee3f8eaaa959e8e7`
+  and package-manifest SHA-256
+  `df898fa9da26a2e04ca0174838d6d0da0e7db686d7a163bdb27b45deb69ec49f`.
+- Readiness boundary: the credential-free local preflight intentionally
+  returned HTTP 503 `Unready` with the single sanitised
+  `provider-budget: Disarmed` check and HTTP 200 `Live` liveness. Publication
+  alone cannot make the service operational: operational query/generation
+  budgets and grants, the Render secret, private image publication and
+  deployment require new exact authority.
+- Append-only integrity: this entry preserves the complete preceding file of
+  641,756 bytes at SHA-256
+  `dd0cd9e14c41520fb17d01ac9aaa3618ee4776e07a36631f53c47af44e3aa878`.
+- Negative scope: no Docker, registry, Render, OCI, push, PR, merge, product
+  query, Responses call, GroundedGeneration, Human Gate or lifecycle
+  transition occurred.

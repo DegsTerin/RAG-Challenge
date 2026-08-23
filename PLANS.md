@@ -451,3 +451,33 @@ uncorrected high local finding remains.
 | `2026-08-21T04:52:58Z` | Corrected Render corpus provenance/evidence wording; authenticated and bounded integration/OCI archives; required coordinator-held digests; revalidated Render source trees; narrowed link-test skips; rehashed the extracted server immediately before launch | Eleven hostile/trusted archive fixtures, seven policy suites, authenticated integration start/restart/cold recovery, focused static regressions, final format/build and all 571 .NET tests passed. One initial focused CA1875 finding and one stale static assertion failed, were corrected at root, and passed on rerun. Independent security re-review found zero critical/high local finding. |
 | `2026-08-22T01:52:02Z` | Recorded the two bounded exceptional language-review dispositions and the single approved corrected offline gate for sealed candidate `e80d10a29738fa7a042286c549687d08b2fe1dea` | `H-GATE-LANGUAGE-001` is resolved only for that sealed candidate; every prior failure and interruption retains its original disposition; `H-HOMOLOGATION-001` remains blocked and no Human Gate or lifecycle transition occurred |
 | `2026-08-22T02:14:50Z` | Preserved the 36-path `main` WIP in stash `e906e6945e72afe8f08774818d3d324f2dbb0b05` and fast-forwarded `main` from `e2ae23f8870ac2f447a9bfa09812288c7dcf3f66` to factual evidence commit `a6ff32038510c552d9568786091a993a9be01117` | The integrated tree is `38c7fa18b52f69671ad2a757ace90520d914cf57`, the worktree is clean, no merge commit was created, `H-HOMOLOGATION-001` remains blocked and no Human Gate or lifecycle transition occurred |
+
+## Authorised current Render candidate addendum — 2026-08-23
+
+- Status: `LOCAL_PACKAGE_READY_EXTERNAL_ACTION_BLOCKED`.
+- Baseline: exact clean
+  `main@468a8c5220db2c1b1bd1e2fbb12fa9348da497fa`; implementation commits
+  `1a304bfd1698026cb3450a863f111f6e8e849a91` and
+  `3f51a3cac61e8f153c4d83946907650c6266de79`.
+- Provider result: exact 3,282-chunk plan, 52 sequential zero-retry embedding
+  requests and USD 0.149629 conservatively committed within the USD 1.00
+  AdministrativeIndexEmbedding allocation. QueryEmbedding and
+  GroundedGeneration remained zero.
+- Store result: fresh 3,282-vector PostgreSQL 18.4 store, active generation
+  `idxgen-4b417b79a9d8cd2472cb657a5fe7509f297b39f4831215f62143080d896e4f0d`
+  and structural-tree SHA-256
+  `589426ba8f9437812f112b988882e28e970f8eb18a3575f8a5ab9960347d586c`.
+- Package result: Build and Test passed locally without restore, Docker,
+  registry or Render. The 84,573,051-byte package structural-tree SHA-256 is
+  `5c06e33aa2bb7fc2cadeabe7469a8534e460899ccc86c7ab9b0af7d3afcdfc10`.
+- Readiness result: HTTP 200 `Live`; expected fail-closed HTTP 503 `Unready`
+  with `provider-budget: Disarmed` when no runtime credential/grant is supplied.
+- Remaining ordered work: obtain exact external authority; build the private
+  image from the attested context; publish it to an access-controlled registry
+  by immutable digest; configure the Render Free service, secret reference and
+  separately budgeted QueryEmbedding/GroundedGeneration grants; deploy; then
+  verify liveness/readiness before any separately authorised product query.
+- Stop condition: no external step starts without exact authority for its
+  package digest, account, registry, cost ceiling, secret reference and
+  provider-operation budgets. Human Gate and lifecycle transition remain
+  separately governed.
