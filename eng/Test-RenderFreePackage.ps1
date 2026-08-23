@@ -92,7 +92,7 @@ $status = @(git -C $repositoryRoot status --porcelain=v1 --untracked-files=all)
 
 if ($packageManifest.source.branch -cne "main" -or
     $packageManifest.source.head -cne $head -or
-    $packageManifest.source.corpus -cne "4.18.6" -or
+    $packageManifest.source.corpus -cne "4.19.5" -or
     $status.Count -ne 0 -or
     $packageManifest.hosting.workspacePlan -cne "hobby" -or
     $packageManifest.hosting.servicePlan -cne "free" -or

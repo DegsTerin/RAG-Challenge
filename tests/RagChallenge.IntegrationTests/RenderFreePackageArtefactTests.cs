@@ -143,7 +143,7 @@ public sealed class RenderFreePackageArtefactTests
         Assert.Contains("dockerInvoked = $false", builder, StringComparison.Ordinal);
         Assert.Contains("imagePublished = $false", builder, StringComparison.Ordinal);
         Assert.Contains("renderContacted = $false", builder, StringComparison.Ordinal);
-        Assert.Contains("corpus = \"4.18.6\"", builder, StringComparison.Ordinal);
+        Assert.Contains("corpus = \"4.19.5\"", builder, StringComparison.Ordinal);
         Assert.Contains("providerQuerySubmitted = $false", builder, StringComparison.Ordinal);
         Assert.Contains("providerCredentialConfigured = $false", builder, StringComparison.Ordinal);
         Assert.Contains("trustedProviderGrantConfigured = $false", builder, StringComparison.Ordinal);
@@ -181,7 +181,7 @@ public sealed class RenderFreePackageArtefactTests
         Assert.Contains("managedDatabase -ne $false", verifier, StringComparison.Ordinal);
         Assert.Contains("imagePublished -ne $false", verifier, StringComparison.Ordinal);
         Assert.Contains("renderContacted -ne $false", verifier, StringComparison.Ordinal);
-        Assert.Contains("source.corpus -cne \"4.18.6\"", verifier, StringComparison.Ordinal);
+        Assert.Contains("source.corpus -cne \"4.19.5\"", verifier, StringComparison.Ordinal);
         Assert.Contains("providerQuerySubmitted -ne $false", verifier, StringComparison.Ordinal);
         Assert.Contains("providerCredentialConfigured -ne $false", verifier, StringComparison.Ordinal);
         Assert.Contains("trustedProviderGrantConfigured -ne $false", verifier, StringComparison.Ordinal);
