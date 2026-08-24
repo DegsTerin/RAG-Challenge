@@ -205,6 +205,18 @@ public sealed class OpenAiHttpEmbeddingProvider : IEmbeddingProvider, IEmbedding
                 CancellationToken.None).ConfigureAwait(false);
             return result;
         }
+        catch (ProviderStageUnavailableException exception) when (
+            !lease.IsTerminal &&
+            exception.Stage == "embedding" &&
+            exception.DiagnosticCode == "invalid-response")
+        {
+            stopwatch.Stop();
+            await lease.CommitObservedMaximumAsync(
+                "EMBEDDING_INVALID_RESPONSE",
+                stopwatch.Elapsed,
+                CancellationToken.None).ConfigureAwait(false);
+            throw;
+        }
         catch (Exception) when (!lease.IsTerminal)
         {
             if (lease.DispatchStarted)
@@ -625,6 +637,18 @@ public sealed class OpenAiHttpLanguageModel : ILanguageModel
                 stopwatch.Elapsed,
                 CancellationToken.None).ConfigureAwait(false);
             return result;
+        }
+        catch (ProviderStageUnavailableException exception) when (
+            !lease.IsTerminal &&
+            exception.Stage == "generation" &&
+            exception.DiagnosticCode == "invalid-response")
+        {
+            stopwatch.Stop();
+            await lease.CommitObservedMaximumAsync(
+                "GENERATION_INVALID_RESPONSE",
+                stopwatch.Elapsed,
+                CancellationToken.None).ConfigureAwait(false);
+            throw;
         }
         catch (Exception) when (!lease.IsTerminal)
         {

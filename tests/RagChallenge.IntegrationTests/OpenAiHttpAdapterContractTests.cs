@@ -217,6 +217,129 @@ public sealed class OpenAiHttpAdapterContractTests
     }
 
     [Fact]
+    public async Task MalformedEmbeddingResponseCommitsObservedMaximumAndLeavesEnvelopeArmed()
+    {
+        var budget = CreateTrackedBudgetGate(ProviderBudgetOperationClass.QueryEmbedding);
+        using var client = CreateClient(new RecordingHandler("{}"));
+        var adapter = new OpenAiHttpEmbeddingProvider(
+            client,
+            Credential,
+            budget.Gate,
+            ProviderBudgetOperationClass.QueryEmbedding);
+        var request = new EmbeddingBatchRequest(
+            new EmbeddingProviderDescriptor(
+                "openai",
+                "text-embedding-3-small",
+                "text-embedding-3-small",
+                dimensions: 3),
+            ["synthetic"],
+            maximumUtf8Bytes: 4096);
+
+        var failure = await Assert.ThrowsAsync<ProviderStageUnavailableException>(() =>
+            adapter.EmbedAsync(request));
+
+        Assert.Equal("invalid-response", failure.DiagnosticCode);
+        await AssertBudgetTerminalStateAsync(
+            budget,
+            ProviderBudgetReservationStatus.Committed,
+            ProviderBudgetState.Armed);
+    }
+
+    [Fact]
+    public async Task HttpRejectedGenerationResponseRequiresReconciliation()
+    {
+        var budget = CreateTrackedBudgetGate(ProviderBudgetOperationClass.GroundedGeneration);
+        using var client = CreateClient(new RecordingHandler(
+            "{\"private\":\"response\"}",
+            HttpStatusCode.TooManyRequests));
+        var adapter = new OpenAiHttpLanguageModel(
+            client,
+            Credential,
+            CreateLanguageModelOptions(),
+            budget.Gate);
+
+        var failure = await Assert.ThrowsAsync<ProviderStageUnavailableException>(() =>
+            adapter.GenerateAsync(CreateGenerationRequest()));
+
+        Assert.Equal("http-status-429", failure.DiagnosticCode);
+        await AssertBudgetTerminalStateAsync(
+            budget,
+            ProviderBudgetReservationStatus.IndeterminateCommitted,
+            ProviderBudgetState.ReconciliationRequired);
+    }
+
+    [Fact]
+    public async Task MalformedGenerationResponseCommitsObservedMaximumAndLeavesEnvelopeArmed()
+    {
+        var budget = CreateTrackedBudgetGate(ProviderBudgetOperationClass.GroundedGeneration);
+        using var client = CreateClient(new RecordingHandler("{}"));
+        var adapter = new OpenAiHttpLanguageModel(
+            client,
+            Credential,
+            CreateLanguageModelOptions(),
+            budget.Gate);
+
+        var failure = await Assert.ThrowsAsync<ProviderStageUnavailableException>(() =>
+            adapter.GenerateAsync(CreateGenerationRequest()));
+
+        Assert.Equal("invalid-response", failure.DiagnosticCode);
+        await AssertBudgetTerminalStateAsync(
+            budget,
+            ProviderBudgetReservationStatus.Committed,
+            ProviderBudgetState.Armed);
+    }
+
+    [Fact]
+    public async Task EmbeddingTransportAmbiguityRequiresReconciliation()
+    {
+        var budget = CreateTrackedBudgetGate(ProviderBudgetOperationClass.QueryEmbedding);
+        using var client = CreateClient(new FailingHandler(
+            new HttpRequestException("sensitive transport detail")));
+        var adapter = new OpenAiHttpEmbeddingProvider(
+            client,
+            Credential,
+            budget.Gate,
+            ProviderBudgetOperationClass.QueryEmbedding);
+        var request = new EmbeddingBatchRequest(
+            new EmbeddingProviderDescriptor(
+                "openai",
+                "text-embedding-3-small",
+                "text-embedding-3-small",
+                dimensions: 3),
+            ["synthetic"],
+            maximumUtf8Bytes: 4096);
+
+        await Assert.ThrowsAsync<ProviderStageUnavailableException>(() =>
+            adapter.EmbedAsync(request));
+
+        await AssertBudgetTerminalStateAsync(
+            budget,
+            ProviderBudgetReservationStatus.IndeterminateCommitted,
+            ProviderBudgetState.ReconciliationRequired);
+    }
+
+    [Fact]
+    public async Task GenerationTransportAmbiguityRequiresReconciliation()
+    {
+        var budget = CreateTrackedBudgetGate(ProviderBudgetOperationClass.GroundedGeneration);
+        using var client = CreateClient(new FailingHandler(
+            new HttpRequestException("sensitive transport detail")));
+        var adapter = new OpenAiHttpLanguageModel(
+            client,
+            Credential,
+            CreateLanguageModelOptions(),
+            budget.Gate);
+
+        await Assert.ThrowsAsync<ProviderStageUnavailableException>(() =>
+            adapter.GenerateAsync(CreateGenerationRequest()));
+
+        await AssertBudgetTerminalStateAsync(
+            budget,
+            ProviderBudgetReservationStatus.IndeterminateCommitted,
+            ProviderBudgetState.ReconciliationRequired);
+    }
+
+    [Fact]
     public async Task ResponseAdapterRejectsUnexpectedModelAndMalformedStructuredOutput()
     {
         var response = JsonSerializer.Serialize(new
@@ -446,6 +569,38 @@ public sealed class OpenAiHttpAdapterContractTests
             _ => ValueTask.CompletedTask);
     }
 
+    private static TrackedBudgetGate CreateTrackedBudgetGate(
+        ProviderBudgetOperationClass operationClass)
+    {
+        var envelope = CreateZeroEnvelope();
+        var ledger = new FakeDeterministicProviderBudgetLedger(envelope);
+        var providerRequestId = new ProviderRequestId($"PBR-SYNTHETIC-{Guid.NewGuid():N}");
+        var authority = new ProviderBudgetAuthorityReference(
+            $"AUTH-SYNTHETIC-{operationClass}");
+        var gate = new ProviderBudgetAdmissionGate(
+            ledger,
+            new ProviderBudgetAdmissionContext(
+                envelope.EnvelopeId,
+                envelope.RuntimeSessionId!,
+                authority,
+                () => providerRequestId),
+            _ => ValueTask.CompletedTask);
+        return new TrackedBudgetGate(envelope, ledger, providerRequestId, gate);
+    }
+
+    private static async Task AssertBudgetTerminalStateAsync(
+        TrackedBudgetGate budget,
+        ProviderBudgetReservationStatus expectedReservationStatus,
+        ProviderBudgetState expectedEnvelopeState)
+    {
+        var reservation = Assert.IsType<ProviderBudgetReservation>(
+            await budget.Ledger.ReadReservationAsync(budget.ProviderRequestId));
+        Assert.Equal(expectedReservationStatus, reservation.Status);
+        var envelope = Assert.IsType<ProviderBudgetEnvelopeV1>(
+            await budget.Ledger.ReadEnvelopeAsync(budget.Envelope.EnvelopeId));
+        Assert.Equal(expectedEnvelopeState, envelope.State);
+    }
+
     private static ProviderBudgetEnvelopeV1 CreateZeroEnvelope()
     {
         var instant = DateTimeOffset.UtcNow;
@@ -512,6 +667,12 @@ public sealed class OpenAiHttpAdapterContractTests
         cancellationToken.ThrowIfCancellationRequested();
         return ValueTask.FromResult("<synthetic-credential>");
     }
+
+    private sealed record TrackedBudgetGate(
+        ProviderBudgetEnvelopeV1 Envelope,
+        FakeDeterministicProviderBudgetLedger Ledger,
+        ProviderRequestId ProviderRequestId,
+        ProviderBudgetAdmissionGate Gate);
 
     private sealed class RecordingHandler(
         string responseJson,
