@@ -298,7 +298,8 @@ public sealed class OpenAiHttpEmbeddingProvider : IEmbeddingProvider, IEmbedding
         {
             throw new ProviderStageUnavailableException(
                 "embedding",
-                "The embedding provider response was invalid.");
+                "The embedding provider response was invalid.",
+                "invalid-response");
         }
     }
 
@@ -334,7 +335,8 @@ public sealed class OpenAiHttpEmbeddingProvider : IEmbeddingProvider, IEmbedding
         {
             throw new ProviderStageUnavailableException(
                 stage,
-                "The provider credential is unavailable.");
+                "The provider credential is unavailable.",
+                "credential-unavailable");
         }
 
         return key;
@@ -357,13 +359,15 @@ public sealed class OpenAiHttpEmbeddingProvider : IEmbeddingProvider, IEmbedding
         {
             throw new ProviderStageUnavailableException(
                 stage,
-                "The provider request exceeded its time budget.");
+                "The provider request exceeded its time budget.",
+                "request-timeout");
         }
         catch (HttpRequestException)
         {
             throw new ProviderStageUnavailableException(
                 stage,
-                "The provider transport is unavailable.");
+                "The provider transport is unavailable.",
+                "request-transport");
         }
     }
 
@@ -373,17 +377,39 @@ public sealed class OpenAiHttpEmbeddingProvider : IEmbeddingProvider, IEmbedding
         int maximumBytes,
         CancellationToken cancellationToken)
     {
-        if (response.StatusCode != HttpStatusCode.OK ||
-            response.Headers.Location is not null ||
-            !string.Equals(
-                response.Content.Headers.ContentType?.MediaType,
-                "application/json",
-                StringComparison.OrdinalIgnoreCase) ||
-            response.Content.Headers.ContentLength > maximumBytes)
+        if (response.StatusCode != HttpStatusCode.OK)
         {
             throw new ProviderStageUnavailableException(
                 stage,
-                "The provider response violated HTTP policy.");
+                "The provider response violated HTTP policy.",
+                $"http-status-{(int)response.StatusCode}");
+        }
+
+        if (response.Headers.Location is not null)
+        {
+            throw new ProviderStageUnavailableException(
+                stage,
+                "The provider response violated HTTP policy.",
+                "redirect");
+        }
+
+        if (!string.Equals(
+                response.Content.Headers.ContentType?.MediaType,
+                "application/json",
+                StringComparison.OrdinalIgnoreCase))
+        {
+            throw new ProviderStageUnavailableException(
+                stage,
+                "The provider response violated HTTP policy.",
+                "content-type");
+        }
+
+        if (response.Content.Headers.ContentLength > maximumBytes)
+        {
+            throw new ProviderStageUnavailableException(
+                stage,
+                "The provider response violated HTTP policy.",
+                "response-size");
         }
 
         try
@@ -406,7 +432,8 @@ public sealed class OpenAiHttpEmbeddingProvider : IEmbeddingProvider, IEmbedding
                 {
                     throw new ProviderStageUnavailableException(
                         stage,
-                        "The provider response exceeded its byte limit.");
+                        "The provider response exceeded its byte limit.",
+                        "response-size");
                 }
 
                 output.Write(buffer, 0, read);
@@ -416,19 +443,22 @@ public sealed class OpenAiHttpEmbeddingProvider : IEmbeddingProvider, IEmbedding
         {
             throw new ProviderStageUnavailableException(
                 stage,
-                "The provider response exceeded its time budget.");
+                "The provider response exceeded its time budget.",
+                "response-timeout");
         }
         catch (HttpRequestException)
         {
             throw new ProviderStageUnavailableException(
                 stage,
-                "The provider response transport is unavailable.");
+                "The provider response transport is unavailable.",
+                "response-transport");
         }
         catch (IOException)
         {
             throw new ProviderStageUnavailableException(
                 stage,
-                "The provider response could not be read.");
+                "The provider response could not be read.",
+                "response-read");
         }
     }
 
@@ -707,7 +737,8 @@ public sealed class OpenAiHttpLanguageModel : ILanguageModel
         {
             throw new ProviderStageUnavailableException(
                 "generation",
-                "The language-model provider response was invalid.");
+                "The language-model provider response was invalid.",
+                "invalid-response");
         }
     }
 

@@ -139,7 +139,7 @@ internal sealed record ProductQueryRuntimeOptions(
     }
 }
 
-internal sealed class ProductQueryRuntime :
+internal sealed partial class ProductQueryRuntime :
     IQuestionAnsweringService,
     IQueryReadinessProbe,
     IVisualEvidenceReader,
@@ -171,6 +171,7 @@ internal sealed class ProductQueryRuntime :
     private readonly ProductQueryRuntimeOptions options;
     private readonly IAnswerEvidenceActivitySink answerEvidenceActivitySink;
     private readonly Func<string, string?> credentialEnvironmentReader;
+    private readonly ILogger<ProductQueryRuntime>? logger;
     private readonly HttpClient embeddingClient;
     private readonly HttpClient languageModelClient;
     private readonly SqliteStoreOptions runtimeBudgetStores;
@@ -199,11 +200,13 @@ internal sealed class ProductQueryRuntime :
     internal ProductQueryRuntime(
         ProductQueryRuntimeOptions options,
         IAnswerEvidenceActivitySink? answerEvidenceActivitySink = null,
+        ILogger<ProductQueryRuntime>? logger = null,
         Func<string, string?>? credentialEnvironmentReader = null)
     {
         this.options = options ?? throw new ArgumentNullException(nameof(options));
         this.answerEvidenceActivitySink = answerEvidenceActivitySink ??
             NullAnswerEvidenceActivitySink.Instance;
+        this.logger = logger;
         this.credentialEnvironmentReader = credentialEnvironmentReader ??
             Environment.GetEnvironmentVariable;
         runtimeBudgetStores = ProductProviderBudgetAdmission.CreateRuntimeBudgetStores(
@@ -397,18 +400,22 @@ internal sealed class ProductQueryRuntime :
                 options.QueryEmbeddingAuthority,
                 options.OperationalGrants,
                 ProductProviderOperation.GroundedGeneration);
-            var embeddingProvider = new OpenAiHttpEmbeddingProvider(
+            var embeddingProvider = new SanitisedEmbeddingProvider(
+                new OpenAiHttpEmbeddingProvider(
                 embeddingClient,
                 queryCredentialSource.ReadAsync,
                 queryBudgetComposition.AdmissionGate,
                 ProviderBudgetOperationClass.QueryEmbedding,
-                prepareBudget: queryBudgetComposition.PrepareAsync);
-            var languageModel = new OpenAiHttpLanguageModel(
+                prepareBudget: queryBudgetComposition.PrepareAsync),
+                ObserveProviderFailure);
+            var languageModel = new SanitisedLanguageModel(
+                new OpenAiHttpLanguageModel(
                 languageModelClient,
                 generationCredentialSource.ReadAsync,
                 LanguageModelDescriptor,
                 generationBudgetComposition.AdmissionGate,
-                prepareBudget: generationBudgetComposition.PrepareAsync);
+                prepareBudget: generationBudgetComposition.PrepareAsync),
+                ObserveProviderFailure);
             var retrievalPolicyConfiguration = RetrievalPolicyConfiguration.CreateRetrievalV2(
                 ProductAdministrativeMaterialisationProfile.EmbeddingDescriptor,
                 ProductAdministrativeMaterialisationProfile.CompatibilityProfile.Key);
@@ -782,6 +789,23 @@ internal sealed class ProductQueryRuntime :
         exception is ArgumentException or InvalidDataException or InvalidOperationException or IOException or
             UnauthorizedAccessException or SqliteException or ProviderStageUnavailableException;
 
+    private void ObserveProviderFailure(ProviderStageUnavailableException exception)
+    {
+        if (logger is not null)
+        {
+            LogProviderUnavailable(logger, exception.Stage, exception.DiagnosticCode);
+        }
+    }
+
+    [LoggerMessage(
+        EventId = 7101,
+        Level = LogLevel.Warning,
+        Message = "Product provider stage {ProviderStage} failed with sanitised diagnostic {DiagnosticCode}.")]
+    private static partial void LogProviderUnavailable(
+        ILogger logger,
+        string providerStage,
+        string diagnosticCode);
+
     private static readonly DatabaseProductId OracleDatabaseId = new("oracle-database");
     private static readonly DatabaseProductId PostgreSqlDatabaseId = new("postgresql-18");
 
@@ -790,5 +814,46 @@ internal sealed class ProductQueryRuntime :
         initialisationGate.Dispose();
         embeddingClient.Dispose();
         languageModelClient.Dispose();
+    }
+
+    private sealed class SanitisedEmbeddingProvider(
+        IEmbeddingProvider inner,
+        Action<ProviderStageUnavailableException> observer) : IEmbeddingProvider
+    {
+        public async Task<EmbeddingBatchResult> EmbedAsync(
+            EmbeddingBatchRequest request,
+            CancellationToken cancellationToken = default)
+        {
+            try
+            {
+                return await inner.EmbedAsync(request, cancellationToken).ConfigureAwait(false);
+            }
+            catch (ProviderStageUnavailableException exception)
+            {
+                observer(exception);
+                throw;
+            }
+        }
+    }
+
+    private sealed class SanitisedLanguageModel(
+        ILanguageModel inner,
+        Action<ProviderStageUnavailableException> observer) : ILanguageModel
+    {
+        public async Task<GroundedGenerationResult> GenerateAsync(
+            GroundedGenerationRequest request,
+            CancellationToken cancellationToken = default)
+        {
+            try
+            {
+                return await inner.GenerateAsync(request, cancellationToken)
+                    .ConfigureAwait(false);
+            }
+            catch (ProviderStageUnavailableException exception)
+            {
+                observer(exception);
+                throw;
+            }
+        }
     }
 }

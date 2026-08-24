@@ -18,6 +18,14 @@ public sealed class RenderFreePackageArtefactTests
         Assert.Contains("numInstances: 1", template, StringComparison.Ordinal);
         Assert.Contains("autoDeployTrigger: off", template, StringComparison.Ordinal);
         Assert.Contains(
+            "healthCheckPath: /api/v1/health/live",
+            template,
+            StringComparison.Ordinal);
+        Assert.DoesNotContain(
+            "healthCheckPath: /api/v1/health/ready",
+            template,
+            StringComparison.Ordinal);
+        Assert.Contains(
             "<private-image-reference-by-digest>",
             template,
             StringComparison.Ordinal);

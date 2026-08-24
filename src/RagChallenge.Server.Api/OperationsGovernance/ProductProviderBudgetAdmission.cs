@@ -1,7 +1,8 @@
 // Purpose: Wires product provider operations and bounded readiness to the persistent ledger while keeping every unconfigured or unauthorised operation fail closed before credential or egress access.
-using Microsoft.Data.Sqlite;
 using System.Security.Cryptography;
 using System.Text;
+
+using Microsoft.Data.Sqlite;
 
 using RagChallenge.Application.ProviderBudget;
 using RagChallenge.Infrastructure.Persistence;

@@ -5,7 +5,7 @@ services:
     runtime: image
     plan: free
     numInstances: 1
-    healthCheckPath: /api/v1/health/ready
+    healthCheckPath: /api/v1/health/live
     maxShutdownDelaySeconds: 30
     autoDeployTrigger: off
     image:

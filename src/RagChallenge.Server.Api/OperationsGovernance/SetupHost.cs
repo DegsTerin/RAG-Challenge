@@ -38,7 +38,11 @@ internal static class SetupHost
             new SetupCompositionBoundary(
                 typeof(Application.ApplicationAssemblyMarker).Assembly,
                 typeof(Infrastructure.InfrastructureAssemblyMarker).Assembly));
-        builder.Services.AddProblemDetails();
+        builder.Services.AddProblemDetails(options =>
+        {
+            options.CustomizeProblemDetails = context =>
+                context.ProblemDetails.Extensions.Remove("traceId");
+        });
         builder.Services.AddExceptionHandler<ApiExceptionHandler>();
         builder.Services.ConfigureHttpJsonOptions(options =>
         {
@@ -121,7 +125,8 @@ internal static class SetupHost
             builder.Services.AddSingleton(services => new ProductQueryRuntime(
                 services.GetRequiredService<ProductQueryRuntimeOptions>(),
                 new SanitisedAnswerEvidenceActivitySink(
-                    services.GetRequiredService<ILogger<SanitisedAnswerEvidenceActivitySink>>())));
+                    services.GetRequiredService<ILogger<SanitisedAnswerEvidenceActivitySink>>()),
+                services.GetRequiredService<ILogger<ProductQueryRuntime>>()));
             builder.Services.AddSingleton<IQuestionAnsweringService>(services =>
                 services.GetRequiredService<ProductQueryRuntime>());
             builder.Services.AddSingleton<IQueryReadinessProbe>(services =>

@@ -202,6 +202,7 @@ public sealed class OpenAiHttpAdapterContractTests
         var transportFailure = await Assert.ThrowsAsync<ProviderStageUnavailableException>(
             () => transportAdapter.EmbedAsync(request));
         Assert.Equal("embedding", transportFailure.Stage);
+        Assert.Equal("request-transport", transportFailure.DiagnosticCode);
         Assert.DoesNotContain("sensitive", transportFailure.Message, StringComparison.Ordinal);
 
         using var statusClient = CreateClient(new RecordingHandler(
@@ -211,6 +212,7 @@ public sealed class OpenAiHttpAdapterContractTests
         var statusFailure = await Assert.ThrowsAsync<ProviderStageUnavailableException>(
             () => statusAdapter.EmbedAsync(request));
         Assert.Equal("embedding", statusFailure.Stage);
+        Assert.Equal("http-status-429", statusFailure.DiagnosticCode);
         Assert.DoesNotContain("private", statusFailure.Message, StringComparison.Ordinal);
     }
 

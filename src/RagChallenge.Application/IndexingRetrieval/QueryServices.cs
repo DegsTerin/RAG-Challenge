@@ -404,7 +404,10 @@ public interface IQuestionAnsweringService
 
 public sealed class ProviderStageUnavailableException : Exception
 {
-    public ProviderStageUnavailableException(string stage, string message)
+    public ProviderStageUnavailableException(
+        string stage,
+        string message,
+        string diagnosticCode = "unavailable")
         : base(message)
     {
         if (stage is not "embedding" and not "generation")
@@ -412,10 +415,22 @@ public sealed class ProviderStageUnavailableException : Exception
             throw new ArgumentOutOfRangeException(nameof(stage));
         }
 
+        if (string.IsNullOrWhiteSpace(diagnosticCode) || diagnosticCode.Length > 64 ||
+            diagnosticCode.Any(character =>
+                !char.IsAsciiLetterOrDigit(character) && character is not '-'))
+        {
+            throw new ArgumentException(
+                "The provider diagnostic code must be a bounded sanitised token.",
+                nameof(diagnosticCode));
+        }
+
         Stage = stage;
+        DiagnosticCode = diagnosticCode;
     }
 
     public string Stage { get; }
+
+    public string DiagnosticCode { get; }
 }
 
 public sealed class QuestionAnsweringService : IQuestionAnsweringService

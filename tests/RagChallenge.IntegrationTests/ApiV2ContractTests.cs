@@ -233,6 +233,7 @@ public sealed class ApiV2ContractTests
             Assert.Equal(StatusCodes.Status404NotFound, response.StatusCode);
             Assert.Equal("CH_VISUAL_EVIDENCE_NOT_AVAILABLE",
                 problem.RootElement.GetProperty("code").GetString());
+            Assert.False(problem.RootElement.TryGetProperty("traceId", out _));
             Assert.Equal(0, reader.CallCount);
 
             await app.StopAsync();
