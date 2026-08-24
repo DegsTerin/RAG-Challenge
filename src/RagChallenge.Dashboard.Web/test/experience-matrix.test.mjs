@@ -18,8 +18,9 @@ test.after(async () => {
   await vite.close();
 });
 
-test("keeps all eight interface, question-language, and theme combinations shrinkable at the narrow breakpoint", async () => {
+test("keeps the stacked workspace and all eight interface, question-language, and theme combinations shrinkable", async () => {
   const css = await readFile(new URL("../src/styles.css", import.meta.url), "utf8");
+  const workspaceLayouts = [...css.matchAll(/\.workspace-grid\s*\{([\s\S]*?)\}/g)];
   const narrowLayoutStart = css.indexOf("@media (max-width: 52rem)");
   const narrowLayoutEnd = css.indexOf("@media (max-width: 32rem)", narrowLayoutStart);
   const narrowLayout = css.slice(narrowLayoutStart, narrowLayoutEnd);
@@ -34,6 +35,9 @@ test("keeps all eight interface, question-language, and theme combinations shrin
   };
   let combinations = 0;
 
+  assert.equal(workspaceLayouts.length, 1);
+  assert.match(workspaceLayouts[0][1], /grid-template-columns:\s*minmax\(0, 1fr\)/);
+  assert.doesNotMatch(workspaceLayouts[0][1], /1\.05fr|0\.95fr/);
   assert.notEqual(narrowLayoutStart, -1);
   assert.notEqual(narrowLayoutEnd, -1);
   assert.notEqual(compactLayoutEnd, -1);
@@ -104,6 +108,7 @@ test("keeps all eight interface, question-language, and theme combinations shrin
         assert.ok(html.includes(longTokens.answer));
         assert.ok(html.includes(longTokens.citationTitle));
         assert.ok(html.includes(longTokens.citationExcerpt));
+        assert.ok(html.indexOf('class="panel query-panel"') < html.indexOf('class="panel result-panel"'));
         combinations += 1;
       }
     }

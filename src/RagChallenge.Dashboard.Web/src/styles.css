@@ -214,7 +214,7 @@ select:focus-visible,
 
 .workspace-grid {
   display: grid;
-  grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr);
+  grid-template-columns: minmax(0, 1fr);
   gap: 1.25rem;
 }
 
@@ -754,9 +754,6 @@ select:focus-visible,
     justify-content: flex-start;
   }
 
-  .workspace-grid {
-    grid-template-columns: 1fr;
-  }
 }
 
 @media (max-width: 32rem) {
