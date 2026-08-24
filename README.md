@@ -41,7 +41,7 @@ provenance, active index generation and request correlation identifier.
 
 ## See it in action
 
-[![Animated RAG-Challenge demonstration: ask a PostgreSQL question in English, receive a grounded answer, and inspect its page-level citation.](docs/assets/demo/rag-challenge-live-query-en-gb.gif)](https://rag-challenge-ac09.onrender.com/)
+[![Animated RAG-Challenge demonstration: ask a PostgreSQL question in English, receive a grounded answer, and inspect its page-level citations.](docs/assets/demo/rag-challenge-live-query-en-gb.gif)](https://rag-challenge-ac09.onrender.com/)
 
 The demonstration above was captured from one live query against the published
 service. The question, generated answer, evaluated coverage and citation
