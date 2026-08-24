@@ -40,7 +40,7 @@ test("normalises and bounds an API v1 request by UTF-8 bytes", () => {
   const { request, body } = createQueryRequest("  configuração  ", "pt-BR");
 
   assert.equal(request.question, "configuração");
-  assert.equal(request.corpusId, "database-systems-catalogue-mvp");
+  assert.equal(request.corpusId, "rag-challenge-product");
   assert.ok(utf8ByteCount(body) <= 8192);
 });
 

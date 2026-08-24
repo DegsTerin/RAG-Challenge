@@ -5,7 +5,7 @@ export const answeredResponse = {
   answer: "O PostgreSQL usa controle multiversão para manter versões de linhas.",
   citations: [
     {
-      corpusId: "database-systems-catalogue-mvp",
+      corpusId: "rag-challenge-product",
       indexGenerationId: "generation-synthetic-001",
       databaseProductId: "postgresql",
       databaseProductRevision: 1,
@@ -29,7 +29,7 @@ export const answeredResponse = {
       sourceFreshness: "Current",
     },
     {
-      corpusId: "database-systems-catalogue-mvp",
+      corpusId: "rag-challenge-product",
       indexGenerationId: "generation-synthetic-001",
       databaseProductId: "postgresql",
       databaseProductRevision: 1,

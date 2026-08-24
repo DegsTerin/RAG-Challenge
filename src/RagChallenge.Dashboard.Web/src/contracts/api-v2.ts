@@ -9,7 +9,7 @@ import {
   isSafeHttpsUrl,
   isSourceFreshness,
   maximumQuestionBytes,
-  mvpCorpusId,
+  productCorpusId,
   queryOutcomes,
   requireArray,
   requireCorrelationId,
@@ -46,7 +46,7 @@ export {
   isSafeHttpsUrl,
   isSourceFreshness,
   maximumQuestionBytes,
-  mvpCorpusId,
+  productCorpusId,
   supportedLanguages,
   utf8ByteCount,
   validateQuestion,
@@ -246,7 +246,7 @@ export function decodeQueryResponse(
   let pageCount = 0;
 
   for (const citation of citations) {
-    if (citation.corpusId !== mvpCorpusId || citation.indexGenerationId !== indexGenerationId) {
+    if (citation.corpusId !== productCorpusId || citation.indexGenerationId !== indexGenerationId) {
       throw new ContractValidationError("Citation identity does not match the response.");
     }
 

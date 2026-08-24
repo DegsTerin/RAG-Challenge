@@ -1,6 +1,6 @@
 // Purpose: Freezes and validates the Dashboard-facing API v1 transport without granting client-side authority over corpus, providers, or sources.
 export const queryEndpointV1 = "/api/v1/questions";
-export const mvpCorpusId = "database-systems-catalogue-mvp";
+export const productCorpusId = "rag-challenge-product";
 export const maximumQuestionBytes = 4096;
 export const maximumRequestBytes = 8192;
 
@@ -149,7 +149,7 @@ export function createQueryRequest(
   }
 
   const request: QueryRequestV1 = {
-    corpusId: mvpCorpusId,
+    corpusId: productCorpusId,
     questionLanguage,
     question: normalisedQuestion,
   };
@@ -208,7 +208,7 @@ export function decodeQueryResponse(
 
   for (const citation of citations) {
     if (
-      citation.corpusId !== mvpCorpusId ||
+      citation.corpusId !== productCorpusId ||
       citation.indexGenerationId !== indexGenerationId
     ) {
       throw new ContractValidationError("Citation identity does not match the response.");
