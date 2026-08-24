@@ -529,6 +529,65 @@ public sealed class ProductQueryRuntimeTests
     }
 
     [Fact]
+    public async Task CancelledReadinessDoesNotPoisonSharedBudgetPreparation()
+    {
+        var root = Path.Combine(
+            Path.GetTempPath(),
+            "rag-challenge-product-budget-cancellation-tests",
+            Guid.NewGuid().ToString("N"));
+        var stores = new SqliteStoreOptions(
+            Path.Combine(root, "control.db"),
+            Path.Combine(root, "vectors.db"),
+            Path.Combine(root, "content"));
+        var queryAuthority = ProductProviderOperationalAuthority.Parse(
+            ProductProviderOperation.QueryEmbedding,
+            "AUTH-QUERY-EMBEDDING-TEST-001");
+        var generationAuthority = ProductProviderOperationalAuthority.Parse(
+            ProductProviderOperation.GroundedGeneration,
+            "AUTH-GROUNDED-GENERATION-TEST-001");
+        var grants = new ProductProviderOperationalGrantSet(
+            [queryAuthority, generationAuthority]);
+        var composition = ProductProviderBudgetAdmission.CreateRuntimeOperational(
+            stores,
+            queryAuthority,
+            queryAuthority,
+            grants,
+            ProductProviderOperation.QueryEmbedding);
+        using var cancelled = new CancellationTokenSource();
+        cancelled.Cancel();
+
+        try
+        {
+            try
+            {
+                await composition.PrepareAsync(cancelled.Token);
+            }
+            catch (OperationCanceledException)
+            {
+                // A caller cancellation may win the race without cancelling shared preparation.
+            }
+
+            await composition.PrepareAsync(CancellationToken.None);
+            var state = await ProductProviderBudgetAdmission.ReadQueryReadinessAsync(
+                stores,
+                queryAuthority,
+                generationAuthority,
+                grants,
+                DateTimeOffset.UtcNow);
+
+            Assert.Equal(ProviderBudgetState.Armed, state);
+        }
+        finally
+        {
+            SqliteConnection.ClearAllPools();
+            if (Directory.Exists(root))
+            {
+                Directory.Delete(root, recursive: true);
+            }
+        }
+    }
+
+    [Fact]
     public async Task SwappedProviderAuthorityStopsBeforeCredentialLookupAndHttpDispatch()
     {
         var credentialReads = 0;

@@ -476,10 +476,14 @@ internal sealed class ProductProviderBudgetOperationalSession
 
     internal Task PrepareAsync(CancellationToken cancellationToken)
     {
+        Task currentPreparation;
         lock (sync)
         {
-            return preparation ??= PrepareCoreAsync(cancellationToken);
+            preparation ??= PrepareCoreAsync(CancellationToken.None);
+            currentPreparation = preparation;
         }
+
+        return currentPreparation.WaitAsync(cancellationToken);
     }
 
     private async Task PrepareCoreAsync(CancellationToken cancellationToken)
