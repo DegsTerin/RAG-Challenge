@@ -14,15 +14,12 @@ RAG evaluation, run a test or load campaign, inspect a browser, use a provider
 or real source, access a network, mutate OCI or GitHub, publish, deploy, enter
 `STATE-08`, conduct an Automatic Quality Gate or conduct a Human Gate.
 
-The proposal is subordinate to [`AGENTS.md`](../AGENTS.md), the
-[current factual state](../prompts/state/Current-State.md),
-[Lifecycle](../prompts/governance/Lifecycle.md),
-[Quality Gates](../prompts/governance/Quality-Gates.md),
-[Security and Access](../prompts/governance/Security-And-Access.md),
+The proposal is subordinate to
 [ADR-0004](architecture/ADR-0004-MVP-Corpus-Official-Source-And-Evaluation.md)
 and the accepted architecture. A later approval must name the exact execution
 envelope. Approval of this proposal must not be interpreted as execution
-authority.
+authority. Internal lifecycle and agent-governance material is intentionally
+not part of the public runtime repository.
 
 ## Planning baseline decision
 

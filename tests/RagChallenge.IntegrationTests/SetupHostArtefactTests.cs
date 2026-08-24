@@ -307,67 +307,13 @@ public sealed class SetupHostArtefactTests
     }
 
     [Fact]
-    public void ProductScriptsAreCommittedBoundedAndMigrationAware()
+    public void PostgreSqlProductScriptIsCommittedBoundedAndMigrationAware()
     {
         var engRoot = Path.Combine(FindRepositoryRoot(), "eng");
-        var generator = File.ReadAllText(Path.Combine(
-            engRoot,
-            "New-Oracle19ProductPlans.ps1"));
-        var launcher = File.ReadAllText(Path.Combine(
-            engRoot,
-            "Start-Oracle19Product.ps1"));
         var postgreSqlLauncher = File.ReadAllText(Path.Combine(
             engRoot,
             "Start-PostgreSql18Product.ps1"));
 
-        Assert.Contains(
-            "tests/RagChallenge.UnitTests/TestData/initial-catalogue-v1.json",
-            generator.Replace('\\', '/'),
-            StringComparison.Ordinal);
-        Assert.Contains("'oracle-database'", generator, StringComparison.Ordinal);
-        Assert.Contains("status = 'Candidate'", generator, StringComparison.Ordinal);
-        Assert.DoesNotContain("status = 'Active'", generator, StringComparison.Ordinal);
-        Assert.DoesNotContain(
-            "owner-oracle19-public-source-approval-2026-08-12",
-            generator,
-            StringComparison.Ordinal);
-        Assert.DoesNotContain("render-oracle-document.json", generator, StringComparison.Ordinal);
-        Assert.DoesNotContain("build-oracle-index.json", generator, StringComparison.Ordinal);
-        Assert.Contains(
-            "$ApprovedRightsEvidenceReference -ceq $supersededUnverifiedRightsEvidenceReference",
-            launcher,
-            StringComparison.Ordinal);
-        Assert.DoesNotContain(".env.local", launcher, StringComparison.OrdinalIgnoreCase);
-        Assert.DoesNotContain("Get-Content", launcher, StringComparison.Ordinal);
-        Assert.Contains(
-            "$env:RagChallenge__Product__ApplyMigrations = 'true'",
-            launcher,
-            StringComparison.Ordinal);
-        Assert.Contains(
-            "$env:RagChallenge__Product__CatalogueProfile = 'oracle-database-19c'",
-            launcher,
-            StringComparison.Ordinal);
-        Assert.Contains(
-            "$env:RagChallenge__Product__ApprovedRightsEvidenceReference =",
-            launcher,
-            StringComparison.Ordinal);
-        Assert.Contains(
-            "$env:RagChallenge__Product__QueryEmbeddingAuthorityReference",
-            launcher,
-            StringComparison.Ordinal);
-        Assert.Contains(
-            "$env:RagChallenge__Product__GroundedGenerationAuthorityReference",
-            launcher,
-            StringComparison.Ordinal);
-        Assert.Contains("AUTH-QUERY-EMBEDDING-", launcher, StringComparison.Ordinal);
-        Assert.Contains("AUTH-GROUNDED-GENERATION-", launcher, StringComparison.Ordinal);
-        Assert.DoesNotContain("OperationalGrants", launcher, StringComparison.Ordinal);
-        Assert.Contains(
-            "SetEnvironmentVariable(",
-            launcher,
-            StringComparison.Ordinal);
-        Assert.Contains("$credentialName = 'OPENAI_API' + '_KEY'", launcher, StringComparison.Ordinal);
-        Assert.DoesNotContain("GetEnvironmentVariable", launcher, StringComparison.Ordinal);
         Assert.Contains(
             "artifacts-local/state-07/product-materialisation/postgresql-18-reference-a4/product-store",
             postgreSqlLauncher.Replace('\\', '/'),
@@ -390,7 +336,7 @@ public sealed class SetupHostArtefactTests
             StringComparison.OrdinalIgnoreCase);
         Assert.DoesNotContain(
             "sk-",
-            generator + launcher + postgreSqlLauncher,
+            postgreSqlLauncher,
             StringComparison.OrdinalIgnoreCase);
     }
 

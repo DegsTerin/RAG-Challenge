@@ -26,8 +26,7 @@ public sealed class S07ALocalHarnessCampaignTests
 
         while (directory is not null)
         {
-            if (File.Exists(Path.Combine(directory.FullName, "RAG-Challenge.sln")) &&
-                File.Exists(Path.Combine(directory.FullName, "AGENTS.md")))
+            if (File.Exists(Path.Combine(directory.FullName, "RAG-Challenge.sln")))
             {
                 return directory.FullName;
             }

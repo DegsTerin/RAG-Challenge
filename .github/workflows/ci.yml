@@ -39,70 +39,6 @@ jobs:
         with:
           node-version: 24.19.0
 
-      - name: Resolve language-check commit boundary
-        shell: pwsh
-        env:
-          EVENT_NAME: ${{ github.event_name }}
-          PULL_REQUEST_BASE: ${{ github.event.pull_request.base.sha }}
-          PUSH_BEFORE: ${{ github.event.before }}
-          SELECTED_HEAD: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.sha || github.sha }}
-        run: |
-          $ErrorActionPreference = "Stop"
-          $fullSha = '^[0-9a-f]{40}$'
-          if ($env:SELECTED_HEAD -notmatch $fullSha -or $env:SELECTED_HEAD -eq ('0' * 40)) {
-            throw "The event-selected head is missing or invalid."
-          }
-          $headOutput = & git rev-parse --verify HEAD
-          if ($LASTEXITCODE -ne 0) {
-            throw "The checked-out head could not be resolved."
-          }
-          $actualHead = $headOutput.Trim()
-          if ($actualHead -notmatch $fullSha -or $actualHead -cne $env:SELECTED_HEAD) {
-            throw "The checked-out head does not match the event-selected head."
-          }
-          if ($env:EVENT_NAME -eq 'pull_request') {
-            if ($env:PULL_REQUEST_BASE -notmatch $fullSha -or $env:PULL_REQUEST_BASE -eq ('0' * 40)) {
-              throw "The pull-request base is missing or invalid."
-            }
-            $mergeBaseOutput = @(& git merge-base -- $env:PULL_REQUEST_BASE $env:SELECTED_HEAD)
-            if ($LASTEXITCODE -ne 0) {
-              throw "The pull-request merge base could not be resolved."
-            }
-            $mergeBaseCandidates = @($mergeBaseOutput | ForEach-Object { $_.Trim() } | Where-Object { $_.Length -gt 0 })
-            if ($mergeBaseCandidates.Count -ne 1 -or
-                $mergeBaseCandidates[0] -notmatch $fullSha -or
-                $mergeBaseCandidates[0] -eq ('0' * 40)) {
-              throw "The pull-request merge base is missing or invalid."
-            }
-            $allMergeBaseOutput = @(& git merge-base --all -- $env:PULL_REQUEST_BASE $env:SELECTED_HEAD)
-            if ($LASTEXITCODE -ne 0) {
-              throw "The complete pull-request merge-base set could not be resolved."
-            }
-            $allMergeBaseCandidates = @($allMergeBaseOutput | ForEach-Object { $_.Trim() } | Where-Object { $_.Length -gt 0 })
-            if ($allMergeBaseCandidates.Count -ne 1 -or
-                $allMergeBaseCandidates[0] -cne $mergeBaseCandidates[0]) {
-              throw "The pull-request merge base is ambiguous."
-            }
-            $mergeBase = $mergeBaseCandidates[0]
-            & git merge-base --is-ancestor -- $mergeBase $env:SELECTED_HEAD
-            if ($LASTEXITCODE -ne 0) {
-              throw "The pull-request merge base is not an ancestor of the selected head."
-            }
-            "RAG_LANGUAGE_COMMIT_BASE=$mergeBase" >> $env:GITHUB_ENV
-          }
-          elseif ($env:EVENT_NAME -eq 'push') {
-            if ($env:PUSH_BEFORE -notmatch $fullSha -or $env:PUSH_BEFORE -eq ('0' * 40)) {
-              throw "The push-before commit is missing or invalid."
-            }
-            "RAG_LANGUAGE_COMMIT_BASE=$env:PUSH_BEFORE" >> $env:GITHUB_ENV
-          }
-          elseif ($env:EVENT_NAME -eq 'workflow_dispatch') {
-            "RAG_LANGUAGE_COMMIT_HEAD=$env:SELECTED_HEAD" >> $env:GITHUB_ENV
-          }
-          else {
-            throw "The workflow event does not define a language-check boundary."
-          }
-
       - name: Verify toolchains
         shell: pwsh
         run: |
@@ -113,7 +49,6 @@ jobs:
           $expectedDotnet = $dotnetSdk.version
           $rollForward = $dotnetSdk.rollForward
           $dashboardPackage = Get-Content src/RagChallenge.Dashboard.Web/package.json -Raw | ConvertFrom-Json
-          $orchestratorPackage = Get-Content tools/ai-orchestrator/package.json -Raw | ConvertFrom-Json
           $installedDotnet = (dotnet --version).Trim()
           if ($installedDotnet -match '^(\d+)\.(\d+)\.(\d+)') {
             $installedVersion = [System.Version]$matches[0]
@@ -146,9 +81,6 @@ jobs:
 
           Assert-VersionSatisfiesRange -Name "Node.js" -ActualVersion $nodeVersion -Range $dashboardPackage.engines.node
           Assert-VersionSatisfiesRange -Name "npm" -ActualVersion $npmVersion -Range $dashboardPackage.engines.npm
-          Assert-VersionSatisfiesRange -Name "Node.js" -ActualVersion $nodeVersion -Range $orchestratorPackage.engines.node
-          Assert-VersionSatisfiesRange -Name "npm" -ActualVersion $npmVersion -Range $orchestratorPackage.engines.npm
-
       - name: Run setup gate
         shell: pwsh
         run: ./eng/ci.ps1

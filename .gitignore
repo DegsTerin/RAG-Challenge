@@ -1,7 +1,39 @@
-# Local source and governance input materials excluded from version control.
+# Private source material and internal development governance.
 /reference-materials/
-/corpus/oracle-database/19c/database-concepts.pdf
-/corpus/postgresql/18.4/postgresql-18-A4.pdf
+/.codex/
+/prompts/
+/AGENTS.md
+/PLANS.md
+/tools/ai-orchestrator/
+
+# Internal reports and governance-only engineering tools retained locally.
+/docs/*.md
+!/docs/PROJECT-SETUP.md
+!/docs/STATE-07-S07-A-Document-Eligibility-Register.md
+!/docs/STATE-07-S07-A-Evaluation-And-Security-Proposal.md
+/docs/architecture/*
+!/docs/architecture/ADR-0004-MVP-Corpus-Official-Source-And-Evaluation.md
+/docs/data/
+/docs/security/
+/eng/Invoke-LocalArtefactRetention.ps1
+/eng/New-Oracle19ProductPlans.ps1
+/eng/Start-Oracle19Product.ps1
+/eng/check-language.mjs
+/eng/language-migration-baseline.json
+/eng/language-migration-baseline.schema.json
+/eng/language-policy.json
+/eng/language-policy.schema.json
+/eng/test-language-policy.mjs
+/eng/test-local-artefact-retention.ps1
+/eng/test-new-oracle19-product-plans.ps1
+
+# Only the licensed active PostgreSQL corpus is public. Oracle material and any
+# future source require a separate rights decision before publication.
+/corpus/**
+!/corpus/postgresql/
+!/corpus/postgresql/18.4/
+!/corpus/postgresql/18.4/postgresql-18-A4.pdf
+!/corpus/postgresql/18.4/NOTICE.md
 
 # .NET build and test output.
 **/bin/

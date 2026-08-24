@@ -36,6 +36,57 @@ try {
         $failures.Add("reference-materials/ must remain ignored.")
     }
 
+    $trackedFiles = @(& git ls-files)
+    if ($LASTEXITCODE -ne 0) {
+        throw "Git could not enumerate tracked repository files."
+    }
+
+    foreach ($internalPath in @(
+            ".codex/",
+            "prompts/",
+            "tools/ai-orchestrator/")) {
+        if ($trackedFiles | Where-Object {
+                $_.StartsWith($internalPath, [System.StringComparison]::Ordinal) }) {
+            $failures.Add("${internalPath} is internal and must not be tracked.")
+        }
+    }
+
+    foreach ($internalFile in @("AGENTS.md", "PLANS.md")) {
+        if ($trackedFiles -ccontains $internalFile) {
+            $failures.Add("${internalFile} is internal and must not be tracked.")
+        }
+    }
+
+    $expectedCorpusFiles = [System.Collections.Generic.HashSet[string]]::new(
+        [System.StringComparer]::Ordinal)
+    foreach ($expectedCorpusFile in @(
+            "corpus/postgresql/18.4/NOTICE.md",
+            "corpus/postgresql/18.4/postgresql-18-A4.pdf")) {
+        [void]$expectedCorpusFiles.Add($expectedCorpusFile)
+    }
+
+    $trackedCorpusFiles = [System.Collections.Generic.HashSet[string]]::new(
+        [System.StringComparer]::Ordinal)
+    foreach ($trackedCorpusFile in @($trackedFiles | Where-Object {
+                $_.StartsWith("corpus/", [System.StringComparison]::Ordinal) })) {
+        [void]$trackedCorpusFiles.Add($trackedCorpusFile)
+    }
+
+    if (-not $trackedCorpusFiles.SetEquals($expectedCorpusFiles)) {
+        $failures.Add(
+            "The tracked corpus must contain only the licensed PostgreSQL PDF and notice.")
+    }
+
+    $postgresPdf = Join-Path $repositoryRoot `
+        "corpus/postgresql/18.4/postgresql-18-A4.pdf"
+    if (-not [System.IO.File]::Exists($postgresPdf) -or
+        (Get-Item -LiteralPath $postgresPdf).Length -ne 15771040 -or
+        (Get-FileHash -LiteralPath $postgresPdf -Algorithm SHA256).
+            Hash.ToLowerInvariant() -cne
+            "cea7b845568095eb56dee1b51bfa145c6c6637bc4377c986019971577efefae4") {
+        $failures.Add("The public PostgreSQL corpus identity is missing or divergent.")
+    }
+
     foreach ($relativePath in $files) {
         $absolutePath = Join-Path $repositoryRoot $relativePath
 

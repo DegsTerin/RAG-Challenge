@@ -16,7 +16,6 @@ Set-StrictMode -Version Latest
 
 $repositoryRoot = Split-Path -Parent $PSScriptRoot
 $dashboardRoot = Join-Path $repositoryRoot "src/RagChallenge.Dashboard.Web"
-$orchestratorRoot = Join-Path $repositoryRoot "tools/ai-orchestrator"
 $env:DOTNET_CLI_TELEMETRY_OPTOUT = "1"
 $env:DOTNET_NOLOGO = "1"
 $env:DOTNET_SKIP_FIRST_TIME_EXPERIENCE = "1"
@@ -66,19 +65,6 @@ function Assert-NpmLockFileLineEndings {
 Push-Location $repositoryRoot
 
 try {
-    node (Join-Path $PSScriptRoot "test-language-policy.mjs")
-    Assert-LastExitCode "Language policy tests"
-
-    $languageArguments = @((Join-Path $PSScriptRoot "check-language.mjs"))
-    if (-not [string]::IsNullOrWhiteSpace($env:RAG_LANGUAGE_COMMIT_BASE)) {
-        $languageArguments += @("--commit-base", $env:RAG_LANGUAGE_COMMIT_BASE)
-    }
-    if (-not [string]::IsNullOrWhiteSpace($env:RAG_LANGUAGE_COMMIT_HEAD)) {
-        $languageArguments += @("--commit-head", $env:RAG_LANGUAGE_COMMIT_HEAD)
-    }
-    node @languageArguments
-    Assert-LastExitCode "Language policy check"
-
     Invoke-RequiredPolicyTest `
         -Name "fail-closed coverage aggregation" `
         -ScriptPath (Join-Path $PSScriptRoot "test-assert-coverage.ps1")
@@ -88,9 +74,6 @@ try {
     Invoke-RequiredPolicyTest `
         -Name "structured NuGet vulnerability audit" `
         -ScriptPath (Join-Path $PSScriptRoot "test-nuget-audit-policy.ps1")
-    Invoke-RequiredPolicyTest `
-        -Name "task-owned Oracle plan generation" `
-        -ScriptPath (Join-Path $PSScriptRoot "test-new-oracle19-product-plans.ps1")
     Invoke-RequiredPolicyTest `
         -Name "contained Render runtime-store recreation" `
         -ScriptPath (Join-Path $PSScriptRoot "test-render-entrypoint-policy.ps1")
@@ -160,33 +143,6 @@ try {
         }
         else {
             Write-Output "NOT_RUN: dashboard dependency audit requires online registry metadata."
-        }
-    }
-    finally {
-        Pop-Location
-    }
-
-    Push-Location $orchestratorRoot
-
-    try {
-        if ($Offline) {
-            npm ci --offline --ignore-scripts --no-audit --no-fund
-            Assert-LastExitCode "Offline orchestrator restore"
-        }
-        else {
-            npm ci --ignore-scripts --no-audit --no-fund
-            Assert-LastExitCode "Orchestrator restore"
-        }
-
-        npm run check
-        Assert-LastExitCode "Orchestrator checks"
-
-        if (-not $Offline) {
-            npm audit --audit-level=high
-            Assert-LastExitCode "Orchestrator dependency audit"
-        }
-        else {
-            Write-Output "NOT_RUN: orchestrator dependency audit requires online registry metadata."
         }
     }
     finally {

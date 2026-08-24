@@ -1,137 +1,46 @@
 # Project setup
 
-## Purpose
+This guide prepares a local checkout for build and test without configuring a
+provider, publishing an image or deploying a service.
 
-This guide reproduces the `STATE-01 PROJECT_SETUP` scaffold. It covers only
-repository conventions, empty architectural boundaries, dependency-free
-health endpoints, structural tests, and CI. It does not authorise or implement
-RAG, persistence, providers, a product corpus, external sources, deployment,
-or DB-Notifier integration.
+## Required toolchains
 
-## Pinned toolchains
-
-- Git `2.55.0.windows.3`
-- .NET SDK `10.0.302`
-- C# `14.0`
-- Node.js `24.18.0`
-- npm `11.16.0`
-
-`global.json`, `.nvmrc`, `package.json`, central NuGet package management, and
-lockfiles are the machine-readable authorities.
-
-## Repository boundaries
-
-The accepted production dependency direction is:
-
-```text
-RagChallenge.Application -> RagChallenge.Domain
-RagChallenge.Infrastructure -> RagChallenge.Application + RagChallenge.Domain
-RagChallenge.Server.Api -> RagChallenge.Application + RagChallenge.Infrastructure
-RagChallenge.Dashboard.Web -> versioned HTTP/OpenAPI only
-```
-
-The Dashboard is a separate React/TypeScript build boundary. It does not
-reference .NET projects, providers, persistence, or DB-Notifier.
+- the .NET SDK selected by `global.json`;
+- Node.js selected by `.nvmrc`;
+- the npm range declared in `src/RagChallenge.Dashboard.Web/package.json`;
+- PowerShell 7.
 
 ## Restore
 
-The standard restore requires access to the package registries configured in
-`NuGet.config` and npm's lockfile:
-
 ```powershell
 dotnet restore RAG-Challenge.sln --locked-mode
-Set-Location src/RagChallenge.Dashboard.Web
+
+Push-Location src/RagChallenge.Dashboard.Web
 npm ci --ignore-scripts --no-audit --no-fund
-Set-Location ../..
+Pop-Location
 ```
 
-In a governed local execution, do not run the standard restore until package
-registry access is explicitly authorised. When all packages already exist in
-the local caches, use:
+Use `./eng/ci.ps1 -Offline` only after the required NuGet and npm packages are
+already available in the local caches.
 
-```powershell
-dotnet restore RAG-Challenge.sln `
-  --configfile eng/NuGet.Offline.config `
-  --locked-mode
-Set-Location src/RagChallenge.Dashboard.Web
-npm ci --offline --ignore-scripts --no-audit --no-fund
-Set-Location ../..
-```
-
-An offline cache miss is a blocked validation, not permission to fall back to
-the network.
-
-## Build and test
-
-After a successful restore:
-
-```powershell
-dotnet format RAG-Challenge.sln --verify-no-changes --no-restore
-dotnet build RAG-Challenge.sln --configuration Release --no-restore
-dotnet test RAG-Challenge.sln `
-  --configuration Release `
-  --no-build `
-  --no-restore `
-  --collect:"XPlat Code Coverage"
-
-Set-Location src/RagChallenge.Dashboard.Web
-npm run lint
-npm run typecheck
-npm test
-npm run build
-Set-Location ../..
-
-./eng/check-repository.ps1
-git diff --check
-```
-
-The full local/CI entry point is:
+## Validate
 
 ```powershell
 ./eng/ci.ps1
 ```
 
-Use `./eng/ci.ps1 -Offline` only when both dependency caches and both lockfile
-sets are already complete.
+The entrypoint builds and tests the .NET solution and Dashboard, checks
+coverage, validates the Render packaging boundary, audits repository hygiene
+and performs dependency audits when online.
 
-NuGet can reserialise tracked `packages.lock.json` files with platform line
-endings during restore on Windows. The CI entry point reports and normalises
-only those tracked generated files to the repository's UTF-8/LF convention
-before hygiene checks; locked restore still rejects dependency-graph changes.
+## Local configuration
 
-## Setup host
+Copy only non-secret settings into local configuration. Store the OpenAI key
+in `.env.local` as `OPENAI_API_KEY`; the file is ignored by Git. Never place a
+credential in source, examples, logs, screenshots or command arguments.
 
-The API host exposes only dependency-free liveness and readiness endpoints.
-Before starting it, apply the runtime preflight in `AGENTS.md`.
+## Product data
 
-```powershell
-dotnet run `
-  --project src/RagChallenge.Server.Api/RagChallenge.Server.Api.csproj `
-  --no-restore `
-  --no-launch-profile `
-  --urls http://127.0.0.1:5242
-```
-
-The setup endpoints are:
-
-- `GET /health/live`
-- `GET /health/ready`
-
-`RagChallenge:Setup:AllowExternalServices` defaults to `false`. Setting it to
-`true` fails startup closed. No administrative mode, ingestion, query,
-provider, persistence, or external connection exists in this state.
-
-## Secrets and local materials
-
-- Keep secrets outside the repository.
-- Do not commit `.env` files, local settings, runtime output, or test output.
-- `reference-materials/` remains ignored and is not required by restore,
-  build, tests, or runtime.
-- Do not enable external services or package registry access by inference.
-
-## CI boundary
-
-`.github/workflows/ci.yml` has read-only repository permission, does not
-persist checkout credentials, applies a timeout and concurrency cancellation,
-uses locked restores, and runs the repository gate. It contains no deployment
-job. Executing it on GitHub requires separate external authority.
+The licensed PostgreSQL PDF under `corpus/postgresql/18.4/` is an input to
+materialisation. Generated stores and indexes remain under ignored local
+artefact roots and are not part of the Git repository.

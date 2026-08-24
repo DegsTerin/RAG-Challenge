@@ -123,9 +123,8 @@ The accepted decision is:
   safeguards per operation. Capacity failure blocks candidate activation and
   never silently removes catalogue items.
 
-The accepted
-[ADR-0011](ADR-0011-Source-Rights-Evidence-Mapping-And-Same-Origin-Derivative-Display-Boundary.md)
-refines how source-specific evidence satisfies these rights gates. Primary
+The later accepted source-rights evidence decision refines how source-specific
+evidence satisfies these rights gates. Primary
 evidence does not need to repeat a project-owned operation name literally. A
 broad grant may support more than one operation only through a separate,
 auditable and conditional mapping for each of the ten rights decisions. Every

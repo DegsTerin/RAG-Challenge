@@ -1,5 +1,0 @@
-# Purpose: Enables a conservative project-scoped subagent pool without selecting models or granting execution authority.
-[agents]
-enabled = true
-max_concurrent_threads_per_session = 3
-interrupt_message = true
